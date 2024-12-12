@@ -1,0 +1,41 @@
+{
+  "roles": [
+    {
+      "id": 1,
+      "code": "ROLE_LIS_DIRECTOR",
+      "name": "lis_director",
+      "status": "ACTIVE"
+    },
+    {
+      "id": 2,
+      "code": "ROLE_LIS_REGISTRAR",
+      "name": "lis_registrar",
+      "status": "ACTIVE"
+    },
+    {
+      "id": 3,
+      "code": "ROLE_LIS_NURSE",
+      "name": "lis_nurse",
+      "status": "ACTIVE"
+    },
+    {
+      "id": 4,
+      "code": "ROLE_LIS_LABRANT",
+      "name": "lis_labrant",
+      "status": "ACTIVE"
+
+    },
+    {
+      "id": 5,
+      "code": "ROLE_LIS_EXTERNAL_REGISTRAR",
+      "name": "lis_external_registrar",
+      "status": "ACTIVE"
+    },
+    {
+      "id": 6,
+      "code": "ROLE_LIS_PATIENT",
+      "name": "lis_patient",
+      "status": "ACTIVE"
+    }
+  ]
+}
