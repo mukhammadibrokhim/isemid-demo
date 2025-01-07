@@ -12,8 +12,7 @@ before_script:
 stages:
   - gitlab-ci-check
   - build_and_push_dev
-  - build_and_push_prod
-  
+
 check_gitlab_ci_yml:
   stage: gitlab-ci-check
   script:
@@ -23,7 +22,7 @@ check_gitlab_ci_yml:
         exit 1;
       fi
 
-dev:
+deploy_dev:
   needs:
     - check_gitlab_ci_yml
   stage: build_and_push_dev
@@ -31,38 +30,21 @@ dev:
     - dev
   # when: manual
   script:
-    - echo "Deploying to dev server"
-    - mvn clean package -DskipTests
-    - ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER "cd /srv/project/backend; sudo docker compose down"
-    - ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER "sudo rm -rf /srv/project/backend/target/*"
-    - scp -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY ./target/hepatitis*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/target/app.jar
-    - ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER "sudo chmod 777 /srv/project/backend/target/*"
-    - ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER "cd /srv/project/backend; sudo git pull; sudo docker compose up -d"
-    - echo "Dev Deployed"
-
-prod:
-  needs:
-    - check_gitlab_ci_yml
-  stage: build_and_push_prod
-  only:
-    - main
-  # when: manual
-  script:
     - echo "Deploying to prod server"
     - mvn clean package -DskipTests
-    
+
     - | # Stoping service
-      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$PROD_SERVER << 'EOF'
+      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo systemctl stop backend.service
         sudo chown -R runner:runner /srv/project/backend
       EOF
-    
+
     - | # Copying the built binary
       scp -O -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY \
-        `pwd`/target/hepatitis*.jar $PRODUCTION_USER@$PROD_SERVER:/srv/project/backend/app.jar
+        `pwd`/target/isemid*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
 
     - | # Create privilages & run service
-      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$PROD_SERVER << 'EOF'
+      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo chown -R www-data:www-data /srv/project/backend
         sudo systemctl start backend.service
         sleep 10
