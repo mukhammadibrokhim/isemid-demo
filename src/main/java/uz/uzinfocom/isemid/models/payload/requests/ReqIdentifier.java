@@ -15,9 +15,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReqIdentifier {
-    @NotBlank(message = "Value is required and not blank.")
+    @NotBlank(message = "Значение обязательно и не может быть пустым.")
     private String value;
-    @NotNull(message = "TypeCode is required and cannot be null.")
+    @NotNull(message = "Типовой код обязателен и не может быть нулевым.")
     private IdentifierType typeCode;
     private LocalDate periodStart;
     private LocalDate periodEnd;

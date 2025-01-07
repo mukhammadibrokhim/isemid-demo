@@ -14,21 +14,27 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ReqCatalog {
 
-    @NotBlank(message = "Type must not be null or empty.")
+    @NotBlank(message = "Тип не должен быть пустым или null.")
     private String type;
-    @NotBlank(message = "Code must not be null or empty.")
+
+    @NotBlank(message = "Код не должен быть пустым или null.")
     private String code;
+
     private String parentCode;
-    @NotBlank(message = "Name ru must not be null or empty.")
-    @Size(max = 1000, message = "NameRu must not exceed 1000 characters.")
+
+    @NotBlank(message = "Название на русском не должно быть пустым или null.")
+    @Size(max = 1000, message = "Название на русском не должно превышать 1000 символов.")
     private String nameRu;
-    @NotBlank(message = "Name uz must not be null or empty.")
-    @Size(max = 1000, message = "NameUz must not exceed 1000 characters.")
+
+    @NotBlank(message = "Название на узбекском не должно быть пустым или null.")
+    @Size(max = 1000, message = "Название на узбекском не должно превышать 1000 символов.")
     private String nameUz;
-    @NotBlank(message = "Name uz cyril must not be null or empty.")
-    @Size(max = 1000, message = "NameUzCyril must not exceed 1000 characters.")
+
+    @NotBlank(message = "Название на узбекском (кириллицей) не должно быть пустым или null.")
+    @Size(max = 1000, message = "Название на узбекском (кириллицей) не должно превышать 1000 символов.")
     private String nameUzCyril;
-    @NotBlank(message = "Name kaa cyril must not be null or empty.")
-    @Size(max = 1000, message = "NameKaa must not exceed 1000 characters.")
-    private String nameKaa;
+
+    @NotBlank(message = "Название на каракалпакском языке не должно быть пустым или null.")
+    @Size(max = 1000, message = "Название на каракалпакском языке не должно превышать 1000 символов.")
+    private String nameKq;
 }
