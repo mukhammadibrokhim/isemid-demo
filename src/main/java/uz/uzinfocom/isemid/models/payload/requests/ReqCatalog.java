@@ -36,5 +36,5 @@ public class ReqCatalog {
 
     @NotBlank(message = "Название на каракалпакском языке не должно быть пустым или null.")
     @Size(max = 1000, message = "Название на каракалпакском языке не должно превышать 1000 символов.")
-    private String nameKq;
+    private String nameKk;
 }

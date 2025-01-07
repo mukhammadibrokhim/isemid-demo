@@ -18,6 +18,8 @@ public interface ApiUrlConstant {
 
     String FORM0058 = PREFIX + "/form058";
 
+    String DB = PREFIX + "/db";
+
 //    String BASE_DOMAIN = "http://localhost:8081";
     String BASE_DOMAIN = "https://ykem.sanepid.uz";
 
