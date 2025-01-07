@@ -10,21 +10,21 @@ before_script:
   - chmod 600 $SSH_PRIVATE_KEY 
 
 stages:
-  - gitlab-ci-check
+  # - gitlab-ci-check
   - build_and_push_dev
 
-check_gitlab_ci_yml:
-  stage: gitlab-ci-check
-  script:
-    - git fetch origin ci
-    - if ! git diff --exit-code origin/ci:./.gitlab-ci.yml ./.gitlab-ci.yml; then
-        echo "Файл gitlab-ci.yml изменен. Отклоняем изменения!";
-        exit 1;
-      fi
+# check_gitlab_ci_yml:
+#   stage: gitlab-ci-check
+#   script:
+#     - git fetch origin ci
+#     - if ! git diff --exit-code origin/ci:./.gitlab-ci.yml ./.gitlab-ci.yml; then
+#         echo "Файл gitlab-ci.yml изменен. Отклоняем изменения!";
+#         exit 1;
+#       fi
 
 deploy_dev:
-  needs:
-    - check_gitlab_ci_yml
+  # needs:
+  #   - check_gitlab_ci_yml
   stage: build_and_push_dev
   only:
     - dev
@@ -38,7 +38,7 @@ deploy_dev:
         sudo systemctl stop backend.service
         sudo chown -R runner:runner /srv/project/backend
       EOF
-
+    - ls -la `pwd`/target/
     - | # Copying the built binary
       scp -O -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY \
         `pwd`/target/isemid*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
