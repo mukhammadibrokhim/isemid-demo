@@ -14,80 +14,80 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class ReqForm089 {
 
-    @NotBlank(message = "Mkb10 cannot be blank and required.")
+    @NotBlank(message = "Mkb10 не может быть пустым и обязательно для заполнения.")
     private String mkb10;
 
-    @NotBlank(message = "Mkb10 name cannot be blank and required.")
+    @NotBlank(message = "Название Mkb10 не может быть пустым и обязательно для заполнения.")
     private String mkb10Name;
 
-    @NotBlank(message = "MedicalInstitution is required and cannot be blank.")
+    @NotBlank(message = "Медицинское учреждение обязательно и не может быть пустым.")
     private String medicalInstitution;
 
-    @NotBlank(message = "DocumentSentDate is required and cannot be blank.")
+    @NotBlank(message = "Дата отправки документа обязательна и не может быть пустой.")
     private String documentSentDate;
 
-    @NotBlank(message = "DocumentSerialNumber is required and cannot be blank.")
+    @NotBlank(message = "Серийный номер документа обязателен и не может быть пустым.")
     private String documentSerialNumber;
 
-    @NotBlank(message = "BarcodeFill is required and cannot be blank.")
+    @NotBlank(message = "Заполнение штрихкода обязательно и не может быть пустым.")
     private String barcodeFill;
 
     @Valid
     private ReqPatient patient;
 
-    @NotBlank(message = "LivingPlace is required and cannot be blank.")
+    @NotBlank(message = "Место жительства обязательно и не может быть пустым.")
     private String livingPlace;
 
-    @NotBlank(message = "FamilyStatus is required and cannot be blank.")
+    @NotBlank(message = "Семейное положение обязательно и не может быть пустым.")
     private String familyStatus;
 
-    @NotBlank(message = "SocialProfessionalStatus is required and cannot be blank.")
+    @NotBlank(message = "Социально-профессиональный статус обязателен и не может быть пустым.")
     private String socialProfessionalStatus;
 
-    @NotBlank(message = "PopulationCategory is required and cannot be blank.")
+    @NotBlank(message = "Категория населения обязательна и не может быть пустой.")
     private String populationCategory;
 
-    @NotBlank(message = "RiskGroup is required and cannot be blank.")
+    @NotBlank(message = "Группа риска обязательна и не может быть пустой.")
     private String riskGroup;
 
-    @NotNull(message = "LastFluorographyDate is required.")
+    @NotNull(message = "Дата последней флюорографии обязательна.")
     private LocalDate lastFluorographyDate;
 
-    @NotBlank(message = "DiseaseDetectionLocation is required and cannot be blank.")
+    @NotBlank(message = "Место выявления заболевания обязательно и не может быть пустым.")
     private String diseaseDetectionLocation;
 
-    @NotNull(message = "FirstMedicalVisitDate is required.")
+    @NotNull(message = "Дата первого медицинского визита обязательна.")
     private LocalDate firstMedicalVisitDate;
 
-    @NotNull(message = "TuberculosisRegistrationDate is required.")
+    @NotNull(message = "Дата постановки на учет по туберкулезу обязательна.")
     private LocalDate tuberculosisRegistrationDate;
 
-    @NotBlank(message = "DiseaseDetectionMethods is required and cannot be blank.")
+    @NotBlank(message = "Методы выявления заболевания обязательны и не могут быть пустыми.")
     private String diseaseDetectionMethods;
 
-    @NotBlank(message = "DetectedInMonitoredGroups is required and cannot be blank.")
+    @NotBlank(message = "Выявлено в наблюдаемых группах обязательно и не может быть пустым.")
     private String detectedInMonitoredGroups;
 
-    @NotBlank(message = "DetectionMethod is required and cannot be blank.")
+    @NotBlank(message = "Метод выявления заболевания обязателен и не может быть пустым.")
     private String detectionMethod;
 
-    @NotBlank(message = "Diagnosis is required and cannot be blank.")
+    @NotBlank(message = "Диагноз обязателен и не может быть пустым.")
     private String diagnosis;
 
-    @NotBlank(message = "PresenceOfDecay is required and cannot be blank.")
+    @NotBlank(message = "Наличие разрушения обязательно и не может быть пустым.")
     private String presenceOfDecay;
 
-    @NotBlank(message = "ConfirmationMethod is required and cannot be blank.")
+    @NotBlank(message = "Метод подтверждения обязателен и не может быть пустым.")
     private String confirmationMethod;
 
-    @NotBlank(message = "AssociatedDiseases is required and cannot be blank.")
+    @NotBlank(message = "Ассоциированные заболевания обязательны и не могут быть пустыми.")
     private String associatedDiseases;
 
     private boolean registeredInNarcologicalDispensary;
 
-    @NotNull(message = "TuberculosisDiagnosisConfirmationDate is required.")
+    @NotNull(message = "Дата подтверждения диагноза туберкулеза обязательна.")
     private LocalDate tuberculosisDiagnosisConfirmationDate;
 
-    @NotNull(message = "NotificationCompletionDate is required.")
+    @NotNull(message = "Дата завершения уведомления обязательна.")
     private LocalDate notificationCompletionDate;
 }

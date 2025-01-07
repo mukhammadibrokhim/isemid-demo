@@ -16,53 +16,53 @@ import java.time.LocalDate;
 @Builder
 public class ReqForm058 {
 
-    @NotBlank(message = "Mkb10 cannot be blank and required.")
+    @NotBlank(message = "Mkb10 не может быть пустым и обязательно для заполнения.")
     private String mkb10Code;
 
-    @NotBlank(message = "Mkb10 name cannot be blank and required.")
+    @NotBlank(message = "Название Mkb10 не может быть пустым и обязательно для заполнения.")
     private String mkb10Name;
 
     @Valid
-    @NotNull(message = "Patient object is required.")
+    @NotNull(message = "Объект пациента обязателен.")
     private ReqPatient patient;
 
-    @NotBlank(message = "WorkPlace is required and cannot be blank.")
+    @NotBlank(message = "Место работы обязательно и не может быть пустым.")
     private String workPlace;
 
-    @NotBlank(message = "HospitalPlace is required and cannot be blank.")
+    @NotBlank(message = "Место госпитализации обязательно и не может быть пустым.")
     private String hospitalPlace;
 
-    @NotNull(message = "AdmissionDate is required.")
+    @NotNull(message = "Дата поступления обязательна.")
     private LocalDate admissionDate;
 
-    @NotNull(message = "DiseaseDate is required.")
+    @NotNull(message = "Дата заболевания обязательна.")
     private LocalDate diseaseDate;
 
-    @NotNull(message = "FirstVisitDate is required.")
+    @NotNull(message = "Дата первого визита обязательна.")
     private LocalDate firstVisitDate;
 
-    @NotNull(message = "DiagnosisDate is required.")
+    @NotNull(message = "Дата постановки диагноза обязательна.")
     private LocalDate diagnosisDate;
 
-    @NotNull(message = "VisitDate is required.")
+    @NotNull(message = "Дата визита обязательна.")
     private LocalDate visitDate;
 
-    @NotBlank(message = "SenderOrganization is required and cannot be blank.")
+    @NotBlank(message = "Организация-отправитель обязательна и не может быть пустой.")
     private String senderOrganization;
 
-    @NotBlank(message = "ReceiverOrganization is required and cannot be blank.")
+    @NotBlank(message = "Организация-получатель обязательна и не может быть пустой.")
     private String receiverOrganization;
 
-    @NotBlank(message = "PoisoningLocation is required and cannot be blank.")
+    @NotBlank(message = "Место отравления обязательно и не может быть пустым.")
     private String poisoningLocation;
 
-    @NotBlank(message = "DiseaseCause is required and cannot be blank.")
+    @NotBlank(message = "Причина заболевания обязательна и не может быть пустой.")
     private String diseaseCause;
 
-    @NotBlank(message = "EpidemicMeasures is required and cannot be blank.")
+    @NotBlank(message = "Эпидемические меры обязательны и не могут быть пустыми.")
     private String epidemicMeasures;
 
-    @NotBlank(message = "NotifierFullName cannot be blank.")
+    @NotBlank(message = "Ф.И.О. уведомляющего лица не может быть пустым.")
     private String notifierFullName;
 
     private String comment;
