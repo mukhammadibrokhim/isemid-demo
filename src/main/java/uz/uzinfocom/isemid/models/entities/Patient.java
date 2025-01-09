@@ -9,6 +9,8 @@ import jakarta.persistence.OneToMany;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.enums.Gender;
+import uz.uzinfocom.isemid.models.entities.enums.MaritalStatus;
+import uz.uzinfocom.isemid.models.entities.enums.ResidentialStatus;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 
 import java.time.LocalDate;
@@ -32,11 +34,10 @@ public class Patient extends AbsEntity {
 
     private LocalDate birthDate;
     private Gender gender;
-    private String stateCode;
-    private String cityCode;
-    private String neighborhood;
-    private String streetAddress;
-    private String houseNumber;
-    private String apartmentNumber;
+    private ResidentialStatus residentialStatus;
+    private MaritalStatus maritalStatus;
     private String workPlace;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> addresses;
 }

@@ -17,37 +17,55 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.USER;
 import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
 import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
-
 @RestController
 @RequestMapping(USER)
 @RequiredArgsConstructor
-@Tag(name = "User")
+@Tag(name = "Пользователь", description = "API для работы с пользователями")
 public class UserController {
 
     private final UserService userService;
 
+    @Operation(
+            summary = "Получить всех пользователей",
+            description = "Получает список всех пользователей с возможностью пагинации.",
+            parameters = {
+                    @Parameter(name = "page", description = "Номер страницы для пагинации"),
+                    @Parameter(name = "size", description = "Количество пользователей на странице для пагинации"),
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/all")
     public ApiResponsePage getAllUsers(
             @RequestParam(defaultValue = PAGE) int page,
             @RequestParam(defaultValue = SIZE) int size,
             HttpServletRequest request
     ) {
-        return userService.getAllUsers(page,size,request);
+        return userService.getAllUsers(page, size, request);
     }
 
+    @Operation(
+            summary = "Получить пользователя по ID",
+            description = "Получает пользователя по заданному идентификатору (ID).",
+            parameters = {
+                    @Parameter(name = "id", description = "ID пользователя", required = true)
+            })
     @GetMapping("/{id}")
     public ApiResponse<User> getUserById(@PathVariable long id) {
         return userService.getUserById(id);
     }
 
-    @Operation
+    @Operation(
+            summary = "Обновить пользователя из MIS",
+            description = "Обновляет данные пользователя, используя информацию из MIS по UUID пользователя.",
+            parameters = {
+                    @Parameter(name = "uuid", description = "UUID пользователя для обновления", required = true),
+                    @Parameter(name = "Authorization", description = "JWT токен для авторизации", required = true)
+            })
     @PutMapping("/{uuid}/update-from-mis")
     public ApiResponse<User> updateUserFromMis(
             @PathVariable UUID uuid,
             @RequestBody User user,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
-
     ) {
-        return userService.updateUserFromMis(uuid, user,token);
+        return userService.updateUserFromMis(uuid, user, token);
     }
 }

@@ -3,10 +3,7 @@ package uz.uzinfocom.isemid.services.impls;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.models.entities.Form058;
-import uz.uzinfocom.isemid.models.entities.Identifier;
-import uz.uzinfocom.isemid.models.entities.Patient;
-import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
@@ -26,15 +23,11 @@ public class Form058ServiceImpl implements Form058Service {
                 .firstName(reqForm058.getPatient().getFirstName())
                 .lastName(reqForm058.getPatient().getLastName())
                 .middleName(reqForm058.getPatient().getMiddleName())
-                .apartmentNumber(reqForm058.getPatient().getApartmentNumber())
                 .birthDate(reqForm058.getPatient().getBirthDate())
                 .gender(reqForm058.getPatient().getGender())
-                .stateCode(reqForm058.getPatient().getStateCode())
-                .cityCode(reqForm058.getPatient().getCityCode())
-                .neighborhood(reqForm058.getPatient().getNeighborhood())
-                .houseNumber(reqForm058.getPatient().getHouseNumber())
-                .streetAddress(reqForm058.getPatient().getStreetAddress())
                 .workPlace(reqForm058.getPatient().getWorkPlace())
+                .residentialStatus(reqForm058.getPatient().getResidentialStatus())
+                .maritalStatus(reqForm058.getPatient().getMaritalStatus())
                 .build();
 
         List<Identifier> identifiers = reqForm058.getPatient().getIdentifiers().stream().map(reqIdentifier -> {
@@ -48,6 +41,21 @@ public class Form058ServiceImpl implements Form058Service {
             return identifier;
         }).toList();
         patient.setIdentifiers(identifiers);
+
+        List<Address> addresses = reqForm058.getPatient().getAddresses().stream().map(reqAddress -> {
+            Address address = Address.builder()
+                    .stateCode(reqAddress.getStateCode())
+                    .cityCode(reqAddress.getCityCode())
+                    .neighborhood(reqAddress.getNeighborhood())
+                    .streetAddress(reqAddress.getStreetAddress())
+                    .houseNumber(reqAddress.getHouseNumber())
+                    .apartmentNumber(reqAddress.getApartmentNumber())
+                    .type(reqAddress.getType())
+                    .build();
+            address.setPatient(patient);
+            return address;
+        }).toList();
+        patient.setAddresses(addresses);
 
         Form058 form058 = Form058.builder()
                 .admissionDate(reqForm058.getAdmissionDate())

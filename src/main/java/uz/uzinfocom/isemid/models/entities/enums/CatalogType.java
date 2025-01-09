@@ -7,5 +7,7 @@ public enum CatalogType {
     country,
     nationality,
     identifierType,
-    catalogType
+    catalogType,
+    maritalStatus,
+    residentialStatus
 }

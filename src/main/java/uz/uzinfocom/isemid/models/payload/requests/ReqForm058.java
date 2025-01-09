@@ -29,18 +29,23 @@ public class ReqForm058 {
 
     @NotBlank(message = "Место госпитализации обязательно и не может быть пустым.")
     private String hospitalPlace;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата поступления обязательна.")
     private LocalDateTime admissionDate;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата заболевания обязательна.")
     private LocalDateTime diseaseDate;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата первого визита обязательна.")
     private LocalDateTime firstVisitDate;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата постановки диагноза обязательна.")
     private LocalDateTime diagnosisDate;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата визита обязательна.")
     private LocalDateTime visitDate;
