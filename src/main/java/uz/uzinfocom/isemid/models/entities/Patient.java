@@ -38,4 +38,5 @@ public class Patient extends AbsEntity {
     private String streetAddress;
     private String houseNumber;
     private String apartmentNumber;
+    private String workPlace;
 }

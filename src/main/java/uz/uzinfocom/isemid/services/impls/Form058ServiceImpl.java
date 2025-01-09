@@ -34,6 +34,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .neighborhood(reqForm058.getPatient().getNeighborhood())
                 .houseNumber(reqForm058.getPatient().getHouseNumber())
                 .streetAddress(reqForm058.getPatient().getStreetAddress())
+                .workPlace(reqForm058.getPatient().getWorkPlace())
                 .build();
 
         List<Identifier> identifiers = reqForm058.getPatient().getIdentifiers().stream().map(reqIdentifier -> {
@@ -49,7 +50,6 @@ public class Form058ServiceImpl implements Form058Service {
         patient.setIdentifiers(identifiers);
 
         Form058 form058 = Form058.builder()
-                .workPlace(reqForm058.getWorkPlace())
                 .admissionDate(reqForm058.getAdmissionDate())
                 .comment(reqForm058.getComment())
                 .diagnosisDate(reqForm058.getDiagnosisDate())
@@ -68,7 +68,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .build();
 
         form058Repository.save(form058);
-        return new ApiResponse<>(true, "Form 058 successfully created.", form058);
+        return new ApiResponse<>(true, "Форма 058 успешно создана.", form058);
     }
 
 
