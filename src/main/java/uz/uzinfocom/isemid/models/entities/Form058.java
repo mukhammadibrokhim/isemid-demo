@@ -5,7 +5,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @EntityListeners(AuditingEntityListener.class)
@@ -18,13 +18,13 @@ import java.time.LocalDate;
 public class Form058 extends BaseEntity {
     private String mkb10Code;
     private String mkb10Name;
-    private String workPlace; // Ish joyi va manzili
+
     private String hospitalPlace; // Yotqizilgan joyi
-    private LocalDate admissionDate; // Yotqizilgan sana
-    private LocalDate diseaseDate; // Kasallangan sana
-    private LocalDate firstVisitDate; // Birinchi murojaat sanasi
-    private LocalDate diagnosisDate; // Aniq tashxis qo‘yilgan sanasi
-    private LocalDate visitDate; // Qatnov sanasi
+    private LocalDateTime admissionDate; // Yotqizilgan sana
+    private LocalDateTime diseaseDate; // Kasallangan sana
+    private LocalDateTime firstVisitDate; // Birinchi murojaat sanasi
+    private LocalDateTime diagnosisDate; // Aniq tashxis qo‘yilgan sanasi
+    private LocalDateTime visitDate; // Qatnov sanasi
     private String senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
     private String receiverOrganization; // Qayerga (Qabul qiluvchi tashkilot)
     private String poisoningLocation; // Zaharlangan yoki kasallangan joyi

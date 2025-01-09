@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,7 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -26,26 +27,23 @@ public class ReqForm058 {
     @NotNull(message = "Объект пациента обязателен.")
     private ReqPatient patient;
 
-    @NotBlank(message = "Место работы обязательно и не может быть пустым.")
-    private String workPlace;
-
     @NotBlank(message = "Место госпитализации обязательно и не может быть пустым.")
     private String hospitalPlace;
-
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата поступления обязательна.")
-    private LocalDate admissionDate;
-
+    private LocalDateTime admissionDate;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата заболевания обязательна.")
-    private LocalDate diseaseDate;
-
+    private LocalDateTime diseaseDate;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата первого визита обязательна.")
-    private LocalDate firstVisitDate;
-
+    private LocalDateTime firstVisitDate;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата постановки диагноза обязательна.")
-    private LocalDate diagnosisDate;
-
+    private LocalDateTime diagnosisDate;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата визита обязательна.")
-    private LocalDate visitDate;
+    private LocalDateTime visitDate;
 
     @NotBlank(message = "Организация-отправитель обязательна и не может быть пустой.")
     private String senderOrganization;
