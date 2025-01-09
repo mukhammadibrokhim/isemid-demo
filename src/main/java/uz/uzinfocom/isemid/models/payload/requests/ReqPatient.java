@@ -20,6 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class ReqPatient {
+
     @NotBlank(message = "Имя обязательно и не может быть пустым.")
     private String firstName;
     @NotBlank(message = "Фамилия обязательна и не может быть пустой.")

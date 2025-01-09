@@ -23,7 +23,7 @@ import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
 
 @RestController
 @RequestMapping(CATALOG)
-@Tag(name = "Catalog")
+@Tag(name = "Каталог", description = "Работа с каталогом данных")
 @RequiredArgsConstructor
 public class CatalogController {
 
@@ -34,6 +34,25 @@ public class CatalogController {
         return catalogService.createCatalog(reqCatalog);
     }
 
+    @Operation(
+            summary = "Получить все каталоги",
+            description = """
+                    Получает список всех каталогов с возможностью фильтрации:
+                    - Параметры фильтрации включают тип, код, родительский код, и различные названия (например, на русском, узбекском, кириллицей).
+                    - Пагинация доступна с параметрами `page` и `size`.
+                    """,
+            parameters = {
+                    @Parameter(name = "page", description = "Номер страницы для пагинации", required = false),
+                    @Parameter(name = "size", description = "Количество элементов на странице для пагинации", required = false),
+                    @Parameter(name = "type", description = "Тип каталога для фильтрации", required = false),
+                    @Parameter(name = "code", description = "Код каталога для фильтрации", required = false),
+                    @Parameter(name = "parentCode", description = "Родительский код для фильтрации", required = false),
+                    @Parameter(name = "nameRu", description = "Название на русском языке для фильтрации", required = false),
+                    @Parameter(name = "nameUz", description = "Название на узбекском языке для фильтрации", required = false),
+                    @Parameter(name = "nameUzCyril", description = "Название на узбекском языке (кириллицей) для фильтрации", required = false),
+                    @Parameter(name = "nameKaa", description = "Название на языке Kaa для фильтрации", required = false),
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/all")
     public ApiResponsePage getAllCatalogs(
             @RequestParam(defaultValue = PAGE) int page,
@@ -50,21 +69,46 @@ public class CatalogController {
         return catalogService.getAllCatalogs(page, size, type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa, request);
     }
 
+    @Operation(
+            summary = "Получить все типы каталогов",
+            description = "Получает список всех типов каталогов, доступных в системе.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/types")
     public ApiResponse<List<RespCatalog>> getCatalogs(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.catalogType, lang);
     }
 
+    @Operation(
+            summary = "Обновить каталог",
+            description = "Обновляет существующий каталог по его ID. Передайте данные каталога для обновления.",
+            parameters = {
+                    @Parameter(name = "id", description = "ID каталога для обновления", required = true)
+            })
     @PutMapping("/{id}")
     public ApiResponse<Catalog> updateCatalog(@PathVariable long id, @RequestBody ReqCatalog reqCatalog) {
         return catalogService.updateCatalogById(id, reqCatalog);
     }
 
+    @Operation(
+            summary = "Получить все состояния",
+            description = "Получает список всех доступных состояний из каталога.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/state")
     public ApiResponse<List<RespCatalog>> getCatalogState(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.state, lang);
     }
 
+    @Operation(
+            summary = "Получить все города по родительскому коду",
+            description = "Получает список всех городов на основе родительского кода для фильтрации.",
+            parameters = {
+                    @Parameter(name = "parentCode", description = "Родительский код для фильтрации городов", required = true),
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/city")
     public ApiResponse<List<RespCatalog>> getCatalogCity(
             @RequestParam String parentCode,
@@ -73,8 +117,11 @@ public class CatalogController {
         return catalogService.findAllByTypeAndParentCode(CatalogType.city, parentCode, lang);
     }
 
-    @Operation(summary = "Get all identifier types", description = "Fetches a list of all available identifier types.", parameters = {
-            @Parameter(name = "Accept-Language", description = "Language code for localization (e.g., 'ru', 'uz', 'uzCyril')", required = true)})
+    @Operation(
+            summary = "Получить все типы идентификаторов",
+            description = "Получает список всех доступных типов идентификаторов.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)})
     @GetMapping("/identifier-type")
     public ApiResponse<List<RespCatalog>> getIdentifierType(
             @RequestHeader("Accept-Language") String lang
@@ -82,8 +129,12 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.identifierType, lang);
     }
 
-    @Operation(summary = "Get all genders", description = "Fetches a list of all genders.", parameters = {
-            @Parameter(name = "Accept-Language", description = "Language code for localization (e.g., 'ru', 'uz', 'uzCyril')", required = true)})
+    @Operation(
+            summary = "Получить все полы",
+            description = "Получает список всех доступных полов.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/gender")
     public ApiResponse<List<RespCatalog>> getGender(
             @RequestHeader("Accept-Language") String lang
@@ -91,10 +142,13 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.gender, lang);
     }
 
-
-    @Operation(summary = "Get all countries", description = "Fetches a list of all countries.", parameters = {
-            @Parameter(name = "search", description = "Search keyword for filtering countries."),
-            @Parameter(name = "Accept-Language", description = "Language code for localization (e.g., 'ru', 'uz', 'uzCyril')", required = true)})
+    @Operation(
+            summary = "Получить все страны",
+            description = "Получает список всех стран.",
+            parameters = {
+                    @Parameter(name = "search", description = "Ключевое слово для фильтрации стран."),
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/country")
     public ApiResponse<List<RespCatalog>> getCountry(
             @RequestHeader("Accept-Language") String lang,
@@ -104,14 +158,44 @@ public class CatalogController {
         return catalogService.findFirst20ByTypeAndSearch(CatalogType.country, lang, search);
     }
 
-    @Operation(summary = "Get nationalities by parent ID", description = "Fetches a list of nationalities", parameters = {
-            @Parameter(name = "search", description = "Search keyword for filtering nationality."),
-            @Parameter(name = "Accept-Language", description = "Language code for localization (e.g., 'ru', 'uz', 'uzCyril')", required = true)})
+    @Operation(
+            summary = "Получить национальности по родительскому ID",
+            description = "Получает список национальностей.",
+            parameters = {
+                    @Parameter(name = "search", description = "Ключевое слово для фильтрации национальности."),
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
     @GetMapping("/nationality")
     public ApiResponse<List<RespCatalog>> getNationality(
             @RequestParam(value = "search", required = false) String search,
             @RequestHeader("Accept-Language") String lang
     ) {
         return catalogService.findFirst20ByTypeAndSearch(CatalogType.nationality, lang, search);
+    }
+
+    @Operation(
+            summary = "Получить все семейные положения",
+            description = "Возвращает список всех типов семейных положений, включая их наименования на русском, узбекском (латиница и кириллица) языках и другие связанные данные.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
+    @GetMapping("/marital-status")
+    public ApiResponse<List<RespCatalog>> getMaritalStatus(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.maritalStatus, lang);
+    }
+
+    @Operation(
+            summary = "Получить все статусы проживания",
+            description = "Возвращает список всех типов статусов проживания, включая их наименования на русском, узбекском (латиница и кириллица) языках и другие связанные данные.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
+            })
+    @GetMapping("/residential-status")
+    public ApiResponse<List<RespCatalog>> getResidentialStatus(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.residentialStatus, lang);
     }
 }

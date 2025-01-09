@@ -15,24 +15,24 @@ import static uz.uzinfocom.isemid.utils.ApiUrlConstant.CITIZEN;
 
 @RestController
 @RequestMapping(CITIZEN)
-@Tag(name = "Citizen", description = "Fetch citizen data from GCP if citizen not found in db")
+@Tag(name = "Гражданин", description = "Получение данных о гражданине из GCP, если гражданин не найден в базе данных")
 @RequiredArgsConstructor
 public class CitizenController {
 
     final CitizenService citizenService;
 
     @Operation(
-            summary = "Retrieve citizen information",
+            summary = "Получение информации о гражданине",
             description = """
-                        Retrieves citizen information based on provided parameters:
-                        - If `nnuzb` and `photo` are provided, retrieves citizen by their unique nnuzb ID and photo.
-                        - If `series` and `number` are provided, retrieves citizen by child details.
+                        Получает информацию о гражданине на основе предоставленных параметров:
+                        - Если указаны `nnuzb` и `photo`, то информация о гражданине будет получена по уникальному идентификатору nnuzb и фотографии.
+                        - Если указаны `series` и `number`, то информация будет получена на основе данных о ребенке.
                     """,
             parameters = {
-                    @Parameter(name = "nnuzb", description = "Unique nnuzb ID of the citizen"),
-                    @Parameter(name = "photo", description = "Photo associated with the citizen"),
-                    @Parameter(name = "series", description = "Series of the child's document"),
-                    @Parameter(name = "number", description = "Number of the child's document")
+                    @Parameter(name = "nnuzb", description = "Уникальный ID гражданина (nnuzb)"),
+                    @Parameter(name = "photo", description = "Фотография гражданина"),
+                    @Parameter(name = "series", description = "Серия документа ребенка"),
+                    @Parameter(name = "number", description = "Номер документа ребенка")
             })
     @GetMapping
     public ResponseEntity<Object> getCitizen(
@@ -47,6 +47,6 @@ public class CitizenController {
             return ResponseEntity.ok(citizenService.getCitizenByNnuzb(nnuzb, photo, token));
         } else if (series != null && number != null) {
             return ResponseEntity.ok(citizenService.getCitizenByChild(series, number, token));
-        } else throw new ApiException(BAD_REQUEST, "Invalid parameters");
+        } else throw new ApiException(BAD_REQUEST, "Неверные параметры запроса");
     }
 }
