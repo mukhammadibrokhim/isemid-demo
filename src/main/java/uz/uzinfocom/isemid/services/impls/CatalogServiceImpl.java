@@ -52,7 +52,7 @@ public class CatalogServiceImpl implements CatalogService {
                 .nameRu(reqCatalog.getNameRu())
                 .nameUz(reqCatalog.getNameUz())
                 .nameUzCyril(reqCatalog.getNameUzCyril())
-                .nameKaa(reqCatalog.getNameKk())
+                .nameKaa(reqCatalog.getNameKaa())
                 .build();
         return new ApiResponse<>(true, "Catalog successfully created.", catalogRepository.save(catalog));
     }
@@ -64,7 +64,7 @@ public class CatalogServiceImpl implements CatalogService {
         Optional.ofNullable(reqCatalog.getNameRu()).ifPresent(catalog::setNameRu);
         Optional.ofNullable(reqCatalog.getNameUz()).ifPresent(catalog::setNameUz);
         Optional.ofNullable(reqCatalog.getNameUzCyril()).ifPresent(catalog::setNameUzCyril);
-        Optional.ofNullable(reqCatalog.getNameKk()).ifPresent(catalog::setNameKaa);
+        Optional.ofNullable(reqCatalog.getNameKaa()).ifPresent(catalog::setNameKaa);
         Optional.ofNullable(reqCatalog.getParentCode()).ifPresent(catalog::setParentCode);
         Optional.ofNullable(reqCatalog.getType()).ifPresent(catalog::setType);
         return new ApiResponse<>(true, "Successfully updated.", catalogRepository.save(catalog));

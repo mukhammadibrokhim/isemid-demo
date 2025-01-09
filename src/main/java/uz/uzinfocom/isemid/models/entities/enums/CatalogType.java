@@ -9,5 +9,7 @@ public enum CatalogType {
     identifierType,
     catalogType,
     maritalStatus,
+    addressType,
+    populationType,
     residentialStatus
 }
