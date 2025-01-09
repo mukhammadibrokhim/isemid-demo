@@ -30,8 +30,8 @@ public class OrganizationController {
             summary = "Получить все организации",
             description = "Получает список всех организаций с возможностью пагинации.",
             parameters = {
-                    @Parameter(name = "page", description = "Номер страницы для пагинации", required = false),
-                    @Parameter(name = "size", description = "Количество элементов на странице для пагинации", required = false),
+                    @Parameter(name = "page", description = "Номер страницы для пагинации"),
+                    @Parameter(name = "size", description = "Количество элементов на странице для пагинации"),
                     @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
             })
     @GetMapping("/all")

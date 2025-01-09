@@ -29,8 +29,8 @@ public class UserController {
             summary = "Получить всех пользователей",
             description = "Получает список всех пользователей с возможностью пагинации.",
             parameters = {
-                    @Parameter(name = "page", description = "Номер страницы для пагинации", required = false),
-                    @Parameter(name = "size", description = "Количество пользователей на странице для пагинации", required = false),
+                    @Parameter(name = "page", description = "Номер страницы для пагинации"),
+                    @Parameter(name = "size", description = "Количество пользователей на странице для пагинации"),
                     @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
             })
     @GetMapping("/all")

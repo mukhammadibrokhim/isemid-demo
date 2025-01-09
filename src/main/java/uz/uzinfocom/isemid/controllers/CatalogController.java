@@ -42,15 +42,15 @@ public class CatalogController {
                     - Пагинация доступна с параметрами `page` и `size`.
                     """,
             parameters = {
-                    @Parameter(name = "page", description = "Номер страницы для пагинации", required = false),
-                    @Parameter(name = "size", description = "Количество элементов на странице для пагинации", required = false),
-                    @Parameter(name = "type", description = "Тип каталога для фильтрации", required = false),
-                    @Parameter(name = "code", description = "Код каталога для фильтрации", required = false),
-                    @Parameter(name = "parentCode", description = "Родительский код для фильтрации", required = false),
-                    @Parameter(name = "nameRu", description = "Название на русском языке для фильтрации", required = false),
-                    @Parameter(name = "nameUz", description = "Название на узбекском языке для фильтрации", required = false),
-                    @Parameter(name = "nameUzCyril", description = "Название на узбекском языке (кириллицей) для фильтрации", required = false),
-                    @Parameter(name = "nameKaa", description = "Название на языке Kaa для фильтрации", required = false),
+                    @Parameter(name = "page", description = "Номер страницы для пагинации"),
+                    @Parameter(name = "size", description = "Количество элементов на странице для пагинации"),
+                    @Parameter(name = "type", description = "Тип каталога для фильтрации"),
+                    @Parameter(name = "code", description = "Код каталога для фильтрации"),
+                    @Parameter(name = "parentCode", description = "Родительский код для фильтрации"),
+                    @Parameter(name = "nameRu", description = "Название на русском языке для фильтрации"),
+                    @Parameter(name = "nameUz", description = "Название на узбекском языке для фильтрации"),
+                    @Parameter(name = "nameUzCyril", description = "Название на узбекском языке (кириллицей) для фильтрации"),
+                    @Parameter(name = "nameKaa", description = "Название на языке Kaa для фильтрации"),
                     @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
             })
     @GetMapping("/all")
