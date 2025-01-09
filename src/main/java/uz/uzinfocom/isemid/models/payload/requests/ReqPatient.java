@@ -35,15 +35,9 @@ public class ReqPatient {
 
     private LocalDate birthDate;
     private Gender gender;
-    private String stateCode;
-    private String cityCode;
-    private String neighborhood;
-    private String streetAddress;
-    private String houseNumber;
-    private String apartmentNumber; // Xonadon
+    List<ReqAddress> addresses;
     private ResidentialStatus residentialStatus; // Yashash joyi holati
     private MaritalStatus maritalStatus; // Oila sharoiti
     @NotBlank(message = "Место работы обязательно и не может быть пустым.")
     private String workPlace;
-
 }
