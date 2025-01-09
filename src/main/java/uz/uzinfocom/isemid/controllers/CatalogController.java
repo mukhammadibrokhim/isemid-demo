@@ -198,4 +198,28 @@ public class CatalogController {
     ) {
         return catalogService.findAllByType(CatalogType.residentialStatus, lang);
     }
+
+    @Operation(
+            summary = "Получить тип адреса",
+            description = "Возвращает список всех типов адресов, включая их названия на русском, узбекском (латиница и кириллица), а также каракалпакском языках.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)})
+    @GetMapping("/address-type")
+    public ApiResponse<List<RespCatalog>> getAddressType(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.addressType, lang);
+    }
+
+    @GetMapping("/population-type")
+    @Operation(
+            summary = "Получить тип населённого пункта",
+            description = "Возвращает список всех типов населённых пунктов, включая их названия на русском, узбекском (латиница и кириллица), а также каракалпакском языках.",
+            parameters = {
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)})
+    public ApiResponse<List<RespCatalog>> getPopulationType(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.populationType, lang);
+    }
 }
