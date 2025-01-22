@@ -6,6 +6,8 @@ import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.repositories.RoleRepository;
 import uz.uzinfocom.isemid.services.RoleService;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
@@ -14,5 +16,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Role findOrCreateRoleByName(String s) {
         return roleRepository.findByName(s).orElseGet(() -> roleRepository.save(Role.builder().name(s).build()));
+    }
+
+    @Override
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
     }
 }

@@ -20,4 +20,6 @@ public interface OrganizationService {
     ApiResponse<Organization> getById(long id);
 
     ApiResponse<Organization> updateUserFromMis(UUID uuid, User currentUser, String token);
+
+    Optional<Organization> findById(UUID uuid);
 }

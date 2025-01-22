@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.configs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,7 @@ public class SecurityConfig {
     final OrganizationService organizationService;
     final UserService userService;
     final RoleService roleService;
+    final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,7 +59,7 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer -> jwtConfigurer
-                                .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService))))
+                                .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService, objectMapper))))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(deniedHandler));

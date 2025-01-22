@@ -30,7 +30,8 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("ISEMID API")
                         .version("1.0")
-                        .description("<h4>This is the OpenAPI documentation for the </br> <b>(ISEMID) Information system of epidemiological monitoring of infectious diseases system.</b></h4>"))
+                        .description("<h4>ENG: This is the OpenAPI documentation for the </br> <b>(ISEMID) Information system of epidemiological monitoring of infectious diseases system.</b></h4>" +
+                                "<h4>RU: Это документация OpenAPI для </br><b>(ИСЕМИЗ) Информационная система эпидемиологического мониторинга инфекционных заболеваний.</b></h4>"))
                 .servers(List.of(
                         new Server().url(BASE_DOMAIN).description("ISEMID API")))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Auth"))
