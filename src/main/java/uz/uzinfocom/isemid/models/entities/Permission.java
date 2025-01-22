@@ -17,8 +17,8 @@ import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 public class Permission extends BaseEntity {
 
     private String name;
-    private String nameUz;
-    private String nameRu;
-    private String nameUzCyril;
-    private String nameKaaUz; //Karakalpak lang
+    private String descriptionUz;
+    private String descriptionRu;
+    private String descriptionUzCyril;
+    private String descriptionKaaUz; //Karakalpak lang
 }
