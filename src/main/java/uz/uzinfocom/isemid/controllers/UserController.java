@@ -20,7 +20,7 @@ import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
 @RestController
 @RequestMapping(USER)
 @RequiredArgsConstructor
-@Tag(name = "Пользователь", description = "API для работы с пользователями")
+@Tag(name = "User", description = "API для работы с пользователями")
 public class UserController {
 
     private final UserService userService;

@@ -40,10 +40,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(FORBIDDEN.value()).body(ErrorResponse.builder()
                 .success(false)
                 .statusCode(FORBIDDEN.value())
-                .message("Access denied")
+                .message(ex.getMessage())
                 .errors(Collections.singletonList(ErrorDetail.builder()
                         .field(ex.getClass().getSimpleName())
-                        .errorMessage(ex.getMessage())
+                        .errorMessage(ex.getCause().getMessage())
                         .build()))
                 .build());
     }

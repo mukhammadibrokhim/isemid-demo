@@ -22,7 +22,7 @@ import static uz.uzinfocom.isemid.utils.CommonUtils.getFullURL;
 
 @RestController
 @RequestMapping(FORM0058)
-@Tag(name = "Форма 058", description = "API для работы с формой 058")
+@Tag(name = "Form 058", description = "API для работы с формой 058")
 @RequiredArgsConstructor
 public class Form058Controller {
 

@@ -23,12 +23,13 @@ import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
 
 @RestController
 @RequestMapping(CATALOG)
-@Tag(name = "Каталог", description = "Работа с каталогом данных")
+@Tag(name = "Catalog", description = "Работа с каталогом данных")
 @RequiredArgsConstructor
 public class CatalogController {
 
     final CatalogService catalogService;
 
+    //    @PreAuthorize("hasAnyAuthority('create_catalog')")
     @PostMapping
     public ApiResponse<Catalog> createCatalog(@Valid @RequestBody ReqCatalog reqCatalog) {
         return catalogService.createCatalog(reqCatalog);
@@ -95,8 +96,7 @@ public class CatalogController {
             summary = "Получить все состояния",
             description = "Получает список всех доступных состояний из каталога.",
             parameters = {
-                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
-            })
+                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)})
     @GetMapping("/state")
     public ApiResponse<List<RespCatalog>> getCatalogState(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.state, lang);
