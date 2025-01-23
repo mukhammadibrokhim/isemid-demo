@@ -62,7 +62,6 @@ public class SecurityConfig {
                                 .authenticationEntryPoint(new AuthEntryPoint())
                 )
                 .exceptionHandling(exception -> exception
-                        .accessDeniedHandler(new AccessDeniedEntryPoint())
                         .authenticationEntryPoint(new AuthEntryPoint()));
 
         return http.build();

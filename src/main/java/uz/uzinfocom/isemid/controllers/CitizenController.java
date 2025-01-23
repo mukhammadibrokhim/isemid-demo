@@ -15,7 +15,7 @@ import static uz.uzinfocom.isemid.utils.ApiUrlConstant.CITIZEN;
 
 @RestController
 @RequestMapping(CITIZEN)
-@Tag(name = "Гражданин", description = "Получение данных о гражданине из GCP, если гражданин не найден в базе данных")
+@Tag(name = "Citizen", description = "Получение данных о гражданине из GCP, если гражданин не найден в базе данных")
 @RequiredArgsConstructor
 public class CitizenController {
 

@@ -21,7 +21,7 @@ import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
 import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
 @RestController
 @RequestMapping(ORGANIZATION)
-@Tag(name = "Организация", description = "API для работы с организациями")
+@Tag(name = "Organization", description = "API для работы с организациями")
 @RequiredArgsConstructor
 public class OrganizationController {
     final OrganizationService organizationService;
