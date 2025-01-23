@@ -1,13 +1,15 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.uzinfocom.isemid.models.entities.enums.AddressType;
 import uz.uzinfocom.isemid.models.entities.enums.Gender;
 import uz.uzinfocom.isemid.models.entities.enums.MaritalStatus;
 import uz.uzinfocom.isemid.models.entities.enums.ResidentialStatus;
@@ -27,7 +29,7 @@ public class ReqPatient {
     private String lastName;
     private String middleName;
     @Valid
-    @NotNull(message = "Список идентификаторов обязателен.")
+    @NotEmpty(message = "Список идентификаторов обязателен.")
     @Size(min = 1, message = "Список идентификаторов не может быть пустым.")
     private List<ReqIdentifier> identifiers;
 
@@ -36,9 +38,21 @@ public class ReqPatient {
 
     private LocalDate birthDate;
     private Gender gender;
-    List<ReqAddress> addresses;
-    private ResidentialStatus residentialStatus; // Yashash joyi holati
-    private MaritalStatus maritalStatus; // Oila sharoiti
+    @Valid
+    @NotEmpty(message = "Список адресов не может быть пустым.")
+    private List<ReqAddress> addresses;
+    private ResidentialStatus residentialStatus;
+    private MaritalStatus maritalStatus;
     @NotBlank(message = "Место работы обязательно и не может быть пустым.")
     private String workPlace;
+
+    @AssertTrue(message = "Адреса должны содержать как минимум один TEMPORARY и один PERMANENT адрес.")
+    public boolean isValidAddress() {
+        if (addresses == null || addresses.isEmpty()) {
+            return false;
+        }
+        boolean hasTemporary = addresses.stream().anyMatch(a -> AddressType.TEMPORARY.equals(a.getType()));
+        boolean hasPermanent = addresses.stream().anyMatch(a -> AddressType.PERMANENT.equals(a.getType()));
+        return hasTemporary && hasPermanent;
+    }
 }

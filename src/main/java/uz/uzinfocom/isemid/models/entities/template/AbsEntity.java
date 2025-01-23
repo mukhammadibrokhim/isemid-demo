@@ -57,7 +57,7 @@ public abstract class AbsEntity {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
             User currentUser = (User) authentication.getPrincipal();
-//            this.createdOrgId = currentUser.getCurrentOrganization().getUuid();
+            this.createdOrgId = currentUser.getCurrentOrganization().getUuid();
         }
     }
 
@@ -66,7 +66,7 @@ public abstract class AbsEntity {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
             User currentUser = (User) authentication.getPrincipal();
-//            this.updatedOrgId = currentUser.getCurrentOrganization().getUuid();
+            this.updatedOrgId = currentUser.getCurrentOrganization().getUuid();
         }
     }
 }

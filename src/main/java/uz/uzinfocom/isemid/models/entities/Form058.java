@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.models.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
+import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Entity
-public class Form058 extends BaseEntity {
+public class Form058 extends AbsEntity {
     private String mkb10Code;
     private String mkb10Name;
 

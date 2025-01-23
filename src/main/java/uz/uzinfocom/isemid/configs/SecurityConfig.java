@@ -33,8 +33,6 @@ import static uz.uzinfocom.isemid.utils.PubKeyConstants.TEST_SSO_SECRET;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    final AuthEntryPoint entryPoint;
-    final AccessDeniedEntryPoint deniedHandler;
     final OrganizationService organizationService;
     final UserService userService;
     final RoleService roleService;
@@ -59,10 +57,13 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer -> jwtConfigurer
-                                .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService, objectMapper))))
+                                        .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService, objectMapper)))
+                                .accessDeniedHandler(new AccessDeniedEntryPoint())
+                                .authenticationEntryPoint(new AuthEntryPoint())
+                )
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(entryPoint)
-                        .accessDeniedHandler(deniedHandler));
+                        .accessDeniedHandler(new AccessDeniedEntryPoint())
+                        .authenticationEntryPoint(new AuthEntryPoint()));
 
         return http.build();
     }
