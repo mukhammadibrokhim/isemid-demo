@@ -1,10 +1,13 @@
 package uz.uzinfocom.isemid.models.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.List;
 import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -24,6 +27,7 @@ public class Organization {
     @Column(nullable = false,length = 500)
     private String name;
     private boolean active;
+    private String tin;
     private String email;
     private String phone;
     private String type;
@@ -33,5 +37,13 @@ public class Organization {
     private String district;
     private String line;
     private String serviceArea;
-    private String tin;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "users_organizations",
+            joinColumns = @JoinColumn(name = "organization_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @JsonIgnoreProperties({"roles"})
+    @JsonManagedReference
+    private List<User> users;
 }
