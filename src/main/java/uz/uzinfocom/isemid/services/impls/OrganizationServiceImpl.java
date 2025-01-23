@@ -56,7 +56,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public ApiResponse<Organization> updateUserFromMis(UUID uuid, User currentUser, String token) {
-        return new ApiResponse<>(true, "Organization successfully updated.", null);
+        RespOrganization response = makeRequest(String.format(MIS_ORGANIZATION, uuid), HttpMethod.GET, token, null, RespOrganization.class);
+        return new ApiResponse<>(true, "Organization successfully updated.", mappingOrganization(response));
     }
 
     @Override
@@ -79,7 +80,6 @@ public class OrganizationServiceImpl implements OrganizationService {
                 }
             });
         }
-
 
         if (response.getAddress() != null && !response.getAddress().isEmpty()) {
             RespOrganization.Address address = response.getAddress().stream()
