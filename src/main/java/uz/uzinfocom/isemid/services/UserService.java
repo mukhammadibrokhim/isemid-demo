@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface UserService {
@@ -16,7 +17,7 @@ public interface UserService {
 
     Optional<User> findByUuid(UUID practitioner);
 
-    User fetchUserFromMisAndSave(UUID practitioner, String token, List<Organization> organizations, List<Role> roles);
+    User fetchUserFromMisAndSave(UUID practitioner, String token, List<Organization> organizations, Set<Role> roles);
 
     ApiResponse<User> getUserById(long id);
 

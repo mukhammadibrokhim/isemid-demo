@@ -40,5 +40,6 @@ public class Patient extends AbsEntity {
     private String workPlace;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id DESC")
     private List<Address> addresses;
 }

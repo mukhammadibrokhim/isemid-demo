@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +11,14 @@ import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
+import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.Form058Service;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.FORM0058;
+import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
+import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
+import static uz.uzinfocom.isemid.utils.CommonUtils.getFullURL;
 
 @RestController
 @RequestMapping(FORM0058)
@@ -33,6 +38,16 @@ public class Form058Controller {
             @Valid @RequestBody ReqForm058 reqForm058,
             @CurrentUser User user) {
         return form058Service.createForm058(reqForm058, user);
+    }
+
+    @GetMapping("/all")
+    public ApiResponsePage getAll(
+            @RequestParam(defaultValue = PAGE) int page,
+            @RequestParam(defaultValue = SIZE) int size,
+            @CurrentUser User user,
+            HttpServletRequest request
+    ) {
+        return form058Service.getFilteredForm058(page, size, user, getFullURL(request));
     }
 
     @Operation(

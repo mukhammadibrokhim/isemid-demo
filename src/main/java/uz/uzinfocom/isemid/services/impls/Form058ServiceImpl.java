@@ -1,15 +1,23 @@
 package uz.uzinfocom.isemid.services.impls;
 
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
+import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.services.Form058Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
+import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -84,5 +92,27 @@ public class Form058ServiceImpl implements Form058Service {
     public ApiResponse<Form058> updateForm058(ReqForm058 reqForm058, Long id, User user) {
 
         return new ApiResponse<>(true, "", null);
+    }
+
+    @Override
+    public ApiResponsePage getFilteredForm058(int page, int size, User user, String url) {
+        Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid());
+        Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
+        return createApiResponsePage(page, form058Page, url);
+
+    }
+
+    public static Specification<Form058> getFilteredSpecification(
+            UUID currentUserOrgId
+    ) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (currentUserOrgId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("createdOrgId"), currentUserOrgId));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }

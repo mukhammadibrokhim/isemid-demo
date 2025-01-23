@@ -1,5 +1,9 @@
 package uz.uzinfocom.isemid.configs;
 
+import com.fasterxml.jackson.core.StreamWriteConstraints;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -52,5 +56,18 @@ public class AppConfig {
                 .maximumSize(10000));
 
         return cacheManager;
+    }
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        mapper.getFactory().setStreamWriteConstraints(
+                StreamWriteConstraints.builder()
+                        .maxNestingDepth(20000)
+                        .build()
+        );
+        return mapper;
     }
 }

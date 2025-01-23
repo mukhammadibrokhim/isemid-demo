@@ -27,7 +27,7 @@ import static uz.uzinfocom.isemid.utils.AppConstant.*;
 public class CommonUtils {
 
     public static String[] WHITE_LIST = {
-            "/swagger-ui/**",
+            "/api/v1/swagger-ui/**",
             "/api-docs/**",
             "/actuator/**"
     };
@@ -53,7 +53,6 @@ public class CommonUtils {
         Locale locale = LocaleContextHolder.getLocale();
         String language = locale.getLanguage();
         return switch (language) {
-            case RU -> nameRu;
             case UZ -> nameUz;
             case KAA -> kaa;
             case UZ_CYRIL -> nameUzCyril;

@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.exceptioins;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,8 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -31,6 +31,19 @@ public class GlobalExceptionHandler {
                 .errors(List.of(ErrorDetail.builder()
                         .field(ex.getClass().getSimpleName())
                         .errorMessage(ex.getDetailMessageCode())
+                        .build()))
+                .build());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        return ResponseEntity.status(FORBIDDEN.value()).body(ErrorResponse.builder()
+                .success(false)
+                .statusCode(FORBIDDEN.value())
+                .message("Access denied")
+                .errors(Collections.singletonList(ErrorDetail.builder()
+                        .field(ex.getClass().getSimpleName())
+                        .errorMessage(ex.getMessage())
                         .build()))
                 .build());
     }

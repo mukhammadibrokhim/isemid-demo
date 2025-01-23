@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.configs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,11 +33,10 @@ import static uz.uzinfocom.isemid.utils.PubKeyConstants.TEST_SSO_SECRET;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    final AuthEntryPoint entryPoint;
-    final AccessDeniedEntryPoint deniedHandler;
     final OrganizationService organizationService;
     final UserService userService;
     final RoleService roleService;
+    final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,10 +57,13 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer -> jwtConfigurer
-                                .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService))))
+                                        .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService, objectMapper)))
+                                .accessDeniedHandler(new AccessDeniedEntryPoint())
+                                .authenticationEntryPoint(new AuthEntryPoint())
+                )
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(entryPoint)
-                        .accessDeniedHandler(deniedHandler));
+                        .accessDeniedHandler(new AccessDeniedEntryPoint())
+                        .authenticationEntryPoint(new AuthEntryPoint()));
 
         return http.build();
     }

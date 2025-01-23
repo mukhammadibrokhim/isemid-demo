@@ -59,6 +59,11 @@ public class OrganizationServiceImpl implements OrganizationService {
         return new ApiResponse<>(true, "Organization successfully updated.", null);
     }
 
+    @Override
+    public Optional<Organization> findById(UUID uuid) {
+        return organizationRepository.findByUuid(uuid);
+    }
+
     private Organization mappingOrganization(RespOrganization response) {
         Organization organization = new Organization();
         organization.setUuid(UUID.fromString(response.getId()));

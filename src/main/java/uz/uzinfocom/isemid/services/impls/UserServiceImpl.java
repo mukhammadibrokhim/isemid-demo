@@ -16,10 +16,7 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.UserRepository;
 import uz.uzinfocom.isemid.services.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -46,7 +43,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User fetchUserFromMisAndSave(UUID uuid, String token, List<Organization> organizations, List<Role> roles) {
+    public User fetchUserFromMisAndSave(UUID uuid, String token, List<Organization> organizations, Set<Role> roles) {
         RespPractitioner response = makeRequest(String.format(PRACTITIONER, uuid), GET, token, null, RespPractitioner.class);
         return userRepository.save(mappingPractitionerToUser(response, organizations, roles));
     }
@@ -62,7 +59,7 @@ public class UserServiceImpl implements UserService {
         return new ApiResponse<>(true, "User successfully update.", null);
     }
 
-    private User mappingPractitionerToUser(RespPractitioner respPractitioner, List<Organization> organizations, List<Role> roles) {
+    private User mappingPractitionerToUser(RespPractitioner respPractitioner, List<Organization> organizations, Set<Role> roles) {
         User user = new User();
         user.setUuid(UUID.fromString(respPractitioner.getId()));
         user.setNnuzb(getIdentifierValueByCode(respPractitioner.getIdentifier(), "NNUZB"));

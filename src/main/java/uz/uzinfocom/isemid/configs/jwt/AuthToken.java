@@ -8,7 +8,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,9 +15,9 @@ import java.util.stream.Collectors;
 public class AuthToken extends AbstractAuthenticationToken {
     private final Jwt jwt;
     private final User user;
-    private final List<Role> roles;
+    private final Set<Role> roles;
 
-    public AuthToken(Jwt jwt, User user, List<Role> roles) {
+    public AuthToken(Jwt jwt, User user, Set<Role> roles) {
         super(rolesToAuthorities(roles));
         this.jwt = jwt;
         this.user = user;
@@ -36,7 +35,7 @@ public class AuthToken extends AbstractAuthenticationToken {
         return user;
     }
 
-    private static Set<GrantedAuthority> rolesToAuthorities(List<Role> roles) {
+    private static Set<GrantedAuthority> rolesToAuthorities(Set<Role> roles) {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
                 .collect(Collectors.toSet());
