@@ -59,6 +59,12 @@ public class UserServiceImpl implements UserService {
         return new ApiResponse<>(true, "User successfully update.", null);
     }
 
+    @Override
+    public ApiResponse<User> getByUuid(UUID uuid) {
+        return new ApiResponse<>(true, "User fetch successfully.",
+                userRepository.findByUuid(uuid).orElseThrow(()-> new ApiException(NOT_FOUND, "User not found for userUuid: " + uuid)));
+    }
+
     private User mappingPractitionerToUser(RespPractitioner respPractitioner, List<Organization> organizations, Set<Role> roles) {
         User user = new User();
         user.setUuid(UUID.fromString(respPractitioner.getId()));

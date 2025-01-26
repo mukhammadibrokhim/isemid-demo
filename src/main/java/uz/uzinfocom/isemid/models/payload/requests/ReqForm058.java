@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.uzinfocom.isemid.models.entities.card.Card;
 
 import java.time.LocalDateTime;
 
@@ -67,6 +68,9 @@ public class ReqForm058 {
 
     @NotBlank(message = "Ф.И.О. уведомляющего лица не может быть пустым.")
     private String notifierFullName;
-
+    @NotBlank(message = "Форма журнала обязательна и не пуста.")
+    private String journalForm;
+    private String deceaseLocation;
     private String comment;
+    private Card card;
 }

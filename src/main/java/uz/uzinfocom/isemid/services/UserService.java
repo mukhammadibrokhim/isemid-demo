@@ -22,4 +22,6 @@ public interface UserService {
     ApiResponse<User> getUserById(long id);
 
     ApiResponse<User> updateUserFromMis(UUID uuid, User user, String token);
+
+    ApiResponse<User> getByUuid(UUID uuid);
 }

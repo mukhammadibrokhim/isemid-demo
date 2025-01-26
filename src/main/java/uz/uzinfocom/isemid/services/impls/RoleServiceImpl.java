@@ -43,7 +43,9 @@ public class RoleServiceImpl implements RoleService {
         Map<String, List<String>> rolePermissions = Map.of(
                 "isemid_labarant", List.of(),
                 "isemid_epidemiologist", List.of(),
-                "isemid_head_doctor", List.of()
+                "isemid_head_doctor", List.of(),
+                "isemid_super_admin", List.of(),
+                "isemid_admin", List.of()
         );
         rolePermissions.forEach((roleName, permissions) -> {
             Role role = roleRepository.findByName(roleName).orElseGet(() -> {

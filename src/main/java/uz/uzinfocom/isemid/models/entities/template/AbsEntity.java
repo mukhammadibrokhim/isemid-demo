@@ -58,6 +58,7 @@ public abstract class AbsEntity {
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
             User currentUser = (User) authentication.getPrincipal();
             this.createdOrgId = currentUser.getCurrentOrganization().getUuid();
+            this.updatedOrgId = currentUser.getCurrentOrganization().getUuid();
         }
     }
 

@@ -1,5 +1,10 @@
 package uz.uzinfocom.isemid.controllers;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +18,13 @@ import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.Form058Service;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
+import java.util.Hashtable;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.FORM0058;
@@ -30,8 +42,7 @@ public class Form058Controller {
 
     @Operation(
             summary = "Создание формы 058",
-            description = "Создаёт новую форму 058 с данными пациента и другой необходимой информацией."
-    )
+            description = "Создаёт новую форму 058 с данными пациента и другой необходимой информацией.")
     @PostMapping
     @ResponseStatus(CREATED)
     public ApiResponse<Form058> create(

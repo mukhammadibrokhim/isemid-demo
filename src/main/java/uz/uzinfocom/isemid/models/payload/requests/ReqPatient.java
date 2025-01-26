@@ -1,18 +1,12 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.models.entities.enums.AddressType;
-import uz.uzinfocom.isemid.models.entities.enums.Gender;
-import uz.uzinfocom.isemid.models.entities.enums.MaritalStatus;
-import uz.uzinfocom.isemid.models.entities.enums.ResidentialStatus;
+import uz.uzinfocom.isemid.models.entities.enums.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,6 +37,10 @@ public class ReqPatient {
     private List<ReqAddress> addresses;
     private ResidentialStatus residentialStatus;
     private MaritalStatus maritalStatus;
+
+    @NotNull(message = "Population Type is required.")
+    private PopulationType populationType;
+
     @NotBlank(message = "Место работы обязательно и не может быть пустым.")
     private String workPlace;
 

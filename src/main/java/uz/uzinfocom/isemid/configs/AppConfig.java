@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.configs;
 
 import com.fasterxml.jackson.core.StreamWriteConstraints;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -24,9 +25,10 @@ public class AppConfig {
     @Bean
     public LocaleContextResolver localeContextResolver() {
         AcceptHeaderLocaleContextResolver localeResolver = new AcceptHeaderLocaleContextResolver();
-        localeResolver.setDefaultLocale(new Locale("ru"));
+        localeResolver.setDefaultLocale(Locale.forLanguageTag("ru"));
         return localeResolver;
     }
+
 
     @Bean
     public MessageSource messageSource() {
@@ -57,11 +59,13 @@ public class AppConfig {
 
         return cacheManager;
     }
+
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         mapper.getFactory().setStreamWriteConstraints(
                 StreamWriteConstraints.builder()
