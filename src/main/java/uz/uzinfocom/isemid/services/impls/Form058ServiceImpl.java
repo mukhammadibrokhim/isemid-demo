@@ -81,6 +81,8 @@ public class Form058ServiceImpl implements Form058Service {
                 .senderOrganization(reqForm058.getSenderOrganization())
                 .receiverOrganization(reqForm058.getReceiverOrganization())
                 .journalForm(reqForm058.getJournalForm())
+                .deceaseLocation(reqForm058.getDeceaseLocation())
+                .card(reqForm058.getCard())
                 .visitDate(reqForm058.getVisitDate())
                 .patient(patient)
                 .build();

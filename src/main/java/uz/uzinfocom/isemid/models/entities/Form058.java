@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
+import uz.uzinfocom.isemid.models.entities.card.Card;
 
 import java.time.LocalDateTime;
 
@@ -33,6 +34,12 @@ public class Form058 extends AbsEntity {
     private String notifierFullName; // Habar beruvchi F.I.Sh
     private String comment;
     private String journalForm;
+    private String deceaseLocation;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "card_id")
+    private Card card;
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
