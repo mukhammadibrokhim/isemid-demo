@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -58,5 +59,6 @@ public class User {
     private Set<Role> roles;
 
     @Transient
+    @JsonIgnore
     private Organization currentOrganization;
 }

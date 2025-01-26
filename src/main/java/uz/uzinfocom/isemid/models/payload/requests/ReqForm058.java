@@ -67,6 +67,6 @@ public class ReqForm058 {
 
     @NotBlank(message = "Ф.И.О. уведомляющего лица не может быть пустым.")
     private String notifierFullName;
-
+    private String journalForm;
     private String comment;
 }

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.UserService;
@@ -51,6 +52,11 @@ public class UserController {
     @GetMapping("/{id}")
     public ApiResponse<User> getUserById(@PathVariable long id) {
         return userService.getUserById(id);
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<User> getCurrentUser(@CurrentUser User user) {
+        return userService.getByUuid(user.getUuid());
     }
 
     @Operation(

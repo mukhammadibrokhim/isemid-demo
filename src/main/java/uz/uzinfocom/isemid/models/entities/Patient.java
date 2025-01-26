@@ -28,11 +28,14 @@ public class Patient extends AbsEntity {
 
     @JsonManagedReference
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id DESC")
     private List<Identifier> identifiers;
 
     private LocalDate birthDate;
     private Gender gender;
+    @Enumerated(EnumType.STRING)
     private ResidentialStatus residentialStatus;
+    @Enumerated(EnumType.STRING)
     private MaritalStatus maritalStatus;
 
     @Enumerated(EnumType.STRING)

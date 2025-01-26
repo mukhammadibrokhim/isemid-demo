@@ -30,8 +30,7 @@ public class Form058Controller {
 
     @Operation(
             summary = "Создание формы 058",
-            description = "Создаёт новую форму 058 с данными пациента и другой необходимой информацией."
-    )
+            description = "Создаёт новую форму 058 с данными пациента и другой необходимой информацией.")
     @PostMapping
     @ResponseStatus(CREATED)
     public ApiResponse<Form058> create(

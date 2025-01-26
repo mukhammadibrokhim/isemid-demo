@@ -17,7 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static uz.uzinfocom.isemid.utils.CommonUtils.*;
+import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
+import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
 
 @Service
 @RequiredArgsConstructor
@@ -79,6 +80,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .notifierFullName(user.getFirstName())
                 .senderOrganization(reqForm058.getSenderOrganization())
                 .receiverOrganization(reqForm058.getReceiverOrganization())
+                .journalForm(reqForm058.getJournalForm())
                 .visitDate(reqForm058.getVisitDate())
                 .patient(patient)
                 .build();
