@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.models.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -44,7 +44,7 @@ public class User {
     private String line;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JsonBackReference
+    @JsonManagedReference
     @JoinTable(
             name = "users_organizations",
             joinColumns = @JoinColumn(name = "user_id"),

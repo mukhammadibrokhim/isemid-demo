@@ -39,8 +39,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         HttpServletRequest request = getCurrentHttpRequest();
         String selectedOrgId = request.getHeader("Organization-id");
         boolean isReceiveFromLisRequest = request.getRequestURI().contains("receive-from-lis");
-
-        validateOrganizationHeader(selectedOrgId, isReceiveFromLisRequest);
+        boolean isUserMeRequest = request.getRequestURI().contains("/user/me");
+        validateOrganizationHeader(selectedOrgId, isReceiveFromLisRequest, isUserMeRequest);
 
         UserInfo userInfo = parseUserInfo(jwt);
 
@@ -66,8 +66,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         return attributes.getRequest();
     }
 
-    private void validateOrganizationHeader(String selectedOrgId, boolean isReceiveFromLisRequest) {
-        if (!isReceiveFromLisRequest && (selectedOrgId == null || selectedOrgId.isEmpty())) {
+    private void validateOrganizationHeader(String selectedOrgId, boolean isReceiveFromLisRequest, boolean isUserMeRequest) {
+        if (!isReceiveFromLisRequest && !isUserMeRequest && (selectedOrgId == null || selectedOrgId.isBlank())) {
             throw new InsufficientAuthenticationException("Organization-id is required in the header.");
         }
     }
