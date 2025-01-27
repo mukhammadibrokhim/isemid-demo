@@ -37,7 +37,8 @@ public class AuthToken extends AbstractAuthenticationToken {
 
     private static Set<GrantedAuthority> rolesToAuthorities(Set<Role> roles) {
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .filter(role -> role != null && role.getName() != null)
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toSet());
     }
 }

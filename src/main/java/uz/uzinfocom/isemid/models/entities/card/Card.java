@@ -22,7 +22,8 @@ import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
         @JsonSubTypes.Type(value = Card161.class, name = "CARD161"),
         @JsonSubTypes.Type(value = Card174.class, name = "CARD174"),
         @JsonSubTypes.Type(value = Card175.class, name = "CARD175"),
-        @JsonSubTypes.Type(value = Card205.class, name = "CARD205")
+        @JsonSubTypes.Type(value = Card205.class, name = "CARD205"),
+        @JsonSubTypes.Type(value = Card205.class, name = "CARD_TUBE")
 })
 public abstract class Card extends AbsEntity {
     private String cardNumber;
