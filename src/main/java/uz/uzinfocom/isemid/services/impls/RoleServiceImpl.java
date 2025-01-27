@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
 
@@ -47,10 +48,10 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public ApiResponsePage getAllRolesPage(int page, int size, String fullURL, User currentUser) {
-        Specification<Role> spec = getFilteredSpecification();
+    public ApiResponsePage getAllRolesPage(int page, int size, String name, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, String url, User currentUser) {
+        Specification<Role> spec = getFilteredSpecification(name, descriptionUz, descriptionUzCyril, descriptionRu, descriptionKaa);
         Page<Role> rolePage = roleRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, rolePage, fullURL);
+        return createApiResponsePage(page, rolePage, url);
     }
 
     @PostConstruct
@@ -94,9 +95,29 @@ public class RoleServiceImpl implements RoleService {
     }
 
     public static Specification<Role> getFilteredSpecification(
+            final String name,
+            final String descriptionUz,
+            final String descriptionUzCyril,
+            final String descriptionRu,
+            final String descriptionKaa
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+            if (hasText(name)) {
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
+            }
+            if (hasText(descriptionUz)) {
+                predicates.add(criteriaBuilder.like(root.get("description"), "%" + descriptionUz + "%"));
+            }
+            if (hasText(descriptionUzCyril)) {
+                predicates.add(criteriaBuilder.like(root.get("description"), "%" + descriptionUzCyril + "%"));
+            }
+            if (hasText(descriptionRu)) {
+                predicates.add(criteriaBuilder.like(root.get("description"), "%" + descriptionRu + "%"));
+            }
+            if (hasText(descriptionKaa)) {
+                predicates.add(criteriaBuilder.like(root.get("description"), "%" + descriptionKaa + "%"));
+            }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

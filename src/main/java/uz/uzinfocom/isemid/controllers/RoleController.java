@@ -30,9 +30,14 @@ public class RoleController {
     public ApiResponsePage getAllRoles(
             @RequestParam(defaultValue = PAGE) int page,
             @RequestParam(defaultValue = SIZE) int size,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String descriptionUz,
+            @RequestParam(required = false) String descriptionUzCyril,
+            @RequestParam(required = false) String descriptionRu,
+            @RequestParam(required = false) String descriptionKaa,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        return roleService.getAllRolesPage(page, size, getFullURL(request),currentUser);
+        return roleService.getAllRolesPage(page, size, name, descriptionUz, descriptionRu, descriptionUzCyril, descriptionKaa, getFullURL(request), currentUser);
     }
 }

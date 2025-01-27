@@ -11,5 +11,14 @@ public interface RoleService {
 
     List<Role> getAllRoles();
 
-    ApiResponsePage getAllRolesPage(int page, int size, String fullURL, User currentUser);
+    ApiResponsePage getAllRolesPage(
+            int page,
+            int size,
+            String name,
+            String descriptionUz,
+            String descriptionRu,
+            String descriptionUzCyril,
+            String descriptionKaa,
+            String url,
+            User currentUser);
 }
