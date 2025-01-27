@@ -1,20 +1,24 @@
 package uz.uzinfocom.isemid.services.impls;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.models.entities.Permission;
 import uz.uzinfocom.isemid.models.entities.Role;
+import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.PermissionRepository;
 import uz.uzinfocom.isemid.repositories.RoleRepository;
 import uz.uzinfocom.isemid.services.RoleService;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +40,13 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public List<Role> getAllRoles() {
         return roleRepository.findAll();
+    }
+
+    @Override
+    public ApiResponsePage getAllRolesPage(int page, int size, String fullURL, User currentUser) {
+        Specification<Role> spec = getFilteredSpecification();
+        Page<Role> rolePage = roleRepository.findAll(spec, pageableSortByIdDesc(page, size));
+        return createApiResponsePage(page, rolePage, fullURL);
     }
 
     @PostConstruct
@@ -76,6 +87,15 @@ public class RoleServiceImpl implements RoleService {
         });
 
         logger.info("Default roles and permissions initialized successfully.");
+    }
+
+    public static Specification<Role> getFilteredSpecification(
+    ) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
 }
