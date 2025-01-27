@@ -47,8 +47,7 @@ public class UserController {
             summary = "Получить пользователя по ID",
             description = "Получает пользователя по заданному идентификатору (ID).",
             parameters = {
-                    @Parameter(name = "id", description = "ID пользователя", required = true)
-            })
+                    @Parameter(name = "id", description = "ID пользователя", required = true)})
     @GetMapping("/{id}")
     public ApiResponse<User> getUserById(@PathVariable long id) {
         return userService.getUserById(id);
