@@ -18,6 +18,10 @@ public class Role extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
+    private String descriptionUz;
+    private String descriptionUzCyril;
+    private String descriptionRu;
+    private String descriptionKaa;
 
     private boolean isActive = true;
     @ManyToMany(fetch = FetchType.EAGER)
