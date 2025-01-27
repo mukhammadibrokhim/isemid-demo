@@ -8,9 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.Permission;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.PermissionRepository;
 import uz.uzinfocom.isemid.repositories.RoleRepository;
@@ -21,6 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
@@ -54,39 +58,120 @@ public class RoleServiceImpl implements RoleService {
         return createApiResponsePage(page, rolePage, url);
     }
 
+    @Override
+    public ApiResponse<Role> roleAddPermission(long roleId, String permissionName) {
+        Role role = roleRepository.findById(roleId).orElseThrow(() -> new ApiException(NOT_FOUND, "Role not found with id: " + roleId));
+        Permission permission = permissionRepository.findByName(permissionName).orElseThrow(() -> new ApiException(NOT_FOUND, "Permission not found with name: " + permissionName));
+        if (role.getPermissions() == null) {
+            role.setPermissions(new HashSet<>());
+        }
+
+        if (role.getPermissions().contains(permission)) {
+            throw new ApiException(BAD_REQUEST, "Permission already added to the role" + permissionName);
+        }
+
+        role.getPermissions().add(permission);
+
+        return new ApiResponse<>(true, "Success", roleRepository.save(role));
+    }
+
+    @Override
+    public ApiResponse<Role> roleRemovePermission(long roleId, String permissionName) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, "Role not found with id: " + roleId));
+
+        Permission permission = permissionRepository.findByName(permissionName)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, "Permission not found with name: " + permissionName));
+
+        if (role.getPermissions() == null || !role.getPermissions().contains(permission)) {
+            throw new ApiException(BAD_REQUEST, "Permission not found in the role" + permissionName);
+        }
+
+        role.getPermissions().remove(permission);
+
+        return new ApiResponse<>(true, "Permission successfully removed from the role", roleRepository.save(role));
+    }
+
+//    @Override
+//    public ApiResponse<Role> addPermissionToRole(long roleId, ReqPermission reqPermission) {
+//        Role role = roleRepository.findById(roleId).orElseThrow(() -> new ApiException(NOT_FOUND, "Role not found with id: " + roleId));
+//        role.getPermissions().add(Permission.builder()
+//                        .name(reqPermission.getName())
+//                        .descriptionUz(reqPermission.getDescriptionUz())
+//                        .descriptionUzCyril(reqPermission.getDescriptionUzCyril())
+//                        .descriptionRu(reqPermission.getDescriptionRu())
+//                        .descriptionKaaUz(reqPermission.getDescriptionKaa())
+//                .build());
+//        return new ApiResponse<>(true, "Success", roleRepository.save(role));
+//    }
+
     @PostConstruct
     public void initDefaultRolesAndPermissions() {
-        Map<String, List<String>> rolePermissions = Map.of(
-                "isemid_labarant", List.of(),
-                "isemid_epidemiologist", List.of(),
-                "isemid_head_doctor", List.of(),
-                "isemid_super_admin", List.of(),
-                "isemid_admin", List.of()
+        Map<String, Map<String, Object>> rolePermissions = Map.of(
+                "isemid_labarant", Map.of(
+                        "descriptionUz", "Laborant rol",
+                        "descriptionUzCyril", "Лаборант рол",
+                        "descriptionRu", "Роль лаборанта",
+                        "descriptionKaa", "Лаборатория кызматы",
+                        "permission", List.of()),
+                "isemid_epidemiologist", Map.of(
+                        "descriptionUz", "Epidemiolog rol",
+                        "descriptionUzCyril", "Эпидемиолог рол",
+                        "descriptionRu", "Роль эпидемиолога",
+                        "descriptionKaa", "Эпидемиология кызматы",
+                        "permission", List.of()),
+                "isemid_head_doctor", Map.of(
+                        "descriptionUz", "Bosh shifokor rol",
+                        "descriptionUzCyril", "Бош шифокор рол",
+                        "descriptionRu", "Роль главного врача",
+                        "descriptionKaa", "Башкы врач",
+                        "permission", List.of()),
+                "isemid_super_admin", Map.of(
+                        "descriptionUz", "Super admin rol",
+                        "descriptionUzCyril", "Супер админ рол",
+                        "descriptionRu", "Роль супер администратора",
+                        "descriptionKaa", "Супер администратор",
+                        "permission", List.of()),
+                "isemid_admin", Map.of(
+                        "descriptionUz", "Admin rol",
+                        "descriptionUzCyril", "Админ рол",
+                        "descriptionRu", "Роль администратора",
+                        "descriptionKaa", "Администратор",
+                        "permission", List.of())
         );
-        rolePermissions.forEach((roleName, permissions) -> {
+        rolePermissions.forEach((roleName, roleData) -> {
+            String descriptionUz = (String) roleData.get("descriptionUz");
+            String descriptionUzCyril = (String) roleData.get("descriptionUzCyril");
+            String descriptionRu = (String) roleData.get("descriptionRu");
+            String descriptionKaa = (String) roleData.get("descriptionKaa");
+            List<String> permissionsList = (List<String>) roleData.get("permissions");
+            if (permissionsList == null) {
+                permissionsList = new ArrayList<>();
+            }
             Role role = roleRepository.findByName(roleName).orElseGet(() -> {
                 Role newRole = Role.builder()
                         .name(roleName)
                         .isActive(true)
+                        .descriptionUz(descriptionUz)
+                        .descriptionUzCyril(descriptionUzCyril)
+                        .descriptionRu(descriptionRu)
+                        .descriptionKaa(descriptionKaa)
                         .build();
                 return roleRepository.save(newRole);
             });
 
-            permissions.forEach(permissionName -> {
+            permissionsList.forEach(permissionName -> {
+                Permission permission = permissionRepository.findByName(permissionName).orElseGet(() -> {
+                    Permission newPermission = new Permission();
+                    newPermission.setName(permissionName);
+                    return permissionRepository.save(newPermission);
+                });
+
                 if (role.getPermissions() == null) {
                     role.setPermissions(new HashSet<>());
                 }
-
-                if (role.getPermissions().stream().noneMatch(p -> p.getName().equals(permissionName))) {
-                    Permission permission = permissionRepository.findByName(permissionName).orElseGet(() -> {
-                        Permission newPermission = new Permission();
-                        newPermission.setName(permissionName);
-                        return permissionRepository.save(newPermission);
-                    });
-                    role.getPermissions().add(permission);
-                }
+                role.getPermissions().add(permission);
             });
-
 
             roleRepository.save(role);
         });
