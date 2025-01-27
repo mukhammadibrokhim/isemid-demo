@@ -16,9 +16,13 @@ import uz.uzinfocom.isemid.repositories.PermissionRepository;
 import uz.uzinfocom.isemid.repositories.RoleRepository;
 import uz.uzinfocom.isemid.services.RoleService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
-import static uz.uzinfocom.isemid.utils.CommonUtils.*;
+import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
+import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +34,8 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role findOrCreateRoleByName(String roleName) {
-        Optional<Role> existingRole = roleRepository.findByName(roleName);
-        return existingRole.orElseGet(() -> roleRepository.save(Role.builder()
+        if (!roleName.contains("isemid")) return null;
+        return roleRepository.findByName(roleName).orElseGet(() -> roleRepository.save(Role.builder()
                 .name(roleName)
                 .isActive(true)
                 .build()));
