@@ -91,6 +91,12 @@ public class UserServiceImpl implements UserService {
             user.setLine(address.getLine());
         }
 
+        if (!respPractitioner.getTelecom().isEmpty()) {
+            user.setPhoneNumber(respPractitioner.getTelecom().stream()
+                    .filter(telecom -> telecom.getSystem().equals("phone"))
+                    .map(RespPractitioner.Telecom::getValue).findFirst().orElse(null));
+        }
+
         user.setBirthDate(respPractitioner.getBirthDate());
         user.setActive(respPractitioner.isActive());
         user.setGender(respPractitioner.getGender());

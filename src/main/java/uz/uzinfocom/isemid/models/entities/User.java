@@ -37,6 +37,8 @@ public class User {
     private boolean active;
     private String gender;
 
+    private String phoneNumber;
+
     private String country;
     private String state;
     private String city;
