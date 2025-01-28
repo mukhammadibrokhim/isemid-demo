@@ -10,6 +10,8 @@ public interface ApiUrlConstant {
 
     String ROLE = PREFIX + "/role";
 
+    String PERMISSION = PREFIX + "/permission";
+
     String ORGANIZATION = PREFIX + "/organization";
 
     String CATALOG = PREFIX + "/catalog";

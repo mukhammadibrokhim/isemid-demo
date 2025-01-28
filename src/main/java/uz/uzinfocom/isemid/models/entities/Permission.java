@@ -20,5 +20,5 @@ public class Permission extends BaseEntity {
     private String descriptionUz;
     private String descriptionRu;
     private String descriptionUzCyril;
-    private String descriptionKaaUz; //Karakalpak lang
+    private String descriptionKaa; //Karakalpak lang
 }

@@ -30,6 +30,8 @@ public class Organization {
     private String tin;
     private String email;
     private String phone;
+    @Column(length = 100)
+    private String level;
     private String type;
     private String country;
     private String state;
