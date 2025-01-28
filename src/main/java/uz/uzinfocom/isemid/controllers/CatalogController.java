@@ -222,4 +222,11 @@ public class CatalogController {
     ) {
         return catalogService.findAllByType(CatalogType.populationType, lang);
     }
+
+    @GetMapping("/positions")
+    public ApiResponse<List<RespCatalog>> getPositions(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.position, lang);
+    }
 }

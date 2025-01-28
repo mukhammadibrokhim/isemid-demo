@@ -92,19 +92,6 @@ public class RoleServiceImpl implements RoleService {
         return new ApiResponse<>(true, "Permission successfully removed from the role", roleRepository.save(role));
     }
 
-//    @Override
-//    public ApiResponse<Role> addPermissionToRole(long roleId, ReqPermission reqPermission) {
-//        Role role = roleRepository.findById(roleId).orElseThrow(() -> new ApiException(NOT_FOUND, "Role not found with id: " + roleId));
-//        role.getPermissions().add(Permission.builder()
-//                        .name(reqPermission.getName())
-//                        .descriptionUz(reqPermission.getDescriptionUz())
-//                        .descriptionUzCyril(reqPermission.getDescriptionUzCyril())
-//                        .descriptionRu(reqPermission.getDescriptionRu())
-//                        .descriptionKaaUz(reqPermission.getDescriptionKaa())
-//                .build());
-//        return new ApiResponse<>(true, "Success", roleRepository.save(role));
-//    }
-
     @PostConstruct
     public void initDefaultRolesAndPermissions() {
         Map<String, Map<String, Object>> rolePermissions = Map.of(
@@ -125,6 +112,18 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionUzCyril", "Бош шифокор рол",
                         "descriptionRu", "Роль главного врача",
                         "descriptionKaa", "Башкы врач",
+                        "permission", List.of()),
+                "isemid_epidim_head", Map.of(
+                        "descriptionUz", "Epidemiologiya va immunoprofilaktika bo‘limi mudiri",
+                        "descriptionUzCyril", "Эпидемиология ва иммунопрофилактика бўлими мудири",
+                        "descriptionRu", "Заведующий отделом эпидемиологии и иммунопрофилактики",
+                        "descriptionKaa", "Эпидемиология жана иммунопрофилактика бөлүмүнүн мудири",
+                        "permission", List.of()),
+                "isemid_general_practitioner", Map.of(
+                        "descriptionUz", "Umumiy amaliyot shifokori",
+                        "descriptionUzCyril", "Умумий амалийот шифокори",
+                        "descriptionRu", "Врач общей практики",
+                        "descriptionKaa", "Жалпы практика дарыгери",
                         "permission", List.of()),
                 "isemid_super_admin", Map.of(
                         "descriptionUz", "Super admin rol",
