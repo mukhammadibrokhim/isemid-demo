@@ -53,6 +53,11 @@ public class UserController {
         return userService.getUserById(id);
     }
 
+    @PutMapping("/{id}")
+    public ApiResponse<User> updateUser(@PathVariable long id, @RequestBody User user) {
+        return userService.updateUser(id, user);
+    }
+
     @GetMapping("/me")
     public ApiResponse<User> getCurrentUser(@CurrentUser User user) {
         return userService.getByUuid(user.getUuid());

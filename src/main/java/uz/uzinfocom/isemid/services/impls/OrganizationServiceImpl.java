@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.payload.requests.ReqOrganization;
 import uz.uzinfocom.isemid.models.payload.responses.RespOrganization;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -65,6 +66,40 @@ public class OrganizationServiceImpl implements OrganizationService {
         return organizationRepository.findByUuid(uuid);
     }
 
+    @Override
+    public ApiResponse<Organization> update(UUID uuid, ReqOrganization reqOrganization, User currentUser) {
+        Organization existingOrg = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
+        Optional.ofNullable(reqOrganization.getName()).ifPresent(existingOrg::setName);
+        Optional.of(reqOrganization.isActive()).ifPresent(existingOrg::setActive);
+        Optional.ofNullable(reqOrganization.getTin()).ifPresent(existingOrg::setTin);
+        Optional.ofNullable(reqOrganization.getEmail()).ifPresent(existingOrg::setEmail);
+        Optional.ofNullable(reqOrganization.getPhone()).ifPresent(existingOrg::setPhone);
+        Optional.ofNullable(reqOrganization.getLevel()).ifPresent(existingOrg::setLevel);
+        Optional.ofNullable(reqOrganization.getType()).ifPresent(existingOrg::setType);
+        Optional.ofNullable(reqOrganization.getCountry()).ifPresent(existingOrg::setCountry);
+        Optional.ofNullable(reqOrganization.getState()).ifPresent(existingOrg::setState);
+        Optional.ofNullable(reqOrganization.getCity()).ifPresent(existingOrg::setCity);
+        Optional.ofNullable(reqOrganization.getDistrict()).ifPresent(existingOrg::setDistrict);
+        Optional.ofNullable(reqOrganization.getLine()).ifPresent(existingOrg::setLine);
+        Optional.ofNullable(reqOrganization.getServiceArea()).ifPresent(existingOrg::setServiceArea);
+
+        if (reqOrganization.getParentUuid() != null) {
+            Organization parentOrg = organizationRepository.findByUuid(reqOrganization.getParentUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
+            parentOrg.getChildren().add(existingOrg);
+            existingOrg.setParent(parentOrg);
+        } else {
+            existingOrg.setParent(null);
+        }
+
+        return new ApiResponse<>(true, "Success", organizationRepository.save(existingOrg));
+    }
+
+    @Override
+    public ApiResponse<List<Organization>> getChildrenByParentUuid(UUID uuid) {
+        Organization organization = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
+        return new ApiResponse<>(true, "success", organization.getChildren());
+    }
+
     private Organization mappingOrganization(RespOrganization response) {
         Organization organization = new Organization();
         organization.setUuid(UUID.fromString(response.getId()));
@@ -107,7 +142,6 @@ public class OrganizationServiceImpl implements OrganizationService {
                     .ifPresent(identifier -> organization.setTin(identifier.getValue()));
         }
 
-
         return organization;
     }
 
@@ -115,6 +149,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.isNull(root.get("parent")));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
