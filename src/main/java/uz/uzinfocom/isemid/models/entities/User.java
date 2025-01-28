@@ -44,6 +44,8 @@ public class User {
     private String city;
     private String district;
     private String line;
+    @Column(length = 100)
+    private String accessAreaCode;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonManagedReference
@@ -60,9 +62,9 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "position_id")
-    private Position position;
+    @ManyToOne
+    @JoinColumn(name = "catalog_code", referencedColumnName = "code")
+    private Catalog position;
 
     @Transient
     @JsonIgnore

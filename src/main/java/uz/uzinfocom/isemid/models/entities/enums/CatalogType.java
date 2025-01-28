@@ -11,5 +11,6 @@ public enum CatalogType {
     maritalStatus,
     addressType,
     populationType,
-    residentialStatus
+    residentialStatus,
+    position
 }

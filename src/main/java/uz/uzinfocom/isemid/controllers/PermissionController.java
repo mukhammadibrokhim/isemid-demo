@@ -12,8 +12,10 @@ import uz.uzinfocom.isemid.models.payload.requests.ReqPermission;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.services.PermissionService;
 
+import static uz.uzinfocom.isemid.utils.ApiUrlConstant.PERMISSION;
+
 @RestController
-@RequestMapping()
+@RequestMapping(PERMISSION)
 @Tag(name = "Permission", description = "This APIs for Permission services")
 @RequiredArgsConstructor
 public class PermissionController {
