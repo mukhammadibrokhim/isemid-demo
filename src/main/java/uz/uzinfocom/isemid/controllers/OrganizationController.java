@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
+import uz.uzinfocom.isemid.models.payload.requests.ReqOrganization;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.OrganizationService;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -54,6 +56,11 @@ public class OrganizationController {
         return organizationService.getById(id);
     }
 
+    @GetMapping("/department/{uuid}")
+    public ApiResponse<List<Organization>> getOrganizationChildren(@PathVariable UUID uuid) {
+        return organizationService.getChildrenByParentUuid(uuid);
+    }
+
     @Operation(
             summary = "Обновить организацию из MIS",
             description = "Обновляет информацию об организации, используя данные из MIS по UUID организации.",
@@ -68,5 +75,10 @@ public class OrganizationController {
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
     ) {
         return organizationService.updateUserFromMis(uuid, currentUser, token);
+    }
+
+    @PutMapping("/{uuid}/update")
+    public ApiResponse<Organization> updateOrganization(@PathVariable UUID uuid, @RequestBody ReqOrganization reqOrganization, @CurrentUser User currentUser) {
+        return organizationService.update(uuid, reqOrganization, currentUser);
     }
 }

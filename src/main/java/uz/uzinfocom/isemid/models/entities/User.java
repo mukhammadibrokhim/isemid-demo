@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -64,6 +65,7 @@ public class User {
 
     @ManyToOne
     @JoinColumn(name = "catalog_code", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog position;
 
     @Transient
