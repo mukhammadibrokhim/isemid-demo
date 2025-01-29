@@ -195,5 +195,27 @@ public class CommonUtils {
         return BASE_DOMAIN + fullURL;
     }
 
+    public static boolean checkReqUri(HttpServletRequest request, String... patterns) {
+        if (request == null || patterns == null || patterns.length == 0) {
+            return false;
+        }
+
+        String reqUri = request.getRequestURI();
+
+        for (String pattern : patterns) {
+            if (reqUri.contains(pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static final String[] WHITELIST_HEADER_CHECK = {
+            "receive-from-lis",
+            "/catalog",
+            "/user/me",
+            "/department"
+    };
 
 }

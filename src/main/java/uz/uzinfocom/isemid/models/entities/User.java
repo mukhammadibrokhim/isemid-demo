@@ -50,6 +50,7 @@ public class User {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonManagedReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinTable(
             name = "users_organizations",
             joinColumns = @JoinColumn(name = "user_id"),

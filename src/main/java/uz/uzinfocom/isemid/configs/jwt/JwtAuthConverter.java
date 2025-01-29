@@ -21,6 +21,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static uz.uzinfocom.isemid.utils.CommonUtils.WHITELIST_HEADER_CHECK;
+import static uz.uzinfocom.isemid.utils.CommonUtils.checkReqUri;
+
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
     final OrganizationService organizationService;
     final UserService userService;
@@ -39,10 +42,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         HttpServletRequest request = getCurrentHttpRequest();
         String selectedOrgId = request.getHeader("Organization-id");
         boolean isReceiveFromLisRequest = request.getRequestURI().contains("receive-from-lis");
-        boolean isUserMeRequest = request.getRequestURI().contains("/user/me");
-        boolean isCatalog = request.getRequestURI().contains("/catalog");
 
-        validateOrganizationHeader(selectedOrgId, isReceiveFromLisRequest, isUserMeRequest, isCatalog);
+        validateOrganizationHeader(selectedOrgId, request);
 
         UserInfo userInfo = parseUserInfo(jwt);
 
@@ -68,8 +69,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         return attributes.getRequest();
     }
 
-    private void validateOrganizationHeader(String selectedOrgId, boolean isReceiveFromLisRequest, boolean isUserMeRequest, boolean isCatalog) {
-        if (!isReceiveFromLisRequest && !isCatalog && !isUserMeRequest && (selectedOrgId == null || selectedOrgId.isBlank())) {
+    private void validateOrganizationHeader(String selectedOrgId, HttpServletRequest request) {
+        if (!checkReqUri(request,WHITELIST_HEADER_CHECK) && (selectedOrgId == null || selectedOrgId.isBlank())) {
             throw new InsufficientAuthenticationException("Organization-id is required in the header.");
         }
     }
