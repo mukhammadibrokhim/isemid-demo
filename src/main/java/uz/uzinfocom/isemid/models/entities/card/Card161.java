@@ -26,8 +26,6 @@ public class Card161 extends Card {
     private String delayedTransferReasons;
     private Boolean isLaboratoryTestConducted;
 
-    // TODO LIS dan olinadigan malumotlarni kelishish
-
     private LocalDate estimatedInfectionDate;
 
     private String infectionRiskFactors;

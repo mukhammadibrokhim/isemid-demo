@@ -1,8 +1,8 @@
-package uz.uzinfocom.isemid.services;
+package uz.uzinfocom.isemid.services.value_set;
 
 import jakarta.servlet.http.HttpServletRequest;
-import uz.uzinfocom.isemid.models.entities.Catalog;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.ReqCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.RespCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -25,4 +25,6 @@ public interface CatalogService {
     ApiResponse<List<RespCatalog>> findFirst20ByTypeAndSearch(CatalogType catalogType, String lang, String search);
 
     Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String parentCode);
+
+    Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code);
 }

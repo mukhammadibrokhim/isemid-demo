@@ -10,12 +10,15 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.enums.AccessLevel;
+import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.payload.requests.ReqOrganization;
 import uz.uzinfocom.isemid.models.payload.responses.RespOrganization;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.OrganizationRepository;
 import uz.uzinfocom.isemid.services.OrganizationService;
+import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,7 @@ import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
 @RequiredArgsConstructor
 public class OrganizationServiceImpl implements OrganizationService {
     final OrganizationRepository organizationRepository;
+    final CatalogService catalogService;
 
     @Override
     public ApiResponsePage getAllOrganizationsByFilter(int page, int size, HttpServletRequest request) {
@@ -76,12 +80,21 @@ public class OrganizationServiceImpl implements OrganizationService {
         Optional.ofNullable(reqOrganization.getPhone()).ifPresent(existingOrg::setPhone);
         Optional.ofNullable(reqOrganization.getLevel()).ifPresent(existingOrg::setLevel);
         Optional.ofNullable(reqOrganization.getType()).ifPresent(existingOrg::setType);
-        Optional.ofNullable(reqOrganization.getCountry()).ifPresent(existingOrg::setCountry);
-        Optional.ofNullable(reqOrganization.getState()).ifPresent(existingOrg::setState);
-        Optional.ofNullable(reqOrganization.getCity()).ifPresent(existingOrg::setCity);
         Optional.ofNullable(reqOrganization.getDistrict()).ifPresent(existingOrg::setDistrict);
         Optional.ofNullable(reqOrganization.getLine()).ifPresent(existingOrg::setLine);
         Optional.ofNullable(reqOrganization.getServiceArea()).ifPresent(existingOrg::setServiceArea);
+
+        Optional.ofNullable(reqOrganization.getCountry())
+                .map(code -> catalogService.findByTypeAndCode(CatalogType.country, code))
+                .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
+
+        Optional.ofNullable(reqOrganization.getState())
+                .map(code -> catalogService.findByTypeAndCode(CatalogType.state, code))
+                .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
+
+        Optional.ofNullable(reqOrganization.getCity())
+                .map(code -> catalogService.findByTypeAndCode(CatalogType.city, code))
+                .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
 
         if (reqOrganization.getParentUuid() != null) {
             Organization parentOrg = organizationRepository.findByUuid(reqOrganization.getParentUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
@@ -98,6 +111,12 @@ public class OrganizationServiceImpl implements OrganizationService {
     public ApiResponse<List<Organization>> getChildrenByParentUuid(UUID uuid) {
         Organization organization = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
         return new ApiResponse<>(true, "success", organization.getChildren());
+    }
+
+    @Override
+    public ApiResponse<?> getAllOrgUsers(long id) {
+        Organization organization = organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
+        return new ApiResponse<>(true, "success", organization.getUsers());
     }
 
     private Organization mappingOrganization(RespOrganization response) {
@@ -122,12 +141,35 @@ public class OrganizationServiceImpl implements OrganizationService {
                     .findFirst()
                     .orElse(response.getAddress().getFirst());
 
-            organization.setCountry(address.getCountry());
-            organization.setState(address.getState());
-            organization.setCity(address.getCity());
+            organization.setCountry(catalogService.findByTypeAndCode(CatalogType.country, address.getCountry()).orElse(null));
+            organization.setState(catalogService.findByTypeAndCode(CatalogType.state, address.getState()).orElse(null));
+            organization.setCity(catalogService.findByTypeAndCode(CatalogType.city, address.getCity()).orElse(null));
             organization.setLine(address.getLine());
             organization.setType(address.getType());
             organization.setDistrict(address.getDistrict());
+        }
+        if (!response.getType().isEmpty()) {
+            response.getType().forEach(type -> {
+                type.getCoding()
+                        .stream().filter(coding -> "http://fhir.ssv.uz/ValueSet/organization-type-level".equals(coding.getSystem()))
+                        .forEach(coding -> {
+                            switch (coding.getCode()) {
+                                case "1":
+                                    organization.setLevel(AccessLevel.republication_level.name());
+                                    break;
+                                case "2":
+                                    organization.setLevel(AccessLevel.state_level.name());
+                                    break;
+                                case "3":
+                                case "4":
+                                    organization.setLevel(AccessLevel.district_level.name());
+                                    break;
+                                default:
+                                    organization.setLevel(null);
+                            }
+                        });
+            });
+
         }
 
         if (response.getServiceArea() != null && !response.getServiceArea().isEmpty()) {

@@ -3,8 +3,8 @@ package uz.uzinfocom.isemid.models.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 
 import java.time.LocalDateTime;
 
@@ -19,6 +19,10 @@ import java.time.LocalDateTime;
 public class Form058 extends AbsEntity {
     private String mkb10Code;
     private String mkb10Name;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Patient patient;
 
     private String hospitalPlace; // Yotqizilgan joyi
     private LocalDateTime admissionDate; // Yotqizilgan sana
@@ -40,7 +44,6 @@ public class Form058 extends AbsEntity {
     @JoinColumn(name = "card_id")
     private Card card;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
+    @OneToOne(cascade = CascadeType.ALL)
+    private User reporter;
 }

@@ -1,10 +1,5 @@
 package uz.uzinfocom.isemid.controllers;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,16 +10,10 @@ import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
+import uz.uzinfocom.isemid.models.payload.requests.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.Form058Service;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
-import java.util.Hashtable;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.FORM0058;
@@ -63,8 +52,7 @@ public class Form058Controller {
 
     @Operation(
             summary = "Обновление формы 058",
-            description = "Обновляет существующую форму 058 по заданному идентификатору."
-    )
+            description = "Обновляет существующую форму 058 по заданному идентификатору.")
     @PutMapping("/{id}")
     public ApiResponse<Form058> update(
             @RequestBody ReqForm058 reqForm058,
@@ -72,6 +60,12 @@ public class Form058Controller {
             @CurrentUser User user
     ) {
         return form058Service.updateForm058(reqForm058, id, user);
+    }
+
+    @PostMapping("/assign-card")
+    public ApiResponse<Form058> assignCard(@Valid @RequestBody ReqForm058AssignCard assignCard) {
+        return form058Service.assignCard(assignCard);
+
     }
 }
 

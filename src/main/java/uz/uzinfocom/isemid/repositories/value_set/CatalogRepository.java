@@ -1,11 +1,11 @@
-package uz.uzinfocom.isemid.repositories;
+package uz.uzinfocom.isemid.repositories.value_set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import uz.uzinfocom.isemid.models.entities.Catalog;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,4 +40,6 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     List<Catalog> findByTypeAndSearch(@Param("type") String type, @Param("search") String search);
 
     Optional<Catalog> findByTypeAndParentCode(String catalogType, String parentCode);
+
+    Optional<Catalog> findByTypeAndCode(String name, String code);
 }

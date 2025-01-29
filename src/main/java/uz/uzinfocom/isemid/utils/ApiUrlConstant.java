@@ -2,9 +2,7 @@ package uz.uzinfocom.isemid.utils;
 
 public interface ApiUrlConstant {
 
-    String PREFIX = "/api/v1";
-
-    String PATIENT = PREFIX + "/patient";
+    String PREFIX = "/v1";
 
     String USER = PREFIX + "/user";
 
@@ -21,6 +19,8 @@ public interface ApiUrlConstant {
     String FORM089 = PREFIX + "/form089";
 
     String FORM0058 = PREFIX + "/form058";
+
+    String CARD = PREFIX + "/form058";
 
     String DB = PREFIX + "/db";
 

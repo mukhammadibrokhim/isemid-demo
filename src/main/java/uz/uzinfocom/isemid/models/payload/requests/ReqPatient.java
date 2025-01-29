@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,7 @@ public class ReqPatient {
     @NotBlank(message = "Место работы обязательно и не может быть пустым.")
     private String workPlace;
 
+    @JsonIgnore
     @AssertTrue(message = "Адреса должны содержать как минимум один TEMPORARY и один PERMANENT адрес.")
     public boolean isValidAddress() {
         if (addresses == null || addresses.isEmpty()) {

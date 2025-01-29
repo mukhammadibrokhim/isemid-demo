@@ -28,4 +28,6 @@ public interface OrganizationService {
     ApiResponse<Organization> update(UUID uuid, ReqOrganization reqOrganization, User currentUser);
 
     ApiResponse<List<Organization>> getChildrenByParentUuid(UUID uuid);
+
+    ApiResponse<?> getAllOrgUsers(long id);
 }
