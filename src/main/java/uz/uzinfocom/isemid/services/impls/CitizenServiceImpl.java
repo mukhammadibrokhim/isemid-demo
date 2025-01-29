@@ -5,12 +5,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.Catalog;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.IdentifierType;
 import uz.uzinfocom.isemid.models.payload.responses.RespChild;
 import uz.uzinfocom.isemid.models.payload.responses.RespCitizen;
-import uz.uzinfocom.isemid.services.CatalogService;
+import uz.uzinfocom.isemid.services.value_set.CatalogService;
 import uz.uzinfocom.isemid.services.CitizenService;
 import uz.uzinfocom.isemid.services.PatientService;
 

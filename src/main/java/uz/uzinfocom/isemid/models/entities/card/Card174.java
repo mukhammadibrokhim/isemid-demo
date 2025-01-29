@@ -47,5 +47,4 @@ public class Card174 extends Card {
     private int treatedHumans; // Tezkor yordam yoki antirabik yordam olganlar soni
     private int affectedInOutbreak; // O‘choqda kasallangan odamlar soni
     private String executorName; // Chora-tadbirlarni amalga oshiruvchi shaxs ismi
-
 }

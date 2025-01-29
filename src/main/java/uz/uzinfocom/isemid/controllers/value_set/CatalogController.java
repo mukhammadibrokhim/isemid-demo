@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.controllers;
+package uz.uzinfocom.isemid.controllers.value_set;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -7,13 +7,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import uz.uzinfocom.isemid.models.entities.Catalog;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.payload.requests.ReqCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.RespCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
-import uz.uzinfocom.isemid.services.CatalogService;
+import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.List;
 

@@ -11,7 +11,7 @@ import java.util.List;
 public class RespOrganization {
     private String id;
     private Meta meta;
-//    private List<Type> type;
+    private List<Type> type;
     private String name;
     private boolean active;
     private PartOf partOf;

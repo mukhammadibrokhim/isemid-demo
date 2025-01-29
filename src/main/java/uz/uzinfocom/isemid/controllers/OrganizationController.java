@@ -81,4 +81,12 @@ public class OrganizationController {
     public ApiResponse<Organization> updateOrganization(@PathVariable UUID uuid, @RequestBody ReqOrganization reqOrganization, @CurrentUser User currentUser) {
         return organizationService.update(uuid, reqOrganization, currentUser);
     }
+
+    @Operation(
+            summary = "Получить всех пользователей организации",
+            description = "Этот API извлекает всех пользователей, связанных с конкретной организацией по её ID.")
+    @GetMapping("/{id}/users")
+    public ApiResponse<?> getOrganization(@PathVariable long id) {
+        return organizationService.getAllOrgUsers(id);
+    }
 }

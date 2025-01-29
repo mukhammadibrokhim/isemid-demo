@@ -10,11 +10,13 @@ import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.UserRepository;
 import uz.uzinfocom.isemid.services.UserService;
+import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.*;
 
@@ -29,7 +31,7 @@ import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
 public class UserServiceImpl implements UserService {
 
     final UserRepository userRepository;
-
+    final CatalogService catalogService;
     @Override
     public ApiResponsePage getAllUsers(int page, int size, HttpServletRequest request) {
         Specification<User> spec = getFilteredSpecification();
@@ -89,9 +91,9 @@ public class UserServiceImpl implements UserService {
                         .orElse(respPractitioner.getAddress().getFirst());
             }
 
-            user.setCountry(address.getCountry());
-            user.setState(address.getState());
-            user.setCity(address.getCity());
+            user.setCountry(catalogService.findByTypeAndCode(CatalogType.country, address.getCountry()).orElse(null));
+            user.setState(catalogService.findByTypeAndCode(CatalogType.state, address.getState()).orElse(null));
+            user.setCity(catalogService.findByTypeAndCode(CatalogType.city, address.getCity()).orElse(null));
             user.setDistrict(address.getDistrict());
             user.setLine(address.getLine());
         }
@@ -104,7 +106,7 @@ public class UserServiceImpl implements UserService {
 
         user.setBirthDate(respPractitioner.getBirthDate());
         user.setActive(respPractitioner.isActive());
-        user.setGender(respPractitioner.getGender());
+        user.setGender(catalogService.findByTypeAndCode(CatalogType.gender, respPractitioner.getGender()).orElse(null));
         user.setRoles(roles);
         user.setOrganizations(organizations);
         return user;

@@ -2,12 +2,15 @@ package uz.uzinfocom.isemid.models.entities.card;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.enums.CardType;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -27,4 +30,15 @@ import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 })
 public abstract class Card extends AbsEntity {
     private String cardNumber;
+
+    @Enumerated(EnumType.STRING)
+    private CardType cardType;
+
+    @ManyToMany
+    @JoinTable(
+            name = "card_users",
+            joinColumns = @JoinColumn(name = "card_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> users = new HashSet<>();
 }

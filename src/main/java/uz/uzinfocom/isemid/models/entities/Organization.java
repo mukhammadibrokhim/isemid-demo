@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +36,19 @@ public class Organization {
     @Column(length = 100)
     private String level;
     private String type;
-    private String country;
-    private String state;
-    private String city;
+
+    @ManyToOne
+    @JoinColumn(name = "country", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog country;
+    @ManyToOne
+    @JoinColumn(name = "state", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog state;
+    @ManyToOne
+    @JoinColumn(name = "city", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog city;
     private String district;
     private String line;
     private String serviceArea;

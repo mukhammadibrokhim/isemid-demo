@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.services.impls;
+package uz.uzinfocom.isemid.services.impls.value_set;
 
 import com.opencsv.CSVReader;
 import jakarta.annotation.PostConstruct;
@@ -14,14 +14,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.Catalog;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.ReqCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.RespCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
-import uz.uzinfocom.isemid.repositories.CatalogRepository;
-import uz.uzinfocom.isemid.services.CatalogService;
+import uz.uzinfocom.isemid.repositories.value_set.CatalogRepository;
+import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -125,6 +125,11 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String parentCode) {
         return catalogRepository.findByTypeAndParentCode(catalogType.name(), parentCode);
+    }
+
+    @Override
+    public Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code) {
+        return catalogRepository.findByTypeAndCode(catalogType.name(), code);
     }
 
     public static Specification<Catalog> getFilteredSpecification(

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,13 +37,28 @@ public class User {
 
     private LocalDate birthDate;
     private boolean active;
-    private String gender;
+
+    @ManyToOne
+    @JoinColumn(name = "gender", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog gender;
 
     private String phoneNumber;
 
-    private String country;
-    private String state;
-    private String city;
+    @ManyToOne
+    @JoinColumn(name = "country", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog country;
+
+    @ManyToOne
+    @JoinColumn(name = "state", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog state;
+
+    @ManyToOne
+    @JoinColumn(name = "city", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog city;
     private String district;
     private String line;
     @Column(length = 100)

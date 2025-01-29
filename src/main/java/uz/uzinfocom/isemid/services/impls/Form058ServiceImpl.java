@@ -6,8 +6,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
+import uz.uzinfocom.isemid.models.payload.requests.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
 
@@ -83,6 +86,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .journalForm(reqForm058.getJournalForm())
                 .deceaseLocation(reqForm058.getDeceaseLocation())
                 .card(reqForm058.getCard())
+                .reporter(user)
                 .visitDate(reqForm058.getVisitDate())
                 .patient(patient)
                 .build();
@@ -104,6 +108,13 @@ public class Form058ServiceImpl implements Form058Service {
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, form058Page, url);
 
+    }
+
+    @Override
+    public ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard) {
+        Form058 form058 = form058Repository.findById(assignCard.getFormId()).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getFormId()));
+        //TODO should continue...
+        return new ApiResponse<>(true, "", form058);
     }
 
     public static Specification<Form058> getFilteredSpecification(

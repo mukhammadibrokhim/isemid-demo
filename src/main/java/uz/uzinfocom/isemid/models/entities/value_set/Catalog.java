@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.entities;
+package uz.uzinfocom.isemid.models.entities.value_set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
