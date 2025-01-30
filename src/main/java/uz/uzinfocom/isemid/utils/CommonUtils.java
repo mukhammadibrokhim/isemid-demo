@@ -10,6 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
+import uz.uzinfocom.isemid.models.entities.card.*;
+import uz.uzinfocom.isemid.models.entities.enums.CardType;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
@@ -217,5 +219,15 @@ public class CommonUtils {
             "/user/me",
             "/department"
     };
+
+    public static Card createCard(CardType cardType) {
+        return switch (cardType) {
+            case CARD161 -> new Card161();
+            case CARD174 -> new Card174();
+            case CARD175 -> new Card175();
+            case CARD205 -> new Card205();
+            case CARD_TUBE -> new CardTube();
+        };
+    }
 
 }

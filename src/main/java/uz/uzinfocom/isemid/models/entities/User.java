@@ -61,8 +61,11 @@ public class User {
     private Catalog city;
     private String district;
     private String line;
-    @Column(length = 100)
-    private String accessAreaCode;
+
+    @ManyToOne
+    @JoinColumn(name = "access_level_code", referencedColumnName = "code")
+    @JsonIgnoreProperties({"createdAt", "updatedAt", "updatedBy", "createdBy"})
+    private Catalog accessLevel;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonManagedReference
@@ -81,7 +84,7 @@ public class User {
     private Set<Role> roles;
 
     @ManyToOne
-    @JoinColumn(name = "catalog_code", referencedColumnName = "code")
+    @JoinColumn(name = "postion_catalog_code", referencedColumnName = "code")
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog position;
 

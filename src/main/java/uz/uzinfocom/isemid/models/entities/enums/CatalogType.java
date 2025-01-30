@@ -14,4 +14,5 @@ public enum CatalogType {
     residentialStatus,
     position,
     cardType,
+    level
 }

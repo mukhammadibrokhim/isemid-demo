@@ -30,19 +30,17 @@ public class OrganizationController {
 
     @Operation(
             summary = "Получить все организации",
-            description = "Получает список всех организаций с возможностью пагинации.",
-            parameters = {
-                    @Parameter(name = "page", description = "Номер страницы для пагинации"),
-                    @Parameter(name = "size", description = "Количество элементов на странице для пагинации"),
-                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
-            })
+            description = "Получает список всех организаций с возможностью пагинации.")
     @GetMapping("/all")
     public ApiResponsePage getAllOrganizations(
             @RequestParam(defaultValue = PAGE) int page,
             @RequestParam(defaultValue = SIZE) int size,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
             HttpServletRequest request
     ) {
-        return organizationService.getAllOrganizationsByFilter(page, size, request);
+        return organizationService.getAllOrganizationsByFilter(page, size, name, stateCode, cityCode, request);
     }
 
     @Operation(

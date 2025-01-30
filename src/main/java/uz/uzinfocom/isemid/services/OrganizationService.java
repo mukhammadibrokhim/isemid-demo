@@ -13,11 +13,9 @@ import java.util.UUID;
 
 public interface OrganizationService {
 
-    ApiResponsePage getAllOrganizationsByFilter(int page, int size, HttpServletRequest request);
+    ApiResponsePage getAllOrganizationsByFilter(int page, int size, String name, String stateCode, String cityCode, HttpServletRequest request);
 
     Organization fetchOrganizationFromMisAndSave(UUID uuid, String tokenValue);
-
-    Optional<Organization> findByUuid(UUID uuid);
 
     ApiResponse<Organization> getById(long id);
 

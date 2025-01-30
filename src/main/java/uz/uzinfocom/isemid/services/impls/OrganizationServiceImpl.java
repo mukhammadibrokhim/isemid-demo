@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 import static uz.uzinfocom.isemid.utils.IntegrationUrlConstraint.MIS_ORGANIZATION;
 import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
@@ -37,8 +38,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     final CatalogService catalogService;
 
     @Override
-    public ApiResponsePage getAllOrganizationsByFilter(int page, int size, HttpServletRequest request) {
-        Specification<Organization> spec = getFilteredSpecification();
+    public ApiResponsePage getAllOrganizationsByFilter(int page, int size, String name, String stateCode, String cityCode, HttpServletRequest request) {
+        Specification<Organization> spec = getFilteredSpecification(name, stateCode, cityCode);
         Page<Organization> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, organizationPage, getFullURL(request));
     }
@@ -149,26 +150,24 @@ public class OrganizationServiceImpl implements OrganizationService {
             organization.setDistrict(address.getDistrict());
         }
         if (!response.getType().isEmpty()) {
-            response.getType().forEach(type -> {
-                type.getCoding()
-                        .stream().filter(coding -> "http://fhir.ssv.uz/ValueSet/organization-type-level".equals(coding.getSystem()))
-                        .forEach(coding -> {
-                            switch (coding.getCode()) {
-                                case "1":
-                                    organization.setLevel(AccessLevel.republication_level.name());
-                                    break;
-                                case "2":
-                                    organization.setLevel(AccessLevel.state_level.name());
-                                    break;
-                                case "3":
-                                case "4":
-                                    organization.setLevel(AccessLevel.district_level.name());
-                                    break;
-                                default:
-                                    organization.setLevel(null);
-                            }
-                        });
-            });
+            response.getType().forEach(type -> type.getCoding()
+                    .stream().filter(coding -> "http://fhir.ssv.uz/ValueSet/organization-type-level".equals(coding.getSystem()))
+                    .forEach(coding -> {
+                        switch (coding.getCode()) {
+                            case "1":
+                                organization.setLevel(AccessLevel.republication_level.name());
+                                break;
+                            case "2":
+                                organization.setLevel(AccessLevel.state_level.name());
+                                break;
+                            case "3":
+                            case "4":
+                                organization.setLevel(AccessLevel.district_level.name());
+                                break;
+                            default:
+                                organization.setLevel(null);
+                        }
+                    }));
 
         }
 
@@ -188,11 +187,23 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     public static Specification<Organization> getFilteredSpecification(
+            String name,
+            String stateCode,
+            String cityCode
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.isNull(root.get("parent")));
 
+            if (hasText(name)) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+            }
+            if (hasText(stateCode)) {
+                predicates.add(criteriaBuilder.equal(root.get("state").get("code"), stateCode));
+            }
+            if (hasText(cityCode)) {
+                predicates.add(criteriaBuilder.equal(root.get("city").get("code"), cityCode));
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }

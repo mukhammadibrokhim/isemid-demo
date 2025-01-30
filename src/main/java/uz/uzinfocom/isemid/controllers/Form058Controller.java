@@ -62,10 +62,10 @@ public class Form058Controller {
         return form058Service.updateForm058(reqForm058, id, user);
     }
 
+    @Operation(summary = "Назначение карты для Form058", description = "Этот эндпоинт назначает карту (Card) для существующей записи Form058. ")
     @PostMapping("/assign-card")
     public ApiResponse<Form058> assignCard(@Valid @RequestBody ReqForm058AssignCard assignCard) {
         return form058Service.assignCard(assignCard);
-
     }
 }
 

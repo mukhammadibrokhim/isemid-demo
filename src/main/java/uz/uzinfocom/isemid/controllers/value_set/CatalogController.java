@@ -7,8 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.ReqCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.RespCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -228,5 +228,12 @@ public class CatalogController {
             @RequestHeader("Accept-Language") String lang
     ) {
         return catalogService.findAllByType(CatalogType.position, lang);
+    }
+
+    @GetMapping("/levels")
+    public ApiResponse<?> getLevels(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.level, lang);
     }
 }
