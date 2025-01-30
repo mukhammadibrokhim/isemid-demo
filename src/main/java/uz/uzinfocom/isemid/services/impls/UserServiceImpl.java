@@ -24,6 +24,7 @@ import java.util.*;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.models.entities.enums.CatalogType.level;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.PRACTITIONER;
 import static uz.uzinfocom.isemid.utils.CommonUtils.*;
@@ -36,8 +37,8 @@ public class UserServiceImpl implements UserService {
     final UserRepository userRepository;
     final CatalogService catalogService;
     @Override
-    public ApiResponsePage getAllUsers(int page, int size, HttpServletRequest request) {
-        Specification<User> spec = getFilteredSpecification();
+    public ApiResponsePage getAllUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, HttpServletRequest request) {
+        Specification<User> spec = getFilteredSpecification(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active);
         Page<User> userPage = userRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, userPage, getFullURL(request));
     }
@@ -132,10 +133,37 @@ public class UserServiceImpl implements UserService {
     }
 
     public static Specification<User> getFilteredSpecification(
+            final String nnuzb,
+            final String firstName,
+            final String lastName,
+            final String middleName,
+            final String phoneNumber,
+            final String accessLevelCode,
+            final Boolean active
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
+            if (hasText(nnuzb)) {
+                predicates.add(criteriaBuilder.equal(root.get("nnuzb"), nnuzb));
+            }
+            if (hasText(firstName)) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName + "%"));
+            }
+            if (hasText(lastName)) {
+                predicates.add(criteriaBuilder.like(root.get("lastName"), "%" + lastName + "%"));
+            }
+            if (hasText(middleName)) {
+                predicates.add(criteriaBuilder.like(root.get("middleName"), "%" + middleName + "%"));
+            }
+            if (hasText(phoneNumber)) {
+                predicates.add(criteriaBuilder.equal(root.get("phoneNumber"), phoneNumber));
+            }
+            if (hasText(accessLevelCode)) {
+                predicates.add(criteriaBuilder.equal(root.get("accessLevel").get("code"), accessLevelCode));
+            }
+            if (active != null) {
+                predicates.add(criteriaBuilder.equal(root.get("active"), active));
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }

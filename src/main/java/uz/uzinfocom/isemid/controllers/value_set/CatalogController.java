@@ -236,4 +236,9 @@ public class CatalogController {
     ) {
         return catalogService.findAllByType(CatalogType.level, lang);
     }
+
+    @GetMapping("/forms")
+    public ApiResponse<?> getCards(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.formType, lang);
+    }
 }
