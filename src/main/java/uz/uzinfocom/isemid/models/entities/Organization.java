@@ -33,27 +33,36 @@ public class Organization {
     private String tin;
     private String email;
     private String phone;
-    @Column(length = 100)
-    private String level;
     private String type;
+
+    @ManyToOne
+    @JoinColumn(name = "level", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog level;
 
     @ManyToOne
     @JoinColumn(name = "country", referencedColumnName = "code")
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog country;
+
+    private String hierarchy;
     @ManyToOne
     @JoinColumn(name = "state", referencedColumnName = "code")
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog state;
+
     @ManyToOne
     @JoinColumn(name = "city", referencedColumnName = "code")
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog city;
+
     private String district;
     private String line;
-    private String serviceArea;
 
-    private String hierarchy;
+    @ManyToOne
+    @JoinColumn(name = "service_area", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog serviceArea;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")

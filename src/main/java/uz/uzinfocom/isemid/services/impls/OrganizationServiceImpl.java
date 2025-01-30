@@ -74,21 +74,26 @@ public class OrganizationServiceImpl implements OrganizationService {
         Optional.ofNullable(reqOrganization.getTin()).ifPresent(existingOrg::setTin);
         Optional.ofNullable(reqOrganization.getEmail()).ifPresent(existingOrg::setEmail);
         Optional.ofNullable(reqOrganization.getPhone()).ifPresent(existingOrg::setPhone);
-        Optional.ofNullable(reqOrganization.getLevel()).ifPresent(existingOrg::setLevel);
+        Optional.ofNullable(reqOrganization.getLevelCode())
+                .map(code -> catalogService.findByTypeAndCode(CatalogType.level, code))
+                .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
+
         Optional.ofNullable(reqOrganization.getType()).ifPresent(existingOrg::setType);
         Optional.ofNullable(reqOrganization.getDistrict()).ifPresent(existingOrg::setDistrict);
         Optional.ofNullable(reqOrganization.getLine()).ifPresent(existingOrg::setLine);
-        Optional.ofNullable(reqOrganization.getServiceArea()).ifPresent(existingOrg::setServiceArea);
-
-        Optional.ofNullable(reqOrganization.getCountry())
-                .map(code -> catalogService.findByTypeAndCode(CatalogType.country, code))
-                .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
-
-        Optional.ofNullable(reqOrganization.getState())
+        Optional.ofNullable(reqOrganization.getServiceAreaCode())
                 .map(code -> catalogService.findByTypeAndCode(CatalogType.state, code))
                 .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
 
-        Optional.ofNullable(reqOrganization.getCity())
+        Optional.ofNullable(reqOrganization.getCountryCode())
+                .map(code -> catalogService.findByTypeAndCode(CatalogType.country, code))
+                .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
+
+        Optional.ofNullable(reqOrganization.getStateCode())
+                .map(code -> catalogService.findByTypeAndCode(CatalogType.state, code))
+                .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
+
+        Optional.ofNullable(reqOrganization.getCityCode())
                 .map(code -> catalogService.findByTypeAndCode(CatalogType.city, code))
                 .ifPresent(code -> existingOrg.setCountry(code.orElse(null)));
 
@@ -150,24 +155,23 @@ public class OrganizationServiceImpl implements OrganizationService {
                     .forEach(coding -> {
                         switch (coding.getCode()) {
                             case "1":
-                                organization.setLevel(AccessLevel.republication_level.name());
+                                organization.setLevel(catalogService.findByTypeAndCode(CatalogType.level, AccessLevel.republic_level.name()).orElse(null));
                                 break;
                             case "2":
-                                organization.setLevel(AccessLevel.state_level.name());
+                                organization.setLevel(catalogService.findByTypeAndCode(CatalogType.level, AccessLevel.state_level.name()).orElse(null));
                                 break;
                             case "3":
                             case "4":
-                                organization.setLevel(AccessLevel.district_level.name());
+                                organization.setLevel(catalogService.findByTypeAndCode(CatalogType.level, AccessLevel.district_level.name()).orElse(null));
                                 break;
                             default:
                                 organization.setLevel(null);
                         }
                     }));
-
         }
 
         if (response.getServiceArea() != null && !response.getServiceArea().isEmpty()) {
-            organization.setServiceArea(response.getServiceArea().getFirst().getState());
+            organization.setServiceArea(catalogService.findByTypeAndCode(CatalogType.state, response.getServiceArea().getFirst().getState()).orElse(null));
         }
 
         if (response.getIdentifier() != null) {

@@ -18,14 +18,14 @@ public class ReqOrganization {
     private String tin;
     private String email;
     private String phone;
-    private String level;
+    private String levelCode;
     private String type;
-    private String country;
-    private String state;
-    private String city;
+    private String countryCode;
+    private String stateCode;
+    private String cityCode;
     private String district;
     private String line;
-    private String serviceArea;
+    private String serviceAreaCode;
     private String hierarchy;
     private UUID parentUuid;
 }
