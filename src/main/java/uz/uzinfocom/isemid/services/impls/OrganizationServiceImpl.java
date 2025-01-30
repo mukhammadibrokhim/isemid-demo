@@ -51,11 +51,6 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public Optional<Organization> findByUuid(UUID uuid) {
-        return organizationRepository.findByUuid(uuid);
-    }
-
-    @Override
     public ApiResponse<Organization> getById(long id) {
         return new ApiResponse<>(true, "Organization successfully fetch.", organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found.")));
     }
