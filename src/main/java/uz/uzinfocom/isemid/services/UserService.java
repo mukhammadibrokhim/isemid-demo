@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface UserService {
-    ApiResponsePage getAllUsers(int page, int size, HttpServletRequest request);
+    ApiResponsePage getAllUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, HttpServletRequest request);
 
     Optional<User> findByUuid(UUID practitioner);
 

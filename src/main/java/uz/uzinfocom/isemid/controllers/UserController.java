@@ -34,15 +34,21 @@ public class UserController {
             parameters = {
                     @Parameter(name = "page", description = "Номер страницы для пагинации"),
                     @Parameter(name = "size", description = "Количество пользователей на странице для пагинации"),
-                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
             })
     @GetMapping("/all")
     public ApiResponsePage getAllUsers(
             @RequestParam(defaultValue = PAGE) int page,
             @RequestParam(defaultValue = SIZE) int size,
+            @RequestParam(required = false) String nnuzb,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String middleName,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) String accessLevelCode,
+            @RequestParam(required = false) Boolean active,
             HttpServletRequest request
     ) {
-        return userService.getAllUsers(page, size, request);
+        return userService.getAllUsers(page, size,nnuzb,firstName,lastName,middleName,phoneNumber,accessLevelCode,active, request);
     }
 
     @Operation(
