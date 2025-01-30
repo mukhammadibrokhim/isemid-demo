@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -35,15 +36,17 @@ public class Form058 extends AbsEntity {
     private String poisoningLocation; // Zaharlangan yoki kasallangan joyi
     private String diseaseCause; // Kasallik sababi
     private String epidemicMeasures; // Epidemiya haqida choralar
-    private String notifierFullName; // Habar beruvchi F.I.Sh
     private String comment;
     private String journalForm;
     private String deceaseLocation;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "card_id")
+    @JsonIgnoreProperties("form058")
     private Card card;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "reporter_user_id")
+    @JsonIgnoreProperties({"organizations", "roles", "country", "state", "city", "gender"})
     private User reporter;
 }

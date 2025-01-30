@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.services.impls;
 
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -8,26 +9,28 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
+import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.services.Form058Service;
+import uz.uzinfocom.isemid.services.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
-import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
+import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
 @Service
 @RequiredArgsConstructor
 public class Form058ServiceImpl implements Form058Service {
     final Form058Repository form058Repository;
     final ModelMapper modelMapper;
+    final UserService userService;
 
     @Override
     public ApiResponse<Form058> createForm058(ReqForm058 reqForm058, User user) {
@@ -68,7 +71,7 @@ public class Form058ServiceImpl implements Form058Service {
             return address;
         }).toList();
         patient.setAddresses(addresses);
-
+        User reporter = userService.findByUuid(user.getUuid()).orElse(null);
         Form058 form058 = Form058.builder()
                 .admissionDate(reqForm058.getAdmissionDate())
                 .comment(reqForm058.getComment())
@@ -80,26 +83,22 @@ public class Form058ServiceImpl implements Form058Service {
                 .epidemicMeasures(reqForm058.getEpidemicMeasures())
                 .firstVisitDate(reqForm058.getFirstVisitDate())
                 .hospitalPlace(reqForm058.getHospitalPlace())
-                .notifierFullName(user.getFirstName())
                 .senderOrganization(reqForm058.getSenderOrganization())
                 .receiverOrganization(reqForm058.getReceiverOrganization())
                 .journalForm(reqForm058.getJournalForm())
                 .deceaseLocation(reqForm058.getDeceaseLocation())
                 .card(reqForm058.getCard())
-                .reporter(user)
+                .reporter(reporter)
                 .visitDate(reqForm058.getVisitDate())
                 .patient(patient)
                 .build();
-
-        form058Repository.save(form058);
-        return new ApiResponse<>(true, "Форма 058 успешно создана.", form058);
+        return new ApiResponse<>(true, "Форма 058 успешно создана.", form058Repository.save(form058));
     }
-
 
     @Override
     public ApiResponse<Form058> updateForm058(ReqForm058 reqForm058, Long id, User user) {
 
-        return new ApiResponse<>(true, "", null);
+        return new ApiResponse<>(true, "Success", null);
     }
 
     @Override
@@ -110,11 +109,14 @@ public class Form058ServiceImpl implements Form058Service {
 
     }
 
+    @Transactional
     @Override
     public ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard) {
-        Form058 form058 = form058Repository.findById(assignCard.getFormId()).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getFormId()));
-        //TODO should continue...
-        return new ApiResponse<>(true, "", form058);
+        Form058 form058 = form058Repository.findById(assignCard.getForm058Id()).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getForm058Id()));
+        Card card = createCard(assignCard.getCardType());
+        card.setCardType(assignCard.getCardType());
+        form058.setCard(card);
+        return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }
 
     public static Specification<Form058> getFilteredSpecification(

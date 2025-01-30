@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.services.impls;
 
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,6 +12,7 @@ import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
+import uz.uzinfocom.isemid.models.payload.requests.ReqUser;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -22,6 +24,7 @@ import java.util.*;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uz.uzinfocom.isemid.models.entities.enums.CatalogType.level;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.PRACTITIONER;
 import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
@@ -68,8 +71,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ApiResponse<User> updateUser(long id, User user) {
-        return new ApiResponse<>(true, "Success", null);
+    public ApiResponse<User> updateUser(long id, @Valid ReqUser reqUser) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "User with id " + id + " not found"));
+        Optional.ofNullable(reqUser.getFirstName()).ifPresent(user::setFirstName);
+        Optional.ofNullable(reqUser.getLastName()).ifPresent(user::setLastName);
+        Optional.ofNullable(reqUser.getMiddleName()).ifPresent(user::setMiddleName);
+        Optional.ofNullable(reqUser.getNnuzb()).ifPresent(user::setNnuzb);
+        Optional.ofNullable(reqUser.getPpn()).ifPresent(user::setPpn);
+        Optional.ofNullable(reqUser.getBirthDate()).ifPresent(user::setBirthDate);
+        Optional.of(reqUser.isActive()).ifPresent(user::setActive);
+        Optional.ofNullable(reqUser.getGender()).ifPresent(u -> catalogService.findByTypeAndCode(CatalogType.gender, u.name()));
+        Optional.ofNullable(reqUser.getPhoneNumber()).ifPresent(user::setPhoneNumber);
+        Optional.ofNullable(reqUser.getCountryCode()).ifPresent(c -> catalogService.findByTypeAndCode(CatalogType.country, c));
+        Optional.ofNullable(reqUser.getStateCode()).ifPresent(c -> catalogService.findByTypeAndCode(CatalogType.state, c));
+        Optional.ofNullable(reqUser.getCityCode()).ifPresent(c -> catalogService.findByTypeAndCode(CatalogType.city, c));
+        Optional.ofNullable(reqUser.getDistrict()).ifPresent(user::setDistrict);
+        Optional.ofNullable(reqUser.getLine()).ifPresent(user::setLine);
+        Optional.ofNullable(reqUser.getAccessLevelCode()).ifPresent(c -> catalogService.findByTypeAndCode(level, c));
+        return new ApiResponse<>(true, "Success", user);
     }
 
     private User mappingPractitionerToUser(RespPractitioner respPractitioner, List<Organization> organizations, Set<Role> roles) {

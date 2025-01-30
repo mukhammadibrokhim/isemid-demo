@@ -1,9 +1,11 @@
 package uz.uzinfocom.isemid.services;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.payload.requests.ReqUser;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
@@ -25,5 +27,5 @@ public interface UserService {
 
     ApiResponse<User> getByUuid(UUID uuid);
 
-    ApiResponse<User> updateUser(long id, User user);
+    ApiResponse<User> updateUser(long id, @Valid ReqUser user);
 }

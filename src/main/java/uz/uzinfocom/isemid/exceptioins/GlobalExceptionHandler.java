@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -71,6 +72,17 @@ public class GlobalExceptionHandler {
                 .errors(List.of(new ErrorDetail(ex.getClass().getSimpleName(), ex.getLocalizedMessage())))
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(METHOD_NOT_ALLOWED)
+    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+        return new ResponseEntity<>(ErrorResponse.builder()
+                .success(false)
+                .statusCode(METHOD_NOT_ALLOWED.value())
+                .message(ex.getLocalizedMessage())
+                .errors(List.of(new ErrorDetail(ex.getClass().getSimpleName(), ex.getLocalizedMessage())))
+                .build(), METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

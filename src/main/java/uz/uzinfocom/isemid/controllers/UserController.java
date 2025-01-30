@@ -4,10 +4,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
+import uz.uzinfocom.isemid.models.payload.requests.ReqUser;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.UserService;
@@ -54,8 +56,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<User> updateUser(@PathVariable long id, @RequestBody User user) {
-        return userService.updateUser(id, user);
+    public ApiResponse<User> updateUser(@PathVariable long id, @Valid  @RequestBody ReqUser reqUser) {
+        return userService.updateUser(id, reqUser);
     }
 
     @GetMapping("/me")

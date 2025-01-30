@@ -12,8 +12,8 @@ import uz.uzinfocom.isemid.models.entities.enums.CardType;
 @NoArgsConstructor
 @Builder
 public class ReqForm058AssignCard {
-    @NotNull(message = "Form id is required.")
-    private long formId;
+    @NotNull(message = "Form058 id is required.")
+    private long form058Id;
     @NotNull(message = "Card type is required.")
     private CardType cardType;
 }
