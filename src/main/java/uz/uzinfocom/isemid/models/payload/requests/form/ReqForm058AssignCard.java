@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.payload.requests;
+package uz.uzinfocom.isemid.models.payload.requests.form;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -11,11 +11,9 @@ import uz.uzinfocom.isemid.models.entities.enums.CardType;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ReqCard {
-
-    @NotNull(message = "card type is required.")
+public class ReqForm058AssignCard {
+    @NotNull(message = "Form058 id is required.")
+    private long form058Id;
+    @NotNull(message = "Card type is required.")
     private CardType cardType;
-
-    @NotNull(message = "User id is required.")
-    private long userId;
 }

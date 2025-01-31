@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.entities.card.Card;
-import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
-import uz.uzinfocom.isemid.models.payload.requests.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
@@ -111,10 +111,12 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Transactional
     @Override
-    public ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard) {
+    public ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user) {
         Form058 form058 = form058Repository.findById(assignCard.getForm058Id()).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getForm058Id()));
         Card card = createCard(assignCard.getCardType());
         card.setCardType(assignCard.getCardType());
+        card.setCreatedBy(user.getId());
+        card.setUpdatedBy(user.getId());
         form058.setCard(card);
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }

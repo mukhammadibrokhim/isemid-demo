@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
@@ -130,6 +131,17 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code) {
         return catalogRepository.findByTypeAndCode(catalogType.name(), code);
+    }
+
+    @Override
+    public ApiResponse<?> deleteById(long id) {
+        try {
+            catalogRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new ApiException(INTERNAL_SERVER_ERROR, "Could not delete catalog: ", e);
+        }
+
+        return new ApiResponse<>(true, "Successfully deleted.", null);
     }
 
     public static Specification<Catalog> getFilteredSpecification(

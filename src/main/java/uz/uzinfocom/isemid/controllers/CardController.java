@@ -2,13 +2,16 @@ package uz.uzinfocom.isemid.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
+import uz.uzinfocom.isemid.models.payload.requests.card.ReqCardAssignUsers;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
+import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.CardService;
-
-import java.util.UUID;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.CARD;
 import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
@@ -23,23 +26,29 @@ public class CardController {
 
     final CardService cardService;
 
-
-    @PostMapping("/assign-user")
-    public ApiResponse<?> assignUser(
-    ) {
-        return null;
-    }
-
     @GetMapping("/all")
-    public ApiResponse<?> allByFilter(
+    public ApiResponsePage allByFilter(
             @RequestParam(defaultValue = PAGE) int page,
             @RequestParam(defaultValue = SIZE) int size,
             @RequestParam(required = false) String formTypeCode,
-            @RequestParam(required = false) UUID fromOrgId,
-            @RequestParam(required = false) UUID toOrgId,
+            @RequestParam(required = false) String fromOrgName,
+            @RequestParam(required = false) String toOrgName,
             @RequestParam(required = false) CardStatus cardStatus,
             HttpServletRequest request
     ) {
-        return cardService.getAllCardsByFilter(page, size, formTypeCode, fromOrgId, toOrgId, cardStatus, getFullURL(request));
+        return cardService.getAllCardsByFilter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, getFullURL(request));
+    }
+
+    @PostMapping("/assign-user")
+    public ApiResponse<?> assignUser(
+            @Valid @RequestBody ReqCardAssignUsers assignUsers,
+            @CurrentUser User currentUser
+    ) {
+        return cardService.assignUsers(assignUsers, currentUser);
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<?> getCardById(@PathVariable long id) {
+        return cardService.getById(id);
     }
 }
