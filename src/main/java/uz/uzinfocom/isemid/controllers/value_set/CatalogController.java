@@ -52,7 +52,6 @@ public class CatalogController {
                     @Parameter(name = "nameUz", description = "Название на узбекском языке для фильтрации"),
                     @Parameter(name = "nameUzCyril", description = "Название на узбекском языке (кириллицей) для фильтрации"),
                     @Parameter(name = "nameKaa", description = "Название на языке Kaa для фильтрации"),
-                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
             })
     @GetMapping("/all")
     public ApiResponsePage getAllCatalogs(
@@ -72,12 +71,10 @@ public class CatalogController {
 
     @Operation(
             summary = "Получить все типы каталогов",
-            description = "Получает список всех типов каталогов, доступных в системе.",
-            parameters = {
-                    @Parameter(name = "Accept-Language", description = "Код языка для локализации (например, 'ru', 'uz', 'uzCyril')", required = true)
-            })
+            description = "Получает список всех типов каталогов, доступных в системе.")
     @GetMapping("/types")
-    public ApiResponse<List<RespCatalog>> getCatalogs(@RequestHeader("Accept-Language") String lang) {
+    public ApiResponse<List<RespCatalog>> getCatalogs() {
+        String lang = "";
         return catalogService.findAllByType(CatalogType.catalogType, lang);
     }
 
@@ -85,11 +82,15 @@ public class CatalogController {
             summary = "Обновить каталог",
             description = "Обновляет существующий каталог по его ID. Передайте данные каталога для обновления.",
             parameters = {
-                    @Parameter(name = "id", description = "ID каталога для обновления", required = true)
-            })
+                    @Parameter(name = "id", description = "ID каталога для обновления", required = true)})
     @PutMapping("/{id}")
     public ApiResponse<Catalog> updateCatalog(@PathVariable long id, @RequestBody ReqCatalog reqCatalog) {
         return catalogService.updateCatalogById(id, reqCatalog);
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<?> deleteCatalog(@PathVariable long id) {
+        return catalogService.deleteById(id);
     }
 
     @Operation(

@@ -29,7 +29,7 @@ import java.util.Set;
         @JsonSubTypes.Type(value = Card205.class, name = "CARD_TUBE")
 })
 public abstract class Card extends AbsEntity {
-    @JsonIgnore
+
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
