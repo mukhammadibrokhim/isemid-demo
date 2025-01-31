@@ -22,10 +22,13 @@ public interface ApiUrlConstant {
 
     String CARD = PREFIX + "/card";
 
+    String MKB10 = PREFIX + "/mkb10";
+
     String DB = PREFIX + "/db";
 
 //    String BASE_DOMAIN = "http://localhost:8081";
     String BASE_DOMAIN = "https://ykem.sanepid.uz";
+    String BASE_DOMAIN_LOCAL = "http://localhost:8081";
 
 //    ____________________________________________________________
 
