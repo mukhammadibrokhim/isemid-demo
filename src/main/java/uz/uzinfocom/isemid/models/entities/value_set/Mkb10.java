@@ -1,11 +1,11 @@
 package uz.uzinfocom.isemid.models.entities.value_set;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
+
 
 @EntityListeners(AuditingEntityListener.class)
 @Getter
@@ -15,5 +15,12 @@ import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 @NoArgsConstructor
 @Entity
 public class Mkb10 extends BaseEntity {
-    private String nullObj;
+    private String mkb10Code;
+
+//    @OneToMany(mappedBy = "parentMkb10")
+//    private List<Mkb10> children;
+
+//    @ManyToOne
+//    @JoinColumn(name = "parent_id")
+//    private Mkb10 parentMkb10;
 }

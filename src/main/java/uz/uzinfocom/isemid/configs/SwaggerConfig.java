@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.BASE_DOMAIN;
+import static uz.uzinfocom.isemid.utils.ApiUrlConstant.BASE_DOMAIN_LOCAL;
 
 @Configuration
 public class SwaggerConfig {
@@ -33,7 +34,8 @@ public class SwaggerConfig {
                         .description("<h4>ENG: This is the OpenAPI documentation for the </br> <b>(ISEMID) Information system of epidemiological monitoring of infectious diseases system.</b></h4>" +
                                 "<h4>RU: Это документация OpenAPI для </br><b>(ИСЕМИЗ) Информационная система эпидемиологического мониторинга инфекционных заболеваний.</b></h4>"))
                 .servers(List.of(
-                        new Server().url(BASE_DOMAIN).description("ISEMID API")))
+                        new Server().url(BASE_DOMAIN).description("ISEMID API"),
+                        new Server().url(BASE_DOMAIN_LOCAL).description("LOCAL")))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Auth"))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Auth", new SecurityScheme()
