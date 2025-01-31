@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
-import uz.uzinfocom.isemid.models.payload.requests.ReqForm058;
-import uz.uzinfocom.isemid.models.payload.requests.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.Form058Service;
@@ -64,8 +64,8 @@ public class Form058Controller {
 
     @Operation(summary = "Назначение карты для Form058", description = "Этот эндпоинт назначает карту (Card) для существующей записи Form058. ")
     @PostMapping("/assign-card")
-    public ApiResponse<Form058> assignCard(@Valid @RequestBody ReqForm058AssignCard assignCard) {
-        return form058Service.assignCard(assignCard);
+    public ApiResponse<Form058> assignCard(@Valid @RequestBody ReqForm058AssignCard assignCard,@CurrentUser User user) {
+        return form058Service.assignCard(assignCard,user);
     }
 }
 

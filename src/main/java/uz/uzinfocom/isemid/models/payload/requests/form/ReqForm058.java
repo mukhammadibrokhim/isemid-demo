@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.payload.requests;
+package uz.uzinfocom.isemid.models.payload.requests.form;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.payload.requests.ReqPatient;
 
 import java.time.LocalDateTime;
 

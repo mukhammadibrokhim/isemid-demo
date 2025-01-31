@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CatalogService {
+
     ApiResponse<Catalog> createCatalog(ReqCatalog reqCatalog);
 
     ApiResponse<Catalog> updateCatalogById(long id, ReqCatalog reqCatalog);
@@ -27,4 +28,6 @@ public interface CatalogService {
     Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String parentCode);
 
     Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code);
+
+    ApiResponse<?> deleteById(long id);
 }
