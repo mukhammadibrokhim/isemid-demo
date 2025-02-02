@@ -12,6 +12,7 @@ public class ReqPermission {
 
     @NotBlank(message = "Name is required and not blank.")
     private String name;
+    private Boolean active;
     @NotBlank(message = "Name is required and not blank.")
     private String descriptionUz;
     @NotBlank(message = "descriptionUz is required and not blank.")

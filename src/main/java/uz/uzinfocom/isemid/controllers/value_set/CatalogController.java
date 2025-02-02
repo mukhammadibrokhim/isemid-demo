@@ -247,4 +247,16 @@ public class CatalogController {
     public ApiResponse<List<RespCatalog>> getDeceasePlace(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.diseasePlace, lang);
     }
+
+    @GetMapping("/category")
+    public ApiResponse<?> getCategory(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.category, lang);
+    }
+
+    @GetMapping("/profession")
+    public ApiResponse<?> getProfession(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.profession, lang);
+    }
+
+    //TODO add data for profession to csv file
 }
