@@ -830,3 +830,15 @@
 829,829,2025-01-31 09:50:48.288928,1,2025-01-31 09:50:48.288928,1,f65d773e-6314-4639-a249-1e619ce3af76,position,Lawazım,Позиция,Lavozim,Лавозим,,catalogType
 830,830,2025-01-31 09:52:31.223853,1,2025-01-31 09:52:31.223853,1,4fccf561-665d-49fa-ac8a-4cef07f37644,formType,Forma túri,Тип формы,Forma turi,Форма тури,,catalogType
 831,831,2025-01-31 09:54:43.220286,1,2025-01-31 09:54:43.220286,1,cd864152-0504-49d3-8684-5f42a05bfffd,level,Dárejesi,Уровень,Darajasi,Даражаси,,catalogType
+832,838,2025-02-02 22:05:46.413757,1,2025-02-02 22:05:46.413757,1,ddcec89a-4bf2-49c1-acfc-9bf4985123f4,IN_ANOTHER_PLACE,Basqa orında ,В другом месте,Boshqa joyda,Бошқа жойда,,diseasePlace
+833,834,2025-02-02 22:02:16.958734,1,2025-02-02 22:02:16.958734,1,78aa940c-a5f7-49fc-8f15-57437b79ee80,IN_KINDERGARTEN,Mektepge shekem tálim shólkeminde,В Детское дошкольное учреждение,Maktabgacha ta'lim muassasasida,Мактабгача таълим муассассасида,,diseasePlace
+834,833,2025-02-02 22:00:12.529803,1,2025-02-02 22:00:12.529803,1,d0e571de-08d6-4427-bcc3-85db09d5e197,IN_SCHOOL,Mektepte,В школе,Maktabda,Мактабда,,diseasePlace
+835,832,2025-02-02 21:58:53.344361,1,2025-02-02 21:58:53.344361,1,a570d280-9dc6-4c54-9c92-5f51c29091e6,HOME,Úyde,Дома,Uyda,Уйда,,diseasePlace
+836,836,2025-02-02 22:04:31.757983,1,2025-02-02 22:04:31.757983,1,a1072404-a56b-406a-a26c-6d41a44421d2,IN_MEDICAL_INSTITUTION,Emlew profilaktika muassasida,Личебна профилактический учереждения,Davolash profilaktika muassasida,Даволаш профилактика муасассида,,diseasePlace
+837,839,2025-02-02 23:59:41.764911,1,2025-02-02 23:59:41.764911,1,b43cb7db-2f1f-416e-87ff-deeeb10d5b75,ORGANIZED,Uyushgan,Организованный,Uyushgan,Уюшган,,category
+838,840,2025-02-03 00:00:37.280630,1,2025-02-03 00:00:37.280630,1,05af1c13-e240-44a0-8b9e-d2d10cdb7bbd,NO_ORGANIZED,Awqamǵan,Неорганизованный,Uyushmagan,Уюшмаган,,category
+839,841,2025-02-03 00:01:29.758458,1,2025-02-03 00:01:29.758458,1,4fed534e-e9b1-4abe-ba24-524d787bb784,WORKER,Jumısshı,Рабочий,Ishchi,Ишчи,,category
+840,842,2025-02-03 00:03:03.140573,1,2025-02-03 00:03:03.140573,1,2c1447cb-9b82-4681-b9fb-df6c35025fd3,NOT_EMPLOYED,Íssız ,Безработный,Ishsiz,Ишсиз,,category
+841,843,2025-02-03 00:04:56.522985,1,2025-02-03 00:04:56.522985,1,5962b1c7-4220-4f57-ab89-cdc888b2e8c9,PENSIONER,Pensiyaxo'r,Пенсионер,Nafaqaxo'r,Нафақахўр,,category
+842,844,2025-02-03 00:06:31.597410,1,2025-02-03 00:08:17.188448,1,bf0dce3f-e924-4b4d-9768-703a1f429200,STUDENT,Joqarı oqıw jurtı talbasi,Студент Высшего Учебного Заведения,Oliy o'quv yurti talbasi,Олий ўқув юрти талбаси,,category
+843,846,2025-02-03 00:09:41.693611,1,2025-02-03 00:09:41.693611,1,07b16bd0-b559-4c48-b231-9bf9915bb87a,MIDDLE_STUDENT,Orta bilim beriw jurtı talbasi,Студент среднего образования,O'rta ta'lim yurti talbasi,Ўрта таълим юрти талбаси,,category
