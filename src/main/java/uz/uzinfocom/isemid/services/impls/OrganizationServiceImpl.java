@@ -120,6 +120,11 @@ public class OrganizationServiceImpl implements OrganizationService {
         return new ApiResponse<>(true, "success", organization.getUsers());
     }
 
+    @Override
+    public Optional<Organization> findById(long id) {
+        return organizationRepository.findById(id);
+    }
+
     private Organization mappingOrganization(RespOrganization response) {
         Organization organization = new Organization();
         organization.setUuid(UUID.fromString(response.getId()));

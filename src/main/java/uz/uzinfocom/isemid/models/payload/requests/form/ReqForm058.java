@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.payload.requests.ReqLocation;
 import uz.uzinfocom.isemid.models.payload.requests.ReqPatient;
 
 import java.time.LocalDateTime;
@@ -29,8 +29,11 @@ public class ReqForm058 {
     @NotNull(message = "Объект пациента обязателен.")
     private ReqPatient patient;
 
+    @NotNull
+    private Boolean labConfirmation;
+
     @NotBlank(message = "Место госпитализации обязательно и не может быть пустым.")
-    private String hospitalPlace;
+    private Long hospitalPlaceId;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата поступления обязательна.")
@@ -53,13 +56,17 @@ public class ReqForm058 {
     private LocalDateTime visitDate;
 
     @NotBlank(message = "Организация-отправитель обязательна и не может быть пустой.")
-    private String senderOrganization;
+    private Long senderOrganizationId;
 
     @NotBlank(message = "Организация-получатель обязательна и не может быть пустой.")
-    private String receiverOrganization;
+    private Long receiverOrganizationId;
 
-    @NotBlank(message = "Место отравления обязательно и не может быть пустым.")
-    private String poisoningLocation;
+    @Valid
+    @NotNull
+    private ReqLocation location;
+
+    @NotNull
+    private String diseasePlaceCode;
 
     @NotBlank(message = "Причина заболевания обязательна и не может быть пустой.")
     private String diseaseCause;
@@ -69,9 +76,9 @@ public class ReqForm058 {
 
     @NotBlank(message = "Ф.И.О. уведомляющего лица не может быть пустым.")
     private String notifierFullName;
+
     @NotBlank(message = "Форма журнала обязательна и не пуста.")
-    private String journalForm;
-    private String deceaseLocation;
+    private String journalFormCode;
+
     private String comment;
-    private Card card;
 }

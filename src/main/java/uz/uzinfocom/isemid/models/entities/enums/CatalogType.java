@@ -14,5 +14,6 @@ public enum CatalogType {
     residentialStatus,
     position,
     formType,
+    diseasePlace,
     level
 }
