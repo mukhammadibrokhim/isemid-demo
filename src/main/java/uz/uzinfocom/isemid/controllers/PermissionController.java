@@ -3,10 +3,7 @@ package uz.uzinfocom.isemid.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.Permission;
 import uz.uzinfocom.isemid.models.payload.requests.ReqPermission;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -25,5 +22,20 @@ public class PermissionController {
     @PostMapping
     public ApiResponse<Permission> create(@Valid @RequestBody ReqPermission reqPermission) {
         return permissionService.createPermission(reqPermission);
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<Permission> getById(@PathVariable long id) {
+        return permissionService.getBydId(id);
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<Permission> update(@PathVariable long id, @Valid @RequestBody ReqPermission reqPermission) {
+        return permissionService.updatePermissionById(id, reqPermission);
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<?> delete(@PathVariable long id) {
+        return permissionService.deleteById(id);
     }
 }
