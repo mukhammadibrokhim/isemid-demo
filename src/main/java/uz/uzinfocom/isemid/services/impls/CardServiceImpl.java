@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
+import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCardAssignUsers;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -32,8 +33,6 @@ public class CardServiceImpl implements CardService {
     final CardRepository cardRepository;
     final UserRepository userRepository;
 
-    //TODO Cards must use this one service
-
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, String fullURL) {
         Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus);
@@ -54,8 +53,13 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponse<?> getById(long id) {
-        Card card = cardRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
-        return new ApiResponse<>(true, "successfully retrieved.", card);
+        return new ApiResponse<>(true, "successfully retrieved.",
+                cardRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found.")));
+    }
+
+    @Override
+    public ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser) {
+        return new ApiResponse<>(true, "Success", null);
     }
 
 
