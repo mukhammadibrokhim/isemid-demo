@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDateTime;
 
@@ -25,20 +26,45 @@ public class Form058 extends AbsEntity {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
-    private String hospitalPlace; // Yotqizilgan joyi
+    private Boolean labConfirmation; // Tashxisni laborator tasdiqlash
+
+    @ManyToOne
+    @JoinColumn(name = "hospital_place", referencedColumnName = "id")
+    private Organization hospitalPlace; // Yotqizilgan joyi
+
     private LocalDateTime admissionDate; // Yotqizilgan sana
     private LocalDateTime diseaseDate; // Kasallangan sana
     private LocalDateTime firstVisitDate; // Birinchi murojaat sanasi
     private LocalDateTime diagnosisDate; // Aniq tashxis qo‘yilgan sanasi
     private LocalDateTime visitDate; // Qatnov sanasi
-    private String senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
-    private String receiverOrganization; // Qayerga (Qabul qiluvchi tashkilot)
-    private String poisoningLocation; // Zaharlangan yoki kasallangan joyi
+
+    @ManyToOne
+    @JoinColumn(name = "sender_organization_id", referencedColumnName = "id")
+    private Organization senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
+
+    @ManyToOne
+    @JoinColumn(name = "receiver_organization_id", referencedColumnName = "id")
+    private Organization receiverOrganization; // Qayerga (Qabul qiluvchi tashkilot)
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("form058")
+    private Location location;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "disease_place", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog diseasePlace; // Qayerda zaharlangan yoki kasallangan
+
     private String diseaseCause; // Kasallik sababi
     private String epidemicMeasures; // Epidemiya haqida choralar
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "journal_form", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog journalForm;
+
     private String comment;
-    private String journalForm;
-    private String deceaseLocation;
+    private String notifierFullName;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "card_id")
