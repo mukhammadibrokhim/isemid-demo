@@ -242,4 +242,9 @@ public class CatalogController {
     public ApiResponse<?> getCards(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.formType, lang);
     }
+
+    @GetMapping("/disease-place")
+    public ApiResponse<List<RespCatalog>> getDeceasePlace(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.diseasePlace, lang);
+    }
 }
