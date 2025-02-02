@@ -155,10 +155,10 @@ public class CommonUtils {
 
     private static void validatePageAndSize(int page, int size) {
         if (page < 0) {
-            throw new IllegalArgumentException("Page number cannot be less than 0.");
+            throw new ApiException(BAD_REQUEST, "Page number cannot be less than 0.");
         }
         if (size <= 0 || size > 100) {
-            throw new IllegalArgumentException("Size must be greater than 0 and less than or equal to 100.");
+            throw new ApiException(BAD_REQUEST,"Size must be greater than 0 and less than or equal to 100.");
         }
     }
 

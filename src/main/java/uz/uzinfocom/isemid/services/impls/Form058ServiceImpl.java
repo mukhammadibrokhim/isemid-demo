@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -17,6 +18,7 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.services.Form058Service;
 import uz.uzinfocom.isemid.services.UserService;
+import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,7 @@ public class Form058ServiceImpl implements Form058Service {
     final Form058Repository form058Repository;
     final ModelMapper modelMapper;
     final UserService userService;
+    final CatalogService catalogService;
 
     @Override
     public ApiResponse<Form058> createForm058(ReqForm058 reqForm058, User user) {
@@ -59,8 +62,8 @@ public class Form058ServiceImpl implements Form058Service {
 
         List<Address> addresses = reqForm058.getPatient().getAddresses().stream().map(reqAddress -> {
             Address address = Address.builder()
-                    .stateCode(reqAddress.getStateCode())
-                    .cityCode(reqAddress.getCityCode())
+                    .state(catalogService.findByTypeAndCode(CatalogType.state, reqAddress.getStateCode()).orElse(null))
+                    .city(catalogService.findByTypeAndCode(CatalogType.city, reqAddress.getCityCode()).orElse(null))
                     .neighborhood(reqAddress.getNeighborhood())
                     .streetAddress(reqAddress.getStreetAddress())
                     .houseNumber(reqAddress.getHouseNumber())
