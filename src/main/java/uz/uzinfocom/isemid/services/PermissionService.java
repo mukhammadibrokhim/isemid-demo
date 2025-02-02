@@ -6,4 +6,10 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 
 public interface PermissionService {
     ApiResponse<Permission> createPermission(ReqPermission reqPermission);
+
+    ApiResponse<Permission> getBydId(long id);
+
+    ApiResponse<Permission> updatePermissionById(long id, ReqPermission reqPermission);
+
+    ApiResponse<?> deleteById(long id);
 }
