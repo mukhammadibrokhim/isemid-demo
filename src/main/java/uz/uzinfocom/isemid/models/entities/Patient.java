@@ -10,6 +10,7 @@ import uz.uzinfocom.isemid.models.entities.enums.MaritalStatus;
 import uz.uzinfocom.isemid.models.entities.enums.PopulationType;
 import uz.uzinfocom.isemid.models.entities.enums.ResidentialStatus;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +41,15 @@ public class Patient extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
     private PopulationType populationType;
+
+    @ManyToOne
+    @JoinColumn(name = "category", referencedColumnName = "code")
+    private Catalog category;
+
+    @ManyToOne
+    @JoinColumn(name = "profession", referencedColumnName = "code")
+    private Catalog profession;
+
     private String workPlace;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)

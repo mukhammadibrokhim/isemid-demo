@@ -39,6 +39,9 @@ public class ReqPatient {
     private ResidentialStatus residentialStatus;
     private MaritalStatus maritalStatus;
 
+    private String categoryCode;
+    private String professionCode;
+
     @NotNull(message = "Population Type is required.")
     private PopulationType populationType;
 

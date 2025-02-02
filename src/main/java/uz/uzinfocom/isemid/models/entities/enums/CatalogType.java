@@ -15,5 +15,5 @@ public enum CatalogType {
     position,
     formType,
     diseasePlace,
-    level
+    category, profession, level
 }
