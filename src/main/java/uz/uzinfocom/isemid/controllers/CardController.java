@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
+import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCardAssignUsers;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -50,5 +51,14 @@ public class CardController {
     @GetMapping("/{id}")
     public ApiResponse<?> getCardById(@PathVariable long id) {
         return cardService.getById(id);
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<?> updateCard(
+            @PathVariable long id,
+            @RequestBody ReqCard reqCard,
+            @CurrentUser User currentUser
+    ) {
+        return cardService.updateCard(id, reqCard, currentUser);
     }
 }

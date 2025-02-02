@@ -16,7 +16,7 @@ import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@Entity(name = "patient_address")
 public class Address extends BaseEntity {
 
     @JsonIgnore
