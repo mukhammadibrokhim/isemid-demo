@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests.card;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqCardAssignUsers {
 
     @NotNull

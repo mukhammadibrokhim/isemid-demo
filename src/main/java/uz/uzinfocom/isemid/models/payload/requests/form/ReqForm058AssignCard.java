@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests.form;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,7 @@ import uz.uzinfocom.isemid.models.entities.enums.CardType;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqForm058AssignCard {
     @NotNull(message = "Form058 id is required.")
     private long form058Id;

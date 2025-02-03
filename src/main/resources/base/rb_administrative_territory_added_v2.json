@@ -1,0 +1,897 @@
+[
+    {
+        "id": "9443",
+        "level": "2",
+        "code": "AN-237",
+        "name_uz": "Bo‘z tumani",
+        "name_uz_cyrl": "Бўз тумани",
+        "name_ru": "Бозский район",
+        "parent_id": "1"
+    },
+    {
+        "id": "9444",
+        "level": "2",
+        "code": "AN-409",
+        "name_uz": "Asaka shahri",
+        "name_uz_cyrl": "Асака шаҳри",
+        "name_ru": "город Асака",
+        "parent_id": "1"
+    },
+    {
+        "id": "9445",
+        "level": "2",
+        "code": "AN-410",
+        "name_uz": "Qorasuv shahri",
+        "name_uz_cyrl": "Қорасув шаҳри",
+        "name_ru": "город Карасув",
+        "parent_id": "1"
+    },
+    {
+        "id": "9446",
+        "level": "2",
+        "code": "AN-411",
+        "name_uz": "Shahrixon shahri",
+        "name_uz_cyrl": "Шаҳрихон шаҳри",
+        "name_ru": "город Шахрихан",
+        "parent_id": "1"
+    },
+    {
+        "id": "9447",
+        "level": "2",
+        "code": "BU-259",
+        "name_uz": "F.Xo‘jayev tumani",
+        "name_uz_cyrl": "Ф.Хўжаев тумани",
+        "name_ru": "Ф.Ходжаевский район",
+        "parent_id": "900"
+    },
+    {
+        "id": "9448",
+        "level": "2",
+        "code": "BU-260",
+        "name_uz": "To‘qimachi tumani",
+        "name_uz_cyrl": "Тўқимачи тумани",
+        "name_ru": "Тукумачинский район",
+        "parent_id": "900"
+    },
+    {
+        "id": "9449",
+        "level": "2",
+        "code": "BU-404",
+        "name_uz": "G‘ijduvon shahri",
+        "name_uz_cyrl": "Ғиждувон шаҳри",
+        "name_ru": "город Гиждуван",
+        "parent_id": "900"
+    },
+    {
+        "id": "9450",
+        "level": "2",
+        "code": "BU-405",
+        "name_uz": "Gazli shahri",
+        "name_uz_cyrl": "Газли шаҳри",
+        "name_ru": "город Газли",
+        "parent_id": "900"
+    },
+    {
+        "id": "9451",
+        "level": "2",
+        "code": "FA-243",
+        "name_uz": "Kirguli tumani",
+        "name_uz_cyrl": "Киргули тумани",
+        "name_ru": "Киргулинский район",
+        "parent_id": "1458"
+    },
+    {
+        "id": "9452",
+        "level": "2",
+        "code": "FA-244",
+        "name_uz": "Oxunboboyev tumani",
+        "name_uz_cyrl": "Охунбобоев тумани",
+        "name_ru": "Ахунбобоевский район",
+        "parent_id": "1458"
+    },
+    {
+        "id": "9453",
+        "level": "2",
+        "code": "FA-413",
+        "name_uz": "Kirguli shahri",
+        "name_uz_cyrl": "Киргули шаҳри",
+        "name_ru": "город Киргули",
+        "parent_id": "1458"
+    },
+    {
+        "id": "9454",
+        "level": "2",
+        "code": "FA-414",
+        "name_uz": "Quva shahri",
+        "name_uz_cyrl": "Қува шаҳри",
+        "name_ru": "город Кува",
+        "parent_id": "1458"
+    },
+    {
+        "id": "9455",
+        "level": "2",
+        "code": "JI-238",
+        "name_uz": "Jizzax tumani",
+        "name_uz_cyrl": "Жиззах тумани",
+        "name_ru": "Джизакский район",
+        "parent_id": "2519"
+    },
+    {
+        "id": "9456",
+        "level": "2",
+        "code": "NG-243",
+        "name_uz": "Davlatobod tumani",
+        "name_uz_cyrl": "Давлатобод тумани",
+        "name_ru": "Давлетабадский район",
+        "parent_id": "2828"
+    },
+    {
+        "id": "9457",
+        "level": "2",
+        "code": "NG-244",
+        "name_uz": "Yangi namangan tumani",
+        "name_uz_cyrl": "Янги наманган тумани",
+        "name_ru": "Янги наманганский район",
+        "parent_id": "2828"
+    },
+    {
+        "id": "9458",
+        "level": "2",
+        "code": "NG-402",
+        "name_uz": "Chortoq shahri",
+        "name_uz_cyrl": "Чортоқ шаҳри",
+        "name_ru": "город Чарток",
+        "parent_id": "2828"
+    },
+    {
+        "id": "9459",
+        "level": "2",
+        "code": "NG-403",
+        "name_uz": "Chust shahri",
+        "name_uz_cyrl": "Чуст шаҳри",
+        "name_ru": "город Чуст",
+        "parent_id": "2828"
+    },
+    {
+        "id": "9460",
+        "level": "2",
+        "code": "NG-404",
+        "name_uz": "Kosonsoy shahri",
+        "name_uz_cyrl": "Косонсой шаҳри",
+        "name_ru": "город Косонсой",
+        "parent_id": "2828"
+    },
+    {
+        "id": "9461",
+        "level": "2",
+        "code": "NG-405",
+        "name_uz": "Uchqo‘rg‘on shahri",
+        "name_uz_cyrl": "Учқўрғон шаҳри",
+        "name_ru": "город Учкурган",
+        "parent_id": "2828"
+    },
+    {
+        "id": "9462",
+        "level": "2",
+        "code": "NG-406",
+        "name_uz": "Xaqqulobod shahri",
+        "name_uz_cyrl": "Хаққулобод шаҳри",
+        "name_ru": "город Хаккулабад",
+        "parent_id": "2828"
+    },
+    {
+        "id": "9463",
+        "level": "2",
+        "code": "NW-252",
+        "name_uz": "Navoiy tumani",
+        "name_uz_cyrl": "Навоий тумани",
+        "name_ru": "Навоийский район",
+        "parent_id": "3616"
+    },
+    {
+        "id": "9464",
+        "level": "2",
+        "code": "NW-413",
+        "name_uz": "Uchquduq shahri",
+        "name_uz_cyrl": "Учқудуқ шаҳри",
+        "name_ru": "город Учкудук",
+        "parent_id": "3616"
+    },
+    {
+        "id": "9465",
+        "level": "2",
+        "code": "QA-251",
+        "name_uz": "Baxoriston tumani",
+        "name_uz_cyrl": "Бахористон тумани",
+        "name_ru": "Бахористанский район",
+        "parent_id": "3935"
+    },
+    {
+        "id": "9466",
+        "level": "2",
+        "code": "QR-402",
+        "name_uz": "Beruniy shahri",
+        "name_uz_cyrl": "Беруний шаҳри",
+        "name_ru": "город Беруни",
+        "parent_id": "4722"
+    },
+    {
+        "id": "9467",
+        "level": "2",
+        "code": "QR-403",
+        "name_uz": "Chimboy shahri",
+        "name_uz_cyrl": "Чимбой шаҳри",
+        "name_ru": "город Чимбой",
+        "parent_id": "4722"
+    },
+    {
+        "id": "9468",
+        "level": "2",
+        "code": "QR-404",
+        "name_uz": "Kungirot shahri",
+        "name_uz_cyrl": "Кунгирот шаҳри",
+        "name_ru": "город Кунгирот",
+        "parent_id": "4722"
+    },
+    {
+        "id": "9469",
+        "level": "2",
+        "code": "QR-405",
+        "name_uz": "Takiyatosh shahri",
+        "name_uz_cyrl": "Такиятош шаҳри",
+        "name_ru": "город Такияташ",
+        "parent_id": "4722"
+    },
+    {
+        "id": "9470",
+        "level": "2",
+        "code": "QR-406",
+        "name_uz": "To‘rtko‘l shahri",
+        "name_uz_cyrl": "Тўрткўл шаҳри",
+        "name_ru": "город Турткуль",
+        "parent_id": "4722"
+    },
+    {
+        "id": "9471",
+        "level": "2",
+        "code": "QR-407",
+        "name_uz": "Xojeli shahri",
+        "name_uz_cyrl": "Хожели шаҳри",
+        "name_ru": "город Ходжели",
+        "parent_id": "4722"
+    },
+    {
+        "id": "9472",
+        "level": "2",
+        "code": "SA-239",
+        "name_uz": "Bog‘ishamol tumani",
+        "name_uz_cyrl": "Боғишамол тумани",
+        "name_ru": "Багишамальский район",
+        "parent_id": "5156"
+    },
+    {
+        "id": "9473",
+        "level": "2",
+        "code": "SA-240",
+        "name_uz": "Chelak tumani",
+        "name_uz_cyrl": "Челак тумани",
+        "name_ru": "Челакский район",
+        "parent_id": "5156"
+    },
+    {
+        "id": "9474",
+        "level": "2",
+        "code": "SA-241",
+        "name_uz": "Go‘zalkent tumani",
+        "name_uz_cyrl": "Гўзалкент тумани",
+        "name_ru": "Гузалкентский район",
+        "parent_id": "5156"
+    },
+    {
+        "id": "9475",
+        "level": "2",
+        "code": "SA-242",
+        "name_uz": "Siyob tumani",
+        "name_uz_cyrl": "Сиёб тумани",
+        "name_ru": "Сиябский район",
+        "parent_id": "5156"
+    },
+    {
+        "id": "9476",
+        "level": "2",
+        "code": "SA-243",
+        "name_uz": "Temiryo‘l tumani",
+        "name_uz_cyrl": "Темирйўл тумани",
+        "name_ru": "Темирйулский район",
+        "parent_id": "5156"
+    },
+    {
+        "id": "9477",
+        "level": "2",
+        "code": "SA-407",
+        "name_uz": "Oqtosh shahri",
+        "name_uz_cyrl": "Оқтош шаҳри",
+        "name_ru": "город Окташ",
+        "parent_id": "5156"
+    },
+    {
+        "id": "9478",
+        "level": "2",
+        "code": "SA-408",
+        "name_uz": "Urgut shahri",
+        "name_uz_cyrl": "Ургут шаҳри",
+        "name_ru": "город Ургут",
+        "parent_id": "5156"
+    },
+    {
+        "id": "9479",
+        "level": "2",
+        "code": "SI-236",
+        "name_uz": "Mexnatobod tumani",
+        "name_uz_cyrl": "Мехнатобод тумани",
+        "name_ru": "Мехнатобадский район",
+        "parent_id": "6270"
+    },
+    {
+        "id": "9480",
+        "level": "2",
+        "code": "SI-414",
+        "name_uz": "Baxt shahri",
+        "name_uz_cyrl": "Бахт шаҳри",
+        "name_ru": "город Бахт",
+        "parent_id": "6270"
+    },
+    {
+        "id": "9481",
+        "level": "2",
+        "code": "SI-415",
+        "name_uz": "Sirdaryo shahri",
+        "name_uz_cyrl": "Сирдарё шаҳри",
+        "name_ru": "город Сырдарья",
+        "parent_id": "6270"
+    },
+    {
+        "id": "9482",
+        "level": "2",
+        "code": "SU-227",
+        "name_uz": "Sharg‘un tumani",
+        "name_uz_cyrl": "Шарғун тумани",
+        "name_ru": "Шаргунский район",
+        "parent_id": "6507"
+    },
+    {
+        "id": "9483",
+        "level": "2",
+        "code": "SU-402",
+        "name_uz": "Denov shahri",
+        "name_uz_cyrl": "Денов шаҳри",
+        "name_ru": "город Денов",
+        "parent_id": "6507"
+    },
+    {
+        "id": "9484",
+        "level": "2",
+        "code": "TO-425",
+        "name_uz": "Yangiobod shahri",
+        "name_uz_cyrl": "Янгиобод шаҳри",
+        "name_ru": "город Янгиабад",
+        "parent_id": "7794"
+    },
+    {
+        "id": "9485",
+        "level": "2",
+        "code": "XO-237",
+        "name_uz": "Pitnak shahri",
+        "name_uz_cyrl": "Питнак шаҳри",
+        "name_ru": "город Питнак",
+        "parent_id": "8867"
+    },
+    {
+        "id": "9486",
+        "level": "3",
+        "code": "AN-237999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9443"
+    },
+    {
+        "id": "9487",
+        "level": "3",
+        "code": "AN-409999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9444"
+    },
+    {
+        "id": "9488",
+        "level": "3",
+        "code": "AN-410999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9445"
+    },
+    {
+        "id": "9489",
+        "level": "3",
+        "code": "AN-411999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9446"
+    },
+    {
+        "id": "9490",
+        "level": "3",
+        "code": "BU-259999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9447"
+    },
+    {
+        "id": "9491",
+        "level": "3",
+        "code": "BU-260999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9448"
+    },
+    {
+        "id": "9492",
+        "level": "3",
+        "code": "BU-404999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9449"
+    },
+    {
+        "id": "9493",
+        "level": "3",
+        "code": "BU-405999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9450"
+    },
+    {
+        "id": "9494",
+        "level": "3",
+        "code": "FA-243999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9451"
+    },
+    {
+        "id": "9495",
+        "level": "3",
+        "code": "FA-244999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9452"
+    },
+    {
+        "id": "9496",
+        "level": "3",
+        "code": "FA-413999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9453"
+    },
+    {
+        "id": "9497",
+        "level": "3",
+        "code": "FA-414999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9454"
+    },
+    {
+        "id": "9498",
+        "level": "3",
+        "code": "JI-238999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9455"
+    },
+    {
+        "id": "9499",
+        "level": "3",
+        "code": "NG-243999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9456"
+    },
+    {
+        "id": "9500",
+        "level": "3",
+        "code": "NG-244999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9457"
+    },
+    {
+        "id": "9501",
+        "level": "3",
+        "code": "NG-402999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9458"
+    },
+    {
+        "id": "9502",
+        "level": "3",
+        "code": "NG-403999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9459"
+    },
+    {
+        "id": "9503",
+        "level": "3",
+        "code": "NG-404999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9460"
+    },
+    {
+        "id": "9504",
+        "level": "3",
+        "code": "NG-405999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9461"
+    },
+    {
+        "id": "9505",
+        "level": "3",
+        "code": "NG-406999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9462"
+    },
+    {
+        "id": "9506",
+        "level": "3",
+        "code": "NW-252999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9463"
+    },
+    {
+        "id": "9507",
+        "level": "3",
+        "code": "NW-413999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9464"
+    },
+    {
+        "id": "9508",
+        "level": "3",
+        "code": "QA-251999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9465"
+    },
+    {
+        "id": "9509",
+        "level": "3",
+        "code": "QR-402999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9466"
+    },
+    {
+        "id": "9510",
+        "level": "3",
+        "code": "QR-403999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9467"
+    },
+    {
+        "id": "9511",
+        "level": "3",
+        "code": "QR-404999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9468"
+    },
+    {
+        "id": "9512",
+        "level": "3",
+        "code": "QR-405999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9469"
+    },
+    {
+        "id": "9513",
+        "level": "3",
+        "code": "QR-406999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9470"
+    },
+    {
+        "id": "9514",
+        "level": "3",
+        "code": "QR-407999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9471"
+    },
+    {
+        "id": "9515",
+        "level": "3",
+        "code": "SA-239999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9472"
+    },
+    {
+        "id": "9516",
+        "level": "3",
+        "code": "SA-240999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9473"
+    },
+    {
+        "id": "9517",
+        "level": "3",
+        "code": "SA-241999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9474"
+    },
+    {
+        "id": "9518",
+        "level": "3",
+        "code": "SA-242999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9475"
+    },
+    {
+        "id": "9519",
+        "level": "3",
+        "code": "SA-243999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9476"
+    },
+    {
+        "id": "9520",
+        "level": "3",
+        "code": "SA-407999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9477"
+    },
+    {
+        "id": "9521",
+        "level": "3",
+        "code": "SA-408999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9478"
+    },
+    {
+        "id": "9522",
+        "level": "3",
+        "code": "SI-236999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9479"
+    },
+    {
+        "id": "9523",
+        "level": "3",
+        "code": "SI-414999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9480"
+    },
+    {
+        "id": "9524",
+        "level": "3",
+        "code": "SI-415999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9481"
+    },
+    {
+        "id": "9525",
+        "level": "3",
+        "code": "SU-227999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9482"
+    },
+    {
+        "id": "9526",
+        "level": "3",
+        "code": "SU-402999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9483"
+    },
+    {
+        "id": "9527",
+        "level": "3",
+        "code": "TO-425999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9484"
+    },
+    {
+        "id": "9528",
+        "level": "3",
+        "code": "XO-237999",
+        "name_uz": "Mahalla aniqlanmagan",
+        "name_uz_cyrl": "Маҳалла аниқланмаган",
+        "name_ru": "Махалля не определена",
+        "parent_id": "9485"
+    },
+    {
+        "id": "9529",
+        "level": "3",
+        "code": "XO-221016",
+        "parent_code": "XO-221",
+        "name_uz": "Yangi Zamin",
+        "name_uz_cyrl": "Янги Замин",
+        "name_ru": "Янги Замин",
+        "parent_id": "9118"
+    },
+    {
+        "id": "9530",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269055",
+        "parent_code": "TK-269",
+        "name_uz": "Alisherobod MFY",
+        "name_uz_cyrl": "Алишеробод МФЙ",
+        "name_ru": "Алишеробод МФЙ"
+    },
+    {
+        "id": "9531",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269056",
+        "parent_code": "TK-269",
+        "name_uz": "Ijodkor MFY",
+        "name_uz_cyrl": "Ижодкор МФЙ",
+        "name_ru": "Ижодкор МФЙ"
+    },
+    {
+        "id": "9532",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269057",
+        "parent_code": "TK-269",
+        "name_uz": "Iqtidor MFY",
+        "name_uz_cyrl": "Иқтидор МФЙ",
+        "name_ru": "Иқтидор МФЙ"
+    },
+    {
+        "id": "9533",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269058",
+        "parent_code": "TK-269",
+        "name_uz": "Zakovat MFY",
+        "name_uz_cyrl": "Заковат МФЙ",
+        "name_ru": "Заковат МФЙ"
+    },
+    {
+        "id": "9534",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269059",
+        "parent_code": "TK-269",
+        "name_uz": "Chingeldi MFY",
+        "name_uz_cyrl": "Чингелди МФЙ",
+        "name_ru": "Чингелди МФЙ"
+    },
+    {
+        "id": "9535",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269060",
+        "parent_code": "TK-269",
+        "name_uz": "Geofizika MFY",
+        "name_uz_cyrl": "Геофизика МФЙ",
+        "name_ru": "Геофизика МФЙ"
+    },
+    {
+        "id": "9536",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269061",
+        "parent_code": "TK-269",
+        "name_uz": "Geologlar MFY",
+        "name_uz_cyrl": "Геологлар МФЙ",
+        "name_ru": "Геологлар МФЙ"
+    },
+    {
+        "id": "9537",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269062",
+        "parent_code": "TK-269",
+        "name_uz": "Temuriylar MFY",
+        "name_uz_cyrl": "Темурийлар МФЙ",
+        "name_ru": "Темурийлар МФЙ"
+    },
+    {
+        "id": "9538",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269063",
+        "parent_code": "TK-269",
+        "name_uz": "Gulzorobod MFY",
+        "name_uz_cyrl": "Гулзоробод МФЙ",
+        "name_ru": "Гулзоробод МФЙ"
+    },
+    {
+        "id": "9539",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269064",
+        "parent_code": "TK-269",
+        "name_uz": "Sarbon MFY",
+        "name_uz_cyrl": "Сарбон МФЙ",
+        "name_ru": "Сарбон МФЙ"
+    },
+    {
+        "id": "9540",
+        "parent_id": "7381",
+        "level": "3",
+        "code": "TK-269065",
+        "parent_code": "TK-269",
+        "name_uz": "Jasorat MFY",
+        "name_uz_cyrl": "Жасорат МФЙ",
+        "name_ru": "Жасорат МФЙ"
+    }
+
+]

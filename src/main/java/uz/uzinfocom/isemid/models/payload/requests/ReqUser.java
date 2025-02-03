@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqUser {
     private String nnuzb;
     private String ppn;

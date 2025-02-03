@@ -207,4 +207,15 @@ public class CatalogServiceImpl implements CatalogService {
             }
         }
     }
+
+    @SneakyThrows
+    @PostConstruct
+    private void insertStreet() {
+        Resource resource = resourceLoader.getResource("classpath:/base/rb_administrative_territory.json");
+        InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
+        BufferedReader bufferedReader = new BufferedReader(reader);
+
+
+    }
+
 }

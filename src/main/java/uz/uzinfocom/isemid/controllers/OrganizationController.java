@@ -47,8 +47,7 @@ public class OrganizationController {
             summary = "Получить организацию по ID",
             description = "Получает организацию по заданному идентификатору (ID).",
             parameters = {
-                    @Parameter(name = "id", description = "ID организации", required = true)
-            })
+                    @Parameter(name = "id", description = "ID организации", required = true)})
     @GetMapping("/{id}")
     public ApiResponse<Organization> getOrganizationById(@PathVariable long id) {
         return organizationService.getById(id);

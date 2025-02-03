@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqOrganization {
     private UUID uuid;
     private String name;

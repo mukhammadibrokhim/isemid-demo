@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import uz.uzinfocom.isemid.models.entities.enums.AddressType;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqAddress {
     @NotNull(message = "Тип адреса (type) не должен быть пустым")
     private AddressType type;

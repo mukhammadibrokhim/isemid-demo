@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqLocation {
     @NotNull(message = "Широта (latitude) обязательна.")
     @DecimalMin(value = "-90.0", message = "Широта не может быть меньше -90.0")
