@@ -76,10 +76,10 @@ public class CardServiceImpl implements CardService {
             }
 
             if (hasText(fromOrgName)) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("receiverOrganization"), fromOrgName));
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName));
             }
             if (hasText(toOrgName)) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("receiverOrganization"), toOrgName));
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("receiverOrganization").get("name"), toOrgName));
             }
             if (cardStatus != null) {
                 predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
