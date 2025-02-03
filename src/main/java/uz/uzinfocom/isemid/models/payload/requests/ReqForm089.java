@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqForm089 {
 
     @NotBlank(message = "Mkb10 не может быть пустым и обязательно для заполнения.")

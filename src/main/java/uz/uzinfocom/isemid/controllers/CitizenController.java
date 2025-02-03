@@ -32,8 +32,7 @@ public class CitizenController {
                     @Parameter(name = "nnuzb", description = "Уникальный ID гражданина (nnuzb)"),
                     @Parameter(name = "photo", description = "Фотография гражданина"),
                     @Parameter(name = "series", description = "Серия документа ребенка"),
-                    @Parameter(name = "number", description = "Номер документа ребенка")
-            })
+                    @Parameter(name = "number", description = "Номер документа ребенка")})
     @GetMapping
     public ResponseEntity<Object> getCitizen(
             @RequestParam(required = false) String nnuzb,

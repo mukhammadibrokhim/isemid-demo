@@ -167,6 +167,11 @@ public class CommonUtils {
         return PageRequest.of(page - 1, size, Sort.by("id").descending());
     }
 
+    public static Pageable pageableNotSorting(int page, int size) {
+        validatePageAndSize(page, size);
+        return PageRequest.of(page - 1, size);
+    }
+
     public static ApiResponsePage createApiResponsePage(int page, Page<?> objectPage, String requestUrl) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(requestUrl);

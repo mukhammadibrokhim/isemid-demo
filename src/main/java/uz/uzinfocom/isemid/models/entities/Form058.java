@@ -30,6 +30,7 @@ public class Form058 extends AbsEntity {
 
     @ManyToOne
     @JoinColumn(name = "hospital_place", referencedColumnName = "id")
+    @JsonIgnoreProperties({"children","serviceArea","city","state","country","level"})
     private Organization hospitalPlace; // Yotqizilgan joyi
 
     private LocalDateTime admissionDate; // Yotqizilgan sana
@@ -40,10 +41,12 @@ public class Form058 extends AbsEntity {
 
     @ManyToOne
     @JoinColumn(name = "sender_organization_id", referencedColumnName = "id")
+    @JsonIgnoreProperties({"children","serviceArea","city","state","country","level"})
     private Organization senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
 
     @ManyToOne
     @JoinColumn(name = "receiver_organization_id", referencedColumnName = "id")
+    @JsonIgnoreProperties({"children","serviceArea","city","state","country","level"})
     private Organization receiverOrganization; // Qayerga (Qabul qiluvchi tashkilot)
 
     @OneToOne(cascade = CascadeType.ALL)
