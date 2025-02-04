@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.models.payload.requests.form;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqForm058 {
 
     @NotBlank(message = "Mkb10 не может быть пустым и обязательно для заполнения.")
@@ -32,7 +34,7 @@ public class ReqForm058 {
     @NotNull
     private Boolean labConfirmation;
 
-    @NotBlank(message = "Место госпитализации обязательно и не может быть пустым.")
+    @NotNull(message = "Место госпитализации обязательно и не может быть пустым.")
     private Long hospitalPlaceId;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -55,10 +57,10 @@ public class ReqForm058 {
     @NotNull(message = "Дата визита обязательна.")
     private LocalDateTime visitDate;
 
-    @NotBlank(message = "Организация-отправитель обязательна и не может быть пустой.")
+    @NotNull(message = "Организация-отправитель обязательна и не может быть пустой.")
     private Long senderOrganizationId;
 
-    @NotBlank(message = "Организация-получатель обязательна и не может быть пустой.")
+    @NotNull(message = "Организация-получатель обязательна и не может быть пустой.")
     private Long receiverOrganizationId;
 
     @Valid

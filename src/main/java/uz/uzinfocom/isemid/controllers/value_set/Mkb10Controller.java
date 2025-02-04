@@ -35,9 +35,10 @@ public class Mkb10Controller {
             @RequestParam(required = false) String nameUz,
             @RequestParam(required = false) String nameUzCyril,
             @RequestParam(required = false) String nameRu,
+            @RequestParam(required = false) String nameEn,
             HttpServletRequest request
     ) {
-        return mkb10Service.getMkb10ByFilter(page, size, mkbCode, nameUz, nameUzCyril, nameRu, getFullURL(request));
+        return mkb10Service.getMkb10ByFilter(page, size, mkbCode, nameUz, nameUzCyril, nameRu, nameEn, getFullURL(request));
     }
 
     @GetMapping("/{id}")
@@ -53,5 +54,10 @@ public class Mkb10Controller {
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteById(@PathVariable long id) {
         return mkb10Service.deleteById(id);
+    }
+
+    @GetMapping("/parents")
+    public ApiResponse<?> getMkb10ByParent() {
+        return mkb10Service.getParentWithChildren();
     }
 }

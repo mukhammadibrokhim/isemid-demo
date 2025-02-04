@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
+import uz.uzinfocom.isemid.models.entities.enums.CardType;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCardAssignUsers;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -76,10 +77,10 @@ public class CardServiceImpl implements CardService {
             }
 
             if (hasText(fromOrgName)) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("receiverOrganization"), fromOrgName));
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName));
             }
             if (hasText(toOrgName)) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("receiverOrganization"), toOrgName));
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("receiverOrganization").get("name"), toOrgName));
             }
             if (cardStatus != null) {
                 predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
