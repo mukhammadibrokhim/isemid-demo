@@ -17,7 +17,6 @@ import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 public class Catalog extends BaseEntity {
     @Column(nullable = false)
     private String type; //catalogType
-
     @Column(nullable = false, unique = true)
     private String code;
     private String parentCode;
