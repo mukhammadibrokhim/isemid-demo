@@ -32,8 +32,11 @@ public class ReqPatient {
 
 //    @Pattern(regexp = "^\\(\\d{2}\\)\\d{3}-\\d{2}-\\d{2}$", message = "Проверьте формат телефонного номера: (00)000-00-00")
     private String phoneNumber;
-
+    private String kinshipDegree; // Example: "Father", "Mother", "Sibling", etc.
+    private String kinshipFullName;
     private LocalDate birthDate;
+    private Integer ageYears;
+    private Integer ageMonths;
     private Gender gender;
     @Valid
     @NotEmpty(message = "Список адресов не может быть пустым.")
