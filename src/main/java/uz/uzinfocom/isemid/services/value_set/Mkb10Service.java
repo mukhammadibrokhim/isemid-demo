@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.services.value_set;
 
-import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.payload.requests.ReqMkb10;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -18,7 +17,7 @@ public interface Mkb10Service {
 
     ApiResponse<?> getById(long id);
 
-    ApiResponse<?> updateById(long id, ReqMkb10 reqMkb10, User user);
+    ApiResponse<?> updateById(long id, ReqMkb10 reqMkb10);
 
     ApiResponse<?> deleteById(long id);
 

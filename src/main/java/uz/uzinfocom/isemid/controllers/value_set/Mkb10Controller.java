@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.payload.requests.ReqMkb10;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -47,8 +45,8 @@ public class Mkb10Controller {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<?> updateById(@PathVariable long id, @RequestBody ReqMkb10 reqMkb10, @CurrentUser User user) {
-        return mkb10Service.updateById(id, reqMkb10, user);
+    public ApiResponse<?> updateById(@PathVariable long id, @RequestBody ReqMkb10 reqMkb10) {
+        return mkb10Service.updateById(id, reqMkb10);
     }
 
     @DeleteMapping("/{id}")
