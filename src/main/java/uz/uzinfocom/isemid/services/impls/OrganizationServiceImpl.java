@@ -101,6 +101,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             Organization parentOrg = organizationRepository.findByUuid(reqOrganization.getParentUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
             parentOrg.getChildren().add(existingOrg);
             existingOrg.setParent(parentOrg);
+            existingOrg.setParentId(parentOrg.getId());
         } else {
             existingOrg.setParent(null);
         }
