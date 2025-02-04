@@ -37,6 +37,11 @@ public class Address extends BaseEntity {
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog city;
 
+    @ManyToOne
+    @JoinColumn(name = "street", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog street;
+
     private String neighborhood;
     private String streetAddress;
     private String houseNumber;
