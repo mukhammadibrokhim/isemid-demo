@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.models.entities.value_set;
 
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,18 +32,18 @@ public class Mkb10 {
     @Id
     private Long id;
     private Long secondaryId;
-    @ManyToOne
-    @JoinColumn(name = "parent_id", insertable = false, updatable = false)
-    @JsonBackReference
-    private Mkb10 parentId;
-    //    private Long parentId;
+    //    @ManyToOne
+//    @JoinColumn(name = "parent_id", insertable = false, updatable = false)
+//    @JsonBackReference
+//    private Mkb10 parentId;
+    private Long parentId;
     private String code;
     private int level;
     private boolean isLastLevel;
     private String nameUz;
-    private String nameEn;
     private String nameRu;
-    private String nameUzCyrl;
+    private String nameUzCyril;
+    private String nameKaa;
     private String comment;
 
 
