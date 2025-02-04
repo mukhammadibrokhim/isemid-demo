@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.utils;
 
 public interface ApiUrlConstant {
 
-    String PREFIX = "/v1";
+    String PREFIX = "/api/v1";
 
     String USER = PREFIX + "/user";
 
