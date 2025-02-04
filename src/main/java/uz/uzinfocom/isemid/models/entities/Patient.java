@@ -33,10 +33,17 @@ public class Patient extends AbsEntity {
     private List<Identifier> identifiers;
 
     private LocalDate birthDate;
+    private Integer ageYears;
+    private Integer ageMonths;
     private Gender gender;
+    private String phoneNumber;
+    private String kinshipDegree; // Example: "Father", "Mother", "Sibling", etc.
+    private String kinshipFullName;
+
     @Enumerated(EnumType.STRING)
     private ResidentialStatus residentialStatus;
     @Enumerated(EnumType.STRING)
+
     private MaritalStatus maritalStatus;
 
     @Enumerated(EnumType.STRING)
