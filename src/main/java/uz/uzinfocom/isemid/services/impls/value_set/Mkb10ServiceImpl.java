@@ -131,7 +131,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
                             .nameRu(record[6]) // name_ru
                             .nameUz(record[7]) // name_uz
                             .nameUzCyrl(record[8]) // name_uz_cyrl
-                            .parentId(record[9].isEmpty() ? null : Long.parseLong(record[9])) // parent_id
+//                            .parentId(record[9].isEmpty() ? null : Long.parseLong(record[9])) // parent_id
                             .secondaryId(Long.parseLong(record[10])) // secondary_id
                             .build())
                     .filter(mkb10 -> mkb10Repository.findAllByCode(mkb10.getCode()).isEmpty())
