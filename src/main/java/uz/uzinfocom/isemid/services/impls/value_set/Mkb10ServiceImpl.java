@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.value_set.Mkb10;
 import uz.uzinfocom.isemid.models.payload.requests.ReqMkb10;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -26,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -54,8 +54,15 @@ public class Mkb10ServiceImpl implements Mkb10Service {
     }
 
     @Override
-    public ApiResponse<?> updateById(long id, ReqMkb10 reqMkb10, User user) {
-        return new ApiResponse<>(true, "Successfully update.", null);
+    public ApiResponse<?> updateById(long id, ReqMkb10 reqMkb10) {
+        Mkb10 existedMkb10 = mkb10Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Mkb10 not found."));
+        Optional.ofNullable(reqMkb10.getCode()).ifPresent(existedMkb10::setCode);
+        Optional.ofNullable(reqMkb10.getNameUz()).ifPresent(existedMkb10::setNameUz);
+        Optional.ofNullable(reqMkb10.getNameRu()).ifPresent(existedMkb10::setNameRu);
+        Optional.ofNullable(reqMkb10.getNameKaa()).ifPresent(existedMkb10::setNameKaa);
+        Optional.ofNullable(reqMkb10.getNameUzCyril()).ifPresent(existedMkb10::setNameUzCyril);
+        Optional.ofNullable(reqMkb10.getComment()).ifPresent(existedMkb10::setComment);
+        return new ApiResponse<>(true, "Successfully update.", mkb10Repository.save(existedMkb10));
     }
 
     @Override
