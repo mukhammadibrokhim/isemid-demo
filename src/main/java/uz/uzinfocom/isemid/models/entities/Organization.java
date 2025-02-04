@@ -65,12 +65,12 @@ public class Organization {
     private Catalog serviceArea;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
+    @JoinColumn(name = "parent")
     @JsonIgnore
     private Organization parent;
+    private Long parentId;
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    @JsonIgnoreProperties("parent")
     private List<Organization> children = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)

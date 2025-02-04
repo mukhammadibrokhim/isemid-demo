@@ -127,10 +127,10 @@ public class Mkb10ServiceImpl implements Mkb10Service {
                             .code(record[2]) // code
                             .isLastLevel(Boolean.parseBoolean(record[3])) // is_last_level
                             .level(Integer.parseInt(record[4])) // level
-                            .nameEn(record[5]) // name_en
+                            .nameKaa(record[6]) // name_en
                             .nameRu(record[6]) // name_ru
                             .nameUz(record[7]) // name_uz
-                            .nameUzCyrl(record[8]) // name_uz_cyrl
+                            .nameUzCyril(record[8]) // name_uz_cyrl
                             .parentId(record[9].isEmpty() ? null : Long.parseLong(record[9])) // parent_id
                             .secondaryId(Long.parseLong(record[10])) // secondary_id
                             .build())

@@ -41,9 +41,11 @@ public class Mkb10 {
     private int level;
     private boolean isLastLevel;
     private String nameUz;
-    private String nameEn;
     private String nameRu;
-    private String nameUzCyrl;
+    private String nameUzCyril;
+    private String nameKaa;
+    private String comment;
+
 
     @OneToMany(mappedBy = "parentId")
     private List<Mkb10> children = new ArrayList<>();

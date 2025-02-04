@@ -25,6 +25,7 @@ public interface ApiUrlConstant {
     String MKB10 = PREFIX + "/mkb10";
 
     String DB = PREFIX + "/db";
+    String JOURNAL_060 = PREFIX + "/journal-060";
 
 //    String BASE_DOMAIN = "http://localhost:8081";
     String BASE_DOMAIN = "https://ykem.sanepid.uz";
