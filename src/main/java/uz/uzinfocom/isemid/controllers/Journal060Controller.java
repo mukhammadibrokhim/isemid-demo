@@ -16,7 +16,7 @@ import static uz.uzinfocom.isemid.utils.CommonUtils.getFullURL;
 
 @RestController
 @RequestMapping(JOURNAL_060)
-@Tag(name = "AJournal 060", description = "Journal 060 API")
+@Tag(name = "Journal 060", description = "Journal 060 API")
 @RequiredArgsConstructor
 public class Journal060Controller {
     final Journal060Service journal060Service;
