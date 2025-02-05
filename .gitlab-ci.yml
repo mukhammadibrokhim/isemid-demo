@@ -4,10 +4,14 @@ variables:
   DEV_SERVER: '10.10.10.104'
 #  PROD_SERVER: '10.10.10.81'
   PRODUCTION_USER: 'runner'
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+
 
 before_script:
   - eval $(ssh-agent -s)
-  - chmod 600 $MOH_PRIVATE_KEY 
+  - chmod 600 $MOH_PRIVATE_KEY
+  - cp $MOH_SSV_NETRC ~/.netrc
 
 stages:
   - gitlab-ci-check
