@@ -22,6 +22,7 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("ISEMID")
                 .pathsToMatch("/**")
+
                 .build();
     }
 
