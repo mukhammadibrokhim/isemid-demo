@@ -4,27 +4,31 @@ variables:
   DEV_SERVER: '10.10.10.104'
 #  PROD_SERVER: '10.10.10.81'
   PRODUCTION_USER: 'runner'
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+
 
 before_script:
   - eval $(ssh-agent -s)
-  - chmod 600 $SSH_PRIVATE_KEY 
+  - chmod 600 $MOH_PRIVATE_KEY
+  - cp $MOH_SSV_NETRC ~/.netrc
 
 stages:
-  # - gitlab-ci-check
+  - gitlab-ci-check
   - build_and_push_dev
 
-# check_gitlab_ci_yml:
-#   stage: gitlab-ci-check
-#   script:
-#     - git fetch origin ci
-#     - if ! git diff --exit-code origin/ci:./.gitlab-ci.yml ./.gitlab-ci.yml; then
-#         echo "Файл gitlab-ci.yml изменен. Отклоняем изменения!";
-#         exit 1;
-#       fi
+check_gitlab_ci_yml:
+  stage: gitlab-ci-check
+  script:
+    - git fetch origin ci
+    - if ! git diff --exit-code origin/ci:./.gitlab-ci.yml ./.gitlab-ci.yml; then
+        echo "Файл gitlab-ci.yml изменен. Отклоняем изменения!";
+        exit 1;
+      fi
 
 deploy_dev:
-  # needs:
-  #   - check_gitlab_ci_yml
+  needs:
+    - check_gitlab_ci_yml
   stage: build_and_push_dev
   only:
     - dev
@@ -34,21 +38,26 @@ deploy_dev:
     - mvn clean package -DskipTests
 
     - | # Stoping service
-      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo systemctl stop backend.service
+
+
+        if [ -f /srv/project/backend/app.jar ]; then
+          sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
+        fi
         sudo chown -R runner:runner /srv/project/backend
       EOF
-    - ls -la `pwd`/target/
     - | # Copying the built binary
-      scp -O -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY \
-        `pwd`/target/isemid*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
+      scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
+        `pwd`/target/app*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
+
 
     - | # Create privilages & run service
-      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo chown -R www-data:www-data /srv/project/backend
         sudo systemctl start backend.service
         sleep 10
         sudo systemctl status backend.service
       EOF
 
-    - echo "Prod Deployed"
+    - echo "Deploy finished"
