@@ -16,6 +16,7 @@ import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
+import uz.uzinfocom.isemid.repositories.Journal060Repository;
 import uz.uzinfocom.isemid.services.Form058Service;
 import uz.uzinfocom.isemid.services.OrganizationService;
 import uz.uzinfocom.isemid.services.UserService;
@@ -36,6 +37,7 @@ public class Form058ServiceImpl implements Form058Service {
     final UserService userService;
     final CatalogService catalogService;
     final OrganizationService organizationService;
+    final Journal060Repository journal060Repository;
 
     @Override
     public ApiResponse<Form058> createForm058(ReqForm058 reqForm058, User user) {
@@ -104,7 +106,11 @@ public class Form058ServiceImpl implements Form058Service {
                 .comment(reqForm058.getComment())
                 .reporter(reporter)
                 .build();
-        return new ApiResponse<>(true, "Форма 058 успешно создана.", form058Repository.save(form058));
+        form058Repository.save(form058);
+        Journal060 journal060 = new Journal060();
+        journal060.setForm058(form058);
+        journal060Repository.save(journal060);
+        return new ApiResponse<>(true, "Форма 058 успешно создана.", form058);
     }
 
     @Override
