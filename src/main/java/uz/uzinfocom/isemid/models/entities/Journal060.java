@@ -1,8 +1,7 @@
 package uz.uzinfocom.isemid.models.entities;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
@@ -15,5 +14,8 @@ import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 @Builder
 @Entity
 public class Journal060 extends AbsEntity {
-    private String title;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "form058_id", nullable = false)
+    private Form058 form058;
 }

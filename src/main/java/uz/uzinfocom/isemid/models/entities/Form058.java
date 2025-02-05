@@ -38,7 +38,8 @@ public class Form058 extends AbsEntity {
     private LocalDateTime firstVisitDate; // Birinchi murojaat sanasi
     private LocalDateTime diagnosisDate; // Aniq tashxis qo‘yilgan sanasi
     private LocalDateTime visitDate; // Qatnov sanasi
-
+    private LocalDateTime docSendDate; // document jo'natilgan sana
+    
     @ManyToOne
     @JoinColumn(name = "sender_organization_id", referencedColumnName = "id")
     @JsonIgnoreProperties({"children","serviceArea","city","state","country","level"})
