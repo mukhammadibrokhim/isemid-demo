@@ -1,11 +1,13 @@
 package uz.uzinfocom.isemid.services.impls.value_set;
 
+import com.nimbusds.jose.shaded.gson.Gson;
 import com.opencsv.CSVReader;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.modelmapper.TypeToken;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -25,11 +27,14 @@ import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -210,12 +215,34 @@ public class CatalogServiceImpl implements CatalogService {
 
     @SneakyThrows
     @PostConstruct
-    private void insertStreet() {
-        Resource resource = resourceLoader.getResource("classpath:/base/rb_administrative_territory.json");
-        InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
-        BufferedReader bufferedReader = new BufferedReader(reader);
+    private void insertMahalla() {
+        Resource resource1 = resourceLoader.getResource("classpath:/base/rb_administrative_territory.json");
+        Resource resource2 = resourceLoader.getResource("classpath:/base/rb_administrative_territory_added_v2.json");
 
+        InputStreamReader reader1 = new InputStreamReader(resource1.getInputStream(), StandardCharsets.UTF_8);
+        InputStreamReader reader2 = new InputStreamReader(resource2.getInputStream(), StandardCharsets.UTF_8);
 
+        BufferedReader bufferedReader1 = new BufferedReader(reader1);
+        BufferedReader bufferedReader2 = new BufferedReader(reader2);
+
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Catalog>>() {}.getType();
+
+        List<Catalog> list1 = gson.fromJson(bufferedReader1, listType);
+        List<Catalog> list2 = gson.fromJson(bufferedReader2, listType);
+
+        Set<String> existingCodes = list1.stream()
+                .map(Catalog::getCode)
+                .collect(Collectors.toSet());
+
+        List<Catalog> mergedList = Stream.concat(list1.stream(), list2.stream())
+                .filter(m -> !"Mahalla aniqlanmagan".equals(m.getNameUz()))
+                .filter(m -> !existingCodes.contains(m.getCode()))
+                .map(m -> new Catalog(
+                ))
+                .collect(Collectors.toList());
+
+        catalogRepository.saveAll(mergedList);
     }
 
 }

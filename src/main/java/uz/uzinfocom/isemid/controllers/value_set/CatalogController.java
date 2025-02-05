@@ -259,9 +259,12 @@ public class CatalogController {
     }
 
     @GetMapping("/street")
-    public ApiResponse<?> getStreet(@RequestHeader("Accept-Language") String lang) {
-        return catalogService.findAllByType(CatalogType.street, lang);
-    }
+    public ApiResponse<List<RespCatalog>> getCatalogCStreet(
+            @RequestParam String parentCode,
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByTypeAndParentCode(CatalogType.street, parentCode, lang);
 
+    }
     //TODO add data for profession to csv file
 }
