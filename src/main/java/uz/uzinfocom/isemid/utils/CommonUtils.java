@@ -30,7 +30,7 @@ public class CommonUtils {
 
     public static String[] WHITE_LIST = {
             "/swagger-ui/**",
-            "/api/api-docs/**",
+            "/api-docs/**",
             "/actuator/**"
     };
 
