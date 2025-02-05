@@ -7,7 +7,7 @@ variables:
 
 before_script:
   - eval $(ssh-agent -s)
-  - chmod 600 $SSH_PRIVATE_KEY 
+  - chmod 600 $MOH_PRIVATE_KEY 
 
 stages:
   - gitlab-ci-check
@@ -34,7 +34,7 @@ deploy_dev:
     - mvn clean package -DskipTests
 
     - | # Stoping service
-      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo systemctl stop backend.service
 
 
@@ -44,16 +44,16 @@ deploy_dev:
         sudo chown -R runner:runner /srv/project/backend
       EOF
     - | # Copying the built binary
-      scp -O -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY \
+      scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
         `pwd`/target/app*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
 
 
     - | # Create privilages & run service
-      ssh -oStrictHostKeyChecking=no -i $SSH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo chown -R www-data:www-data /srv/project/backend
         sudo systemctl start backend.service
         sleep 10
         sudo systemctl status backend.service
       EOF
 
-    - echo "Prod Deployed"
+    - echo "Deploy finished"
