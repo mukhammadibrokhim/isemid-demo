@@ -57,6 +57,11 @@ public class ReqForm058 {
     @NotNull(message = "Дата визита обязательна.")
     private LocalDateTime visitDate;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+//    @NotNull(message = "Дата визита обязательна.")
+    private LocalDateTime docSendDate; // document jo'natilgan sana
+
+
     @NotNull(message = "Организация-отправитель обязательна и не может быть пустой.")
     private Long senderOrganizationId;
 
