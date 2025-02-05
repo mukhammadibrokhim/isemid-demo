@@ -3,9 +3,16 @@ package uz.uzinfocom.isemid.models.entities.value_set;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 @Getter
@@ -28,9 +35,30 @@ import java.util.List;
 )
 @Entity
 public class Mkb10 {
-
     @Id
     private Long id;
+
+    @UuidGenerator
+    @Column(updatable = false, nullable = false, unique = true)
+    private UUID uuid;
+
+    @OrderBy
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Timestamp createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Timestamp updatedAt;
+
+    @CreatedBy
+    @Column(name = "created_by_id")
+    private Long createdBy;
+
+    @LastModifiedBy
+    @Column(name = "updated_by_id")
+    private Long updatedBy;
+
     private Long secondaryId;
     //    @ManyToOne
 //    @JoinColumn(name = "parent_id", insertable = false, updatable = false)
