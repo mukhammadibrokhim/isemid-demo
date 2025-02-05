@@ -29,8 +29,8 @@ import static uz.uzinfocom.isemid.utils.AppConstant.*;
 public class CommonUtils {
 
     public static String[] WHITE_LIST = {
-            "/api/swagger-ui/**",
-            "/api/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
             "/actuator/**"
     };
 
