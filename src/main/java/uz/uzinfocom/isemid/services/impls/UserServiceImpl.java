@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
 
     final UserRepository userRepository;
     final CatalogService catalogService;
+
     @Override
     public ApiResponsePage getAllUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, HttpServletRequest request) {
         Specification<User> spec = getFilteredSpecification(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active);
