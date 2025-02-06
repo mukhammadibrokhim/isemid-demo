@@ -212,37 +212,4 @@ public class CatalogServiceImpl implements CatalogService {
             }
         }
     }
-
-    @SneakyThrows
-    @PostConstruct
-    private void insertMahalla() {
-        Resource resource1 = resourceLoader.getResource("classpath:/base/rb_administrative_territory.json");
-        Resource resource2 = resourceLoader.getResource("classpath:/base/rb_administrative_territory_added_v2.json");
-
-        InputStreamReader reader1 = new InputStreamReader(resource1.getInputStream(), StandardCharsets.UTF_8);
-        InputStreamReader reader2 = new InputStreamReader(resource2.getInputStream(), StandardCharsets.UTF_8);
-
-        BufferedReader bufferedReader1 = new BufferedReader(reader1);
-        BufferedReader bufferedReader2 = new BufferedReader(reader2);
-
-        Gson gson = new Gson();
-        Type listType = new TypeToken<List<Catalog>>() {}.getType();
-
-        List<Catalog> list1 = gson.fromJson(bufferedReader1, listType);
-        List<Catalog> list2 = gson.fromJson(bufferedReader2, listType);
-
-        Set<String> existingCodes = list1.stream()
-                .map(Catalog::getCode)
-                .collect(Collectors.toSet());
-
-        List<Catalog> mergedList = Stream.concat(list1.stream(), list2.stream())
-                .filter(m -> !"Mahalla aniqlanmagan".equals(m.getNameUz()))
-                .filter(m -> !existingCodes.contains(m.getCode()))
-                .map(m -> new Catalog(
-                ))
-                .collect(Collectors.toList());
-
-        catalogRepository.saveAll(mergedList);
-    }
-
 }
