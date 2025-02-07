@@ -1,14 +1,14 @@
 package uz.uzinfocom.isemid.services.impls.value_set;
 
-import com.nimbusds.jose.shaded.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.modelmapper.TypeToken;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
@@ -26,15 +26,14 @@ import uz.uzinfocom.isemid.repositories.value_set.CatalogRepository;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -211,5 +210,33 @@ public class CatalogServiceImpl implements CatalogService {
                 catalogRepository.saveAll(identifierTypes);
             }
         }
+    }
+
+    @PostConstruct
+    private void insertNeighborhood() throws IOException {
+        Resource resource =  new DefaultResourceLoader().getResource("classpath:/base/rb_administrative_territory.json");
+        Map mapLoinc = new ObjectMapper().readValue(resource.getInputStream(), Map.class);
+        List<Map> mapList = (ArrayList<Map>) mapLoinc.get("regions");
+        List<Map> regionMapList = mapList.stream()
+                .filter(record -> "3".equals(String.valueOf(record.get("level"))))
+                .toList();
+        List<Catalog> identifierTypes = regionMapList.stream()
+                .map(record -> Catalog.builder()
+                        .code(String.valueOf(record.get("code")))
+                        .nameKaa(String.valueOf(record.get("name_uz")))
+                        .nameRu(String.valueOf(record.get("name_uz")))
+                        .nameUz(String.valueOf(record.get("name_uz")))
+                        .nameUzCyril(String.valueOf(record.get("name_uz")))
+                        .parentCode(String.valueOf(record.get("parent_code")))
+                        .type(CatalogType.neighborhood.name())
+                        .level(String.valueOf(record.get("level")))
+                        .build())
+                .filter(catalogCode -> catalogRepository.findAllByCode(catalogCode.getCode()).isEmpty())
+                .toList();
+
+        if (!identifierTypes.isEmpty()) {
+            catalogRepository.saveAll(identifierTypes);
+        }
+
     }
 }
