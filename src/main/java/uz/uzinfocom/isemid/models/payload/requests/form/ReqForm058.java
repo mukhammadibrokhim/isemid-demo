@@ -68,8 +68,8 @@ public class ReqForm058 {
     @NotNull(message = "Организация-получатель обязательна и не может быть пустой.")
     private Long receiverOrganizationId;
 
-    @Valid
-    @NotNull
+//    @Valid
+//    @NotNull
     private ReqLocation location;
 
     @NotNull
