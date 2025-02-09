@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.models.payload.requests.card;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import uz.uzinfocom.isemid.models.entities.enums.CardType;
@@ -19,9 +18,9 @@ import uz.uzinfocom.isemid.models.entities.enums.CardType;
 })
 public abstract class ReqCard {
 
-    @NotNull(message = "card type is required.")
+//    @NotNull(message = "card type is required.")
     private CardType cardType;
 
-    @NotNull(message = "User id is required.")
+//    @NotNull(message = "User id is required.")
     private long userId;
 }
