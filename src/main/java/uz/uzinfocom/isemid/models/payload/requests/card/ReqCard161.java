@@ -122,9 +122,4 @@ public class ReqCard161 extends ReqCard {
     private String caseStatusCode;
     private String epidemiologist;
     private String epidemiologistAssistant;
-
-
-
-
-
 }

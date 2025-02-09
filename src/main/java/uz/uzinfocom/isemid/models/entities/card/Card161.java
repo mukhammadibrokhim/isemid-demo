@@ -1,11 +1,13 @@
 package uz.uzinfocom.isemid.models.entities.card;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 import lombok.*;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,83 +16,208 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 public class Card161 extends Card {
-    @Column(length = 500)
-    private String firstDaySymptoms;
-    private String diagnosed;
-    private LocalDateTime surveyDateTime;
-    private LocalDateTime surveillanceEndDate;
+    private String residentialTreatmentFacility;
+    private String region;
+    private String district;
+    private String polyclinic;
+    private String initialSymptoms;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "detected", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog detected;
+
+    private LocalDateTime epidemiologicalExamDate;
+    private LocalDateTime observationEndDate;
     private LocalDateTime finalDiagnosisDate;
-    //value-set
-    private String transportationMethod;
-    private String noHomeStayReason;
-    private String delayedTransferReasons;
-    private Boolean isLaboratoryTestConducted;
+    //catalogga qoshish kerak
 
-    private LocalDate estimatedInfectionDate;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "delivery_method", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog deliveryMethod;
 
-    private String infectionRiskFactors;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog homeStayExclusionReason;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog lateAdmissionReason;
+
+    private String diagnosisVerified;
+    //LIS bilan integratsiya uchun polya qoshish kerak.
+    // emlash uz bialn integratsiya uchun polyalar.
+    // DMED bilan integratsiya uchun polyalar.
+
+    private String estimatedInfectionDate;
+
+    @ManyToMany
+    @JoinTable(
+            name = "card161_risk_factors",
+            joinColumns = @JoinColumn(name = "card161_id"),
+            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private List<Catalog> riskFactors;
+
+    private String addressLocation;
     private String seasonTime;
     private String fullName;
-    private String diagnosisAndClinicalForm;
-    private String cohabitationTimeAndPlace;
-    private String contactType;
-    private String donorResidence;
+    private String diagnosisClinicalFormOrDonorStatus;
+    private String contactInfoAndDonorResidence;
     private String testResult;
-    private String foodAndWaterSourcesType;
-    private String sampleCollectionTimeAndPlace;
-    private String usageTimeAndPlace;
+    private String foodAndWaterSourceTypes;
+    private String collectionLocationAndTime;
+    private String usageLocationAndTime;
     private String storageConditions;
-    private String qualityAssessmentByPatientAndOthers;
-    private String livingConditions;
-    private Integer numberOfPeople;
-    private Integer numberOfRooms;
+    private String qualityFeedbackFromPatientAndOthers;
+
+    //catalog qoshish kerak
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog livingCondition;
+    private int numberOfPeople;
+    private int numberOfRooms;
     private String area;
-    private String waterSupply;
-    private String liquidWasteManagement;
-    private String solidWasteManagement;
-    private String rooms;
-    private String yard;
-    private String territory;
-    private String inspectionDate;
-    private String objectName;
-    private String infectiousAgentsType;
-    private String animalType;
+
+    //catalog qoshish kerak
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog waterSupply;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog liquidWasteDisposalType;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog solidWasteDisposalType;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog roomCondition;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog yardCondition;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog areaCondition;
+
+    private Boolean hasLice; //bitlash
+    private boolean hasOtherInsects;
+    private boolean hasRodents;
+    private String importantCausesOfDisease;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog visitedObjects;
+
+    private boolean denselyPopulated;
+    private String isolationStatus;
+    private String waterSupplyStatus;
+    private String sanitaryMaintenance;
+    private String foodStorage;
+    private String foodPreparation;
+    private String diseaseCausingFactors;
+    private LocalDate examinationDate;
+    private String objectArthropodsAnimals;
     private String material;
-    private Integer sampleQuantity;
-    private String inspectionTypeAndResult;
-    private String inspectorFullName;
-    private Integer inspectorAge;
-    private String inspectorResidence;
-    private String inspectorOccupationAndWorkplace;
-    private String vaccinationInformation;
-    private String preventiveMeasuresDescription;
-    private String jointMeasurements;
-    private String equipmentName;
-    private String equipmentLocation;
-    private Integer contactedIndividualsCount;
-    private String specialProphylacticMeasuresRequired;
-    private String treatedWithSpecialProphylacticMeasures;
-    private String laboratoryTestsConducted;
-    private String notificationsSentTo;
+    private String sampleQuantity;
+    private String testTypeAndResult;
+    private String contactFullName;
+    private String contactAge;
+    private String contactAddress;
+    private String contactJobTypeAndLocation;
+    private String contactImmunizationStatus;
+    private String contactRestrictionMeasures;
+    private String teamName;
+    private String prophylacticAddress;
+    private String contactCount;
+    private String requiredProphylacticSubstance;
+    private String treatedWithProphylacticSubstance;
+    private String laboratoryTestConducted;
+
+    private String notifiedPerson;
     private String nextDiseasePrevention;
-    private String laboratoryInspection;
+    private String laboratoryExamination;
     private String observationResult;
-    private String measuresTaken;
-    private String medicationType;
-    private String timeOfAdministration;
-    private String placeOfAdministration;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog preventiveMeasures; //catalog qoshialdi
+    private String drugType;
+
+    private String conductedAt;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog conductedLocation;
     private String executors;
+    private String executionMonitoringResult;
     private String hospitalName;
-    private String diseaseOriginLocation;
-    private String possibleDiseaseOriginLocation;
-    private String diseaseSourceNotFound;
+    //catalog
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog infectionLocation;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog probableInfectionLocation;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog infectionSourceNotFound;
     private String personFullName;
-    private String diseaseOriginPeriod;
-    private String animalSpecies;
-    private String possibleInfectionSource;
-    private String factorsCausingInfection;
-    private String infectionInAquaticEnvironment;
-    private String situationDescription;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog infectionSourceDiseasePeriod;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog animalType;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog mainProbableInfectionFactor;
+
+
+    @ManyToMany
+    @JoinTable(
+            name = "card161_risk_factors",
+            joinColumns = @JoinColumn(name = "card161_id"),
+            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
+    private List<Catalog> infectionCausingConditions;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog outbreakInfection;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog caseStatus;
     private String epidemiologist;
-    private String assistantEpidemiologist;
+    private String epidemiologistAssistant;
 }
