@@ -5,7 +5,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
@@ -75,6 +74,14 @@ public class Mkb10ServiceImpl implements Mkb10Service {
         return new ApiResponse<>(true, "Successfully deleted.", null);
     }
 
+    @Override
+    public ApiResponse<?> getAllMkb10s(Long parentId) {
+        if (parentId != null && parentId == 0) {
+            return new ApiResponse<>(true, "Success", mkb10Repository.findByParentIdIsNull());
+        } else
+            return new ApiResponse<>(true, "Success", mkb10Repository.findAllByParentId(parentId));
+    }
+
 //    @Override
 //    @Cacheable(value = "parentNodesCache",
 //            key = "'parentNodesCache'",
@@ -83,16 +90,6 @@ public class Mkb10ServiceImpl implements Mkb10Service {
 //        return new ApiResponse<>(true,
 //                "Successfully retrieved parent nodes.", mkb10Repository.findByParentIdIsNull());
 //    }
-
-    @Override
-    public ApiResponse<?> getParentWithChildren() {
-        return new ApiResponse<>(true, "Successfully retrieved parent nodes.",  mkb10Repository.findByParentIdIsNull());
-    }
-
-    @Override
-    public ApiResponse<?> getAllChildrenByParentId(long parentId) {
-        return new ApiResponse<>(true, "Successfully fetch.", List.of(mkb10Repository.findAllByParentId(parentId)));
-    }
 
     public static Specification<Mkb10> getFilteredSpecification(
             String mkbCode,
