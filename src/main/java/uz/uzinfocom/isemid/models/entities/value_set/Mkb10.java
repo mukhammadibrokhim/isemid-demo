@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.models.entities.value_set;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -74,7 +75,7 @@ public class Mkb10 {
     private String nameKaa;
     private String comment;
 
-
     @OneToMany(mappedBy = "parentId")
+    @JsonIgnore
     private List<Mkb10> children = new ArrayList<>();
 }

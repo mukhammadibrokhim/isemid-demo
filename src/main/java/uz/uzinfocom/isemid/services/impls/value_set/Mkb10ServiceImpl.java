@@ -75,18 +75,23 @@ public class Mkb10ServiceImpl implements Mkb10Service {
         return new ApiResponse<>(true, "Successfully deleted.", null);
     }
 
-    @Override
-    @Cacheable(value = "parentNodesCache",
-            key = "'parentNodesCache'",
-            unless = "#result == null")
-    public ApiResponse<?> getParentNodes() {
-        return new ApiResponse<>(true,
-                "Successfully retrieved parent nodes.", mkb10Repository.findByParentIdIsNull());
-    }
+//    @Override
+//    @Cacheable(value = "parentNodesCache",
+//            key = "'parentNodesCache'",
+//            unless = "#result == null")
+//    public ApiResponse<?> getParentNodes() {
+//        return new ApiResponse<>(true,
+//                "Successfully retrieved parent nodes.", mkb10Repository.findByParentIdIsNull());
+//    }
 
     @Override
     public ApiResponse<?> getParentWithChildren() {
         return new ApiResponse<>(true, "Successfully retrieved parent nodes.",  mkb10Repository.findByParentIdIsNull());
+    }
+
+    @Override
+    public ApiResponse<?> getAllChildrenByParentId(long parentId) {
+        return new ApiResponse<>(true, "Successfully fetch.", List.of(mkb10Repository.findAllByParentId(parentId)));
     }
 
     public static Specification<Mkb10> getFilteredSpecification(
