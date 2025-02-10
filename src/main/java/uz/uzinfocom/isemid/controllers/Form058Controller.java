@@ -50,6 +50,12 @@ public class Form058Controller {
         return form058Service.getFilteredForm058(page, size, user, getFullURL(request));
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "", description = "")
+    public ApiResponse<Form058> get(@PathVariable long id) {
+        return form058Service.getById(id);
+    }
+
     @Operation(
             summary = "Обновление формы 058",
             description = "Обновляет существующую форму 058 по заданному идентификатору.")

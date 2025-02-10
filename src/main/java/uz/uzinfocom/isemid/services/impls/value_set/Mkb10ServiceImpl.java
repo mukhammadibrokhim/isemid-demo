@@ -5,7 +5,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
@@ -76,18 +75,21 @@ public class Mkb10ServiceImpl implements Mkb10Service {
     }
 
     @Override
-    @Cacheable(value = "parentNodesCache",
-            key = "'parentNodesCache'",
-            unless = "#result == null")
-    public ApiResponse<?> getParentNodes() {
-        return new ApiResponse<>(true,
-                "Successfully retrieved parent nodes.", mkb10Repository.findByParentIdIsNull());
+    public ApiResponse<?> getAllMkb10s(Long parentId) {
+        if (parentId != null && parentId == 0) {
+            return new ApiResponse<>(true, "Success", mkb10Repository.findByParentIdIsNull());
+        } else
+            return new ApiResponse<>(true, "Success", mkb10Repository.findAllByParentId(parentId));
     }
 
-    @Override
-    public ApiResponse<?> getParentWithChildren() {
-        return new ApiResponse<>(true, "Successfully retrieved parent nodes.",  mkb10Repository.findByParentIdIsNull());
-    }
+//    @Override
+//    @Cacheable(value = "parentNodesCache",
+//            key = "'parentNodesCache'",
+//            unless = "#result == null")
+//    public ApiResponse<?> getParentNodes() {
+//        return new ApiResponse<>(true,
+//                "Successfully retrieved parent nodes.", mkb10Repository.findByParentIdIsNull());
+//    }
 
     public static Specification<Mkb10> getFilteredSpecification(
             String mkbCode,

@@ -15,4 +15,6 @@ public interface Form058Service {
     ApiResponsePage getFilteredForm058(int page, int size, User user, String url);
 
     ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user);
+
+    ApiResponse<Form058> getById(long id);
 }

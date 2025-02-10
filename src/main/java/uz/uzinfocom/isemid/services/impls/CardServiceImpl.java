@@ -59,6 +59,8 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser) {
+        Card exsistCard = cardRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
+
         return new ApiResponse<>(true, "Success", null);
     }
 
