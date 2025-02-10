@@ -11,7 +11,7 @@ import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
 import uz.uzinfocom.isemid.models.payload.requests.card.*;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
-import uz.uzinfocom.isemid.services.CardService;
+import uz.uzinfocom.isemid.services.card.CardService;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.CARD;
 import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;

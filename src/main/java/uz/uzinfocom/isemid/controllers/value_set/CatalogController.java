@@ -258,5 +258,12 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.profession, lang);
     }
 
-    //TODO add data for profession to csv file
+    @GetMapping("/neighborhood")
+    public ApiResponse<List<RespCatalog>> getCatalogNeighborhood(
+            @RequestParam String parentCode,
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode, lang);
+
+    }
 }

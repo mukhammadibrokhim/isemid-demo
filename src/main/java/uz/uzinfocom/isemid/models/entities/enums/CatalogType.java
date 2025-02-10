@@ -4,6 +4,7 @@ public enum CatalogType {
     gender,
     state,
     city,
+    neighborhood,
     country,
     nationality,
     identifierType,
