@@ -14,5 +14,5 @@ public interface Mkb10Repository extends JpaRepository<Mkb10, Long>, JpaSpecific
 
     List<Mkb10> findAllByCode(String code);
 
-    List<Mkb10> findAllByParentId(long parentId);
+    List<Mkb10> findAllByParentId(Long parentId);
 }

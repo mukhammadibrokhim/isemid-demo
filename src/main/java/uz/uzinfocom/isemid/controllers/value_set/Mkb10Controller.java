@@ -9,8 +9,6 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.value_set.Mkb10Service;
 
-import java.util.UUID;
-
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.MKB10;
 import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
 import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
@@ -38,11 +36,11 @@ public class Mkb10Controller {
         return mkb10Service.getMkb10ByFilter(page, size, mkbCode, nameUz, nameUzCyril, nameRu, nameEn, getFullURL(request));
     }
 
-    @GetMapping("/children")
-    public ApiResponse<?> getIcdChildren(
-            @RequestParam long parentId
+    @GetMapping
+    public ApiResponse<?> getMkb10s(
+            @RequestParam(required = false) Long parentId
     ) {
-        return mkb10Service.getAllChildrenByParentId(parentId);
+        return mkb10Service.getAllMkb10s(parentId);
     }
 
     @GetMapping("/{id}")
@@ -58,10 +56,5 @@ public class Mkb10Controller {
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteById(@PathVariable long id) {
         return mkb10Service.deleteById(id);
-    }
-
-    @GetMapping("/parents")
-    public ApiResponse<?> getMkb10ByParent() {
-        return mkb10Service.getParentWithChildren();
     }
 }
