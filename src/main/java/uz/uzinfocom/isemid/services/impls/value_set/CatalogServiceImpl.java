@@ -229,7 +229,6 @@ public class CatalogServiceImpl implements CatalogService {
                         .nameUzCyril(String.valueOf(record.get("name_uz")))
                         .parentCode(String.valueOf(record.get("parent_code")))
                         .type(CatalogType.neighborhood.name())
-                        .level(String.valueOf(record.get("level")))
                         .build())
                 .filter(catalogCode -> catalogRepository.findAllByCode(catalogCode.getCode()).isEmpty())
                 .toList();
