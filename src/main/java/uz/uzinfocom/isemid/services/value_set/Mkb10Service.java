@@ -21,7 +21,7 @@ public interface Mkb10Service {
 
     ApiResponse<?> deleteById(long id);
 
-    ApiResponse<?> getParentNodes();
-
     ApiResponse<?> getParentWithChildren();
+
+    ApiResponse<?> getAllChildrenByParentId(long parentId);
 }

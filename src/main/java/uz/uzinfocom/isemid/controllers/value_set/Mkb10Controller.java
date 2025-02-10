@@ -28,7 +28,6 @@ public class Mkb10Controller {
     public ApiResponsePage getAllByFilter(
             @RequestParam(defaultValue = PAGE) int page,
             @RequestParam(defaultValue = SIZE) int size,
-            @RequestHeader(name = "Organization-id") UUID organizationId,
             @RequestParam(required = false) String mkbCode,
             @RequestParam(required = false) String nameUz,
             @RequestParam(required = false) String nameUzCyril,
@@ -37,6 +36,13 @@ public class Mkb10Controller {
             HttpServletRequest request
     ) {
         return mkb10Service.getMkb10ByFilter(page, size, mkbCode, nameUz, nameUzCyril, nameRu, nameEn, getFullURL(request));
+    }
+
+    @GetMapping("/children")
+    public ApiResponse<?> getIcdChildren(
+            @RequestParam long parentId
+    ) {
+        return mkb10Service.getAllChildrenByParentId(parentId);
     }
 
     @GetMapping("/{id}")

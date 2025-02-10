@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 import uz.uzinfocom.isemid.models.entities.value_set.Mkb10;
 
 import java.util.List;
-import java.util.Map;
 
 
 @Repository
@@ -14,4 +13,6 @@ public interface Mkb10Repository extends JpaRepository<Mkb10, Long>, JpaSpecific
     List<Mkb10> findByParentIdIsNull();
 
     List<Mkb10> findAllByCode(String code);
+
+    List<Mkb10> findAllByParentId(long parentId);
 }
