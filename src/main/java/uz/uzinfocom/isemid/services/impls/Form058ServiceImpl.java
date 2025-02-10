@@ -137,6 +137,12 @@ public class Form058ServiceImpl implements Form058Service {
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }
 
+    @Override
+    public ApiResponse<Form058> getById(long id) {
+        return new ApiResponse<>(true, "Success",
+                form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found.")));
+    }
+
     public static Specification<Form058> getFilteredSpecification(
             UUID currentUserOrgId
     ) {
