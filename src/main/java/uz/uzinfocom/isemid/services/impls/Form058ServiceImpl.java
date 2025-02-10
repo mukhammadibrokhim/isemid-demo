@@ -24,6 +24,7 @@ import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -114,7 +115,40 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public ApiResponse<Form058> updateForm058(ReqForm058 reqForm058, Long id, User user) {
-        return new ApiResponse<>(true, "Success", null);
+        Form058 existedForm058 = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
+        Optional.ofNullable(reqForm058.getMkb10Code()).ifPresent(existedForm058::setMkb10Code);
+        Optional.ofNullable(reqForm058.getMkb10Name()).ifPresent(existedForm058::setMkb10Name);
+        Optional.ofNullable(reqForm058.getPatient()).ifPresent(patient -> {
+        });
+
+        Optional.ofNullable(reqForm058.getLabConfirmation()).ifPresent(existedForm058::setLabConfirmation);
+
+        Optional.ofNullable(reqForm058.getHospitalPlaceId()).ifPresent(orgId -> {
+
+        });
+
+        Optional.ofNullable(reqForm058.getAdmissionDate()).ifPresent(existedForm058::setAdmissionDate);
+        Optional.ofNullable(reqForm058.getDiagnosisDate()).ifPresent(existedForm058::setDiagnosisDate);
+        Optional.ofNullable(reqForm058.getFirstVisitDate()).ifPresent(existedForm058::setFirstVisitDate);
+        Optional.ofNullable(reqForm058.getDiseaseDate()).ifPresent(existedForm058::setDiagnosisDate);
+        Optional.ofNullable(reqForm058.getVisitDate()).ifPresent(existedForm058::setVisitDate);
+        Optional.ofNullable(reqForm058.getDocSendDate()).ifPresent(existedForm058::setDocSendDate);
+        Optional.ofNullable(reqForm058.getSenderOrganizationId()).ifPresent(orgId -> {
+        });
+        Optional.ofNullable(reqForm058.getReceiverOrganizationId()).ifPresent(orgId -> {
+        });
+        Optional.ofNullable(reqForm058.getLocation()).ifPresent(reqLocation -> {
+        });
+        Optional.ofNullable(reqForm058.getDiseasePlaceCode()).ifPresent(diseasePlace -> {
+        });
+        Optional.ofNullable(reqForm058.getDiseaseCause()).ifPresent(existedForm058::setDiseaseCause);
+        Optional.ofNullable(reqForm058.getEpidemicMeasures()).ifPresent(existedForm058::setEpidemicMeasures);
+        Optional.ofNullable(reqForm058.getJournalFormCode()).ifPresent(form -> {
+        });
+        Optional.ofNullable(reqForm058.getComment()).ifPresent(existedForm058::setComment);
+        Optional.ofNullable(reqForm058.getNotifierFullName()).ifPresent(existedForm058::setNotifierFullName);
+
+        return new ApiResponse<>(true, "Success updated.", form058Repository.save(existedForm058));
     }
 
     @Override
