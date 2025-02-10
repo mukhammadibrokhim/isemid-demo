@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.services;
+package uz.uzinfocom.isemid.services.card;
 
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.enums.CardStatus;

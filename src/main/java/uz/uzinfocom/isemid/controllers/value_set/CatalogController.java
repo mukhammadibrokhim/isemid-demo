@@ -266,5 +266,4 @@ public class CatalogController {
         return catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode, lang);
 
     }
-    //TODO add data for profession to csv file
 }

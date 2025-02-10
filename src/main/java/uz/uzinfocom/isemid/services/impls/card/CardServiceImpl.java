@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.services.impls;
+package uz.uzinfocom.isemid.services.impls.card;
 
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,8 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.UserRepository;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
-import uz.uzinfocom.isemid.services.CardService;
+import uz.uzinfocom.isemid.services.card.CardService;
+import uz.uzinfocom.isemid.services.impls.card.strategy.UpdateCardService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,8 @@ import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
 public class CardServiceImpl implements CardService {
     final CardRepository cardRepository;
     final UserRepository userRepository;
+    final UpdateCardService updateCardService;
+
 
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, String fullURL) {
@@ -59,9 +62,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser) {
-        Card exsistCard = cardRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
-
-        return new ApiResponse<>(true, "Success", null);
+        return updateCardService.updateCard(id, reqCard, currentUser);
     }
 
 
