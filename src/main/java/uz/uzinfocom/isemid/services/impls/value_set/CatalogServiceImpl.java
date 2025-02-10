@@ -29,10 +29,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -214,28 +211,63 @@ public class CatalogServiceImpl implements CatalogService {
 
     @PostConstruct
     private void insertNeighborhood() throws IOException {
-        Resource resource =  new DefaultResourceLoader().getResource("classpath:/base/rb_administrative_territory.json");
+        Resource resource = new DefaultResourceLoader().getResource("classpath:/base/rb_administrative_territory.json");
         Map mapLoinc = new ObjectMapper().readValue(resource.getInputStream(), Map.class);
         List<Map> mapList = (ArrayList<Map>) mapLoinc.get("regions");
-        List<Map> regionMapList = mapList.stream()
+
+        List<Map> level2RegionMapList = mapList.stream()
+                .filter(record -> "2".equals(String.valueOf(record.get("level"))))
+                .toList();
+
+        List<Map> level3RegionMapList = mapList.stream()
                 .filter(record -> "3".equals(String.valueOf(record.get("level"))))
                 .toList();
-        List<Catalog> identifierTypes = regionMapList.stream()
-                .map(record -> Catalog.builder()
-                        .code(String.valueOf(record.get("code")))
-                        .nameKaa(String.valueOf(record.get("name_uz")))
-                        .nameRu(String.valueOf(record.get("name_uz")))
-                        .nameUz(String.valueOf(record.get("name_uz")))
-                        .nameUzCyril(String.valueOf(record.get("name_uz")))
-                        .parentCode(String.valueOf(record.get("parent_code")))
-                        .type(CatalogType.neighborhood.name())
-                        .build())
-                .filter(catalogCode -> catalogRepository.findAllByCode(catalogCode.getCode()).isEmpty())
+
+        Set<String> existingCodes = catalogRepository.findAll().stream()
+                .map(Catalog::getCode)
+                .collect(Collectors.toSet());
+
+        List<Catalog> level2Catalogs = level2RegionMapList.stream()
+                .map(record -> {
+                    String code = String.valueOf(record.get("code"));
+                    String nameUz = String.valueOf(record.get("name_uz"));
+                    String parentCode = record.get("parent_code") != null
+                            ? String.valueOf(record.get("parent_code"))
+                            : "UZ-" + (code.length() >= 2 ? code.substring(0, 2) : code);
+
+                    return Catalog.builder()
+                            .code(code)
+                            .nameKaa(nameUz)
+                            .nameRu(nameUz)
+                            .nameUz(nameUz)
+                            .nameUzCyril(nameUz)
+                            .parentCode(parentCode)
+                            .type(CatalogType.city.name())
+                            .build();
+                })
+                .filter(catalog -> !existingCodes.contains(catalog.getCode()))
                 .toList();
+        List<Catalog> level3Catalogs = level3RegionMapList.stream()
+                .map(record -> {
+                    String code = String.valueOf(record.get("code"));
+                    return Catalog.builder()
+                            .code(code)
+                            .nameKaa(String.valueOf(record.get("name_uz")))
+                            .nameRu(String.valueOf(record.get("name_uz")))
+                            .nameUz(String.valueOf(record.get("name_uz")))
+                            .nameUzCyril(String.valueOf(record.get("name_uz")))
+                            .parentCode(String.valueOf(record.get("parent_code")))
+                            .type(CatalogType.neighborhood.name())
+                            .build();
+                })
+                .filter(catalog -> !existingCodes.contains(catalog.getCode()))
+                .toList();
+        List<Catalog> allCatalogs = new ArrayList<>();
+        allCatalogs.addAll(level2Catalogs);
+        allCatalogs.addAll(level3Catalogs);
 
-        if (!identifierTypes.isEmpty()) {
-            catalogRepository.saveAll(identifierTypes);
+        if (!allCatalogs.isEmpty()) {
+            catalogRepository.saveAll(allCatalogs);
         }
-
     }
 }
