@@ -1,5 +1,8 @@
 package uz.uzinfocom.isemid.exceptioins;
 
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,8 +23,12 @@ import java.util.stream.Collectors;
 import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger("uz.uzinfocom.isemid");
 
+
+    final
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex) {
@@ -131,6 +138,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        logger.error("Exception", ex);
         return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(ErrorResponse.builder()
                 .success(false)
                 .statusCode(INTERNAL_SERVER_ERROR.value())

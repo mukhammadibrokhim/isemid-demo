@@ -56,7 +56,7 @@ public class Form058ServiceImpl implements Form058Service {
         List<Identifier> identifiers = reqForm058.getPatient().getIdentifiers().stream().map(reqIdentifier -> {
             Identifier identifier = Identifier.builder()
                     .value(reqIdentifier.getValue())
-                    .typeCode(reqIdentifier.getTypeCode())
+                    .typeCode(catalogService.findByTypeAndCode(CatalogType.identifierType, reqIdentifier.getTypeCode().name()).orElse(null))
                     .periodEnd(reqIdentifier.getPeriodEnd())
                     .periodStart(reqIdentifier.getPeriodStart())
                     .build();
