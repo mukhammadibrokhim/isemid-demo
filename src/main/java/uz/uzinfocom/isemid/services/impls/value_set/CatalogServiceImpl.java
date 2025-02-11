@@ -292,6 +292,7 @@ public class CatalogServiceImpl implements CatalogService {
                             .nameRu(record.get("name_ru").asText())
                             .nameUz(record.get("name_uz").asText())
                             .nameUzCyril(record.get("name_uz_cyrl").asText())
+                            .nameKaa(record.get("name_ru").asText())
                             .parentCode(null)
                             .type(CatalogType.profession.name())
                             .build())
