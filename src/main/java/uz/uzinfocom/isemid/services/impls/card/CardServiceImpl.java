@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -60,6 +61,7 @@ public class CardServiceImpl implements CardService {
                 cardRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found.")));
     }
 
+    @Transactional
     @Override
     public ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser) {
         return updateCardService.updateCard(id, reqCard, currentUser);

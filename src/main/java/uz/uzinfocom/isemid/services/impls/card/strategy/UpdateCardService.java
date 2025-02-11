@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.services.impls.card.strategy;
 
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
@@ -16,9 +17,10 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UpdateCardService {
 
-    Map<CardType, UpdateCardStrategy> updateCardStrategies;
+   final Map<CardType, UpdateCardStrategy> updateCardStrategies;
 
     public ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser) {
         CardType cardType = reqCard.getCardType();

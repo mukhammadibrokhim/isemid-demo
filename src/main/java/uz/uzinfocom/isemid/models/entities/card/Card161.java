@@ -7,6 +7,7 @@ import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -54,13 +55,13 @@ public class Card161 extends Card {
 
     private String estimatedInfectionDate;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
             name = "card161_risk_factors",
             joinColumns = @JoinColumn(name = "card161_id"),
             inverseJoinColumns = @JoinColumn(name = "catalog_code"))
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private List<Catalog> riskFactors;
+    private List<Catalog> riskFactors = new ArrayList<>();
 
     private String addressLocation;
     private String seasonTime;
@@ -202,12 +203,12 @@ public class Card161 extends Card {
     private Catalog mainProbableInfectionFactor;
 
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
-            name = "card161_risk_factors",
+            name = "card161_indefction_cousing",
             joinColumns = @JoinColumn(name = "card161_id"),
             inverseJoinColumns = @JoinColumn(name = "catalog_code"))
-    private List<Catalog> infectionCausingConditions;
+    private List<Catalog> infectionCausingConditions = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(referencedColumnName = "code")

@@ -18,5 +18,5 @@ public enum CatalogType {
     diseasePlace,
     category,
     profession,
-    level
+    detected, level
 }
