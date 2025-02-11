@@ -67,7 +67,12 @@ public abstract class AbsEntity {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
             User currentUser = (User) authentication.getPrincipal();
-            this.updatedOrgId = currentUser.getCurrentOrganization().getUuid();
+            if (currentUser.getCurrentOrganization() != null) {
+                this.updatedOrgId = currentUser.getCurrentOrganization().getUuid();
+            } else {
+                // Log a warning and handle the case
+                System.out.println("Warning: Organization is null for entity update.");
+            }
         }
     }
 }

@@ -16,11 +16,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type"
-)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Card161.class, name = "CARD161"),
         @JsonSubTypes.Type(value = Card174.class, name = "CARD174"),
@@ -33,10 +29,6 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
-    @OneToOne(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("card")
-    private Form058 form058;
-
     @ManyToMany
     @JoinTable(
             name = "card_users",
@@ -44,4 +36,8 @@ public abstract class Card extends AbsEntity {
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses",})
     private Set<User> users = new HashSet<>();
+
+    @OneToOne(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("card")
+    private Form058 form058;
 }
