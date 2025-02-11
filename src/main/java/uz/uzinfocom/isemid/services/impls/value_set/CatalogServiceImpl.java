@@ -126,6 +126,25 @@ public class CatalogServiceImpl implements CatalogService {
         return new ApiResponse<>(true, "Successfully fetch", response);
     }
 
+    @Override
+    public ApiResponse<List<RespCatalog>> findByProfessionTypeAndSearch(CatalogType professionType, String lang, String search) {
+        List<Catalog> resultList = Optional.ofNullable(search)
+                .filter(StringUtils::hasText)
+                .map(s -> catalogRepository.findByProfessionTypeAndSearch(professionType.name(), s))
+                .orElseGet(() -> catalogRepository.findByProfessionTypeAndSearch(professionType.name(), null));
+
+        List<RespCatalog> response = resultList.stream()
+                .map(catalog -> RespCatalog.builder()
+                        .id(catalog.getId())
+                        .code(catalog.getCode())
+                        .parentCode(catalog.getParentCode())
+                        .display(resolveLang(catalog.getNameRu(), catalog.getNameUz(), catalog.getNameUzCyril(), catalog.getNameKaa()))
+                        .build())
+                .collect(Collectors.toList());
+
+        return new ApiResponse<>(true, "Successfully fetch", response);
+    }
+
     @Cacheable(value = "findByTypeAndParentCode", key = "T(String).format('%s-%s',#catalogType.name(), #parentCode)", unless = "#result == null")
     @Override
     public Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String parentCode) {

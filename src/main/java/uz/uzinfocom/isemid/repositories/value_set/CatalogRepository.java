@@ -39,6 +39,23 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     """, nativeQuery = true)
     List<Catalog> findByTypeAndSearch(@Param("type") String type, @Param("search") String search);
 
+
+    @Query(value = """
+    SELECT * FROM catalog c
+    WHERE c.type = :type
+      AND (:search IS NULL
+           OR LOWER(c.name_ru) LIKE LOWER(CONCAT('%', :search, '%'))
+           OR LOWER(c.name_uz) LIKE LOWER(CONCAT('%', :search, '%'))
+           OR LOWER(c.name_kaa) LIKE LOWER(CONCAT('%', :search, '%'))
+           OR LOWER(c.name_uz_cyril) LIKE LOWER(CONCAT('%', :search, '%')))
+     ORDER BY 
+            c.name_uz ASC,
+            c.name_ru ASC,
+            c.name_kaa ASC
+    LIMIT 20
+    """, nativeQuery = true)
+    List<Catalog> findByProfessionTypeAndSearch(@Param("type") String type, @Param("search") String search);
+
     Optional<Catalog> findByTypeAndParentCode(String catalogType, String parentCode);
 
     Optional<Catalog> findByTypeAndCode(String name, String code);

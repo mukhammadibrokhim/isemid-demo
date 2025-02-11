@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.services.value_set;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.cache.annotation.Cacheable;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.ReqCatalog;
@@ -24,6 +25,8 @@ public interface CatalogService {
     ApiResponse<List<RespCatalog>> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode, String lang);
 
     ApiResponse<List<RespCatalog>> findFirst20ByTypeAndSearch(CatalogType catalogType, String lang, String search);
+
+    ApiResponse<List<RespCatalog>> findByProfessionTypeAndSearch(CatalogType professionType, String lang, String search);
 
     Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String parentCode);
 

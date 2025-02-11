@@ -254,8 +254,19 @@ public class CatalogController {
     }
 
     @GetMapping("/profession")
-    public ApiResponse<?> getProfession(@RequestHeader("Accept-Language") String lang) {
-        return catalogService.findAllByType(CatalogType.profession, lang);
+    public ApiResponse<List<RespCatalog>> getProfession(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findByProfessionTypeAndSearch(CatalogType.profession, lang, search);
+    }
+
+    @GetMapping("/defined-disease")
+    public ApiResponse<?> definedDisease(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.definedDisease, lang);
+
     }
 
     @GetMapping("/neighborhood")
