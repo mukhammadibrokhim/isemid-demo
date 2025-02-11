@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
-import uz.uzinfocom.isemid.models.payload.requests.card.*;
+import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
+import uz.uzinfocom.isemid.models.payload.requests.card.ReqCardAssignUsers;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.card.CardService;
@@ -59,5 +60,15 @@ public class CardController {
             @CurrentUser User currentUser
     ) {
         return cardService.updateCard(id, reqCard, currentUser);
+    }
+
+    @PutMapping("/{cardId}/accept/{userId}")
+    public ApiResponse<?> acceptCard(@PathVariable Long cardId, @PathVariable Long userId) {
+        return cardService.acceptCard(cardId, userId);
+    }
+
+    @PutMapping("/{cardId}/reject/{userId}")
+    public ApiResponse<?> rejectCard(@PathVariable Long cardId, @PathVariable Long userId) {
+        return cardService.rejectCard(cardId, userId);
     }
 }

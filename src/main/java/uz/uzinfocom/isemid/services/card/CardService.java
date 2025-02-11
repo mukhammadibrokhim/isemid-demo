@@ -23,4 +23,8 @@ public interface CardService {
     ApiResponse<?> getById(long id);
 
     ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser);
+
+    ApiResponse<?> acceptCard(Long cardId, Long userId);
+
+    ApiResponse<?> rejectCard(Long cardId, Long userId);
 }

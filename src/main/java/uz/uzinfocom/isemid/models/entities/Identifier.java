@@ -1,11 +1,14 @@
 package uz.uzinfocom.isemid.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.IdentifierType;
 import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
 
@@ -27,9 +30,10 @@ public class Identifier extends BaseEntity {
     @Column( nullable = false, length = 50)
     private String value;
 
-    @Column(nullable = false, length = 50)
-    @Enumerated(EnumType.STRING)
-    private IdentifierType typeCode;
+    @ManyToOne
+    @JoinColumn(name = "type_code", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog typeCode;
 
     private LocalDate periodStart;
     private LocalDate periodEnd;
