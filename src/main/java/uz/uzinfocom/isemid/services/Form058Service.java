@@ -17,4 +17,6 @@ public interface Form058Service {
     ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user);
 
     ApiResponse<Form058> getById(long id);
+
+    ApiResponse<?> changeReceivedOrd(Long formId, Long orgId);
 }

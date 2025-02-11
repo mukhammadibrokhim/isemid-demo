@@ -177,6 +177,15 @@ public class Form058ServiceImpl implements Form058Service {
                 form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found.")));
     }
 
+    @Override
+    public ApiResponse<?> changeReceivedOrd(Long formId, Long orgId) {
+        Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found."));
+        Organization organization = organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
+        form058.setReceiverOrganization(organization);
+        return new ApiResponse<>(true, "Success", form058Repository.save(form058));
+    }
+
+
     public static Specification<Form058> getFilteredSpecification(
             UUID currentUserOrgId
     ) {
