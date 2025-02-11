@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.services.impls.value_set;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 import jakarta.annotation.PostConstruct;
@@ -27,10 +28,12 @@ import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -268,6 +271,36 @@ public class CatalogServiceImpl implements CatalogService {
 
         if (!allCatalogs.isEmpty()) {
             catalogRepository.saveAll(allCatalogs);
+        }
+    }
+
+
+    @PostConstruct
+    @SneakyThrows
+    private void insertProfessions() {
+        Resource resource = resourceLoader.getResource("classpath:/base/rb_professions.json");
+        InputStream inputStream = resource.getInputStream();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(inputStream);
+        JsonNode professions = rootNode.get("professions");
+
+        if (professions != null && professions.isArray()) {
+            List<Catalog> professionList = StreamSupport.stream(professions.spliterator(), false)
+                    .map(record -> Catalog.builder()
+                            .code(record.get("code").asText())
+                            .nameRu(record.get("name_ru").asText())
+                            .nameUz(record.get("name_uz").asText())
+                            .nameUzCyril(record.get("name_uz_cyrl").asText())
+                            .parentCode(null)
+                            .type(CatalogType.profession.name())
+                            .build())
+                    .filter(catalog -> catalogRepository.findAllByCode(catalog.getCode()).isEmpty())
+                    .collect(Collectors.toList());
+
+            if (!professionList.isEmpty()) {
+                catalogRepository.saveAll(professionList);
+            }
         }
     }
 }
