@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
@@ -52,6 +53,7 @@ public class CardServiceImpl implements CardService {
                         .orElseThrow(() -> new ApiException(NOT_FOUND, "User with ID " + userId + " not found.")))
                 .collect(Collectors.toSet());
         card.getUsers().addAll(usersToAdd);
+        card.setStatus(CardStatus.NOT_VIEWED);
         return new ApiResponse<>(true, "successfully assigned.", cardRepository.save(card));
     }
 
@@ -65,6 +67,31 @@ public class CardServiceImpl implements CardService {
     @Override
     public ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser) {
         return updateCardService.updateCard(id, reqCard, currentUser);
+    }
+
+    @Override
+    public ApiResponse<?> acceptCard(Long cardId, Long userId) {
+        Card card = cardRepository.findById(cardId).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(NOT_FOUND, "User not found."));
+        if (card.getUsers().contains(user)) {
+            card.setStatus(CardStatus.APPROVED);
+            return new ApiResponse<>(true, "successfully accepted.", cardRepository.save(card));
+        } else throw new ApiException(BAD_REQUEST, "User is not assigned to this card");
+    }
+
+    @Override
+    public ApiResponse<?> rejectCard(Long cardId, Long userId) {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (card.getUsers().contains(user)) {
+            card.setStatus(CardStatus.REJECTED);
+            return new ApiResponse<>(true, "User Reject", cardRepository.save(card));
+        } else {
+            throw new RuntimeException("User is not assigned to this card");
+        }
     }
 
 
