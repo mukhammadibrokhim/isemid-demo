@@ -38,9 +38,11 @@ public class Mkb10Controller {
 
     @GetMapping
     public ApiResponse<?> getMkb10s(
-            @RequestParam(required = false) Long parentId
+            @RequestParam(required = false) Long parentId,
+            @RequestParam(required = false) String search
+
     ) {
-        return mkb10Service.getAllMkb10s(parentId);
+        return mkb10Service.getAllMkb10s(parentId,search);
     }
 
     @GetMapping("/{id}")
