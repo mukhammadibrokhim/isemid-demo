@@ -51,7 +51,6 @@ public class Form058Controller {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "", description = "")
     public ApiResponse<Form058> get(@PathVariable long id) {
         return form058Service.getById(id);
     }
@@ -72,6 +71,22 @@ public class Form058Controller {
     @PostMapping("/assign-card")
     public ApiResponse<Form058> assignCard(@Valid @RequestBody ReqForm058AssignCard assignCard,@CurrentUser User user) {
         return form058Service.assignCard(assignCard,user);
+    }
+
+    @Operation(summary = "Перевод Form058 в другую организацию",
+            description = "Этот эндпоинт позволяет перевести форму Form058 в другую организацию. ")
+    @PutMapping("/{formId}/change-received-org/{orgId}")
+    public ApiResponse<?> changeReceivedOrg(
+            @PathVariable Long formId,
+            @PathVariable Long orgId
+    ) {
+        return form058Service.changeReceivedOrd(formId, orgId);
+    }
+
+
+    @PutMapping("/{formId}/cancel")
+    public ApiResponse<?> cancel(@PathVariable Long formId) {
+        return form058Service.cancel(formId);
     }
 }
 
