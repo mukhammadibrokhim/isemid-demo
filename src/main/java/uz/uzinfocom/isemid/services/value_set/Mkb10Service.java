@@ -21,5 +21,5 @@ public interface Mkb10Service {
 
     ApiResponse<?> deleteById(long id);
 
-    ApiResponse<?> getAllMkb10s(Long parentId);
+    ApiResponse<?> getAllMkb10s(Long parentId, String search);
 }
