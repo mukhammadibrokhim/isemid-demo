@@ -19,4 +19,6 @@ public interface Form058Service {
     ApiResponse<Form058> getById(long id);
 
     ApiResponse<?> changeReceivedOrd(Long formId, Long orgId);
+
+    ApiResponse<?> cancel(Long formId);
 }

@@ -51,7 +51,6 @@ public class Form058Controller {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "", description = "")
     public ApiResponse<Form058> get(@PathVariable long id) {
         return form058Service.getById(id);
     }
@@ -82,6 +81,12 @@ public class Form058Controller {
             @PathVariable Long orgId
     ) {
         return form058Service.changeReceivedOrd(formId, orgId);
+    }
+
+
+    @PutMapping("/{formId}/cancel")
+    public ApiResponse<?> cancel(@PathVariable Long formId) {
+        return form058Service.cancel(formId);
     }
 }
 
