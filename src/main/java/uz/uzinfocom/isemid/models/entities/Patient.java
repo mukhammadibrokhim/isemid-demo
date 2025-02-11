@@ -42,8 +42,8 @@ public class Patient extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
     private ResidentialStatus residentialStatus;
-    @Enumerated(EnumType.STRING)
 
+    @Enumerated(EnumType.STRING)
     private MaritalStatus maritalStatus;
 
     @Enumerated(EnumType.STRING)
