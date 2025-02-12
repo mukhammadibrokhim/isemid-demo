@@ -50,8 +50,6 @@ public class Form058Controller {
         return form058Service.getFilteredForm058(page, size, user, getFullURL(request));
     }
 
-
-
     @GetMapping("/{id}")
     public ApiResponse<Form058> get(@PathVariable long id) {
         return form058Service.getById(id);

@@ -48,7 +48,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .lastName(reqForm058.getPatient().getLastName())
                 .middleName(reqForm058.getPatient().getMiddleName())
                 .birthDate(reqForm058.getPatient().getBirthDate())
-                .gender(reqForm058.getPatient().getGender())
+                .gender(catalogService.findByTypeAndCode(CatalogType.gender, reqForm058.getPatient().getGender().name()).orElse(null))
                 .workPlace(reqForm058.getPatient().getWorkPlace())
                 .residentialStatus(reqForm058.getPatient().getResidentialStatus())
                 .maritalStatus(reqForm058.getPatient().getMaritalStatus())
