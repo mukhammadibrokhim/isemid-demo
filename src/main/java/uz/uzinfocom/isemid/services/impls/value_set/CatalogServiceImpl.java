@@ -1,16 +1,9 @@
 package uz.uzinfocom.isemid.services.impls.value_set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opencsv.CSVReader;
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,14 +19,10 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.value_set.CatalogRepository;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -203,124 +192,124 @@ public class CatalogServiceImpl implements CatalogService {
         };
     }
 
-    @SneakyThrows
-    @PostConstruct
-    private void insertCatalog() {
-        Resource resource = resourceLoader.getResource("classpath:/base/catalog.csv");
-        InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
-        BufferedReader bufferedReader = new BufferedReader(reader);
+//    @SneakyThrows
+//    @PostConstruct
+//    private void insertCatalog() {
+//        Resource resource = resourceLoader.getResource("classpath:/base/catalog.csv");
+//        InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
+//        BufferedReader bufferedReader = new BufferedReader(reader);
+//
+//        try (CSVReader csvReader = new CSVReader(bufferedReader)) {
+//            List<String[]> records = csvReader.readAll();
+//            List<Catalog> identifierTypes = records.stream()
+//                    .skip(1)
+//                    .map(record -> Catalog.builder()
+//                            .code(record[7])
+//                            .nameKaa(record[8])
+//                            .nameRu(record[9])
+//                            .nameUz(record[10])
+//                            .nameUzCyril(record[11])
+//                            .parentCode(record[12])
+//                            .type(record[13])
+//                            .build())
+//                    .filter(catalogCode -> catalogRepository.findAllByCode(catalogCode.getCode()).isEmpty())
+//                    .collect(Collectors.toList());
+//            if (!identifierTypes.isEmpty()) {
+//                catalogRepository.saveAll(identifierTypes);
+//            }
+//        }
+//    }
 
-        try (CSVReader csvReader = new CSVReader(bufferedReader)) {
-            List<String[]> records = csvReader.readAll();
-            List<Catalog> identifierTypes = records.stream()
-                    .skip(1)
-                    .map(record -> Catalog.builder()
-                            .code(record[7])
-                            .nameKaa(record[8])
-                            .nameRu(record[9])
-                            .nameUz(record[10])
-                            .nameUzCyril(record[11])
-                            .parentCode(record[12])
-                            .type(record[13])
-                            .build())
-                    .filter(catalogCode -> catalogRepository.findAllByCode(catalogCode.getCode()).isEmpty())
-                    .collect(Collectors.toList());
-            if (!identifierTypes.isEmpty()) {
-                catalogRepository.saveAll(identifierTypes);
-            }
-        }
-    }
-
-    @PostConstruct
-    private void insertNeighborhood() throws IOException {
-        Resource resource = new DefaultResourceLoader().getResource("classpath:/base/rb_administrative_territory.json");
-        Map mapLoinc = new ObjectMapper().readValue(resource.getInputStream(), Map.class);
-        List<Map> mapList = (ArrayList<Map>) mapLoinc.get("regions");
-
-        List<Map> level2RegionMapList = mapList.stream()
-                .filter(record -> "2".equals(String.valueOf(record.get("level"))))
-                .toList();
-
-        List<Map> level3RegionMapList = mapList.stream()
-                .filter(record -> "3".equals(String.valueOf(record.get("level"))))
-                .toList();
-
-        Set<String> existingCodes = catalogRepository.findAll().stream()
-                .map(Catalog::getCode)
-                .collect(Collectors.toSet());
-
-        List<Catalog> level2Catalogs = level2RegionMapList.stream()
-                .map(record -> {
-                    String code = String.valueOf(record.get("code"));
-                    String nameUz = String.valueOf(record.get("name_uz"));
-                    String parentCode = record.get("parent_code") != null
-                            ? String.valueOf(record.get("parent_code"))
-                            : "UZ-" + (code.length() >= 2 ? code.substring(0, 2) : code);
-
-                    return Catalog.builder()
-                            .code(code)
-                            .nameKaa(nameUz)
-                            .nameRu(nameUz)
-                            .nameUz(nameUz)
-                            .nameUzCyril(nameUz)
-                            .parentCode(parentCode)
-                            .type(CatalogType.city.name())
-                            .build();
-                })
-                .filter(catalog -> !existingCodes.contains(catalog.getCode()))
-                .toList();
-        List<Catalog> level3Catalogs = level3RegionMapList.stream()
-                .map(record -> {
-                    String code = String.valueOf(record.get("code"));
-                    return Catalog.builder()
-                            .code(code)
-                            .nameKaa(String.valueOf(record.get("name_uz")))
-                            .nameRu(String.valueOf(record.get("name_uz")))
-                            .nameUz(String.valueOf(record.get("name_uz")))
-                            .nameUzCyril(String.valueOf(record.get("name_uz")))
-                            .parentCode(String.valueOf(record.get("parent_code")))
-                            .type(CatalogType.neighborhood.name())
-                            .build();
-                })
-                .filter(catalog -> !existingCodes.contains(catalog.getCode()))
-                .toList();
-        List<Catalog> allCatalogs = new ArrayList<>();
-        allCatalogs.addAll(level2Catalogs);
-        allCatalogs.addAll(level3Catalogs);
-
-        if (!allCatalogs.isEmpty()) {
-            catalogRepository.saveAll(allCatalogs);
-        }
-    }
-
-
-    @PostConstruct
-    @SneakyThrows
-    private void insertProfessions() {
-        Resource resource = resourceLoader.getResource("classpath:/base/rb_professions.json");
-        InputStream inputStream = resource.getInputStream();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(inputStream);
-        JsonNode professions = rootNode.get("professions");
-
-        if (professions != null && professions.isArray()) {
-            List<Catalog> professionList = StreamSupport.stream(professions.spliterator(), false)
-                    .map(record -> Catalog.builder()
-                            .code(record.get("code").asText())
-                            .nameRu(record.get("name_ru").asText())
-                            .nameUz(record.get("name_uz").asText())
-                            .nameUzCyril(record.get("name_uz_cyrl").asText())
-                            .nameKaa(record.get("name_ru").asText())
-                            .parentCode(null)
-                            .type(CatalogType.profession.name())
-                            .build())
-                    .filter(catalog -> catalogRepository.findAllByCode(catalog.getCode()).isEmpty())
-                    .collect(Collectors.toList());
-
-            if (!professionList.isEmpty()) {
-                catalogRepository.saveAll(professionList);
-            }
-        }
-    }
+//    @PostConstruct
+//    private void insertNeighborhood() throws IOException {
+//        Resource resource = new DefaultResourceLoader().getResource("classpath:/base/rb_administrative_territory.json");
+//        Map mapLoinc = new ObjectMapper().readValue(resource.getInputStream(), Map.class);
+//        List<Map> mapList = (ArrayList<Map>) mapLoinc.get("regions");
+//
+//        List<Map> level2RegionMapList = mapList.stream()
+//                .filter(record -> "2".equals(String.valueOf(record.get("level"))))
+//                .toList();
+//
+//        List<Map> level3RegionMapList = mapList.stream()
+//                .filter(record -> "3".equals(String.valueOf(record.get("level"))))
+//                .toList();
+//
+//        Set<String> existingCodes = catalogRepository.findAll().stream()
+//                .map(Catalog::getCode)
+//                .collect(Collectors.toSet());
+//
+//        List<Catalog> level2Catalogs = level2RegionMapList.stream()
+//                .map(record -> {
+//                    String code = String.valueOf(record.get("code"));
+//                    String nameUz = String.valueOf(record.get("name_uz"));
+//                    String parentCode = record.get("parent_code") != null
+//                            ? String.valueOf(record.get("parent_code"))
+//                            : "UZ-" + (code.length() >= 2 ? code.substring(0, 2) : code);
+//
+//                    return Catalog.builder()
+//                            .code(code)
+//                            .nameKaa(nameUz)
+//                            .nameRu(nameUz)
+//                            .nameUz(nameUz)
+//                            .nameUzCyril(nameUz)
+//                            .parentCode(parentCode)
+//                            .type(CatalogType.city.name())
+//                            .build();
+//                })
+//                .filter(catalog -> !existingCodes.contains(catalog.getCode()))
+//                .toList();
+//        List<Catalog> level3Catalogs = level3RegionMapList.stream()
+//                .map(record -> {
+//                    String code = String.valueOf(record.get("code"));
+//                    return Catalog.builder()
+//                            .code(code)
+//                            .nameKaa(String.valueOf(record.get("name_uz")))
+//                            .nameRu(String.valueOf(record.get("name_uz")))
+//                            .nameUz(String.valueOf(record.get("name_uz")))
+//                            .nameUzCyril(String.valueOf(record.get("name_uz")))
+//                            .parentCode(String.valueOf(record.get("parent_code")))
+//                            .type(CatalogType.neighborhood.name())
+//                            .build();
+//                })
+//                .filter(catalog -> !existingCodes.contains(catalog.getCode()))
+//                .toList();
+//        List<Catalog> allCatalogs = new ArrayList<>();
+//        allCatalogs.addAll(level2Catalogs);
+//        allCatalogs.addAll(level3Catalogs);
+//
+//        if (!allCatalogs.isEmpty()) {
+//            catalogRepository.saveAll(allCatalogs);
+//        }
+//    }
+//
+//
+//    @PostConstruct
+//    @SneakyThrows
+//    private void insertProfessions() {
+//        Resource resource = resourceLoader.getResource("classpath:/base/rb_professions.json");
+//        InputStream inputStream = resource.getInputStream();
+//
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        JsonNode rootNode = objectMapper.readTree(inputStream);
+//        JsonNode professions = rootNode.get("professions");
+//
+//        if (professions != null && professions.isArray()) {
+//            List<Catalog> professionList = StreamSupport.stream(professions.spliterator(), false)
+//                    .map(record -> Catalog.builder()
+//                            .code(record.get("code").asText())
+//                            .nameRu(record.get("name_ru").asText())
+//                            .nameUz(record.get("name_uz").asText())
+//                            .nameUzCyril(record.get("name_uz_cyrl").asText())
+//                            .nameKaa(record.get("name_ru").asText())
+//                            .parentCode(null)
+//                            .type(CatalogType.profession.name())
+//                            .build())
+//                    .filter(catalog -> catalogRepository.findAllByCode(catalog.getCode()).isEmpty())
+//                    .collect(Collectors.toList());
+//
+//            if (!professionList.isEmpty()) {
+//                catalogRepository.saveAll(professionList);
+//            }
+//        }
+//    }
 }

@@ -14,7 +14,10 @@ import java.util.List;
 @Builder
 @Schema(description = "Request object for CARD161 type card")
 public class ReqCard161 extends ReqCard {
+    private String callerType;
+    private Boolean isResident;
     private String residentialTreatmentFacility;
+    private LocalDate diseaseDetectedDate;
     private String region;
     private String district;
     private String polyclinic;

@@ -76,41 +76,12 @@ public class Mkb10ServiceImpl implements Mkb10Service {
 
     @Override
     public ApiResponse<?> getAllMkb10s(Long parentId, String search) {
-
         if (search == null || search.isEmpty()) {
             search = null;
         }
         List<Mkb10> results = mkb10Repository.searchMkb10(parentId, search);
-
-
-//        List<Mkb10> results;
-//
-//        if (search != null && !search.isEmpty() && parentId != null) {
-//            results = mkb10Repository.findByParentIdAndSearch(parentId, search, search, search, search, search);
-//        } else if (search != null && !search.isEmpty()) {
-//            results = mkb10Repository.findBySearchQuery(search, search, search, search, search);
-//        } else if (parentId != null) {
-//            results = mkb10Repository.findAllByParentId(parentId);
-//        } else {
-//            results = mkb10Repository.findByParentIdIsNull();
-//        }
-
         return new ApiResponse<>(true, "Success", results);
-
-//        if (parentId != null && parentId == 0) {
-//            return new ApiResponse<>(true, "Success", mkb10Repository.findByParentIdIsNull());
-//        } else
-//            return new ApiResponse<>(true, "Success", mkb10Repository.findAllByParentId(parentId));
     }
-
-//    @Override
-//    @Cacheable(value = "parentNodesCache",
-//            key = "'parentNodesCache'",
-//            unless = "#result == null")
-//    public ApiResponse<?> getParentNodes() {
-//        return new ApiResponse<>(true,
-//                "Successfully retrieved parent nodes.", mkb10Repository.findByParentIdIsNull());
-//    }
 
     public static Specification<Mkb10> getFilteredSpecification(
             String mkbCode,

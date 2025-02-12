@@ -17,7 +17,10 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class Card161 extends Card {
+    private String callerType;
+    private Boolean isResident;
     private String residentialTreatmentFacility;
+    private LocalDate diseaseDetectedDate;
     private String region;
     private String district;
     private String polyclinic;
