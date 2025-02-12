@@ -76,7 +76,7 @@ public class ReqForm058 {
     private String diseasePlaceCode;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    @NotNull(message = "Дата постановки диагноза обязательна.")
+    @NotNull(message = "Дата обязательна.")
     private LocalDateTime initialReportDateTime;
 
     @NotBlank(message = "Причина заболевания обязательна и не может быть пустой.")

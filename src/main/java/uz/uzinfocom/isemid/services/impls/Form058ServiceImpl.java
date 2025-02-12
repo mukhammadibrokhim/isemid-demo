@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
+import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -155,7 +156,7 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public ApiResponsePage getFilteredForm058(int page, int size, User user, String url) {
-        Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid());
+        Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), null);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, form058Page, url);
 
@@ -196,8 +197,16 @@ public class Form058ServiceImpl implements Form058Service {
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
+    @Override
+    public ApiResponsePage getReceivedAll(int page, int size, User user, FilterType filterType, String fullURL) {
+        Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), filterType);
+        Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
+        return createApiResponsePage(page, form058Page, fullURL);
+    }
+
     public static Specification<Form058> getFilteredSpecification(
-            UUID currentUserOrgId
+            UUID currentUserOrgId,
+            FilterType filterType
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -205,7 +214,9 @@ public class Form058ServiceImpl implements Form058Service {
             if (currentUserOrgId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("createdOrgId"), currentUserOrgId));
             }
-
+            if (filterType != null && filterType.equals(FilterType.RECEIVED)) {
+                predicates.add(criteriaBuilder.equal(root.get("receiverOrganization").get("uuid"), currentUserOrgId));
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
