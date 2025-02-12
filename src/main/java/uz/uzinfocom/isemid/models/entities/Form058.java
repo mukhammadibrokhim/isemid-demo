@@ -63,6 +63,8 @@ public class Form058 extends AbsEntity {
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog diseasePlace; // Qayerda zaharlangan yoki kasallangan
 
+    private LocalDateTime initialReportDateTime;
+
     private String diseaseCause; // Kasallik sababi
     private String epidemicMeasures; // Epidemiya haqida choralar
 
