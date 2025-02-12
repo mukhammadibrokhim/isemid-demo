@@ -7,6 +7,4 @@ import uz.uzinfocom.isemid.models.entities.card.Card;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long>, JpaSpecificationExecutor<Card> {
-
-
 }

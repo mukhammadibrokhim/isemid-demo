@@ -16,14 +16,17 @@ public interface Mkb10Repository extends JpaRepository<Mkb10, Long>, JpaSpecific
 
     @Query(value = """
         SELECT * FROM mkb10 
-        WHERE (:parentId IS NULL AND parent_id IS NULL OR parent_id = :parentId) 
-        AND (
-            :search IS NULL OR 
-            LOWER(code) LIKE LOWER(CONCAT('%', :search, '%')) 
-            OR LOWER(name_ru) LIKE LOWER(CONCAT('%', :search, '%')) 
-            OR LOWER(name_uz) LIKE LOWER(CONCAT('%', :search, '%')) 
-            OR LOWER(name_uz_cyril) LIKE LOWER(CONCAT('%', :search, '%')) 
-            OR LOWER(name_kaa) LIKE LOWER(CONCAT('%', :search, '%'))
+        WHERE (
+            COALESCE(:search, '') = '' 
+            AND (:parentId IS NULL AND parent_id IS NULL OR parent_id = :parentId)
+        ) OR (
+            COALESCE(:search, '') <> '' AND (
+                LOWER(code) LIKE LOWER(CONCAT('%', :search, '%')) 
+                OR LOWER(name_ru) LIKE LOWER(CONCAT('%', :search, '%')) 
+                OR LOWER(name_uz) LIKE LOWER(CONCAT('%', :search, '%')) 
+                OR LOWER(name_uz_cyril) LIKE LOWER(CONCAT('%', :search, '%')) 
+                OR LOWER(name_kaa) LIKE LOWER(CONCAT('%', :search, '%'))
+            )
         )
         """, nativeQuery = true)
     List<Mkb10> searchMkb10(@Param("parentId") Long parentId, @Param("search") String search);
