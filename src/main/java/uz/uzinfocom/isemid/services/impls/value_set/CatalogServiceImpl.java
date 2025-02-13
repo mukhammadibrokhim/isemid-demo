@@ -1,9 +1,13 @@
 package uz.uzinfocom.isemid.services.impls.value_set;
 
+import com.opencsv.CSVReader;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +23,9 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.value_set.CatalogRepository;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -192,33 +199,33 @@ public class CatalogServiceImpl implements CatalogService {
         };
     }
 
-//    @SneakyThrows
-//    @PostConstruct
-//    private void insertCatalog() {
-//        Resource resource = resourceLoader.getResource("classpath:/base/catalog.csv");
-//        InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
-//        BufferedReader bufferedReader = new BufferedReader(reader);
-//
-//        try (CSVReader csvReader = new CSVReader(bufferedReader)) {
-//            List<String[]> records = csvReader.readAll();
-//            List<Catalog> identifierTypes = records.stream()
-//                    .skip(1)
-//                    .map(record -> Catalog.builder()
-//                            .code(record[7])
-//                            .nameKaa(record[8])
-//                            .nameRu(record[9])
-//                            .nameUz(record[10])
-//                            .nameUzCyril(record[11])
-//                            .parentCode(record[12])
-//                            .type(record[13])
-//                            .build())
-//                    .filter(catalogCode -> catalogRepository.findAllByCode(catalogCode.getCode()).isEmpty())
-//                    .collect(Collectors.toList());
-//            if (!identifierTypes.isEmpty()) {
-//                catalogRepository.saveAll(identifierTypes);
-//            }
-//        }
-//    }
+    @SneakyThrows
+    @PostConstruct
+    private void insertCatalog() {
+        Resource resource = resourceLoader.getResource("classpath:/base/catalog.csv");
+        InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
+        BufferedReader bufferedReader = new BufferedReader(reader);
+
+        try (CSVReader csvReader = new CSVReader(bufferedReader)) {
+            List<String[]> records = csvReader.readAll();
+            List<Catalog> identifierTypes = records.stream()
+                    .skip(1)
+                    .map(record -> Catalog.builder()
+                            .code(record[7])
+                            .nameKaa(record[8])
+                            .nameRu(record[9])
+                            .nameUz(record[10])
+                            .nameUzCyril(record[11])
+                            .parentCode(record[12])
+                            .type(record[13])
+                            .build())
+                    .filter(catalogCode -> catalogRepository.findAllByCode(catalogCode.getCode()).isEmpty())
+                    .collect(Collectors.toList());
+            if (!identifierTypes.isEmpty()) {
+                catalogRepository.saveAll(identifierTypes);
+            }
+        }
+    }
 
 //    @PostConstruct
 //    private void insertNeighborhood() throws IOException {
