@@ -19,5 +19,21 @@ public enum CatalogType {
     category,
     profession,
     //
-    detected, definedDisease, homeStayReason, deliveryMethod, lateAdmissionReason, livingCondition, waterSupply, liquidWaste, solidWaste, roomCondition, yardCondition, areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation, notFoundInfection, infectionPeriod, animalType, mainFactor, outbreakInfection, caseStatus, infeCondition, level
+    detected, definedDisease, homeStayReason, deliveryMethod,
+    lateAdmissionReason, livingCondition, waterSupply,
+    liquidWaste, solidWaste, roomCondition, yardCondition,
+    areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation,
+    notFoundInfection, infectionPeriod, animalType, mainFactor, outbreakInfection, caseStatus,
+    infeCondition, level,
+
+    //Card175
+    wherePatientCome,
+    hospitalDischargeStatus,transportType,reasonOfLeavingHome,
+    reasonOfLateHospitalization,
+    diagnosisConfirmed,
+    informationAboutVaccination,initialDiagnosis,patientIdentified,
+    immediatePreventionAndAntirabicAid,informationAboutImmediatePreventionAndAntirabicAid,
+    partOfInjury,relevanceOfDiseaseToProfession,severityOfIllness,diseaseSpreaderType,
+    ownerOfDiseaseSpreader,observationResultOfAnimals,checkingDiagnosis,diseaseTransmissionCondition,
+    pathogenMainFactor,takenMeasuresFromResidence
 }

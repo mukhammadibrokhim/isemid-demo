@@ -6,7 +6,9 @@ import lombok.*;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -62,7 +64,7 @@ public class Card175 extends Card {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "is_diagnosis_confirmed_code", referencedColumnName = "code")
-    private Catalog isDiagnosisConfirmed; //Tashxis tasdiqlandi. Laboratoriya tekshiruvi  utkazildi.
+    private Catalog diagnosisConfirmed; //Tashxis tasdiqlandi. Laboratoriya tekshiruvi  utkazildi.
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "information_about_vaccination_code", referencedColumnName = "code")
@@ -106,10 +108,13 @@ public class Card175 extends Card {
 
     private String clinicalForm; //Klinik shakli.
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "part_of_injury_code", referencedColumnName = "code")
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "card175_part_of_injury",
+            joinColumns = @JoinColumn(name = "card175_id"),
+            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog partOfInjury; //Jarohatlangan joyi. (dropdown multiselect)
+    private List<Catalog> partOfInjury= new ArrayList<>();//Jarohatlangan joyi. (dropdown multiselect)
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "severity_of_illness_code", referencedColumnName = "code")
@@ -137,21 +142,31 @@ public class Card175 extends Card {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "is_checking_diagnosis_code", referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog isCheckingDiagnosis; //Hayvondagi tashxis laboratoriyada tekshiruuvda.(Tasdiqlandi,Tasdiqlanmagan,Tekshirilmagan)
+    private Catalog checkingDiagnosis; //Hayvondagi tashxis laboratoriyada tekshiruuvda.(Tasdiqlandi,Tasdiqlanmagan,Tekshirilmagan)
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "disease_transmission_condition_code", referencedColumnName = "code")
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "card175_disease_transmission_condition",
+            joinColumns = @JoinColumn(name = "card175_id"),
+            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog diseaseTransmissionCondition; //Kasallik yuqishiga olib keladigan sharoit. (dropdown multiselect)
+    private List<Catalog> diseaseTransmissionCondition; //Kasallik yuqishiga olib keladigan sharoit. (dropdown multiselect)
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "pathogen_main_factor_code", referencedColumnName = "code")
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "card175_pathogen_main_factor",
+            joinColumns = @JoinColumn(name = "card175_id"),
+            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog pathogenMainFactor; //Kasallik chaqiruvchisini yuqtirishga ehtimol qilingan asosiy omil.(dropdown multiselect)
+    private List<Catalog> pathogenMainFactor; //Kasallik chaqiruvchisini yuqtirishga ehtimol qilingan asosiy omil.(dropdown multiselect)
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "taken_measures_from_residence_code", referencedColumnName = "code")
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "card175_taken_measures_from_residence",
+            joinColumns = @JoinColumn(name = "card175_id"),
+            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog takenMeasuresFromResidence; //Bemorning yashash joyida o‘tkazilgan chora - tadbirlar.(dropdown multiselect)
+    private List<Catalog> takenMeasuresFromResidence; //Bemorning yashash joyida o‘tkazilgan chora - tadbirlar.(dropdown multiselect)
+
 
 }
