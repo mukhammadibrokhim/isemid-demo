@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus);
+        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
@@ -94,12 +95,19 @@ public class CardServiceImpl implements CardService {
         }
     }
 
+    @Override
+    public ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL) {
+        Specification<Card> spec = getFilteredSpecification(null, null, null, null, userId);
+        Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
+        return createApiResponsePage(page, cardPage, fullURL);
+    }
 
     public static Specification<Card> getFilteredSpecification(
             String formTypeCode,
             String fromOrgName,
             String toOrgName,
-            CardStatus cardStatus
+            CardStatus cardStatus,
+            Long userId
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -116,7 +124,10 @@ public class CardServiceImpl implements CardService {
             if (cardStatus != null) {
                 predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
             }
-
+            if (userId != null) {
+                Join<Card, User> userJoin = root.join("users");
+                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }

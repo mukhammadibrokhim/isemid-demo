@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.services;
 
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -21,4 +22,6 @@ public interface Form058Service {
     ApiResponse<?> changeReceivedOrd(Long formId, Long orgId);
 
     ApiResponse<?> cancel(Long formId);
+
+    ApiResponsePage getReceivedAll(int page, int size, User user, FilterType received, String fullURL);
 }

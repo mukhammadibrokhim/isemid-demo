@@ -48,6 +48,16 @@ public class CardController {
         return cardService.assignUsers(assignUsers, currentUser);
     }
 
+    @GetMapping("/user/{userId}")
+    public ApiResponsePage getUsersByCardId(
+            @RequestParam(defaultValue = PAGE) int page,
+            @RequestParam(defaultValue = SIZE) int size,
+            @PathVariable Long userId,
+            HttpServletRequest request
+    ) {
+        return cardService.getCardUsers(page, size, userId, getFullURL(request));
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<?> getCardById(@PathVariable long id) {
         return cardService.getById(id);
