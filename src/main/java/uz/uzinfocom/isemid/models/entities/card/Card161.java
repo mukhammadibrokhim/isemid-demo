@@ -56,7 +56,8 @@ public class Card161 extends Card {
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
 
-    private String estimatedInfectionDate;
+    private LocalDate estimatedInfectionDateFrom;
+    private LocalDate estimatedInfectionDateTo;
 
     @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
@@ -208,7 +209,7 @@ public class Card161 extends Card {
 
     @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
-            name = "card161_indefction_cousing",
+            name = "card161_indirection_cousing",
             joinColumns = @JoinColumn(name = "card161_id"),
             inverseJoinColumns = @JoinColumn(name = "catalog_code"))
     private List<Catalog> infectionCausingConditions = new ArrayList<>();
