@@ -18,6 +18,7 @@ import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -138,7 +139,14 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getAnimalTypeCode()).ifPresent(code -> existingCard.setAnimalType(getCatalogByCode(CatalogType.animalType, code)));
         Optional.ofNullable(reqCard161.getMainProbableInfectionFactorCode()).ifPresent(code -> existingCard.setMainProbableInfectionFactor(getCatalogByCode(CatalogType.mainFactor, code)));
 
-        Optional.ofNullable(reqCard161.getInfectionCausingConditionsCode()).ifPresent(null);
+        Optional.ofNullable(reqCard161.getInfectionCausingConditionsCode()).ifPresent(codes -> {
+            List<Catalog> conditions = codes.stream()
+                    .map(code -> getCatalogByCode(CatalogType.infeCondition, code))
+                    .filter(Objects::nonNull)
+                    .toList();
+            existingCard.setInfectionCausingConditions(conditions);
+        });
+
 
         Optional.ofNullable(reqCard161.getOutbreakInfectionCode()).ifPresent(code -> existingCard.setOutbreakInfection(getCatalogByCode(CatalogType.outbreakInfection, code)));
         Optional.ofNullable(reqCard161.getCaseStatusCode()).ifPresent(code -> existingCard.setCaseStatus(getCatalogByCode(CatalogType.caseStatus, code)));

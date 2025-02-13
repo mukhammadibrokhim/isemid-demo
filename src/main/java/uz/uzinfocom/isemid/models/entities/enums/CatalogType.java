@@ -19,5 +19,5 @@ public enum CatalogType {
     category,
     profession,
     //
-    detected, definedDisease, homeStayReason, deliveryMethod, lateAdmissionReason, livingCondition, waterSupply, liquidWaste, solidWaste, roomCondition, yardCondition, areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation, notFoundInfection, infectionPeriod, animalType, mainFactor, outbreakInfection, caseStatus, level
+    detected, definedDisease, homeStayReason, deliveryMethod, lateAdmissionReason, livingCondition, waterSupply, liquidWaste, solidWaste, roomCondition, yardCondition, areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation, notFoundInfection, infectionPeriod, animalType, mainFactor, outbreakInfection, caseStatus, infeCondition, level
 }
