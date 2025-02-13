@@ -81,4 +81,10 @@ public class CardController {
     public ApiResponse<?> rejectCard(@PathVariable Long cardId, @PathVariable Long userId) {
         return cardService.rejectCard(cardId, userId);
     }
+
+    @PutMapping("/{cardId}/complete")
+    public ApiResponse<?> completeCard(@PathVariable Long cardId) {
+        return cardService.saveAndComplete(cardId);
+    }
+
 }
