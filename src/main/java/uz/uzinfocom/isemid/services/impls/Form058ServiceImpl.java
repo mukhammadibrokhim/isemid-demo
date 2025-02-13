@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -42,6 +43,10 @@ public class Form058ServiceImpl implements Form058Service {
     final OrganizationService organizationService;
     final Journal060Repository journal060Repository;
 
+    private Catalog mapCatalog(CatalogType type, String code) {
+        return catalogService.findByTypeAndCode(type, code).orElse(null);
+    }
+
     @Override
     public ApiResponse<Form058> createForm058(ReqForm058 reqForm058, User user) {
         Patient patient = Patient.builder()
@@ -51,8 +56,11 @@ public class Form058ServiceImpl implements Form058Service {
                 .birthDate(reqForm058.getPatient().getBirthDate())
                 .gender(catalogService.findByTypeAndCode(CatalogType.gender, reqForm058.getPatient().getGender().name()).orElse(null))
                 .workPlace(reqForm058.getPatient().getWorkPlace())
-                .residentialStatus(reqForm058.getPatient().getResidentialStatus())
-                .maritalStatus(reqForm058.getPatient().getMaritalStatus())
+                .residentialStatus(mapCatalog(CatalogType.residentialStatus, reqForm058.getPatient().getResidentialStatus().name()))
+                .category(catalogService.findByTypeAndCode(CatalogType.category, reqForm058.getPatient().getCategoryCode()).orElse(null))
+                .profession(catalogService.findByTypeAndCode(CatalogType.profession, reqForm058.getPatient().getProfessionCode()).orElse(null))
+                .populationType(catalogService.findByTypeAndCode(CatalogType.populationType, reqForm058.getPatient().getPopulationType().name()).orElse(null))
+                .maritalStatus(mapCatalog(CatalogType.maritalStatus, reqForm058.getPatient().getMaritalStatus().name()))
                 .build();
 
         List<Identifier> identifiers = reqForm058.getPatient().getIdentifiers().stream().map(reqIdentifier -> {
@@ -100,7 +108,7 @@ public class Form058ServiceImpl implements Form058Service {
                         .longitude(reqForm058.getLocation().getLongitude())
                         .location(reqForm058.getLocation().getLocation())
                         .build())
-                .diseasePlace(catalogService.findByTypeAndCode(CatalogType.diseasePlace, reqForm058.getJournalFormCode()).orElse(null))
+                .diseasePlace(mapCatalog(CatalogType.diseasePlace, reqForm058.getDiseasePlaceCode()))
                 .diseaseCause(reqForm058.getDiseaseCause())
                 .epidemicMeasures(reqForm058.getEpidemicMeasures())
                 .journalForm(catalogService.findByTypeAndCode(CatalogType.formType, reqForm058.getJournalFormCode()).orElse(null))
