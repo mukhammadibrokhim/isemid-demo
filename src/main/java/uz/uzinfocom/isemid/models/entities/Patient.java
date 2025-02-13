@@ -6,9 +6,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import uz.uzinfocom.isemid.models.entities.enums.MaritalStatus;
-import uz.uzinfocom.isemid.models.entities.enums.PopulationType;
-import uz.uzinfocom.isemid.models.entities.enums.ResidentialStatus;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
@@ -45,14 +42,20 @@ public class Patient extends AbsEntity {
     private String kinshipDegree; // Example: "Father", "Mother", "Sibling", etc.
     private String kinshipFullName;
 
-    @Enumerated(EnumType.STRING)
-    private ResidentialStatus residentialStatus;
+    @ManyToOne
+    @JoinColumn(name = "residential_status", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog residentialStatus;
 
-    @Enumerated(EnumType.STRING)
-    private MaritalStatus maritalStatus;
+    @ManyToOne
+    @JoinColumn(name = "marital_status", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog maritalStatus;
 
-    @Enumerated(EnumType.STRING)
-    private PopulationType populationType;
+    @ManyToOne
+    @JoinColumn(name = "population_type", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog populationType;
 
     @ManyToOne
     @JoinColumn(name = "category", referencedColumnName = "code")

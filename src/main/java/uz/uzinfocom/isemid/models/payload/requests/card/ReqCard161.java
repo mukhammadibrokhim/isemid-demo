@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests.card;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Schema(description = "Request object for CARD161 type card")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqCard161 extends ReqCard {
     private String callerType;
     private Boolean isResident;
@@ -37,12 +39,14 @@ public class ReqCard161 extends ReqCard {
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
 
-    private String estimatedInfectionDate;
+    private LocalDate estimatedInfectionDateFrom;
+    private LocalDate estimatedInfectionDateTo;
 
-    private List<String> riskFactorCodes;
 
-    private String addressLocation;
-    private String seasonTime;
+    //    private List<String> riskFactorCodes;
+    private List<ReqCard161RiskFactor> riskFactors;
+    //    private String addressLocation;
+//    private String seasonTime;
     private String fullName;
     private String diagnosisClinicalFormOrDonorStatus;
     private String contactInfoAndDonorResidence;
@@ -68,13 +72,13 @@ public class ReqCard161 extends ReqCard {
     private String areaConditionCode;
 
     private Boolean hasLice; //bitlash
-    private boolean hasOtherInsects;
-    private boolean hasRodents;
+    private Boolean hasOtherInsects;
+    private Boolean hasRodents;
     private String importantCausesOfDisease;
 
     private String visitedObjectsCode;
 
-    private boolean denselyPopulated;
+    private Boolean denselyPopulated;
     private String isolationStatus;
     private String waterSupplyStatus;
     private String sanitaryMaintenance;

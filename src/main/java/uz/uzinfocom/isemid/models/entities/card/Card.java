@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.enums.CardProgressStatus;
 import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
 import uz.uzinfocom.isemid.models.entities.enums.CardType;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
@@ -40,6 +41,9 @@ public abstract class Card extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
     private CardStatus status = CardStatus.NOT_VIEWED;
+
+    @Enumerated(EnumType.STRING)
+    private CardProgressStatus progressStatus = CardProgressStatus.IN_PROGRESS;
 
     @OneToOne(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("card")

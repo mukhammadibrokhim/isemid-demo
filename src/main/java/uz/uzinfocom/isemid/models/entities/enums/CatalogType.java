@@ -18,5 +18,6 @@ public enum CatalogType {
     diseasePlace,
     category,
     profession,
-    detected, definedDisease, level
+    //
+    detected, definedDisease, homeStayReason, deliveryMethod, lateAdmissionReason, livingCondition, waterSupply, liquidWaste, solidWaste, roomCondition, yardCondition, areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation, notFoundInfection, infectionPeriod, animalType, mainFactor, outbreakInfection, caseStatus, infeCondition, level
 }
