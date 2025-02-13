@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.models.entities.value_set;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Table;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
@@ -14,6 +15,9 @@ import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(indexes = {
+
+})
 public class Catalog extends BaseEntity {
     @Column(nullable = false)
     private String type; //catalogType
