@@ -1,11 +1,11 @@
 package uz.uzinfocom.isemid.models.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import uz.uzinfocom.isemid.models.entities.enums.Gender;
 import uz.uzinfocom.isemid.models.entities.enums.MaritalStatus;
 import uz.uzinfocom.isemid.models.entities.enums.PopulationType;
 import uz.uzinfocom.isemid.models.entities.enums.ResidentialStatus;
@@ -35,7 +35,12 @@ public class Patient extends AbsEntity {
     private LocalDate birthDate;
     private Integer ageYears;
     private Integer ageMonths;
-    private Gender gender;
+
+    @ManyToOne
+    @JoinColumn(name = "Gender", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
+    private Catalog gender;
+
     private String phoneNumber;
     private String kinshipDegree; // Example: "Father", "Mother", "Sibling", etc.
     private String kinshipFullName;
@@ -51,10 +56,12 @@ public class Patient extends AbsEntity {
 
     @ManyToOne
     @JoinColumn(name = "category", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog category;
 
     @ManyToOne
     @JoinColumn(name = "profession", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog profession;
 
     private String workPlace;

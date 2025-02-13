@@ -27,4 +27,6 @@ public interface CardService {
     ApiResponse<?> acceptCard(Long cardId, Long userId);
 
     ApiResponse<?> rejectCard(Long cardId, Long userId);
+
+    ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL);
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
+import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -50,7 +51,16 @@ public class Form058Controller {
         return form058Service.getFilteredForm058(page, size, user, getFullURL(request));
     }
 
+    @GetMapping("/received/all")
+    public ApiResponsePage getReceivedAll(
+            @RequestParam(defaultValue = PAGE) int page,
+            @RequestParam(defaultValue = SIZE) int size,
+            @CurrentUser User user,
+            HttpServletRequest request
+    ) {
 
+        return form058Service.getReceivedAll(page, size, user, FilterType.RECEIVED, getFullURL(request));
+    }
 
     @GetMapping("/{id}")
     public ApiResponse<Form058> get(@PathVariable long id) {
