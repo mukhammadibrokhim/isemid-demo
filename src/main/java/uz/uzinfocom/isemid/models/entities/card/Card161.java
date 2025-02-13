@@ -59,16 +59,18 @@ public class Card161 extends Card {
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;
 
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    @JoinTable(
-            name = "card161_risk_factors",
-            joinColumns = @JoinColumn(name = "card161_id"),
-            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private List<Catalog> riskFactors = new ArrayList<>();
+//    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+//    @JoinTable(
+//            name = "card161_risk_factors",
+//            joinColumns = @JoinColumn(name = "card161_id"),
+//            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
+//    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+//    private List<Catalog> riskFactors = new ArrayList<>();
 
-    private String addressLocation;
-    private String seasonTime;
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    private List<Card161RiskFactor> riskFactors = new ArrayList<>();
+
     private String fullName;
     private String diagnosisClinicalFormOrDonorStatus;
     private String contactInfoAndDonorResidence;

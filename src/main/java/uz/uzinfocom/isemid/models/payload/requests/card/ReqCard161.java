@@ -43,10 +43,10 @@ public class ReqCard161 extends ReqCard {
     private LocalDate estimatedInfectionDateTo;
 
 
-    private List<String> riskFactorCodes;
-
-    private String addressLocation;
-    private String seasonTime;
+    //    private List<String> riskFactorCodes;
+    private List<ReqCard161RiskFactor> riskFactors;
+    //    private String addressLocation;
+//    private String seasonTime;
     private String fullName;
     private String diagnosisClinicalFormOrDonorStatus;
     private String contactInfoAndDonorResidence;

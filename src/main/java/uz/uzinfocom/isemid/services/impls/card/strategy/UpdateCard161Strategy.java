@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.Card161;
+import uz.uzinfocom.isemid.models.entities.card.Card161RiskFactor;
 import uz.uzinfocom.isemid.models.entities.enums.CardType;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
@@ -60,16 +61,17 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getDiagnosisVerified()).ifPresent(existingCard::setDiagnosisVerified);
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateFrom()).ifPresent(existingCard::setEstimatedInfectionDateFrom);
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateTo()).ifPresent(existingCard::setEstimatedInfectionDateTo);
-        Optional.ofNullable(reqCard161.getRiskFactorCodes()).ifPresent(code -> {
-            List<Catalog> catalogList = code.stream()
-                    .map(c -> catalogService.findByTypeAndCode(CatalogType.riskFactor, c))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get).toList();
-            existingCard.getRiskFactors().addAll(catalogList);
-
+        Optional.ofNullable(reqCard161.getRiskFactors()).ifPresent(reqCard161RiskFactors -> {
+            List<Card161RiskFactor> riskFactors = reqCard161RiskFactors.stream()
+                    .map(factor -> Card161RiskFactor.builder()
+                            .riskFactor(getCatalogByCode(CatalogType.riskFactor, factor.getRiskFactorCode()))
+                            .card161(existingCard)
+                            .addressLocation(factor.getAddressLocation())
+                            .seasonTime(factor.getSeasonTime())
+                            .build()).toList();
+            existingCard.getRiskFactors().addAll(riskFactors);
         });
-        Optional.ofNullable(reqCard161.getAddressLocation()).ifPresent(existingCard::setAddressLocation);
-        Optional.ofNullable(reqCard161.getSeasonTime()).ifPresent(existingCard::setSeasonTime);
+
         Optional.ofNullable(reqCard161.getFullName()).ifPresent(existingCard::setFullName);
         Optional.ofNullable(reqCard161.getDiagnosisClinicalFormOrDonorStatus()).ifPresent(existingCard::setDiagnosisClinicalFormOrDonorStatus);
         Optional.ofNullable(reqCard161.getContactInfoAndDonorResidence()).ifPresent(existingCard::setContactInfoAndDonorResidence);
