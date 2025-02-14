@@ -76,7 +76,7 @@ public class Form058 extends AbsEntity {
     private String comment;
     private String notifierFullName;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "card_id")
     @JsonIgnoreProperties("form058")
     private Card card;
