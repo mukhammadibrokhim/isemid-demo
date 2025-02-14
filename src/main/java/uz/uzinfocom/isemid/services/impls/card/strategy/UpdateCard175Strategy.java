@@ -95,9 +95,6 @@ public class UpdateCard175Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard175.getPatientIdentifiedCode())
                 .ifPresent(code -> existingCard.setPatientIdentified(catalogService.findByTypeAndCode
                         (CatalogType.patientIdentified, code).orElse(null)));
-        Optional.ofNullable(reqCard175.getImmediatePreventionAndAntirabicAidCode())
-                .ifPresent(code -> existingCard.setImmediatePreventionAndAntirabicAid(catalogService.findByTypeAndCode
-                        (CatalogType.immediatePreventionAndAntirabicAid, code).orElse(null)));
         Optional.ofNullable(reqCard175.getInformationAboutImmediatePreventionAndAntirabicAidCode())
                 .ifPresent(code -> existingCard.setInformationAboutImmediatePreventionAndAntirabicAid(catalogService.findByTypeAndCode
                         (CatalogType.informationAboutImmediatePreventionAndAntirabicAid, code).orElse(null)));

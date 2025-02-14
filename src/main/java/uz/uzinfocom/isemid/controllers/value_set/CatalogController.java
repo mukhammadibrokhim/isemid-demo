@@ -277,4 +277,152 @@ public class CatalogController {
         return catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode, lang);
 
     }
+    //Catalog 175
+    @GetMapping("/where-patient-come")
+    public ApiResponse<?> wherePatientCome(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.wherePatientCome, lang);
+
+    }
+
+    @GetMapping("/hospital-discharge")
+    public ApiResponse<?> hospitalDischargeStatus(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.hospitalDischargeStatus, lang);
+
+    }
+
+    @GetMapping("/transport-type")
+    public ApiResponse<?> transportType(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.transportType, lang);
+
+    }
+    @GetMapping("/reason-of-leaving-home")
+    public ApiResponse<?> reasonOfLeavingHome(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.reasonOfLeavingHome, lang);
+
+    }
+    @GetMapping("/reason-of-hospitalization")
+    public ApiResponse<?> reasonOfLateHospitalization(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.reasonOfLateHospitalization, lang);
+
+    }
+    @GetMapping("/diagnosis-confirmed")
+    public ApiResponse<?> diagnosisConfirmed(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.diagnosisConfirmed, lang);
+
+    }
+    @GetMapping("/information-about-vaccination")
+    public ApiResponse<?> informationAboutVaccination(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.informationAboutVaccination, lang);
+
+    }
+    @GetMapping("/initial-diagnosis")
+    public ApiResponse<?> initialDiagnosis(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.initialDiagnosis, lang);
+
+    }
+    @GetMapping("/patient-identified")
+    public ApiResponse<?> patientIdentified(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.patientIdentified, lang);
+
+    }
+    @GetMapping("/information-about-immediate-prevention")
+    public ApiResponse<?> informationAboutImmediatePreventionAndAntirabicAid(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.informationAboutImmediatePreventionAndAntirabicAid, lang);
+
+    }
+    @GetMapping("/part-of-injury")
+    public ApiResponse<?> partOfInjury(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.partOfInjury, lang);
+
+    }
+    @GetMapping("/relevance-of-disease")
+    public ApiResponse<?> relevanceOfDiseaseToProfession(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.relevanceOfDiseaseToProfession, lang);
+
+    }
+    @GetMapping("/severity-of-illness")
+    public ApiResponse<?> severityOfIllness(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.severityOfIllness, lang);
+    }
+    @GetMapping("/disease-spreader-type")
+    public ApiResponse<?> diseaseSpreaderType(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.diseaseSpreaderType, lang);
+
+    }
+    @GetMapping("/owner-of-disease-spreader")
+    public ApiResponse<?> ownerOfDiseaseSpreader(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.ownerOfDiseaseSpreader, lang);
+
+    }
+    @GetMapping("/observation-result-animals")
+    public ApiResponse<?> observationResultOfAnimals(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.observationResultOfAnimals, lang);
+
+    }
+    @GetMapping("/checking-diagnosis")
+    public ApiResponse<?> checkingDiagnosis(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.checkingDiagnosis, lang);
+
+    }
+    @GetMapping("/disease-transmission-condition")
+    public ApiResponse<?> diseaseTransmissionCondition(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.diseaseTransmissionCondition, lang);
+
+    }
+    @GetMapping("/pathogen-factor")
+    public ApiResponse<?> pathogenMainFactor(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.pathogenMainFactor, lang);
+
+    }
+    @GetMapping("/taken-measures-from-refidence")
+    public ApiResponse<?> takenMeasuresFromResidence(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.takenMeasuresFromResidence, lang);
+
+    }
+
+
+
+
+
+
 }

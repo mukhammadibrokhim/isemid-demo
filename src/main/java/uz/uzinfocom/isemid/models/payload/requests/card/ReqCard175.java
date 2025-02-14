@@ -43,7 +43,6 @@ public class ReqCard175 extends ReqCard{
     private String informationAboutVaccinationCode; //Vaksinatsiya o‘tkazilishi ma’lumotlar.
     private String initialDiagnosisCode; //Birlamchi tashxis.
     private String patientIdentifiedCode; //Bemor aniqlandi.
-    private String immediatePreventionAndAntirabicAidCode; //Tezkor profilaktika va antirabik yordam.
     private String informationAboutImmediatePreventionAndAntirabicAidCode; //Tezkor profilaktika yoki antirabik yordam haqida ma’lumot.(jadval buzilganda yoki emlash o‘tkazilmagan holda).
     private List<String> partOfInjuryCode; //Jarohatlangan joyi.
     private String severityOfIllnessCode; //Kasallik kechishining og‘irligi.

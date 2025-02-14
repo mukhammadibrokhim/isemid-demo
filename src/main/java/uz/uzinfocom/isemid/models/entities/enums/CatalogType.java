@@ -32,7 +32,8 @@ public enum CatalogType {
     reasonOfLateHospitalization,
     diagnosisConfirmed,
     informationAboutVaccination,initialDiagnosis,patientIdentified,
-    immediatePreventionAndAntirabicAid,informationAboutImmediatePreventionAndAntirabicAid,
+    //immediatePreventionAndAntirabicAid,
+    informationAboutImmediatePreventionAndAntirabicAid,
     partOfInjury,relevanceOfDiseaseToProfession,severityOfIllness,diseaseSpreaderType,
     ownerOfDiseaseSpreader,observationResultOfAnimals,checkingDiagnosis,diseaseTransmissionCondition,
     pathogenMainFactor,takenMeasuresFromResidence

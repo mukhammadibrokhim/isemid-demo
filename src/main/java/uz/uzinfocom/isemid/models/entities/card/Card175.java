@@ -89,11 +89,6 @@ public class Card175 extends Card {
     private String placeOfApplication; //Murojaat etgan joy.
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "immediate_prevention_and_antirabic_aid_code", referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog immediatePreventionAndAntirabicAid; //Tezkor profilaktika va antirabik yordam.
-
-    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "information_about_immediate_prevention_and_antirabic_aid_code", referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog informationAboutImmediatePreventionAndAntirabicAid; //Tezkor profilaktika yoki antirabik yordam haqida ma’lumot.(jadval buzilganda yoki emlash o‘tkazilmagan holda).
