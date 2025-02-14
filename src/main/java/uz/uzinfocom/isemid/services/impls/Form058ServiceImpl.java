@@ -14,7 +14,6 @@ import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
-import uz.uzinfocom.isemid.models.payload.requests.ReqIdentifier;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -30,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.utils.CommonUtils.*;
@@ -142,9 +139,6 @@ public class Form058ServiceImpl implements Form058Service {
                 Optional.ofNullable(reqPatient.getIdentifiers()).ifPresent(reqIdentifiers -> {
                     List<Identifier> exsistingIdentifiers = patient.getIdentifiers();
 
-                    List<ReqIdentifier> uniqueIdentifiers = reqIdentifiers.stream()
-                            .collect(Collectors.toMap(ReqIdentifier::getTypeCode, Function.identity(), (a, b) -> a))
-                            .values().stream().toList();
 
                     exsistingIdentifiers.forEach(existingIdentifier ->
                             reqIdentifiers.stream()
@@ -167,6 +161,7 @@ public class Form058ServiceImpl implements Form058Service {
                                                 CatalogType.identifierType, reqIdentifier.getTypeCode().name())
                                         .orElseThrow(() -> new ApiException(NOT_FOUND,
                                                 "Identifier type not found: " + reqIdentifier.getTypeCode()));
+
                                 Identifier newIdentifier = Identifier.builder()
                                         .patient(patient)
                                         .typeCode(typeCatalog)
@@ -174,14 +169,10 @@ public class Form058ServiceImpl implements Form058Service {
                                         .periodStart(reqIdentifier.getPeriodStart())
                                         .periodEnd(reqIdentifier.getPeriodEnd())
                                         .build();
+
                                 patient.getIdentifiers().add(newIdentifier);
                             });
 
-                    exsistingIdentifiers.removeIf(existingIdentifier ->
-                            uniqueIdentifiers.stream()
-                                    .noneMatch(reqIdentifier -> reqIdentifier.getTypeCode().name()
-                                            .equals(existingIdentifier.getTypeCode().getType()))
-                    );
                 });
                 Optional.ofNullable(reqPatient.getBirthDate()).ifPresent(patient::setBirthDate);
                 Optional.ofNullable(reqPatient.getAgeYears()).ifPresent(patient::setAgeYears);
