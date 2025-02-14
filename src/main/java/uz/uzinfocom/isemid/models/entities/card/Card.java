@@ -1,6 +1,8 @@
 package uz.uzinfocom.isemid.models.entities.card;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +33,7 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "card_users",
             joinColumns = @JoinColumn(name = "card_id"),
