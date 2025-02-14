@@ -114,6 +114,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .journalForm(catalogService.findByTypeAndCode(CatalogType.formType, reqForm058.getJournalFormCode()).orElse(null))
                 .notifierFullName(reqForm058.getNotifierFullName())
                 .comment(reqForm058.getComment())
+                .initialReportDateTime(reqForm058.getInitialReportDateTime())
                 .docSendDate(reqForm058.getDocSendDate())
                 .reporter(reporter)
                 .build();
