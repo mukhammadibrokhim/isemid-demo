@@ -153,7 +153,7 @@ public class Form058ServiceImpl implements Form058Service {
 
                     reqIdentifiers.stream()
                             .filter(reqIdentifier -> exsistingIdentifiers.stream()
-                                    .noneMatch(existingIdentifier -> existingIdentifier.getTypeCode().getType()
+                                    .noneMatch(existingIdentifier -> existingIdentifier.getTypeCode().getCode()
                                             .equals(reqIdentifier.getTypeCode().name())))
                             .forEach(reqIdentifier -> {
                                 Catalog typeCatalog = catalogService.findByTypeAndCode(
@@ -242,12 +242,8 @@ public class Form058ServiceImpl implements Form058Service {
         Optional.ofNullable(reqForm058.getDiseaseDate()).ifPresent(existedForm058::setDiagnosisDate);
         Optional.ofNullable(reqForm058.getVisitDate()).ifPresent(existedForm058::setVisitDate);
         Optional.ofNullable(reqForm058.getDocSendDate()).ifPresent(existedForm058::setDocSendDate);
-        Optional.ofNullable(reqForm058.getSenderOrganizationId()).ifPresent(orgId -> {
-            existedForm058.setSenderOrganization(organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found for sender organization.")));
-        });
-        Optional.ofNullable(reqForm058.getReceiverOrganizationId()).ifPresent(orgId -> {
-            existedForm058.setReceiverOrganization(organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found for receiver organization.")));
-        });
+        Optional.ofNullable(reqForm058.getSenderOrganizationId()).ifPresent(orgId -> existedForm058.setSenderOrganization(organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found for sender organization."))));
+        Optional.ofNullable(reqForm058.getReceiverOrganizationId()).ifPresent(orgId -> existedForm058.setReceiverOrganization(organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found for receiver organization."))));
         Optional.ofNullable(reqForm058.getLocation()).ifPresent(reqLocation -> {
             Location exsistingLocation = existedForm058.getLocation();
             if (exsistingLocation != null) {
@@ -260,14 +256,10 @@ public class Form058ServiceImpl implements Form058Service {
                     .location(reqLocation.getLocation())
                     .build());
         });
-        Optional.ofNullable(reqForm058.getDiseasePlaceCode()).ifPresent(code -> {
-            existedForm058.setDiseasePlace(mapCatalog(CatalogType.diseasePlace, code));
-        });
+        Optional.ofNullable(reqForm058.getDiseasePlaceCode()).ifPresent(code -> existedForm058.setDiseasePlace(mapCatalog(CatalogType.diseasePlace, code)));
         Optional.ofNullable(reqForm058.getDiseaseCause()).ifPresent(existedForm058::setDiseaseCause);
         Optional.ofNullable(reqForm058.getEpidemicMeasures()).ifPresent(existedForm058::setEpidemicMeasures);
-        Optional.ofNullable(reqForm058.getJournalFormCode()).ifPresent(form -> {
-            existedForm058.setJournalForm(mapCatalog(CatalogType.formType, form));
-        });
+        Optional.ofNullable(reqForm058.getJournalFormCode()).ifPresent(form -> existedForm058.setJournalForm(mapCatalog(CatalogType.formType, form)));
         Optional.ofNullable(reqForm058.getComment()).ifPresent(existedForm058::setComment);
         Optional.ofNullable(reqForm058.getNotifierFullName()).ifPresent(existedForm058::setNotifierFullName);
 
