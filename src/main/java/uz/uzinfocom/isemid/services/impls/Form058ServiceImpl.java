@@ -114,6 +114,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .journalForm(catalogService.findByTypeAndCode(CatalogType.formType, reqForm058.getJournalFormCode()).orElse(null))
                 .notifierFullName(reqForm058.getNotifierFullName())
                 .comment(reqForm058.getComment())
+                .initialReportDateTime(reqForm058.getInitialReportDateTime())
                 .docSendDate(reqForm058.getDocSendDate())
                 .reporter(reporter)
                 .build();
@@ -129,13 +130,110 @@ public class Form058ServiceImpl implements Form058Service {
         Form058 existedForm058 = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
         Optional.ofNullable(reqForm058.getMkb10Code()).ifPresent(existedForm058::setMkb10Code);
         Optional.ofNullable(reqForm058.getMkb10Name()).ifPresent(existedForm058::setMkb10Name);
-        Optional.ofNullable(reqForm058.getPatient()).ifPresent(patient -> {
+        Optional.ofNullable(reqForm058.getPatient()).ifPresent(reqPatient -> {
+            Patient patient = existedForm058.getPatient();
+            if (patient != null) {
+                Optional.ofNullable(reqPatient.getFirstName()).ifPresent(patient::setFirstName);
+                Optional.ofNullable(reqPatient.getLastName()).ifPresent(patient::setLastName);
+                Optional.ofNullable(reqPatient.getMiddleName()).ifPresent(patient::setMiddleName);
+                Optional.ofNullable(reqPatient.getIdentifiers()).ifPresent(reqIdentifiers -> {
+                    List<Identifier> exsistingIdentifiers = patient.getIdentifiers();
+
+                    exsistingIdentifiers.forEach(existingIdentifier ->
+                            reqIdentifiers.stream()
+                                    .filter(reqIdentifier -> reqIdentifier.getTypeCode().name()
+                                            .equals(existingIdentifier.getTypeCode().getType()))
+                                    .findFirst()
+                                    .ifPresent(reqIdentifier -> {
+                                        existingIdentifier.setValue(reqIdentifier.getValue());
+                                        existingIdentifier.setPeriodStart(reqIdentifier.getPeriodStart());
+                                        existingIdentifier.setPeriodEnd(reqIdentifier.getPeriodEnd());
+                                    })
+                    );
+
+                    reqIdentifiers.stream()
+                            .filter(reqIdentifier -> exsistingIdentifiers.stream()
+                                    .noneMatch(existingIdentifier -> existingIdentifier.getTypeCode().getType()
+                                            .equals(reqIdentifier.getTypeCode().name())))
+                            .forEach(reqIdentifier -> {
+                                Catalog typeCatalog = catalogService.findByTypeAndCode(
+                                                CatalogType.identifierType, reqIdentifier.getTypeCode().name())
+                                        .orElseThrow(() -> new ApiException(NOT_FOUND,
+                                                "Identifier type not found: " + reqIdentifier.getTypeCode()));
+                                Identifier newIdentifier = Identifier.builder()
+                                        .patient(patient)
+                                        .typeCode(typeCatalog)
+                                        .value(reqIdentifier.getValue())
+                                        .periodStart(reqIdentifier.getPeriodStart())
+                                        .periodEnd(reqIdentifier.getPeriodEnd())
+                                        .build();
+                                patient.getIdentifiers().add(newIdentifier);
+                            });
+                });
+                Optional.ofNullable(reqPatient.getBirthDate()).ifPresent(patient::setBirthDate);
+                Optional.ofNullable(reqPatient.getAgeYears()).ifPresent(patient::setAgeYears);
+                Optional.ofNullable(reqPatient.getAgeMonths()).ifPresent(patient::setAgeMonths);
+                Optional.ofNullable(reqPatient.getGender()).ifPresent(reqGen -> mapCatalog(CatalogType.gender, reqGen.name()));
+                Optional.ofNullable(reqPatient.getPhoneNumber()).ifPresent(patient::setPhoneNumber);
+                Optional.ofNullable(reqPatient.getKinshipDegree()).ifPresent(patient::setKinshipDegree);
+                Optional.ofNullable(reqPatient.getKinshipFullName()).ifPresent(patient::setKinshipFullName);
+                Optional.ofNullable(reqPatient.getResidentialStatus()).ifPresent(reqResidentialStatus -> mapCatalog(CatalogType.residentialStatus, reqResidentialStatus.name()));
+                Optional.ofNullable(reqPatient.getMaritalStatus()).ifPresent(reqMaritalStatus -> mapCatalog(CatalogType.maritalStatus, reqMaritalStatus.name()));
+                Optional.ofNullable(reqPatient.getPopulationType()).ifPresent(reqPopulationType -> mapCatalog(CatalogType.populationType, reqPopulationType.name()));
+                Optional.ofNullable(reqPatient.getCategoryCode()).ifPresent(reqCategoryCode -> mapCatalog(CatalogType.category, reqCategoryCode));
+                Optional.ofNullable(reqPatient.getProfessionCode()).ifPresent(code -> mapCatalog(CatalogType.profession, code));
+                Optional.ofNullable(reqPatient.getWorkPlace()).ifPresent(patient::setWorkPlace);
+                Optional.ofNullable(reqPatient.getAddresses()).ifPresent(reqAddresses -> {
+
+                    List<Address> existingAddresses = patient.getAddresses();
+
+                    existingAddresses.forEach(existingAddress ->
+                            reqAddresses.stream()
+                                    .filter(reqAddress -> reqAddress.getType()
+                                            .equals(existingAddress.getType()))
+                                    .findFirst()
+                                    .ifPresent(reqAddress -> {
+                                        existingAddress.setState(mapCatalog(CatalogType.state, reqAddress.getStateCode()));
+                                        existingAddress.setCity(mapCatalog(CatalogType.city, reqAddress.getCityCode()));
+                                        existingAddress.setNeighborhood(mapCatalog(CatalogType.neighborhood, reqAddress.getNeighborhood()));
+                                        existingAddress.setStreetAddress(reqAddress.getStreetAddress());
+                                        existingAddress.setHouseNumber(reqAddress.getHouseNumber());
+                                        existingAddress.setApartmentNumber(reqAddress.getApartmentNumber());
+                                    })
+                    );
+
+                    reqAddresses.stream()
+                            .filter(reqAddress -> existingAddresses.stream()
+                                    .noneMatch(existingAddress -> existingAddress.getType()
+                                            .equals(reqAddress.getType())))
+                            .forEach(reqAddress -> {
+//                                Catalog typeCatalog = catalogService.findByTypeAndCode(
+//                                                CatalogType.addressType, reqAddress.getType().name())
+//                                        .orElseThrow(() -> new ApiException(NOT_FOUND,
+//                                                "Address type not found: " + reqAddress.getType().name()));
+
+                                Address newAddress = Address.builder()
+                                        .patient(patient)
+                                        .type(reqAddress.getType())
+                                        .state(mapCatalog(CatalogType.state, reqAddress.getStateCode()))
+                                        .city(mapCatalog(CatalogType.city, reqAddress.getCityCode()))
+                                        .neighborhood(mapCatalog(CatalogType.neighborhood, reqAddress.getNeighborhood()))
+                                        .streetAddress(reqAddress.getStreetAddress())
+                                        .houseNumber(reqAddress.getHouseNumber())
+                                        .apartmentNumber(reqAddress.getApartmentNumber())
+                                        .build();
+
+                                patient.getAddresses().add(newAddress);
+                            });
+                });
+            }
         });
 
         Optional.ofNullable(reqForm058.getLabConfirmation()).ifPresent(existedForm058::setLabConfirmation);
 
         Optional.ofNullable(reqForm058.getHospitalPlaceId()).ifPresent(orgId -> {
-
+            Organization organization = organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found for Hospital place."));
+            existedForm058.setHospitalPlace(organization);
         });
 
         Optional.ofNullable(reqForm058.getAdmissionDate()).ifPresent(existedForm058::setAdmissionDate);
@@ -145,21 +243,36 @@ public class Form058ServiceImpl implements Form058Service {
         Optional.ofNullable(reqForm058.getVisitDate()).ifPresent(existedForm058::setVisitDate);
         Optional.ofNullable(reqForm058.getDocSendDate()).ifPresent(existedForm058::setDocSendDate);
         Optional.ofNullable(reqForm058.getSenderOrganizationId()).ifPresent(orgId -> {
+            existedForm058.setSenderOrganization(organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found for sender organization.")));
         });
         Optional.ofNullable(reqForm058.getReceiverOrganizationId()).ifPresent(orgId -> {
+            existedForm058.setReceiverOrganization(organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found for receiver organization.")));
         });
         Optional.ofNullable(reqForm058.getLocation()).ifPresent(reqLocation -> {
+            Location exsistingLocation = existedForm058.getLocation();
+            if (exsistingLocation != null) {
+                Optional.ofNullable(reqLocation.getLatitude()).ifPresent(exsistingLocation::setLatitude);
+                Optional.ofNullable(reqLocation.getLongitude()).ifPresent(exsistingLocation::setLongitude);
+                Optional.ofNullable(reqLocation.getLocation()).ifPresent(exsistingLocation::setLocation);
+            } else existedForm058.setLocation(Location.builder()
+                    .latitude(reqLocation.getLatitude())
+                    .longitude(reqLocation.getLongitude())
+                    .location(reqLocation.getLocation())
+                    .build());
         });
-        Optional.ofNullable(reqForm058.getDiseasePlaceCode()).ifPresent(diseasePlace -> {
+        Optional.ofNullable(reqForm058.getDiseasePlaceCode()).ifPresent(code -> {
+            existedForm058.setDiseasePlace(mapCatalog(CatalogType.diseasePlace, code));
         });
         Optional.ofNullable(reqForm058.getDiseaseCause()).ifPresent(existedForm058::setDiseaseCause);
         Optional.ofNullable(reqForm058.getEpidemicMeasures()).ifPresent(existedForm058::setEpidemicMeasures);
         Optional.ofNullable(reqForm058.getJournalFormCode()).ifPresent(form -> {
+            existedForm058.setJournalForm(mapCatalog(CatalogType.formType, form));
         });
         Optional.ofNullable(reqForm058.getComment()).ifPresent(existedForm058::setComment);
         Optional.ofNullable(reqForm058.getNotifierFullName()).ifPresent(existedForm058::setNotifierFullName);
 
-        return new ApiResponse<>(true, "Success updated.", form058Repository.save(existedForm058));
+        form058Repository.save(existedForm058);
+        return new ApiResponse<>(true, "Success updated.", existedForm058);
     }
 
     @Override
