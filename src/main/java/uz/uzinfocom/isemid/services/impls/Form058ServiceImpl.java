@@ -20,6 +20,7 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.repositories.Journal060Repository;
+import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.Form058Service;
 import uz.uzinfocom.isemid.services.OrganizationService;
 import uz.uzinfocom.isemid.services.UserService;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
@@ -42,6 +44,7 @@ public class Form058ServiceImpl implements Form058Service {
     final CatalogService catalogService;
     final OrganizationService organizationService;
     final Journal060Repository journal060Repository;
+    final CardRepository cardRepository;
 
     private Catalog mapCatalog(CatalogType type, String code) {
         return catalogService.findByTypeAndCode(type, code).orElse(null);
@@ -319,6 +322,21 @@ public class Form058ServiceImpl implements Form058Service {
         Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, form058Page, fullURL);
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<?> deleteById(Long formId) {
+        Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found."));
+        try {
+            journal060Repository.deleteByForm058(form058);
+            cardRepository.removeForm058References(form058.getId());
+            form058Repository.deleteById(formId);
+
+        } catch (Exception e) {
+            throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        }
+        return new ApiResponse<>(true, "Successfully delete.", null);
     }
 
     public static Specification<Form058> getFilteredSpecification(

@@ -24,4 +24,6 @@ public interface Form058Service {
     ApiResponse<?> cancel(Long formId);
 
     ApiResponsePage getReceivedAll(int page, int size, User user, FilterType received, String fullURL);
+
+    ApiResponse<?> deleteById(Long formId);
 }
