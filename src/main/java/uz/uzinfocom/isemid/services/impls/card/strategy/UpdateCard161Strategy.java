@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.card.Card161;
-import uz.uzinfocom.isemid.models.entities.card.Card161RiskFactor;
+import uz.uzinfocom.isemid.models.entities.card.*;
 import uz.uzinfocom.isemid.models.entities.enums.CardType;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
@@ -44,6 +43,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             throw new ApiException(BAD_REQUEST, "Card type is not correct.");
         }
         ReqCard161 reqCard161 = (ReqCard161) reqCard;
+
         Optional.ofNullable(reqCard161.getCallerType()).ifPresent(existingCard::setCallerType);
         Optional.ofNullable(reqCard161.getIsResident()).ifPresent(existingCard::setIsResident);
         Optional.ofNullable(reqCard161.getResidentialTreatmentFacility()).ifPresent(existingCard::setResidentialTreatmentFacility);
@@ -73,15 +73,31 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             existingCard.getRiskFactors().addAll(riskFactors);
         });
 
-        Optional.ofNullable(reqCard161.getFullName()).ifPresent(existingCard::setFullName);
-        Optional.ofNullable(reqCard161.getDiagnosisClinicalFormOrDonorStatus()).ifPresent(existingCard::setDiagnosisClinicalFormOrDonorStatus);
-        Optional.ofNullable(reqCard161.getContactInfoAndDonorResidence()).ifPresent(existingCard::setContactInfoAndDonorResidence);
-        Optional.ofNullable(reqCard161.getTestResult()).ifPresent(existingCard::setTestResult);
-        Optional.ofNullable(reqCard161.getFoodAndWaterSourceTypes()).ifPresent(existingCard::setFoodAndWaterSourceTypes);
-        Optional.ofNullable(reqCard161.getCollectionLocationAndTime()).ifPresent(existingCard::setCollectionLocationAndTime);
-        Optional.ofNullable(reqCard161.getUsageLocationAndTime()).ifPresent(existingCard::setUsageLocationAndTime);
-        Optional.ofNullable(reqCard161.getStorageConditions()).ifPresent(existingCard::setStorageConditions);
-        Optional.ofNullable(reqCard161.getQualityFeedbackFromPatientAndOthers()).ifPresent(existingCard::setQualityFeedbackFromPatientAndOthers);
+        Optional.ofNullable(reqCard161.getInfectionSources()).ifPresent(reqCard161InfectionSources -> {
+            List<InfectionSource> infectionSources = reqCard161InfectionSources.stream()
+                    .map(reqSource -> InfectionSource.builder()
+                            .fullName(reqSource.getFullName())
+                            .diagnosisClinicalFormOrDonorStatus(reqSource.getDiagnosisClinicalFormOrDonorStatus())
+                            .contactInfoAndDonorResidence(reqSource.getContactInfoAndDonorResidence())
+                            .testResult(reqSource.getTestResult())
+                            .card161(existingCard)
+                            .build()).toList();
+            existingCard.setPossibleInfectionSources(infectionSources);
+        });
+
+        Optional.ofNullable(reqCard161.getEnvironmentalSources()).ifPresent(reqSource -> {
+            List<EnvironmentalSource> environmentalSources = reqSource.stream()
+                    .map(rS -> EnvironmentalSource.builder()
+                            .usageLocationAndTime(rS.getUsageLocationAndTime())
+                            .foodAndWaterSourceTypes(rS.getFoodAndWaterSourceTypes())
+                            .qualityFeedbackFromPatientAndOthers(rS.getQualityFeedbackFromPatientAndOthers())
+                            .storageConditions(rS.getStorageConditions())
+                            .collectionLocationAndTime(rS.getCollectionLocationAndTime())
+                            .card161(existingCard)
+                            .build()).toList();
+            existingCard.setEnvironmentalSources(environmentalSources);
+        });
+
         Optional.ofNullable(reqCard161.getLivingConditionCode()).ifPresent(code -> existingCard.setLivingCondition(getCatalogByCode(CatalogType.livingCondition, code)));
         Optional.of(reqCard161.getNumberOfPeople()).ifPresent(existingCard::setNumberOfPeople);
         Optional.of(reqCard161.getNumberOfRooms()).ifPresent(existingCard::setNumberOfRooms);
@@ -104,34 +120,79 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getFoodStorage()).ifPresent(existingCard::setFoodStorage);
         Optional.ofNullable(reqCard161.getFoodPreparation()).ifPresent(existingCard::setFoodPreparation);
         Optional.ofNullable(reqCard161.getDiseaseCausingFactors()).ifPresent(existingCard::setDiseaseCausingFactors);
-        Optional.ofNullable(reqCard161.getExaminationDate()).ifPresent(existingCard::setExaminationDate);
-        Optional.ofNullable(reqCard161.getObjectArthropodsAnimals()).ifPresent(existingCard::setObjectArthropodsAnimals);
-        Optional.ofNullable(reqCard161.getMaterial()).ifPresent(existingCard::setMaterial);
-        Optional.ofNullable(reqCard161.getSampleQuantity()).ifPresent(existingCard::setSampleQuantity);
-        Optional.ofNullable(reqCard161.getTestTypeAndResult()).ifPresent(existingCard::setTestTypeAndResult);
-        Optional.ofNullable(reqCard161.getContactFullName()).ifPresent(existingCard::setContactFullName);
-        Optional.ofNullable(reqCard161.getContactAge()).ifPresent(existingCard::setContactAge);
-        Optional.ofNullable(reqCard161.getContactAddress()).ifPresent(existingCard::setContactAddress);
-        Optional.ofNullable(reqCard161.getContactJobTypeAndLocation()).ifPresent(existingCard::setContactJobTypeAndLocation);
-        Optional.ofNullable(reqCard161.getContactImmunizationStatus()).ifPresent(existingCard::setContactImmunizationStatus);
-        Optional.ofNullable(reqCard161.getContactRestrictionMeasures()).ifPresent(existingCard::setContactRestrictionMeasures);
-        Optional.ofNullable(reqCard161.getTeamName()).ifPresent(existingCard::setTeamName);
-        Optional.ofNullable(reqCard161.getProphylacticAddress()).ifPresent(existingCard::setProphylacticAddress);
-        Optional.ofNullable(reqCard161.getContactCount()).ifPresent(existingCard::setContactCount);
-        Optional.ofNullable(reqCard161.getRequiredProphylacticSubstance()).ifPresent(existingCard::setRequiredProphylacticSubstance);
-        Optional.ofNullable(reqCard161.getTreatedWithProphylacticSubstance()).ifPresent(existingCard::setTreatedWithProphylacticSubstance);
-        Optional.ofNullable(reqCard161.getLaboratoryTestConducted()).ifPresent(existingCard::setLaboratoryTestConducted);
-        Optional.ofNullable(reqCard161.getNotifiedPerson()).ifPresent(existingCard::setNotifiedPerson);
-        Optional.ofNullable(reqCard161.getNextDiseasePrevention()).ifPresent(existingCard::setNextDiseasePrevention);
-        Optional.ofNullable(reqCard161.getLaboratoryExamination()).ifPresent(existingCard::setLaboratoryExamination);
-        Optional.ofNullable(reqCard161.getObservationResult()).ifPresent(existingCard::setObservationResult);
-        Optional.ofNullable(reqCard161.getPreventiveMeasuresCode()).ifPresent(code -> existingCard.setPreventiveMeasures(getCatalogByCode(CatalogType.preventMeasure, code)));
-        Optional.ofNullable(reqCard161.getDrugType()).ifPresent(existingCard::setDrugType);
-        Optional.ofNullable(reqCard161.getConductedAt()).ifPresent(existingCard::setConductedAt);
-        Optional.ofNullable(reqCard161.getConductedLocationCode()).ifPresent(code -> existingCard.setConductedLocation(getCatalogByCode(CatalogType.counductedLoca, code)));
-        Optional.ofNullable(reqCard161.getExecutors()).ifPresent(existingCard::setExecutors);
-        Optional.ofNullable(reqCard161.getExecutionMonitoringResult()).ifPresent(existingCard::setExecutionMonitoringResult);
+
+
+        Optional.ofNullable(reqCard161.getEnvironmentalLabTests()).ifPresent(labTests -> {
+            List<EnvironmentalLabTest> environmentalLabTests = labTests.stream()
+                    .map(labT -> EnvironmentalLabTest.builder()
+                            .examinationDate(labT.getExaminationDate())
+                            .objectArthropodsAnimals(labT.getObjectArthropodsAnimals())
+                            .material(labT.getMaterial())
+                            .sampleQuantity(labT.getSampleQuantity())
+                            .testTypeAndResult(labT.getTestTypeAndResult())
+                            .card161(existingCard)
+                            .build()).toList();
+            existingCard.setEnvironmentalLabTests(environmentalLabTests);
+        });
+
+
+        Optional.ofNullable(reqCard161.getContactPersonDetails()).ifPresent(reqContactPeople -> {
+            List<ContactPerson> contactPersonList = reqContactPeople.stream()
+                    .map(reqContactPerson -> ContactPerson.builder()
+                            .fullName(reqContactPerson.getFullName())
+                            .age(reqContactPerson.getAge())
+                            .address(reqContactPerson.getAddress())
+                            .jobTypeAndLocation(reqContactPerson.getJobTypeAndLocation())
+                            .immunizationStatus(reqContactPerson.getImmunizationStatus())
+                            .restrictionMeasures(reqContactPerson.getRestrictionMeasures())
+                            .card161(existingCard)
+                            .build()).toList();
+            existingCard.setContactPersonListDetails(contactPersonList);
+        });
+
+        Optional.ofNullable(reqCard161.getScreenedGroups()).ifPresent(reqGroup -> {
+            List<ScreenedGroup> groups = reqGroup.stream()
+                    .map(reqGr -> ScreenedGroup.builder()
+                            .teamName(reqGr.getTeamName())
+                            .prophylacticAddress(reqGr.getProphylacticAddress())
+                            .contactCount(reqGr.getContactCount())
+                            .requiredProphylacticSubstance(reqGr.getRequiredProphylacticSubstance())
+                            .treatedWithProphylacticSubstance(reqGr.getTreatedWithProphylacticSubstance())
+                            .laboratoryTestConducted(reqGr.getLaboratoryTestConducted())
+                            .card161(existingCard)
+                            .build()).toList();
+            existingCard.setScreenedGroups(groups);
+        });
+
+        Optional.ofNullable(reqCard161.getHomePreventiveMeasures()).ifPresent(rqMeasure -> {
+            List<HomePreventiveMeasure> measures = rqMeasure.stream()
+                    .map(req -> HomePreventiveMeasure.builder()
+                            .notifiedPerson(req.getNotifiedPerson())
+                            .observationResult(req.getObservationResult())
+                            .laboratoryExamination(req.getLaboratoryExamination())
+                            .nextDiseasePrevention(req.getNextDiseasePrevention())
+                            .card161(existingCard)
+                            .build()).toList();
+            existingCard.setHomePreventiveMeasures(measures);
+        });
+
+        Optional.ofNullable(reqCard161.getOutbreakDisinfectionMeasures()).ifPresent(rqMeasure -> {
+            List<OutbreakDisinfectionMeasure> measures = rqMeasure.stream()
+                    .map(req -> OutbreakDisinfectionMeasure.builder()
+                            .preventiveMeasures(getCatalogByCode(CatalogType.preventMeasure, req.getPreventiveMeasuresCode()))
+                            .drugType(req.getDrugType())
+                            .conductedAt(req.getConductedAt())
+                            .conductedLocation(getCatalogByCode(CatalogType.counductedLoca, req.getConductedLocationCode()))
+                            .executors(req.getExecutors())
+                            .executionMonitoringResult(req.getExecutionMonitoringResult())
+                            .card161(existingCard)
+                            .build()).toList();
+            existingCard.setOutbreakDisinfectionMeasures(measures);
+        });
+
         Optional.ofNullable(reqCard161.getHospitalName()).ifPresent(existingCard::setHospitalName);
+
+
         Optional.ofNullable(reqCard161.getInfectionLocationCode()).ifPresent(code -> existingCard.setInfectionLocation(getCatalogByCode(CatalogType.infactedLocation, code)));
         Optional.ofNullable(reqCard161.getInfectionSourceNotFoundCode()).ifPresent(code -> existingCard.setInfectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, code)));
         Optional.ofNullable(reqCard161.getPersonFullName()).ifPresent(existingCard::setPersonFullName);

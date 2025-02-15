@@ -43,19 +43,12 @@ public class ReqCard161 extends ReqCard {
     private LocalDate estimatedInfectionDateTo;
 
 
-    //    private List<String> riskFactorCodes;
     private List<ReqCard161RiskFactor> riskFactors;
-    //    private String addressLocation;
-//    private String seasonTime;
-    private String fullName;
-    private String diagnosisClinicalFormOrDonorStatus;
-    private String contactInfoAndDonorResidence;
-    private String testResult;
-    private String foodAndWaterSourceTypes;
-    private String collectionLocationAndTime;
-    private String usageLocationAndTime;
-    private String storageConditions;
-    private String qualityFeedbackFromPatientAndOthers;
+
+    private List<ReqInfectionSource> infectionSources;
+
+    private List<ReqEnvironmentalSource> environmentalSources;
+    private List<ReqEnvironmentalLabTest> environmentalLabTests;
 
     //catalog qoshish kerak
     private String livingConditionCode;
@@ -90,31 +83,13 @@ public class ReqCard161 extends ReqCard {
     private String material;
     private String sampleQuantity;
     private String testTypeAndResult;
-    private String contactFullName;
-    private String contactAge;
-    private String contactAddress;
-    private String contactJobTypeAndLocation;
-    private String contactImmunizationStatus;
-    private String contactRestrictionMeasures;
-    private String teamName;
-    private String prophylacticAddress;
-    private String contactCount;
-    private String requiredProphylacticSubstance;
-    private String treatedWithProphylacticSubstance;
-    private String laboratoryTestConducted;
 
-    private String notifiedPerson;
-    private String nextDiseasePrevention;
-    private String laboratoryExamination;
-    private String observationResult;
+    private List<ReqContactPerson> contactPersonDetails;
+    private List<ReqScreenedGroup> screenedGroups;
 
-    private String preventiveMeasuresCode; //catalog qoshialdi
-    private String drugType;
+    private List<ReqHomePreventiveMeasure> homePreventiveMeasures;
+    private List<ReqOutbreakDisinfectionMeasure> outbreakDisinfectionMeasures;
 
-    private String conductedAt;
-    private String conductedLocationCode;
-    private String executors;
-    private String executionMonitoringResult;
     private String hospitalName;
     //catalog
     private String infectionLocationCode;

@@ -69,27 +69,21 @@ public class Card161 extends Card {
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;
 
-//    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-//    @JoinTable(
-//            name = "card161_risk_factors",
-//            joinColumns = @JoinColumn(name = "card161_id"),
-//            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
-//    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-//    private List<Catalog> riskFactors = new ArrayList<>();
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    private List<Card161RiskFactor> riskFactors = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
-    private List<Card161RiskFactor> riskFactors = new ArrayList<>();
+    @Builder.Default
+    private List<InfectionSource> possibleInfectionSources = new ArrayList<>();
 
-    private String fullName;
-    private String diagnosisClinicalFormOrDonorStatus;
-    private String contactInfoAndDonorResidence;
-    private String testResult;
-    private String foodAndWaterSourceTypes;
-    private String collectionLocationAndTime;
-    private String usageLocationAndTime;
-    private String storageConditions;
-    private String qualityFeedbackFromPatientAndOthers;
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    private List<EnvironmentalSource> environmentalSources = new ArrayList<>();
+
 
     //catalog qoshish kerak
     @ManyToOne(cascade = CascadeType.ALL)
@@ -148,43 +142,34 @@ public class Card161 extends Card {
     private String foodStorage;
     private String foodPreparation;
     private String diseaseCausingFactors;
-    private LocalDate examinationDate;
-    private String objectArthropodsAnimals;
-    private String material;
-    private String sampleQuantity;
-    private String testTypeAndResult;
-    private String contactFullName;
-    private String contactAge;
-    private String contactAddress;
-    private String contactJobTypeAndLocation;
-    private String contactImmunizationStatus;
-    private String contactRestrictionMeasures;
-    private String teamName;
-    private String prophylacticAddress;
-    private String contactCount;
-    private String requiredProphylacticSubstance;
-    private String treatedWithProphylacticSubstance;
-    private String laboratoryTestConducted;
 
-    private String notifiedPerson;
-    private String nextDiseasePrevention;
-    private String laboratoryExamination;
-    private String observationResult;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog preventiveMeasures; //catalog qoshialdi
-    private String drugType;
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    private List<EnvironmentalLabTest> environmentalLabTests = new ArrayList<>();
 
-    private String conductedAt;
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    private List<ContactPerson> contactPersonListDetails = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog conductedLocation;
-    private String executors;
-    private String executionMonitoringResult;
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    private List<ScreenedGroup> screenedGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    private List<HomePreventiveMeasure> homePreventiveMeasures = new ArrayList<>();
+
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    private List<OutbreakDisinfectionMeasure> outbreakDisinfectionMeasures = new ArrayList<>();
+
+
     private String hospitalName;
     //catalog
     @ManyToOne(cascade = CascadeType.ALL)
@@ -224,6 +209,7 @@ public class Card161 extends Card {
             name = "card161_indirection_cousing",
             joinColumns = @JoinColumn(name = "card161_id"),
             inverseJoinColumns = @JoinColumn(name = "catalog_code"))
+    @Builder.Default
     private List<Catalog> infectionCausingConditions = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.ALL)
