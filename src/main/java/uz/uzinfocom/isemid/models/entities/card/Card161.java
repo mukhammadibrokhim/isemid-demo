@@ -56,6 +56,16 @@ public class Card161 extends Card {
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
 
+    private String vaccinationName;   // Preparat nomi
+    private String serialNumber;      // Seriya raqami
+    private LocalDateTime vaccinationDate; // Vaqti (GMT+5 Toshkent)
+    private int unitInDose;           // Birlik doza
+    private int doseVolume;           // Doza hajmi
+
+    private boolean scheduled;        // Rejeli emlashmi?
+    private boolean epidemicBased;    // Epidemik ko‘rsatma asosida emlashmi?
+
+
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;
 
