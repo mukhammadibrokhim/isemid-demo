@@ -298,11 +298,13 @@ public class Form058ServiceImpl implements Form058Service {
                     card.setCardType(cardType);
                     card.setCreatedBy(user.getId());
                     card.setUpdatedBy(user.getId());
+                    card.setForm058(form058);
                     return card;
                 })
                 .toList();
-
-        form058.setCards(cards);
+        form058.getCards().clear();
+        form058.getCards().addAll(cards);
+//        form058.setCards(cards);
         form058.setStatus(DocumentStatus.CARD_ATTACHED);
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }
