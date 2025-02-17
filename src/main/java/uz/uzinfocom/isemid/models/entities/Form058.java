@@ -8,8 +8,11 @@ import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
+import uz.uzinfocom.isemid.models.entities.value_set.Mkb10;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @EntityListeners(AuditingEntityListener.class)
@@ -20,8 +23,9 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 public class Form058 extends AbsEntity {
-    private String mkb10Code;
-    private String mkb10Name;
+    @OneToMany(mappedBy = "form058", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Mkb10> mkb10s = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
@@ -75,11 +79,16 @@ public class Form058 extends AbsEntity {
 
     private String comment;
     private String notifierFullName;
+//
+//    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JoinColumn(name = "card_id")
+//    @JsonIgnoreProperties("form058")
+//    private Card card;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "card_id")
+    @OneToMany(mappedBy = "form058", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("form058")
-    private Card card;
+    @Builder.Default
+    private List<Card> cards = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "reporter_user_id")

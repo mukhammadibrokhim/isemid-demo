@@ -14,6 +14,7 @@ import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
+import uz.uzinfocom.isemid.models.entities.value_set.Mkb10;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -21,10 +22,12 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.repositories.Journal060Repository;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
+import uz.uzinfocom.isemid.repositories.value_set.Mkb10Repository;
 import uz.uzinfocom.isemid.services.Form058Service;
 import uz.uzinfocom.isemid.services.OrganizationService;
 import uz.uzinfocom.isemid.services.UserService;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
+import uz.uzinfocom.isemid.services.value_set.Mkb10Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,8 @@ import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 public class Form058ServiceImpl implements Form058Service {
     final Form058Repository form058Repository;
     final ModelMapper modelMapper;
+    final Mkb10Service mkb10Service;
+    final Mkb10Repository mkb10Repository;
     final UserService userService;
     final CatalogService catalogService;
     final OrganizationService organizationService;
@@ -93,9 +98,10 @@ public class Form058ServiceImpl implements Form058Service {
         }).toList();
         patient.setAddresses(addresses);
         User reporter = userService.findByUuid(user.getUuid()).orElse(null);
+
+        List<Mkb10> mkb10List = mkb10Repository.findByCodeIn(reqForm058.getMkb10Code());
         Form058 form058 = Form058.builder()
-                .mkb10Code(reqForm058.getMkb10Code())
-                .mkb10Name(reqForm058.getMkb10Name())
+                .mkb10s(mkb10List)
                 .patient(patient)
                 .labConfirmation(reqForm058.getLabConfirmation())
                 .hospitalPlace(organizationService.findById(reqForm058.getHospitalPlaceId()).orElse(null))
@@ -131,8 +137,12 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     public ApiResponse<Form058> updateForm058(ReqForm058 reqForm058, Long id, User user) {
         Form058 existedForm058 = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
-        Optional.ofNullable(reqForm058.getMkb10Code()).ifPresent(existedForm058::setMkb10Code);
-        Optional.ofNullable(reqForm058.getMkb10Name()).ifPresent(existedForm058::setMkb10Name);
+        Optional.ofNullable(reqForm058.getMkb10Code())
+                .filter(codes -> !codes.isEmpty())
+                .ifPresent(codes -> {
+                    List<Mkb10> mkb10List = mkb10Repository.findByCodeIn(codes);
+                    existedForm058.setMkb10s(mkb10List);
+                });
         Optional.ofNullable(reqForm058.getPatient()).ifPresent(reqPatient -> {
             Patient patient = existedForm058.getPatient();
             if (patient != null) {
@@ -286,11 +296,18 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     public ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user) {
         Form058 form058 = form058Repository.findById(assignCard.getForm058Id()).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getForm058Id()));
-        Card card = createCard(assignCard.getCardType());
-        card.setCardType(assignCard.getCardType());
-        card.setCreatedBy(user.getId());
-        card.setUpdatedBy(user.getId());
-        form058.setCard(card);
+
+        List<Card> cards = assignCard.getCardType().stream()
+                .map(cardType -> {
+                    Card card = createCard(cardType);
+                    card.setCardType(cardType);
+                    card.setCreatedBy(user.getId());
+                    card.setUpdatedBy(user.getId());
+                    return card;
+                })
+                .toList();
+
+        form058.setCards(cards);
         form058.setStatus(DocumentStatus.CARD_ATTACHED);
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }

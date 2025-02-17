@@ -47,7 +47,8 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardProgressStatus progressStatus = CardProgressStatus.IN_PROGRESS;
 
-    @OneToOne(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("card")
+    @ManyToOne
+    @JoinColumn(name = "form058_id")
+    @JsonIgnoreProperties("cards")
     private Form058 form058;
 }

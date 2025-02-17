@@ -74,6 +74,8 @@ public class Mkb10 {
     private String nameUzCyril;
     private String nameKaa;
     private String comment;
+    @Column(name = "usage_limit", nullable = false)
+    private Integer usageLimit = 1;
 
     @OneToMany(mappedBy = "parentId")
     @JsonIgnore
@@ -83,5 +85,13 @@ public class Mkb10 {
     @JsonProperty("childrenValue")
     public int getChildrenValue() {
         return (children != null) ? children.size() : 0;
+    }
+
+    @PrePersist
+    @JsonIgnore
+    public void setDefaultUsageLimit() {
+        if (this.usageLimit == null) {
+            this.usageLimit = 1;
+        }
     }
 }
