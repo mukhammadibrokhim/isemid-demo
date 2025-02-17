@@ -26,6 +26,7 @@ public interface ApiUrlConstant {
 
     String DB = PREFIX + "/db";
     String JOURNAL_060 = PREFIX + "/journal-060";
+    String VACCINATION = PREFIX + "/vaccination";
 
 //    String BASE_DOMAIN = "http://localhost:8081";
 //    String BASE_DOMAIN = "https://ykem.sanepid.uz";
@@ -40,5 +41,5 @@ public interface ApiUrlConstant {
     String PRACTITIONER = BASE_API_URL + "/v2/Practitioner/%s";
     String GCP_CITIZEN = BASE_API_URL + "/v3/Citizen?nnuzb=%s&photo=%s";
     String GCP_CHILD = BASE_API_URL + "/v3/Child?series=%s&number=%s";
-
+    String VACCINATION_NNUZB = "https://api2.ssv.uz/Vaccination/%s";
 }
