@@ -419,6 +419,36 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.takenMeasuresFromResidence, lang);
 
     }
+    @GetMapping("/delivery-method")
+    public ApiResponse<?> deliveryMethod(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.transportType, lang);
+
+    }
+    @GetMapping("/home-stay-reason")
+    public ApiResponse<?> homeStayExclusionReason(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.reasonOfLeavingHome, lang);
+
+    }
+    @GetMapping("/late-admission-reason")
+    public ApiResponse<?> lateAdmissionReason(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.reasonOfLateHospitalization, lang);
+
+    }
+    @GetMapping("/diagnosis-verified")
+    public ApiResponse<?> diagnosisVerified(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.diagnosisVerified, lang);
+
+    }
+
+
 
 
 
