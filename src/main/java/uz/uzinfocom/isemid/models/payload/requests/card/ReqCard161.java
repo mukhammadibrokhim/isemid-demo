@@ -34,10 +34,17 @@ public class ReqCard161 extends ReqCard {
     private String homeStayExclusionReasonCode;
     private String lateAdmissionReasonsCode;
 
-    private String diagnosisVerified;
+    private String diagnosisVerifiedCode;
     //LIS bilan integratsiya uchun polya qoshish kerak.
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
+    private String vaccinationName;
+    private String serialNumber;
+    private String vaccinationDate;
+    private String unitInDose;
+    private String doseVolume;
+    private String scheduled;
+    private String epidemicBased;
 
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;

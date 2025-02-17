@@ -56,10 +56,10 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getEpidemiologicalExamDate()).ifPresent(existingCard::setEpidemiologicalExamDate);
         Optional.ofNullable(reqCard161.getObservationEndDate()).ifPresent(existingCard::setObservationEndDate);
         Optional.ofNullable(reqCard161.getFinalDiagnosisDate()).ifPresent(existingCard::setFinalDiagnosisDate);
-        Optional.ofNullable(reqCard161.getDeliveryMethodCode()).ifPresent(code -> existingCard.setDeliveryMethod(getCatalogByCode(CatalogType.deliveryMethod, code)));
-        Optional.ofNullable(reqCard161.getHomeStayExclusionReasonCode()).ifPresent(code -> existingCard.setHomeStayExclusionReason(getCatalogByCode(CatalogType.homeStayReason, code)));
-        Optional.ofNullable(reqCard161.getLateAdmissionReasonsCode()).ifPresent(code -> existingCard.setLateAdmissionReason(getCatalogByCode(CatalogType.lateAdmissionReason, code)));
-        Optional.ofNullable(reqCard161.getDiagnosisVerified()).ifPresent(existingCard::setDiagnosisVerified);
+        Optional.ofNullable(reqCard161.getDeliveryMethodCode()).ifPresent(code -> existingCard.setDeliveryMethod(getCatalogByCode(CatalogType.transportType, code)));
+        Optional.ofNullable(reqCard161.getHomeStayExclusionReasonCode()).ifPresent(code -> existingCard.setHomeStayExclusionReason(getCatalogByCode(CatalogType.reasonOfLeavingHome, code)));
+        Optional.ofNullable(reqCard161.getLateAdmissionReasonsCode()).ifPresent(code -> existingCard.setLateAdmissionReason(getCatalogByCode(CatalogType.reasonOfLateHospitalization, code)));
+        Optional.ofNullable(reqCard161.getDiagnosisVerifiedCode()).ifPresent(code -> existingCard.setDiagnosisVerified(getCatalogByCode(CatalogType.diagnosisVerified, code)));
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateFrom()).ifPresent(existingCard::setEstimatedInfectionDateFrom);
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateTo()).ifPresent(existingCard::setEstimatedInfectionDateTo);
         Optional.ofNullable(reqCard161.getRiskFactors()).ifPresent(reqCard161RiskFactors -> {
