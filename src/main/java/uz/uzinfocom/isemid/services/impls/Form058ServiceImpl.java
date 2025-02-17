@@ -141,6 +141,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .filter(codes -> !codes.isEmpty())
                 .ifPresent(codes -> {
                     List<Mkb10> mkb10List = mkb10Repository.findByCodeIn(codes);
+
                     existedForm058.setMkb10s(mkb10List);
                 });
         Optional.ofNullable(reqForm058.getPatient()).ifPresent(reqPatient -> {

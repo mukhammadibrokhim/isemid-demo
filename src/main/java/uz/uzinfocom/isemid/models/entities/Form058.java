@@ -23,8 +23,12 @@ import java.util.List;
 @Builder
 @Entity
 public class Form058 extends AbsEntity {
-    @OneToMany(mappedBy = "form058", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "form058_mkb10",
+            joinColumns = @JoinColumn(name = "form058_id"),
+            inverseJoinColumns = @JoinColumn(name = "mkb10_id")
+    )
     private List<Mkb10> mkb10s = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
