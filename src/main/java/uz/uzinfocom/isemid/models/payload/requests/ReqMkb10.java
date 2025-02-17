@@ -18,4 +18,5 @@ public class ReqMkb10 {
     private String nameUzCyril;
     private String nameKaa;
     private String comment;
+    private Integer usageLimit;
 }

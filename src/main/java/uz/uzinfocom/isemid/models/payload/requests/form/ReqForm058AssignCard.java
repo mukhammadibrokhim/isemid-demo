@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uz.uzinfocom.isemid.models.entities.enums.CardType;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,5 +19,5 @@ public class ReqForm058AssignCard {
     @NotNull(message = "Form058 id is required.")
     private long form058Id;
     @NotNull(message = "Card type is required.")
-    private CardType cardType;
+    private List<CardType> cardType;
 }

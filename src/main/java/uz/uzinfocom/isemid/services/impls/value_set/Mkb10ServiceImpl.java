@@ -61,6 +61,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
         Optional.ofNullable(reqMkb10.getNameKaa()).ifPresent(existedMkb10::setNameKaa);
         Optional.ofNullable(reqMkb10.getNameUzCyril()).ifPresent(existedMkb10::setNameUzCyril);
         Optional.ofNullable(reqMkb10.getComment()).ifPresent(existedMkb10::setComment);
+        Optional.ofNullable(reqMkb10.getUsageLimit()).ifPresent(existedMkb10::setUsageLimit);
         return new ApiResponse<>(true, "Successfully update.", mkb10Repository.save(existedMkb10));
     }
 
