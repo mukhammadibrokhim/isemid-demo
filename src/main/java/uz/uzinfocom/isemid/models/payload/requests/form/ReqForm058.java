@@ -13,7 +13,6 @@ import uz.uzinfocom.isemid.models.payload.requests.ReqLocation;
 import uz.uzinfocom.isemid.models.payload.requests.ReqPatient;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -22,12 +21,10 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqForm058 {
 
-    //    @NotBlank(message = "Mkb10 не может быть пустым и обязательно для заполнения.")
-    @NotNull
-    private List<String> mkb10Code;
-//
-//    @NotBlank(message = "Название Mkb10 не может быть пустым и обязательно для заполнения.")
-//    private String mkb10Name;
+    private String mkb10Code;
+
+    @NotBlank(message = "Название Mkb10 не может быть пустым и обязательно для заполнения.")
+    private String mkb10Name;
 
     @Valid
     @NotNull(message = "Объект пациента обязателен.")
