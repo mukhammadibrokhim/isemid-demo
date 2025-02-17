@@ -31,5 +31,4 @@ public interface Mkb10Repository extends JpaRepository<Mkb10, Long>, JpaSpecific
         """, nativeQuery = true)
     List<Mkb10> searchMkb10(@Param("parentId") Long parentId, @Param("search") String search);
 
-    List<Mkb10> findByCodeIn(List<String> mkb10Code);
 }

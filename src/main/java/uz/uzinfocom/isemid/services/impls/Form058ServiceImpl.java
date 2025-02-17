@@ -14,7 +14,6 @@ import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
-import uz.uzinfocom.isemid.models.entities.value_set.Mkb10;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -99,9 +98,9 @@ public class Form058ServiceImpl implements Form058Service {
         patient.setAddresses(addresses);
         User reporter = userService.findByUuid(user.getUuid()).orElse(null);
 
-        List<Mkb10> mkb10List = mkb10Repository.findByCodeIn(reqForm058.getMkb10Code());
         Form058 form058 = Form058.builder()
-                .mkb10s(mkb10List)
+                .mkb10Code(reqForm058.getMkb10Code())
+                .mkb10Name(reqForm058.getMkb10Name())
                 .patient(patient)
                 .labConfirmation(reqForm058.getLabConfirmation())
                 .hospitalPlace(organizationService.findById(reqForm058.getHospitalPlaceId()).orElse(null))
@@ -137,13 +136,8 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     public ApiResponse<Form058> updateForm058(ReqForm058 reqForm058, Long id, User user) {
         Form058 existedForm058 = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
-        Optional.ofNullable(reqForm058.getMkb10Code())
-                .filter(codes -> !codes.isEmpty())
-                .ifPresent(codes -> {
-                    List<Mkb10> mkb10List = mkb10Repository.findByCodeIn(codes);
-
-                    existedForm058.setMkb10s(mkb10List);
-                });
+        Optional.ofNullable(reqForm058.getMkb10Code()).ifPresent(existedForm058::setMkb10Code);
+        Optional.ofNullable(reqForm058.getMkb10Name()).ifPresent(existedForm058::setMkb10Name);
         Optional.ofNullable(reqForm058.getPatient()).ifPresent(reqPatient -> {
             Patient patient = existedForm058.getPatient();
             if (patient != null) {

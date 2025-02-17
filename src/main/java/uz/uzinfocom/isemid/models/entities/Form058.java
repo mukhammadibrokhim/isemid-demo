@@ -8,7 +8,6 @@ import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
-import uz.uzinfocom.isemid.models.entities.value_set.Mkb10;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,13 +22,8 @@ import java.util.List;
 @Builder
 @Entity
 public class Form058 extends AbsEntity {
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "form058_mkb10",
-            joinColumns = @JoinColumn(name = "form058_id"),
-            inverseJoinColumns = @JoinColumn(name = "mkb10_id")
-    )
-    private List<Mkb10> mkb10s = new ArrayList<>();
+    private String mkb10Code;
+    private String mkb10Name;
 
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
