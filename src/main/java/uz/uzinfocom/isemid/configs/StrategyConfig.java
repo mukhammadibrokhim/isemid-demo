@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uz.uzinfocom.isemid.models.entities.enums.CardType;
+import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;
 import uz.uzinfocom.isemid.services.impls.card.strategy.*;
 

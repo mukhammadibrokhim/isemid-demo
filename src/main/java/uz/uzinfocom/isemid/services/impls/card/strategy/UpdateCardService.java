@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.enums.CardType;
+import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;

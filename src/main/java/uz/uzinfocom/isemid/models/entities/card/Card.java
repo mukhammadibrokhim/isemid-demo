@@ -8,9 +8,10 @@ import lombok.Getter;
 import lombok.Setter;
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.enums.CardProgressStatus;
-import uz.uzinfocom.isemid.models.entities.enums.CardStatus;
-import uz.uzinfocom.isemid.models.entities.enums.CardType;
+import uz.uzinfocom.isemid.models.entities.card.card161.Card161;
+import uz.uzinfocom.isemid.models.entities.card.card174.Card174;
+import uz.uzinfocom.isemid.models.entities.card.card175.Card175;
+import uz.uzinfocom.isemid.models.entities.card.card205.Card205;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 
 import java.util.HashSet;
