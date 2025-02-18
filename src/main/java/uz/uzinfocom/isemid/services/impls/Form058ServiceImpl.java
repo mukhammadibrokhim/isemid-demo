@@ -101,6 +101,7 @@ public class Form058ServiceImpl implements Form058Service {
         Form058 form058 = Form058.builder()
                 .mkb10Code(reqForm058.getMkb10Code())
                 .mkb10Name(reqForm058.getMkb10Name())
+                .mkb10UsageLimit(reqForm058.getMkb10UsageLimit())
                 .patient(patient)
                 .labConfirmation(reqForm058.getLabConfirmation())
                 .hospitalPlace(organizationService.findById(reqForm058.getHospitalPlaceId()).orElse(null))
@@ -138,6 +139,7 @@ public class Form058ServiceImpl implements Form058Service {
         Form058 existedForm058 = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
         Optional.ofNullable(reqForm058.getMkb10Code()).ifPresent(existedForm058::setMkb10Code);
         Optional.ofNullable(reqForm058.getMkb10Name()).ifPresent(existedForm058::setMkb10Name);
+        Optional.ofNullable(reqForm058.getMkb10UsageLimit()).ifPresent(existedForm058::setMkb10UsageLimit);
         Optional.ofNullable(reqForm058.getPatient()).ifPresent(reqPatient -> {
             Patient patient = existedForm058.getPatient();
             if (patient != null) {

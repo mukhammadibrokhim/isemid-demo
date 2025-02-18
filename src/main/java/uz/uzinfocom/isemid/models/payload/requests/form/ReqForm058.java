@@ -21,10 +21,12 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqForm058 {
 
+    @NotBlank
     private String mkb10Code;
 
     @NotBlank(message = "Название Mkb10 не может быть пустым и обязательно для заполнения.")
     private String mkb10Name;
+    private Integer mkb10UsageLimit;
 
     @Valid
     @NotNull(message = "Объект пациента обязателен.")
