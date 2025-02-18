@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.models.entities.enums.CardType;
+import uz.uzinfocom.isemid.models.entities.card.CardType;
 
 import java.util.List;
 

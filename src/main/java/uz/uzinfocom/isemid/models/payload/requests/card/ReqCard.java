@@ -5,7 +5,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import uz.uzinfocom.isemid.models.entities.enums.CardType;
+import uz.uzinfocom.isemid.models.entities.card.CardType;
+import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqCard161;
+import uz.uzinfocom.isemid.models.payload.requests.card.card174.ReqCard174;
+import uz.uzinfocom.isemid.models.payload.requests.card.card175.ReqCard175;
+import uz.uzinfocom.isemid.models.payload.requests.card.card205.ReqCard205;
+import uz.uzinfocom.isemid.models.payload.requests.card.card_tube.ReqCardTube;
 
 @Getter
 @Setter
