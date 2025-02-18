@@ -22145,13 +22145,12 @@
 22124,22131,2025-02-13 18:59:24.831876,1,2025-02-13 18:59:24.831876,1,cf8b218a-d92f-4e81-a99e-395fc2bf6885,DEZ,Dezinsekciya,Дезинсекция,Dezinseksiya,Дезинсекция,"",takenMeasuresFromResidence
 22125,22132,2025-02-13 19:00:12.424892,1,2025-02-13 19:00:12.424892,1,093a1bdf-574b-4610-a79d-9ff7906d1ba9,DER,Deratizaciya,Дератизация,Deratizatsiya,Дератизация,"",takenMeasuresFromResidence
 22126,22133,2025-02-13 19:01:12.372187,1,2025-02-13 19:01:12.372187,1,cf54aa7a-2a33-42cf-ae51-6c1d95a84bf0,BOT,Basqa ilajlar,Другие мероприятия,Boshqa tadbirlar,Бошқа тадбирлар,"",takenMeasuresFromResidence
-22127,22134,2025-02-17 11:01:48.014390,,2025-02-17 11:01:48.014390,,3a60f709-c090-415f-8529-69cbf55b76c3,TT,"Госпитализация, каким видом транспорта","Yotkizilgan kasalxona, qaysi transport vositasi bilan","Госпитализация, каким видом транспорта","Yotkizilgan kasalxona, qaysi transport vositasi bilan","",transportType
-22128,22144,2025-02-17 11:32:35.023032,1,2025-02-17 11:32:35.023032,1,7ab8d762-a887-458d-9cdc-f274cc583555,BUB,Basqa usıllar menen,Другими способами,Бошқа усуллар билан,Бошқа усуллар билан,"",diagnosisVerified
-22129,22143,2025-02-17 11:31:45.184735,1,2025-02-17 11:31:45.184735,1,93f3aafc-1d7e-444f-a98f-fc8ab206b716,BIO,Bioximiya,Биохимия,Biokimyo,Биокимё,"",diagnosisVerified
-22130,22140,2025-02-17 11:28:52.002979,1,2025-02-17 11:28:52.002979,1,1294b282-7ca6-4cca-a22e-61ee9794037b,MAK,Makroskopiyalıq,Макроскопический,Makroskopik,Макроскопик,"",diagnosisVerified
-22131,22142,2025-02-17 11:30:26.030182,1,2025-02-17 11:30:26.031181,1,79c47397-f510-49f0-8bb9-eaa8de076c1e,SER,Serologik,Серологик,Serologik,Серологик,"",diagnosisVerified
-22132,22139,2025-02-17 11:27:57.485941,1,2025-02-17 11:27:57.485941,1,547e6a69-2afa-4e14-a46b-b02131d5bd13,MIK,Mikroskopiyalıq,Микроскопический,Mikroskopik,Микроскопик,"",diagnosisVerified
-22133,22138,2025-02-17 11:26:36.871903,1,2025-02-17 11:26:36.871903,1,4f581a93-fdc0-45c9-99eb-9aa2248feb46,EX,Ekspres,Экспресс,Ekspress,Экспресс,"",diagnosisVerified
-22134,22137,2025-02-17 11:25:44.318964,1,2025-02-17 11:25:44.318964,1,0422ec1d-8dc6-467e-a8fb-c64576af403f,PZR,PSHR(Polimeraza shınjır reakciyası),ПЦР(Полимера́зная цепна́я реа́кция),PZR(Polimeraza zanjir reaksiyasi),ПЗР(Полимераза занжир реакцияси),"",diagnosisVerified
-22135,22141,2025-02-17 11:29:37.362099,1,2025-02-17 11:29:37.362099,1,216ef811-2d62-46cb-9214-1f7b76e0e4e0,BAK,Bakteriolog,Бактериологик,Bakteriolog,Бактериологик,"",diagnosisVerified
-22136,22135,2025-02-17 11:22:55.960398,1,2025-02-17 11:22:55.960398,1,6af050bb-63d5-4596-9cf5-13eb9de94067,DV,IFA(Immunoferment analiz),ИФА(Иммуноферментный анализ),IFT(Immunoferment analizi),ИФА(Иммунофермент анализи),"",diagnosisVerified
+22127,22144,2025-02-17 11:32:35.023032,1,2025-02-17 11:32:35.023032,1,7ab8d762-a887-458d-9cdc-f274cc583555,BUB,Basqa usıllar menen,Другими способами,Бошқа усуллар билан,Бошқа усуллар билан,"",diagnosisVerified
+22128,22143,2025-02-17 11:31:45.184735,1,2025-02-17 11:31:45.184735,1,93f3aafc-1d7e-444f-a98f-fc8ab206b716,BIO,Bioximiya,Биохимия,Biokimyo,Биокимё,"",diagnosisVerified
+22129,22140,2025-02-17 11:28:52.002979,1,2025-02-17 11:28:52.002979,1,1294b282-7ca6-4cca-a22e-61ee9794037b,MAK,Makroskopiyalıq,Макроскопический,Makroskopik,Макроскопик,"",diagnosisVerified
+22130,22142,2025-02-17 11:30:26.030182,1,2025-02-17 11:30:26.031181,1,79c47397-f510-49f0-8bb9-eaa8de076c1e,SER,Serologik,Серологик,Serologik,Серологик,"",diagnosisVerified
+22131,22139,2025-02-17 11:27:57.485941,1,2025-02-17 11:27:57.485941,1,547e6a69-2afa-4e14-a46b-b02131d5bd13,MIK,Mikroskopiyalıq,Микроскопический,Mikroskopik,Микроскопик,"",diagnosisVerified
+22132,22138,2025-02-17 11:26:36.871903,1,2025-02-17 11:26:36.871903,1,4f581a93-fdc0-45c9-99eb-9aa2248feb46,EX,Ekspres,Экспресс,Ekspress,Экспресс,"",diagnosisVerified
+22133,22137,2025-02-17 11:25:44.318964,1,2025-02-17 11:25:44.318964,1,0422ec1d-8dc6-467e-a8fb-c64576af403f,PZR,PSHR(Polimeraza shınjır reakciyası),ПЦР(Полимера́зная цепна́я реа́кция),PZR(Polimeraza zanjir reaksiyasi),ПЗР(Полимераза занжир реакцияси),"",diagnosisVerified
+22134,22141,2025-02-17 11:29:37.362099,1,2025-02-17 11:29:37.362099,1,216ef811-2d62-46cb-9214-1f7b76e0e4e0,BAK,Bakteriolog,Бактериологик,Bakteriolog,Бактериологик,"",diagnosisVerified
+22135,22135,2025-02-17 11:22:55.960398,1,2025-02-17 11:22:55.960398,1,6af050bb-63d5-4596-9cf5-13eb9de94067,DV,IFA(Immunoferment analiz),ИФА(Иммуноферментный анализ),IFT(Immunoferment analizi),ИФА(Иммунофермент анализи),"",diagnosisVerified
