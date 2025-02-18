@@ -20,7 +20,7 @@ public class ReqCard161 extends ReqCard {
     private String callerType;
     private Boolean isResident;
     private String residentialTreatmentFacility;
-    private LocalDate diseaseDetectedDate;
+    private LocalDateTime diseaseDetectedDate;
     private String region;
     private String district;
     private String polyclinic;
