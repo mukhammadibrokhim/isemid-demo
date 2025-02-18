@@ -24,6 +24,7 @@ import java.util.List;
 public class Form058 extends AbsEntity {
     private String mkb10Code;
     private String mkb10Name;
+    private Integer mkb10UsageLimit;
 
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
