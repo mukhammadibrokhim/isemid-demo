@@ -17,6 +17,7 @@ import org.springframework.web.server.i18n.AcceptHeaderLocaleContextResolver;
 import org.springframework.web.server.i18n.LocaleContextResolver;
 
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -66,6 +67,7 @@ public class AppConfig {
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 //        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.setTimeZone(TimeZone.getTimeZone("Asia/Tashkent"));
 
         mapper.getFactory().setStreamWriteConstraints(
                 StreamWriteConstraints.builder()
