@@ -22,22 +22,10 @@ public class Card161RiskFactor extends BaseEntity {
     @JsonIgnore
     private Card161 card161;
 //
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(referencedColumnName = "code")
-//    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-//    private Catalog riskFactor;
-
-    @ManyToMany()
-    @JoinTable(
-            name = "card161_risk_factor_code",
-            joinColumns = @JoinColumn(name = "card161_id"),
-            inverseJoinColumns = @JoinColumn(name = "catalog_code", referencedColumnName = "code")
-    )
-    @JsonIgnoreProperties({"type", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    @Builder.Default
-    private List<Catalog> riskFactors = new ArrayList<>();
-
-
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog riskFactor;
 
     private String addressLocation;
     private String seasonTime;

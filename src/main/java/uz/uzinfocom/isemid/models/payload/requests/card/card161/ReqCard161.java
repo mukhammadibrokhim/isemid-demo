@@ -41,13 +41,7 @@ public class ReqCard161 extends ReqCard {
     // DMED bilan integratsiya uchun polyalar.
     private String vaccinationVerifiedCode;
 
-    private String vaccinationName;
-    private String serialNumber;
-    private String vaccinationDate;
-    private String unitInDose;
-    private String doseVolume;
-    private String scheduled;
-    private String epidemicBased;
+    private List<ReqVaccination> vaccinations;
 
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;
