@@ -67,17 +67,12 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getRiskFactors()).ifPresent(reqCard161RiskFactors -> {
             if (!reqCard161RiskFactors.isEmpty()){
                 List<Card161RiskFactor> riskFactors = reqCard161RiskFactors.stream()
-                        .map(reqFactor -> {
-                            List<Catalog> catalogs = reqFactor.getRiskFactorCode().stream()
-                                    .map(riskFactorCode -> getCatalogByCode(CatalogType.riskFactor, riskFactorCode))
-                                    .toList();
-                            return Card161RiskFactor.builder()
-                                    .riskFactors(catalogs)
-                                    .card161(existingCard)
-                                    .addressLocation(reqFactor.getAddressLocation())
-                                    .seasonTime(reqFactor.getSeasonTime())
-                                    .build();
-                        }).toList();
+                        .map(reqFactor -> Card161RiskFactor.builder()
+                                .riskFactor(getCatalogByCode(CatalogType.riskFactor,reqFactor.getRiskFactorCode()))
+                                .card161(existingCard)
+                                .addressLocation(reqFactor.getAddressLocation())
+                                .seasonTime(reqFactor.getSeasonTime())
+                                .build()).toList();
 
                 existingCard.getRiskFactors().clear();
                 existingCard.getRiskFactors().addAll(riskFactors);

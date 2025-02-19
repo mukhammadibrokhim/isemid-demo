@@ -21,11 +21,17 @@ import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
 @Service
 @RequiredArgsConstructor
 public class VaccinationServiceImpl implements VaccinationService {
-
+    @SneakyThrows
     @Override
     public ApiResponse<?> getVaccinationByNnuzbLast(String nnuzb) {
-        String dto = makeRequest(String.format(VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class);
-        return new ApiResponse<>(true, "", mapping(dto));
+        String resp = makeRequest(String.format(VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        VaccinationDto dto = mapper.readValue(resp, VaccinationDto.class);
+        if (dto != null && dto.getResult() == null) {
+            return new ApiResponse<>(false, "", null);
+        }
+        return new ApiResponse<>(true, "", dto);
     }
 
     @SneakyThrows

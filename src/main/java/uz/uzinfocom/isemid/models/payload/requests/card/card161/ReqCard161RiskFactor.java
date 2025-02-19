@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class ReqCard161RiskFactor {
-    private List<String> riskFactorCode;
+    private String riskFactorCode;
     private String addressLocation;
     private String seasonTime;
 }
