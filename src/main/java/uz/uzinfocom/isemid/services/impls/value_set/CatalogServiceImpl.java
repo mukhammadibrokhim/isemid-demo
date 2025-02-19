@@ -200,7 +200,7 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @SneakyThrows
-//    @PostConstruct
+    @PostConstruct
     private void insertCatalog() {
         Resource resource = resourceLoader.getResource("classpath:/base/catalog.csv");
         InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);

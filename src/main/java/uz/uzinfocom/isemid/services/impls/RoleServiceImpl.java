@@ -92,7 +92,7 @@ public class RoleServiceImpl implements RoleService {
         return new ApiResponse<>(true, "Permission successfully removed from the role", roleRepository.save(role));
     }
 
-//    @PostConstruct
+    @PostConstruct
     public void initDefaultRolesAndPermissions() {
         Map<String, Map<String, Object>> rolePermissions = Map.of(
                 "isemid_labarant", Map.of(
