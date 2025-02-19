@@ -18,7 +18,8 @@ public enum CatalogType {
     diseasePlace,
     category,
     profession,
-    //
+
+    //Card161
     detected, definedDisease, homeStayExclusionReason,diagnosisVerified,
     livingCondition, waterSupply,
     liquidWaste, solidWaste, roomCondition, yardCondition,
@@ -36,5 +37,9 @@ public enum CatalogType {
     informationAboutImmediatePreventionAndAntirabicAid,
     partOfInjury,relevanceOfDiseaseToProfession,severityOfIllness,diseaseSpreaderType,
     ownerOfDiseaseSpreader,observationResultOfAnimals,checkingDiagnosis,diseaseTransmissionCondition,
-    pathogenMainFactor,takenMeasuresFromResidence
+    pathogenMainFactor,takenMeasuresFromResidence,
+
+    //card205
+    diagnosisOfInjury,conditionOfAnimal,animalConservation,positionOfBittenVictim,
+    animalCategory,dogOwnerCompliance,bittenAnimalCategory
 }

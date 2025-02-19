@@ -447,6 +447,13 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.diagnosisVerified, lang);
 
     }
+    @GetMapping("/animal-category")
+    public ApiResponse<?> animalCategory(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.animalCategory, lang);
+    }
+
 
 
 
