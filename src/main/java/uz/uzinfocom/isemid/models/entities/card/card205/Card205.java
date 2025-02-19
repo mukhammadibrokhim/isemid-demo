@@ -60,7 +60,7 @@ public class Card205 extends Card {
     private String colourOfAnimal;
     private String individualSignsOfAnimal;
 
-    private String certificateNumberOfFirstVetResults;
+    private Integer certificateNumberOfFirstVetResults;
 
     @Temporal(value = TemporalType.DATE)
     private Date issueDateOfFirstCertificate;
@@ -74,7 +74,7 @@ public class Card205 extends Card {
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog positionOfBittenVictim;
-    private String certificateNumberOfSecondVetResults;
+    private Integer certificateNumberOfSecondVetResults;
     private Date issueDateOfSecondaryCertificate;
     private String dateTimeOfFeatherTaken;
     private String petRegisteredVetDepartment;

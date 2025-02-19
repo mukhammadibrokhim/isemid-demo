@@ -29,9 +29,9 @@ public class ReqCard205 extends ReqCard {
     private String breedOfAnimal;
     private String colourOfAnimal;
     private String individualSignsOfAnimal;
-    private String certificateNumberOfFirstVetResults;
+    private Integer certificateNumberOfFirstVetResults;
     private Date issueDateOfFirstCertificate;
-    private String certificateNumberOfSecondVetResults;
+    private Integer certificateNumberOfSecondVetResults;
     private Date issueDateOfSecondaryCertificate;
     private String dateTimeOfFeatherTaken;
     private String petRegisteredVetDepartment;

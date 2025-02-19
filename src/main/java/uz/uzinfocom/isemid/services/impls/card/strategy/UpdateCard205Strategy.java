@@ -118,7 +118,7 @@ public class UpdateCard205Strategy implements UpdateCardStrategy {
             List<InformationOtherBittenAnimals> otherBittenAnimalsList = reqInformationOtherBittenAnimals.stream()
                     .map(info -> InformationOtherBittenAnimals.builder()
                             .card205(existingCard)
-                            .bittenAnimalCategory(getCatalogByCode(CatalogType.bittenAnimalCategory, info.getBittenAnimalCategoryCode()))
+                            .bittenAnimalCategory(getCatalogByCode(CatalogType.animalCategory, info.getBittenAnimalCategoryCode()))
                             .bittenDateTime(info.getBittenDateTime())
                             .whereAnimalBitten(info.getWhereAnimalBitten())
                             .build()).toList();

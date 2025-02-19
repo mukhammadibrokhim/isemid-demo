@@ -41,5 +41,5 @@ public enum CatalogType {
 
     //card205
     diagnosisOfInjury,conditionOfAnimal,animalConservation,positionOfBittenVictim,
-    animalCategory,dogOwnerCompliance,bittenAnimalCategory
+    animalCategory,dogOwnerCompliance
 }
