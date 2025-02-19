@@ -7,6 +7,9 @@ import jakarta.persistence.ManyToOne;
 import lombok.*;
 import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,7 +22,13 @@ public class HomePreventiveMeasure extends BaseEntity {
     @JsonIgnore
     private Card161 card161;
     private String notifiedPerson;
-    private String nextDiseasePrevention;
-    private String laboratoryExamination;
+    private LocalDateTime nextDiseaseTime; //DMED integration
+    private String drugName; //DMED integration
+    private String dose; //DMED integration
+    private String series; //DMED integration
+
+    private LocalDateTime resultTime; //integration LIS
+    private LocalDate receivedDate; // Олинган сана
+    private String lisResult;//integration LIS
     private String observationResult;
 }

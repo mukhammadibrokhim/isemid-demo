@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.models.entities.card.card161;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
-import uz.uzinfocom.isemid.models.entities.card.*;
+import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
@@ -59,6 +59,11 @@ public class Card161 extends Card {
     //LIS bilan integratsiya uchun polya qoshish kerak.
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog vaccinationVerified;
 
     private String vaccinationName;   // Preparat nomi
     private String serialNumber;      // Seriya raqami

@@ -39,6 +39,8 @@ public class ReqCard161 extends ReqCard {
     //LIS bilan integratsiya uchun polya qoshish kerak.
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
+    private String vaccinationVerifiedCode;
+
     private String vaccinationName;
     private String serialNumber;
     private String vaccinationDate;

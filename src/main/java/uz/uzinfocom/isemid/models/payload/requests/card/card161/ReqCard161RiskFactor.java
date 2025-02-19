@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class ReqCard161RiskFactor {
-    private String riskFactorCode;
+    private List<String> riskFactorCode;
     private String addressLocation;
     private String seasonTime;
 }
