@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.card.card161.*;
 import uz.uzinfocom.isemid.models.entities.card.CardType;
+import uz.uzinfocom.isemid.models.entities.card.card161.*;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
@@ -34,6 +34,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         return catalogService.findByTypeAndCode(type, code).orElse(null);
     }
 
+    @Transactional
     @Override
     public ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser) {
         Card161 existingCard = (Card161) cardRepository.findById(id)
@@ -60,17 +61,27 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getHomeStayExclusionReasonCode()).ifPresent(code -> existingCard.setHomeStayExclusionReason(getCatalogByCode(CatalogType.reasonOfLeavingHome, code)));
         Optional.ofNullable(reqCard161.getLateAdmissionReasonsCode()).ifPresent(code -> existingCard.setLateAdmissionReason(getCatalogByCode(CatalogType.reasonOfLateHospitalization, code)));
         Optional.ofNullable(reqCard161.getDiagnosisVerifiedCode()).ifPresent(code -> existingCard.setDiagnosisVerified(getCatalogByCode(CatalogType.diagnosisVerified, code)));
+        Optional.ofNullable(reqCard161.getVaccinationVerifiedCode()).ifPresent(code -> existingCard.setVaccinationVerified(getCatalogByCode(CatalogType.vaccinationVerified, code)));
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateFrom()).ifPresent(existingCard::setEstimatedInfectionDateFrom);
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateTo()).ifPresent(existingCard::setEstimatedInfectionDateTo);
         Optional.ofNullable(reqCard161.getRiskFactors()).ifPresent(reqCard161RiskFactors -> {
-            List<Card161RiskFactor> riskFactors = reqCard161RiskFactors.stream()
-                    .map(factor -> Card161RiskFactor.builder()
-                            .riskFactor(getCatalogByCode(CatalogType.riskFactor, factor.getRiskFactorCode()))
-                            .card161(existingCard)
-                            .addressLocation(factor.getAddressLocation())
-                            .seasonTime(factor.getSeasonTime())
-                            .build()).toList();
-            existingCard.getRiskFactors().addAll(riskFactors);
+            if (!reqCard161RiskFactors.isEmpty()){
+                List<Card161RiskFactor> riskFactors = reqCard161RiskFactors.stream()
+                        .map(reqFactor -> {
+                            List<Catalog> catalogs = reqFactor.getRiskFactorCode().stream()
+                                    .map(riskFactorCode -> getCatalogByCode(CatalogType.riskFactor, riskFactorCode))
+                                    .toList();
+                            return Card161RiskFactor.builder()
+                                    .riskFactors(catalogs)
+                                    .card161(existingCard)
+                                    .addressLocation(reqFactor.getAddressLocation())
+                                    .seasonTime(reqFactor.getSeasonTime())
+                                    .build();
+                        }).toList();
+
+                existingCard.getRiskFactors().clear();
+                existingCard.getRiskFactors().addAll(riskFactors);
+            }
         });
 
         Optional.ofNullable(reqCard161.getInfectionSources()).ifPresent(reqCard161InfectionSources -> {
@@ -82,20 +93,24 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             .testResult(reqSource.getTestResult())
                             .card161(existingCard)
                             .build()).toList();
-            existingCard.setPossibleInfectionSources(infectionSources);
+            existingCard.getPossibleInfectionSources().clear();
+            existingCard.getPossibleInfectionSources().addAll(infectionSources);
         });
 
         Optional.ofNullable(reqCard161.getEnvironmentalSources()).ifPresent(reqSource -> {
-            List<EnvironmentalSource> environmentalSources = reqSource.stream()
-                    .map(rS -> EnvironmentalSource.builder()
-                            .usageLocationAndTime(rS.getUsageLocationAndTime())
-                            .foodAndWaterSourceTypes(rS.getFoodAndWaterSourceTypes())
-                            .qualityFeedbackFromPatientAndOthers(rS.getQualityFeedbackFromPatientAndOthers())
-                            .storageConditions(rS.getStorageConditions())
-                            .collectionLocationAndTime(rS.getCollectionLocationAndTime())
-                            .card161(existingCard)
-                            .build()).toList();
-            existingCard.setEnvironmentalSources(environmentalSources);
+            if (!reqSource.isEmpty()) {
+                List<EnvironmentalSource> environmentalSources = reqSource.stream()
+                        .map(rS -> EnvironmentalSource.builder()
+                                .usageLocationAndTime(rS.getUsageLocationAndTime())
+                                .foodAndWaterSourceTypes(rS.getFoodAndWaterSourceTypes())
+                                .qualityFeedbackFromPatientAndOthers(rS.getQualityFeedbackFromPatientAndOthers())
+                                .storageConditions(rS.getStorageConditions())
+                                .collectionLocationAndTime(rS.getCollectionLocationAndTime())
+                                .card161(existingCard)
+                                .build()).toList();
+                existingCard.getEnvironmentalSources().clear();
+                existingCard.getEnvironmentalSources().addAll(environmentalSources);
+            }
         });
 
         Optional.ofNullable(reqCard161.getLivingConditionCode()).ifPresent(code -> existingCard.setLivingCondition(getCatalogByCode(CatalogType.livingCondition, code)));
@@ -132,7 +147,8 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             .testTypeAndResult(labT.getTestTypeAndResult())
                             .card161(existingCard)
                             .build()).toList();
-            existingCard.setEnvironmentalLabTests(environmentalLabTests);
+            existingCard.getEnvironmentalLabTests().clear();
+            existingCard.getEnvironmentalLabTests().addAll(environmentalLabTests);
         });
 
 
@@ -147,7 +163,8 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             .restrictionMeasures(reqContactPerson.getRestrictionMeasures())
                             .card161(existingCard)
                             .build()).toList();
-            existingCard.setContactPersonListDetails(contactPersonList);
+            existingCard.getContactPersonListDetails().clear();
+            existingCard.getContactPersonListDetails().addAll(contactPersonList);
         });
 
         Optional.ofNullable(reqCard161.getScreenedGroups()).ifPresent(reqGroup -> {
@@ -161,6 +178,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             .laboratoryTestConducted(reqGr.getLaboratoryTestConducted())
                             .card161(existingCard)
                             .build()).toList();
+            existingCard.getScreenedGroups().clear();
             existingCard.setScreenedGroups(groups);
         });
 
@@ -168,11 +186,15 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             List<HomePreventiveMeasure> measures = rqMeasure.stream()
                     .map(req -> HomePreventiveMeasure.builder()
                             .notifiedPerson(req.getNotifiedPerson())
+                            .nextDiseaseTime(req.getNextDiseaseTime())
+                            .dose(req.getDose())
+                            .drugName(req.getDrugName())
+                            .resultTime(req.getResultTime())
+                            .lisResult(req.getLisResult())
                             .observationResult(req.getObservationResult())
-                            .laboratoryExamination(req.getLaboratoryExamination())
-                            .nextDiseasePrevention(req.getNextDiseasePrevention())
                             .card161(existingCard)
                             .build()).toList();
+            existingCard.getHomePreventiveMeasures().clear();
             existingCard.setHomePreventiveMeasures(measures);
         });
 
@@ -187,6 +209,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             .executionMonitoringResult(req.getExecutionMonitoringResult())
                             .card161(existingCard)
                             .build()).toList();
+            existingCard.getOutbreakDisinfectionMeasures().clear();
             existingCard.setOutbreakDisinfectionMeasures(measures);
         });
 
@@ -194,6 +217,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
 
 
         Optional.ofNullable(reqCard161.getInfectionLocationCode()).ifPresent(code -> existingCard.setInfectionLocation(getCatalogByCode(CatalogType.infactedLocation, code)));
+        Optional.ofNullable(reqCard161.getProbableInfectionLocationCode()).ifPresent(code-> existingCard.setProbableInfectionLocation(getCatalogByCode(CatalogType.probableInfectionLoc,code)));
         Optional.ofNullable(reqCard161.getInfectionSourceNotFoundCode()).ifPresent(code -> existingCard.setInfectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, code)));
         Optional.ofNullable(reqCard161.getPersonFullName()).ifPresent(existingCard::setPersonFullName);
         Optional.ofNullable(reqCard161.getInfectionSourceDiseasePeriodCode()).ifPresent(code -> existingCard.setInfectionSourceDiseasePeriod(getCatalogByCode(CatalogType.infectionPeriod, code)));
@@ -205,15 +229,14 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                     .map(code -> getCatalogByCode(CatalogType.infeCondition, code))
                     .filter(Objects::nonNull)
                     .toList();
-            existingCard.setInfectionCausingConditions(conditions);
+            existingCard.getInfectionCausingConditions().clear();
+            existingCard.getInfectionCausingConditions().addAll(conditions);
         });
-
 
         Optional.ofNullable(reqCard161.getOutbreakInfectionCode()).ifPresent(code -> existingCard.setOutbreakInfection(getCatalogByCode(CatalogType.outbreakInfection, code)));
         Optional.ofNullable(reqCard161.getCaseStatusCode()).ifPresent(code -> existingCard.setCaseStatus(getCatalogByCode(CatalogType.caseStatus, code)));
         Optional.ofNullable(reqCard161.getEpidemiologist()).ifPresent(existingCard::setEpidemiologist);
         Optional.ofNullable(reqCard161.getEpidemiologistAssistant()).ifPresent(existingCard::setEpidemiologistAssistant);
-
         Card161 updatedCard = cardRepository.save(existingCard);
         return new ApiResponse<>(true, "Card161 updated successfully.", updatedCard);
     }

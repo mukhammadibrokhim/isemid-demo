@@ -22,7 +22,7 @@ public enum CatalogType {
     detected, definedDisease, homeStayExclusionReason,diagnosisVerified,
     livingCondition, waterSupply,
     liquidWaste, solidWaste, roomCondition, yardCondition,
-    areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation,
+    areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation,probableInfectionLoc,
     notFoundInfection, infectionPeriod, animalType, mainFactor, outbreakInfection, caseStatus,
     infeCondition, level,
 
@@ -36,5 +36,5 @@ public enum CatalogType {
     informationAboutImmediatePreventionAndAntirabicAid,
     partOfInjury,relevanceOfDiseaseToProfession,severityOfIllness,diseaseSpreaderType,
     ownerOfDiseaseSpreader,observationResultOfAnimals,checkingDiagnosis,diseaseTransmissionCondition,
-    pathogenMainFactor,takenMeasuresFromResidence
+    pathogenMainFactor, vaccinationVerified, takenMeasuresFromResidence
 }
