@@ -146,7 +146,6 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getFoodPreparation()).ifPresent(existingCard::setFoodPreparation);
         Optional.ofNullable(reqCard161.getDiseaseCausingFactors()).ifPresent(existingCard::setDiseaseCausingFactors);
 
-
         Optional.ofNullable(reqCard161.getEnvironmentalLabTests()).ifPresent(labTests -> {
             List<EnvironmentalLabTest> environmentalLabTests = labTests.stream()
                     .map(labT -> EnvironmentalLabTest.builder()

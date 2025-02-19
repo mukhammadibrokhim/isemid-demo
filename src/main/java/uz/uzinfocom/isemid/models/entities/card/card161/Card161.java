@@ -139,7 +139,7 @@ public class Card161 extends Card {
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog visitedObjects;
 
-    private boolean denselyPopulated;
+    private String denselyPopulated;
     private String isolationStatus;
     private String waterSupplyStatus;
     private String sanitaryMaintenance;
