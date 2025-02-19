@@ -62,6 +62,21 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getLateAdmissionReasonsCode()).ifPresent(code -> existingCard.setLateAdmissionReason(getCatalogByCode(CatalogType.reasonOfLateHospitalization, code)));
         Optional.ofNullable(reqCard161.getDiagnosisVerifiedCode()).ifPresent(code -> existingCard.setDiagnosisVerified(getCatalogByCode(CatalogType.diagnosisVerified, code)));
         Optional.ofNullable(reqCard161.getVaccinationVerifiedCode()).ifPresent(code -> existingCard.setVaccinationVerified(getCatalogByCode(CatalogType.vaccinationVerified, code)));
+        Optional.ofNullable(reqCard161.getVaccinations()).ifPresent(reqVaccinations -> {
+            List<Vaccination> vaccinations = reqVaccinations.stream()
+                    .map(vac -> Vaccination.builder()
+                            .vaccinationName(vac.getVaccinationName())
+                            .vaccinationDate(vac.getVaccinationDate())
+                            .serialNumber(vac.getSerialNumber())
+                            .unitInDose(vac.getUnitInDose())
+                            .doseVolume(vac.getDoseVolume())
+                            .epidemicBased(vac.getEpidemicBased())
+                            .scheduled(vac.getScheduled())
+                            .build()).toList();
+            existingCard.getVaccinations().clear();
+            existingCard.getVaccinations().addAll(vaccinations);
+        });
+
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateFrom()).ifPresent(existingCard::setEstimatedInfectionDateFrom);
         Optional.ofNullable(reqCard161.getEstimatedInfectionDateTo()).ifPresent(existingCard::setEstimatedInfectionDateTo);
         Optional.ofNullable(reqCard161.getRiskFactors()).ifPresent(reqCard161RiskFactors -> {

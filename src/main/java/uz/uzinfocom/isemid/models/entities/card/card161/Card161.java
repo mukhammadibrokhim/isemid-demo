@@ -65,15 +65,10 @@ public class Card161 extends Card {
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog vaccinationVerified;
 
-    private String vaccinationName;   // Preparat nomi
-    private String serialNumber;      // Seriya raqami
-    private LocalDateTime vaccinationDate; // Vaqti (GMT+5 Toshkent)
-    private int unitInDose;           // Birlik doza
-    private int doseVolume;           // Doza hajmi
-
-    private boolean scheduled;        // Rejeli emlashmi?
-    private boolean epidemicBased;    // Epidemik ko‘rsatma asosida emlashmi?
-
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card161"})
+    @Builder.Default
+    List<Vaccination> vaccinations = new ArrayList<>();
 
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;
@@ -233,3 +228,4 @@ public class Card161 extends Card {
     private String epidemiologist;
     private String epidemiologistAssistant;
 }
+

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 
 @Data
@@ -13,12 +14,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class RespVaccination {
+    private String firstName;
+    private String lastName;
+    private String middleName;
+    private Date birthDate;
+    private String mpi;
     private String vaccinationName;   // Preparat nomi
     private String serialNumber;      // Seriya raqami
     private LocalDateTime vaccinationDate; // Vaqti (GMT+5 Toshkent)
     private int unitInDose;           // Birlik doza
     private int doseVolume;           // Doza hajmi
-
-    private String scheduled;        // Rejeli emlashmi?
-    private String epidemicBased;    // Epidemik ko‘rsatma asosida emlashmi?
+    private String vaccinationExpire;
 }
