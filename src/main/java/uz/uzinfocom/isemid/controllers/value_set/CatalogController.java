@@ -470,11 +470,11 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.detected, lang);
     }
 
-    @Operation(summary = "", tags = "Catalog Card161")
-    @GetMapping("/vaccination-verified")
-    public ApiResponse<?> getHoeStayReason(@RequestHeader("Accept-Language") String lang) {
-        return catalogService.findAllByType(CatalogType.vaccinationVerified, lang);
-    }
+//    @Operation(summary = "", tags = "Catalog Card161")
+//    @GetMapping("/vaccination-verified")
+//    public ApiResponse<?> getHoeStayReason(@RequestHeader("Accept-Language") String lang) {
+//        return catalogService.findAllByType(CatalogType.vaccinationVerified, lang);
+//    }
 
     @Operation(summary = "", tags = "Catalog Card161")
     @GetMapping("/living-condition")
