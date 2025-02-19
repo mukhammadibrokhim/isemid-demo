@@ -30,6 +30,7 @@ public class CatalogController {
     final CatalogService catalogService;
 
     //    @PreAuthorize("hasAnyAuthority('create_catalog')")
+//    @Operation(tags = "Catalog")
     @PostMapping
     public ApiResponse<Catalog> createCatalog(@Valid @RequestBody ReqCatalog reqCatalog) {
         return catalogService.createCatalog(reqCatalog);
@@ -88,6 +89,7 @@ public class CatalogController {
         return catalogService.updateCatalogById(id, reqCatalog);
     }
 
+//    @Operation(tags = "Catalog")
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteCatalog(@PathVariable long id) {
         return catalogService.deleteById(id);
@@ -224,6 +226,7 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.populationType, lang);
     }
 
+//    @Operation(tags = "Catalog Patient")
     @GetMapping("/positions")
     public ApiResponse<List<RespCatalog>> getPositions(
             @RequestHeader("Accept-Language") String lang
@@ -231,6 +234,7 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.position, lang);
     }
 
+//    @Operation(tags = "Catalog Patient")
     @GetMapping("/levels")
     public ApiResponse<?> getLevels(
             @RequestHeader("Accept-Language") String lang
@@ -238,21 +242,25 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.level, lang);
     }
 
+//    @Operation(tags = "Catalog From058")
     @GetMapping("/forms")
     public ApiResponse<?> getCards(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.formType, lang);
     }
 
+//    @Operation(tags = "Catalog From058")
     @GetMapping("/disease-place")
     public ApiResponse<List<RespCatalog>> getDeceasePlace(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.diseasePlace, lang);
     }
 
+//    @Operation(tags = "Catalog Patient")
     @GetMapping("/category")
     public ApiResponse<?> getCategory(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.category, lang);
     }
 
+//    @Operation(tags = "Catalog Patient")
     @GetMapping("/profession")
     public ApiResponse<List<RespCatalog>> getProfession(
             @RequestParam(value = "search", required = false) String search,
@@ -261,14 +269,15 @@ public class CatalogController {
         return catalogService.findByProfessionTypeAndSearch(CatalogType.profession, lang, search);
     }
 
+//    @Operation(tags = "Catalog From058")
     @GetMapping("/defined-disease")
     public ApiResponse<?> definedDisease(
             @RequestHeader("Accept-Language") String lang
     ) {
         return catalogService.findAllByType(CatalogType.definedDisease, lang);
-
     }
 
+//    @Operation(tags = "Catalog Patient")
     @GetMapping("/neighborhood")
     public ApiResponse<List<RespCatalog>> getCatalogNeighborhood(
             @RequestParam String parentCode,
@@ -278,6 +287,7 @@ public class CatalogController {
 
     }
     //Catalog 175
+//    @Operation(tags = "Catalog Card175")
     @GetMapping("/where-patient-come")
     public ApiResponse<?> wherePatientCome(
             @RequestHeader("Accept-Language") String lang
@@ -473,11 +483,135 @@ public class CatalogController {
     }
 
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/risk-factor")
+    public ApiResponse<?> getRiskFactor(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.riskFactor, lang);
+    }
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/patient-detected")
+    public ApiResponse<?> getDetected(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.detected, lang);
+    }
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/vaccination-verified")
+    public ApiResponse<?> getHoeStayReason(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.vaccinationVerified, lang);
+    }
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/living-condition")
+    public ApiResponse<?> getLivingCon(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.livingCondition, lang);
+    }
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/water-supply")
+    public ApiResponse<?> getWaterSupply(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.waterSupply, lang);
+    }
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/liq-waste-type")
+    public ApiResponse<?> getLqwT(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.liquidWaste, lang);
+    }
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/solid-waste-type")
+    public ApiResponse<?> getSolidWaste(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.solidWaste, lang);
+    }
 
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/room-condition")
+    public ApiResponse<?> getRoomCon(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.roomCondition, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/yard-condition")
+    public ApiResponse<?> getYardCon(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.yardCondition, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/area-condition")
+    public ApiResponse<?> getAreaCon(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.areaContidion, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/visit-objects")
+    public ApiResponse<?> getVisitObj(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.visitetObj, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/prevent-measure")
+    public ApiResponse<?> getPreventMeasure(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.preventMeasure, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/conducted-location")
+    public ApiResponse<?> getConductedLoc(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.counductedLoca, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/infection-location")
+    public ApiResponse<?> getInfectionLoc(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.infactedLocation, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/probable-infection-location")
+    public ApiResponse<?> getProbableInfectionLoc(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.probableInfectionLoc, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/infection-source")
+    public ApiResponse<?> getInfectionSource(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.notFoundInfection, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/infection-period")
+    public ApiResponse<?> getInfectionPeriod(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.infectionPeriod, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/animal-type")
+    public ApiResponse<?> getAnimalType(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.animalType, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/main-probable-infection-factor")
+    public ApiResponse<?> getMainFactor(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.mainFactor, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/infection-condition")
+    public ApiResponse<?> getInfectionCond(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.infeCondition, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/outbreak-infection")
+    public ApiResponse<?> getOutBreak(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.outbreakInfection, lang);
+    }
+
+    @Operation(summary = "", tags = "Catalog Card161")
+    @GetMapping("/case-status")
+    public ApiResponse<?> getCase(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.caseStatus, lang);
+    }
 }

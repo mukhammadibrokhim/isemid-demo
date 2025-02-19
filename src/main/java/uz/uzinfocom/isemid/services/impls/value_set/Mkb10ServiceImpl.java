@@ -141,45 +141,4 @@ public class Mkb10ServiceImpl implements Mkb10Service {
             mkb10Repository.saveAll(mkb10Map.values());
         }
     }
-
-//    @SneakyThrows
-//    @PostConstruct
-//    private void insertStreet() {
-//        Resource resource = resourceLoader.getResource("classpath:/base/mkb10.csv");
-//        InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
-//        BufferedReader bufferedReader = new BufferedReader(reader);
-//        try (CSVReader csvReader = new CSVReader(bufferedReader)) {
-//            List<String[]> records = csvReader.readAll();
-//            Map<Long, Mkb10> mkb10Map = records.stream()
-//                    .skip(1)
-//                    .map(record -> Mkb10.builder()
-//                            .id(Long.parseLong(record[1]))           // ID
-//                            .code(record[2]) // code
-//                            .isLastLevel(Boolean.parseBoolean(record[3])) // is_last_level
-//                            .level(Integer.parseInt(record[4])) // level
-//                            .nameEn(record[5]) // name_en
-//                            .nameRu(record[6]) // name_ru
-//                            .nameUz(record[7]) // name_uz
-//                            .nameUzCyrl(record[8]) // name_uz_cyrl
-//                            .parentId(record[9].isEmpty() ? null : Long.parseLong(record[9])) // parent_id
-//                            .secondaryId(Long.parseLong(record[10])) // secondary_id
-//                            .build())
-//                    .collect(Collectors.toMap(Mkb10::getId, mkb10 -> mkb10));
-//
-//            mkb10Map.values().forEach(mkb10 -> {
-//                if (mkb10.getParentId() != null) {
-//                    Mkb10 parent = mkb10Map.get(mkb10.getParentId());
-//                    mkb10.setParent(parent);
-//                    if (parent != null) {
-//                        if (parent.getChildren() == null) {
-//                            parent.setChildren(new ArrayList<>()); // NullPointerException dan saqlanish
-//                        }
-//                        parent.getChildren().add(mkb10);
-//                    }
-//                }
-//            });
-//
-//            mkb10Repository.saveAll(mkb10Map.values());
-//        }
-//    }
 }
