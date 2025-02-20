@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ReqOutbreakDisinfectionMeasure {
+    private Long id;
     private String preventiveMeasuresCode;
     private String drugType;
     private String conductedAt;

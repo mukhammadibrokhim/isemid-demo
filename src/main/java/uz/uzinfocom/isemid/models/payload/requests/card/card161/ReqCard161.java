@@ -39,7 +39,6 @@ public class ReqCard161 extends ReqCard {
     //LIS bilan integratsiya uchun polya qoshish kerak.
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
-    private String vaccinationVerifiedCode;
 
     private List<ReqVaccination> vaccinations;
 
@@ -49,7 +48,7 @@ public class ReqCard161 extends ReqCard {
 
     private List<ReqCard161RiskFactor> riskFactors;
 
-    private List<ReqInfectionSource> infectionSources;
+    private List<ReqInfectionSource> possibleInfectionSources;
 
     private List<ReqEnvironmentalSource> environmentalSources;
     private List<ReqEnvironmentalLabTest> environmentalLabTests;

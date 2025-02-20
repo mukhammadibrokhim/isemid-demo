@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class ReqEnvironmentalLabTest {
+    private Long id;
     private LocalDate examinationDate;
     private String objectArthropodsAnimals;
     private String material;

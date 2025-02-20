@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class ReqHomePreventiveMeasure {
+    private Long id;
     private String notifiedPerson;
     private LocalDateTime nextDiseaseTime; //DMED integration
     private String drugName; //DMED integration

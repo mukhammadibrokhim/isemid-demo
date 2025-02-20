@@ -2,7 +2,7 @@ image: maven:latest
 
 variables:
   DEV_SERVER: '10.10.10.104'
-#  PROD_SERVER: '10.10.10.81'
+  #  PROD_SERVER: '10.10.10.81'
   PRODUCTION_USER: 'runner'
   DOCKER_HOST: "tcp://docker:2375"
   DOCKER_TLS_CERTDIR: ""
@@ -11,7 +11,6 @@ variables:
 before_script:
   - eval $(ssh-agent -s)
   - chmod 600 $MOH_PRIVATE_KEY
-  - cp $MOH_SSV_NETRC ~/.netrc
 
 stages:
   - gitlab-ci-check
@@ -22,8 +21,8 @@ check_gitlab_ci_yml:
   script:
     - git fetch origin ci
     - if ! git diff --exit-code origin/ci:./.gitlab-ci.yml ./.gitlab-ci.yml; then
-        echo "Файл gitlab-ci.yml изменен. Отклоняем изменения!";
-        exit 1;
+      echo "Файл gitlab-ci.yml изменен. Отклоняем изменения!";
+      exit 1;
       fi
 
 deploy_dev:

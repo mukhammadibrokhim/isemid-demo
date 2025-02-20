@@ -60,11 +60,6 @@ public class Card161 extends Card {
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog vaccinationVerified;
-
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
     @Builder.Default
@@ -210,7 +205,7 @@ public class Card161 extends Card {
 
     @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
-            name = "card161_indirection_cousing",
+            name = "card161_indirection_coursing",
             joinColumns = @JoinColumn(name = "card161_id"),
             inverseJoinColumns = @JoinColumn(name = "catalog_code"))
     @Builder.Default
