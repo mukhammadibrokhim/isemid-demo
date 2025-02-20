@@ -13,8 +13,7 @@ import uz.uzinfocom.isemid.services.VaccinationService;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.VACCINATION_NNUZB;
 import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
@@ -34,12 +33,22 @@ public class VaccinationServiceImpl implements VaccinationService {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setTimeZone(TimeZone.getTimeZone("Asia/Tashkent"));
+
         VaccinationDto dto = mapper.readValue(jsonString, VaccinationDto.class);
         if (dto.getResult() != null) {
-
-
             List<VaccinationDto.Data> data = dto.getResult();
-            return data.stream()
+
+            Map<String, VaccinationDto.Data> latestVaccinations = new HashMap<>();
+
+            for (VaccinationDto.Data entry : data) {
+                String vaccineName = entry.getSku().getName();
+                if (!latestVaccinations.containsKey(vaccineName) ||
+                        latestVaccinations.get(vaccineName).getVaccinationDate().isBefore(entry.getVaccinationDate())) {
+                    latestVaccinations.put(vaccineName, entry);
+                }
+            }
+
+            return latestVaccinations.values().stream()
                     .map(data1 -> {
                         ZonedDateTime tashkentTime = data1.getVaccinationDate()
                                 .atZoneSameInstant(ZoneId.of("Asia/Tashkent"));
@@ -50,7 +59,7 @@ public class VaccinationServiceImpl implements VaccinationService {
                                 .birthDate(data1.getBirthDate())
                                 .mpi(data1.getMpi())
                                 .vaccinationName(data1.getSku().getName())
-                                .vaccinationDate(tashkentTime.toLocalDateTime())
+                                .vaccinationDate(tashkentTime.toLocalDateTime()) // Eng oxirgi sanani tanlash
                                 .unitInDose(data1.getSku().getUnitInDose())
                                 .doseVolume(data1.getSku().getDoseVolume())
                                 .serialNumber(data1.getSku().getSerialNumber())
@@ -58,6 +67,7 @@ public class VaccinationServiceImpl implements VaccinationService {
                                 .build();
                     }).toList();
         }
-        return null;
+        return Collections.emptyList();
     }
+
 }
