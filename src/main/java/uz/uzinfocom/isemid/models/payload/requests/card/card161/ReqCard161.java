@@ -75,7 +75,7 @@ public class ReqCard161 extends ReqCard {
 
     private String visitedObjectsCode;
 
-    private Boolean denselyPopulated;
+    private String denselyPopulated;
     private String isolationStatus;
     private String waterSupplyStatus;
     private String sanitaryMaintenance;
