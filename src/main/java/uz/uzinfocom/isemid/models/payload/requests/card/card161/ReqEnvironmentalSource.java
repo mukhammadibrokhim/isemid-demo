@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ReqEnvironmentalSource {
+    private Long id;
     private String foodAndWaterSourceTypes;
     private String collectionLocationAndTime;
     private String usageLocationAndTime;

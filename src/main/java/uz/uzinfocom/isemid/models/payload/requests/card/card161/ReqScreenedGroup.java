@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ReqScreenedGroup {
+    private Long id;
     private String teamName;
     private String prophylacticAddress;
     private String contactCount;

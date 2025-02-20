@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ReqContactPerson {
+    private Long id;
     private String fullName;
     private String age;
     private String address;

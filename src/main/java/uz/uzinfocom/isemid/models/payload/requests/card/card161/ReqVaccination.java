@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class ReqVaccination {
+    private Long id;
+    private String vaccinationVerifiedCode;
     private String vaccinationName;
     private String serialNumber;
     private LocalDateTime vaccinationDate;
