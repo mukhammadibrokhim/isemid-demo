@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests.card.card161;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqVaccination {
     private Long id;
     private String vaccinationVerifiedCode;
