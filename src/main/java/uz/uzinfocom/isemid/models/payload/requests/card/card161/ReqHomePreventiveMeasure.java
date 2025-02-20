@@ -21,7 +21,6 @@ public class ReqHomePreventiveMeasure {
     private String drugName; //DMED integration
     private String dose; //DMED integration
     private String series; //DMED integration
-
     private LocalDateTime resultTime; //integration LIS
     private LocalDate receivedDate; // Олинган сана
     private String lisResult;//integration LIS

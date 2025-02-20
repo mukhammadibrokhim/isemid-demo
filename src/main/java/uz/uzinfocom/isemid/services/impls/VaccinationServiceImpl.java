@@ -37,6 +37,7 @@ public class VaccinationServiceImpl implements VaccinationService {
         VaccinationDto dto = mapper.readValue(jsonString, VaccinationDto.class);
         if (dto.getResult() != null) {
 
+
             List<VaccinationDto.Data> data = dto.getResult();
             return data.stream()
                     .map(data1 -> {
