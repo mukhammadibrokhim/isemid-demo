@@ -224,9 +224,9 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
 
         Optional.ofNullable(reqCard161.getContactPersonDetails()).ifPresent(reqContactPeople -> {
             if (reqContactPeople.isEmpty()) {
-                existingCard.getContactPersonListDetails().clear();
+                existingCard.getContactPersonDetails().clear();
             } else {
-                reqContactPeople.forEach(reqContactPerson -> existingCard.getContactPersonListDetails().stream()
+                reqContactPeople.forEach(reqContactPerson -> existingCard.getContactPersonDetails().stream()
                         .filter(existingContactPerson -> existingContactPerson.getId() != null && existingContactPerson.getId().equals(reqContactPerson.getId()))
                         .findFirst()
                         .ifPresentOrElse(existingContactPerson -> {
@@ -247,7 +247,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                                     .immunizationStatus(reqContactPerson.getImmunizationStatus())
                                     .restrictionMeasures(reqContactPerson.getRestrictionMeasures())
                                     .build();
-                            existingCard.getContactPersonListDetails().add(contactPerson);
+                            existingCard.getContactPersonDetails().add(contactPerson);
                         }));
             }
         });
