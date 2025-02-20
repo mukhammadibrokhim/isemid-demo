@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqContactPerson {
     private Long id;
-    private String fullName;
-    private String age;
-    private String address;
-    private String jobTypeAndLocation;
-    private String immunizationStatus;
-    private String restrictionMeasures;
+    private String contactFullName;
+    private String contactAge;
+    private String contactAddress;
+    private String contactJobTypeAndLocation;
+    private String ContactImmunizationStatus;
+    private String contactRestrictionMeasures;
 }
