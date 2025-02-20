@@ -230,22 +230,22 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .filter(existingContactPerson -> existingContactPerson.getId() != null && existingContactPerson.getId().equals(reqContactPerson.getId()))
                         .findFirst()
                         .ifPresentOrElse(existingContactPerson -> {
-                            existingContactPerson.setFullName(reqContactPerson.getContactFullName());
-                            existingContactPerson.setAge(reqContactPerson.getContactAge());
-                            existingContactPerson.setAddress(reqContactPerson.getContactAddress());
-                            existingContactPerson.setJobTypeAndLocation(reqContactPerson.getContactJobTypeAndLocation());
-                            existingContactPerson.setImmunizationStatus(reqContactPerson.getContactImmunizationStatus());
-                            existingContactPerson.setRestrictionMeasures(reqContactPerson.getContactRestrictionMeasures());
+                            existingContactPerson.setFullName(reqContactPerson.getFullName());
+                            existingContactPerson.setAge(reqContactPerson.getAge());
+                            existingContactPerson.setAddress(reqContactPerson.getAddress());
+                            existingContactPerson.setJobTypeAndLocation(reqContactPerson.getJobTypeAndLocation());
+                            existingContactPerson.setImmunizationStatus(reqContactPerson.getImmunizationStatus());
+                            existingContactPerson.setRestrictionMeasures(reqContactPerson.getRestrictionMeasures());
                         }, () -> {
 
                             ContactPerson contactPerson = ContactPerson.builder()
                                     .card161(existingCard)
-                                    .fullName(reqContactPerson.getContactFullName())
-                                    .age(reqContactPerson.getContactAge())
-                                    .address(reqContactPerson.getContactAddress())
-                                    .jobTypeAndLocation(reqContactPerson.getContactJobTypeAndLocation())
-                                    .immunizationStatus(reqContactPerson.getContactImmunizationStatus())
-                                    .restrictionMeasures(reqContactPerson.getContactRestrictionMeasures())
+                                    .fullName(reqContactPerson.getFullName())
+                                    .age(reqContactPerson.getAge())
+                                    .address(reqContactPerson.getAddress())
+                                    .jobTypeAndLocation(reqContactPerson.getJobTypeAndLocation())
+                                    .immunizationStatus(reqContactPerson.getImmunizationStatus())
+                                    .restrictionMeasures(reqContactPerson.getRestrictionMeasures())
                                     .build();
                             existingCard.getContactPersonDetails().add(contactPerson);
                         }));
