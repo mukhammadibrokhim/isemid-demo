@@ -151,7 +151,7 @@ public class Card161 extends Card {
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
     @Builder.Default
-    private List<ContactPerson> contactPersonListDetails = new ArrayList<>();
+    private List<ContactPerson> contactPersonDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
