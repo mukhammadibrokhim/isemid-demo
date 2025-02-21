@@ -62,6 +62,7 @@ public class Card161 extends Card {
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     List<Vaccination> vaccinations = new ArrayList<>();
 
@@ -70,16 +71,19 @@ public class Card161 extends Card {
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<Card161RiskFactor> riskFactors = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<InfectionSource> possibleInfectionSources = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<EnvironmentalSource> environmentalSources = new ArrayList<>();
 
@@ -145,26 +149,31 @@ public class Card161 extends Card {
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<EnvironmentalLabTest> environmentalLabTests = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<ContactPerson> contactPersonDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<ScreenedGroup> screenedGroups = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<HomePreventiveMeasure> homePreventiveMeasures = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
+    @OrderBy("id DESC")
     @Builder.Default
     private List<OutbreakDisinfectionMeasure> outbreakDisinfectionMeasures = new ArrayList<>();
 

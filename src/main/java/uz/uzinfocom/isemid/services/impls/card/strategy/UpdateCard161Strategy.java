@@ -11,6 +11,7 @@ import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqCard161;
+import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqVaccination;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;
@@ -19,6 +20,8 @@ import uz.uzinfocom.isemid.services.value_set.CatalogService;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -66,6 +69,14 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (reqVaccinations.isEmpty()) {
                 existingCard.getVaccinations().clear();
             } else {
+                Set<Long> requestIds = reqVaccinations.stream()
+                        .map(ReqVaccination::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getVaccinations().removeIf(existingVaccination ->
+                        existingVaccination.getId() != null && !requestIds.contains(existingVaccination.getId()));
+
                 reqVaccinations.forEach(reqVaccination -> existingCard.getVaccinations().stream()
                         .filter(existingVaccination -> existingVaccination.getId() != null && existingVaccination.getId().equals(reqVaccination.getId()))
                         .findFirst()
@@ -74,8 +85,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             existingVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.informationAboutVaccination, reqVaccination.getVaccinationVerifiedCode()));
                             existingVaccination.setVaccinationDate(reqVaccination.getVaccinationDate());
                             existingVaccination.setSerialNumber(reqVaccination.getSerialNumber());
-//                            existingVaccination.setUnitInDose(reqVaccination.getUnitInDose());
-//                            existingVaccination.setDoseVolume(reqVaccination.getDoseVolume());
+                            existingVaccination.setDoseVolume(reqVaccination.getDoseVolume());
                             existingVaccination.setScheduled(reqVaccination.getScheduled());
                         }, () -> {
                             Vaccination newVaccination = new Vaccination();
@@ -84,7 +94,6 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             newVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.informationAboutVaccination, reqVaccination.getVaccinationVerifiedCode()));
                             newVaccination.setVaccinationDate(reqVaccination.getVaccinationDate());
                             newVaccination.setSerialNumber(reqVaccination.getSerialNumber());
-//                            newVaccination.setUnitInDose(reqVaccination.getUnitInDose());
                             newVaccination.setDoseVolume(reqVaccination.getDoseVolume());
                             existingCard.getVaccinations().add(newVaccination);
                         }));
