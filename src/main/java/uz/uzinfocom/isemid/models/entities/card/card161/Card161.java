@@ -190,27 +190,16 @@ public class Card161 extends Card {
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog probableInfectionLocation;
 
-    @ManyToOne
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog infectionSourceNotFound;
-    private String personFullName;
+    private Boolean isInfectionSourceMissing;
 
-    @ManyToOne
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog infectionSourceDiseasePeriod;
-
-    @ManyToOne
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog animalType;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "infection_source_detail_id", referencedColumnName = "id")
+    private InfectionSourceDetail infectionSourceDetail;
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog mainProbableInfectionFactor;
-
 
     @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
