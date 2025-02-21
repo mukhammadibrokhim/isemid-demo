@@ -63,6 +63,8 @@ public class Form058ServiceImpl implements Form058Service {
                 .birthDate(reqForm058.getPatient().getBirthDate())
                 .gender(catalogService.findByTypeAndCode(CatalogType.gender, reqForm058.getPatient().getGender().name()).orElse(null))
                 .workPlace(reqForm058.getPatient().getWorkPlace())
+                .workPlaceState(mapCatalog(CatalogType.state, reqForm058.getPatient().getWorkPlaceStateCode()))
+                .workPlaceCity(mapCatalog(CatalogType.city, reqForm058.getPatient().getWorkPlaceCityCode()))
                 .residentialStatus(mapCatalog(CatalogType.residentialStatus, reqForm058.getPatient().getResidentialStatus().name()))
                 .category(catalogService.findByTypeAndCode(CatalogType.category, reqForm058.getPatient().getCategoryCode()).orElse(null))
                 .profession(catalogService.findByTypeAndCode(CatalogType.profession, reqForm058.getPatient().getProfessionCode()).orElse(null))
@@ -197,6 +199,8 @@ public class Form058ServiceImpl implements Form058Service {
                 Optional.ofNullable(reqPatient.getCategoryCode()).ifPresent(reqCategoryCode -> mapCatalog(CatalogType.category, reqCategoryCode));
                 Optional.ofNullable(reqPatient.getProfessionCode()).ifPresent(code -> mapCatalog(CatalogType.profession, code));
                 Optional.ofNullable(reqPatient.getWorkPlace()).ifPresent(patient::setWorkPlace);
+                Optional.ofNullable(reqPatient.getWorkPlaceStateCode()).ifPresent(code -> mapCatalog(CatalogType.state, code));
+                Optional.ofNullable(reqPatient.getWorkPlaceCityCode()).ifPresent(code -> mapCatalog(CatalogType.city, code));
                 Optional.ofNullable(reqPatient.getAddresses()).ifPresent(reqAddresses -> {
 
                     List<Address> existingAddresses = patient.getAddresses();

@@ -68,6 +68,15 @@ public class Patient extends AbsEntity {
     private Catalog profession;
 
     private String workPlace;
+    @ManyToOne
+    @JoinColumn(name = "profession", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog workPlaceState;
+
+    @ManyToOne
+    @JoinColumn(name = "profession", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog workPlaceCity;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
