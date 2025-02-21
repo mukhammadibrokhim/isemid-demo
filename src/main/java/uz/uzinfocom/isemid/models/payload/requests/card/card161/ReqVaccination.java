@@ -19,8 +19,8 @@ public class ReqVaccination {
     private String vaccinationName;
     private String serialNumber;
     private LocalDateTime vaccinationDate;
-    private Integer unitInDose;
+//    private Integer unitInDose;
     private Integer doseVolume;
-    private Boolean scheduled;
-    private Boolean epidemicBased;
+//    private Boolean scheduled;
+//    private Boolean epidemicBased;
 }
