@@ -11,6 +11,7 @@ import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqCard161;
+import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqHomePreventiveMeasure;
 import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqVaccination;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
@@ -57,7 +58,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getDistrict()).ifPresent(existingCard::setDistrict);
         Optional.ofNullable(reqCard161.getPolyclinic()).ifPresent(existingCard::setPolyclinic);
         Optional.ofNullable(reqCard161.getInitialSymptoms()).ifPresent(existingCard::setInitialSymptoms);
-        Optional.ofNullable(reqCard161.getDetectedCode()).ifPresent(code -> existingCard.setDetected(getCatalogByCode(CatalogType.detected, code)));
+        Optional.ofNullable(reqCard161.getDetectedCode()).ifPresent(code -> existingCard.setDetected(getCatalogByCode(CatalogType.definedDisease, code)));
         Optional.ofNullable(reqCard161.getEpidemiologicalExamDate()).ifPresent(existingCard::setEpidemiologicalExamDate);
         Optional.ofNullable(reqCard161.getObservationEndDate()).ifPresent(existingCard::setObservationEndDate);
         Optional.ofNullable(reqCard161.getFinalDiagnosisDate()).ifPresent(existingCard::setFinalDiagnosisDate);
@@ -292,6 +293,14 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (rqMeasure.isEmpty()) {
                 existingCard.getHomePreventiveMeasures().clear();
             } else {
+                Set<Long> requestIds = rqMeasure.stream()
+                        .map(ReqHomePreventiveMeasure::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getHomePreventiveMeasures().removeIf(existingPrMeasure ->
+                        existingPrMeasure.getId() != null && !requestIds.contains(existingPrMeasure.getId()));
+
                 rqMeasure.forEach(reqHomePreventiveMeasure -> existingCard.getHomePreventiveMeasures().stream()
                         .filter(existingMeasure -> existingMeasure.getId() != null && existingMeasure.getId().equals(reqHomePreventiveMeasure.getId()))
                         .findFirst()
