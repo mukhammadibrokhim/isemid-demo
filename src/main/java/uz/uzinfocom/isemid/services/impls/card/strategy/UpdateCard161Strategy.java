@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqCard161;
 import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqHomePreventiveMeasure;
+import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqOutbreakDisinfectionMeasure;
 import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqVaccination;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
@@ -337,6 +338,15 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (rqMeasure.isEmpty()) {
                 existingCard.getOutbreakDisinfectionMeasures().clear();
             } else {
+
+                Set<Long> requestIds = rqMeasure.stream()
+                        .map(ReqOutbreakDisinfectionMeasure::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getOutbreakDisinfectionMeasures().removeIf(existingPrMeasure ->
+                        existingPrMeasure.getId() != null && !requestIds.contains(existingPrMeasure.getId()));
+
                 rqMeasure.forEach(reqMeasure -> existingCard.getOutbreakDisinfectionMeasures().stream()
                         .filter(existingMeasure -> existingMeasure.getId() != null && existingMeasure.getId().equals(reqMeasure.getId()))
                         .findFirst()
@@ -362,9 +372,6 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         }));
             }
         });
-        //infectionLocation
-        //animalType
-        //mainProbableInfectionFactor
 
         Optional.ofNullable(reqCard161.getHospitalName()).ifPresent(existingCard::setHospitalName);
         Optional.ofNullable(reqCard161.getInfectionLocationCode()).ifPresent(code -> existingCard.setInfectionLocation(getCatalogByCode(CatalogType.infectedLocation, code)));

@@ -7,8 +7,6 @@ import lombok.*;
 import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -22,7 +20,7 @@ public class Card161RiskFactor extends BaseEntity {
     @JsonIgnore
     private Card161 card161;
 //
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog riskFactor;
