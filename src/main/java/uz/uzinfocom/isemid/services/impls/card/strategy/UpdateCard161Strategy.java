@@ -71,7 +71,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                 existingCard.getVaccinations().clear();
             } else {
                 reqVaccinations.forEach(reqVaccination -> existingCard.getVaccinations().stream()
-                        .filter(existingVaccination -> existingVaccination.getId().equals(reqVaccination.getId()))
+                        .filter(existingVaccination -> existingVaccination.getId() != null && existingVaccination.getId().equals(reqVaccination.getId()))
                         .findFirst()
                         .ifPresentOrElse(existingVaccination -> {
                             existingVaccination.setVaccinationName(reqVaccination.getVaccinationName());
