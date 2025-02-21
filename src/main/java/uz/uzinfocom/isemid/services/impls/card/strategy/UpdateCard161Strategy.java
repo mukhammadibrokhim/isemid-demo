@@ -34,10 +34,6 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         return catalogService.findByTypeAndCode(type, code).orElse(null);
     }
 
-    //riskFactorCode
-    // vaccinationVerifiedCode
-    //possibleInfectionSources[]
-    //hasOtherInsects
 
     @Transactional
     @Override
@@ -78,8 +74,8 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             existingVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.vaccinationVerified, reqVaccination.getVaccinationVerifiedCode()));
                             existingVaccination.setVaccinationDate(reqVaccination.getVaccinationDate());
                             existingVaccination.setSerialNumber(reqVaccination.getSerialNumber());
-                            existingVaccination.setUnitInDose(reqVaccination.getUnitInDose());
-                            existingVaccination.setDoseVolume(reqVaccination.getDoseVolume());
+//                            existingVaccination.setUnitInDose(reqVaccination.getUnitInDose());
+//                            existingVaccination.setDoseVolume(reqVaccination.getDoseVolume());
                         }, () -> {
                             Vaccination newVaccination = new Vaccination();
                             newVaccination.setCard161(existingCard);
@@ -87,7 +83,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             newVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.vaccinationVerified, reqVaccination.getVaccinationVerifiedCode()));
                             newVaccination.setVaccinationDate(reqVaccination.getVaccinationDate());
                             newVaccination.setSerialNumber(reqVaccination.getSerialNumber());
-                            newVaccination.setUnitInDose(reqVaccination.getUnitInDose());
+//                            newVaccination.setUnitInDose(reqVaccination.getUnitInDose());
                             newVaccination.setDoseVolume(reqVaccination.getDoseVolume());
                             existingCard.getVaccinations().add(newVaccination);
                         }));
