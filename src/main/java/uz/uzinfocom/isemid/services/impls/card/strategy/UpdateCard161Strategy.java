@@ -76,6 +76,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             existingVaccination.setSerialNumber(reqVaccination.getSerialNumber());
 //                            existingVaccination.setUnitInDose(reqVaccination.getUnitInDose());
 //                            existingVaccination.setDoseVolume(reqVaccination.getDoseVolume());
+                            existingVaccination.setScheduled(reqVaccination.getScheduled());
                         }, () -> {
                             Vaccination newVaccination = new Vaccination();
                             newVaccination.setCard161(existingCard);

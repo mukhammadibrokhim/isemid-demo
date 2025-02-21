@@ -21,6 +21,6 @@ public class ReqVaccination {
     private LocalDateTime vaccinationDate;
 //    private Integer unitInDose;
     private Integer doseVolume;
-//    private Boolean scheduled;
+    private Boolean scheduled;
 //    private Boolean epidemicBased;
 }
