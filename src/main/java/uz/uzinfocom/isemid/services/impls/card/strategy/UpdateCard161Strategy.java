@@ -353,9 +353,12 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         }));
             }
         });
+        //infectionLocation
+        //animalType
+        //mainProbableInfectionFactor
 
         Optional.ofNullable(reqCard161.getHospitalName()).ifPresent(existingCard::setHospitalName);
-        Optional.ofNullable(reqCard161.getInfectionLocationCode()).ifPresent(code -> existingCard.setInfectionLocation(getCatalogByCode(CatalogType.infactedLocation, code)));
+        Optional.ofNullable(reqCard161.getInfectionLocationCode()).ifPresent(code -> existingCard.setInfectionLocation(getCatalogByCode(CatalogType.infectedLocation, code)));
         Optional.ofNullable(reqCard161.getProbableInfectionLocationCode()).ifPresent(code-> existingCard.setProbableInfectionLocation(getCatalogByCode(CatalogType.probableInfectionLoc,code)));
         Optional.ofNullable(reqCard161.getInfectionSourceNotFoundCode()).ifPresent(code -> existingCard.setInfectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, code)));
         Optional.ofNullable(reqCard161.getPersonFullName()).ifPresent(existingCard::setPersonFullName);

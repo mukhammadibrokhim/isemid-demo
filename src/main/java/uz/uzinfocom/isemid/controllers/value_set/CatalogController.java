@@ -539,7 +539,7 @@ public class CatalogController {
     @Operation(summary = "", tags = "Catalog Card161")
     @GetMapping("/infection-location")
     public ApiResponse<?> getInfectionLoc(@RequestHeader("Accept-Language") String lang) {
-        return catalogService.findAllByType(CatalogType.infactedLocation, lang);
+        return catalogService.findAllByType(CatalogType.infectedLocation, lang);
     }
 
     @Operation(summary = "", tags = "Catalog Card161")
