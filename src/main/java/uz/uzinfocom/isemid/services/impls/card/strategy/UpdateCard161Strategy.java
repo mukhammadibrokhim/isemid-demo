@@ -376,11 +376,29 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getHospitalName()).ifPresent(existingCard::setHospitalName);
         Optional.ofNullable(reqCard161.getInfectionLocationCode()).ifPresent(code -> existingCard.setInfectionLocation(getCatalogByCode(CatalogType.infectedLocation, code)));
         Optional.ofNullable(reqCard161.getProbableInfectionLocationCode()).ifPresent(code-> existingCard.setProbableInfectionLocation(getCatalogByCode(CatalogType.probableInfectionLoc,code)));
-        Optional.ofNullable(reqCard161.getInfectionSourceNotFoundCode()).ifPresent(code -> existingCard.setInfectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, code)));
-        Optional.ofNullable(reqCard161.getPersonFullName()).ifPresent(existingCard::setPersonFullName);
-        Optional.ofNullable(reqCard161.getInfectionSourceDiseasePeriodCode()).ifPresent(code -> existingCard.setInfectionSourceDiseasePeriod(getCatalogByCode(CatalogType.infectionPeriod, code)));
-        Optional.ofNullable(reqCard161.getAnimalTypeCode()).ifPresent(code -> existingCard.setAnimalType(getCatalogByCode(CatalogType.animalType, code)));
-        Optional.ofNullable(reqCard161.getMainProbableInfectionFactorCode()).ifPresent(code -> existingCard.setMainProbableInfectionFactor(getCatalogByCode(CatalogType.mainFactor, code)));
+        Optional.ofNullable(reqCard161.getIsInfectionSourceMissing()).ifPresent(existingCard::setIsInfectionSourceMissing);
+        Optional.ofNullable(reqCard161.getInfectionSourceDetail()).ifPresent(reqInfectionD -> {
+            if (existingCard.getInfectionSourceDetail() != null) {
+                InfectionSourceDetail existingDetail = existingCard.getInfectionSourceDetail();
+                existingDetail.setInfectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, reqInfectionD.getInfectionSourceNotFoundCode()));
+                existingDetail.setPersonFullName(reqInfectionD.getPersonFullName());
+                existingDetail.setAnimalType(getCatalogByCode(CatalogType.animalType, reqInfectionD.getAnimalTypeCode()));
+                existingDetail.setInfectionSourceDiseasePeriod(getCatalogByCode(CatalogType.infectionPeriod, reqInfectionD.getInfectionSourceDiseasePeriodCode()));
+            } else {
+                InfectionSourceDetail newDetail = InfectionSourceDetail.builder()
+                        .infectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, reqInfectionD.getInfectionSourceNotFoundCode()))
+                        .personFullName(reqInfectionD.getPersonFullName())
+                        .infectionSourceDiseasePeriod(getCatalogByCode(CatalogType.infectionPeriod, reqInfectionD.getInfectionSourceDiseasePeriodCode()))
+                        .animalType(getCatalogByCode(CatalogType.animalType, reqInfectionD.getAnimalTypeCode()))
+                        .build();
+                existingCard.setInfectionSourceDetail(newDetail);
+            }
+        });
+//        Optional.ofNullable(reqCard161.getInfectionSourceNotFoundCode()).ifPresent(code -> existingCard.setInfectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, code)));
+//        Optional.ofNullable(reqCard161.getPersonFullName()).ifPresent(existingCard::setPersonFullName);
+//        Optional.ofNullable(reqCard161.getInfectionSourceDiseasePeriodCode()).ifPresent(code -> existingCard.setInfectionSourceDiseasePeriod(getCatalogByCode(CatalogType.infectionPeriod, code)));
+//        Optional.ofNullable(reqCard161.getAnimalTypeCode()).ifPresent(code -> existingCard.setAnimalType(getCatalogByCode(CatalogType.animalType, code)));
+//        Optional.ofNullable(reqCard161.getMainProbableInfectionFactorCode()).ifPresent(code -> existingCard.setMainProbableInfectionFactor(getCatalogByCode(CatalogType.mainFactor, code)));
 
         Optional.ofNullable(reqCard161.getInfectionCausingConditionsCode()).ifPresent(codes -> {
             List<Catalog> conditions = codes.stream()
