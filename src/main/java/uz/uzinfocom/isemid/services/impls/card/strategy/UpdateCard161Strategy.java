@@ -394,12 +394,8 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                 existingCard.setInfectionSourceDetail(newDetail);
             }
         });
-//        Optional.ofNullable(reqCard161.getInfectionSourceNotFoundCode()).ifPresent(code -> existingCard.setInfectionSourceNotFound(getCatalogByCode(CatalogType.notFoundInfection, code)));
-//        Optional.ofNullable(reqCard161.getPersonFullName()).ifPresent(existingCard::setPersonFullName);
-//        Optional.ofNullable(reqCard161.getInfectionSourceDiseasePeriodCode()).ifPresent(code -> existingCard.setInfectionSourceDiseasePeriod(getCatalogByCode(CatalogType.infectionPeriod, code)));
-//        Optional.ofNullable(reqCard161.getAnimalTypeCode()).ifPresent(code -> existingCard.setAnimalType(getCatalogByCode(CatalogType.animalType, code)));
-//        Optional.ofNullable(reqCard161.getMainProbableInfectionFactorCode()).ifPresent(code -> existingCard.setMainProbableInfectionFactor(getCatalogByCode(CatalogType.mainFactor, code)));
 
+        Optional.ofNullable(reqCard161.getMainProbableInfectionFactorCode()).ifPresent(code -> existingCard.setMainProbableInfectionFactor(getCatalogByCode(CatalogType.mainFactor, code)));
         Optional.ofNullable(reqCard161.getInfectionCausingConditionsCode()).ifPresent(codes -> {
             List<Catalog> conditions = codes.stream()
                     .map(code -> getCatalogByCode(CatalogType.infeCondition, code))

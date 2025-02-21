@@ -16,7 +16,7 @@ import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
-import uz.uzinfocom.isemid.models.payload.requests.ReqCatalog;
+import uz.uzinfocom.isemid.models.payload.requests.value_set.ReqCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.RespCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;

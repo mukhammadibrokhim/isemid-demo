@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.payload.requests;
+package uz.uzinfocom.isemid.models.payload.requests.value_set;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
