@@ -71,7 +71,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .findFirst()
                         .ifPresentOrElse(existingVaccination -> {
                             existingVaccination.setVaccinationName(reqVaccination.getVaccinationName());
-                            existingVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.vaccinationVerified, reqVaccination.getVaccinationVerifiedCode()));
+                            existingVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.informationAboutVaccination, reqVaccination.getVaccinationVerifiedCode()));
                             existingVaccination.setVaccinationDate(reqVaccination.getVaccinationDate());
                             existingVaccination.setSerialNumber(reqVaccination.getSerialNumber());
 //                            existingVaccination.setUnitInDose(reqVaccination.getUnitInDose());
@@ -81,7 +81,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                             Vaccination newVaccination = new Vaccination();
                             newVaccination.setCard161(existingCard);
                             newVaccination.setVaccinationName(reqVaccination.getVaccinationName());
-                            newVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.vaccinationVerified, reqVaccination.getVaccinationVerifiedCode()));
+                            newVaccination.setVaccinationVerified(getCatalogByCode(CatalogType.informationAboutVaccination, reqVaccination.getVaccinationVerifiedCode()));
                             newVaccination.setVaccinationDate(reqVaccination.getVaccinationDate());
                             newVaccination.setSerialNumber(reqVaccination.getSerialNumber());
 //                            newVaccination.setUnitInDose(reqVaccination.getUnitInDose());

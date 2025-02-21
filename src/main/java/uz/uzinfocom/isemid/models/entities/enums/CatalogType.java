@@ -36,5 +36,5 @@ public enum CatalogType {
     informationAboutImmediatePreventionAndAntirabicAid,
     partOfInjury,relevanceOfDiseaseToProfession,severityOfIllness,diseaseSpreaderType,
     ownerOfDiseaseSpreader,observationResultOfAnimals,checkingDiagnosis,diseaseTransmissionCondition,
-    pathogenMainFactor, vaccinationVerified, takenMeasuresFromResidence
+    pathogenMainFactor, takenMeasuresFromResidence
 }
