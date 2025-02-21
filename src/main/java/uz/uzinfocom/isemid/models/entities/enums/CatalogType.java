@@ -22,7 +22,7 @@ public enum CatalogType {
     detected, definedDisease, homeStayExclusionReason,diagnosisVerified,
     livingCondition, waterSupply,
     liquidWaste, solidWaste, roomCondition, yardCondition,
-    areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infactedLocation,probableInfectionLoc,
+    areaContidion, visitetObj, riskFactor, preventMeasure, counductedLoca, infectedLocation,probableInfectionLoc,
     notFoundInfection, infectionPeriod, animalType, mainFactor, outbreakInfection, caseStatus,
     infeCondition, level,
 
