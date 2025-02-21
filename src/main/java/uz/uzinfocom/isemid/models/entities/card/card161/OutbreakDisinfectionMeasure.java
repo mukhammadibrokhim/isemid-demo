@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.models.entities.card.card161;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -22,7 +21,7 @@ public class OutbreakDisinfectionMeasure extends BaseEntity {
     @JsonIgnore
     private Card161 card161;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog preventiveMeasures; //catalog qoshialdi
@@ -30,7 +29,7 @@ public class OutbreakDisinfectionMeasure extends BaseEntity {
 
     private String conductedAt;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog conductedLocation;
