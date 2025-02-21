@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.payload.requests;
+package uz.uzinfocom.isemid.models.payload.requests.value_set;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
