@@ -35,6 +35,6 @@ public class Vaccination extends BaseEntity {
 //    private int unitInDose;           // Birlik doza
     private int doseVolume;           // Doza hajmi
 
-//    private boolean scheduled;        // Rejeli emlashmi?
+    private boolean scheduled;        // Rejeli emlashmi?
 //    private boolean epidemicBased;    // Epidemik ko‘rsatma asosida emlashmi?
 }

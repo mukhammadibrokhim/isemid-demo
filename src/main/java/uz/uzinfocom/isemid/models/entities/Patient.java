@@ -69,12 +69,12 @@ public class Patient extends AbsEntity {
 
     private String workPlace;
     @ManyToOne
-    @JoinColumn(name = "profession", referencedColumnName = "code")
+    @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog workPlaceState;
 
     @ManyToOne
-    @JoinColumn(name = "profession", referencedColumnName = "code")
+    @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog workPlaceCity;
 
