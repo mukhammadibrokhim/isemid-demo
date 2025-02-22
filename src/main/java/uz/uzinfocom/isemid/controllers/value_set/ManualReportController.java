@@ -2,11 +2,11 @@ package uz.uzinfocom.isemid.controllers.value_set;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import uz.uzinfocom.isemid.models.payload.requests.value_set.ReqManualReport;
+import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.value_set.ManualReportService;
 
@@ -23,7 +23,6 @@ public class ManualReportController {
 
     final ManualReportService manualReportService;
 
-
     @GetMapping("/all")
     public ApiResponsePage getAll(
             @RequestParam(defaultValue = PAGE) int page,
@@ -38,5 +37,25 @@ public class ManualReportController {
             HttpServletRequest request
     ) {
         return manualReportService.getAllByFilter(page, size, shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal, getFullURL(request));
+    }
+
+    @PostMapping
+    public ApiResponse<?> post(@Valid @RequestBody ReqManualReport reqManualReport) {
+        return manualReportService.create(reqManualReport);
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<?> put(@PathVariable Long id, @RequestBody ReqManualReport reqManualReport) {
+        return manualReportService.put(id, reqManualReport);
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<?> getOne(@PathVariable Long id) {
+        return manualReportService.getById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<?> delete(@PathVariable Long id) {
+        return manualReportService.delete(id);
     }
 }
