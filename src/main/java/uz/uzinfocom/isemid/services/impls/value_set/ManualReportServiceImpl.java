@@ -82,7 +82,9 @@ public class ManualReportServiceImpl implements ManualReportService {
         Optional.ofNullable(reqManualReport.getNameRu()).ifPresent(manualReport::setNameRu);
         Optional.ofNullable(reqManualReport.getNameKaa()).ifPresent(manualReport::setNameKaa);
         Optional.ofNullable(reqManualReport.getMkb10Codes()).ifPresent(reqCode -> {
-
+            List<Mkb10> newMkb10List = mkb10Repository.findByCodeIn(reqCode);
+            manualReport.getMkb10Codes().clear();
+            manualReport.getMkb10Codes().addAll(newMkb10List);
         });
         return new ApiResponse<>(true, "Successfully update.", repo.save(manualReport));
     }
