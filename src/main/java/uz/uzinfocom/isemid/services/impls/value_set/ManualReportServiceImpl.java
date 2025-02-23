@@ -17,6 +17,7 @@ import uz.uzinfocom.isemid.services.value_set.ManualReportService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -73,7 +74,17 @@ public class ManualReportServiceImpl implements ManualReportService {
 
     @Override
     public ApiResponse<?> put(Long id, ReqManualReport reqManualReport) {
-        return new ApiResponse<>(true, "Successfully update.", null);
+        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Manual report not found."));
+        Optional.ofNullable(reqManualReport.getCode()).ifPresent(manualReport::setCode);
+        Optional.ofNullable(reqManualReport.getShortName()).ifPresent(manualReport::setShortName);
+        Optional.ofNullable(reqManualReport.getNameUz()).ifPresent(manualReport::setNameUz);
+        Optional.ofNullable(reqManualReport.getNameUzCyril()).ifPresent(manualReport::setNameUzCyril);
+        Optional.ofNullable(reqManualReport.getNameRu()).ifPresent(manualReport::setNameRu);
+        Optional.ofNullable(reqManualReport.getNameKaa()).ifPresent(manualReport::setNameKaa);
+        Optional.ofNullable(reqManualReport.getMkb10Codes()).ifPresent(reqCode -> {
+
+        });
+        return new ApiResponse<>(true, "Successfully update.", repo.save(manualReport));
     }
 
     public static Specification<ManualReport> getFilteredSpecification(
