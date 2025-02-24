@@ -457,6 +457,31 @@ public class CatalogController {
         return catalogService.findAllByType(CatalogType.diagnosisVerified, lang);
 
     }
+    @GetMapping("/animal-category")
+    public ApiResponse<?> animalCategory(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.animalCategory, lang);
+    }
+    @GetMapping("/bitten-animal-category")
+    public ApiResponse<?> bittenAnimalCategory(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.animalCategory, lang);
+    }
+    @GetMapping("/dog-owner-compliance")
+    public ApiResponse<?> dogOwnerCompliance(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.dogOwnerCompliance, lang);
+    }
+    @GetMapping("/condition-of-animal")
+    public ApiResponse<?> conditionOfAnimal(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.conditionOfAnimal, lang);
+    }
+
 
     @Operation(summary = "", tags = "Catalog Card161")
     @GetMapping("/risk-factor")
