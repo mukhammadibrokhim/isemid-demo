@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.payload.requests.card.card161;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,13 +13,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqHomePreventiveMeasure {
+    private Long id;
     private String notifiedPerson;
     private LocalDateTime nextDiseaseTime; //DMED integration
     private String drugName; //DMED integration
     private String dose; //DMED integration
     private String series; //DMED integration
-
     private LocalDateTime resultTime; //integration LIS
     private LocalDate receivedDate; // Олинган сана
     private String lisResult;//integration LIS

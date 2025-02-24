@@ -52,6 +52,8 @@ public class ReqPatient {
 
     @NotBlank(message = "Место работы обязательно и не может быть пустым.")
     private String workPlace;
+    private String workPlaceStateCode;
+    private String workPlaceCityCode;
 
     @JsonIgnore
     @AssertTrue(message = "Адреса должны содержать как минимум один TEMPORARY и один PERMANENT адрес.")

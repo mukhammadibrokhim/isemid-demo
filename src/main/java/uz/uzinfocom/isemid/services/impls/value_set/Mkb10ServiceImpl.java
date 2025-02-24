@@ -12,7 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.value_set.Mkb10;
-import uz.uzinfocom.isemid.models.payload.requests.ReqMkb10;
+import uz.uzinfocom.isemid.models.payload.requests.value_set.ReqMkb10;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.value_set.Mkb10Repository;

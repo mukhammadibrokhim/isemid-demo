@@ -39,15 +39,8 @@ public class ReqCard161 extends ReqCard {
     //LIS bilan integratsiya uchun polya qoshish kerak.
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
-    private String vaccinationVerifiedCode;
 
-    private String vaccinationName;
-    private String serialNumber;
-    private String vaccinationDate;
-    private String unitInDose;
-    private String doseVolume;
-    private String scheduled;
-    private String epidemicBased;
+    private List<ReqVaccination> vaccinations;
 
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;
@@ -55,7 +48,7 @@ public class ReqCard161 extends ReqCard {
 
     private List<ReqCard161RiskFactor> riskFactors;
 
-    private List<ReqInfectionSource> infectionSources;
+    private List<ReqInfectionSource> possibleInfectionSources;
 
     private List<ReqEnvironmentalSource> environmentalSources;
     private List<ReqEnvironmentalLabTest> environmentalLabTests;
@@ -81,7 +74,7 @@ public class ReqCard161 extends ReqCard {
 
     private String visitedObjectsCode;
 
-    private Boolean denselyPopulated;
+    private String denselyPopulated;
     private String isolationStatus;
     private String waterSupplyStatus;
     private String sanitaryMaintenance;
@@ -104,10 +97,8 @@ public class ReqCard161 extends ReqCard {
     //catalog
     private String infectionLocationCode;
     private String probableInfectionLocationCode;
-    private String infectionSourceNotFoundCode;
-    private String personFullName;
-    private String infectionSourceDiseasePeriodCode;
-    private String animalTypeCode;
+    private Boolean isInfectionSourceMissing;
+    private ReqInfectionSourceDetail infectionSourceDetail;
     private String mainProbableInfectionFactorCode;
     private List<String> infectionCausingConditionsCode;
     private String outbreakInfectionCode;

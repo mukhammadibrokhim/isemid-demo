@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import uz.uzinfocom.isemid.models.payload.requests.ReqMkb10;
+import uz.uzinfocom.isemid.models.payload.requests.value_set.ReqMkb10;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.value_set.Mkb10Service;

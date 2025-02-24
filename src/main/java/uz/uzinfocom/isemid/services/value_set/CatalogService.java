@@ -1,10 +1,9 @@
 package uz.uzinfocom.isemid.services.value_set;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.cache.annotation.Cacheable;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
-import uz.uzinfocom.isemid.models.payload.requests.ReqCatalog;
+import uz.uzinfocom.isemid.models.payload.requests.value_set.ReqCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.RespCatalog;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
