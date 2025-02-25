@@ -21,10 +21,7 @@ import uz.uzinfocom.isemid.services.value_set.Mkb10Service;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -122,6 +119,9 @@ public class Mkb10ServiceImpl implements Mkb10Service {
         BufferedReader bufferedReader = new BufferedReader(reader);
         try (CSVReader csvReader = new CSVReader(bufferedReader)) {
             List<String[]> records = csvReader.readAll();
+
+            Set<String> allCodes = mkb10Repository.findAllCodes();
+
             Map<Long, Mkb10> mkb10Map = records.stream()
                     .skip(1)
                     .map(record -> Mkb10.builder()
@@ -136,7 +136,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
                             .parentId(record[9].isEmpty() ? null : Long.parseLong(record[9])) // parent_id
                             .secondaryId(Long.parseLong(record[10])) // secondary_id
                             .build())
-                    .filter(mkb10 -> mkb10Repository.findAllByCode(mkb10.getCode()).isEmpty())
+                    .filter(mkb10 -> !allCodes.contains(mkb10.getCode()))
                     .collect(Collectors.toMap(Mkb10::getId, mkb10 -> mkb10));
             mkb10Repository.saveAll(mkb10Map.values());
         }

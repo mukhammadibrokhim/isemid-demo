@@ -7,6 +7,8 @@ import jakarta.persistence.ManyToOne;
 import lombok.*;
 import uz.uzinfocom.isemid.models.entities.template.BaseEntity;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,8 +21,10 @@ public class EnvironmentalSource extends BaseEntity {
     @JsonIgnore
     private Card161 card161;
     private String foodAndWaterSourceTypes;
-    private String collectionLocationAndTime;
-    private String usageLocationAndTime;
+    private String collectionLocation;
+    private LocalDateTime collectionTime;
+    private String usageLocation;
+    private LocalDateTime usageTime;
     private String storageConditions;
     private String qualityFeedbackFromPatientAndOthers;
 }
