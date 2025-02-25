@@ -12,26 +12,28 @@ import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Form058Dto {
-
+    private Long id;
+    private UUID uuid;
     private String mkb10Code;
     private String mkb10Name;
     private Integer mkb10UsageLimit;
 
     private DocumentStatus status;
-//    @JsonIgnoreProperties({"identifiers", "birthDate", "ageYears", "state", "ageMonths", "gender", "phoneNumber",
-//            "kinshipDegree", "kinshipFullName", "residentialStatus", "maritalStatus", "populationType", "category", "profession",
-//            "workPlace", "workPlaceState", "workPlaceCity", "addresses", ""})
+    @JsonIgnoreProperties({"identifiers", "birthDate", "ageYears", "state", "ageMonths", "gender", "phoneNumber",
+            "kinshipDegree", "kinshipFullName", "residentialStatus", "maritalStatus", "populationType", "category", "profession",
+            "workPlace", "workPlaceState", "workPlaceCity", "addresses", ""})
     private Patient patient;
 
     private Boolean labConfirmation; // Tashxisni laborator tasdiqlash
-//    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
-//            "hierarchy", "district", "line", "parentId"})
+    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
+            "hierarchy", "district", "line", "parentId"})
     private Organization hospitalPlace; // Yotqizilgan joyi
 
     private LocalDateTime admissionDate; // Yotqizilgan sana
@@ -40,8 +42,8 @@ public class Form058Dto {
     private LocalDateTime diagnosisDate; // Aniq tashxis qo‘yilgan sanasi
     private LocalDateTime visitDate; // Qatnov sanasi
     private LocalDateTime docSendDate; // document jo'natilgan sana
-//    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
-//            "hierarchy", "district", "line", "parentId"})
+    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
+            "hierarchy", "district", "line", "parentId"})
     private Organization senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
 //    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
 //            "hierarchy", "district", "line", "parentId"})
