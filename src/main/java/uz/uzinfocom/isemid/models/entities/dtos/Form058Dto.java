@@ -24,14 +24,14 @@ public class Form058Dto {
     private Integer mkb10UsageLimit;
 
     private DocumentStatus status;
-    @JsonIgnoreProperties({"identifiers", "birthDate", "ageYears", "state", "ageMonths", "gender", "phoneNumber",
-            "kinshipDegree", "kinshipFullName", "residentialStatus", "maritalStatus", "populationType", "category", "profession",
-            "workPlace", "workPlaceState", "workPlaceCity", "addresses", ""})
+//    @JsonIgnoreProperties({"identifiers", "birthDate", "ageYears", "state", "ageMonths", "gender", "phoneNumber",
+//            "kinshipDegree", "kinshipFullName", "residentialStatus", "maritalStatus", "populationType", "category", "profession",
+//            "workPlace", "workPlaceState", "workPlaceCity", "addresses", ""})
     private Patient patient;
 
     private Boolean labConfirmation; // Tashxisni laborator tasdiqlash
-    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
-            "hierarchy", "district", "line", "parentId"})
+//    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
+//            "hierarchy", "district", "line", "parentId"})
     private Organization hospitalPlace; // Yotqizilgan joyi
 
     private LocalDateTime admissionDate; // Yotqizilgan sana
@@ -40,13 +40,13 @@ public class Form058Dto {
     private LocalDateTime diagnosisDate; // Aniq tashxis qo‘yilgan sanasi
     private LocalDateTime visitDate; // Qatnov sanasi
     private LocalDateTime docSendDate; // document jo'natilgan sana
-    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
-            "hierarchy", "district", "line", "parentId"})
+//    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
+//            "hierarchy", "district", "line", "parentId"})
     private Organization senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
-    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
-            "hierarchy", "district", "line", "parentId"})
+//    @JsonIgnoreProperties({"children", "serviceArea", "city", "state", "country", "level", "active", "email", "phone", "type",
+//            "hierarchy", "district", "line", "parentId"})
     private Organization receiverOrganization; // Qayerga (Qabul qiluvchi tashkilot)
-    @JsonIgnoreProperties({"createdAt", "updatedAt", "updatedBy", "createdBy"})
+//    @JsonIgnoreProperties({"createdAt", "updatedAt", "updatedBy", "createdBy"})
     private Location location;
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog diseasePlace; // Qayerda zaharlangan yoki kasallangan
@@ -62,7 +62,7 @@ public class Form058Dto {
     private String notifierFullName;
 
     private List<CardDto> cards = new ArrayList<>();
-    @JsonIgnoreProperties({"organizations", "roles", "country", "state", "city", "gender", "birthDate", "active", "phoneNumber", "district", "line", "accessLevel", "position"})
+//    @JsonIgnoreProperties({"organizations", "roles", "country", "state", "city", "gender", "birthDate", "active", "phoneNumber", "district", "line", "accessLevel", "position"})
     private User reporter;
 
     public static Form058Dto fromEntity(Form058 form058, boolean isAllApi) {
