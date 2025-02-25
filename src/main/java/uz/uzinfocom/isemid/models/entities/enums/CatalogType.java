@@ -36,5 +36,9 @@ public enum CatalogType {
     informationAboutImmediatePreventionAndAntirabicAid,
     partOfInjury,relevanceOfDiseaseToProfession,severityOfIllness,diseaseSpreaderType,
     ownerOfDiseaseSpreader,observationResultOfAnimals,checkingDiagnosis,diseaseTransmissionCondition,
-    pathogenMainFactor, takenMeasuresFromResidence
+    pathogenMainFactor, vaccinationVerified, takenMeasuresFromResidence,
+
+    //card205
+    diagnosisOfInjury,conditionOfAnimal,animalConservation,positionOfBittenVictim,
+    animalCategory,dogOwnerCompliance,
 }

@@ -13,7 +13,7 @@ public interface Form058Service {
 
     ApiResponse<Form058> updateForm058(ReqForm058 reqForm058, Long id, User user);
 
-    ApiResponsePage getFilteredForm058(int page, int size, User user, String url);
+    ApiResponsePage getFilteredForm058(int page, int size, User user, String url, boolean isAllApi);
 
     ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user);
 
