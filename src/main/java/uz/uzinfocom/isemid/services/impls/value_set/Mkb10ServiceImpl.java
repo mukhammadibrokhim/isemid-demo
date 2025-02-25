@@ -115,7 +115,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
 
 
     @SneakyThrows
-//    @PostConstruct
+    @PostConstruct
     private void insertStreet() {
         Resource resource = resourceLoader.getResource("classpath:/base/mkb10.csv");
         InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
