@@ -55,6 +55,4 @@ public class ReqCard175 extends ReqCard {
     private List<String> diseaseTransmissionConditionCode; //Kasallik yuqishiga olib keladigan sharoit.
     private List<String> pathogenMainFactorCode; //Kasallik chaqiruvchisini yuqtirishga ehtimol qilingan asosiy omil.
     private List<String> takenMeasuresFromResidenceCode;//Bemorning yashash joyida o‘tkazilgan chora - tadbirlar.
-
-
 }

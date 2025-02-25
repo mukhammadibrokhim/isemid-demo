@@ -48,7 +48,7 @@ public class Form058Controller {
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return form058Service.getFilteredForm058(page, size, user, getFullURL(request));
+        return form058Service.getFilteredForm058(page, size, user, getFullURL(request),true);
     }
 
     @GetMapping("/received/all")

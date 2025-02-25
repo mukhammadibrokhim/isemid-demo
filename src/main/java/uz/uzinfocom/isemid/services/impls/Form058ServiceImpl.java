@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.entities.dtos.Form058Dto;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
@@ -28,10 +29,9 @@ import uz.uzinfocom.isemid.services.UserService;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 import uz.uzinfocom.isemid.services.value_set.Mkb10Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -286,10 +286,11 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public ApiResponsePage getFilteredForm058(int page, int size, User user, String url) {
+    public ApiResponsePage getFilteredForm058(int page, int size, User user, String url, boolean isAllApi) {
         Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), null);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, form058Page, url);
+        Page<Form058Dto> dtoPage = form058Page.map(form -> Form058Dto.fromEntity(form, isAllApi));
+        return createApiResponsePage(page, dtoPage, url);
 
     }
 
@@ -298,10 +299,26 @@ public class Form058ServiceImpl implements Form058Service {
     public ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user) {
         Form058 form058 = form058Repository.findById(assignCard.getForm058Id()).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getForm058Id()));
 
+        List<Long> userIds = assignCard.getAssignUsers().stream()
+                .map(ReqForm058AssignCard.CardUser::getUserId)
+                .distinct()
+                .toList();
+
+        Map<Long, User> userMap = userService.getAllByIds(userIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
         List<Card> cards = assignCard.getCardType().stream()
                 .map(cardType -> {
                     Card card = createCard(cardType);
                     card.setCardType(cardType);
+
+                    Set<User> usersForCard = assignCard.getAssignUsers().stream()
+                            .filter(cardUser -> cardUser.getCardType().equals(cardType))
+                            .map(cardUser -> userMap.get(cardUser.getUserId()))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+
+                    card.setUsers(usersForCard);
                     card.setCreatedBy(user.getId());
                     card.setUpdatedBy(user.getId());
                     card.setForm058(form058);
@@ -310,7 +327,6 @@ public class Form058ServiceImpl implements Form058Service {
                 .toList();
         form058.getCards().clear();
         form058.getCards().addAll(cards);
-//        form058.setCards(cards);
         form058.setStatus(DocumentStatus.CARD_ATTACHED);
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }

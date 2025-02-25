@@ -2,14 +2,12 @@ package uz.uzinfocom.isemid.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
-import uz.uzinfocom.isemid.models.payload.requests.card.ReqCardAssignUsers;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.card.CardService;
@@ -40,13 +38,13 @@ public class CardController {
         return cardService.getAllCardsByFilter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, getFullURL(request));
     }
 
-    @PostMapping("/assign-user")
-    public ApiResponse<?> assignUser(
-            @Valid @RequestBody ReqCardAssignUsers assignUsers,
-            @CurrentUser User currentUser
-    ) {
-        return cardService.assignUsers(assignUsers, currentUser);
-    }
+//    @PostMapping("/assign-user")
+//    public ApiResponse<?> assignUser(
+//            @Valid @RequestBody ReqCardAssignUsers assignUsers,
+//            @CurrentUser User currentUser
+//    ) {
+//        return cardService.assignUsers(assignUsers, currentUser);
+//    }
 
     @GetMapping("/user/{userId}")
     public ApiResponsePage getUsersByCardId(

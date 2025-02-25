@@ -93,6 +93,11 @@ public class UserServiceImpl implements UserService {
         return new ApiResponse<>(true, "Success", user);
     }
 
+    @Override
+    public List<User> getAllByIds(List<Long> userIds) {
+        return userRepository.findAllById(userIds);
+    }
+
     private User mappingPractitionerToUser(RespPractitioner respPractitioner, List<Organization> organizations, Set<Role> roles) {
         User user = new User();
         user.setUuid(UUID.fromString(respPractitioner.getId()));

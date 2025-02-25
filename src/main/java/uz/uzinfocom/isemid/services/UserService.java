@@ -28,4 +28,6 @@ public interface UserService {
     ApiResponse<User> getByUuid(UUID uuid);
 
     ApiResponse<User> updateUser(long id, @Valid ReqUser user);
+
+    List<User> getAllByIds(List<Long> userIds);
 }
