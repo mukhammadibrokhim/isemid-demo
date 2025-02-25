@@ -161,16 +161,22 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .findFirst()
                         .ifPresentOrElse(envSource -> {
                             envSource.setFoodAndWaterSourceTypes(reqEnvSource.getFoodAndWaterSourceTypes());
-                            envSource.setCollectionLocationAndTime(reqEnvSource.getCollectionLocationAndTime());
-                            envSource.setUsageLocationAndTime(reqEnvSource.getUsageLocationAndTime());
+                            envSource.setCollectionLocation(reqEnvSource.getCollectionLocation());
+                            envSource.setCollectionTime(reqEnvSource.getCollectionTime());
+
+
+                            envSource.setUsageLocation(reqEnvSource.getUsageLocation());
+                            envSource.setUsageTime(reqEnvSource.getUsageTime());
                             envSource.setStorageConditions(reqEnvSource.getStorageConditions());
                             envSource.setQualityFeedbackFromPatientAndOthers(reqEnvSource.getQualityFeedbackFromPatientAndOthers());
                         }, () -> {
                             EnvironmentalSource source = EnvironmentalSource.builder()
                                     .card161(existingCard)
                                     .foodAndWaterSourceTypes(reqEnvSource.getFoodAndWaterSourceTypes())
-                                    .collectionLocationAndTime(reqEnvSource.getCollectionLocationAndTime())
-                                    .usageLocationAndTime(reqEnvSource.getUsageLocationAndTime())
+                                    .collectionLocation(reqEnvSource.getCollectionLocation())
+                                    .collectionTime(reqEnvSource.getCollectionTime())
+                                    .usageLocation(reqEnvSource.getUsageLocation())
+                                    .usageTime(reqEnvSource.getUsageTime())
                                     .storageConditions(reqEnvSource.getStorageConditions())
                                     .qualityFeedbackFromPatientAndOthers(reqEnvSource.getQualityFeedbackFromPatientAndOthers())
                                     .build();

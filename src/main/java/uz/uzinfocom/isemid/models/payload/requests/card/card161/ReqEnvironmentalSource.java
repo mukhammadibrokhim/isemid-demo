@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,8 +16,10 @@ import lombok.NoArgsConstructor;
 public class ReqEnvironmentalSource {
     private Long id;
     private String foodAndWaterSourceTypes;
-    private String collectionLocationAndTime;
-    private String usageLocationAndTime;
+    private String collectionLocation;
+    private LocalDateTime collectionTime;
+    private String usageLocation;
+    private LocalDateTime usageTime;
     private String storageConditions;
     private String qualityFeedbackFromPatientAndOthers;
 }
