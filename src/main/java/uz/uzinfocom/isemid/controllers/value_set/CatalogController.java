@@ -481,8 +481,12 @@ public class CatalogController {
     ) {
         return catalogService.findAllByType(CatalogType.conditionOfAnimal, lang);
     }
-
-
+    @GetMapping("/animal-conservation")
+    public ApiResponse<?> animalConservation(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.animalConservation, lang);
+    }
     @Operation(summary = "", tags = "Catalog Card161")
     @GetMapping("/risk-factor")
     public ApiResponse<?> getRiskFactor(@RequestHeader("Accept-Language") String lang) {
