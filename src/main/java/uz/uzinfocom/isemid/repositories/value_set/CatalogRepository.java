@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpecificationExecutor<Catalog> {
@@ -59,4 +60,8 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     Optional<Catalog> findByTypeAndParentCode(String catalogType, String parentCode);
 
     Optional<Catalog> findByTypeAndCode(String name, String code);
+
+    @Query("SELECT c.code FROM Catalog c")
+    Set<String> findAllCodes();
+
 }
