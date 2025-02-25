@@ -289,8 +289,8 @@ public class Form058ServiceImpl implements Form058Service {
     public ApiResponsePage getFilteredForm058(int page, int size, User user, String url, boolean isAllApi) {
         Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), null);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-        Page<Form058Dto> dtoPage = form058Page.map(form -> Form058Dto.fromEntity(form, isAllApi));
-        return createApiResponsePage(page, dtoPage, url);
+//        Page<Form058Dto> dtoPage = form058Page.map(form -> Form058Dto.fromEntity(form, isAllApi));
+        return createApiResponsePage(page, form058Page, url);
 
     }
 
