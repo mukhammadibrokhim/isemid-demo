@@ -69,7 +69,6 @@ public class UpdateCard205Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard205.getPetRegisteredVetDepartment()).ifPresent(existingCard::setPetRegisteredVetDepartment);
         Optional.ofNullable(reqCard205.getAdditionalInformation()).ifPresent(existingCard::setAdditionalInformation);
         Optional.ofNullable(reqCard205.getFullNameofAnimalOwner()).ifPresent(existingCard::setFullNameofAnimalOwner);
-        Optional.ofNullable(reqCard205.getDiagnosisInjuryCode()).ifPresent(code -> existingCard.setDiagnosisOfInjury(getCatalogByCode(CatalogType.diagnosisOfInjury, code)));
         Optional.ofNullable(reqCard205.getConditionOfAnimalCode()).ifPresent(code -> existingCard.setConditionOfAnimal(getCatalogByCode(CatalogType.conditionOfAnimal, code)));
         Optional.ofNullable(reqCard205.getAnimalConservationCode()).ifPresent(code -> existingCard.setAnimalConservation(getCatalogByCode(CatalogType.animalConservation, code)));
         Optional.ofNullable(reqCard205.getPositionOfBittenVictim()).ifPresent(code -> existingCard.setPositionOfBittenVictim(getCatalogByCode(CatalogType.positionOfBittenVictim, code)));

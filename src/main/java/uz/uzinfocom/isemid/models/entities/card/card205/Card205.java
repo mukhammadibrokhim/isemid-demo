@@ -19,7 +19,7 @@ import java.util.List;
 public class Card205 extends Card {
 
     private String mkb10Code;
-    private String mkb10Name;
+    private String mkb10Name; //Jarohat joyi MKB 10 spravchnikdan
 
     @Temporal(value = TemporalType.DATE)
     private Date epidemiologicalObservationDate; //Epidemiologik surishtiruv o‘tkazilgan sana.
@@ -35,11 +35,6 @@ public class Card205 extends Card {
 
     @Temporal(value = TemporalType.DATE)
     private Date dateOfTreatmentPreventiveInstitution; //Jabrlanganning birinchi bor tibbiy yordam uchun DPMga murojaat qilgan sana.
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})  //MKB 10
-    private Catalog diagnosisOfInjury;
 
     //Ушбу ҳайвон томонидан тишланган бошқа шахслар тўғрисида маълумот
     @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
