@@ -25,14 +25,5 @@ public class ReqForm058AssignCard {
 
     @Valid
     @NotEmpty
-    private List<CardUser> assignUsers;
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class CardUser {
-        private Long userId;
-        private CardType cardType;
-    }
+    private List<Long> assignUserIds;
 }
