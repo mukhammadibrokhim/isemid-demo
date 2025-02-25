@@ -294,40 +294,31 @@ public class Form058ServiceImpl implements Form058Service {
 
     }
 
-    @Transactional
     @Override
     public ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user) {
-        Form058 form058 = form058Repository.findById(assignCard.getForm058Id()).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getForm058Id()));
+        Form058 form058 = form058Repository.findById(assignCard.getForm058Id())
+                .orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found by id: " + assignCard.getForm058Id()));
 
-        List<Long> userIds = assignCard.getAssignUsers().stream()
-                .map(ReqForm058AssignCard.CardUser::getUserId)
-                .distinct()
-                .toList();
-
-        Map<Long, User> userMap = userService.getAllByIds(userIds).stream()
+        Map<Long, User> userMap = userService.getAllByIds(assignCard.getAssignUserIds()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
         List<Card> cards = assignCard.getCardType().stream()
                 .map(cardType -> {
                     Card card = createCard(cardType);
                     card.setCardType(cardType);
-
-                    Set<User> usersForCard = assignCard.getAssignUsers().stream()
-                            .filter(cardUser -> cardUser.getCardType().equals(cardType))
-                            .map(cardUser -> userMap.get(cardUser.getUserId()))
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toSet());
-
-                    card.setUsers(usersForCard);
+                    card.setUsers(new HashSet<>(userMap.values()));
                     card.setCreatedBy(user.getId());
                     card.setUpdatedBy(user.getId());
                     card.setForm058(form058);
                     return card;
                 })
                 .toList();
+
         form058.getCards().clear();
         form058.getCards().addAll(cards);
+
         form058.setStatus(DocumentStatus.CARD_ATTACHED);
+
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }
 
