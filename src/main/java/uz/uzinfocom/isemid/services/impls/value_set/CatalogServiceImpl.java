@@ -112,16 +112,7 @@ public class CatalogServiceImpl implements CatalogService {
                 .map(s -> catalogRepository.findByTypeAndSearch(type.name(), s))
                 .orElseGet(() -> catalogRepository.findByTypeAndSearch(type.name(), null));
 
-        List<RespCatalog> response = resultList.stream()
-                .map(catalog -> RespCatalog.builder()
-                        .id(catalog.getId())
-                        .code(catalog.getCode())
-                        .parentCode(catalog.getParentCode())
-                        .display(resolveLang(catalog.getNameRu(), catalog.getNameUz(), catalog.getNameUzCyril(), catalog.getNameKaa()))
-                        .build())
-                .collect(Collectors.toList());
-
-        return new ApiResponse<>(true, "Successfully fetch", response);
+        return getListApiResponse(resultList);
     }
 
     @Override
@@ -130,7 +121,10 @@ public class CatalogServiceImpl implements CatalogService {
                 .filter(StringUtils::hasText)
                 .map(s -> catalogRepository.findByProfessionTypeAndSearch(professionType.name(), s))
                 .orElseGet(() -> catalogRepository.findByProfessionTypeAndSearch(professionType.name(), null));
+        return getListApiResponse(resultList);
+    }
 
+    private ApiResponse<List<RespCatalog>> getListApiResponse(List<Catalog> resultList) {
         List<RespCatalog> response = resultList.stream()
                 .map(catalog -> RespCatalog.builder()
                         .id(catalog.getId())

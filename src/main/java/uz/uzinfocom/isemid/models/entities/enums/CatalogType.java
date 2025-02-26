@@ -41,4 +41,7 @@ public enum CatalogType {
     //card205
     diagnosisOfInjury,conditionOfAnimal,animalConservation,positionOfBittenVictim,
     animalCategory,dogOwnerCompliance,
+
+    //Card Tube
+    reasonForStayAtHome, eatingHabits,
 }
