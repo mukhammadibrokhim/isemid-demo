@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.entities.card.Card;
-import uz.uzinfocom.isemid.models.entities.dtos.Form058Dto;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
@@ -346,7 +345,7 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public ApiResponsePage getReceivedAll(int page, int size, User user, FilterType filterType, String fullURL) {
-        Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), filterType);
+        Specification<Form058> spec = getFilteredSpecificationByReceive(user.getCurrentOrganization().getUuid());
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, form058Page, fullURL);
     }
@@ -377,6 +376,18 @@ public class Form058ServiceImpl implements Form058Service {
                 predicates.add(criteriaBuilder.equal(root.get("createdOrgId"), currentUserOrgId));
             }
             if (filterType != null && filterType.equals(FilterType.RECEIVED)) {
+                predicates.add(criteriaBuilder.equal(root.get("receiverOrganization").get("uuid"), currentUserOrgId));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Form058> getFilteredSpecificationByReceive(
+            UUID currentUserOrgId
+    ) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (currentUserOrgId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("receiverOrganization").get("uuid"), currentUserOrgId));
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
