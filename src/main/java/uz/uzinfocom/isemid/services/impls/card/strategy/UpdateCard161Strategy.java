@@ -111,7 +111,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
 
-                existingCard.getVaccinations().removeIf(exsistingReq ->
+                existingCard.getRiskFactors().removeIf(exsistingReq ->
                         exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
 
                 reqRiskFactor.forEach(reqRisk -> existingCard.getRiskFactors().stream()
@@ -144,7 +144,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
 
-            existingCard.getVaccinations().removeIf(exsistingReq ->
+            existingCard.getPossibleInfectionSources().removeIf(exsistingReq ->
                     exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
 
 
@@ -178,7 +178,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
 
-                existingCard.getVaccinations().removeIf(exsistingReq ->
+                existingCard.getEnvironmentalSources().removeIf(exsistingReq ->
                         exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
 
 
@@ -244,7 +244,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
 
-                existingCard.getVaccinations().removeIf(exsistingReq ->
+                existingCard.getEnvironmentalLabTests().removeIf(exsistingReq ->
                         exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
 
 
@@ -282,7 +282,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
 
-                existingCard.getVaccinations().removeIf(exsistingReq ->
+                existingCard.getContactPersonDetails().removeIf(exsistingReq ->
                         exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
 
 
@@ -322,7 +322,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
 
-                existingCard.getVaccinations().removeIf(exsistingReq ->
+                existingCard.getScreenedGroups().removeIf(exsistingReq ->
                         exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
 
 
