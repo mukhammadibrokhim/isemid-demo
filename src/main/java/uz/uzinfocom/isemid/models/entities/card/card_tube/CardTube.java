@@ -23,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class CardTube extends Card {
-//    private LocalDate primaryDispensaryDate;
+    private LocalDate primaryDispensaryDate;
 //    private String dispensaryId;
 //    private String mkb10Code;
 //    private String mkb10Name;
