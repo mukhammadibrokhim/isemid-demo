@@ -95,7 +95,7 @@ public class Form058Controller {
         return form058Service.changeReceivedOrd(formId, orgId);
     }
 
-    @PutMapping("/{formId}/cancel")
+    @PatchMapping("/{formId}/cancel")
     public ApiResponse<?> cancel(@PathVariable Long formId) {
         return form058Service.cancel(formId);
     }
