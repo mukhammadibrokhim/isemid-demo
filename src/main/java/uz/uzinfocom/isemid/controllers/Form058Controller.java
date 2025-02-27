@@ -87,7 +87,7 @@ public class Form058Controller {
 
     @Operation(summary = "Перевод Form058 в другую организацию",
             description = "Этот эндпоинт позволяет перевести форму Form058 в другую организацию. ")
-    @PutMapping("/{formId}/change-received-org/{orgId}")
+    @PatchMapping("/{formId}/change-received-org/{orgId}")
     public ApiResponse<?> changeReceivedOrg(
             @PathVariable Long formId,
             @PathVariable Long orgId
