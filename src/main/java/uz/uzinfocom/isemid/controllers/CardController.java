@@ -70,17 +70,17 @@ public class CardController {
         return cardService.updateCard(id, reqCard, currentUser);
     }
 
-    @PutMapping("/{cardId}/accept/{userId}")
+    @PatchMapping("/{cardId}/accept/{userId}")
     public ApiResponse<?> acceptCard(@PathVariable Long cardId, @PathVariable Long userId) {
         return cardService.acceptCard(cardId, userId);
     }
 
-    @PutMapping("/{cardId}/reject/{userId}")
+    @PatchMapping("/{cardId}/reject/{userId}")
     public ApiResponse<?> rejectCard(@PathVariable Long cardId, @PathVariable Long userId) {
         return cardService.rejectCard(cardId, userId);
     }
 
-    @PutMapping("/{cardId}/complete")
+    @PatchMapping("/{cardId}/complete")
     public ApiResponse<?> completeCard(@PathVariable Long cardId) {
         return cardService.saveAndComplete(cardId);
     }
