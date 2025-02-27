@@ -27,10 +27,7 @@ public class ReqCardTube extends ReqCard {
     private String mbDetectionMethod;
     private LocalDate mbPatientRegDate;
 
-    @ManyToOne
-    @JoinColumn(referencedColumnName = "code")
-    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog homeStayReason;
+    private String homeStayReasonCode;
     private LocalDate dischargeDate;
     //vaccination
     private String vaccinationName;   // Preparat nomi
