@@ -92,7 +92,7 @@ public class CardServiceImpl implements CardService {
             card.setStatus(CardStatus.REJECTED);
             return new ApiResponse<>(true, "User Reject", cardRepository.save(card));
         } else {
-            throw new RuntimeException("User is not assigned to this card");
+            throw new ApiException(BAD_REQUEST, "User is not assigned to this card");
         }
     }
 

@@ -10,10 +10,7 @@ import uz.uzinfocom.isemid.models.entities.card.card161.*;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
-import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqCard161;
-import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqHomePreventiveMeasure;
-import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqOutbreakDisinfectionMeasure;
-import uz.uzinfocom.isemid.models.payload.requests.card.card161.ReqVaccination;
+import uz.uzinfocom.isemid.models.payload.requests.card.card161.*;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;
@@ -108,6 +105,15 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (reqRiskFactor.isEmpty()) {
                 existingCard.getRiskFactors().clear();
             } else {
+
+                Set<Long> requestIds = reqRiskFactor.stream()
+                        .map(ReqCard161RiskFactor::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getVaccinations().removeIf(exsistingReq ->
+                        exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
+
                 reqRiskFactor.forEach(reqRisk -> existingCard.getRiskFactors().stream()
                         .filter(existingRisk -> existingRisk.getId() != null && existingRisk.getId().equals(reqRisk.getId()))
                         .findFirst()
@@ -132,6 +138,16 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (reqInfectionSources.isEmpty()) {
                 existingCard.getPossibleInfectionSources().clear();
             }
+
+            Set<Long> requestIds = reqInfectionSources.stream()
+                    .map(ReqInfectionSource::getId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            existingCard.getVaccinations().removeIf(exsistingReq ->
+                    exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
+
+
             reqInfectionSources.forEach(reqInfectionSource -> existingCard.getPossibleInfectionSources().stream()
                     .filter(existingSource -> existingSource.getId() != null && existingSource.getId().equals(reqInfectionSource.getId()))
                     .findFirst()
@@ -156,6 +172,16 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (reqSource.isEmpty()) {
                 existingCard.getEnvironmentalSources().clear();
             } else {
+
+                Set<Long> requestIds = reqSource.stream()
+                        .map(ReqEnvironmentalSource::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getVaccinations().removeIf(exsistingReq ->
+                        exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
+
+
                 reqSource.forEach(reqEnvSource -> existingCard.getEnvironmentalSources().stream()
                         .filter(environmentalSource -> environmentalSource.getId() != null && environmentalSource.getId().equals(reqEnvSource.getId()))
                         .findFirst()
@@ -212,6 +238,16 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (reqLabTest.isEmpty()) {
                 existingCard.getEnvironmentalLabTests().clear();
             } else {
+
+                Set<Long> requestIds = reqLabTest.stream()
+                        .map(ReqEnvironmentalLabTest::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getVaccinations().removeIf(exsistingReq ->
+                        exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
+
+
                 reqLabTest.forEach(reqLab -> existingCard.getEnvironmentalLabTests().stream()
                         .filter(existingLabTest -> existingLabTest.getId() != null && existingLabTest.getId().equals(reqLab.getId()))
                         .findFirst()
@@ -240,6 +276,16 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (reqContactPeople.isEmpty()) {
                 existingCard.getContactPersonDetails().clear();
             } else {
+
+                Set<Long> requestIds = reqContactPeople.stream()
+                        .map(ReqContactPerson::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getVaccinations().removeIf(exsistingReq ->
+                        exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
+
+
                 reqContactPeople.forEach(reqContactPerson -> existingCard.getContactPersonDetails().stream()
                         .filter(existingContactPerson -> existingContactPerson.getId() != null && existingContactPerson.getId().equals(reqContactPerson.getId()))
                         .findFirst()
@@ -270,6 +316,16 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             if (reqGroup.isEmpty()) {
                 existingCard.getScreenedGroups().clear();
             } else {
+
+                Set<Long> requestIds = reqGroup.stream()
+                        .map(ReqScreenedGroup::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                existingCard.getVaccinations().removeIf(exsistingReq ->
+                        exsistingReq.getId() != null && !requestIds.contains(exsistingReq.getId()));
+
+
                 reqGroup.forEach(reqScreenedGroup -> existingCard.getScreenedGroups().stream()
                         .filter(existingGroup -> existingGroup.getId() != null && existingGroup.getId().equals(reqScreenedGroup.getId()))
                         .findFirst()

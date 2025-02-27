@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.entities.card.card_tube;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -15,6 +16,10 @@ import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 @NoArgsConstructor
 @Entity(name = "card_tube_infection_source")
 public class InfectionSource extends BaseEntity {
+    @ManyToOne
+    @JoinColumn(name = "card_tube_id", nullable = false)
+    @JsonIgnore
+    private CardTube cardTube;
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "code")
