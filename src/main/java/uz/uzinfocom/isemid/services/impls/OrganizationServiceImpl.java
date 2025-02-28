@@ -126,6 +126,11 @@ public class OrganizationServiceImpl implements OrganizationService {
         return organizationRepository.findById(id);
     }
 
+    @Override
+    public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name) {
+        return new ApiResponse<>(true, "Success", organizationRepository.searchByFilter(stateCode, cityCode, name));
+    }
+
     private Organization mappingOrganization(RespOrganization response) {
         Organization organization = new Organization();
         organization.setUuid(UUID.fromString(response.getId()));

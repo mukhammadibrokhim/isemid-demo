@@ -30,4 +30,7 @@ public interface OrganizationService {
     ApiResponse<?> getAllOrgUsers(long id);
 
     Optional<Organization> findById(long id);
+
+    ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name);
+
 }
