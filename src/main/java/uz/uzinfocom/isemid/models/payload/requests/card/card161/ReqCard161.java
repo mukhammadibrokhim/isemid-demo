@@ -21,9 +21,9 @@ public class ReqCard161 extends ReqCard {
     private Boolean isResident;
     private String residentialTreatmentFacility;
     private LocalDateTime diseaseDetectedDate;
-    private String region;
-    private String district;
-    private String polyclinic;
+    private String regionCode;
+    private String districtCode;
+    private Long polyclinicId;
     private String initialSymptoms;
     //detected catalogga qoshish kerak
     private String detectedCode;

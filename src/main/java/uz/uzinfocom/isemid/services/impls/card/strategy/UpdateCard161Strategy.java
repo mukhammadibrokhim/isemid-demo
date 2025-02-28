@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.card161.*;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
+import uz.uzinfocom.isemid.services.OrganizationService;
 import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
@@ -31,6 +32,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class UpdateCard161Strategy implements UpdateCardStrategy {
     final CardRepository cardRepository;
     final CatalogService catalogService;
+    final OrganizationService organizationService;
 
     private Catalog getCatalogByCode(CatalogType type, String code) throws ApiException {
         return catalogService.findByTypeAndCode(type, code).orElse(null);
@@ -52,9 +54,11 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getIsResident()).ifPresent(existingCard::setIsResident);
         Optional.ofNullable(reqCard161.getResidentialTreatmentFacility()).ifPresent(existingCard::setResidentialTreatmentFacility);
         Optional.ofNullable(reqCard161.getDiseaseDetectedDate()).ifPresent(existingCard::setDiseaseDetectedDate);
-        Optional.ofNullable(reqCard161.getRegion()).ifPresent(existingCard::setRegion);
-        Optional.ofNullable(reqCard161.getDistrict()).ifPresent(existingCard::setDistrict);
-        Optional.ofNullable(reqCard161.getPolyclinic()).ifPresent(existingCard::setPolyclinic);
+
+        Optional.ofNullable(reqCard161.getRegionCode()).ifPresent(code -> existingCard.setRegion(getCatalogByCode(CatalogType.state, code)));
+        Optional.ofNullable(reqCard161.getDistrictCode()).ifPresent(code -> existingCard.setDistrict(getCatalogByCode(CatalogType.city, code)));
+        Optional.ofNullable(reqCard161.getPolyclinicId()).ifPresent(pId -> existingCard.setPolyclinic(organizationService.findById(pId).orElseThrow(() -> new ApiException(NOT_FOUND, "Polyclinic not found."))));
+
         Optional.ofNullable(reqCard161.getInitialSymptoms()).ifPresent(existingCard::setInitialSymptoms);
         Optional.ofNullable(reqCard161.getDetectedCode()).ifPresent(code -> existingCard.setDetected(getCatalogByCode(CatalogType.definedDisease, code)));
         Optional.ofNullable(reqCard161.getEpidemiologicalExamDate()).ifPresent(existingCard::setEpidemiologicalExamDate);
