@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.models.entities.card.card161;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
@@ -22,9 +23,21 @@ public class Card161 extends Card {
     private Boolean isResident;
     private String residentialTreatmentFacility;
     private LocalDateTime diseaseDetectedDate;
-    private String region;
-    private String district;
-    private String polyclinic;
+
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog region;
+
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog district;
+
+    @ManyToOne
+    @JoinColumn(name = "polyclinic_id", nullable = false)
+    private Organization polyclinic;
+
     private String initialSymptoms;
 
     @ManyToOne
