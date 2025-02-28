@@ -188,18 +188,18 @@ public class Form058ServiceImpl implements Form058Service {
                 Optional.ofNullable(reqPatient.getBirthDate()).ifPresent(patient::setBirthDate);
                 Optional.ofNullable(reqPatient.getAgeYears()).ifPresent(patient::setAgeYears);
                 Optional.ofNullable(reqPatient.getAgeMonths()).ifPresent(patient::setAgeMonths);
-                Optional.ofNullable(reqPatient.getGender()).ifPresent(reqGen -> mapCatalog(CatalogType.gender, reqGen.name()));
+                Optional.ofNullable(reqPatient.getGender()).ifPresent(reqGen -> patient.setGender(mapCatalog(CatalogType.gender, reqGen.name())));
                 Optional.ofNullable(reqPatient.getPhoneNumber()).ifPresent(patient::setPhoneNumber);
                 Optional.ofNullable(reqPatient.getKinshipDegree()).ifPresent(patient::setKinshipDegree);
                 Optional.ofNullable(reqPatient.getKinshipFullName()).ifPresent(patient::setKinshipFullName);
-                Optional.ofNullable(reqPatient.getResidentialStatus()).ifPresent(reqResidentialStatus -> mapCatalog(CatalogType.residentialStatus, reqResidentialStatus.name()));
-                Optional.ofNullable(reqPatient.getMaritalStatus()).ifPresent(reqMaritalStatus -> mapCatalog(CatalogType.maritalStatus, reqMaritalStatus.name()));
-                Optional.ofNullable(reqPatient.getPopulationType()).ifPresent(reqPopulationType -> mapCatalog(CatalogType.populationType, reqPopulationType.name()));
-                Optional.ofNullable(reqPatient.getCategoryCode()).ifPresent(reqCategoryCode -> mapCatalog(CatalogType.category, reqCategoryCode));
-                Optional.ofNullable(reqPatient.getProfessionCode()).ifPresent(code -> mapCatalog(CatalogType.profession, code));
+                Optional.ofNullable(reqPatient.getResidentialStatus()).ifPresent(reqResidentialStatus -> patient.setResidentialStatus(mapCatalog(CatalogType.residentialStatus, reqResidentialStatus.name())));
+                Optional.ofNullable(reqPatient.getMaritalStatus()).ifPresent(reqMaritalStatus -> patient.setResidentialStatus(mapCatalog(CatalogType.maritalStatus, reqMaritalStatus.name())));
+                Optional.ofNullable(reqPatient.getPopulationType()).ifPresent(reqPopulationType -> patient.setPopulationType(mapCatalog(CatalogType.populationType, reqPopulationType.name())));
+                Optional.ofNullable(reqPatient.getCategoryCode()).ifPresent(reqCategoryCode -> patient.setCategory(mapCatalog(CatalogType.category, reqCategoryCode)));
+                Optional.ofNullable(reqPatient.getProfessionCode()).ifPresent(code -> patient.setProfession(mapCatalog(CatalogType.profession, code)));
                 Optional.ofNullable(reqPatient.getWorkPlace()).ifPresent(patient::setWorkPlace);
-                Optional.ofNullable(reqPatient.getWorkPlaceStateCode()).ifPresent(code -> mapCatalog(CatalogType.state, code));
-                Optional.ofNullable(reqPatient.getWorkPlaceCityCode()).ifPresent(code -> mapCatalog(CatalogType.city, code));
+                Optional.ofNullable(reqPatient.getWorkPlaceStateCode()).ifPresent(code -> patient.setWorkPlaceState(mapCatalog(CatalogType.state, code)));
+                Optional.ofNullable(reqPatient.getWorkPlaceCityCode()).ifPresent(code -> patient.setWorkPlaceCity(mapCatalog(CatalogType.city, code)));
                 Optional.ofNullable(reqPatient.getAddresses()).ifPresent(reqAddresses -> {
 
                     List<Address> existingAddresses = patient.getAddresses();
