@@ -23,8 +23,18 @@ public class Card161 extends Card {
     private Boolean isResident;
     private String residentialTreatmentFacility;
     private LocalDateTime diseaseDetectedDate;
+
+    @ManyToOne
+    @JoinColumn(name = "detected", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog region;
+
+    @ManyToOne
+    @JoinColumn(name = "detected", referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
     private Catalog district;
+    @ManyToOne
+    @JoinColumn(name = "polyclinic_id", nullable = false)
     private Organization polyclinic;
     private String initialSymptoms;
 
