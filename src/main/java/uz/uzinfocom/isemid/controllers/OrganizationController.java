@@ -91,7 +91,7 @@ public class OrganizationController {
     public ApiResponse<?> getOrganizationsByFilter(
             @RequestParam String stateCode,
             @RequestParam String cityCode,
-            @RequestParam String name
+            @RequestParam(required = false) String name
     ) {
         return organizationService.getOrganizationsBySearch(stateCode,cityCode,name);
     }
