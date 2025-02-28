@@ -86,4 +86,13 @@ public class OrganizationController {
     public ApiResponse<?> getOrganization(@PathVariable long id) {
         return organizationService.getAllOrgUsers(id);
     }
+
+    @GetMapping("/search")
+    public ApiResponse<?> getOrganizationsByFilter(
+            @RequestParam String stateCode,
+            @RequestParam String cityCode,
+            @RequestParam String name
+    ) {
+        return organizationService.getOrganizationsBySearch(stateCode,cityCode,name);
+    }
 }
