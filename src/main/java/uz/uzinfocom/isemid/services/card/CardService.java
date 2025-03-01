@@ -15,7 +15,7 @@ public interface CardService {
             String fromOrgName,
             String toOrgName,
             CardStatus cardStatus,
-            String fullURL
+            User user, String fullURL
     );
 
     ApiResponse<?> assignUsers(ReqCardAssignUsers assignUsers, User currentUser);
