@@ -57,7 +57,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
 
         Optional.ofNullable(reqCard161.getRegionCode()).ifPresent(code -> existingCard.setRegion(getCatalogByCode(CatalogType.state, code)));
         Optional.ofNullable(reqCard161.getDistrictCode()).ifPresent(code -> existingCard.setDistrict(getCatalogByCode(CatalogType.city, code)));
-        Optional.ofNullable(reqCard161.getPolyclinicId()).ifPresent(pId -> existingCard.setPolyclinic(organizationService.findById(pId).orElseThrow(() -> new ApiException(NOT_FOUND, "Polyclinic not found."))));
+        Optional.ofNullable(reqCard161.getPolyclinicId()).ifPresent(pId -> existingCard.setPolyclinic(organizationService.findById(pId).orElse(null)));
 
         Optional.ofNullable(reqCard161.getInitialSymptoms()).ifPresent(existingCard::setInitialSymptoms);
         Optional.ofNullable(reqCard161.getDetectedCode()).ifPresent(code -> existingCard.setDetected(getCatalogByCode(CatalogType.definedDisease, code)));
