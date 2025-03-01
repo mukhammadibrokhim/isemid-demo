@@ -63,6 +63,7 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public ApiResponse<Catalog> updateCatalogById(long id, ReqCatalog reqCatalog) {
         Catalog catalog = catalogRepository.findById(id).orElseThrow(() -> new ApiException(BAD_REQUEST, "Catalog not found for id: " + id));
+        Optional.ofNullable(reqCatalog.getType()).ifPresent(catalog::setType);
         Optional.ofNullable(reqCatalog.getCode()).ifPresent(catalog::setCode);
         Optional.ofNullable(reqCatalog.getNameRu()).ifPresent(catalog::setNameRu);
         Optional.ofNullable(reqCatalog.getNameUz()).ifPresent(catalog::setNameUz);
