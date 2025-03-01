@@ -35,7 +35,7 @@ public class Card161 extends Card {
     private Catalog district;
 
     @ManyToOne
-    @JoinColumn(name = "polyclinic_id", nullable = false)
+    @JoinColumn(name = "polyclinic_id")
     private Organization polyclinic;
 
     private String initialSymptoms;
