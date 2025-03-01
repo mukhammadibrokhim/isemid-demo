@@ -33,9 +33,10 @@ public class CardController {
             @RequestParam(required = false) String fromOrgName,
             @RequestParam(required = false) String toOrgName,
             @RequestParam(required = false) CardStatus cardStatus,
+            @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return cardService.getAllCardsByFilter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, getFullURL(request));
+        return cardService.getAllCardsByFilter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, user, getFullURL(request));
     }
 
 //    @PostMapping("/assign-user")
