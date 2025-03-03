@@ -34,6 +34,16 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
+    @ManyToOne
+    @JoinColumn(name = "assigned_by_id")
+    @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses"})
+    private User assignedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "rejected_by")
+    @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses",})
+    private User rejectedBy;
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "card_users",
