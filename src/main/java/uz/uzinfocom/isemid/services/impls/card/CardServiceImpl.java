@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardProgressStatus;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
+import uz.uzinfocom.isemid.models.payload.requests.card.ReqRejectCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.UserRepository;
@@ -43,19 +44,6 @@ public class CardServiceImpl implements CardService {
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
-//
-//    @Override
-//    public ApiResponse<?> assignUsers(ReqCardAssignUsers assignUsers, User currentUser) {
-//        Card card = cardRepository.findById(assignUsers.getCardId()).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
-//        Set<User> usersToAdd = assignUsers.getUserIds().stream()
-//                .map(userId -> userRepository.findById(userId)
-//                        .orElseThrow(() -> new ApiException(NOT_FOUND, "User with ID " + userId + " not found.")))
-//                .collect(Collectors.toSet());
-//        card.getUsers().addAll(usersToAdd);
-//        card.setAssignedBy(currentUser);
-//        card.setStatus(CardStatus.NOT_VIEWED);
-//        return new ApiResponse<>(true, "successfully assigned.", cardRepository.save(card));
-//    }
 
     @Override
     public ApiResponse<?> getById(long id) {
@@ -87,11 +75,9 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public ApiResponse<?> rejectCard(Long cardId, Long userId) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new RuntimeException("Card not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public ApiResponse<?> rejectCard(Long cardId, ReqRejectCard rejectCard, Long userId) {
+        Card card = cardRepository.findById(cardId).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(NOT_FOUND, "User not found"));
         if (!card.getUsers().contains(user)) {
             throw new ApiException(BAD_REQUEST, "User is not assigned to this card.");
         }
@@ -101,6 +87,7 @@ public class CardServiceImpl implements CardService {
         }
 
         card.setStatus(CardStatus.REJECTED_BY_USER);
+        card.setComment(rejectCard.getComment());
         card.setRejectedBy(user);
         return new ApiResponse<>(true, "Card successfully rejected by user.", cardRepository.save(card));
     }

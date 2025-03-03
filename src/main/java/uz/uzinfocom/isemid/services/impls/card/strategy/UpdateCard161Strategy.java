@@ -49,7 +49,6 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             throw new ApiException(BAD_REQUEST, "Card type is not correct.");
         }
         ReqCard161 reqCard161 = (ReqCard161) reqCard;
-
         Optional.ofNullable(reqCard161.getCallerType()).ifPresent(existingCard::setCallerType);
         Optional.ofNullable(reqCard161.getIsResident()).ifPresent(existingCard::setIsResident);
         Optional.ofNullable(reqCard161.getResidentialTreatmentFacility()).ifPresent(existingCard::setResidentialTreatmentFacility);

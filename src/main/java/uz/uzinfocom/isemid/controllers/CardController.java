@@ -3,12 +3,14 @@ package uz.uzinfocom.isemid.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
+import uz.uzinfocom.isemid.models.payload.requests.card.ReqRejectCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.card.CardService;
@@ -81,9 +83,9 @@ public class CardController {
 
     @Operation(summary = "Reject assigned card",
             description = "Allows an assigned user to reject the card if they find errors in the form. The status will be set to 'REJECTED_BY_USER'. If the card is already marked as 'COMPLETED', it cannot be rejected.")
-    @PatchMapping("/{cardId}/reject/{userId}")
-    public ApiResponse<?> rejectCard(@PathVariable Long cardId, @PathVariable Long userId) {
-        return cardService.rejectCard(cardId, userId);
+    @PutMapping("/{cardId}/reject/{userId}")
+    public ApiResponse<?> rejectCard(@PathVariable Long cardId, @PathVariable Long userId, @Valid @RequestBody ReqRejectCard rejectCard) {
+        return cardService.rejectCard(cardId,rejectCard, userId);
     }
 
     @Operation(summary = "Complete the assigned card",

@@ -34,12 +34,12 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_by_id")
     @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses"})
     private User assignedBy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rejected_by")
     @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses",})
     private User rejectedBy;
@@ -56,10 +56,13 @@ public abstract class Card extends AbsEntity {
     private CardStatus status = CardStatus.NOT_VIEWED;
 
     @Enumerated(EnumType.STRING)
-    private CardProgressStatus progressStatus = CardProgressStatus.IN_PROGRESS;
+    private CardProgressStatus progressStatus = CardProgressStatus.DRAFT;
 
     @ManyToOne
     @JoinColumn(name = "form058_id")
     @JsonIgnoreProperties("cards")
     private Form058 form058;
+
+    @Column(length = 1000)
+    private String comment;
 }
