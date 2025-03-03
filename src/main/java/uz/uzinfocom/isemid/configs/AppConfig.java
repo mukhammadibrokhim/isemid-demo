@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.configs;
 
 import com.fasterxml.jackson.core.StreamWriteConstraints;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -49,11 +48,6 @@ public class AppConfig {
     @Bean
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-
-        cacheManager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.HOURS)
-                .maximumSize(10000));
-
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(1, TimeUnit.HOURS)
                 .maximumSize(10000));

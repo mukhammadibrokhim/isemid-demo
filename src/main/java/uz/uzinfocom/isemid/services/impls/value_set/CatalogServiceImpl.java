@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -60,6 +61,7 @@ public class CatalogServiceImpl implements CatalogService {
         return new ApiResponse<>(true, "Catalog successfully created.", catalogRepository.save(catalog));
     }
 
+    @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     @Override
     public ApiResponse<Catalog> updateCatalogById(long id, ReqCatalog reqCatalog) {
         Catalog catalog = catalogRepository.findById(id).orElseThrow(() -> new ApiException(BAD_REQUEST, "Catalog not found for id: " + id));
@@ -149,6 +151,7 @@ public class CatalogServiceImpl implements CatalogService {
         return catalogRepository.findByTypeAndCode(catalogType.name(), code);
     }
 
+    @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     @Override
     public ApiResponse<?> deleteById(long id) {
         try {
