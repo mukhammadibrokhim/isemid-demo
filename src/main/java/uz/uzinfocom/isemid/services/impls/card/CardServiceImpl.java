@@ -13,7 +13,6 @@ import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardProgressStatus;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
-import uz.uzinfocom.isemid.models.payload.requests.card.ReqCardAssignUsers;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.UserRepository;
@@ -23,8 +22,6 @@ import uz.uzinfocom.isemid.services.impls.card.strategy.UpdateCardService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -46,18 +43,19 @@ public class CardServiceImpl implements CardService {
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
-
-    @Override
-    public ApiResponse<?> assignUsers(ReqCardAssignUsers assignUsers, User currentUser) {
-        Card card = cardRepository.findById(assignUsers.getCardId()).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
-        Set<User> usersToAdd = assignUsers.getUserIds().stream()
-                .map(userId -> userRepository.findById(userId)
-                        .orElseThrow(() -> new ApiException(NOT_FOUND, "User with ID " + userId + " not found.")))
-                .collect(Collectors.toSet());
-        card.getUsers().addAll(usersToAdd);
-        card.setStatus(CardStatus.NOT_VIEWED);
-        return new ApiResponse<>(true, "successfully assigned.", cardRepository.save(card));
-    }
+//
+//    @Override
+//    public ApiResponse<?> assignUsers(ReqCardAssignUsers assignUsers, User currentUser) {
+//        Card card = cardRepository.findById(assignUsers.getCardId()).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
+//        Set<User> usersToAdd = assignUsers.getUserIds().stream()
+//                .map(userId -> userRepository.findById(userId)
+//                        .orElseThrow(() -> new ApiException(NOT_FOUND, "User with ID " + userId + " not found.")))
+//                .collect(Collectors.toSet());
+//        card.getUsers().addAll(usersToAdd);
+//        card.setAssignedBy(currentUser);
+//        card.setStatus(CardStatus.NOT_VIEWED);
+//        return new ApiResponse<>(true, "successfully assigned.", cardRepository.save(card));
+//    }
 
     @Override
     public ApiResponse<?> getById(long id) {
@@ -75,10 +73,17 @@ public class CardServiceImpl implements CardService {
     public ApiResponse<?> acceptCard(Long cardId, Long userId) {
         Card card = cardRepository.findById(cardId).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(NOT_FOUND, "User not found."));
-        if (card.getUsers().contains(user)) {
-            card.setStatus(CardStatus.APPROVED);
-            return new ApiResponse<>(true, "successfully accepted.", cardRepository.save(card));
-        } else throw new ApiException(BAD_REQUEST, "User is not assigned to this card");
+        if (!card.getUsers().contains(user)) {
+            throw new ApiException(BAD_REQUEST, "User is not assigned to this card.");
+        }
+
+        if (card.getStatus() == CardStatus.REJECTED_BY_USER || card.getStatus() == CardStatus.REJECTED_BY_CHECKER) {
+            throw new ApiException(BAD_REQUEST, "Rejected card cannot be directly accepted. It must be refilled first.");
+        }
+
+        card.setStatus(CardStatus.APPROVED);
+        card.setRejectedBy(null);
+        return new ApiResponse<>(true, "successfully accepted.", cardRepository.save(card));
     }
 
     @Override
@@ -87,13 +92,17 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> new RuntimeException("Card not found"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (card.getUsers().contains(user)) {
-            card.setStatus(CardStatus.REJECTED);
-            return new ApiResponse<>(true, "User Reject", cardRepository.save(card));
-        } else {
-            throw new ApiException(BAD_REQUEST, "User is not assigned to this card");
+        if (!card.getUsers().contains(user)) {
+            throw new ApiException(BAD_REQUEST, "User is not assigned to this card.");
         }
+
+        if (card.getProgressStatus() == CardProgressStatus.COMPLETED) {
+            throw new ApiException(BAD_REQUEST, "Completed card cannot be rejected.");
+        }
+
+        card.setStatus(CardStatus.REJECTED_BY_USER);
+        card.setRejectedBy(user);
+        return new ApiResponse<>(true, "Card successfully rejected by user.", cardRepository.save(card));
     }
 
     @Override
@@ -104,10 +113,32 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public ApiResponse<?> saveAndComplete(Long cardId) {
+    public ApiResponse<?> saveAndComplete(Long cardId, User currentUser) {
         Card card = cardRepository.findById(cardId).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
+        if (!card.getAssignedBy().equals(currentUser)) {
+            throw new ApiException(BAD_REQUEST, "User is not assigned to this card.");
+        }
+        if (card.getProgressStatus() == CardProgressStatus.COMPLETED) {
+            throw new ApiException(BAD_REQUEST, "Card is already completed.");
+        }
         card.setProgressStatus(CardProgressStatus.COMPLETED);
         return new ApiResponse<>(true, "successfully saved.", cardRepository.save(card));
+    }
+
+    @Override
+    public ApiResponse<?> rejectCardByChecker(Long cardId, User user) {
+        Card card = cardRepository.findById(cardId).orElseThrow(() -> new RuntimeException("Card not found."));
+        if (!card.getAssignedBy().equals(user)) {
+            throw new ApiException(BAD_REQUEST, "User is not assigned to this card.");
+        }
+
+        if (card.getProgressStatus() == CardProgressStatus.COMPLETED) {
+            throw new ApiException(BAD_REQUEST, "Completed card cannot be rejected.");
+        }
+
+        card.setStatus(CardStatus.REJECTED_BY_CHECKER);
+        card.setRejectedBy(user);
+        return new ApiResponse<>(true, "successfully rejected.", cardRepository.save(card));
     }
 
     public static Specification<Card> getFilteredSpecification(

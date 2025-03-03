@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum CardStatus {
     NOT_VIEWED("Кўрилмаган", "Не просмотрено"),
     VIEWED("Кўрилди", "Просмотрено"),
-    REJECTED("Рад қилинган", "Отклоненный"),
+    REJECTED_BY_USER("Рад қилинган (бириктирилган)", "Отклоненный пользователем"),
+    REJECTED_BY_CHECKER("Рад қилинган (текширувчи)", "Отклоненный проверяющим"),
     APPROVED("Тасдиқланган", "Подтвержденный");
 
     private final String uz;
