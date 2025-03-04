@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.models.entities.card.Card;
-import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
+import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
@@ -27,7 +27,7 @@ public class Form058 extends AbsEntity {
     private Integer mkb10UsageLimit;
 
     @Enumerated(EnumType.STRING)
-    private DocumentStatus status;
+    private FormStatus status;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_id", nullable = false)

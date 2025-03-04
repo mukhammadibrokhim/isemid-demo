@@ -53,10 +53,10 @@ public abstract class Card extends AbsEntity {
     private Set<User> users = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
-    private CardStatus status = CardStatus.NOT_VIEWED;
-
-    @Enumerated(EnumType.STRING)
-    private CardProgressStatus progressStatus = CardProgressStatus.DRAFT;
+    private CardStatus status = CardStatus.NEW;
+//
+//    @Enumerated(EnumType.STRING)
+//    private CardProgressStatus progressStatus = CardProgressStatus.DRAFT;
 
     @ManyToOne
     @JoinColumn(name = "form058_id")

@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uz.uzinfocom.isemid.models.entities.*;
-import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
+import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ public class Form058Dto {
     private String mkb10Name;
     private Integer mkb10UsageLimit;
 
-    private DocumentStatus status;
+    private FormStatus status;
     @JsonIgnoreProperties({"identifiers", "birthDate", "ageYears", "state", "ageMonths", "gender", "phoneNumber",
             "kinshipDegree", "kinshipFullName", "residentialStatus", "maritalStatus", "populationType", "category", "profession",
             "workPlace", "workPlaceState", "workPlaceCity", "addresses", ""})

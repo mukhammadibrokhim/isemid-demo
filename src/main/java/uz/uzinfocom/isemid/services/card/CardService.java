@@ -15,20 +15,22 @@ public interface CardService {
             String fromOrgName,
             String toOrgName,
             CardStatus cardStatus,
-            User user, String fullURL
+            Long formId, User user, String fullURL
     );
 
     ApiResponse<?> getById(long id);
 
     ApiResponse<?> updateCard(long id, ReqCard reqCard, User currentUser);
 
-    ApiResponse<?> acceptCard(Long cardId, Long userId);
+    ApiResponse<?> acceptCard(Long cardId, User currentUser);
 
-    ApiResponse<?> rejectCard(Long cardId, ReqRejectCard rejectCard, Long userId);
+    ApiResponse<?> rejectCard(Long cardId, User currentUser, ReqRejectCard rejectCard);
 
     ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL);
 
     ApiResponse<?> saveAndComplete(Long cardId, User user);
 
-    ApiResponse<?> rejectCardByChecker(Long cardId, User currentUser);
+    ApiResponse<?> supervisorApproveCard(long cardId, User currentUser);
+
+    ApiResponse<?> supervisorRejectCard(Long cardId, User currentUser, ReqRejectCard rejectCard);
 }

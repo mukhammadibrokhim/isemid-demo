@@ -38,10 +38,11 @@ public class CardController {
             @RequestParam(required = false) String fromOrgName,
             @RequestParam(required = false) String toOrgName,
             @RequestParam(required = false) CardStatus cardStatus,
+            @RequestParam(required = false) Long formId,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return cardService.getAllCardsByFilter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, user, getFullURL(request));
+        return cardService.getAllCardsByFilter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, formId, user, getFullURL(request));
     }
 
     @Operation(summary = "Get users assigned to a card",
@@ -74,31 +75,37 @@ public class CardController {
         return cardService.updateCard(id, reqCard, currentUser);
     }
 
-    @Operation(summary = "Accept assigned card",
-            description = "Allows an assigned user to accept the card. The card status changes to 'APPROVED'. If the card was previously rejected, it must be refilled first.")
-    @PatchMapping("/{cardId}/accept/{userId}")
-    public ApiResponse<?> acceptCard(@PathVariable Long cardId, @PathVariable Long userId) {
-        return cardService.acceptCard(cardId, userId);
+    @Operation(summary = "Accepting the incoming card")
+    @PatchMapping("/{cardId}/accept")
+    public ApiResponse<?> acceptCard(@PathVariable long cardId, @CurrentUser User currentUser) {
+        return cardService.acceptCard(cardId, currentUser);
     }
 
-    @Operation(summary = "Reject assigned card",
-            description = "Allows an assigned user to reject the card if they find errors in the form. The status will be set to 'REJECTED_BY_USER'. If the card is already marked as 'COMPLETED', it cannot be rejected.")
-    @PutMapping("/{cardId}/reject/{userId}")
-    public ApiResponse<?> rejectCard(@PathVariable Long cardId, @PathVariable Long userId, @Valid @RequestBody ReqRejectCard rejectCard) {
-        return cardService.rejectCard(cardId,rejectCard, userId);
+    @Operation(summary = "Reject the incoming card")
+    @PutMapping("/{cardId}/reject")
+    public ApiResponse<?> rejectCard(@PathVariable Long cardId, @CurrentUser User currentUser, @Valid @RequestBody ReqRejectCard rejectCard) {
+        return cardService.rejectCard(cardId, currentUser, rejectCard);
     }
 
-    @Operation(summary = "Complete the assigned card",
-            description = "Marks the assigned card as completed. Once completed, the card status changes to 'APPROVED' and cannot be modified.")
+    @Operation(summary = "Complete the specified Card",
+            description = "This API finalizes the given Card object, marking it as 'COMPLETE'.")
     @PatchMapping("/{cardId}/complete")
-    public ApiResponse<?> completeCard(@PathVariable Long cardId, @CurrentUser User user) {
-        return cardService.saveAndComplete(cardId, user);
+    public ApiResponse<?> complete(@PathVariable Long cardId, @CurrentUser User currentUser) {
+        return cardService.saveAndComplete(cardId, currentUser);
     }
 
-    @Operation(summary = "Reject the assigned card due to errors",
-            description = "Marks the assigned card as rejected if there are errors in the completed data. The status will be set to 'REJECTED_BY_CHECKER'.")
-    @PatchMapping("/{cardId}/reject")
-    public ApiResponse<?> rejectByChecker(@PathVariable Long cardId, @CurrentUser User user) {
-        return cardService.rejectCardByChecker(cardId, user);
+    @Operation(summary = "Approve the assigned card by Supervisor",
+            description = "This API allows the Supervisor (Заведующий) to approve the card, changing its status to 'APPROVED'.")
+    @PatchMapping("/{cardId}/supervisor/approve")
+    public ApiResponse<?> supervisorApproveCard(@PathVariable long cardId, @CurrentUser User currentUser) {
+        return cardService.supervisorApproveCard(cardId, currentUser);
+    }
+
+    @Operation(summary = "Reject the assigned card by Supervisor",
+            description = "This API allows the Supervisor (Заведующий) to reject the card, changing its status to 'REJECTED'. The reason for rejection must be provided.")
+    @PutMapping("/{cardId}/supervisor/reject")
+    public ApiResponse<?> supervisorRejectCard(@PathVariable Long cardId, @CurrentUser User currentUser,
+                                               @Valid @RequestBody ReqRejectCard rejectCard) {
+        return cardService.supervisorRejectCard(cardId, currentUser, rejectCard);
     }
 }
