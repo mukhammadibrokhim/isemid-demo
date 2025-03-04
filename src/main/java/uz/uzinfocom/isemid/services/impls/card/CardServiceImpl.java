@@ -75,7 +75,7 @@ public class CardServiceImpl implements CardService {
             throw new ApiException(BAD_REQUEST, "Completed card cannot be rejected.");
         }
         card.setStatus(CardStatus.REJECTED_BY_USER);
-        card.setComment(rejectCard.getComment());
+        card.setAttachedUserComment(rejectCard.getComment());
         return new ApiResponse<>(true, "Card successfully rejected by user.", cardRepository.save(card));
     }
 
@@ -127,6 +127,7 @@ public class CardServiceImpl implements CardService {
         }
 
         card.setStatus(CardStatus.REJECTED);
+        card.setAttachedUserComment(rejectCard.getComment());
         return new ApiResponse<>(true, "Supervisor successfully rejected.", cardRepository.save(card));
     }
 

@@ -61,5 +61,8 @@ public abstract class Card extends AbsEntity {
     private Form058 form058;
 
     @Column(length = 1000)
-    private String comment;
+    private String supervisorComment;
+
+    @Column(length = 1000)
+    private String attachedUserComment;
 }
