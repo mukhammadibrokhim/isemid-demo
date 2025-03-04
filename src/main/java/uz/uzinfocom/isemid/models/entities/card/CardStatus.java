@@ -4,17 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum CardStatus {
-    NOT_VIEWED("Кўрилмаган", "Не просмотрено"),
-    VIEWED("Кўрилди", "Просмотрено"),
-    REJECTED_BY_USER("Рад қилинган (бириктирилган)", "Отклоненный пользователем"),
-    REJECTED_BY_CHECKER("Рад қилинган (текширувчи)", "Отклоненный проверяющим"),
-    APPROVED("Тасдиқланган", "Подтвержденный");
-
-    private final String uz;
-    private final String ru;
-
-    CardStatus(String uz, String ru) {
-        this.uz = uz;
-        this.ru = ru;
-    }
+    NEW,              // Yangi yaratildi (Hali hech kim ishlamagan)
+    IN_PROGRESS,      // Xodimlar ishlayapti
+    COMPLETED,        // Xodim ishni tugatdi (save complete)
+    ACCEPTED_BY_USER, // Xodim ma'lumotlarni to‘g‘ri deb qabul qildi
+    REJECTED_BY_USER, // Xodim noto‘g‘ri deb rad etdi
+    APPROVED,         // Zavedenie tasdiqladi
+    REJECTED          // Zavedenie rad etdi
 }

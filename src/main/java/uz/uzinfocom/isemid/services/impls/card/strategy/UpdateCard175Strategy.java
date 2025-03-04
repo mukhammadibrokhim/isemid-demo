@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.entities.card.card175.Card175;
 import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
@@ -37,6 +38,8 @@ public class UpdateCard175Strategy implements UpdateCardStrategy {
         if (reqCard.getCardType() == null || !reqCard.getCardType().equals(CardType.CARD175)) {
             throw new ApiException(BAD_REQUEST, "Card type is not correct.");
         }
+        existingCard.setStatus(CardStatus.IN_PROGRESS);
+
         ReqCard175 reqCard175 = (ReqCard175) reqCard;
         Optional.ofNullable(reqCard175.getTimeOfEpidemiologicalInvestigation())
                 .ifPresent(existingCard::setTimeOfEpidemiologicalInvestigation);

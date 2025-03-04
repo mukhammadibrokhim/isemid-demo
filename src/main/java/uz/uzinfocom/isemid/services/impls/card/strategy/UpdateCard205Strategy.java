@@ -44,6 +44,9 @@ public class UpdateCard205Strategy implements UpdateCardStrategy {
         if (reqCard.getCardType() == null || !reqCard.getCardType().equals(CardType.CARD205)) {
             throw new ApiException(BAD_REQUEST, "Card type is not correct.");
         }
+
+        existingCard.setStatus(CardStatus.IN_PROGRESS);
+
         ReqCard205 reqCard205 = (ReqCard205) reqCard;
 
         Optional.ofNullable(reqCard205.getMkb10Code()).ifPresent(existingCard::setMkb10Code);

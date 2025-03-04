@@ -10,9 +10,10 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
-import uz.uzinfocom.isemid.models.entities.enums.DocumentStatus;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
+import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
@@ -308,6 +309,7 @@ public class Form058ServiceImpl implements Form058Service {
                     card.setUsers(new HashSet<>(userMap.values()));
                     card.setCreatedBy(user.getId());
                     card.setUpdatedBy(user.getId());
+                    card.setStatus(CardStatus.NEW);
                     card.setForm058(form058);
                     return card;
                 })
@@ -315,9 +317,7 @@ public class Form058ServiceImpl implements Form058Service {
 
         form058.getCards().clear();
         form058.getCards().addAll(cards);
-
-        form058.setStatus(DocumentStatus.CARD_ATTACHED);
-
+        form058.setStatus(FormStatus.CARD_ATTACHED);
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }
 
@@ -332,14 +332,14 @@ public class Form058ServiceImpl implements Form058Service {
         Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found."));
         Organization organization = organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
         form058.setReceiverOrganization(organization);
-        form058.setStatus(DocumentStatus.SENT);
+        form058.setStatus(FormStatus.SENT);
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
     @Override
     public ApiResponse<?> cancel(Long formId) {
         Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found."));
-        form058.setStatus(DocumentStatus.CANCELED);
+        form058.setStatus(FormStatus.CANCELED);
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 

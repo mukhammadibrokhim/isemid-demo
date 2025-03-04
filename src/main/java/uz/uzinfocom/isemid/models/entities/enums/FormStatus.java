@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.models.entities.enums;
 import lombok.Getter;
 
 @Getter
-public enum DocumentStatus {
+public enum FormStatus {
 
     NOT_APPROVED_FORM("Tasdiqlanmagan shakl", "Неутвержденная форма"),
     SENT("Жўнатилди", "Отправлено"),
@@ -16,7 +16,7 @@ public enum DocumentStatus {
     private final String uzbek;
     private final String russian;
 
-    DocumentStatus(String uzbek, String russian) {
+    FormStatus(String uzbek, String russian) {
         this.uzbek = uzbek;
         this.russian = russian;
     }
