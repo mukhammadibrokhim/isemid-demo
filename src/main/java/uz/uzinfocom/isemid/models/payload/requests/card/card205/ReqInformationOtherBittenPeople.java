@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class ReqInformationOtherBittenPeople {
+    private Long id;
     private String lastName; //Familiya.
     private String firstName; //Ismi.
     private String middleName; //Sharifi.
