@@ -135,9 +135,10 @@ public class CardServiceImpl implements CardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found with id: " + cardId));
 
-        if (!card.getUsers().contains(currentUser)) {
-            throw new ApiException(BAD_REQUEST, "You are not assigned to this Card.");
+        if (card.getUsers().stream().noneMatch(user -> user.getId().equals(currentUser.getId()))) {
+            throw new ApiException(FORBIDDEN, "You do not have access to this card.");
         }
+
         return card;
     }
 
