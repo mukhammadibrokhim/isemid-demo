@@ -65,7 +65,6 @@ public class CardServiceImpl implements CardService {
         }
 
         card.setStatus(CardStatus.ACCEPTED_BY_USER);
-        card.setRejectedBy(null);
         return new ApiResponse<>(true, "successfully accepted.", cardRepository.save(card));
     }
 
@@ -77,7 +76,6 @@ public class CardServiceImpl implements CardService {
         }
         card.setStatus(CardStatus.REJECTED_BY_USER);
         card.setComment(rejectCard.getComment());
-        card.setRejectedBy(currentUser);
         return new ApiResponse<>(true, "Card successfully rejected by user.", cardRepository.save(card));
     }
 
@@ -129,7 +127,6 @@ public class CardServiceImpl implements CardService {
         }
 
         card.setStatus(CardStatus.REJECTED);
-        card.setRejectedBy(currentUser);
         return new ApiResponse<>(true, "Supervisor successfully rejected.", cardRepository.save(card));
     }
 
@@ -157,7 +154,7 @@ public class CardServiceImpl implements CardService {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
             if (formId != null) {
-                Join<Card, Form058> form058Join = root.join("form058s");
+                Join<Card, Form058> form058Join = root.join("form058");
                 predicates.add(criteriaBuilder.equal(form058Join.get("id"), formId));
             }
             if (hasText(fromOrgName)) {

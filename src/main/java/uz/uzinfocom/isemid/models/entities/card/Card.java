@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.entities.card;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -36,13 +37,9 @@ public abstract class Card extends AbsEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_by_id")
-    @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses"})
+//    @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses"})
+    @JsonIgnore
     private User assignedBy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rejected_by")
-    @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses",})
-    private User rejectedBy;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
