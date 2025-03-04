@@ -75,15 +75,25 @@ public class CardController {
         return cardService.updateCard(id, reqCard, currentUser);
     }
 
-    @Operation(summary = "Accepting the incoming card")
+    @Operation(
+            summary = "Accept the incoming card",
+            description = "Marks the card as 'ACCEPTED_BY_USER', indicating that the assigned user has accepted it."
+    )
     @PatchMapping("/{cardId}/accept")
     public ApiResponse<?> acceptCard(@PathVariable long cardId, @CurrentUser User currentUser) {
         return cardService.acceptCard(cardId, currentUser);
     }
 
-    @Operation(summary = "Reject the incoming card")
+    @Operation(
+            summary = "Reject the incoming card",
+            description = "Marks the card as 'REJECTED_BY_USER', indicating that the assigned user has declined it. Requires a rejection reason."
+    )
     @PutMapping("/{cardId}/reject")
-    public ApiResponse<?> rejectCard(@PathVariable Long cardId, @CurrentUser User currentUser, @Valid @RequestBody ReqRejectCard rejectCard) {
+    public ApiResponse<?> rejectCard(
+            @PathVariable Long cardId,
+            @CurrentUser User currentUser,
+            @Valid @RequestBody ReqRejectCard rejectCard
+    ) {
         return cardService.rejectCard(cardId, currentUser, rejectCard);
     }
 
