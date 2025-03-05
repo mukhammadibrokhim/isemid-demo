@@ -155,24 +155,17 @@ public class CardServiceImpl implements CardService {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
             if (userId != null) {
-                Subquery<Long> subquery = query.subquery(Long.class);
-                Root<Card> subRoot = subquery.from(Card.class);
-                Join<Card, User> subUserJoin = subRoot.join("users", JoinType.INNER);
-                Join<Card, Form058> subFormJoin = subRoot.join("form058", JoinType.LEFT);
-
-                Predicate userPredicate = criteriaBuilder.equal(subUserJoin.get("id"), userId);
-                Predicate formNotNullPredicate = criteriaBuilder.isNotNull(subFormJoin.get("id")); // form058 null bo‘lmasligi kerak
-
-                if (formId != null) {
-                    Predicate formIdPredicate = criteriaBuilder.equal(subFormJoin.get("id"), formId);
-                    subquery.where(criteriaBuilder.and(userPredicate, formNotNullPredicate, formIdPredicate));
-                } else {
-                    subquery.where(criteriaBuilder.and(userPredicate, formNotNullPredicate));
-                }
-
-                subquery.select(subRoot.get("id"));
-                predicates.add(root.get("id").in(subquery));
+                Join<Card, User> userJoin = root.join("users", JoinType.INNER);
+                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
             }
+
+            Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
+            predicates.add(criteriaBuilder.isNotNull(formJoin.get("id"))); // Form mavjud bo‘lishi shart
+
+            if (formId != null) {
+                predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
+            }
+
             if (hasText(fromOrgName)) {
                 predicates.add(criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName));
             }
