@@ -110,9 +110,12 @@ public class CatalogServiceImpl implements CatalogService {
         return CatalogDto.builder()
                 .id(catalog.getId())
                 .uuid(catalog.getUuid())
+                .type(catalog.getType())
                 .code(catalog.getCode())
                 .nameUz(catalog.getNameUz())
                 .nameRu(catalog.getNameRu())
+                .nameUzCyril(catalog.getNameUzCyril())
+                .nameKaa(catalog.getNameKaa())
                 .parentCode(catalog.getParentCode())
                 .parent(shouldHaveParent(catalog) ? getParentDto(catalog.getParentCode()) : null)
                 .build();

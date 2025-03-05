@@ -14,9 +14,12 @@ import java.util.UUID;
 public class CatalogDto {
     private Long id;
     private UUID uuid;
+    private String type;
     private String code;
-    private String nameUz;
     private String nameRu;
+    private String nameUz;
+    private String nameUzCyril;
+    private String nameKaa;
     private String parentCode;
     private CatalogDto parent;
 }
