@@ -35,10 +35,7 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_by_id")
-    @JsonIgnore
-    private User assignedBy;
+    private Long assignedById;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
