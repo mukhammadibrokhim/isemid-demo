@@ -1,13 +1,12 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
@@ -154,31 +153,9 @@ public class CardServiceImpl implements CardService {
             if (hasText(formTypeCode)) {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
-            // USER ID bo‘yicha filter (EXISTS orqali)
-            if (userId != null) {
-                Subquery<Long> userSubquery = query.subquery(Long.class);
-                Root<Card> subRoot = userSubquery.from(Card.class);
-                Join<Card, User> userJoin = subRoot.join("users", JoinType.INNER);
-
-                userSubquery.select(subRoot.get("id"))
-                        .where(criteriaBuilder.equal(userJoin.get("id"), userId),
-                                criteriaBuilder.equal(subRoot.get("id"), root.get("id")));
-
-                predicates.add(criteriaBuilder.exists(userSubquery));
-            }
 
             if (formId != null) {
-                Subquery<Long> formSubquery = query.subquery(Long.class);
-                Root<Card> subRoot = formSubquery.from(Card.class);
-                Join<Card, Form058> formJoin = subRoot.join("form058", JoinType.INNER);
-
-                formSubquery.select(subRoot.get("id"))
-                        .where(criteriaBuilder.equal(formJoin.get("id"), formId),
-                                criteriaBuilder.equal(subRoot.get("id"), root.get("id")));
-
-                predicates.add(criteriaBuilder.exists(formSubquery));
-            } else {
-                predicates.add(criteriaBuilder.isNotNull(root.get("form058").get("id")));
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("id"), formId));
             }
 
             if (hasText(fromOrgName)) {
