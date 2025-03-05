@@ -51,9 +51,9 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardStatus status = CardStatus.NEW;
 
-    @ManyToOne
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "form058_id")
-    @JsonIgnoreProperties("cards")
     private Form058 form058;
 
     @Column(length = 1000)
