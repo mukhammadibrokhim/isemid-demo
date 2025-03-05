@@ -127,7 +127,6 @@ public class CatalogServiceImpl implements CatalogService {
                 .orElse(null);
     }
 
-
     @Cacheable(value = "catalogAllTypeByParentCode", key = "T(String).format('%s-%s-%s', #catalogType.name(), #parentCode, #lang)", unless = "#result == null")
     @Override
     public ApiResponse<List<RespCatalog>> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode, String lang) {
