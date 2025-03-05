@@ -1,9 +1,6 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
+import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -158,20 +155,22 @@ public class CardServiceImpl implements CardService {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
             if (userId != null) {
-//                Join<Card, User> userJoin = root.join("users");
-//                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
                 Subquery<Long> subquery = query.subquery(Long.class);
                 Root<Card> subRoot = subquery.from(Card.class);
-                Join<Card, User> subUserJoin = subRoot.join("users");
+                Join<Card, User> subUserJoin = subRoot.join("users", JoinType.INNER);
 
-                subquery.select(subRoot.get("id"))
-                        .where(criteriaBuilder.equal(subUserJoin.get("id"), userId));
+                Predicate userPredicate = criteriaBuilder.equal(subUserJoin.get("id"), userId);
 
+                if (formId != null) {
+                    Join<Card, Form058> subFormJoin = subRoot.join("form058", JoinType.LEFT);
+                    Predicate formPredicate = criteriaBuilder.equal(subFormJoin.get("id"), formId);
+                    subquery.where(criteriaBuilder.and(userPredicate, formPredicate));
+                } else {
+                    subquery.where(userPredicate);
+                }
+
+                subquery.select(subRoot.get("id"));
                 predicates.add(root.get("id").in(subquery));
-            }
-            if (formId != null) {
-                Join<Card, Form058> form058Join = root.join("form058");
-                predicates.add(criteriaBuilder.equal(form058Join.get("id"), formId));
             }
             if (hasText(fromOrgName)) {
                 predicates.add(criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName));
