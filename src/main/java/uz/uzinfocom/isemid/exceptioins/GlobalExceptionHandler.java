@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -27,8 +28,6 @@ import static org.springframework.http.HttpStatus.*;
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger("uz.uzinfocom.isemid");
 
-
-    final
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex) {
@@ -39,6 +38,19 @@ public class GlobalExceptionHandler {
                 .errors(List.of(ErrorDetail.builder()
                         .field(ex.getClass().getSimpleName())
                         .errorMessage(ex.getDetailMessageCode())
+                        .build()))
+                .build());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
+        return ResponseEntity.status(BAD_REQUEST.value()).body(ErrorResponse.builder()
+                .success(false)
+                .statusCode(BAD_REQUEST.value())
+                .message("Missing required parameter: " + ex.getParameterName())
+                .errors(List.of(ErrorDetail.builder()
+                        .field(ex.getClass().getSimpleName())
+                        .errorMessage("Missing required parameter: " + ex.getParameterName())
                         .build()))
                 .build());
     }
