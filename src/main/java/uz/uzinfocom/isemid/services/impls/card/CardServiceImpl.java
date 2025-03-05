@@ -158,15 +158,16 @@ public class CardServiceImpl implements CardService {
                 Subquery<Long> subquery = query.subquery(Long.class);
                 Root<Card> subRoot = subquery.from(Card.class);
                 Join<Card, User> subUserJoin = subRoot.join("users", JoinType.INNER);
+                Join<Card, Form058> subFormJoin = subRoot.join("form058", JoinType.LEFT);
 
                 Predicate userPredicate = criteriaBuilder.equal(subUserJoin.get("id"), userId);
+                Predicate formNotNullPredicate = criteriaBuilder.isNotNull(subFormJoin.get("id")); // form058 null bo‘lmasligi kerak
 
                 if (formId != null) {
-                    Join<Card, Form058> subFormJoin = subRoot.join("form058", JoinType.LEFT);
-                    Predicate formPredicate = criteriaBuilder.equal(subFormJoin.get("id"), formId);
-                    subquery.where(criteriaBuilder.and(userPredicate, formPredicate));
+                    Predicate formIdPredicate = criteriaBuilder.equal(subFormJoin.get("id"), formId);
+                    subquery.where(criteriaBuilder.and(userPredicate, formNotNullPredicate, formIdPredicate));
                 } else {
-                    subquery.where(userPredicate);
+                    subquery.where(criteriaBuilder.and(userPredicate, formNotNullPredicate));
                 }
 
                 subquery.select(subRoot.get("id"));
