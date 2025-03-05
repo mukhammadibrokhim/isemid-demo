@@ -97,7 +97,7 @@ public class CardServiceImpl implements CardService {
     @Override
     public ApiResponse<?> supervisorApproveCard(long cardId, User currentUser) {
         Card card = cardRepository.findById(cardId).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
-        if (!card.getAssignedBy().getId().equals(currentUser.getId())) {
+        if (!card.getAssignedById().equals(currentUser.getId())) {
             throw new ApiException(FORBIDDEN, "You are not authorized to approve this card.");
         }
         if (!card.getStatus().equals(CardStatus.COMPLETED)) {
@@ -112,7 +112,7 @@ public class CardServiceImpl implements CardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
 
-        if (!card.getAssignedBy().getId().equals(currentUser.getId())) {
+        if (!card.getAssignedById().equals(currentUser.getId())) {
             throw new ApiException(FORBIDDEN, "You are not authorized to reject this card.");
         }
 
