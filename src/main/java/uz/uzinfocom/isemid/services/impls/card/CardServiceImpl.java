@@ -154,16 +154,31 @@ public class CardServiceImpl implements CardService {
             if (hasText(formTypeCode)) {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
+            // USER ID bo‘yicha filter (EXISTS orqali)
             if (userId != null) {
-                Join<Card, User> userJoin = root.join("users", JoinType.INNER);
-                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
+                Subquery<Long> userSubquery = query.subquery(Long.class);
+                Root<Card> subRoot = userSubquery.from(Card.class);
+                Join<Card, User> userJoin = subRoot.join("users", JoinType.INNER);
+
+                userSubquery.select(subRoot.get("id"))
+                        .where(criteriaBuilder.equal(userJoin.get("id"), userId),
+                                criteriaBuilder.equal(subRoot.get("id"), root.get("id")));
+
+                predicates.add(criteriaBuilder.exists(userSubquery));
             }
 
-            Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
-            predicates.add(criteriaBuilder.isNotNull(formJoin.get("id"))); // Form mavjud bo‘lishi shart
-
             if (formId != null) {
-                predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
+                Subquery<Long> formSubquery = query.subquery(Long.class);
+                Root<Card> subRoot = formSubquery.from(Card.class);
+                Join<Card, Form058> formJoin = subRoot.join("form058", JoinType.INNER);
+
+                formSubquery.select(subRoot.get("id"))
+                        .where(criteriaBuilder.equal(formJoin.get("id"), formId),
+                                criteriaBuilder.equal(subRoot.get("id"), root.get("id")));
+
+                predicates.add(criteriaBuilder.exists(formSubquery));
+            } else {
+                predicates.add(criteriaBuilder.isNotNull(root.get("form058").get("id")));
             }
 
             if (hasText(fromOrgName)) {
