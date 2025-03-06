@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
+import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
@@ -165,8 +166,8 @@ public class CardServiceImpl implements CardService {
             }
 
             if (formId != null) {
-                Join<Card, Normalizer.Form> formJoin = root.join("forms", JoinType.LEFT);
-                predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
+                Join<Card, Form058> form058Join = root.join("form058", JoinType.LEFT);
+                predicates.add(criteriaBuilder.equal(form058Join.get("id"), formId));
             }
 
             if (hasText(fromOrgName)) {
