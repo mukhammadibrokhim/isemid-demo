@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Data
@@ -14,6 +15,10 @@ import java.util.UUID;
 public class CatalogDto {
     private Long id;
     private UUID uuid;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private long createdBy;
+    private long updatedBy;
     private String type;
     private String code;
     private String nameRu;

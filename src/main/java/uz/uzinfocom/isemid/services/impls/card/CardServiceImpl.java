@@ -79,7 +79,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(null, null, null, null, userId, null);
+        Specification<Card> spec = getFilteredSpecificationAttachedUser(userId, null);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
@@ -167,6 +167,25 @@ public class CardServiceImpl implements CardService {
             if (cardStatus != null) {
                 predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
             }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Card> getFilteredSpecificationAttachedUser(
+            Long userId,
+            Long formId
+    ) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (userId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("users").get("id"), userId));
+            }
+
+            if (formId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("id"), formId));
+            }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
