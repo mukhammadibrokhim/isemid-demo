@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
+import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
@@ -155,7 +158,8 @@ public class CardServiceImpl implements CardService {
             }
 
             if (formId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("id"), formId));
+                Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
+                predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
             }
 
             if (hasText(fromOrgName)) {
@@ -179,7 +183,7 @@ public class CardServiceImpl implements CardService {
             List<Predicate> predicates = new ArrayList<>();
 
             if (userId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("users").get("id"), userId));
+                predicates.add(criteriaBuilder.isMember(userId, root.get("users").get("id")));
             }
 
             if (formId != null) {
