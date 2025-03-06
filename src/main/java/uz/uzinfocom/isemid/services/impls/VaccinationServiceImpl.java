@@ -21,6 +21,7 @@ import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
 @Service
 @RequiredArgsConstructor
 public class VaccinationServiceImpl implements VaccinationService {
+
     @SneakyThrows
     @Override
     public ApiResponse<?> getVaccinationByNnuzbLast(String nnuzb) {
