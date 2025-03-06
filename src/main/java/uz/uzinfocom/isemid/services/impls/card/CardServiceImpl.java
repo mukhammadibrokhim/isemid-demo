@@ -40,7 +40,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, formId, user.getId());
+        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null, formId);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
@@ -156,12 +156,10 @@ public class CardServiceImpl implements CardService {
             if (hasText(formTypeCode)) {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
-
             if (formId != null) {
                 Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
                 predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
             }
-
             if (hasText(fromOrgName)) {
                 predicates.add(criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName));
             }
@@ -183,7 +181,7 @@ public class CardServiceImpl implements CardService {
             List<Predicate> predicates = new ArrayList<>();
 
             if (userId != null) {
-                predicates.add(criteriaBuilder.isMember(userId, root.get("users").get("id")));
+                predicates.add(criteriaBuilder.equal(root.get("users").get("id"), userId));
             }
 
             if (formId != null) {
