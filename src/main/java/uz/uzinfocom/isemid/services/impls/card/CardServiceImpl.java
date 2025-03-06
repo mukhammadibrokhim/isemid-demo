@@ -21,6 +21,7 @@ import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.card.CardService;
 import uz.uzinfocom.isemid.services.impls.card.strategy.UpdateCardService;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -158,8 +159,14 @@ public class CardServiceImpl implements CardService {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
 
+            if (checkAttachedUser && userId != null) {
+                Join<Card, User> userJoin = root.join("users", JoinType.LEFT);
+                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
+            }
+
             if (formId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("id"), formId));
+                Join<Card, Normalizer.Form> formJoin = root.join("forms", JoinType.LEFT);
+                predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
             }
 
             if (hasText(fromOrgName)) {
@@ -170,11 +177,6 @@ public class CardServiceImpl implements CardService {
             }
             if (cardStatus != null) {
                 predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
-            }
-
-            if (checkAttachedUser && userId != null) {
-                Join<Card, User> userJoin = root.join("users", JoinType.LEFT);
-                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
