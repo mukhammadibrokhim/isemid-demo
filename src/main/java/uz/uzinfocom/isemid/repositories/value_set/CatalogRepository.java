@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.repositories.value_set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -64,4 +66,12 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     @Query("SELECT c.code FROM Catalog c")
     Set<String> findAllCodes();
 
+    @Query("""
+                SELECT c FROM Catalog c 
+                LEFT JOIN FETCH Catalog p ON c.parentCode = p.code
+                WHERE (:type IS NULL OR c.type = :type)
+            """)
+    Page<Catalog> findAllWithParent(@Param("type") String type, Pageable pageable);
+
+    Optional<Catalog> findByCode(String parentCode);
 }

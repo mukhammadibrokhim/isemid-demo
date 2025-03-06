@@ -21,6 +21,8 @@ public interface CatalogService {
 
     ApiResponsePage getAllCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, HttpServletRequest request);
 
+    ApiResponsePage getByHierarchical(int page, int size, CatalogType type, String fullURL);
+
     ApiResponse<List<RespCatalog>> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode, String lang);
 
     ApiResponse<List<RespCatalog>> findFirst20ByTypeAndSearch(CatalogType catalogType, String lang, String search);

@@ -11,10 +11,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
+import uz.uzinfocom.isemid.models.entities.dtos.CatalogDto;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.value_set.ReqCatalog;
@@ -94,6 +97,37 @@ public class CatalogServiceImpl implements CatalogService {
         Specification<Catalog> spec = getFilteredSpecification(type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
         Page<Catalog> catalogPage = catalogRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, catalogPage, getFullURL(request));
+    }
+
+    @Override
+    public ApiResponsePage getByHierarchical(int page, int size, CatalogType type, String fullURL) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Catalog> catalogPage = catalogRepository.findAllWithParent(type.name(), pageable);
+        return createApiResponsePage(page, catalogPage.map(this::convertToDto), fullURL);
+    }
+
+    private CatalogDto convertToDto(Catalog catalog) {
+        return CatalogDto.builder()
+                .id(catalog.getId())
+                .uuid(catalog.getUuid())
+                .type(catalog.getType())
+                .code(catalog.getCode())
+                .nameUz(catalog.getNameUz())
+                .nameRu(catalog.getNameRu())
+                .nameUzCyril(catalog.getNameUzCyril())
+                .nameKaa(catalog.getNameKaa())
+                .parentCode(catalog.getParentCode())
+                .parent(shouldHaveParent(catalog) ? getParentDto(catalog.getParentCode()) : null)
+                .build();
+    }
+    private boolean shouldHaveParent(Catalog catalog) {
+        return catalog.getParentCode() != null && !"state".equalsIgnoreCase(catalog.getType());
+    }
+
+    private CatalogDto getParentDto(String parentCode) {
+        return catalogRepository.findByCode(parentCode)
+                .map(this::convertToDto)
+                .orElse(null);
     }
 
     @Cacheable(value = "catalogAllTypeByParentCode", key = "T(String).format('%s-%s-%s', #catalogType.name(), #parentCode, #lang)", unless = "#result == null")

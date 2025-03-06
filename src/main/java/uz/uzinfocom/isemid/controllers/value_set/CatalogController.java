@@ -20,6 +20,7 @@ import java.util.List;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.CATALOG;
 import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
 import static uz.uzinfocom.isemid.utils.AppConstant.SIZE;
+import static uz.uzinfocom.isemid.utils.CommonUtils.getFullURL;
 
 @RestController
 @RequestMapping(CATALOG)
@@ -672,5 +673,15 @@ public class CatalogController {
     @GetMapping("/case-status")
     public ApiResponse<?> getCase(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.caseStatus, lang);
+    }
+
+    @GetMapping("/hierarchical")
+    public ApiResponsePage getHierarchy(
+            @RequestParam(defaultValue = PAGE) int page,
+            @RequestParam(defaultValue = SIZE) int size,
+            @RequestParam CatalogType type,
+            HttpServletRequest request
+    ) {
+        return catalogService.getByHierarchical(page, size, type, getFullURL(request));
     }
 }

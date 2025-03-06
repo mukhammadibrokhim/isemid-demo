@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, formId, user.getId());
+        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
@@ -81,7 +82,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(null, null, null, null, userId, null);
+        Specification<Card> spec = getFilteredSpecification(null, null, null, null, userId, true, null);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
@@ -99,7 +100,7 @@ public class CardServiceImpl implements CardService {
     @Override
     public ApiResponse<?> supervisorApproveCard(long cardId, User currentUser) {
         Card card = cardRepository.findById(cardId).orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
-        if (!card.getAssignedBy().getId().equals(currentUser.getId())) {
+        if (!card.getAssignedById().equals(currentUser.getId())) {
             throw new ApiException(FORBIDDEN, "You are not authorized to approve this card.");
         }
         if (!card.getStatus().equals(CardStatus.COMPLETED)) {
@@ -114,7 +115,7 @@ public class CardServiceImpl implements CardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found."));
 
-        if (!card.getAssignedBy().getId().equals(currentUser.getId())) {
+        if (!card.getAssignedById().equals(currentUser.getId())) {
             throw new ApiException(FORBIDDEN, "You are not authorized to reject this card.");
         }
 
@@ -135,9 +136,10 @@ public class CardServiceImpl implements CardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found with id: " + cardId));
 
-        if (!card.getUsers().contains(currentUser)) {
-            throw new ApiException(BAD_REQUEST, "You are not assigned to this Card.");
+        if (card.getUsers().stream().noneMatch(user -> user.getId().equals(currentUser.getId()))) {
+            throw new ApiException(FORBIDDEN, "You do not have access to this card.");
         }
+
         return card;
     }
 
@@ -147,6 +149,7 @@ public class CardServiceImpl implements CardService {
             String toOrgName,
             CardStatus cardStatus,
             Long userId,
+            boolean attachedUser,
             Long formId
     ) {
         return (root, query, criteriaBuilder) -> {
@@ -155,8 +158,8 @@ public class CardServiceImpl implements CardService {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
             if (formId != null) {
-                Join<Card, Form058> form058Join = root.join("form058");
-                predicates.add(criteriaBuilder.equal(form058Join.get("id"), formId));
+                Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
+                predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
             }
             if (hasText(fromOrgName)) {
                 predicates.add(criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName));
@@ -167,9 +170,8 @@ public class CardServiceImpl implements CardService {
             if (cardStatus != null) {
                 predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
             }
-            if (userId != null) {
-                Join<Card, User> userJoin = root.join("users");
-                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
+            if (attachedUser && userId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("users").get("id"), userId));
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

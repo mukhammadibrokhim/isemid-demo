@@ -310,6 +310,7 @@ public class Form058ServiceImpl implements Form058Service {
                     card.setCreatedBy(user.getId());
                     card.setUpdatedBy(user.getId());
                     card.setStatus(CardStatus.NEW);
+                    card.setAssignedById(user.getId());
                     card.setForm058(form058);
                     return card;
                 })

@@ -35,11 +35,7 @@ public abstract class Card extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_by_id")
-//    @JsonIgnoreProperties({"gender", "country", "city", "state", "organizations", "roles", "addresses"})
-    @JsonIgnore
-    private User assignedBy;
+    private Long assignedById;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
@@ -51,13 +47,10 @@ public abstract class Card extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
     private CardStatus status = CardStatus.NEW;
-//
-//    @Enumerated(EnumType.STRING)
-//    private CardProgressStatus progressStatus = CardProgressStatus.DRAFT;
 
-    @ManyToOne
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "form058_id")
-    @JsonIgnoreProperties("cards")
     private Form058 form058;
 
     @Column(length = 1000)
