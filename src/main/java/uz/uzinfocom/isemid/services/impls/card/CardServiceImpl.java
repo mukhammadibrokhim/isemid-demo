@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -171,7 +173,8 @@ public class CardServiceImpl implements CardService {
             }
 
             if (checkAttachedUser && userId != null) {
-                predicates.add(criteriaBuilder.equal(root.join("users").get("id"), userId));
+                Join<Card, User> userJoin = root.join("users", JoinType.LEFT);
+                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

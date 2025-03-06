@@ -53,6 +53,7 @@ public class VaccinationServiceImpl implements VaccinationService {
                         ZonedDateTime tashkentTime = data1.getVaccinationDate()
                                 .atZoneSameInstant(ZoneId.of("Asia/Tashkent"));
                         return RespVaccination.builder()
+                                .id(data1.getId())
                                 .firstName(data1.getFirstName())
                                 .lastName(data1.getLastName())
                                 .middleName(data1.getMiddleName())
