@@ -1,7 +1,5 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
@@ -22,7 +19,6 @@ import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.card.CardService;
 import uz.uzinfocom.isemid.services.impls.card.strategy.UpdateCardService;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +37,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, formId, user.getId(), false);
+        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, formId, user.getId());
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
@@ -83,7 +79,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(null, null, null, null, userId, null, true);
+        Specification<Card> spec = getFilteredSpecificationAttachedUser(userId, null);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage, fullURL);
     }
@@ -150,24 +146,16 @@ public class CardServiceImpl implements CardService {
             String toOrgName,
             CardStatus cardStatus,
             Long userId,
-            Long formId,
-            boolean checkAttachedUser
+            Long formId
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
             if (hasText(formTypeCode)) {
                 predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
             }
 
-            if (checkAttachedUser && userId != null) {
-                Join<Card, User> userJoin = root.join("users", JoinType.LEFT);
-                predicates.add(criteriaBuilder.equal(userJoin.get("id"), userId));
-            }
-
             if (formId != null) {
-                Join<Card, Form058> form058Join = root.join("form058", JoinType.LEFT);
-                predicates.add(criteriaBuilder.equal(form058Join.get("id"), formId));
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("id"), formId));
             }
 
             if (hasText(fromOrgName)) {
@@ -178,6 +166,24 @@ public class CardServiceImpl implements CardService {
             }
             if (cardStatus != null) {
                 predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Card> getFilteredSpecificationAttachedUser(
+            Long userId,
+            Long formId
+    ) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (userId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("users").get("id"), userId));
+            }
+
+            if (formId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("form058").get("id"), formId));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
