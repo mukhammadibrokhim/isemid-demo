@@ -1,13 +1,27 @@
 package uz.uzinfocom.isemid.configs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -17,15 +31,15 @@ import uz.uzinfocom.isemid.exceptioins.AuthEntryPoint;
 import uz.uzinfocom.isemid.services.OrganizationService;
 import uz.uzinfocom.isemid.services.RoleService;
 import uz.uzinfocom.isemid.services.UserService;
+import uz.uzinfocom.isemid.services.impls.UserServiceImpl;
 
-import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.List;
 
 import static uz.uzinfocom.isemid.utils.CommonUtils.WHITE_LIST;
-import static uz.uzinfocom.isemid.utils.PubKeyConstants.TEST_SSO_SECRET;
+import static uz.uzinfocom.isemid.utils.CommonUtils.publicKey;
+import static uz.uzinfocom.isemid.utils.RSAKeyUtils.publicKeyInternal;
 
 @Configuration
 @EnableWebSecurity
@@ -53,6 +67,7 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(authRequests -> authRequests
                         .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
@@ -68,23 +83,37 @@ public class SecurityConfig {
     }
 
     @Bean
-    public NimbusJwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withPublicKey(getPublicKey()).build();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
-    private RSAPublicKey getPublicKey() {
-        try {
-            String publicKeyPEM = TEST_SSO_SECRET
-                    .replace("-----BEGIN PUBLIC KEY-----", "")
-                    .replace("-----END PUBLIC KEY-----", "")
-                    .replaceAll("\\s", "");
-
-            byte[] decoded = Base64.getDecoder().decode(publicKeyPEM);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
-            return (RSAPublicKey) keyFactory.generatePublic(keySpec);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to convert string to RSAPublicKey", e);
-        }
+    @Bean
+    public AuthenticationManager authenticationManager(UserServiceImpl userService) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider::authenticate;
     }
+    @Bean
+    public JwtDecoder jwtDecoder() throws Exception {
+        RSAPublicKey key1 = publicKey();
+        RSAPublicKey key2 = publicKeyInternal();
+
+        List<JWK> keys = Arrays.asList(
+                new RSAKey.Builder(key1).build(),
+                new RSAKey.Builder(key2).build()
+        );
+
+        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(keys));
+
+        DefaultJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+
+        JWSVerificationKeySelector<SecurityContext> keySelector =
+                new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, jwkSource);
+
+        jwtProcessor.setJWSKeySelector(keySelector);
+
+        return new NimbusJwtDecoder(jwtProcessor);
+    }
+
 }

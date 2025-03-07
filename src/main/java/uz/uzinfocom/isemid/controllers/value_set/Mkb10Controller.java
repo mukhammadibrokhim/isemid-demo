@@ -27,13 +27,14 @@ public class Mkb10Controller {
             @RequestParam(defaultValue = PAGE) int page,
             @RequestParam(defaultValue = SIZE) int size,
             @RequestParam(required = false) String mkbCode,
+            @RequestParam(required = false) Long parentId,
             @RequestParam(required = false) String nameUz,
             @RequestParam(required = false) String nameUzCyril,
             @RequestParam(required = false) String nameRu,
             @RequestParam(required = false) String nameEn,
             HttpServletRequest request
     ) {
-        return mkb10Service.getMkb10ByFilter(page, size, mkbCode, nameUz, nameUzCyril, nameRu, nameEn, getFullURL(request));
+        return mkb10Service.getMkb10ByFilter(page, size, mkbCode,parentId, nameUz, nameUzCyril, nameRu, nameEn, getFullURL(request));
     }
 
     @GetMapping

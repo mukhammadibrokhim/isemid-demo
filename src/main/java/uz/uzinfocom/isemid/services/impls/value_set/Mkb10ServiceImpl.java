@@ -37,8 +37,8 @@ public class Mkb10ServiceImpl implements Mkb10Service {
     final ResourceLoader resourceLoader;
 
     @Override
-    public ApiResponsePage getMkb10ByFilter(int page, int size, String mkbCode, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
-        Specification<Mkb10> spec = getFilteredSpecification(mkbCode, nameUz, nameUzCyril, nameRu, nameEn);
+    public ApiResponsePage getMkb10ByFilter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
+        Specification<Mkb10> spec = getFilteredSpecification(mkbCode,parentId, nameUz, nameUzCyril, nameRu, nameEn);
         Page<Mkb10> mkb10Page = mkb10Repository.findAll(spec, pageableNotSorting(page, size));
         return createApiResponsePage(page, mkb10Page, fullURL);
     }
@@ -83,6 +83,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
 
     public static Specification<Mkb10> getFilteredSpecification(
             String mkbCode,
+            Long parentId,
             String nameUz,
             String nameUzCyril,
             String nameRu,
@@ -93,6 +94,9 @@ public class Mkb10ServiceImpl implements Mkb10Service {
             predicates.add(criteriaBuilder.isNull(root.get("parentId")));
             if (hasText(mkbCode)) {
                 predicates.add(criteriaBuilder.equal(root.get("code"), mkbCode));
+            }
+            if (parentId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("parentId"), parentId));
             }
             if (hasText(nameUz)) {
                 criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUz")), "%" + nameUz + "%");

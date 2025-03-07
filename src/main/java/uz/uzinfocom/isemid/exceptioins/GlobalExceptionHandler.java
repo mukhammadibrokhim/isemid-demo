@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -145,6 +146,20 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+        return ResponseEntity.status(NOT_FOUND)
+                .body(ErrorResponse.builder()
+                        .success(false)
+                        .statusCode(NOT_FOUND.value())
+                        .message("Username not found")
+                        .errors(List.of(ErrorDetail.builder()
+                                .field(ex.getClass().getSimpleName())
+                                .errorMessage("User not found: " + ex.getMessage())
+                                .build()))
+                        .build());
     }
 
     @ExceptionHandler(Exception.class)

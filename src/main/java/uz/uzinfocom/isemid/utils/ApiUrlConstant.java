@@ -32,6 +32,8 @@ public interface ApiUrlConstant {
 
     String MANUAL_REPORT = PREFIX + "/manual-report";
 
+    String AUTH = PREFIX + "/auth";
+
 //    String BASE_DOMAIN = "http://localhost:8081";
 //    String BASE_DOMAIN = "https://ykem.sanepid.uz";
 
