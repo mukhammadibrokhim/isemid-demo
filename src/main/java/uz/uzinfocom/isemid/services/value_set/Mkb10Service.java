@@ -9,7 +9,7 @@ public interface Mkb10Service {
             int page,
             int size,
             String mkbCode,
-            String nameUz,
+            Long parentId, String nameUz,
             String nameUzCyril,
             String nameRu,
             String nameEn,

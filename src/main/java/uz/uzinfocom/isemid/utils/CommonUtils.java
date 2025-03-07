@@ -10,25 +10,26 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.card.*;
+import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.models.entities.card.card161.Card161;
 import uz.uzinfocom.isemid.models.entities.card.card174.Card174;
 import uz.uzinfocom.isemid.models.entities.card.card175.Card175;
 import uz.uzinfocom.isemid.models.entities.card.card205.Card205;
 import uz.uzinfocom.isemid.models.entities.card.card_tube.CardTube;
-import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.BASE_DOMAIN;
 import static uz.uzinfocom.isemid.utils.AppConstant.*;
+import static uz.uzinfocom.isemid.utils.PubKeyConstants.TEST_SSO_SECRET;
 
 @UtilityClass
 public class CommonUtils {
@@ -238,6 +239,22 @@ public class CommonUtils {
             case CARD205 -> new Card205();
             case CARD_TUBE -> new CardTube();
         };
+    }
+
+    public static RSAPublicKey publicKey() {
+        try {
+            String publicKeyPEM = TEST_SSO_SECRET
+                    .replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .replaceAll("\\s", "");
+
+            byte[] decoded = Base64.getDecoder().decode(publicKeyPEM);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
+            return (RSAPublicKey) keyFactory.generatePublic(keySpec);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert string to RSAPublicKey", e);
+        }
     }
 
 }

@@ -6,12 +6,16 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @EntityListeners(AuditingEntityListener.class)
 @Getter
@@ -20,7 +24,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity(name = "users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,6 +34,9 @@ public class User {
 
     private String nnuzb;
     private String ppn;
+
+    @JsonIgnore
+    private String password;
 
     private String firstName;
     private String lastName;
@@ -91,4 +98,45 @@ public class User {
     @Transient
     @JsonIgnore
     private Organization currentOrganization;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> (GrantedAuthority) role::getName)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return nnuzb;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return active;
+    }
+
+    public String getFullName() {
+        return String.join(" ", firstName, lastName, middleName);
+    }
 }

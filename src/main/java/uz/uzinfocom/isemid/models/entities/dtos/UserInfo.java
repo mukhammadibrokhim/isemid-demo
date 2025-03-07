@@ -9,6 +9,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class UserInfo {
     private UUID practitioner;
     private String name;
