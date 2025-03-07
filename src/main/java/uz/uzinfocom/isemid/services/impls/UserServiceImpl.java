@@ -15,6 +15,7 @@ import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
+import uz.uzinfocom.isemid.models.payload.requests.ReqRegister;
 import uz.uzinfocom.isemid.models.payload.requests.ReqUser;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -104,6 +105,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public List<User> getAllByIds(List<Long> userIds) {
         return userRepository.findAllById(userIds);
+    }
+
+    @Override
+    public ApiResponse<?> signUpUser(ReqRegister reqRegister) {
+        return new ApiResponse<>(true, "Success", null);
     }
 
     private User mappingPractitionerToUser(RespPractitioner respPractitioner, List<Organization> organizations, Set<Role> roles) {
