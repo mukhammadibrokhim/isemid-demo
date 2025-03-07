@@ -91,12 +91,13 @@ public class Mkb10ServiceImpl implements Mkb10Service {
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.isNull(root.get("parentId")));
+            if (parentId == null) {
+                predicates.add(criteriaBuilder.isNull(root.get("parentId")));
+            } else {
+                predicates.add(criteriaBuilder.equal(root.get("parentId"), parentId));
+            }
             if (hasText(mkbCode)) {
                 predicates.add(criteriaBuilder.equal(root.get("code"), mkbCode));
-            }
-            if (parentId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("parentId"), parentId));
             }
             if (hasText(nameUz)) {
                 criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUz")), "%" + nameUz + "%");
