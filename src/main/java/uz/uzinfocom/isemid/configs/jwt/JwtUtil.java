@@ -15,7 +15,7 @@ import static uz.uzinfocom.isemid.utils.RSAKeyUtils.privateKeyInternal;
 
 @Component
 public class JwtUtil {
-    private static final long EXPIRATION_TIME = 3 * 60 * 60 * 1000;
+    public static final long EXPIRATION_TIME = 3 * 60 * 60;
 
     public String generateToken(User user) {
         try {

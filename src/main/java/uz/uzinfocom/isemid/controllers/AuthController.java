@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.configs.jwt.JwtUtil;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
+import uz.uzinfocom.isemid.models.entities.dtos.TokenDto;
 import uz.uzinfocom.isemid.repositories.UserRepository;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.AUTH;
@@ -25,8 +25,14 @@ public class AuthController {
     final UserRepository userRepository;
 
     @GetMapping
-    public ApiResponse<?> generateToken() {
+    public TokenDto generateToken() {
         User user = userRepository.findByNnuzb("31611892930045").orElse(null);
-        return new ApiResponse<>(true, "", jwtUtil.generateToken(user));
+        String token = jwtUtil.generateToken(user);
+        return TokenDto.builder()
+                .token_type("Bearer")
+                .expires_in(JwtUtil.EXPIRATION_TIME)
+                .access_token(token)
+                .refresh_token(null) // Agar refresh token bo‘lsa, shu yerda qo‘shasiz
+                .build();
     }
 }
