@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -86,6 +87,9 @@ public class Form058 extends AbsEntity {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "reporter_user_id")
-    @JsonIgnoreProperties({"organizations", "roles", "country", "state", "city", "gender"})
+//    @JsonIgnoreProperties({"organizations", "roles", "country", "state", "city", "gender"})
+    @JsonIgnore
     private User reporter;
+
+    private String cardByFullName;
 }

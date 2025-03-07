@@ -37,7 +37,8 @@ public class CommonUtils {
     public static String[] WHITE_LIST = {
             "/swagger-ui/**",
             "/api-docs/**",
-            "/actuator/**"
+            "/actuator/**",
+            "/v1/auth/**"
     };
 
     public static String getIdentifierValueByCode(List<RespPractitioner.Identifier> identifiers, String targetCode) {
@@ -228,7 +229,8 @@ public class CommonUtils {
             "receive-from-lis",
             "/catalog",
             "/user/me",
-            "/department"
+            "/department",
+            "/v1/auth"
     };
 
     public static Card createCard(CardType cardType) {

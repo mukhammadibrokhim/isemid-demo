@@ -1,15 +1,24 @@
 package uz.uzinfocom.isemid.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.configs.jwt.JwtUtil;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.dtos.TokenDto;
+import uz.uzinfocom.isemid.models.payload.requests.ReqAuth;
+import uz.uzinfocom.isemid.models.payload.requests.ReqRegister;
+import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.UserRepository;
+import uz.uzinfocom.isemid.services.UserService;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.AUTH;
 
@@ -23,16 +32,21 @@ public class AuthController {
     final AuthenticationManager authenticationManager;
     final JwtUtil jwtUtil;
     final UserRepository userRepository;
+    final UserService userService;
 
-    @GetMapping
-    public TokenDto generateToken() {
-        User user = userRepository.findByNnuzb("31611892930045").orElse(null);
+    @PostMapping("/sign-in")
+    public ResponseEntity<TokenDto> signIn(@Valid @RequestBody final ReqAuth reqAuth) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(reqAuth.getNnuzb(), reqAuth.getPassword())
+        );
+        User user = (User) authentication.getPrincipal();
         String token = jwtUtil.generateToken(user);
-        return TokenDto.builder()
-                .token_type("Bearer")
-                .expires_in(JwtUtil.EXPIRATION_TIME)
-                .access_token(token)
-                .refresh_token(null) // Agar refresh token bo‘lsa, shu yerda qo‘shasiz
-                .build();
+        return ResponseEntity.ok(new TokenDto("Bearer", JwtUtil.EXPIRATION_TIME, token, null));
+
+    }
+
+    @PostMapping("/sign-up")
+    public ApiResponse<?> signUp(@Valid @RequestBody final ReqRegister reqRegister) {
+        return userService.signUpUser(reqRegister);
     }
 }

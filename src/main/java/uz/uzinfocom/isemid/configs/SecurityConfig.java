@@ -67,7 +67,6 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(authRequests -> authRequests
                         .requestMatchers(WHITE_LIST).permitAll()
-                        .requestMatchers("/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->

@@ -315,7 +315,7 @@ public class Form058ServiceImpl implements Form058Service {
                     return card;
                 })
                 .toList();
-
+        form058.setCardByFullName(user.getFullName());
         form058.getCards().clear();
         form058.getCards().addAll(cards);
         form058.setStatus(FormStatus.CARD_ATTACHED);

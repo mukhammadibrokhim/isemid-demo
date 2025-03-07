@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -158,6 +159,20 @@ public class GlobalExceptionHandler {
                         .errors(List.of(ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
                                 .errorMessage("User not found: " + ex.getMessage())
+                                .build()))
+                        .build());
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
+        return ResponseEntity.status(UNAUTHORIZED)
+                .body(ErrorResponse.builder()
+                        .success(false)
+                        .statusCode(UNAUTHORIZED.value())
+                        .message("Неверное имя пользователя или пароль")
+                        .errors(List.of(ErrorDetail.builder()
+                                .field(ex.getClass().getSimpleName())
+                                .errorMessage(ex.getMessage())
                                 .build()))
                         .build());
     }
