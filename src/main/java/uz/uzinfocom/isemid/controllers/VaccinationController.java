@@ -25,5 +25,4 @@ public class VaccinationController {
     ) {
         return vaccinationService.getVaccinationByNnuzbLast(nnuzb);
     }
-
 }

@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.Form058Service;
@@ -87,12 +88,12 @@ public class Form058Controller {
 
     @Operation(summary = "Перевод Form058 в другую организацию",
             description = "Этот эндпоинт позволяет перевести форму Form058 в другую организацию. ")
-    @PatchMapping("/{formId}/change-received-org/{orgId}")
+    @PutMapping("/{formId}/change-received-org")
     public ApiResponse<?> changeReceivedOrg(
             @PathVariable Long formId,
-            @PathVariable Long orgId
-    ) {
-        return form058Service.changeReceivedOrd(formId, orgId);
+            @Valid @RequestBody ReqForm058OrgUpdate reqForm058OrgUpdate
+            ) {
+        return form058Service.changeReceivedOrd(formId, reqForm058OrgUpdate);
     }
 
     @PatchMapping("/{formId}/cancel")

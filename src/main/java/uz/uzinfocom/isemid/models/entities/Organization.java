@@ -45,7 +45,6 @@ public class Organization {
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog country;
 
-    private String hierarchy;
     @ManyToOne
     @JoinColumn(name = "state", referencedColumnName = "code")
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})

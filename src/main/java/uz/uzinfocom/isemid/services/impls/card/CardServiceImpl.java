@@ -37,7 +37,6 @@ public class CardServiceImpl implements CardService {
     final UserRepository userRepository;
     final UpdateCardService updateCardService;
 
-
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
         Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId);
