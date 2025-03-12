@@ -93,6 +93,7 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return provider::authenticate;
     }
+
     @Bean
     public JwtDecoder jwtDecoder() throws Exception {
         RSAPublicKey key1 = publicKey();
