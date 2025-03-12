@@ -38,7 +38,9 @@ public class CommonUtils {
             "/swagger-ui/**",
             "/api-docs/**",
             "/actuator/**",
-            "/v1/auth/**"
+            "/v1/auth/**",
+            "/legal-entity/**",
+            "/citizen"
     };
 
     public static String getIdentifierValueByCode(List<RespPractitioner.Identifier> identifiers, String targetCode) {
