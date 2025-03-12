@@ -232,7 +232,9 @@ public class CommonUtils {
             "/catalog",
             "/user/me",
             "/department",
-            "/v1/auth"
+            "/v1/auth",
+            "/citizen",
+            "/legal-en"
     };
 
     public static Card createCard(CardType cardType) {
