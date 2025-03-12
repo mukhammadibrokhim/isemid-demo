@@ -7,23 +7,18 @@ variables:
   DOCKER_HOST: "tcp://docker:2375"
   DOCKER_TLS_CERTDIR: ""
 
+include:
+  - project: 'core/templates/global-ci'
+    ref: 'main'
+    file: '.global-gitlab-ci.yml'
 
 before_script:
   - eval $(ssh-agent -s)
   - chmod 600 $MOH_PRIVATE_KEY
 
 stages:
-  - gitlab-ci-check
+  - validate-and-check
   - build_and_push_dev
-
-check_gitlab_ci_yml:
-  stage: gitlab-ci-check
-  script:
-    - git fetch origin ci
-    - if ! git diff --exit-code origin/ci:./.gitlab-ci.yml ./.gitlab-ci.yml; then
-        echo "Файл gitlab-ci.yml изменен. Отклоняем изменения!";
-        exit 1;
-      fi
 
 deploy_dev:
   needs:
