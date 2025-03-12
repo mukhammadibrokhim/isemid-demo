@@ -39,8 +39,8 @@ public class CommonUtils {
             "/api-docs/**",
             "/actuator/**",
             "/v1/auth/**",
-            "/legal-entity/**",
-            "/citizen"
+            "/v1/legal-entity/**",
+            "/v1/citizen/qr**"
     };
 
     public static String getIdentifierValueByCode(List<RespPractitioner.Identifier> identifiers, String targetCode) {
@@ -233,8 +233,8 @@ public class CommonUtils {
             "/user/me",
             "/department",
             "/v1/auth",
-            "/citizen",
-            "/legal-en"
+            "/qr",
+            "/legal-entity"
     };
 
     public static Card createCard(CardType cardType) {

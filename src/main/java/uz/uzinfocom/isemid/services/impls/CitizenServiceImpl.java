@@ -2,17 +2,19 @@ package uz.uzinfocom.isemid.services.impls;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.IdentifierType;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.responses.RespChild;
 import uz.uzinfocom.isemid.models.payload.responses.RespCitizen;
-import uz.uzinfocom.isemid.services.value_set.CatalogService;
 import uz.uzinfocom.isemid.services.CitizenService;
+import uz.uzinfocom.isemid.services.OAuthTokenService;
 import uz.uzinfocom.isemid.services.PatientService;
+import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,7 @@ import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
 public class CitizenServiceImpl implements CitizenService {
     final PatientService patientService;
     final CatalogService catalogService;
+    final OAuthTokenService oAuthTokenService;
 
     @Override
     public Object getCitizenByNnuzb(String nnuzb, String photo, String token) {
@@ -43,6 +46,11 @@ public class CitizenServiceImpl implements CitizenService {
         validateChildCertificate(series, number);
         RespChild respChild = makeRequest(String.format(GCP_CHILD, series, number), HttpMethod.GET, token, null, RespChild.class);
         return mappingChild(respChild);
+    }
+
+    @Override
+    public ResponseEntity<?> getCitizenByNnuzbByToken(String nnuzb) {
+        return ResponseEntity.ok(getCitizenByNnuzb(nnuzb, "N", oAuthTokenService.getAccessToken()));
     }
 
 
