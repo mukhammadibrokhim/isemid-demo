@@ -10,5 +10,6 @@ public enum CardStatus {
     ACCEPTED_BY_USER, // Xodim ma'lumotlarni to‘g‘ri deb qabul qildi
     REJECTED_BY_USER, // Xodim noto‘g‘ri deb rad etdi
     APPROVED,         // Zavedenie tasdiqladi
-    REJECTED          // Zavedenie rad etdi
+    REJECTED ,
+    ACT_ATTACHED// Zavedenie rad etdi
 }

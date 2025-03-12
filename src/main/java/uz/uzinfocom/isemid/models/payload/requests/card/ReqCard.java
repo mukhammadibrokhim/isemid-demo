@@ -27,6 +27,6 @@ public abstract class ReqCard {
     @NotNull(message = "card type is required.")
     private CardType cardType;
 
-//    @NotNull(message = "User id is required.")
+//    @NotNull(message = "User id is required.")`
     private long userId;
 }

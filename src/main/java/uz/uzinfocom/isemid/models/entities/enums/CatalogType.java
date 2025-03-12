@@ -47,5 +47,7 @@ public enum CatalogType {
 
     //card174
     affectedAnimalType,diseaseFactors,animalDisposalMethod,deratization,quarantineType,eliminationMethod,
-    disinfectionTransmissionFactors,processingMethod
+    disinfectionTransmissionFactors,processingMethod,
+
+    actObject,shift,laboratoryName
 }

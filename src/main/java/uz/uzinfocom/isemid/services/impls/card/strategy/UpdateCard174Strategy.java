@@ -105,15 +105,6 @@ public class UpdateCard174Strategy implements UpdateCardStrategy {
                             .collect(Collectors.toList());
                     existingCard.setEliminationMethod(codeList);
                 });
-        Optional.ofNullable(reqCard174.getAffectedAnimalCodes())
-                .ifPresent(codes -> {
-                    List<Catalog> codeList = codes.stream()
-                            .map(code -> catalogService.findByTypeAndCode(CatalogType.affectedAnimalType, code))
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(Collectors.toList());
-                    existingCard.setAffectedAnimals(codeList);
-                });
         Optional.ofNullable(reqCard174.getDiseaseFactorCodes())
                 .ifPresent(codes -> {
                     List<Catalog> codeList = codes.stream()

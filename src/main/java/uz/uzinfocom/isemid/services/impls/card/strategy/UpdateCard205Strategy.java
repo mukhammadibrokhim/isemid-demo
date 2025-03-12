@@ -12,7 +12,6 @@ import uz.uzinfocom.isemid.models.entities.card.card205.InformationOtherBittenPe
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
-
 import uz.uzinfocom.isemid.models.payload.requests.card.card205.ReqCard205;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;

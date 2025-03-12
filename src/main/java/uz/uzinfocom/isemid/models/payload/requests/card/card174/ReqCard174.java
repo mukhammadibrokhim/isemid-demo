@@ -2,9 +2,6 @@ package uz.uzinfocom.isemid.models.payload.requests.card.card174;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
-import uz.uzinfocom.isemid.models.entities.card.card174.InfectionMonitoring;
-import uz.uzinfocom.isemid.models.entities.card.card174.OutbreakControlMeasure;
-import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 
 import java.time.LocalDate;
@@ -82,7 +79,6 @@ public class ReqCard174 extends ReqCard {
     private List<ReqOutbreakControlMeasure> outbreakControlMeasures;
     private List<String> disinfectionTransmissionFactorsCode;
     private List<String> eliminationMethodCodes;
-    private List<String> affectedAnimalCodes;
     private List<String> diseaseFactorCodes;
 
 }

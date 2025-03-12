@@ -22,6 +22,8 @@ public interface ApiUrlConstant {
 
     String CARD = PREFIX + "/card";
 
+    String ACT = PREFIX + "/act";
+
     String MKB10 = PREFIX + "/mkb10";
 
     String DB = PREFIX + "/db";
