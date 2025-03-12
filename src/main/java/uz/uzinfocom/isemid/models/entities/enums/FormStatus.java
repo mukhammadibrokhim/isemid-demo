@@ -4,14 +4,14 @@ import lombok.Getter;
 
 @Getter
 public enum FormStatus {
+    NOT_APPROVED("Tasdiqlanmagan", "Неутвержденный"),
+    SENT("Yuborilgan", "Отправлено"),
+    RECEIVED("Qabul qilingan", "Получено"),
+    CARD_LINKED("Karta bog‘langan", "Карта прикреплена"),
+    APPROVED_PENDING("Tasdiqlashga tayyor", "Готово к подтверждению"),
+    APPROVED("Tasdiqlangan", "Подтвержденный"),
+    CANCELED("Bekor qilingan", "Отменено");
 
-    NOT_APPROVED_FORM("Tasdiqlanmagan shakl", "Неутвержденная форма"),
-    SENT("Жўнатилди", "Отправлено"),
-    RECEIVED_FORM("Қабул қилинган шакл", "Полученная форма"),
-    CARD_ATTACHED("Карта бириктирилди", "Прикрепленная карта"),
-    APPROVED_FORM_CREATED("Тасдиқланган шакл яратилди", "Подтвержденный форма создана"),
-    APPROVED_FORM("Тасдиқланган шакл", "Подтвержденный форма"),
-    CANCELED("Bekor qilingan", "");
 
     private final String uzbek;
     private final String russian;

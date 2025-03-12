@@ -127,8 +127,18 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    public Optional<Organization> findByTin(String tin) {
+        return organizationRepository.findByTin(tin);
+    }
+
+    @Override
     public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name) {
         return new ApiResponse<>(true, "Success", organizationRepository.searchByFilter(stateCode, cityCode, name));
+    }
+
+    @Override
+    public Organization save(Organization newOrg) {
+        return organizationRepository.save(newOrg);
     }
 
     private Organization mappingOrganization(RespOrganization response) {
