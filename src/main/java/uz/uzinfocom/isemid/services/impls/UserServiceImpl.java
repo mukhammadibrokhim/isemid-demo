@@ -133,6 +133,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         if (!checkNnuzb(reqRegister.getNnuzb())) throw new ApiException(BAD_REQUEST, "Invalid nnuzb.");
 
+        if (userRepository.findByNnuzb(reqRegister.getNnuzb()).isPresent()) {
+            throw new ApiException(BAD_REQUEST, "Nnuzb already exists.");
+        }
+
         Organization organization = organizationService.findByTin(reqRegister.getOrganization().getTin())
                 .orElseGet(() -> {
                     Organization newOrg = Organization.builder()
