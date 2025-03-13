@@ -41,6 +41,7 @@ public class CommonUtils {
             "/v1/auth/**",
             "/v1/legal-entity/**",
             "/v1/citizen/qr**",
+            "/v1/catalog/country/**",
             "/v1/catalog/state/**",
             "/v1/catalog/city/**",
             "/v1/catalog/gender/**",
