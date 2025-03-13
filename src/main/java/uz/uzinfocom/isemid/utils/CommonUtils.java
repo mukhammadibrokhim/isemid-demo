@@ -40,7 +40,12 @@ public class CommonUtils {
             "/actuator/**",
             "/v1/auth/**",
             "/v1/legal-entity/**",
-            "/v1/citizen/qr**"
+            "/v1/citizen/qr**",
+            "/v1/catalog/state/**",
+            "/v1/catalog/city/**",
+            "/v1/catalog/gender/**",
+            "/v1/catalog/neighborhood/**",
+            "/v1/catalog/positions/**"
     };
 
     public static String getIdentifierValueByCode(List<RespPractitioner.Identifier> identifiers, String targetCode) {
