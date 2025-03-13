@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.models.entities.card;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -63,7 +62,5 @@ public abstract class Card extends AbsEntity {
     private String attachedUserComment;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Act> acts = new ArrayList<>();
-
 }
