@@ -46,7 +46,8 @@ public class CommonUtils {
             "/v1/catalog/city/**",
             "/v1/catalog/gender/**",
             "/v1/catalog/neighborhood/**",
-            "/v1/catalog/positions/**"
+            "/v1/catalog/positions/**",
+            "/v1/catalog/levels/**"
     };
 
     public static String getIdentifierValueByCode(List<RespPractitioner.Identifier> identifiers, String targetCode) {
