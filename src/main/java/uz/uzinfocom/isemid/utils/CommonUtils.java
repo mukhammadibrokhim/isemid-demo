@@ -10,6 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
+import uz.uzinfocom.isemid.models.entities.card.Card;
+import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.models.entities.act.*;
 import uz.uzinfocom.isemid.models.entities.act.act154.Act154;
 import uz.uzinfocom.isemid.models.entities.card.*;
@@ -23,15 +25,16 @@ import uz.uzinfocom.isemid.models.entities.enums.ActType;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.BASE_DOMAIN;
 import static uz.uzinfocom.isemid.utils.AppConstant.*;
+import static uz.uzinfocom.isemid.utils.PubKeyConstants.TEST_SSO_SECRET;
 
 @UtilityClass
 public class CommonUtils {
@@ -39,7 +42,17 @@ public class CommonUtils {
     public static String[] WHITE_LIST = {
             "/swagger-ui/**",
             "/api-docs/**",
-            "/actuator/**"
+            "/actuator/**",
+            "/v1/auth/**",
+            "/v1/legal-entity/**",
+            "/v1/citizen/qr**",
+            "/v1/catalog/country/**",
+            "/v1/catalog/state/**",
+            "/v1/catalog/city/**",
+            "/v1/catalog/gender/**",
+            "/v1/catalog/neighborhood/**",
+            "/v1/catalog/positions/**",
+            "/v1/catalog/levels/**"
     };
 
     public static String getIdentifierValueByCode(List<RespPractitioner.Identifier> identifiers, String targetCode) {
@@ -166,7 +179,7 @@ public class CommonUtils {
             throw new ApiException(BAD_REQUEST, "Page number cannot be less than 0.");
         }
         if (size <= 0 || size > 100) {
-            throw new ApiException(BAD_REQUEST, "Size must be greater than 0 and less than or equal to 100.");
+            throw new ApiException(BAD_REQUEST,"Size must be greater than 0 and less than or equal to 100.");
         }
     }
 
@@ -231,7 +244,10 @@ public class CommonUtils {
             "receive-from-lis",
             "/catalog",
             "/user/me",
-            "/department"
+            "/department",
+            "/v1/auth",
+            "/qr",
+            "/legal-entity"
     };
 
     public static Card createCard(CardType cardType) {
@@ -242,6 +258,22 @@ public class CommonUtils {
             case CARD205 -> new Card205();
             case CARD_TUBE -> new CardTube();
         };
+    }
+
+    public static RSAPublicKey publicKey() {
+        try {
+            String publicKeyPEM = TEST_SSO_SECRET
+                    .replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .replaceAll("\\s", "");
+
+            byte[] decoded = Base64.getDecoder().decode(publicKeyPEM);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
+            return (RSAPublicKey) keyFactory.generatePublic(keySpec);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert string to RSAPublicKey", e);
+        }
     }
 
      public static Act createAct(ActType actType) {
@@ -255,5 +287,3 @@ public class CommonUtils {
        };
     }
 }
-
-

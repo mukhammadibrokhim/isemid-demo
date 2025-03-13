@@ -48,4 +48,9 @@ public class CitizenController {
             return ResponseEntity.ok(citizenService.getCitizenByChild(series, number, token));
         } else throw new ApiException(BAD_REQUEST, "Неверные параметры запроса");
     }
+
+    @GetMapping("/qr")
+    public ResponseEntity<?> genCitizenByNnuzb(@RequestParam(required = false) String nnuzb) {
+        return citizenService.getCitizenByNnuzbByToken(nnuzb);
+    }
 }

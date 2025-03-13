@@ -34,6 +34,9 @@ public interface ApiUrlConstant {
 
     String MANUAL_REPORT = PREFIX + "/manual-report";
 
+    String AUTH = PREFIX + "/auth";
+    String LEGAL_ENTITY = PREFIX + "/legal-entity";
+
 //    String BASE_DOMAIN = "http://localhost:8081";
 //    String BASE_DOMAIN = "https://ykem.sanepid.uz";
 
@@ -43,9 +46,10 @@ public interface ApiUrlConstant {
 //    ____________________________________________________________
 
     String BASE_API_URL = "https://test-api2.ssv.uz";
-
+    String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
     String PRACTITIONER = BASE_API_URL + "/v2/Practitioner/%s";
     String GCP_CITIZEN = BASE_API_URL + "/v3/Citizen?nnuzb=%s&photo=%s";
     String GCP_CHILD = BASE_API_URL + "/v3/Child?series=%s&number=%s";
+    String LEGAL_ENTITY_API = BASE_API_URL + "/v3/LegalEntity?tin=%s";
     String VACCINATION_NNUZB = "https://api2.ssv.uz/Vaccination/%s";
 }

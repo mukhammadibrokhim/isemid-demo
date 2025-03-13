@@ -95,11 +95,11 @@ public class RoleServiceImpl implements RoleService {
     @PostConstruct
     public void initDefaultRolesAndPermissions() {
         Map<String, Map<String, Object>> rolePermissions = Map.of(
-                "isemid_labarant", Map.of(
-                        "descriptionUz", "Laborant rol",
-                        "descriptionUzCyril", "Лаборант рол",
-                        "descriptionRu", "Роль лаборанта",
-                        "descriptionKaa", "Лаборатория кызматы",
+                "isemid_qr_user", Map.of(
+                        "descriptionUz", "QR foydalanuvchi roli",
+                        "descriptionUzCyril", "QR фойдаланувчи роли",
+                        "descriptionRu", "Роль пользователя QR",
+                        "descriptionKaa", "QR колдонучунун ролу",
                         "permission", List.of()),
                 "isemid_epidemiologist", Map.of(
                         "descriptionUz", "Epidemiolog rol",
@@ -122,7 +122,7 @@ public class RoleServiceImpl implements RoleService {
                 "isemid_general_practitioner", Map.of(
                         "descriptionUz", "Umumiy amaliyot shifokori",
                         "descriptionUzCyril", "Умумий амалийот шифокори",
-                        "descriptionRu", "Врач общей практики",
+                        "descriptionRu", "Врач",
                         "descriptionKaa", "Жалпы практика дарыгери",
                         "permission", List.of()),
                 "isemid_super_admin", Map.of(
@@ -131,6 +131,13 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionRu", "Роль супер администратора",
                         "descriptionKaa", "Супер администратор",
                         "permission", List.of()),
+                "isemid_assistant_epidemiologist", Map.of(
+                        "descriptionUz", "Epidemiolog shifokor yordamchisi",
+                        "descriptionUzCyril", "Эпидемиолог шифокор ёрдамчиси",
+                        "descriptionRu", "Помощник врача-эпидемиолога",
+                        "descriptionKaa", "Epidemiolog-dáriger kómekshisi",
+                        "permission", List.of()
+                ),
                 "isemid_admin", Map.of(
                         "descriptionUz", "Admin rol",
                         "descriptionUzCyril", "Админ рол",

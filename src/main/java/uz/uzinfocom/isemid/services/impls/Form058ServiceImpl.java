@@ -11,12 +11,14 @@ import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.*;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
+import uz.uzinfocom.isemid.models.entities.enums.AddressType;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
@@ -104,6 +106,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .mkb10Code(reqForm058.getMkb10Code())
                 .mkb10Name(reqForm058.getMkb10Name())
                 .mkb10UsageLimit(reqForm058.getMkb10UsageLimit())
+                .status(FormStatus.SENT)
                 .patient(patient)
                 .labConfirmation(reqForm058.getLabConfirmation())
                 .hospitalPlace(organizationService.findById(reqForm058.getHospitalPlaceId()).orElse(null))
@@ -315,10 +318,10 @@ public class Form058ServiceImpl implements Form058Service {
                     return card;
                 })
                 .toList();
-
+        form058.setCardByFullName(user.getFullName());
         form058.getCards().clear();
         form058.getCards().addAll(cards);
-        form058.setStatus(FormStatus.CARD_ATTACHED);
+        form058.setStatus(FormStatus.CARD_LINKED);
         return new ApiResponse<>(true, "Successfully assigned.", form058Repository.save(form058));
     }
 
@@ -329,9 +332,40 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public ApiResponse<?> changeReceivedOrd(Long formId, Long orgId) {
+    public ApiResponse<?> changeReceivedOrd(Long formId, ReqForm058OrgUpdate reqForm058OrgUpdate) {
         Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form 058 not found."));
-        Organization organization = organizationService.findById(orgId).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
+
+        Patient patient = form058.getPatient();
+        Optional.ofNullable(reqForm058OrgUpdate.getWorkPlaceStateCode())
+                .ifPresent(code -> patient.setWorkPlaceState(mapCatalog(CatalogType.state, code)));
+
+        Optional.ofNullable(reqForm058OrgUpdate.getWorkPlaceCityCode())
+                .ifPresent(code -> patient.setWorkPlaceCity(mapCatalog(CatalogType.city, code)));
+
+        patient.getAddresses().stream()
+                .filter(address -> address.getType().equals(AddressType.TEMPORARY))
+                .findFirst()
+                .ifPresent(address -> {
+                    Optional.ofNullable(reqForm058OrgUpdate.getAddressStateCode())
+                            .ifPresent(code -> address.setState(mapCatalog(CatalogType.state, code)));
+
+                    Optional.ofNullable(reqForm058OrgUpdate.getAddressCityCode())
+                            .ifPresent(code -> address.setCity(mapCatalog(CatalogType.city, code)));
+
+                    Optional.ofNullable(reqForm058OrgUpdate.getAddressNeighborhoodCode())
+                            .ifPresent(code -> address.setNeighborhood(mapCatalog(CatalogType.neighborhood, code)));
+
+                    Optional.ofNullable(reqForm058OrgUpdate.getStreetAddress())
+                            .ifPresent(address::setStreetAddress);
+
+                    Optional.ofNullable(reqForm058OrgUpdate.getHouseNumber())
+                            .ifPresent(address::setHouseNumber);
+
+                    Optional.ofNullable(reqForm058OrgUpdate.getApartmentNumber())
+                            .ifPresent(address::setApartmentNumber);
+                });
+
+        Organization organization = organizationService.findById(reqForm058OrgUpdate.getReceivedOrgId()).orElseThrow(() -> new ApiException(NOT_FOUND, "Organization not found."));
         form058.setReceiverOrganization(organization);
         form058.setStatus(FormStatus.SENT);
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));

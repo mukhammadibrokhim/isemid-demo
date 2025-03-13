@@ -5,6 +5,7 @@ import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
@@ -19,7 +20,7 @@ public interface Form058Service {
 
     ApiResponse<Form058> getById(long id);
 
-    ApiResponse<?> changeReceivedOrd(Long formId, Long orgId);
+    ApiResponse<?> changeReceivedOrd(Long formId, ReqForm058OrgUpdate reqForm058OrgUpdate);
 
     ApiResponse<?> cancel(Long formId);
 

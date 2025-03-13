@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.models.entities.card.card_tube.CardTube;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
+import uz.uzinfocom.isemid.models.payload.requests.card.card_tube.ReqCardTube;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;
@@ -30,7 +31,7 @@ public class UpdateCardTubeStrategy implements UpdateCardStrategy {
         }
 
         existingCard.setStatus(CardStatus.IN_PROGRESS);
-
+        ReqCardTube cardTube = (ReqCardTube) reqCard;
 
 
         CardTube updatedCard = cardRepository.save(existingCard);

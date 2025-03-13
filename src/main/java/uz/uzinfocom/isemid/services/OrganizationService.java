@@ -31,6 +31,9 @@ public interface OrganizationService {
 
     Optional<Organization> findById(long id);
 
+    Optional<Organization> findByTin(String tin);
+
     ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name);
 
+    Organization save(Organization newOrg);
 }

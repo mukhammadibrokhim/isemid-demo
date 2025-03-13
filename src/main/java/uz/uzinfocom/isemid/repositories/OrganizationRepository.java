@@ -34,4 +34,5 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     );
 
 
+    Optional<Organization> findByTin(String tin);
 }

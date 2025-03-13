@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.payload.requests.ReqRegister;
 import uz.uzinfocom.isemid.models.payload.requests.ReqUser;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -30,4 +31,6 @@ public interface UserService {
     ApiResponse<User> updateUser(long id, @Valid ReqUser user);
 
     List<User> getAllByIds(List<Long> userIds);
+
+    ApiResponse<?> signUpUser(ReqRegister reqRegister);
 }
