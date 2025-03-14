@@ -44,4 +44,10 @@ public enum CatalogType {
 
     //Card Tube
     reasonForStayAtHome, eatingHabits,
+
+    //card174
+    affectedAnimalType,diseaseFactors,animalDisposalMethod,deratization,quarantineType,eliminationMethod,
+    disinfectionTransmissionFactors,processingMethod,
+
+    actObject,shift,laboratoryName
 }

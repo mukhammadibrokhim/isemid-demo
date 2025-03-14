@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ReqInformationAboutAnimalBittenPeople {
+    private Long id;
     private String animalCategoryCode;
     private String animalType;
     private String fullNameOfAnimalBittenOwner;

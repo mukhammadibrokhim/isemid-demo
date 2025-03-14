@@ -12,11 +12,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardType;
+import uz.uzinfocom.isemid.models.entities.act.*;
+import uz.uzinfocom.isemid.models.entities.act.act154.Act154;
+import uz.uzinfocom.isemid.models.entities.card.*;
 import uz.uzinfocom.isemid.models.entities.card.card161.Card161;
 import uz.uzinfocom.isemid.models.entities.card.card174.Card174;
 import uz.uzinfocom.isemid.models.entities.card.card175.Card175;
 import uz.uzinfocom.isemid.models.entities.card.card205.Card205;
 import uz.uzinfocom.isemid.models.entities.card.card_tube.CardTube;
+import uz.uzinfocom.isemid.models.entities.card.CardType;
+import uz.uzinfocom.isemid.models.entities.enums.ActType;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
@@ -207,6 +212,7 @@ public class CommonUtils {
 
         return apiResponsePage;
     }
+
     public static String getFullURL(HttpServletRequest request) {
         String fullURL = request.getRequestURI();
         String queryString = request.getQueryString();
@@ -270,4 +276,14 @@ public class CommonUtils {
         }
     }
 
+     public static Act createAct(ActType actType) {
+     return switch (actType) {
+//            //case ACT153 -> new Act153();
+               case ACT154 -> new Act154();
+//            //case ACT155 -> new Act155();
+//            //case ACT156 -> new Act156();
+//            //case ACT223 -> new Act223();
+//            //case ACT224 -> new Act224();
+       };
+    }
 }

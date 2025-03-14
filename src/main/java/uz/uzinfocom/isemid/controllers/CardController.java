@@ -8,11 +8,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
+import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
+import uz.uzinfocom.isemid.models.payload.requests.act.ReqCardAssignAct;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqRejectCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
+import uz.uzinfocom.isemid.services.act.ActService;
 import uz.uzinfocom.isemid.services.card.CardService;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.CARD;
@@ -27,6 +30,7 @@ import static uz.uzinfocom.isemid.utils.CommonUtils.getFullURL;
 public class CardController {
 
     final CardService cardService;
+    final ActService actService;
 
     @Operation(summary = "Get all cards with filters",
             description = "Retrieves a paginated list of cards based on optional filters like form type, organization names, and card status.")
@@ -117,5 +121,9 @@ public class CardController {
     public ApiResponse<?> supervisorRejectCard(@PathVariable Long cardId, @CurrentUser User currentUser,
                                                @Valid @RequestBody ReqRejectCard rejectCard) {
         return cardService.supervisorRejectCard(cardId, currentUser, rejectCard);
+    }
+    @PostMapping("/assign-act")
+    public ApiResponse<?> assignAct(@Valid @RequestBody ReqCardAssignAct reqCardAssignAct, @CurrentUser User user) {
+        return actService.assignAct(reqCardAssignAct,user);
     }
 }

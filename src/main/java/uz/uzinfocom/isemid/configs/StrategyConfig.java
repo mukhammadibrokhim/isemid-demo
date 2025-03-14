@@ -3,7 +3,10 @@ package uz.uzinfocom.isemid.configs;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uz.uzinfocom.isemid.models.entities.card.CardType;
+import uz.uzinfocom.isemid.models.entities.enums.ActType;
+import uz.uzinfocom.isemid.services.act.update.UpdateActStrategy;
 import uz.uzinfocom.isemid.services.card.strategy.UpdateCardStrategy;
+import uz.uzinfocom.isemid.services.impls.act.update.UpdateActs154Strategy;
 import uz.uzinfocom.isemid.services.impls.card.strategy.*;
 
 import java.util.Map;
@@ -26,4 +29,13 @@ public class StrategyConfig {
                 CardType.CARD_TUBE, updateCardTubeStrategy
         );
     }
+    @Bean
+    public Map<ActType, UpdateActStrategy> updateActStrategyMap(
+            UpdateActs154Strategy updateActs154Strategy
+    ) {
+        return Map.of(
+                ActType.ACT154, updateActs154Strategy
+        );
+    }
+
 }
