@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.services;
 
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.payload.requests.ReqRole;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
@@ -23,7 +24,10 @@ public interface RoleService {
             String url,
             User currentUser);
 
-    ApiResponse<Role> roleAddPermission(long roleId, String permissionName);
+    ApiResponse<Role> create(ReqRole reqRole);
 
-    ApiResponse<Role> roleRemovePermission(long roleId, String permissionName);
+    ApiResponse<Role> update(long id, ReqRole reqRole);
+
+    ApiResponse<Role> deleteById(long id);
+
 }
