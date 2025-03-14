@@ -13,7 +13,6 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.RoleService;
 
-import java.util.List;
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.ROLE;
 import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
