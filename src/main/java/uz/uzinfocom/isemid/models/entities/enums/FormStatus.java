@@ -12,7 +12,6 @@ public enum FormStatus {
     APPROVED("Tasdiqlangan", "Подтвержденный"),
     CANCELED("Bekor qilingan", "Отменено");
 
-
     private final String uzbek;
     private final String russian;
 

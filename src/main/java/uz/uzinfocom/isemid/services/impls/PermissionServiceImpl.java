@@ -21,9 +21,10 @@ public class PermissionServiceImpl implements PermissionService {
     final PermissionRepository permissionRepository;
 
     @Override
-    public ApiResponse<Permission> createPermission(ReqPermission reqPermission) {
+    public ApiResponse<Permission> create(ReqPermission reqPermission) {
         Permission permission = Permission.builder()
-                .name(reqPermission.getName())
+                .subject(reqPermission.getSubject())
+                .actions(reqPermission.getActions())
                 .descriptionUz(reqPermission.getDescriptionUz())
                 .descriptionUzCyril(reqPermission.getDescriptionUzCyril())
                 .descriptionRu(reqPermission.getDescriptionRu())
@@ -39,10 +40,11 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
-    public ApiResponse<Permission> updatePermissionById(long id, ReqPermission reqPermission) {
+    public ApiResponse<Permission> update(long id, ReqPermission reqPermission) {
         Permission exsistingPermission = permissionRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Permission not found."));
-        Optional.ofNullable(reqPermission.getName()).ifPresent(exsistingPermission::setName);
-        Optional.of(reqPermission.getActive()).ifPresent(exsistingPermission::setActive);
+        Optional.ofNullable(reqPermission.getSubject()).ifPresent(exsistingPermission::setSubject);
+        Optional.ofNullable(reqPermission.getActions()).ifPresent(exsistingPermission::setActions);
+        Optional.ofNullable(reqPermission.getActive()).ifPresent(exsistingPermission::setActive);
         Optional.ofNullable(reqPermission.getDescriptionUz()).ifPresent(exsistingPermission::setDescriptionUz);
         Optional.ofNullable(reqPermission.getDescriptionRu()).ifPresent(exsistingPermission::setDescriptionRu);
         Optional.ofNullable(reqPermission.getDescriptionUzCyril()).ifPresent(exsistingPermission::setDescriptionUzCyril);

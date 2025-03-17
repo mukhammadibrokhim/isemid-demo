@@ -488,6 +488,61 @@ public class CatalogController {
     ) {
         return catalogService.findAllByType(CatalogType.animalConservation, lang);
     }
+    @GetMapping("/affected-animal-type")
+    public ApiResponse<?> affectedAnimalType(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.affectedAnimalType, lang);
+    }
+    @GetMapping("/animal-ownership")
+    public ApiResponse<?> animalOwnership(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.ownerOfDiseaseSpreader, lang);
+    }
+    @GetMapping("/animal-disposal-method")
+    public ApiResponse<?> animalDisposalMethod(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.animalDisposalMethod, lang);
+    }
+    @GetMapping("/deratization")
+    public ApiResponse<?> deratization(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.deratization, lang);
+    }
+    @GetMapping("/quarantine-type")
+    public ApiResponse<?> quarantineType(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.quarantineType, lang);
+    }
+    @GetMapping("/disinfection-transmission-factors")
+    public ApiResponse<?> disinfectionTransmissionFactors(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.disinfectionTransmissionFactors, lang);
+    }
+    @GetMapping("disease_factors")
+    public ApiResponse<?> diseaseFactors(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.diseaseFactors, lang);
+    }
+    @GetMapping("processing-method")
+    public ApiResponse<?> processingMethod(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.processingMethod, lang);
+    }
+
+    @GetMapping("/elimination-method")
+    public ApiResponse<?> eliminationMethod(
+            @RequestHeader("Accept-Language") String lang
+    ) {
+        return catalogService.findAllByType(CatalogType.eliminationMethod, lang);
+    }
     @Operation(summary = "", tags = "Catalog Card161")
     @GetMapping("/risk-factor")
     public ApiResponse<?> getRiskFactor(@RequestHeader("Accept-Language") String lang) {

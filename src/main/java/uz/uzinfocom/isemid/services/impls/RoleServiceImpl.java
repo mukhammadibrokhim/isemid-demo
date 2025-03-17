@@ -12,18 +12,16 @@ import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.Permission;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.payload.requests.ReqRole;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.PermissionRepository;
 import uz.uzinfocom.isemid.repositories.RoleRepository;
 import uz.uzinfocom.isemid.services.RoleService;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
@@ -59,37 +57,43 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public ApiResponse<Role> roleAddPermission(long roleId, String permissionName) {
-        Role role = roleRepository.findById(roleId).orElseThrow(() -> new ApiException(NOT_FOUND, "Role not found with id: " + roleId));
-        Permission permission = permissionRepository.findByName(permissionName).orElseThrow(() -> new ApiException(NOT_FOUND, "Permission not found with name: " + permissionName));
-        if (role.getPermissions() == null) {
-            role.setPermissions(new HashSet<>());
-        }
+    public ApiResponse<Role> create(ReqRole reqRole) {
+        return new ApiResponse<>(true, "Success", roleRepository.save(Role.builder()
+                .isActive(true)
+                .name(reqRole.getName())
+                .descriptionUz(reqRole.getDescriptionUz())
+                .descriptionUzCyril(reqRole.getDescriptionUzCyril())
+                .descriptionRu(reqRole.getDescriptionRu())
+                .descriptionKaa(reqRole.getDescriptionKaa())
+                .permissions(reqRole.getPermissionIds().stream()
+                        .map(permId -> permissionRepository.findById(permId).orElseThrow(() -> new ApiException(NOT_FOUND, "Permission not found with id: " + permId)))
+                        .collect(Collectors.toSet()))
+                .build()));
+    }
 
-        if (role.getPermissions().contains(permission)) {
-            throw new ApiException(BAD_REQUEST, "Permission already added to the role" + permissionName);
-        }
+    @Override
+    public ApiResponse<Role> update(long id, ReqRole reqRole) {
+        Role role = roleRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Role not found with id: " + id));
 
-        role.getPermissions().add(permission);
-
+        Optional.ofNullable(reqRole.getName()).ifPresent(role::setName);
+        Optional.ofNullable(reqRole.getIsActive()).ifPresent(role::setActive);
+        Optional.ofNullable(reqRole.getPermissionIds()).ifPresent(permissionIds -> {
+            Set<Permission> permissions = permissionIds.stream()
+                    .map(permissionId -> permissionRepository.findById(permissionId)
+                            .orElseThrow(() -> new ApiException(NOT_FOUND, "Permission not found with id: " + permissionId)))
+                    .collect(Collectors.toSet());
+            role.setPermissions(permissions);
+        });
+        Optional.ofNullable(reqRole.getDescriptionUz()).ifPresent(role::setDescriptionUz);
+        Optional.ofNullable(reqRole.getDescriptionUzCyril()).ifPresent(role::setDescriptionUzCyril);
+        Optional.ofNullable(reqRole.getDescriptionRu()).ifPresent(role::setDescriptionRu);
+        Optional.ofNullable(reqRole.getDescriptionKaa()).ifPresent(role::setDescriptionKaa);
         return new ApiResponse<>(true, "Success", roleRepository.save(role));
     }
 
     @Override
-    public ApiResponse<Role> roleRemovePermission(long roleId, String permissionName) {
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new ApiException(NOT_FOUND, "Role not found with id: " + roleId));
-
-        Permission permission = permissionRepository.findByName(permissionName)
-                .orElseThrow(() -> new ApiException(NOT_FOUND, "Permission not found with name: " + permissionName));
-
-        if (role.getPermissions() == null || !role.getPermissions().contains(permission)) {
-            throw new ApiException(BAD_REQUEST, "Permission not found in the role" + permissionName);
-        }
-
-        role.getPermissions().remove(permission);
-
-        return new ApiResponse<>(true, "Permission successfully removed from the role", roleRepository.save(role));
+    public ApiResponse<Role> deleteById(long id) {
+        return null;
     }
 
     @PostConstruct
@@ -130,7 +134,7 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionUzCyril", "Супер админ рол",
                         "descriptionRu", "Роль супер администратора",
                         "descriptionKaa", "Супер администратор",
-                        "permission", List.of()),
+                        "permission", List.of("ALL")),
                 "isemid_assistant_epidemiologist", Map.of(
                         "descriptionUz", "Epidemiolog shifokor yordamchisi",
                         "descriptionUzCyril", "Эпидемиолог шифокор ёрдамчиси",
@@ -143,14 +147,14 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionUzCyril", "Админ рол",
                         "descriptionRu", "Роль администратора",
                         "descriptionKaa", "Администратор",
-                        "permission", List.of())
+                        "permission", List.of("ALL"))
         );
         rolePermissions.forEach((roleName, roleData) -> {
             String descriptionUz = (String) roleData.get("descriptionUz");
             String descriptionUzCyril = (String) roleData.get("descriptionUzCyril");
             String descriptionRu = (String) roleData.get("descriptionRu");
             String descriptionKaa = (String) roleData.get("descriptionKaa");
-            List<String> permissionsList = (List<String>) roleData.get("permissions");
+            List<String> permissionsList = (List<String>) roleData.get("permission");
             if (permissionsList == null) {
                 permissionsList = new ArrayList<>();
             }
@@ -166,10 +170,11 @@ public class RoleServiceImpl implements RoleService {
                 return roleRepository.save(newRole);
             });
 
-            permissionsList.forEach(permissionName -> {
-                Permission permission = permissionRepository.findByName(permissionName).orElseGet(() -> {
+            for (String permissionName : permissionsList) {
+                Permission permission = permissionRepository.findBySubject(permissionName).orElseGet(() -> {
                     Permission newPermission = new Permission();
-                    newPermission.setName(permissionName);
+                    newPermission.setSubject(permissionName);
+                    newPermission.setActions(List.of("manager"));
                     return permissionRepository.save(newPermission);
                 });
 
@@ -177,13 +182,14 @@ public class RoleServiceImpl implements RoleService {
                     role.setPermissions(new HashSet<>());
                 }
                 role.getPermissions().add(permission);
-            });
+            }
 
             roleRepository.save(role);
         });
 
         logger.info("Default roles and permissions initialized successfully.");
     }
+
 
     public static Specification<Role> getFilteredSpecification(
             final String name,

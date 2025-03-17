@@ -21,7 +21,7 @@ public class PermissionController {
 
     @PostMapping
     public ApiResponse<Permission> create(@Valid @RequestBody ReqPermission reqPermission) {
-        return permissionService.createPermission(reqPermission);
+        return permissionService.create(reqPermission);
     }
 
     @GetMapping("/{id}")
@@ -31,7 +31,7 @@ public class PermissionController {
 
     @PutMapping("/{id}")
     public ApiResponse<Permission> update(@PathVariable long id, @Valid @RequestBody ReqPermission reqPermission) {
-        return permissionService.updatePermissionById(id, reqPermission);
+        return permissionService.update(id, reqPermission);
     }
 
     @DeleteMapping("/{id}")

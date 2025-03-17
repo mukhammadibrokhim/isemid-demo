@@ -6,21 +6,20 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqPermission {
-
-    @NotBlank(message = "Name is required and not blank.")
-    private String name;
+    @NotBlank
+    private String subject;
+    @NotBlank
+    private List<String> actions;
     private Boolean active;
-    @NotBlank(message = "Name is required and not blank.")
     private String descriptionUz;
-    @NotBlank(message = "descriptionUz is required and not blank.")
     private String descriptionRu;
-    @NotBlank(message = "descriptionUzCyril is required and not blank.")
     private String descriptionUzCyril;
-    @NotBlank(message = "descriptionKaaUz is required and not blank.")
     private String descriptionKaa;
 }

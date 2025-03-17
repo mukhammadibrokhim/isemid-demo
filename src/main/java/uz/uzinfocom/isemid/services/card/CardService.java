@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.services.card;
 
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
+import uz.uzinfocom.isemid.models.payload.requests.act.ReqCardAssignAct;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqRejectCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -33,4 +34,6 @@ public interface CardService {
     ApiResponse<?> supervisorApproveCard(long cardId, User currentUser);
 
     ApiResponse<?> supervisorRejectCard(Long cardId, User currentUser, ReqRejectCard rejectCard);
+
+    ApiResponse<?> assignAct(ReqCardAssignAct reqCardAssignAct, User user);
 }

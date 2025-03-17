@@ -341,6 +341,8 @@ public class Form058ServiceImpl implements Form058Service {
 
         Optional.ofNullable(reqForm058OrgUpdate.getWorkPlaceCityCode())
                 .ifPresent(code -> patient.setWorkPlaceCity(mapCatalog(CatalogType.city, code)));
+        Optional.ofNullable(reqForm058OrgUpdate.getWorkPlaceRecOrgId()).ifPresent(id -> patient.setWorkPlaceOrg(organizationService.findById(reqForm058OrgUpdate.getWorkPlaceRecOrgId())
+                .orElseThrow(() -> new ApiException(NOT_FOUND, "Work place organization not found."))));
 
         patient.getAddresses().stream()
                 .filter(address -> address.getType().equals(AddressType.TEMPORARY))

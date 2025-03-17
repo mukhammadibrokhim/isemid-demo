@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class ReqInformationOtherBittenAnimal {
+    private Long id;
     private String bittenAnimalCategoryCode;
     private LocalDateTime bittenDateTime;
     private String whereAnimalBitten;

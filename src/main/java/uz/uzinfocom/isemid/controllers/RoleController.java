@@ -2,14 +2,17 @@ package uz.uzinfocom.isemid.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
+import uz.uzinfocom.isemid.models.payload.requests.ReqRole;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.RoleService;
+
 
 import static uz.uzinfocom.isemid.utils.ApiUrlConstant.ROLE;
 import static uz.uzinfocom.isemid.utils.AppConstant.PAGE;
@@ -40,13 +43,18 @@ public class RoleController {
         return roleService.getAllRolesPage(page, size, name, descriptionUz, descriptionRu, descriptionUzCyril, descriptionKaa, getFullURL(request), currentUser);
     }
 
-    @PutMapping("/{roleId}/permissions")
-    public ApiResponse<Role> roleAddPermission(@PathVariable long roleId, @RequestParam String permissionName) {
-        return roleService.roleAddPermission(roleId, permissionName);
+    @PostMapping
+    public ApiResponse<Role> createRole(@Valid @RequestBody ReqRole reqRole) {
+        return roleService.create(reqRole);
     }
 
-    @DeleteMapping("/{roleId}/permissions")
-    public ApiResponse<Role> roleRemovePermission(@PathVariable long roleId, @RequestParam String permissionName) {
-        return roleService.roleRemovePermission(roleId, permissionName);
+    @PutMapping("/{id}")
+    public ApiResponse<Role> updateRole(@PathVariable long id, @RequestBody ReqRole reqRole) {
+        return roleService.update(id, reqRole);
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Role> deleteRole(@PathVariable long id) {
+        return roleService.deleteById(id);
     }
 }
