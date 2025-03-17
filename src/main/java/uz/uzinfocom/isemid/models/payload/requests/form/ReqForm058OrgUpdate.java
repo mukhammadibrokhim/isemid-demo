@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.models.payload.requests.form;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,12 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ReqForm058OrgUpdate {
-    @NotNull
-    private Long receivedOrgId;
+    private Long workPlaceRecOrgId;
     private String workPlaceStateCode;
     private String workPlaceCityCode;
 
     //address
+    private Long receivedOrgId;
     private String addressStateCode;
     private String addressCityCode;
     private String addressNeighborhoodCode;
