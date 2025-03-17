@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.services.impls.act.update;
+package uz.uzinfocom.isemid.services.impls.act.strategy;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +8,7 @@ import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.enums.ActType;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
-import uz.uzinfocom.isemid.services.act.update.UpdateActStrategy;
+import uz.uzinfocom.isemid.services.act.strategy.UpdateActStrategy;
 
 import java.util.Map;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -16,7 +16,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class UpdateActsService {
+public class UpdateActService {
     final Map<ActType, UpdateActStrategy> updateCardStrategies;
 
     public ApiResponse<?> updateAct(long id, ReqAct reqAct, User currentUser) {
@@ -24,8 +24,7 @@ public class UpdateActsService {
 
         UpdateActStrategy strategy = updateCardStrategies.get(actType);
         if (strategy == null) {
-            throw new ApiException(BAD_REQUEST, "Unsupported card type: " + actType);
-
+            throw new ApiException(BAD_REQUEST, "Unsupported act type: " + actType);
         }
         return strategy.updateAct(id, reqAct, currentUser);
     }

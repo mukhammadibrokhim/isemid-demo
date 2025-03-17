@@ -11,8 +11,11 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.act.Act;
+import uz.uzinfocom.isemid.models.entities.act.ActStatus;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
+import uz.uzinfocom.isemid.models.payload.requests.act.ReqCardAssignAct;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqRejectCard;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
@@ -27,8 +30,7 @@ import java.util.List;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.util.StringUtils.hasText;
-import static uz.uzinfocom.isemid.utils.CommonUtils.createApiResponsePage;
-import static uz.uzinfocom.isemid.utils.CommonUtils.pageableSortByIdDesc;
+import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -129,6 +131,25 @@ public class CardServiceImpl implements CardService {
         card.setStatus(CardStatus.REJECTED);
         card.setAttachedUserComment(rejectCard.getComment());
         return new ApiResponse<>(true, "Supervisor successfully rejected.", cardRepository.save(card));
+    }
+
+    @Override
+    public ApiResponse<?> assignAct(ReqCardAssignAct reqCardAssignAct, User user) {
+        Card card = cardRepository.findById(reqCardAssignAct.getCardId())
+                .orElseThrow(() -> new ApiException(NOT_FOUND, "Card not found by id: " + reqCardAssignAct.getCardId()));
+
+        List<Act> acts = reqCardAssignAct.getActTypes().stream()
+                .map(actType -> {
+                    Act act = createAct(actType, card);
+                    act.setActType(actType);
+                    act.setCard(card);
+                    act.setActStatus(ActStatus.NEW);
+                    return act;
+                })
+                .toList();
+        card.getActs().addAll(acts);
+        cardRepository.save(card);
+        return new ApiResponse<>(true, "Acts successfully assigned.", card);
     }
 
     private Card validateAndGetCard(long cardId, User currentUser) {

@@ -1,8 +1,6 @@
 package uz.uzinfocom.isemid.models.entities.card;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,10 +13,7 @@ import uz.uzinfocom.isemid.models.entities.card.card175.Card175;
 import uz.uzinfocom.isemid.models.entities.card.card205.Card205;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -62,5 +57,12 @@ public abstract class Card extends AbsEntity {
     private String attachedUserComment;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Act> acts = new ArrayList<>();
+
+    @Transient
+    @JsonProperty("actIds")
+    public List<Long> getActIds() {
+        return acts != null ? acts.stream().map(Act::getId).toList() : Collections.emptyList();
+    }
 }

@@ -1,10 +1,11 @@
-package uz.uzinfocom.isemid.services.impls.act.update;
+package uz.uzinfocom.isemid.services.impls.act.strategy;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.act.Act;
 import uz.uzinfocom.isemid.models.entities.act.ActStatus;
 import uz.uzinfocom.isemid.models.entities.act.act154.Act154;
 import uz.uzinfocom.isemid.models.entities.act.act154.Act154SampleDetails;
@@ -12,10 +13,10 @@ import uz.uzinfocom.isemid.models.entities.enums.ActType;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
-import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct154;
+import uz.uzinfocom.isemid.models.payload.requests.act.act154.ReqAct154;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.act.ActRepository;
-import uz.uzinfocom.isemid.services.act.update.UpdateActStrategy;
+import uz.uzinfocom.isemid.services.act.strategy.UpdateActStrategy;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.List;
@@ -27,9 +28,9 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class UpdateActs154Strategy implements UpdateActStrategy {
-       final ActRepository actRepository;
-    private final CatalogService catalogService;
+public class UpdateAct154Strategy implements UpdateActStrategy {
+    final ActRepository actRepository;
+    final CatalogService catalogService;
 
     private Catalog getCatalogByCode(CatalogType type, String code) throws ApiException {
         return catalogService.findByTypeAndCode(type, code).orElse(null);
@@ -39,11 +40,14 @@ public class UpdateActs154Strategy implements UpdateActStrategy {
     @Override
     public ApiResponse<?> updateAct(long id, ReqAct reqAct, User currentUser) {
 
-        Act154 existingAct = (Act154) actRepository.findById(id) .orElseThrow(() -> new ApiException(NOT_FOUND, "Act154 not found."));
+        Act act =  actRepository.findById(id) .orElseThrow(() -> new ApiException(NOT_FOUND, "Act154 not found."));
 
-        if (reqAct.getActType() == null || !reqAct.getActType().equals(ActType.ACT154)) {
-            throw new ApiException(BAD_REQUEST, "Act type is not correct.");
+        if (reqAct.getActType() == null || !reqAct.getActType().equals(act.getActType())) {
+            throw new ApiException(BAD_REQUEST, "Invalid act type: expected " + act.getActType() + " but received " + reqAct.getActType());
         }
+
+        Act154 existingAct = (Act154) act;
+
         ReqAct154 reqAct154 = (ReqAct154) reqAct;
         Optional.ofNullable(reqAct154.getTitle()).ifPresent(existingAct::setTitle);
         Optional.ofNullable(reqAct154.getSerialNumber()).ifPresent(existingAct::setSerialNumber);

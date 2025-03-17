@@ -10,17 +10,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
+import uz.uzinfocom.isemid.models.entities.act.Act;
+import uz.uzinfocom.isemid.models.entities.act.act153.Act153;
+import uz.uzinfocom.isemid.models.entities.act.act154.Act154;
+import uz.uzinfocom.isemid.models.entities.act.act155.Act155;
+import uz.uzinfocom.isemid.models.entities.act.act156.Act156;
+import uz.uzinfocom.isemid.models.entities.act.act223.Act223;
+import uz.uzinfocom.isemid.models.entities.act.act224.Act224;
 import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardType;
-import uz.uzinfocom.isemid.models.entities.act.*;
-import uz.uzinfocom.isemid.models.entities.act.act154.Act154;
-import uz.uzinfocom.isemid.models.entities.card.*;
 import uz.uzinfocom.isemid.models.entities.card.card161.Card161;
 import uz.uzinfocom.isemid.models.entities.card.card174.Card174;
 import uz.uzinfocom.isemid.models.entities.card.card175.Card175;
 import uz.uzinfocom.isemid.models.entities.card.card205.Card205;
 import uz.uzinfocom.isemid.models.entities.card.card_tube.CardTube;
-import uz.uzinfocom.isemid.models.entities.card.CardType;
 import uz.uzinfocom.isemid.models.entities.enums.ActType;
 import uz.uzinfocom.isemid.models.payload.responses.RespPractitioner;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -276,14 +279,16 @@ public class CommonUtils {
         }
     }
 
-     public static Act createAct(ActType actType) {
+    public static Act createAct(ActType actType, Card card) {
      return switch (actType) {
-//            //case ACT153 -> new Act153();
-               case ACT154 -> new Act154();
-//            //case ACT155 -> new Act155();
-//            //case ACT156 -> new Act156();
-//            //case ACT223 -> new Act223();
-//            //case ACT224 -> new Act224();
+         case ACT153 -> Act153.builder()
+                 .hospitalizationDate(card.getForm058().getAdmissionDate())
+                 .build();
+         case ACT154 -> new Act154();
+         case ACT155 -> new Act155();
+         case ACT156 -> new Act156();
+         case ACT223 -> new Act223();
+         case ACT224 -> new Act224();
        };
     }
 }

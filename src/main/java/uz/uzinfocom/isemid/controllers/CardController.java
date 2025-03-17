@@ -122,8 +122,9 @@ public class CardController {
                                                @Valid @RequestBody ReqRejectCard rejectCard) {
         return cardService.supervisorRejectCard(cardId, currentUser, rejectCard);
     }
+
     @PostMapping("/assign-act")
     public ApiResponse<?> assignAct(@Valid @RequestBody ReqCardAssignAct reqCardAssignAct, @CurrentUser User user) {
-        return actService.assignAct(reqCardAssignAct,user);
+        return cardService.assignAct(reqCardAssignAct,user);
     }
 }

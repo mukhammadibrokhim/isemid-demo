@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.services.act.update;
+package uz.uzinfocom.isemid.services.act.strategy;
 
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;

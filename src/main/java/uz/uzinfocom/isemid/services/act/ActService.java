@@ -11,7 +11,5 @@ public interface ActService {
 
     ApiResponse<?> updateAct(long id, ReqAct reqAct, User currentUser);
 
-    ApiResponse<?> assignAct(ReqCardAssignAct reqCardAssignAct, User user);
-
     ApiResponse<?> deleteById(Long id);
 }

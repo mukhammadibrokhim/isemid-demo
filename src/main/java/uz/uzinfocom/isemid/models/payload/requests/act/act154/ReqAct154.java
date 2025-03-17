@@ -1,8 +1,9 @@
-package uz.uzinfocom.isemid.models.payload.requests.act;
+package uz.uzinfocom.isemid.models.payload.requests.act.act154;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
