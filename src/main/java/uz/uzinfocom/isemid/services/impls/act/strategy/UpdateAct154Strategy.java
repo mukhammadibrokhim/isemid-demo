@@ -12,7 +12,7 @@ import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
 import uz.uzinfocom.isemid.models.payload.requests.act.act154.ReqAct154;
-import uz.uzinfocom.isemid.models.payload.requests.act.act154.ReqAct154Details;
+import uz.uzinfocom.isemid.models.payload.requests.act.act154.ReqAct154Detail;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.act.ActRepository;
 import uz.uzinfocom.isemid.services.OrganizationService;
@@ -86,40 +86,35 @@ public class UpdateAct154Strategy implements UpdateActStrategy {
         return new ApiResponse<>(true, "Success", actRepository.save(act));
     }
 
-    private Act154SampleDetails createNewAct154Detail(ReqAct154Details reqAct154Details, Act154 existingAct) {
+    private Act154SampleDetails createNewAct154Detail(ReqAct154Detail reqAct154Detail, Act154 existingAct) {
         return Act154SampleDetails.builder()
-                .shift(getCatalogByCode(shift, reqAct154Details.getShiftCode()))
-                .shiftCode(reqAct154Details.getShiftCode())
-                .sampleName(reqAct154Details.getSampleName())
-                .sampleType(reqAct154Details.getSampleType())
-                .purposeOfSampling(reqAct154Details.getPurposeOfSampling())
-                .samplingPurposeLoinc(reqAct154Details.getSamplingPurposeLoinc())
-                .sampleTakenDate(reqAct154Details.getSampleTakenDate())
-                .organization(organizationService.findById(reqAct154Details.getOrganizationId()).orElse(null))
-                .organizationId(reqAct154Details.getOrganizationId())
-                .laboratoryAddress(reqAct154Details.getLaboratoryAddress())
-                .deliveryTerm(reqAct154Details.getDeliveryTerm())
-                .storageCondition(reqAct154Details.getStorageCondition())
-                .manufacturingCompany(reqAct154Details.getManufacturingCompany())
-                .manufactureDate(reqAct154Details.getManufactureDate())
-                .groupSize(reqAct154Details.getGroupSize())
-                .serialNumberOfGroup(reqAct154Details.getSerialNumberOfGroup())
-                .sampleWeight(reqAct154Details.getSampleWeight())
-                .sampleVolume(reqAct154Details.getSampleVolume())
-                .docNumberOfTakenObject(reqAct154Details.getDocNumberOfTakenObject())
-                .packageType(reqAct154Details.getPackageType())
-                .documentConfirmSampling(reqAct154Details.getDocumentConfirmSampling())
-                .purposeOfChecking(reqAct154Details.getPurposeOfChecking())
-                .note(reqAct154Details.getNote())
+                .shift(getCatalogByCode(shift, reqAct154Detail.getShiftCode()))
+                .shiftCode(reqAct154Detail.getShiftCode())
+                .sampleName(reqAct154Detail.getSampleName())
+                .sampleType(reqAct154Detail.getSampleType())
+                .purposeOfSampling(reqAct154Detail.getPurposeOfSampling())
+                .samplingPurposeLoinc(reqAct154Detail.getSamplingPurposeLoinc())
+                .sampleTakenDate(reqAct154Detail.getSampleTakenDate())
+                .organization(organizationService.findById(reqAct154Detail.getOrganizationId()).orElse(null))
+                .organizationId(reqAct154Detail.getOrganizationId())
+                .laboratoryAddress(reqAct154Detail.getLaboratoryAddress())
+                .deliveryTerm(reqAct154Detail.getDeliveryTerm())
+                .storageCondition(reqAct154Detail.getStorageCondition())
+                .manufacturingCompany(reqAct154Detail.getManufacturingCompany())
+                .manufactureDate(reqAct154Detail.getManufactureDate())
+                .groupSize(reqAct154Detail.getGroupSize())
+                .serialNumberOfGroup(reqAct154Detail.getSerialNumberOfGroup())
+                .sampleWeight(reqAct154Detail.getSampleWeight())
+                .sampleVolume(reqAct154Detail.getSampleVolume())
+                .docNumberOfTakenObject(reqAct154Detail.getDocNumberOfTakenObject())
+                .packageType(reqAct154Detail.getPackageType())
+                .documentConfirmSampling(reqAct154Detail.getDocumentConfirmSampling())
+                .purposeOfChecking(reqAct154Detail.getPurposeOfChecking())
+                .note(reqAct154Detail.getNote())
                 .build();
     }
 
-    private Act154SampleDetails updateExistingAct154Detail(Act154SampleDetails existingDetail, ReqAct154Details reqDetail) {
-        Optional.ofNullable(reqDetail.getSampleName()).ifPresent(existingDetail::setSampleName);
-        Optional.ofNullable(reqDetail.getSampleType()).ifPresent(existingDetail::setSampleType);
-        Optional.ofNullable(reqDetail.getPurposeOfSampling()).ifPresent(existingDetail::setPurposeOfSampling);
-        Optional.ofNullable(reqDetail.getSamplingPurposeLoinc()).ifPresent(existingDetail::setSamplingPurposeLoinc);
-        Optional.ofNullable(reqDetail.getSampleTakenDate()).ifPresent(existingDetail::setSampleTakenDate);
+    private Act154SampleDetails updateExistingAct154Detail(Act154SampleDetails existingDetail, ReqAct154Detail reqDetail) {
         Optional.ofNullable(reqDetail.getShiftCode()).ifPresent(shiftCode -> {
             existingDetail.setShiftCode(shiftCode);
             getCatalogByCode(shift, shiftCode);
@@ -128,6 +123,11 @@ public class UpdateAct154Strategy implements UpdateActStrategy {
             existingDetail.setOrganizationId(orgId);
             organizationService.findById(orgId).ifPresent(existingDetail::setOrganization);
         });
+        Optional.ofNullable(reqDetail.getSampleName()).ifPresent(existingDetail::setSampleName);
+        Optional.ofNullable(reqDetail.getSampleType()).ifPresent(existingDetail::setSampleType);
+        Optional.ofNullable(reqDetail.getPurposeOfSampling()).ifPresent(existingDetail::setPurposeOfSampling);
+        Optional.ofNullable(reqDetail.getSamplingPurposeLoinc()).ifPresent(existingDetail::setSamplingPurposeLoinc);
+        Optional.ofNullable(reqDetail.getSampleTakenDate()).ifPresent(existingDetail::setSampleTakenDate);
         Optional.ofNullable(reqDetail.getShiftCode()).ifPresent(existingDetail::setShiftCode);
         Optional.ofNullable(reqDetail.getOrganizationId()).ifPresent(existingDetail::setOrganizationId);
         Optional.ofNullable(reqDetail.getLaboratoryAddress()).ifPresent(existingDetail::setLaboratoryAddress);

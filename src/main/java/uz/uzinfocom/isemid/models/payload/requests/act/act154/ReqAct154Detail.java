@@ -11,7 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ReqAct154Details {
+public class ReqAct154Detail {
     private Long id;
     private String sampleName;
     private String sampleType;
@@ -20,7 +20,6 @@ public class ReqAct154Details {
     private LocalDateTime sampleTakenDate;
     //Catalog
     private String shiftCode;
-    //lisdan keladi organization
     private Long organizationId;
     private String laboratoryAddress;
     private String deliveryTerm;
