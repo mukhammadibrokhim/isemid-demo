@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.models.entities.card.card175.Card175;
 import uz.uzinfocom.isemid.models.entities.card.card205.Card205;
 import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Getter
@@ -55,6 +56,7 @@ public abstract class Card extends AbsEntity {
 
     @Column(length = 1000)
     private String attachedUserComment;
+    private LocalDate completedDate;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

@@ -155,6 +155,7 @@ public class Card161 extends Card {
     private String isolationStatus;
     private String waterSupplyStatus;
     private String sanitaryMaintenance;
+    private String sewerageStatus;
     private String foodStorage;
     private String foodPreparation;
     private String diseaseCausingFactors;
