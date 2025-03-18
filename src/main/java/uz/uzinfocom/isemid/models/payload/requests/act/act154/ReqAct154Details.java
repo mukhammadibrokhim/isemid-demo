@@ -16,13 +16,12 @@ public class ReqAct154Details {
     private String sampleName;
     private String sampleType;
     private String purposeOfSampling;
+    private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
     //Catalog
     private String shiftCode;
     //lisdan keladi organization
-    private String laboratoryNameId;
-
-
+    private Long organizationId;
     private String laboratoryAddress;
     private String deliveryTerm;
     private String storageCondition;
