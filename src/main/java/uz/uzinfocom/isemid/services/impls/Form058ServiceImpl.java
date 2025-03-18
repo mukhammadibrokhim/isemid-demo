@@ -1,5 +1,8 @@
 package uz.uzinfocom.isemid.services.impls;
 
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -289,10 +292,9 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public ApiResponsePage getFilteredForm058(int page, int size, User user, String url, boolean isAllApi) {
-        Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), null);
+    public ApiResponsePage getFilteredForm058(int page, int size, User user, String url, FilterType filterType) {
+        Specification<Form058> spec = getFilteredSpecification(user.getCurrentOrganization().getUuid(), filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-//        Page<Form058Dto> dtoPage = form058Page.map(form -> Form058Dto.fromEntity(form, isAllApi));
         return createApiResponsePage(page, form058Page, url);
 
     }
@@ -380,13 +382,6 @@ public class Form058ServiceImpl implements Form058Service {
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
-    @Override
-    public ApiResponsePage getReceivedAll(int page, int size, User user, FilterType filterType, String fullURL) {
-        Specification<Form058> spec = getFilteredSpecificationByReceive(user.getCurrentOrganization().getUuid());
-        Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, form058Page, fullURL);
-    }
-
     @Transactional
     @Override
     public ApiResponse<?> deleteById(Long formId) {
@@ -410,23 +405,26 @@ public class Form058ServiceImpl implements Form058Service {
             List<Predicate> predicates = new ArrayList<>();
 
             if (currentUserOrgId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("createdOrgId"), currentUserOrgId));
-            }
-            if (filterType != null && filterType.equals(FilterType.RECEIVED)) {
-                predicates.add(criteriaBuilder.equal(root.get("receiverOrganization").get("uuid"), currentUserOrgId));
-            }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-    }
+                if (filterType == FilterType.RECEIVED) {
+                    predicates.add(criteriaBuilder.equal(
+                            root.get("receiverOrganization").get("uuid"), currentUserOrgId
+                    ));
+                } else {
+                    Expression<UUID> createdOrgUuid = root.get("createdOrgId");
 
-    public static Specification<Form058> getFilteredSpecificationByReceive(
-            UUID currentUserOrgId
-    ) {
-        return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (currentUserOrgId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("receiverOrganization").get("uuid"), currentUserOrgId));
+                    Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+                    Join<Patient, Organization> workplaceJoin = patientJoin.join("workPlaceOrg", JoinType.LEFT);
+
+                    Expression<UUID> workplaceOrgUuid = workplaceJoin.get("uuid");
+
+                    Predicate createdMatches = criteriaBuilder.equal(createdOrgUuid, currentUserOrgId);
+                    Predicate workplaceMatches = criteriaBuilder.equal(workplaceOrgUuid, currentUserOrgId);
+                    Predicate eitherMatches = criteriaBuilder.or(createdMatches, workplaceMatches);
+
+                    predicates.add(eitherMatches);
+                }
             }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
