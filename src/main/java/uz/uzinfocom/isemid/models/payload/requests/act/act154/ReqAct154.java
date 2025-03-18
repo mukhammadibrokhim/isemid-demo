@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -28,5 +29,5 @@ public class ReqAct154 extends ReqAct {
     private String position;
     private String additionalInfo;
     private String actClassificatorCode;
-    private List<ReqAct154Details> act154SampleDetailsList;
+    private Set<ReqAct154Details> act154SampleDetailsList;
 }
