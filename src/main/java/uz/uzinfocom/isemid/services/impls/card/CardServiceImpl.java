@@ -25,6 +25,7 @@ import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.card.CardService;
 import uz.uzinfocom.isemid.services.impls.card.strategy.UpdateCardService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,6 +95,7 @@ public class CardServiceImpl implements CardService {
         if (card.getStatus() == CardStatus.COMPLETED) {
             throw new ApiException(BAD_REQUEST, "Card is already completed.");
         }
+        card.setCompletedDate(LocalDate.now());
         card.setStatus(CardStatus.COMPLETED);
         return new ApiResponse<>(true, "successfully saved.", cardRepository.save(card));
     }
