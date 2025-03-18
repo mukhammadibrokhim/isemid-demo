@@ -14,7 +14,7 @@ public interface Form058Service {
 
     ApiResponse<Form058> updateForm058(ReqForm058 reqForm058, Long id, User user);
 
-    ApiResponsePage getFilteredForm058(int page, int size, User user, String url, boolean isAllApi);
+    ApiResponsePage getFilteredForm058(int page, int size, User user, String url, FilterType filterType);
 
     ApiResponse<Form058> assignCard(ReqForm058AssignCard assignCard, User user);
 
@@ -23,8 +23,6 @@ public interface Form058Service {
     ApiResponse<?> changeReceivedOrd(Long formId, ReqForm058OrgUpdate reqForm058OrgUpdate);
 
     ApiResponse<?> cancel(Long formId);
-
-    ApiResponsePage getReceivedAll(int page, int size, User user, FilterType received, String fullURL);
 
     ApiResponse<?> deleteById(Long formId);
 }

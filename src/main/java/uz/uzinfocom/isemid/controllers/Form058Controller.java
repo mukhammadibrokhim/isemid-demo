@@ -49,7 +49,7 @@ public class Form058Controller {
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return form058Service.getFilteredForm058(page, size, user, getFullURL(request),true);
+        return form058Service.getFilteredForm058(page, size, user, getFullURL(request), FilterType.ALL);
     }
 
     @GetMapping("/received/all")
@@ -59,8 +59,7 @@ public class Form058Controller {
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-
-        return form058Service.getReceivedAll(page, size, user, FilterType.RECEIVED, getFullURL(request));
+        return form058Service.getFilteredForm058(page, size, user, getFullURL(request), FilterType.RECEIVED);
     }
 
     @GetMapping("/{id}")
