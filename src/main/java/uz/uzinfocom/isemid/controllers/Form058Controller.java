@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058NotApprove;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -103,6 +104,11 @@ public class Form058Controller {
     @PatchMapping("/{formId}/approve")
     public ApiResponse<?> approve(@PathVariable Long formId) {
         return form058Service.approveForm(formId);
+    }
+
+    @PutMapping("/{formId}/not-approve")
+    public ApiResponse<?> notApprove(@PathVariable Long formId, @RequestBody ReqForm058NotApprove notApprove) {
+        return form058Service.notApprove(formId, notApprove);
     }
 
     @DeleteMapping("/{formId}")

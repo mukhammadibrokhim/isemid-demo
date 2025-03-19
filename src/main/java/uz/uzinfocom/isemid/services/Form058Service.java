@@ -5,6 +5,7 @@ import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058NotApprove;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -27,4 +28,6 @@ public interface Form058Service {
     ApiResponse<?> deleteById(Long formId);
 
     ApiResponse<?> approveForm(Long formId);
+
+    ApiResponse<?> notApprove(Long formId, ReqForm058NotApprove notApprove);
 }
