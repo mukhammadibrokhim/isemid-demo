@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 import uz.uzinfocom.isemid.models.entities.act.ActStatus;
 import uz.uzinfocom.isemid.models.entities.enums.ActType;
+import uz.uzinfocom.isemid.models.payload.responses.act.act153.RespAct153;
+import uz.uzinfocom.isemid.models.payload.responses.act.act154.RespAct154;
+import uz.uzinfocom.isemid.models.payload.responses.act.act155.RespAct155;
+import uz.uzinfocom.isemid.models.payload.responses.act.act156.RespAct156;
 
 
 @Getter
