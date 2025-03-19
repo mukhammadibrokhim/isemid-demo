@@ -10,6 +10,7 @@ import uz.uzinfocom.isemid.models.entities.act.act153.Act153;
 import uz.uzinfocom.isemid.models.entities.act.act153.Act153Detail;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
+import uz.uzinfocom.isemid.models.mappers.act.ActMapper;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
 import uz.uzinfocom.isemid.models.payload.requests.act.act153.ReqAct153;
 import uz.uzinfocom.isemid.models.payload.requests.act.act153.ReqAct153Detail;
@@ -35,6 +36,7 @@ public class UpdateAct153Strategy implements UpdateActStrategy {
     final CatalogService catalogService;
     final ActRepository actRepository;
     final OrganizationService organizationService;
+    final ActMapper actMapper;
 
     private Catalog getCatalogByCode(CatalogType type, String code) throws ApiException {
         return catalogService.findByTypeAndCode(type, code).orElse(null);

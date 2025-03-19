@@ -38,8 +38,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
 @Service
@@ -395,6 +394,24 @@ public class Form058ServiceImpl implements Form058Service {
             throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
         return new ApiResponse<>(true, "Successfully delete.", null);
+    }
+
+    @Override
+    public ApiResponse<?> approveForm(Long formId) {
+        Form058 form058 = form058Repository.findById(formId)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
+
+        List<Card> form058Cards = form058.getCards();
+
+        boolean allCardsApproved = form058Cards.stream()
+                .allMatch(card -> card.getStatus().equals(CardStatus.APPROVED));
+
+        if (!allCardsApproved) {
+            throw new ApiException(BAD_REQUEST, "Not all cards are approved.");
+        }
+
+        form058.setStatus(FormStatus.APPROVED);
+        return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
     public static Specification<Form058> getFilteredSpecification(
