@@ -34,6 +34,7 @@ import uz.uzinfocom.isemid.models.entities.template.AbsEntity;
 public abstract class Act extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "act_type", nullable = false, columnDefinition = "TEXT")
     private ActType actType;
 
     @Enumerated(EnumType.STRING)
