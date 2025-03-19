@@ -27,4 +27,6 @@ public interface Form058Service {
     ApiResponse<?> deleteById(Long formId);
 
     ApiResponse<?> approveForm(Long formId);
+
+    ApiResponse<?> notApprove(Long formId);
 }
