@@ -21,6 +21,7 @@ import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
+import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058NotApprove;
 import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
@@ -415,9 +416,10 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public ApiResponse<?> notApprove(Long formId) {
+    public ApiResponse<?> notApprove(Long formId, ReqForm058NotApprove notApprove) {
         Form058 form058 = form058Repository.findById(formId)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
+        form058.setNotApproveComment(notApprove.getComment());
         form058.setStatus(FormStatus.NOT_APPROVED);
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
