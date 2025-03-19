@@ -414,6 +414,14 @@ public class Form058ServiceImpl implements Form058Service {
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
+    @Override
+    public ApiResponse<?> notApprove(Long formId) {
+        Form058 form058 = form058Repository.findById(formId)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
+        form058.setStatus(FormStatus.NOT_APPROVED);
+        return new ApiResponse<>(true, "Success", form058Repository.save(form058));
+    }
+
     public static Specification<Form058> getFilteredSpecification(
             UUID currentUserOrgId,
             FilterType filterType
