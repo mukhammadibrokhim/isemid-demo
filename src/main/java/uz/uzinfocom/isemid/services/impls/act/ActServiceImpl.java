@@ -5,28 +5,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.act.Act;
-import uz.uzinfocom.isemid.models.entities.act.ActStatus;
-import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
-import uz.uzinfocom.isemid.models.payload.requests.act.ReqCardAssignAct;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.act.ActRepository;
-import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.services.act.ActService;
 import uz.uzinfocom.isemid.services.impls.act.strategy.UpdateActService;
 
-import java.util.List;
-
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.utils.CommonUtils.*;
 
 @Service
 @RequiredArgsConstructor
 public class ActServiceImpl implements ActService {
 
-    private final CardRepository cardRepository;
     private final ActRepository actRepository;
     private final UpdateActService updateActService;
 

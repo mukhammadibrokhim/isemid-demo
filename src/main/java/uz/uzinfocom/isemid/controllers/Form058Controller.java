@@ -100,6 +100,11 @@ public class Form058Controller {
         return form058Service.cancel(formId);
     }
 
+    @PatchMapping("/{formId}/approve")
+    public ApiResponse<?> approve(@PathVariable Long formId) {
+        return form058Service.approveForm(formId);
+    }
+
     @DeleteMapping("/{formId}")
     public ApiResponse<?> deleteById(@PathVariable Long formId) {
         return form058Service.deleteById(formId);

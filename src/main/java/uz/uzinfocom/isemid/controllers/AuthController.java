@@ -37,12 +37,10 @@ public class AuthController {
     @PostMapping("/sign-in")
     public ResponseEntity<TokenDto> signIn(@Valid @RequestBody final ReqAuth reqAuth) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(reqAuth.getNnuzb(), reqAuth.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(reqAuth.getNnuzb(), reqAuth.getPassword()));
         User user = (User) authentication.getPrincipal();
         String token = jwtUtil.generateToken(user);
         return ResponseEntity.ok(new TokenDto("Bearer", JwtUtil.EXPIRATION_TIME, token, null));
-
     }
 
     @PostMapping("/sign-up")
