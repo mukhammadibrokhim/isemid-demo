@@ -92,4 +92,6 @@ public class Form058 extends AbsEntity {
     private User reporter;
 
     private String cardByFullName;
+    @Column(length = 1000)
+    private String notApproveComment;
 }
