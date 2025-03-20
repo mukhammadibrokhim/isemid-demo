@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.payload.responses.act;
+package uz.uzinfocom.isemid.models.payload.responses.act.act153;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

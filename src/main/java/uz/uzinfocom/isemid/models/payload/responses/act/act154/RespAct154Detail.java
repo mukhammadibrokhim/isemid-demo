@@ -1,28 +1,23 @@
-package uz.uzinfocom.isemid.models.payload.requests.act.act154;
+package uz.uzinfocom.isemid.models.payload.responses.act.act154;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ReqAct154Details {
-    private Long id;
+public class RespAct154Detail {
     private String sampleName;
     private String sampleType;
     private String purposeOfSampling;
+    private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
     //Catalog
     private String shiftCode;
-    //lisdan keladi organization
-    private String laboratoryNameId;
-
-
+    private Long organizationId;
     private String laboratoryAddress;
     private String deliveryTerm;
     private String storageCondition;
