@@ -49,7 +49,8 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         if (reqCard.getCardType() == null || !reqCard.getCardType().equals(CardType.CARD161)) {
             throw new ApiException(BAD_REQUEST, "Card type is not correct.");
         }
-        existingCard.setStatus(CardStatus.IN_PROGRESS);
+        if (existingCard.getStatus() != CardStatus.COMPLETED)
+            existingCard.setStatus(CardStatus.IN_PROGRESS);
         ReqCard161 reqCard161 = (ReqCard161) reqCard;
         Optional.ofNullable(reqCard161.getCallerType()).ifPresent(existingCard::setCallerType);
         Optional.ofNullable(reqCard161.getIsResident()).ifPresent(existingCard::setIsResident);
@@ -442,7 +443,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
 
         Optional.ofNullable(reqCard161.getHospitalName()).ifPresent(existingCard::setHospitalName);
         Optional.ofNullable(reqCard161.getInfectionLocationCode()).ifPresent(code -> existingCard.setInfectionLocation(getCatalogByCode(CatalogType.infectedLocation, code)));
-        Optional.ofNullable(reqCard161.getProbableInfectionLocationCode()).ifPresent(code-> existingCard.setProbableInfectionLocation(getCatalogByCode(CatalogType.probableInfectionLoc,code)));
+        Optional.ofNullable(reqCard161.getProbableInfectionLocationCode()).ifPresent(code -> existingCard.setProbableInfectionLocation(getCatalogByCode(CatalogType.probableInfectionLoc, code)));
         Optional.ofNullable(reqCard161.getIsInfectionSourceMissing()).ifPresent(existingCard::setIsInfectionSourceMissing);
         Optional.ofNullable(reqCard161.getInfectionSourceDetail()).ifPresent(reqInfectionD -> {
             if (existingCard.getInfectionSourceDetail() != null) {
