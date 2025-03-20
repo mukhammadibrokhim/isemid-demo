@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import uz.uzinfocom.isemid.models.entities.act.act153.Act153;
-import uz.uzinfocom.isemid.models.payload.responses.act.RespAct153;
+import uz.uzinfocom.isemid.models.payload.responses.act.act153.RespAct153;
 @Mapper(componentModel = "spring")
 public interface Act153Mapper {
     Act153Mapper INSTANCE = Mappers.getMapper(Act153Mapper.class);

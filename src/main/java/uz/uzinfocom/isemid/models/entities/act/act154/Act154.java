@@ -1,15 +1,14 @@
 package uz.uzinfocom.isemid.models.entities.act.act154;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.models.entities.act.Act;
-import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Getter
@@ -30,14 +29,12 @@ public class Act154 extends Act {
    private String position;
    private String additionalInfo;
 
-   @ManyToOne
-   @JoinColumn(referencedColumnName = "code")
-   @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-   private Catalog actClassificator;
-
-   @OneToMany(mappedBy = "act154", cascade = CascadeType.ALL, orphanRemoval = true)
-   @JsonIgnoreProperties({"act154"})
-   @OrderBy("id DESC")
-   @Builder.Default
-   private List<Act154SampleDetails> act154SampleDetailsList = new ArrayList<>();
+   @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+   @JoinTable(
+           name = "act154_detail_mapping",
+           joinColumns = @JoinColumn(name = "act154_id"),
+           inverseJoinColumns = @JoinColumn(name = "act154_detail_id")
+   )
+   @JsonIgnore
+   private Set<Act154SampleDetails> act154Details = new HashSet<>();
 }

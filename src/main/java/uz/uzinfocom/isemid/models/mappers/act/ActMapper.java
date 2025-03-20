@@ -9,8 +9,8 @@ import uz.uzinfocom.isemid.models.entities.act.Act;
 import uz.uzinfocom.isemid.models.entities.act.act153.Act153;
 import uz.uzinfocom.isemid.models.entities.act.act154.Act154;
 import uz.uzinfocom.isemid.models.payload.responses.act.RespAct;
-import uz.uzinfocom.isemid.models.payload.responses.act.RespAct153;
-import uz.uzinfocom.isemid.models.payload.responses.act.RespAct154;
+import uz.uzinfocom.isemid.models.payload.responses.act.act153.RespAct153;
+import uz.uzinfocom.isemid.models.payload.responses.act.act154.RespAct154;
 
 @Mapper(componentModel = "spring", uses = {Act153Mapper.class, Act154Mapper.class})
 public interface ActMapper {
