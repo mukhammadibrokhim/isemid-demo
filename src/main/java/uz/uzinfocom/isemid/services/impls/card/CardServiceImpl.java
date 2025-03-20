@@ -131,7 +131,7 @@ public class CardServiceImpl implements CardService {
         }
 
         card.setStatus(CardStatus.REJECTED);
-        card.setAttachedUserComment(rejectCard.getComment());
+        card.setSupervisorComment(rejectCard.getComment());
         return new ApiResponse<>(true, "Supervisor successfully rejected.", cardRepository.save(card));
     }
 
