@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @Builder
 @Schema(description = "Request object for Act224")
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public class ReqAct224 extends ReqAct {
     private Long id;
     private String title;
