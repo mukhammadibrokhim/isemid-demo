@@ -55,8 +55,8 @@ public class ReqCard161 extends ReqCard {
 
     //catalog qoshish kerak
     private String livingConditionCode;
-    private int numberOfPeople;
-    private int numberOfRooms;
+    private Integer numberOfPeople;
+    private Integer numberOfRooms;
     private String area;
 
     //catalog qoshish kerak
