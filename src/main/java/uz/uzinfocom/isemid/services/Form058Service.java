@@ -7,6 +7,8 @@ import uz.uzinfocom.isemid.models.payload.requests.form.*;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 
+import java.io.ByteArrayInputStream;
+
 public interface Form058Service {
     ApiResponse<Form058> createForm058(ReqForm058 reqForm058, User user);
 
@@ -29,4 +31,6 @@ public interface Form058Service {
     ApiResponse<?> notApprove(Long formId, ReqForm058NotApprove notApprove);
 
     ApiResponse<?> changeDiagnosis(Long formId, ReqForm058ChangeDiagnosis changeDiagnosis);
+
+    ByteArrayInputStream exportForm058ToExcel(User currentUser, FilterType filterType);
 }
