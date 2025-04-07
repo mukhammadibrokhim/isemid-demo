@@ -445,7 +445,7 @@ public class Form058ServiceImpl implements Form058Service {
                     predicates.add(criteriaBuilder.equal(
                             root.get("receiverOrganization").get("uuid"), currentUserOrgId));
                 } else {
-                    Expression<UUID> createdOrgUuid = root.get("createdOrgId");
+                    Expression<UUID> createdOrgUuid = root.get("createdOrgUuid");
 
                     Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
                     Join<Patient, Organization> workplaceJoin = patientJoin.join("workPlaceOrg", JoinType.LEFT);
