@@ -10,6 +10,8 @@ import uz.uzinfocom.isemid.models.payload.responses.act.act153.RespAct153;
 import uz.uzinfocom.isemid.models.payload.responses.act.act154.RespAct154;
 import uz.uzinfocom.isemid.models.payload.responses.act.act155.RespAct155;
 import uz.uzinfocom.isemid.models.payload.responses.act.act156.RespAct156;
+import uz.uzinfocom.isemid.models.payload.responses.act.act223.RespAct223;
+import uz.uzinfocom.isemid.models.payload.responses.act.act224.RespAct224;
 
 import java.util.UUID;
 

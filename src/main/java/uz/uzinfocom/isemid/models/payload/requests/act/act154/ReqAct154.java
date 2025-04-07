@@ -17,6 +17,7 @@ import java.util.Set;
 @Schema(description = "Request object for Act154")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqAct154 extends ReqAct {
+    private Long id;
     private String title;
     private Long serialNumber;
     private LocalDate documentSendDate;
