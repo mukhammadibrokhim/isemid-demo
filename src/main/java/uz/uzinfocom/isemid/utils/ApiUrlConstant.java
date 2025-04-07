@@ -20,6 +20,8 @@ public interface ApiUrlConstant {
 
     String FORM0058 = PREFIX + "/form058";
 
+    String REPORT_FORM1 = PREFIX + "/reports/form6";
+
     String CARD = PREFIX + "/card";
 
     String ACT = PREFIX + "/act";

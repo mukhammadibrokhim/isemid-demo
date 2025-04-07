@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.models.entities.act.act153;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.models.entities.Organization;
@@ -16,6 +17,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity(name = "act153_detail")
 public class Act153Detail extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "act153_id")
+    private Act153 act153;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "object_code", nullable = false)

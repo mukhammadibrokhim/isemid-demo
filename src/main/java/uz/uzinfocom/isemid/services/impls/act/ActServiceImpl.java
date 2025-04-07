@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.act.Act;
+import uz.uzinfocom.isemid.models.mappers.act.ActMapper;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.act.ActRepository;
@@ -20,11 +22,14 @@ public class ActServiceImpl implements ActService {
 
     private final ActRepository actRepository;
     private final UpdateActService updateActService;
+    private final ActMapper actMapper;  // MapStruct mapper
 
     @Override
     public ApiResponse<?> getById(long id) {
-        return new ApiResponse<>(true, "successfully retrieved.",
-                actRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Act not found.")));
+        Act act = actRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Act not found."));
+        return new ApiResponse<>(true, "", actMapper.toDto(act));
+//        return new ApiResponse<>(true, "successfully retrieved.",
+//                actRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, "Act not found.")));
     }
 
     @Transactional

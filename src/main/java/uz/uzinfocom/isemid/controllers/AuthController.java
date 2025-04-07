@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.configs.jwt.JwtUtil;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.dtos.TokenDto;
+import uz.uzinfocom.isemid.models.dtos.TokenDto;
 import uz.uzinfocom.isemid.models.payload.requests.ReqAuth;
 import uz.uzinfocom.isemid.models.payload.requests.ReqRegister;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;

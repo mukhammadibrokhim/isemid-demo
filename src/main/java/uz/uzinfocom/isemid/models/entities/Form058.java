@@ -27,6 +27,9 @@ public class Form058 extends AbsEntity {
     private String mkb10Name;
     private Integer mkb10UsageLimit;
 
+    private String finalMkb10Code;
+    private String finalMkb10Name;
+
     @Enumerated(EnumType.STRING)
     private FormStatus status;
 

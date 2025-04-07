@@ -684,4 +684,9 @@ public class CatalogController {
     ) {
         return catalogService.getByHierarchical(page, size, type, getFullURL(request));
     }
+
+    @GetMapping("/disease-cause")
+    public ApiResponse<?> getDiseaseCause(@RequestHeader("Accept-Language") String lang) {
+        return catalogService.findAllByType(CatalogType.diseaseCause, lang);
+    }
 }

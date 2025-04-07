@@ -124,10 +124,10 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionKaa", "Эпидемиология жана иммунопрофилактика бөлүмүнүн мудири",
                         "permission", List.of()),
                 "isemid_general_practitioner", Map.of(
-                        "descriptionUz", "Umumiy amaliyot shifokori",
-                        "descriptionUzCyril", "Умумий амалийот шифокори",
-                        "descriptionRu", "Врач",
-                        "descriptionKaa", "Жалпы практика дарыгери",
+                        "descriptionUz", "Xabar beruvchi tibbiy xodim",
+                        "descriptionUzCyril", "Хабар берувчи тиббий ходим",
+                        "descriptionRu", "Информирующий медицинский работник",
+                        "descriptionKaa", "Xabar beretuǵın medicinalıq xızmetker",
                         "permission", List.of()),
                 "isemid_super_admin", Map.of(
                         "descriptionUz", "Super admin rol",

@@ -13,7 +13,6 @@ import uz.uzinfocom.isemid.models.payload.responses.RespChild;
 import uz.uzinfocom.isemid.models.payload.responses.RespCitizen;
 import uz.uzinfocom.isemid.services.CitizenService;
 import uz.uzinfocom.isemid.services.OAuthTokenService;
-import uz.uzinfocom.isemid.services.PatientService;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.List;
@@ -30,7 +29,6 @@ import static uz.uzinfocom.isemid.utils.RestTemplateUtil.makeRequest;
 @Service
 @RequiredArgsConstructor
 public class CitizenServiceImpl implements CitizenService {
-    final PatientService patientService;
     final CatalogService catalogService;
     final OAuthTokenService oAuthTokenService;
 

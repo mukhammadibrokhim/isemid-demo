@@ -6,11 +6,19 @@ import lombok.Getter;
 import lombok.Setter;
 import uz.uzinfocom.isemid.models.entities.act.ActStatus;
 import uz.uzinfocom.isemid.models.entities.enums.ActType;
+import uz.uzinfocom.isemid.models.payload.responses.act.act153.RespAct153;
+import uz.uzinfocom.isemid.models.payload.responses.act.act154.RespAct154;
+import uz.uzinfocom.isemid.models.payload.responses.act.act155.RespAct155;
+import uz.uzinfocom.isemid.models.payload.responses.act.act156.RespAct156;
+import uz.uzinfocom.isemid.models.payload.responses.act.act223.RespAct223;
+import uz.uzinfocom.isemid.models.payload.responses.act.act224.RespAct224;
+
+import java.util.UUID;
 
 
 @Getter
 @Setter
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "actType", visible = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "actType", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = RespAct153.class, name = "ACT153"),
         @JsonSubTypes.Type(value = RespAct154.class, name = "ACT154"),
@@ -20,6 +28,8 @@ import uz.uzinfocom.isemid.models.entities.enums.ActType;
         @JsonSubTypes.Type(value = RespAct224.class, name = "ACT224")
 })
 public class RespAct {
+    private Long id;
+    private UUID uuid;
     private ActType actType;
     private ActStatus actStatus = ActStatus.NEW;
     private Long cardId;

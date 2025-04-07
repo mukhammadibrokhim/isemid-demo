@@ -144,7 +144,11 @@ public class Card161 extends Card {
     private Boolean hasLice; //bitlash
     private boolean hasOtherInsects;
     private boolean hasRodents;
-    private String importantCausesOfDisease;
+    //        private Strin importantCausesOfDisease;
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id","uuid", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog importantCausesOfDisease;
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "code")

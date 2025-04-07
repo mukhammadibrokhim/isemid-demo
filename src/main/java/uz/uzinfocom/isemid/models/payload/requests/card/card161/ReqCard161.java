@@ -70,7 +70,7 @@ public class ReqCard161 extends ReqCard {
     private Boolean hasLice; //bitlash
     private Boolean hasOtherInsects;
     private Boolean hasRodents;
-    private String importantCausesOfDisease;
+    private String importantCausesOfDiseaseCode;
 
     private String visitedObjectsCode;
 

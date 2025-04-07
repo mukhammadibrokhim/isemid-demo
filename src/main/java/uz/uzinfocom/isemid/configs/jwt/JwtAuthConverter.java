@@ -11,7 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.Role;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.dtos.UserInfo;
+import uz.uzinfocom.isemid.models.dtos.UserInfo;
 import uz.uzinfocom.isemid.services.OrganizationService;
 import uz.uzinfocom.isemid.services.RoleService;
 import uz.uzinfocom.isemid.services.UserService;

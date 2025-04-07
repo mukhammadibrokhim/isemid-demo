@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.exceptioins;
 
 
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.lang.Nullable;
@@ -15,11 +14,11 @@ public class ApiException extends ErrorResponseException {
     private final String reason;
 
     public ApiException(HttpStatusCode status) {
-        this(status, (String) null);
+        this(status, null);
     }
 
     public ApiException(HttpStatusCode status, @Nullable String reason) {
-        this(status, reason, (Throwable) null);
+        this(status, reason, null);
     }
 
     public ApiException(int rawStatusCode, @Nullable String reason, @Nullable Throwable cause) {
@@ -27,7 +26,7 @@ public class ApiException extends ErrorResponseException {
     }
 
     public ApiException(HttpStatusCode status, @Nullable String reason, @Nullable Throwable cause) {
-        this(status, reason, cause, (String) null, (Object[]) null);
+        this(status, reason, cause, null, null);
     }
 
     protected ApiException(HttpStatusCode status, @Nullable String reason, @Nullable Throwable cause, @Nullable String messageDetailCode, @Nullable Object[] messageDetailArguments) {
@@ -41,25 +40,11 @@ public class ApiException extends ErrorResponseException {
         return this.reason;
     }
 
-    public HttpHeaders getHeaders() {
-        return this.getResponseHeaders();
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated(
-            since = "6.0"
-    )
-    public HttpHeaders getResponseHeaders() {
-        return HttpHeaders.EMPTY;
-    }
-
     public ProblemDetail updateAndGetBody(@Nullable MessageSource messageSource, Locale locale) {
         super.updateAndGetBody(messageSource, locale);
         if (messageSource != null && this.getReason() != null && this.getReason().equals(this.getBody().getDetail())) {
             Object[] arguments = this.getDetailMessageArguments(messageSource, locale);
-            String resolved = messageSource.getMessage(this.getReason(), arguments, (String) null, locale);
+            String resolved = messageSource.getMessage(this.getReason(), arguments, null, locale);
             if (resolved != null) {
                 this.getBody().setDetail(resolved);
             }
@@ -70,6 +55,6 @@ public class ApiException extends ErrorResponseException {
 
     public String getMessage() {
         HttpStatusCode var10000 = this.getStatusCode();
-        return "" + var10000 + (this.reason != null ? " \"" + this.reason + "\"" : "");
+        return var10000 + (this.reason != null ? " \"" + this.reason + "\"" : "");
     }
 }

@@ -7,7 +7,7 @@ import uz.uzinfocom.isemid.models.payload.requests.act.ReqAct;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,6 +17,7 @@ import java.util.List;
 @Schema(description = "Request object for Act154")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReqAct154 extends ReqAct {
+    private Long id;
     private String title;
     private Long serialNumber;
     private LocalDate documentSendDate;
@@ -27,6 +28,5 @@ public class ReqAct154 extends ReqAct {
     private String samplerFullName;
     private String position;
     private String additionalInfo;
-    private String actClassificatorCode;
-    private List<ReqAct154Details> act154SampleDetailsList;
+    private Set<ReqAct154Detail> act154SampleDetailsList;
 }

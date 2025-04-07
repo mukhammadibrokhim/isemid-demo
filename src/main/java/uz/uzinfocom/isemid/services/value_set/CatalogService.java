@@ -21,6 +21,8 @@ public interface CatalogService {
 
     ApiResponsePage getAllCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, HttpServletRequest request);
 
+    List<Catalog> findAllByType(CatalogType catalogType);
+
     ApiResponsePage getByHierarchical(int page, int size, CatalogType type, String fullURL);
 
     ApiResponse<List<RespCatalog>> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode, String lang);
@@ -34,4 +36,5 @@ public interface CatalogService {
     Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code);
 
     ApiResponse<?> deleteById(long id);
+
 }
