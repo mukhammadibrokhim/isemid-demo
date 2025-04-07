@@ -26,6 +26,8 @@ public class ReqForm058 {
 
     @NotBlank(message = "Название Mkb10 не может быть пустым и обязательно для заполнения.")
     private String mkb10Name;
+    private String finalMkb10Code;
+    private String finalMkb10Name;
     private Integer mkb10UsageLimit;
 
     @Valid

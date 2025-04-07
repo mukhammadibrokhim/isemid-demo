@@ -6,6 +6,12 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -33,6 +39,10 @@ import uz.uzinfocom.isemid.services.UserService;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 import uz.uzinfocom.isemid.services.value_set.Mkb10Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -107,6 +117,8 @@ public class Form058ServiceImpl implements Form058Service {
         Form058 form058 = Form058.builder()
                 .mkb10Code(reqForm058.getMkb10Code())
                 .mkb10Name(reqForm058.getMkb10Name())
+                .finalMkb10Code(reqForm058.getFinalMkb10Code())
+                .finalMkb10Name(reqForm058.getFinalMkb10Name())
                 .mkb10UsageLimit(reqForm058.getMkb10UsageLimit())
                 .status(FormStatus.SENT)
                 .patient(patient)
@@ -431,6 +443,63 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10name());
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
+    }
+
+    @Override
+    public ByteArrayInputStream exportForm058ToExcel(User currentUser, FilterType filterType) {
+        Specification<Form058> spec = getFilteredSpecification(currentUser.getCurrentOrganization().getUuid(), filterType);
+        List<Form058> formList = form058Repository.findAll(spec);
+
+        String[] columns = {"№", "Бирламчи тезкор хабар-нома", "Муассаса", "Бемор", "Ёши", "Манзил", "Иш жойи",
+                "Касал бўлган кун", "Биринчи мурожаат", "Ётқизилган жойи", "Ташхис", "Ўзгарган ташхис",
+                "Эпид. текширув", "Ҳабар", "Лаб. натижа", "Эслатма"};
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Form 058");
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+            }
+
+            int rowNum = 1;
+            for (Form058 form058 : formList) {
+                Row row = sheet.createRow(rowNum++);
+
+                row.createCell(0).setCellValue(form058.getId());
+                row.createCell(1).setCellValue("");
+                row.createCell(2).setCellValue("");
+                row.createCell(3).setCellValue(form058.getPatient().getFirstName() + " " + form058.getPatient().getLastName());
+                row.createCell(4).setCellValue(calculateAge(form058.getPatient().getBirthDate()));
+                row.createCell(5).setCellValue("");
+                row.createCell(6).setCellValue("");
+                row.createCell(7).setCellValue(getString(LocalDate.now()));
+                row.createCell(8).setCellValue(getString(LocalDate.now()));
+                row.createCell(9).setCellValue(getString(LocalDate.now()));
+                row.createCell(10).setCellValue("");
+                row.createCell(11).setCellValue("form058.getRevisedDiagnosis(");
+                row.createCell(12).setCellValue(getString(null));
+                row.createCell(13).setCellValue("");
+                row.createCell(14).setCellValue("");
+                row.createCell(15).setCellValue("");
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private int calculateAge(LocalDate birthDate) {
+        if (birthDate == null) return 0;
+        return Period.between(birthDate, LocalDate.now()).getYears();
+    }
+
+
+    private String getString(LocalDate date) {
+        return date != null ? date.toString() : "";
     }
 
     public static Specification<Form058> getFilteredSpecification(
