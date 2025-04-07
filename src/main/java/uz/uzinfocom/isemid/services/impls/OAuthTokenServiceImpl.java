@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import uz.uzinfocom.isemid.models.entities.dtos.TokenDto;
+import uz.uzinfocom.isemid.models.dtos.TokenDto;
 import uz.uzinfocom.isemid.services.OAuthTokenService;
 
 import java.nio.charset.StandardCharsets;

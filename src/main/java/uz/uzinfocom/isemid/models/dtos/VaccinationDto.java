@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.entities.dtos;
+package uz.uzinfocom.isemid.models.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;

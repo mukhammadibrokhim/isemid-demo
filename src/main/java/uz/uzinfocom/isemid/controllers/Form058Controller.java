@@ -10,10 +10,7 @@ import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058NotApprove;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
+import uz.uzinfocom.isemid.models.payload.requests.form.*;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.services.Form058Service;
@@ -109,6 +106,11 @@ public class Form058Controller {
     @PutMapping("/{formId}/not-approve")
     public ApiResponse<?> notApprove(@PathVariable Long formId, @RequestBody ReqForm058NotApprove notApprove) {
         return form058Service.notApprove(formId, notApprove);
+    }
+
+    @PutMapping("/{formId}/change-diagnosis")
+    public ApiResponse<?> changeDiagnosis(@PathVariable Long formId, ReqForm058ChangeDiagnosis changeDiagnosis) {
+        return form058Service.changeDiagnosis(formId, changeDiagnosis);
     }
 
     @DeleteMapping("/{formId}")

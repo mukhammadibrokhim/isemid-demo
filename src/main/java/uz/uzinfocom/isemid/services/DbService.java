@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.services;
 
 
-import uz.uzinfocom.isemid.models.entities.dtos.TableDto;
+import uz.uzinfocom.isemid.models.dtos.TableDto;
 
 import java.util.List;
 import java.util.Map;

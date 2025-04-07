@@ -7,9 +7,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.isemid.models.entities.Organization;
+import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -35,4 +37,12 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
 
 
     Optional<Organization> findByTin(String tin);
+
+    Set<Organization> findAllByUuid(UUID uuid);
+
+    @Query("SELECT DISTINCT o.state FROM Organization o WHERE o.state IS NOT NULL")
+    List<Catalog> getAllStates(); // Barcha viloyatlar
+
+    @Query("SELECT DISTINCT o.city FROM Organization o WHERE o.state.code = :stateCode AND o.city IS NOT NULL")
+    List<Catalog> getCitiesByState(@Param("stateCode") String stateCode);
 }

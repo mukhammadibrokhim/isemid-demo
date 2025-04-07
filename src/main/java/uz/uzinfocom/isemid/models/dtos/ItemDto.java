@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.models.entities.dtos;
+package uz.uzinfocom.isemid.models.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -78,10 +78,10 @@ public class UpdateAct153Strategy implements UpdateActStrategy {
                     })
                     .collect(Collectors.toSet());
 
-            existingAct.setAct153Details(updatedDetails);
+            existingAct.getAct153Details().addAll(updatedDetails);
         });
 
-        return new ApiResponse<>(true, "Success", actRepository.save(act));
+        return new ApiResponse<>(true, "Success", actMapper.toDto(actRepository.save(act)));
     }
 
     private Act153Detail updateExistingAct153Detail(Act153Detail existingDetail, ReqAct153Detail reqDetail) {
@@ -116,6 +116,7 @@ public class UpdateAct153Strategy implements UpdateActStrategy {
 
     private Act153Detail createNewAct153Detail(ReqAct153Detail reqDetail, Act153 existingAct) {
         return Act153Detail.builder()
+                .act153(existingAct)
                 .object(getCatalogByCode(act153DetailObj, reqDetail.getObjectCode()))
                 .objectCode(reqDetail.getObjectCode())
                 .samplingPurpose(reqDetail.getSamplingPurpose())
@@ -139,5 +140,4 @@ public class UpdateAct153Strategy implements UpdateActStrategy {
                 .additionalInfo(reqDetail.getAdditionalInfo())
                 .build();
     }
-
 }

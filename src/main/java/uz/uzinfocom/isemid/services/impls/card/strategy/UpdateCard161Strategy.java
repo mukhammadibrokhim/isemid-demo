@@ -230,7 +230,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getHasLice()).ifPresent(existingCard::setHasLice);
         Optional.ofNullable(reqCard161.getHasOtherInsects()).ifPresent(existingCard::setHasOtherInsects);
         Optional.ofNullable(reqCard161.getHasRodents()).ifPresent(existingCard::setHasRodents);
-        Optional.ofNullable(reqCard161.getImportantCausesOfDisease()).ifPresent(existingCard::setImportantCausesOfDisease);
+        Optional.ofNullable(reqCard161.getImportantCausesOfDiseaseCode()).ifPresent(code -> existingCard.setImportantCausesOfDisease(getCatalogByCode(CatalogType.diseaseCause, code)));
         Optional.ofNullable(reqCard161.getVisitedObjectsCode()).ifPresent(code -> existingCard.setVisitedObjects(getCatalogByCode(CatalogType.visitetObj, code)));
         Optional.ofNullable(reqCard161.getDenselyPopulated()).ifPresent(existingCard::setDenselyPopulated);
         Optional.ofNullable(reqCard161.getIsolationStatus()).ifPresent(existingCard::setIsolationStatus);

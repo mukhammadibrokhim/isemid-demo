@@ -5,7 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.models.entities.dtos.TableDto;
+import uz.uzinfocom.isemid.models.dtos.TableDto;
 import uz.uzinfocom.isemid.services.DbService;
 
 import java.util.ArrayList;

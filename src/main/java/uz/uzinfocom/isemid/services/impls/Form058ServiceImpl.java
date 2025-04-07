@@ -19,14 +19,12 @@ import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.enums.FilterType;
 import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058AssignCard;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058NotApprove;
-import uz.uzinfocom.isemid.models.payload.requests.form.ReqForm058OrgUpdate;
+import uz.uzinfocom.isemid.models.payload.requests.form.*;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.repositories.Journal060Repository;
+import uz.uzinfocom.isemid.repositories.OrganizationRepository;
 import uz.uzinfocom.isemid.repositories.card.CardRepository;
 import uz.uzinfocom.isemid.repositories.value_set.Mkb10Repository;
 import uz.uzinfocom.isemid.services.Form058Service;
@@ -54,6 +52,7 @@ public class Form058ServiceImpl implements Form058Service {
     final OrganizationService organizationService;
     final Journal060Repository journal060Repository;
     final CardRepository cardRepository;
+    final OrganizationRepository organizationRepository;
 
     private Catalog mapCatalog(CatalogType type, String code) {
         return catalogService.findByTypeAndCode(type, code).orElse(null);
@@ -424,6 +423,16 @@ public class Form058ServiceImpl implements Form058Service {
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
+    @Override
+    public ApiResponse<?> changeDiagnosis(Long formId, ReqForm058ChangeDiagnosis changeDiagnosis) {
+        Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
+        if (!form058.getStatus().equals(FormStatus.NOT_CONFIRMED_DIAGNOSIS))
+            throw new ApiException(BAD_REQUEST, "Cannot change diagnosis");
+        form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
+        form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10name());
+        return new ApiResponse<>(true, "Success", form058Repository.save(form058));
+    }
+
     public static Specification<Form058> getFilteredSpecification(
             UUID currentUserOrgId,
             FilterType filterType
@@ -434,8 +443,7 @@ public class Form058ServiceImpl implements Form058Service {
             if (currentUserOrgId != null) {
                 if (filterType == FilterType.RECEIVED) {
                     predicates.add(criteriaBuilder.equal(
-                            root.get("receiverOrganization").get("uuid"), currentUserOrgId
-                    ));
+                            root.get("receiverOrganization").get("uuid"), currentUserOrgId));
                 } else {
                     Expression<UUID> createdOrgUuid = root.get("createdOrgId");
 

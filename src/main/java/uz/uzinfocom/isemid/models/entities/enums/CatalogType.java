@@ -52,6 +52,6 @@ public enum CatalogType {
     //act154
     shift,
 
-    //act153
+    diseaseCause, //act153
     act153DetailObj
 }

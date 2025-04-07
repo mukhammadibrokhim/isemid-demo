@@ -28,6 +28,8 @@ import uz.uzinfocom.isemid.services.impls.card.strategy.UpdateCardService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.util.StringUtils.hasText;
@@ -142,7 +144,7 @@ public class CardServiceImpl implements CardService {
 
         List<Act> acts = reqCardAssignAct.getActTypes().stream()
                 .map(actType -> {
-                    Act act = createAct(actType, card);
+                    Act act = createActInstance(actType, card);
                     act.setActType(actType);
                     act.setCard(card);
                     act.setActStatus(ActStatus.NEW);
@@ -174,28 +176,15 @@ public class CardServiceImpl implements CardService {
             boolean attachedUser,
             Long formId
     ) {
-        return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (hasText(formTypeCode)) {
-                predicates.add(criteriaBuilder.equal(root.get("cardType"), formTypeCode));
-            }
-            if (formId != null) {
-                Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
-                predicates.add(criteriaBuilder.equal(formJoin.get("id"), formId));
-            }
-            if (hasText(fromOrgName)) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName));
-            }
-            if (hasText(toOrgName)) {
-                predicates.add(criteriaBuilder.equal(root.get("form058").get("receiverOrganization").get("name"), toOrgName));
-            }
-            if (cardStatus != null) {
-                predicates.add(criteriaBuilder.equal(root.get("cardStatus"), cardStatus));
-            }
-            if (attachedUser && userId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("users").get("id"), userId));
-            }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
+        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                Stream.of(
+                        hasText(formTypeCode) ? criteriaBuilder.equal(root.get("cardType"), formTypeCode) : null,
+                        formId != null ? criteriaBuilder.equal(root.join("form058", JoinType.LEFT).get("id"), formId) : null,
+                        hasText(fromOrgName) ? criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName) : null,
+                        hasText(toOrgName) ? criteriaBuilder.equal(root.get("form058").get("receiverOrganization").get("name"), toOrgName) : null,
+                        cardStatus != null ? criteriaBuilder.equal(root.get("cardStatus"), cardStatus) : null,
+                        (attachedUser && userId != null) ? criteriaBuilder.equal(root.get("users").get("id"), userId) : null
+                ).filter(Objects::nonNull).toArray(Predicate[]::new)
+        );
     }
 }

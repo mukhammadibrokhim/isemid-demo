@@ -34,7 +34,7 @@ public class Patient extends AbsEntity {
     private Integer ageMonths;
 
     @ManyToOne
-    @JoinColumn(name = "Gender", referencedColumnName = "code")
+    @JoinColumn(name = "gender", referencedColumnName = "code")
     @JsonIgnoreProperties({"type","id", "createdAt", "updatedAt","createdBy","updatedBy"})
     private Catalog gender;
 

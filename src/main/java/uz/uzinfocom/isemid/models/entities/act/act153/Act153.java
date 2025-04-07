@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.models.entities.act.act153;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.models.entities.act.Act;
@@ -35,12 +34,7 @@ public class Act153 extends Act {
     @Column(columnDefinition = "TEXT")
     private String additionalInfo;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "act153_detail_mapping",
-            joinColumns = @JoinColumn(name = "act153_id"),
-            inverseJoinColumns = @JoinColumn(name = "act153_detail_id")
-    )
-    @JsonIgnore
+    @OneToMany(mappedBy = "act153", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("id DESC")
     private Set<Act153Detail> act153Details = new HashSet<>();
 }

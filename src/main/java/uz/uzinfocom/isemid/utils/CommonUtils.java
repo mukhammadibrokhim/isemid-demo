@@ -279,7 +279,7 @@ public class CommonUtils {
         }
     }
 
-    public static Act createAct(ActType actType, Card card) {
+    public static Act createActInstance(ActType actType, Card card) {
      return switch (actType) {
          case ACT153 -> Act153.builder()
                  .hospitalizationDate(card.getForm058().getAdmissionDate())

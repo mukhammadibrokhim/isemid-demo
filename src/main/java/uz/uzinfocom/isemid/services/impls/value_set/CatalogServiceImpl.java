@@ -17,7 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.dtos.CatalogDto;
+import uz.uzinfocom.isemid.models.dtos.CatalogDto;
 import uz.uzinfocom.isemid.models.entities.enums.CatalogType;
 import uz.uzinfocom.isemid.models.entities.value_set.Catalog;
 import uz.uzinfocom.isemid.models.payload.requests.value_set.ReqCatalog;
@@ -90,6 +90,12 @@ public class CatalogServiceImpl implements CatalogService {
                         .parentCode(data.getParentCode())
                         .display(resolveLang(data.getNameRu(), data.getNameUz(), data.getNameUzCyril(), data.getNameKaa()))
                         .build()).toList());
+    }
+
+    @Override
+    public List<Catalog> findAllByType(CatalogType catalogType) {
+        return catalogRepository.findAllByType(catalogType.name());
+
     }
 
     @Override

@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.models.entities.dtos.VaccinationDto;
+import uz.uzinfocom.isemid.models.dtos.VaccinationDto;
 import uz.uzinfocom.isemid.models.payload.responses.RespVaccination;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.services.VaccinationService;

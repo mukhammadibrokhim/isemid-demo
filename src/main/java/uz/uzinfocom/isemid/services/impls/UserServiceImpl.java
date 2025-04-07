@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.services.impls;
 
 import jakarta.persistence.Transient;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,6 +31,7 @@ import uz.uzinfocom.isemid.services.UserService;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -227,30 +229,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             final String accessLevelCode,
             final Boolean active
     ) {
-        return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (hasText(nnuzb)) {
-                predicates.add(criteriaBuilder.equal(root.get("nnuzb"), nnuzb));
-            }
-            if (hasText(firstName)) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName + "%"));
-            }
-            if (hasText(lastName)) {
-                predicates.add(criteriaBuilder.like(root.get("lastName"), "%" + lastName + "%"));
-            }
-            if (hasText(middleName)) {
-                predicates.add(criteriaBuilder.like(root.get("middleName"), "%" + middleName + "%"));
-            }
-            if (hasText(phoneNumber)) {
-                predicates.add(criteriaBuilder.equal(root.get("phoneNumber"), phoneNumber));
-            }
-            if (hasText(accessLevelCode)) {
-                predicates.add(criteriaBuilder.equal(root.get("accessLevel").get("code"), accessLevelCode));
-            }
-            if (active != null) {
-                predicates.add(criteriaBuilder.equal(root.get("active"), active));
-            }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
+        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                Stream.of(
+                                hasText(nnuzb) ? criteriaBuilder.equal(root.get("nnuzb"), nnuzb) : null,
+                                hasText(firstName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%") : null,
+                                hasText(lastName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), "%" + lastName.toLowerCase() + "%") : null,
+                                hasText(middleName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("middleName")), "%" + middleName.toLowerCase() + "%") : null,
+                                hasText(phoneNumber) ? criteriaBuilder.equal(root.get("phoneNumber"), phoneNumber) : null,
+                                hasText(accessLevelCode) ? criteriaBuilder.equal(root.join("accessLevel", JoinType.LEFT).get("code"), accessLevelCode) : null,
+                                active != null ? criteriaBuilder.equal(root.get("active"), active) : null
+                        )
+                        .filter(Objects::nonNull)
+                        .toArray(Predicate[]::new)
+        );
     }
+
 }

@@ -11,6 +11,7 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.User;
 
 import java.sql.Timestamp;
@@ -46,19 +47,34 @@ public abstract class AbsEntity {
     @Column(name = "updated_by_id")
     private Long updatedBy;
 
-    @JsonIgnore
-    private UUID createdOrgId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_org_uuid", referencedColumnName = "uuid")
     @JsonIgnore
-    private UUID updatedOrgId;
+    private Organization createdOrg;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_org_uuid", referencedColumnName = "uuid")
+    @JsonIgnore
+    private Organization updatedOrg;
+
+    @Column(name = "updated_org_uuid", insertable = false, updatable = false)
+    @JsonIgnore
+    private UUID createdOrgUuid;
+
+    @Column(name = "updated_org_uuid", insertable = false, updatable = false)
+    @JsonIgnore
+    private UUID updatedOrgUuid;
 
     @PrePersist
     public void prePersist() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
             User currentUser = (User) authentication.getPrincipal();
-            this.createdOrgId = currentUser.getCurrentOrganization().getUuid();
-            this.updatedOrgId = currentUser.getCurrentOrganization().getUuid();
+            this.createdOrg = currentUser.getCurrentOrganization();
+            this.updatedOrg = currentUser.getCurrentOrganization();
+            this.createdOrgUuid = currentUser.getCurrentOrganization().getUuid();
+            this.updatedOrgUuid = currentUser.getCurrentOrganization().getUuid();
         }
     }
 
@@ -68,7 +84,8 @@ public abstract class AbsEntity {
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
             User currentUser = (User) authentication.getPrincipal();
             if (currentUser.getCurrentOrganization() != null) {
-                this.updatedOrgId = currentUser.getCurrentOrganization().getUuid();
+                this.updatedOrg = currentUser.getCurrentOrganization();
+                this.updatedOrgUuid = currentUser.getCurrentOrganization().getUuid();
             } else {
                 // Log a warning and handle the case
                 System.out.println("Warning: Organization is null for entity update.");

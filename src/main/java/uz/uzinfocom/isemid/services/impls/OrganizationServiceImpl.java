@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.services.impls;
 
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +21,8 @@ import uz.uzinfocom.isemid.repositories.OrganizationRepository;
 import uz.uzinfocom.isemid.services.OrganizationService;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
@@ -211,20 +210,15 @@ public class OrganizationServiceImpl implements OrganizationService {
             String stateCode,
             String cityCode
     ) {
-        return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.isNull(root.get("parent")));
-
-            if (hasText(name)) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
-            }
-            if (hasText(stateCode)) {
-                predicates.add(criteriaBuilder.equal(root.get("state").get("code"), stateCode));
-            }
-            if (hasText(cityCode)) {
-                predicates.add(criteriaBuilder.equal(root.get("city").get("code"), cityCode));
-            }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
+        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                Stream.of(
+                                criteriaBuilder.isNull(root.get("parent")),
+                                hasText(name) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%") : null,
+                                hasText(stateCode) ? criteriaBuilder.equal(root.join("state", JoinType.LEFT).get("code"), stateCode) : null,
+                                hasText(cityCode) ? criteriaBuilder.equal(root.join("city", JoinType.LEFT).get("code"), cityCode) : null
+                        )
+                        .filter(Objects::nonNull)
+                        .toArray(Predicate[]::new)
+        );
     }
 }
