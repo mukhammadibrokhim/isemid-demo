@@ -101,7 +101,6 @@ public class Card161 extends Card {
     private List<EnvironmentalSource> environmentalSources = new ArrayList<>();
 
 
-    //catalog qoshish kerak
     @ManyToOne
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
@@ -110,7 +109,6 @@ public class Card161 extends Card {
     private int numberOfRooms;
     private String area;
 
-    //catalog qoshish kerak
     @ManyToOne
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})

@@ -118,8 +118,8 @@ public class Form058ReportServiceImpl implements Form058ReportService {
 
     @Override
     public ApiResponse<?> reportForRegion(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
-        if (!"republic_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())) {
-            return new ApiResponse<>(false, "Access denied. This endpoint is for republic level only.", null);
+        if (!"republic_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())&& !"region_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())) {
+            return new ApiResponse<>(false, "Access denied. This endpoint is for republic level region level.", null);
         }
         List<Form058> filteredForms = form058Repository.findAll(filterByCriteria(null, fromDate, toDate, birthDate, gender, currentUser));
         List<Form058ReportDto> report = buildHierarchicalReportForAllRegions(filteredForms, fromDate, toDate, currentUser);
@@ -128,8 +128,8 @@ public class Form058ReportServiceImpl implements Form058ReportService {
 
     @Override
     public ApiResponse<?> reportForDistrictByRegionCode(String regionCode,LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser){
-        if (!"republic_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())) {
-            return new ApiResponse<>(false, "Access denied. This endpoint is for republic level only.", null);
+        if (!"republic_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())&& !"region_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())) {
+            return new ApiResponse<>(false, "Access denied. This endpoint is for republic level and region level.", null);
         }
         List<Form058> filteredForms = form058Repository.findAll(filterByCriteria(regionCode, fromDate, toDate,birthDate,gender, currentUser));
         List<Form058ReportDto> report = buildHierarchicalReportForDistricts(filteredForms, fromDate, toDate, currentUser);
