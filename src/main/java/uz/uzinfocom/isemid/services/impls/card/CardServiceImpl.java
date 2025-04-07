@@ -26,7 +26,6 @@ import uz.uzinfocom.isemid.services.card.CardService;
 import uz.uzinfocom.isemid.services.impls.card.strategy.UpdateCardService;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
