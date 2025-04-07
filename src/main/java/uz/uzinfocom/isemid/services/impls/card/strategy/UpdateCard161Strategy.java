@@ -218,8 +218,8 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         });
 
         Optional.ofNullable(reqCard161.getLivingConditionCode()).ifPresent(code -> existingCard.setLivingCondition(getCatalogByCode(CatalogType.livingCondition, code)));
-        Optional.of(reqCard161.getNumberOfPeople()).ifPresent(existingCard::setNumberOfPeople);
-        Optional.of(reqCard161.getNumberOfRooms()).ifPresent(existingCard::setNumberOfRooms);
+        Optional.ofNullable(reqCard161.getNumberOfPeople()).ifPresent(existingCard::setNumberOfPeople);
+        Optional.ofNullable(reqCard161.getNumberOfRooms()).ifPresent(existingCard::setNumberOfRooms);
         Optional.ofNullable(reqCard161.getArea()).ifPresent(existingCard::setArea);
         Optional.ofNullable(reqCard161.getWaterSupplyCode()).ifPresent(code -> existingCard.setWaterSupply(getCatalogByCode(CatalogType.waterSupply, code)));
         Optional.ofNullable(reqCard161.getLiquidWasteDisposalTypeCode()).ifPresent(code -> existingCard.setLiquidWasteDisposalType(getCatalogByCode(CatalogType.liquidWaste, code)));

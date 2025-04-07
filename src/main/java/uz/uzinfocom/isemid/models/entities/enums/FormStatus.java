@@ -10,8 +10,7 @@ public enum FormStatus {
     CARD_LINKED("Karta bog‘langan", "Карта прикреплена"),
     APPROVED_PENDING("Tasdiqlashga tayyor", "Готово к подтверждению"),
     APPROVED("Tasdiqlangan", "Подтвержденный"),
-    CANCELED("Bekor qilingan", "Отменено"),
-    NOT_CONFIRMED_DIAGNOSIS("Berilgan tashxis tasdiqlanmagan", "Выставленный диагноз не подтвержден");
+    CANCELED("Bekor qilingan", "Отменено");
 
 
     private final String uzbek;
