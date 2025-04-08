@@ -6,10 +6,8 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.modelmapper.ModelMapper;
@@ -41,6 +39,7 @@ import uz.uzinfocom.isemid.services.value_set.Mkb10Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
@@ -450,47 +449,87 @@ public class Form058ServiceImpl implements Form058Service {
         Specification<Form058> spec = getFilteredSpecification(currentUser.getCurrentOrganization().getUuid(), filterType);
         List<Form058> formList = form058Repository.findAll(spec);
 
-        String[] columns = {"№", "Бирламчи тезкор хабар-нома", "Муассаса", "Бемор", "Ёши", "Манзил", "Иш жойи",
+        String[] columns = {
+                "№", "Бирламчи тезкор хабар-нома", "Муассаса", "Бемор", "Ёши", "Манзил", "Иш жойи",
                 "Касал бўлган кун", "Биринчи мурожаат", "Ётқизилган жойи", "Ташхис", "Ўзгарган ташхис",
-                "Эпид. текширув", "Ҳабар", "Лаб. натижа", "Эслатма"};
+                "Эпид. текширув", "Ҳабар", "Лаб. натижа", "Эслатма"
+        };
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.createSheet("Form 058");
+            Sheet sheet = workbook.createSheet("Юқумли касалликлар журнали");
+            CellStyle centerStyle = workbook.createCellStyle();
+            centerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            Row headerRow = sheet.createRow(0);
+            String[] headerLines = {
+                    "Ўзбекистон Республикаси",
+                    "Соғлиқни сақлаш Вазирлиги",
+                    "______________________",
+                    currentUser.getCurrentOrganization().getName(),
+                    "Ўзбекистон Республикаси Соғлиқни сақлаш вазирининг 2020 йил 31 декабрдаги 363-сонли буйруғи билан тасдиқланган",
+                    "060- рақамли тиббий ҳужжат шакли",
+                    "ЮҚУМЛИ  КАСАЛЛИКЛАРНИ  ҚАЙД ҚИЛИШ ЖУРНАЛИ",
+                    "Бошланган сана   «_____» ___________________________20____ йил",
+                    "Эслатма: 13 – 14 графалар фақат санитария -эпидемиология назорат марказларида тўлдирилади.",
+                    "Тугалланган сана  «_______» _________________________20____ йил"
+            };
+
+            for (int i = 0; i < headerLines.length; i++) {
+                Row row = sheet.createRow(i);
+                Cell cell = row.createCell(0);
+                cell.setCellValue(headerLines[i]);
+                cell.setCellStyle(centerStyle);
+                sheet.addMergedRegion(new CellRangeAddress(i, i, 0, columns.length - 1));
+            }
+
+            // Ustun sarlavhalari
+            Row headerRow = sheet.createRow(10);
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columns[i]);
             }
 
-            int rowNum = 1;
+            // Ma’lumotlar
+            int rowNum = 11;
+            int index = 1;
             for (Form058 form058 : formList) {
                 Row row = sheet.createRow(rowNum++);
-
-                row.createCell(0).setCellValue(form058.getId());
-                row.createCell(1).setCellValue("");
-                row.createCell(2).setCellValue("");
+                row.createCell(0).setCellValue(index++);
+                row.createCell(1).setCellValue(""); // телефон хабар
+                row.createCell(2).setCellValue(form058.getCreatedOrg().getName());
                 row.createCell(3).setCellValue(form058.getPatient().getFirstName() + " " + form058.getPatient().getLastName());
                 row.createCell(4).setCellValue(calculateAge(form058.getPatient().getBirthDate()));
-                row.createCell(5).setCellValue("");
-                row.createCell(6).setCellValue("");
-                row.createCell(7).setCellValue(getString(LocalDate.now()));
-                row.createCell(8).setCellValue(getString(LocalDate.now()));
-                row.createCell(9).setCellValue(getString(LocalDate.now()));
-                row.createCell(10).setCellValue("");
-                row.createCell(11).setCellValue("form058.getRevisedDiagnosis(");
-                row.createCell(12).setCellValue(getString(null));
-                row.createCell(13).setCellValue("");
-                row.createCell(14).setCellValue("");
-                row.createCell(15).setCellValue("");
+                row.createCell(5).setCellValue("form058.getPatient()"); // Fixed method call
+                row.createCell(6).setCellValue(form058.getPatient().getFirstName()); // Fixed method call
+                row.createCell(7).setCellValue("getString(form058.getIllnessStartDate())"); // Fixed method call
+                row.createCell(8).setCellValue("getString(form058.getFirstVisitDate())"); // Fixed method call
+                row.createCell(9).setCellValue("getString(form058.getHospitalizationDate())"); // Fixed method call
+                row.createCell(10).setCellValue("form058.getDiagnosis()");
+                row.createCell(11).setCellValue("form058.getRevisedDiagnosis()");
+                row.createCell(12).setCellValue("getString(form058.getEpidemiologicalInspectionDate())"); // Fixed method call
+                row.createCell(13).setCellValue("form058.getReportedTo()");
+                row.createCell(14).setCellValue("form058.getLabResult()");
+                row.createCell(15).setCellValue("form058.getNote()");
+            }
+
+            // Ustunlarni avto-o‘lchamga sozlash
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
             }
 
             workbook.write(out);
             return new ByteArrayInputStream(out.toByteArray());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Excel export error", e);
         }
     }
+
+    private String getString(Date date) {
+        if (date != null) {
+            return new SimpleDateFormat("dd/MM/yyyy").format(date);
+        }
+        return "";
+    }
+
 
     private int calculateAge(LocalDate birthDate) {
         if (birthDate == null) return 0;

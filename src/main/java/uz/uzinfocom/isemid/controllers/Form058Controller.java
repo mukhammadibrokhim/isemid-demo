@@ -145,7 +145,7 @@ public class Form058Controller {
     }
 
     @PutMapping("/{formId}/change-diagnosis")
-    public ApiResponse<?> changeDiagnosis(@PathVariable Long formId, ReqForm058ChangeDiagnosis changeDiagnosis) {
+    public ApiResponse<?> changeDiagnosis(@PathVariable Long formId, @RequestBody ReqForm058ChangeDiagnosis changeDiagnosis) {
         return form058Service.changeDiagnosis(formId, changeDiagnosis);
     }
 
