@@ -434,6 +434,7 @@ public class Form058ServiceImpl implements Form058Service {
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
+    @Transactional
     @Override
     public ApiResponse<?> changeDiagnosis(Long formId, ReqForm058ChangeDiagnosis changeDiagnosis) {
         Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
@@ -441,6 +442,7 @@ public class Form058ServiceImpl implements Form058Service {
             throw new ApiException(BAD_REQUEST, "Cannot change diagnosis.");
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10name());
+        form058.setStatus(FormStatus.APPROVED);
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
 
