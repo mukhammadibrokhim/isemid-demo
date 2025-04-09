@@ -36,4 +36,6 @@ public interface CardService {
     ApiResponse<?> supervisorRejectCard(Long cardId, User currentUser, ReqRejectCard rejectCard);
 
     ApiResponse<?> assignAct(ReqCardAssignAct reqCardAssignAct, User user);
+
+    ApiResponse<?> changeStatus(long cardId, CardStatus cardStatus);
 }

@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.services.impls.card;
 
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
@@ -9,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.exceptioins.ApiException;
-import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.act.Act;
 import uz.uzinfocom.isemid.models.entities.act.ActStatus;
@@ -153,6 +151,13 @@ public class CardServiceImpl implements CardService {
         card.getActs().addAll(acts);
         cardRepository.save(card);
         return new ApiResponse<>(true, "Acts successfully assigned.", card);
+    }
+
+    @Override
+    public ApiResponse<?> changeStatus(long cardId, CardStatus cardStatus) {
+        Card card = cardRepository.findById(cardId).orElseThrow();
+        card.setStatus(cardStatus);
+        return new ApiResponse<>(true, "success", cardRepository.save(card));
     }
 
     private Card validateAndGetCard(long cardId, User currentUser) {
