@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.models.entities.User;
 import uz.uzinfocom.isemid.models.entities.annotations.CurrentUser;
-import uz.uzinfocom.isemid.models.entities.card.Card;
 import uz.uzinfocom.isemid.models.entities.card.CardStatus;
 import uz.uzinfocom.isemid.models.payload.requests.act.ReqCardAssignAct;
 import uz.uzinfocom.isemid.models.payload.requests.card.ReqCard;
@@ -126,5 +125,10 @@ public class CardController {
     @PostMapping("/assign-act")
     public ApiResponse<?> assignAct(@Valid @RequestBody ReqCardAssignAct reqCardAssignAct, @CurrentUser User user) {
         return cardService.assignAct(reqCardAssignAct,user);
+    }
+
+    @PostMapping("/{cardId}/change-status")
+    public ApiResponse<?> changeStatus(@PathVariable long cardId, @RequestParam CardStatus cardStatus) {
+        return cardService.changeStatus(cardId, cardStatus);
     }
 }
