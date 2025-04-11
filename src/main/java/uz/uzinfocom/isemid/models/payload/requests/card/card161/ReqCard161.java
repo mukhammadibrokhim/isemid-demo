@@ -101,7 +101,9 @@ public class ReqCard161 extends ReqCard {
     private ReqInfectionSourceDetail infectionSourceDetail;
     private String mainProbableInfectionFactorCode;
     private List<String> infectionCausingConditionsCode;
-    private String outbreakInfectionCode;
+    //    private String outbreakInfectionCode;
+    private String infectionPlaceCode;
+    private String activityPlaceCode;
     private String caseStatusCode;
     private String epidemiologist;
     private String epidemiologistAssistant;

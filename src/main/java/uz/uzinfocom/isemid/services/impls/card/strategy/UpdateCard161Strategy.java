@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uz.uzinfocom.isemid.models.entities.enums.CatalogType.caseStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -473,7 +474,9 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
             existingCard.getInfectionCausingConditions().addAll(conditions);
         });
 
-        Optional.ofNullable(reqCard161.getOutbreakInfectionCode()).ifPresent(code -> existingCard.setOutbreakInfection(getCatalogByCode(CatalogType.outbreakInfection, code)));
+//        Optional.ofNullable(reqCard161.getOutbreakInfectionCode()).ifPresent(code -> existingCard.setOutbreakInfection(getCatalogByCode(CatalogType.outbreakInfection, code)));
+        Optional.ofNullable(reqCard161.getInfectionPlaceCode()).ifPresent(code -> existingCard.setInfectionPlace(getCatalogByCode(caseStatus, code)));
+        Optional.ofNullable(reqCard161.getActivityPlaceCode()).ifPresent(code -> existingCard.setActivityPlace(getCatalogByCode(caseStatus, code)));
         Optional.ofNullable(reqCard161.getCaseStatusCode()).ifPresent(code -> existingCard.setCaseStatus(getCatalogByCode(CatalogType.caseStatus, code)));
         Optional.ofNullable(reqCard161.getEpidemiologist()).ifPresent(existingCard::setEpidemiologist);
         Optional.ofNullable(reqCard161.getEpidemiologistAssistant()).ifPresent(existingCard::setEpidemiologistAssistant);

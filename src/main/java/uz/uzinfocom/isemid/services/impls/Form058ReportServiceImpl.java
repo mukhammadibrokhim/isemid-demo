@@ -255,7 +255,7 @@ public class Form058ReportServiceImpl implements Form058ReportService {
                     ));
 
                     case "district_level" -> predicates.add(cb.and(
-                            cb.equal(root.get("createdOrg").get("city").get("code"), userOrg.getCity().getCode()),
+                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
                             cb.equal(root.get("createdOrg").get("level").get("code"), "district_level")
                     ));
                 }
