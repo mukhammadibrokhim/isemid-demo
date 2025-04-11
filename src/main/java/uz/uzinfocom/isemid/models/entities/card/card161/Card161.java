@@ -225,10 +225,21 @@ public class Card161 extends Card {
     @Builder.Default
     private List<Catalog> infectionCausingConditions = new ArrayList<>();
 
+//    @ManyToOne
+//    @JoinColumn(referencedColumnName = "code")
+//    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+//    private Catalog outbreakInfection;
+
     @ManyToOne
     @JoinColumn(referencedColumnName = "code")
     @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
-    private Catalog outbreakInfection;
+    private Catalog activityPlace;
+
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "code")
+    @JsonIgnoreProperties({"type", "id", "createdAt", "updatedAt", "createdBy", "updatedBy"})
+    private Catalog infectionPlace;
+
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "code")

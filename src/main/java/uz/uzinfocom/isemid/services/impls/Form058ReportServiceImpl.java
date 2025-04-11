@@ -4,24 +4,20 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.models.dtos.Form058ReportDto;
+import uz.uzinfocom.isemid.models.dtos.Form1ReportDTO;
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.Organization;
-import uz.uzinfocom.isemid.models.entities.Patient;
 import uz.uzinfocom.isemid.models.entities.User;
-import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.enums.Gender;
+import uz.uzinfocom.isemid.models.entities.enums.LevelStatus;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.services.Form058ReportService;
 import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.time.LocalDate;
-import java.time.Period;
-import java.util.ArrayList;
-import java.util.List;
-
-import static uz.uzinfocom.isemid.models.entities.enums.Gender.female;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,293 +25,239 @@ public class Form058ReportServiceImpl implements Form058ReportService {
     private final Form058Repository form058Repository;
     private final CatalogService catalogService;
 
-    @Override
-    public ApiResponse<?> reportForm6(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
-        Specification<Form058> specification = filterByCriteria(null, fromDate, toDate, birthDate, gender, currentUser);
-        List<Form058> filteredForms = form058Repository.findAll(specification);
-        List<Form058ReportDto> report = buildHierarchicalReport(filteredForms, fromDate, toDate, currentUser);
-        return new ApiResponse<>(true, "Success", report);
-    }
-
-    private List<Form058ReportDto> buildHierarchicalReport(List<Form058> filteredForms, LocalDate fromDate, LocalDate toDate, User currentUser) {
-        Organization userOrg = currentUser.getCurrentOrganization();
-        String level = userOrg.getLevel().getCode(); // Masalan: REPUBLIC, REGION, DISTRICT
-
-        // Org nomini, viloyatini va tumanini olish
-        String orgName = userOrg.getName();
-        String orgState = userOrg.getState().getNameUz() != null ? userOrg.getState().getNameUz() : null;
-        String orgCity = userOrg.getCity().getCode() != null ? userOrg.getCity().getNameUz() : null;
-
-        // Foydalanuvchi darajasiga moslashtirilgan formalarni filtrlaymiz
-        List<Form058> filteredByLevel = filteredForms.stream()
-                .filter(form -> {
-                    Organization formOrg = form.getCreatedOrg(); // Formaning tashkiloti
-                    if (level.equals("republic_level")) {
-                        return true; // Republic darajasi uchun barcha formalarni olish
-                    }
-                    if (level.equals("region_level")) {
-                        return formOrg.getState().getCode().equals(userOrg.getState().getCode()); // Region darajasida faqat o'z viloyatidagi formalarni olish
-                    }
-                    if (level.equals("district_level")) {
-                        // Tuman darajasida faqat o'z tumandagi formalarni olish
-                        // City null bo'lsa, false qaytaramiz
-                        if (formOrg.getCity() != null && userOrg.getCity() != null) {
-                            return formOrg.getCity().getCode().equals(userOrg.getCity().getCode()); // Shahar kodlarini solishtirish
-                        }
-                        return false; // Agar formOrg.getCity() yoki userOrg.getCity() null bo'lsa
-                    }
-                    return false;
-                }).toList();
-
-
-
-        int confirmedTotal = 0, confirmedAge0To17 = 0, confirmedAge18Plus = 0, confirmedFemaleCount = 0;
-        int total = 0, age0To17 = 0, age18Plus = 0, femaleCount = 0;
-
-        for (Form058 form : filteredByLevel) {
-            Patient patient = form.getPatient();
-            int age = Period.between(patient.getBirthDate(), LocalDate.now()).getYears();
-            boolean isFemale = patient.getGender().getCode().equals(female.name());
-
-            // Barchasi
-            total++;
-            if (age <= 17) age0To17++;
-            else age18Plus++;
-            if (isFemale) femaleCount++;
-
-            // Faqat tasdiqlanganlar
-            if (form.getStatus().equals(FormStatus.APPROVED)) {
-                confirmedTotal++;
-                if (age <= 17) confirmedAge0To17++;
-                else confirmedAge18Plus++;
-                if (isFemale) confirmedFemaleCount++;
-            }
-        }
-
-        Form058ReportDto reportDto = new Form058ReportDto();
-        reportDto.setOrgName(orgName);
-        reportDto.setStateCode(userOrg.getState().getCode());
-        reportDto.setOrgState(orgState);
-        reportDto.setOrgCity(orgCity);
-        reportDto.setLevel(level);
-        reportDto.setReportDate(LocalDate.now());
-        reportDto.setDateFrom(fromDate);
-        reportDto.setDateTo(toDate);
-
-        reportDto.setTotal(total);
-        reportDto.setAge0To17(age0To17);
-        reportDto.setAge18Plus(age18Plus);
-        reportDto.setFemaleCount(femaleCount);
-
-        reportDto.setConfirmedTotal(confirmedTotal);
-        reportDto.setConfirmedAge0To17(confirmedAge0To17);
-        reportDto.setConfirmedAge18Plus(confirmedAge18Plus);
-        reportDto.setConfirmedFemaleCount(confirmedFemaleCount);
-
-        return List.of(reportDto); // Faqat bitta hisobot
-    }
-
 
     @Override
-    public ApiResponse<?> reportForRegion(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
-        if (!"republic_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())&& !"region_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())) {
-            return new ApiResponse<>(false, "Access denied. This endpoint is for republic level region level.", null);
-        }
-        List<Form058> filteredForms = form058Repository.findAll(filterByCriteria(null, fromDate, toDate, birthDate, gender, currentUser));
-        List<Form058ReportDto> report = buildHierarchicalReportForAllRegions(filteredForms, fromDate, toDate, currentUser);
-        return new ApiResponse<>(true, "Success", report);
-    }
+    public ApiResponse<?> reportForm1(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
+        Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
+        List<Form058> form058s = form058Repository.findAll(specification);
+        Organization userCurrOrg = currentUser.getCurrentOrganization();
+        String level = userCurrOrg.getLevel().getCode();
+        List<Form1ReportDTO> reportList = new LinkedList<>();
 
-    @Override
-    public ApiResponse<?> reportForDistrictByRegionCode(String regionCode,LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser){
-        if (!"republic_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())&& !"region_level".equals(currentUser.getCurrentOrganization().getLevel().getCode())) {
-            return new ApiResponse<>(false, "Access denied. This endpoint is for republic level and region level.", null);
-        }
-        List<Form058> filteredForms = form058Repository.findAll(filterByCriteria(regionCode, fromDate, toDate,birthDate,gender, currentUser));
-        List<Form058ReportDto> report = buildHierarchicalReportForDistricts(filteredForms, fromDate, toDate, currentUser);
-        return new ApiResponse<>(true, "Success", report);
-    }
+        if (level.equals(LevelStatus.republic_level.name())) {
 
-    private List<Form058ReportDto> buildHierarchicalReportForDistricts(List<Form058> filteredForms, LocalDate fromDate, LocalDate toDate, User currentUser) {
-        Organization userOrg = currentUser.getCurrentOrganization();
+            // Group by regionCode (UZ-SI, UZ-AN, ...)
+            Map<String, List<Form058>> regionMap = form058s.stream()
+                    .filter(f -> f.getCreatedOrg().getLevel().getCode().equals(LevelStatus.region_level.name()))
+                    .collect(Collectors.groupingBy(f -> f.getCreatedOrg().getState().getCode()));
 
-        List<Form058ReportDto> reportDtos = new ArrayList<>();
+            for (Map.Entry<String, List<Form058>> regionEntry : regionMap.entrySet()) {
+                String regionCode = regionEntry.getKey();
+                List<Form058> regionForms = regionEntry.getValue();
+                String regionName = regionForms.get(0).getCreatedOrg().getState().getNameUz();
+                long regionFormCount = regionForms.size();
 
-        filteredForms.stream()
-                .map(Form058::getCreatedOrg) // Formadagi tashkilotni olish
-                .filter(org -> "district_level".equals(org.getLevel().getCode())) // Faqat district darajasi
-                .distinct() // Yagona districtlarni olish
-                .forEach(districtOrg -> {
-                    // Har bir district uchun hisobotni yaratish
-                    Form058ReportDto reportDto = new Form058ReportDto();
-                    reportDto.setStateCode(userOrg.getState().getCode());
-                    reportDto.setOrgName(districtOrg.getName());
-                    reportDto.setOrgState(districtOrg.getState().getNameUz());
-                    reportDto.setOrgCity(districtOrg.getCity().getNameUz());
-                    reportDto.setLevel(districtOrg.getLevel().getCode());
-                    reportDto.setReportDate(LocalDate.now());
-                    reportDto.setDateFrom(fromDate);
-                    reportDto.setDateTo(toDate);
+                // For district report (district-level)
+                List<Form058> districtForms = form058s.stream()
+                        .filter(f -> f.getCreatedOrg().getLevel().getCode().equals(LevelStatus.district_level.name()))
+                        .filter(f -> f.getCreatedOrg().getCity() != null)
+                        .filter(f -> regionCode.equals(f.getCreatedOrg().getCity().getParentCode()))
+                        .toList();
 
-                    // District uchun hisobot ma'lumotlarini to‘plash
-                    accumulateReportDataForDistrict(reportDto, filteredForms, districtOrg);
+                Map<String, List<Form058>> districtMap = districtForms.stream()
+                        .collect(Collectors.groupingBy(f -> f.getCreatedOrg().getCity().getCode()));
 
-                    reportDtos.add(reportDto);
-                });
+                Set<Form1ReportDTO> children = new HashSet<>();
+                for (Map.Entry<String, List<Form058>> districtEntry : districtMap.entrySet()) {
+                    String districtCode = districtEntry.getKey();
+                    List<Form058> districtFormList = districtEntry.getValue();
+                    String districtName = districtFormList.get(0).getCreatedOrg().getCity().getNameUz();
+                    long formCount = districtFormList.size();
 
-        return reportDtos;
-    }
-
-    private void accumulateReportDataForDistrict(Form058ReportDto dto, List<Form058> filteredForms, Organization districtOrg) {
-        int confirmedTotal = 0, confirmedAge0To17 = 0, confirmedAge18Plus = 0, confirmedFemaleCount = 0;
-        int total = 0, age0To17 = 0, age18Plus = 0, femaleCount = 0;
-
-        for (Form058 form : filteredForms) {
-            Organization formOrg = form.getCreatedOrg();
-            if (formOrg.equals(districtOrg)) {
-                Patient patient = form.getPatient();
-                int age = Period.between(patient.getBirthDate(), LocalDate.now()).getYears();
-                boolean isFemale = patient.getGender().getCode().equals(Gender.female.name());
-
-                // Barchasi
-                total++;
-                if (age <= 17) age0To17++;
-                else age18Plus++;
-                if (isFemale) femaleCount++;
-
-                // Faqat tasdiqlanganlar
-                if (form.getStatus().equals(FormStatus.APPROVED)) {
-                    confirmedTotal++;
-                    if (age <= 17) confirmedAge0To17++;
-                    else confirmedAge18Plus++;
-                    if (isFemale) confirmedFemaleCount++;
+                    children.add(Form1ReportDTO.builder()
+                            .name(districtName)
+                            .build());
                 }
+
+                long districtFormCount = districtForms.size();
+                long total = regionFormCount + districtFormCount;
+
+                reportList.add(Form1ReportDTO.builder()
+                        .name(regionName)
+                        .children(children)
+                        .build());
             }
+        } else if (level.equals(LevelStatus.region_level.name())) {
+            String regionCode = userCurrOrg.getState().getCode();
+
+            List<Form058> regionForms = form058s.stream()
+                    .filter(f -> f.getCreatedOrg().getState().getCode().equals(regionCode))
+                    .toList();
+
+            Map<String, List<Form058>> districtMap = form058s.stream()
+                    .filter(f -> f.getCreatedOrg().getLevel().getCode().equals(LevelStatus.district_level.name()))
+                    .collect(Collectors.groupingBy(f -> f.getCreatedOrg().getCity().getCode()));
+
+            Set<Form1ReportDTO> children = new HashSet<>();
+
+            for (Map.Entry<String, List<Form058>> districtEntry : districtMap.entrySet()) {
+                String districtCode = districtEntry.getKey();
+                List<Form058> districtFormList = districtEntry.getValue();
+
+                String districtName = districtFormList.get(0).getCreatedOrg().getCity().getNameUz();
+
+                children.add(Form1ReportDTO.builder()
+                        .name(districtName)
+                        .build());
+            }
+
+            reportList.add(Form1ReportDTO.builder()
+                    .name(userCurrOrg.getState().getNameUz())  // Region name
+                    .emergencyTotal((int) form058s.stream()
+                            .filter(f -> f.getCreatedOrg().getState().getCode().equals(currentUser.getCurrentOrganization().getState().getCode()))
+                            .count())  // Total number of records for the region
+                    .children(children)  // Add districts as children
+                    .build());
+        } else if (level.equals(LevelStatus.district_level.name())) {
+
+            List<Form058> districtForms = form058s.stream()
+                    .filter(f -> f.getCreatedOrg().getCity().getCode().equals(userCurrOrg.getCity().getCode()))
+                    .toList();
+
+
+            String districtName = userCurrOrg.getCity().getNameUz();
+            reportList.add(Form1ReportDTO.builder()
+                    .name(districtName)
+                            .emergencyTotal(districtForms.size())
+                    .build());
         }
 
-        dto.setTotal(total);
-        dto.setAge0To17(age0To17);
-        dto.setAge18Plus(age18Plus);
-        dto.setFemaleCount(femaleCount);
-
-        dto.setConfirmedTotal(confirmedTotal);
-        dto.setConfirmedAge0To17(confirmedAge0To17);
-        dto.setConfirmedAge18Plus(confirmedAge18Plus);
-        dto.setConfirmedFemaleCount(confirmedFemaleCount);
+        return new ApiResponse<>(true, "Viloyatlar + tumanlar bo‘yicha Form058 hisobot", reportList);
     }
 
+//    @Override
+//    public ApiResponse<?> reportForm1(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
+//        Specification<Form058> spec = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
+//        List<Form058> form058List = form058Repository.findAll(spec);
+//        List<Form058> confirmed058List = form058List.stream()
+//                .filter(form058 -> form058.getStatus().equals(FormStatus.APPROVED))
+//                .toList();
+//
+//        Set<Form1ReportDTO> reports = new HashSet<>();
+//
+//        String userLevel = currentUser.getCurrentOrganization().getLevel().getCode();
+//
+//        for (Form058 form058 : form058List) {
+//            Organization org = form058.getCreatedOrg();
+//            String level = org.getLevel().getCode();
+//
+//            if (level.equals(userLevel)) {
+//                String regionCode = org.getState().getCode();
+//                String districtCode = org.getCity() != null ? org.getCity().getCode() : null;
+//
+//                Form1ReportDTO dto = Form1ReportDTO.builder()
+//                        .level(level)
+//                        .code(regionCode)
+//                        .name(org.getState())
+//                        .confirmedTotal(confirmed058List.size())
+//                        .emergencyTotal(form058List.size())
+//                        .build();
+//
+//                // Agar daraja "republic_level" bo'lsa, barcha regionlarni bolalar sifatida qo'shish
+//                if ("republic_level".equals(level)) {
+//                    Set<String> regionCodes = new HashSet<>();
+//                    for (Form058 subForm : form058List) {
+//                        String subRegionCode = subForm.getCreatedOrg().getState().getCode();
+//                        if (!regionCodes.contains(subRegionCode)) {
+//                            regionCodes.add(subRegionCode);
+//
+//                            Form1ReportDTO regionDto = Form1ReportDTO.builder()
+//                                    .level("region_level")
+//                                    .code(subRegionCode)
+//                                    .name(subForm.getCreatedOrg().getState())
+//                                    .confirmedTotal(confirmed058List.size())
+//                                    .emergencyTotal(form058List.size())
+//                                    .build();
+//
+//                            // Region uchun districtlarni qo'shish
+//                            Set<Form1ReportDTO> children = new HashSet<>();
+//                            for (Form058 districtForm : confirmed058List) {
+//                                if (districtForm.getCreatedOrg().getLevel().getCode().equals("district_level") &&
+//                                        districtForm.getCreatedOrg().getState().getCode().equals(subRegionCode)) {
+//                                    Form1ReportDTO districtDto = Form1ReportDTO.builder()
+//                                            .level("district_level")
+//                                            .code(districtForm.getCreatedOrg().getCity().getCode())
+//                                            .name(districtForm.getCreatedOrg().getCity())
+//                                            .confirmedTotal(confirmed058List.size())
+//                                            .emergencyTotal(form058List.size())
+//                                            .build();
+//                                    children.add(districtDto);
+//                                }
+//                            }
+//                            regionDto.setChildren(children);
+//                            reports.add(regionDto);
+//                        }
+//                    }
+//                } else if ("region_level".equals(level)) {
+//                    // Region darajasidagi districtlarni qo'shish
+//                    Set<Form1ReportDTO> children = new HashSet<>();
+//                    for (Form058 districtForm : form058List) {
+//                        if (districtForm.getCreatedOrg().getLevel().getCode().equals("district_level") &&
+//                                districtForm.getCreatedOrg().getState().getCode().equals(org.getState().getCode())) {
+//                            Form1ReportDTO districtDto = Form1ReportDTO.builder()
+//                                    .level("district_level")
+//                                    .code(districtForm.getCreatedOrg().getCity().getCode())
+//                                    .name(districtForm.getCreatedOrg().getCity())
+//                                    .confirmedTotal(confirmed058List.size())
+//                                    .emergencyTotal(form058List.size())
+//                                    .build();
+//                            children.add(districtDto);
+//                        }
+//                    }
+//                    dto.setChildren(children);
+//                }
+//
+//                reports.add(dto);
+//            }
+//        }
+//        return new ApiResponse<>(true, "Success", reports);
+//    }
 
-
-
-    private List<Form058ReportDto> buildHierarchicalReportForAllRegions(List<Form058> filteredForms, LocalDate fromDate, LocalDate toDate, User currentUser) {
-        Organization userOrg = currentUser.getCurrentOrganization();
-
-        List<Form058ReportDto> reportDtos = new ArrayList<>();
-
-        // Har bir regionni ajratish
-        filteredForms.stream()
-                .map(Form058::getCreatedOrg) // Formadagi tashkilotni olish
-                .filter(org -> "region_level".equals(org.getLevel().getCode())) // Faqat region darajasi
-                .distinct() // Yagona regionlarni olish
-                .forEach(regionOrg -> {
-                    // Har bir region uchun hisobotni yaratish
-                    Form058ReportDto reportDto = new Form058ReportDto();
-                    reportDto.setStateCode(currentUser.getCurrentOrganization().getState().getCode());
-                    reportDto.setOrgName(regionOrg.getName());
-                    reportDto.setOrgState(regionOrg.getState().getNameUz());
-                    reportDto.setOrgCity(regionOrg.getCity().getNameUz());
-                    reportDto.setLevel(regionOrg.getLevel().getCode());
-                    reportDto.setReportDate(LocalDate.now());
-                    reportDto.setDateFrom(fromDate);
-                    reportDto.setDateTo(toDate);
-
-                    // Region uchun hisobot ma'lumotlarini to‘plash
-                    accumulateReportDataForRegion(reportDto, filteredForms, regionOrg);
-
-                    reportDtos.add(reportDto);
-                });
-
-        return reportDtos;
-    }
-
-    private void accumulateReportDataForRegion(Form058ReportDto dto, List<Form058> filteredForms, Organization regionOrg) {
-        // Regionga tegishli formalarni ajratish
-        int confirmedTotal = 0, confirmedAge0To17 = 0, confirmedAge18Plus = 0, confirmedFemaleCount = 0;
-        int total = 0, age0To17 = 0, age18Plus = 0, femaleCount = 0;
-
-        for (Form058 form : filteredForms) {
-            Organization formOrg = form.getCreatedOrg();
-            if (formOrg.equals(regionOrg)) {
-                Patient patient = form.getPatient();
-                int age = Period.between(patient.getBirthDate(), LocalDate.now()).getYears();
-                boolean isFemale = patient.getGender().getCode().equals(Gender.female.name());
-
-                // Barchasi
-                total++;
-                if (age <= 17) age0To17++;
-                else age18Plus++;
-                if (isFemale) femaleCount++;
-
-                // Faqat tasdiqlanganlar
-                if (form.getStatus().equals(FormStatus.APPROVED)) {
-                    confirmedTotal++;
-                    if (age <= 17) confirmedAge0To17++;
-                    else confirmedAge18Plus++;
-                    if (isFemale) confirmedFemaleCount++;
-                }
-            }
-        }
-
-        dto.setTotal(total);
-        dto.setAge0To17(age0To17);
-        dto.setAge18Plus(age18Plus);
-        dto.setFemaleCount(femaleCount);
-
-        dto.setConfirmedTotal(confirmedTotal);
-        dto.setConfirmedAge0To17(confirmedAge0To17);
-        dto.setConfirmedAge18Plus(confirmedAge18Plus);
-        dto.setConfirmedFemaleCount(confirmedFemaleCount);
-    }
 
 
     public static Specification<Form058> filterByCriteria(
-            String regionCode,
             LocalDate fromDate,
             LocalDate toDate,
             LocalDate birthDate,
             Gender gender,
-            User currentUser) {
-
+            User currentUser
+    ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             Organization userOrg = currentUser.getCurrentOrganization();
-            if (userOrg != null) {
-                if (fromDate != null && toDate != null) {
-                    predicates.add(cb.between(root.get("createdAt"), fromDate.atStartOfDay(), toDate.atTime(23, 59, 59)));
-                }
 
-                if (birthDate != null) {
-                    predicates.add(cb.equal(root.get("patient").get("birthDate"), birthDate));
-                }
+            if (fromDate != null && toDate != null) {
+                predicates.add(cb.between(root.get("createdAt"),
+                        fromDate.atStartOfDay(),
+                        toDate.atTime(23, 59, 59)));
+            }
 
-                if (gender != null) {
-                    predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
-                }
-                // Region kodiga asoslangan filtr
-                if (regionCode != null) {
-                    predicates.add(cb.equal(root.get("createdOrg").get("state").get("code"), regionCode));
-                }
+            if (birthDate != null) {
+                predicates.add(cb.equal(root.get("patient").get("birthDate"), birthDate));
+            }
 
+            if (gender != null) {
+                predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
+            }
 
-                switch (userOrg.getLevel().getCode()) {
+            if (userOrg != null && userOrg.getLevel() != null) {
+                String userLevelCode = userOrg.getLevel().getCode();
+
+                switch (userLevelCode) {
                     case "republic_level" -> {
                     }
-                    case "region_level" ->
-                            predicates.add(cb.equal(root.get("createdOrg").get("state").get("code"), userOrg.getState().getCode()));
-                    case "district_level" ->
+                    case "region_level" -> predicates.add(cb.and(
+                            cb.equal(root.get("createdOrg").get("state").get("code"),
+                                    userOrg.getState().getCode())
+//                            cb.equal(root.get("createdOrg").get("level").get("code"), "region_level"),
+//                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getState().getCode())
+                    ));
 
-                            predicates.add(cb.equal(root.get("createdOrg").get("state").get("code"), userOrg.getCity().getCode()));
+                    case "district_level" -> predicates.add(cb.and(
+                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
+                            cb.equal(root.get("createdOrg").get("level").get("code"), "district_level")
+                    ));
                 }
             }
 
