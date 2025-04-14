@@ -15,8 +15,6 @@ import java.util.Set;
 public class Form1ReportDTO {
 
     private String name; // Hudud nomi (Respublika, viloyat, tuman)
-    private String level; // "REPUBLIC", "REGION", "DISTRICT"
-
     private long confirmedTotal;
     private long confirmedUnder18;
     private long confirmedAdults;
