@@ -18,7 +18,7 @@ import static uz.uzinfocom.isemid.utils.ApiUrlConstant.REPORT_FORM1;
 
 @RestController
 @RequestMapping(REPORT_FORM1)
-@Tag(name = "Form 1 report")
+@Tag(name = "Report")
 @RequiredArgsConstructor
 public class Form058ReportController {
     private final Form058ReportService form058ReportService;
