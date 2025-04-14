@@ -8,23 +8,23 @@ import uz.uzinfocom.isemid.models.dtos.Form1ReportDTO;
 import uz.uzinfocom.isemid.models.entities.Form058;
 import uz.uzinfocom.isemid.models.entities.Organization;
 import uz.uzinfocom.isemid.models.entities.User;
+import uz.uzinfocom.isemid.models.entities.enums.FormStatus;
 import uz.uzinfocom.isemid.models.entities.enums.Gender;
 import uz.uzinfocom.isemid.models.entities.enums.LevelStatus;
 import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponse;
 import uz.uzinfocom.isemid.repositories.Form058Repository;
 import uz.uzinfocom.isemid.services.Form058ReportService;
-import uz.uzinfocom.isemid.services.value_set.CatalogService;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static uz.uzinfocom.isemid.utils.CommonUtils.isAdult;
+
 @Service
 @RequiredArgsConstructor
 public class Form058ReportServiceImpl implements Form058ReportService {
     private final Form058Repository form058Repository;
-    private final CatalogService catalogService;
-
 
     @Override
     public ApiResponse<?> reportForm1(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
@@ -36,7 +36,6 @@ public class Form058ReportServiceImpl implements Form058ReportService {
 
         if (level.equals(LevelStatus.republic_level.name())) {
 
-            // Group by regionCode (UZ-SI, UZ-AN, ...)
             Map<String, List<Form058>> regionMap = form058s.stream()
                     .filter(f -> f.getCreatedOrg().getLevel().getCode().equals(LevelStatus.region_level.name()))
                     .collect(Collectors.groupingBy(f -> f.getCreatedOrg().getState().getCode()));
@@ -44,10 +43,8 @@ public class Form058ReportServiceImpl implements Form058ReportService {
             for (Map.Entry<String, List<Form058>> regionEntry : regionMap.entrySet()) {
                 String regionCode = regionEntry.getKey();
                 List<Form058> regionForms = regionEntry.getValue();
-                String regionName = regionForms.get(0).getCreatedOrg().getState().getNameUz();
-                long regionFormCount = regionForms.size();
+                String regionName = regionForms.getFirst().getCreatedOrg().getState().getNameUz();
 
-                // For district report (district-level)
                 List<Form058> districtForms = form058s.stream()
                         .filter(f -> f.getCreatedOrg().getLevel().getCode().equals(LevelStatus.district_level.name()))
                         .filter(f -> f.getCreatedOrg().getCity() != null)
@@ -59,21 +56,31 @@ public class Form058ReportServiceImpl implements Form058ReportService {
 
                 Set<Form1ReportDTO> children = new HashSet<>();
                 for (Map.Entry<String, List<Form058>> districtEntry : districtMap.entrySet()) {
-                    String districtCode = districtEntry.getKey();
                     List<Form058> districtFormList = districtEntry.getValue();
-                    String districtName = districtFormList.get(0).getCreatedOrg().getCity().getNameUz();
-                    long formCount = districtFormList.size();
+                    String districtName = districtFormList.getFirst().getCreatedOrg().getName();
 
                     children.add(Form1ReportDTO.builder()
                             .name(districtName)
                             .build());
                 }
 
-                long districtFormCount = districtForms.size();
-                long total = regionFormCount + districtFormCount;
 
                 reportList.add(Form1ReportDTO.builder()
                         .name(regionName)
+                        .confirmedTotal(regionForms.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).count())
+                        .confirmedAdults(regionForms.stream()
+                                .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                                .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                        .confirmedUnder18(regionForms.stream()
+                                .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                                .filter(f -> !isAdult(f.getPatient().getBirthDate())).count())
+                        .confirmedFemales(regionForms.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
+                        .emergencyTotal(regionForms.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).count())
+                        .emergencyAdults(regionForms.stream()
+                                .filter(f -> !f.getStatus().equals(FormStatus.APPROVED))
+                                .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                        .emergencyUnder18(0)
+                        .emergencyFemales(regionForms.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
                         .children(children)
                         .build());
             }
@@ -84,29 +91,56 @@ public class Form058ReportServiceImpl implements Form058ReportService {
                     .filter(f -> f.getCreatedOrg().getState().getCode().equals(regionCode))
                     .toList();
 
-            Map<String, List<Form058>> districtMap = form058s.stream()
-                    .filter(f -> f.getCreatedOrg().getLevel().getCode().equals(LevelStatus.district_level.name()))
+            Map<String, List<Form058>> districtMap = regionForms.stream()
                     .collect(Collectors.groupingBy(f -> f.getCreatedOrg().getCity().getCode()));
 
             Set<Form1ReportDTO> children = new HashSet<>();
 
             for (Map.Entry<String, List<Form058>> districtEntry : districtMap.entrySet()) {
-                String districtCode = districtEntry.getKey();
                 List<Form058> districtFormList = districtEntry.getValue();
 
-                String districtName = districtFormList.get(0).getCreatedOrg().getCity().getNameUz();
+                String districtName = districtFormList.getFirst().getCreatedOrg().getName();
 
                 children.add(Form1ReportDTO.builder()
                         .name(districtName)
+                        .confirmedTotal(districtFormList.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).count())
+                        .confirmedAdults(districtFormList.stream()
+                                .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                                .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                        .confirmedUnder18(districtFormList.stream()
+                                .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                                .filter(f -> !isAdult(f.getPatient().getBirthDate())).count())
+                        .confirmedFemales(districtFormList.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
+                        .emergencyTotal(districtFormList.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).count())
+                        .emergencyAdults(districtFormList.stream()
+                                .filter(f -> !f.getStatus().equals(FormStatus.APPROVED))
+                                .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                        .emergencyUnder18(districtFormList.stream()
+                                .filter(f -> !f.getStatus().equals(FormStatus.APPROVED))
+                                .filter(f -> !isAdult(f.getPatient().getBirthDate())).count())
+                        .emergencyFemales(districtFormList.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
                         .build());
             }
 
             reportList.add(Form1ReportDTO.builder()
-                    .name(userCurrOrg.getState().getNameUz())  // Region name
-                    .emergencyTotal((int) form058s.stream()
-                            .filter(f -> f.getCreatedOrg().getState().getCode().equals(currentUser.getCurrentOrganization().getState().getCode()))
-                            .count())  // Total number of records for the region
-                    .children(children)  // Add districts as children
+                    .name(userCurrOrg.getState().getNameUz())
+                    .confirmedTotal(form058s.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).count())
+                    .confirmedAdults(form058s.stream()
+                            .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                    .confirmedUnder18(form058s.stream()
+                            .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> !isAdult(f.getPatient().getBirthDate())).count())
+                    .confirmedFemales(form058s.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
+                    .emergencyTotal(form058s.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).count())
+                    .emergencyAdults(form058s.stream()
+                            .filter(f -> !f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                    .emergencyUnder18(form058s.stream()
+                            .filter(f -> !f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> !isAdult(f.getPatient().getBirthDate())).count())
+                    .emergencyFemales(form058s.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
+                    .children(children)
                     .build());
         } else if (level.equals(LevelStatus.district_level.name())) {
 
@@ -118,101 +152,27 @@ public class Form058ReportServiceImpl implements Form058ReportService {
             String districtName = userCurrOrg.getCity().getNameUz();
             reportList.add(Form1ReportDTO.builder()
                     .name(districtName)
-                            .emergencyTotal(districtForms.size())
+                    .confirmedTotal(districtForms.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).count())
+                    .confirmedAdults(districtForms.stream()
+                            .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                    .confirmedUnder18(districtForms.stream()
+                            .filter(f -> f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> !isAdult(f.getPatient().getBirthDate())).count())
+                    .confirmedFemales(districtForms.stream().filter(f -> f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
+                    .emergencyTotal(districtForms.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).count())
+                    .emergencyAdults(districtForms.stream()
+                            .filter(f -> !f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> isAdult(f.getPatient().getBirthDate())).count())
+                    .emergencyUnder18(districtForms.stream()
+                            .filter(f -> !f.getStatus().equals(FormStatus.APPROVED))
+                            .filter(f -> !isAdult(f.getPatient().getBirthDate())).count())
+                    .emergencyFemales(districtForms.stream().filter(f -> !f.getStatus().equals(FormStatus.APPROVED)).filter(f -> f.getPatient().getGender().getCode().equals(Gender.female.name())).count())
                     .build());
         }
 
-        return new ApiResponse<>(true, "Viloyatlar + tumanlar bo‘yicha Form058 hisobot", reportList);
+        return new ApiResponse<>(true, "success", reportList);
     }
-
-//    @Override
-//    public ApiResponse<?> reportForm1(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
-//        Specification<Form058> spec = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
-//        List<Form058> form058List = form058Repository.findAll(spec);
-//        List<Form058> confirmed058List = form058List.stream()
-//                .filter(form058 -> form058.getStatus().equals(FormStatus.APPROVED))
-//                .toList();
-//
-//        Set<Form1ReportDTO> reports = new HashSet<>();
-//
-//        String userLevel = currentUser.getCurrentOrganization().getLevel().getCode();
-//
-//        for (Form058 form058 : form058List) {
-//            Organization org = form058.getCreatedOrg();
-//            String level = org.getLevel().getCode();
-//
-//            if (level.equals(userLevel)) {
-//                String regionCode = org.getState().getCode();
-//                String districtCode = org.getCity() != null ? org.getCity().getCode() : null;
-//
-//                Form1ReportDTO dto = Form1ReportDTO.builder()
-//                        .level(level)
-//                        .code(regionCode)
-//                        .name(org.getState())
-//                        .confirmedTotal(confirmed058List.size())
-//                        .emergencyTotal(form058List.size())
-//                        .build();
-//
-//                // Agar daraja "republic_level" bo'lsa, barcha regionlarni bolalar sifatida qo'shish
-//                if ("republic_level".equals(level)) {
-//                    Set<String> regionCodes = new HashSet<>();
-//                    for (Form058 subForm : form058List) {
-//                        String subRegionCode = subForm.getCreatedOrg().getState().getCode();
-//                        if (!regionCodes.contains(subRegionCode)) {
-//                            regionCodes.add(subRegionCode);
-//
-//                            Form1ReportDTO regionDto = Form1ReportDTO.builder()
-//                                    .level("region_level")
-//                                    .code(subRegionCode)
-//                                    .name(subForm.getCreatedOrg().getState())
-//                                    .confirmedTotal(confirmed058List.size())
-//                                    .emergencyTotal(form058List.size())
-//                                    .build();
-//
-//                            // Region uchun districtlarni qo'shish
-//                            Set<Form1ReportDTO> children = new HashSet<>();
-//                            for (Form058 districtForm : confirmed058List) {
-//                                if (districtForm.getCreatedOrg().getLevel().getCode().equals("district_level") &&
-//                                        districtForm.getCreatedOrg().getState().getCode().equals(subRegionCode)) {
-//                                    Form1ReportDTO districtDto = Form1ReportDTO.builder()
-//                                            .level("district_level")
-//                                            .code(districtForm.getCreatedOrg().getCity().getCode())
-//                                            .name(districtForm.getCreatedOrg().getCity())
-//                                            .confirmedTotal(confirmed058List.size())
-//                                            .emergencyTotal(form058List.size())
-//                                            .build();
-//                                    children.add(districtDto);
-//                                }
-//                            }
-//                            regionDto.setChildren(children);
-//                            reports.add(regionDto);
-//                        }
-//                    }
-//                } else if ("region_level".equals(level)) {
-//                    // Region darajasidagi districtlarni qo'shish
-//                    Set<Form1ReportDTO> children = new HashSet<>();
-//                    for (Form058 districtForm : form058List) {
-//                        if (districtForm.getCreatedOrg().getLevel().getCode().equals("district_level") &&
-//                                districtForm.getCreatedOrg().getState().getCode().equals(org.getState().getCode())) {
-//                            Form1ReportDTO districtDto = Form1ReportDTO.builder()
-//                                    .level("district_level")
-//                                    .code(districtForm.getCreatedOrg().getCity().getCode())
-//                                    .name(districtForm.getCreatedOrg().getCity())
-//                                    .confirmedTotal(confirmed058List.size())
-//                                    .emergencyTotal(form058List.size())
-//                                    .build();
-//                            children.add(districtDto);
-//                        }
-//                    }
-//                    dto.setChildren(children);
-//                }
-//
-//                reports.add(dto);
-//            }
-//        }
-//        return new ApiResponse<>(true, "Success", reports);
-//    }
-
 
 
     public static Specification<Form058> filterByCriteria(

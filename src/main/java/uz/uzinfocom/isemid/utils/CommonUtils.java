@@ -31,6 +31,8 @@ import uz.uzinfocom.isemid.models.payload.responses.api.ApiResponsePage;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -290,5 +292,11 @@ public class CommonUtils {
          case ACT223 -> new Act223();
          case ACT224 -> new Act224();
        };
+    }
+
+    public static boolean isAdult(LocalDate birthDate) {
+        if (birthDate == null) return false;
+        int age = Period.between(birthDate, LocalDate.now()).getYears();
+        return age >= 18;
     }
 }
