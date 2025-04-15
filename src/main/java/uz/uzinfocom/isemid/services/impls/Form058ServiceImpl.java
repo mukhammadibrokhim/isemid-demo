@@ -442,6 +442,7 @@ public class Form058ServiceImpl implements Form058Service {
             throw new ApiException(BAD_REQUEST, "Cannot change diagnosis.");
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10name());
+        form058.setDiagnosisDate(changeDiagnosis.getDiseaseDate());
         form058.setStatus(FormStatus.APPROVED);
         return new ApiResponse<>(true, "Success", form058Repository.save(form058));
     }
