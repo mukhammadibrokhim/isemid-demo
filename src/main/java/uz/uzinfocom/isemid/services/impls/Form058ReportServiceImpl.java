@@ -46,7 +46,7 @@ public class Form058ReportServiceImpl implements Form058ReportService {
             for (Map.Entry<String, List<Form058>> regions : districtMap.entrySet()) {
                 List<Form058> regionsFormList = regions.getValue();
 
-                String regionName = regionsFormList.getFirst().getCreatedOrg().getName();
+                String regionName = regionsFormList.getFirst().getCreatedOrg().getState().getNameUz();
                 String regionCode = regionsFormList.getFirst().getCreatedOrg().getState().getCode(); // region code
 
                 Map<String, List<Form058>> cityMap = regionsFormList.stream()
