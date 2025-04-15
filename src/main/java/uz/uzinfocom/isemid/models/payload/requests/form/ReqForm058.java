@@ -45,7 +45,7 @@ public class ReqForm058 {
     private LocalDateTime admissionDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-//    @NotNull(message = "Дата заболевания обязательна.")
+    @NotNull(message = "Дата заболевания обязательна.")
     private LocalDateTime diseaseDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
