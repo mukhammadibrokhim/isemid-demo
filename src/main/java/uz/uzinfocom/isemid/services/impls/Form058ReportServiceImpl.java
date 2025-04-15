@@ -55,7 +55,6 @@ public class Form058ReportServiceImpl implements Form058ReportService {
 
                 Set<Form1ReportDTO> districtChildren = new HashSet<>();
 
-
                 for (Map.Entry<String, List<Form058>> cityEntry : cityMap.entrySet()) {
                     List<Form058> cityForms = cityEntry.getValue();
                     String districtName = cityForms.getFirst().getCreatedOrg().getName(); // tuman nomi
