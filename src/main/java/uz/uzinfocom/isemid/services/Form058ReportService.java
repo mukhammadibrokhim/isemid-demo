@@ -9,4 +9,5 @@ import java.time.LocalDate;
 public interface Form058ReportService {
 
     ApiResponse<?> reportForm1(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser);
+    ApiResponse<?> reportForm12(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser);
 }

@@ -58,4 +58,15 @@ public class Form058ReportController {
     ) {
        return form058ReportService.reportForm1(fromDate, toDate, birthDate, gender, currentUser);
     }
+
+    @GetMapping("/form12")
+    public ApiResponse<?> getForm12Report(
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) LocalDate birthDate,
+            @RequestParam(required = false) Gender gender,
+            @CurrentUser User currentUser
+    ) {
+        return form058ReportService.reportForm12(fromDate, toDate, birthDate, gender, currentUser);
+    }
 }
