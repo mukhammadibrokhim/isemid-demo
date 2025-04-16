@@ -216,8 +216,18 @@ public class Form058ReportServiceImpl implements Form058ReportService {
     public ApiResponse<?> reportForm12(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
         Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(specification);
+        Organization currentOrg = currentUser.getCurrentOrganization();
+        String level = currentOrg.getLevel().getCode();
 
-        return null;
+        if (level.equals(LevelStatus.republic_level.name())) {
+
+        } else if (level.equals(LevelStatus.region_level.name())) {
+
+        } else if (level.equals(LevelStatus.district_level.name())) {
+
+        }
+
+        return new ApiResponse<>(true, "Success", null);
     }
 
 
