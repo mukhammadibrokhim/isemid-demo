@@ -1,0 +1,162 @@
+package uz.uzinfocom.isemid.features.organization.services.impl;
+
+import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.commons.ApiPaths;
+import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
+import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
+import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
+import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
+import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
+import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
+import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
+import uz.uzinfocom.isemid.features.user.models.User;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.util.StringUtils.hasText;
+import static uz.uzinfocom.isemid.commons.utils.CommonUtil.createApiResponsePage;
+import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
+import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
+
+@Service
+@RequiredArgsConstructor
+public class OrganizationServiceImpl implements OrganizationService {
+    private final OrganizationRepository organizationRepository;
+    private final OrganizationMapper mapper;
+    private final UserMapper userMapper;
+
+    @Override
+    public ApiResponsePage getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url) {
+        Specification<Organization> spec = getFilteredSpecification(name, stateCode, cityCode);
+        Page<Organization> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size));
+        Page<OrgResponse> orgResponses = organizationPage.map(mapper::toResponse);
+        return createApiResponsePage(page, orgResponses, url);
+    }
+
+    @Override
+    public Organization fetchOrganizationFromMisAndSave(UUID uuid, String tokenValue) {
+        OrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, tokenValue, null, OrganizationResponse.class);
+        return organizationRepository.save(convertToOrg(response));
+    }
+
+    private Organization convertToOrg(OrganizationResponse response) {
+        return mapper.toOrganization(response);
+    }
+
+    @Override
+    public ApiResponse<OrgResponse> getById(long id) {
+        Organization organization = organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, mapper.toResponse(organization));
+    }
+
+    @Override
+    public ApiResponse<Organization> updateUserFromMis(UUID uuid, User currentUser, String token) {
+        OrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, OrganizationResponse.class);
+        return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, null);
+    }
+
+    @Override
+    public Optional<Organization> findById(UUID uuid) {
+        return organizationRepository.findByUuid(uuid);
+    }
+
+    @Override
+    public ApiResponse<?> update(UUID uuid, OrgRequest orgRequest) {
+        Organization existingOrg = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        Optional.ofNullable(orgRequest.getName()).ifPresent(existingOrg::setName);
+        Optional.of(orgRequest.isActive()).ifPresent(existingOrg::setActive);
+        Optional.ofNullable(orgRequest.getTin()).ifPresent(existingOrg::setTin);
+        Optional.ofNullable(orgRequest.getEmail()).ifPresent(existingOrg::setEmail);
+        Optional.ofNullable(orgRequest.getPhone()).ifPresent(existingOrg::setPhone);
+        Optional.ofNullable(orgRequest.getLevelCode()).ifPresent(existingOrg::setLevelCode);
+
+        Optional.ofNullable(orgRequest.getType()).ifPresent(existingOrg::setType);
+        Optional.ofNullable(orgRequest.getDistrict()).ifPresent(existingOrg::setDistrict);
+        Optional.ofNullable(orgRequest.getLine()).ifPresent(existingOrg::setLine);
+        Optional.ofNullable(orgRequest.getServiceAreaCode()).ifPresent(existingOrg::setServiceAreaCode);
+
+        Optional.ofNullable(orgRequest.getCountryCode()).ifPresent(existingOrg::setCountryCode);
+
+        Optional.ofNullable(orgRequest.getStateCode()).ifPresent(existingOrg::setStateCode);
+        Optional.ofNullable(orgRequest.getCityCode()).ifPresent(existingOrg::setCityCode);
+        if (orgRequest.getParentUuid() != null) {
+            Organization parentOrg = organizationRepository.findByUuid(orgRequest.getParentUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+            parentOrg.getChildren().add(existingOrg);
+            existingOrg.setParent(parentOrg);
+            existingOrg.setParentId(parentOrg.getId());
+        } else {
+            existingOrg.setParent(null);
+        }
+
+        return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, mapper.toResponse(organizationRepository.save(existingOrg)));
+    }
+
+    @Override
+    public ApiResponse<List<Organization>> getChildrenByParentUuid(UUID uuid) {
+        Organization organization = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, organization.getChildren());
+    }
+
+    @Override
+    public ApiResponse<?> getAllOrgUsers(long id) {
+        Organization organization = organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        List<UserMiniResponse> userResponses = organization.getUsers()
+                .stream().map(userMapper::toMiniResponse).toList();
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, userResponses);
+    }
+
+    @Override
+    public Optional<Organization> findById(long id) {
+        return organizationRepository.findById(id);
+    }
+
+    @Override
+    public Optional<Organization> findByTin(String tin) {
+        return organizationRepository.findByTin(tin);
+    }
+
+    @Override
+    public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name) {
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, organizationRepository.searchByFilter(stateCode, cityCode, name)
+                .stream()
+                .map(mapper::toResponse).toList());
+    }
+
+    @Override
+    public Organization save(Organization newOrg) {
+        return organizationRepository.save(newOrg);
+    }
+
+    public static Specification<Organization> getFilteredSpecification(
+            String name,
+            String stateCode,
+            String cityCode
+    ) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                Stream.of(
+                                criteriaBuilder.isNull(root.get("parent")),
+                                hasText(name) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%") : null,
+                                hasText(stateCode) ? criteriaBuilder.equal(root.get("stateCode"), stateCode) : null,
+                                hasText(cityCode) ? criteriaBuilder.equal(root.get("cityCode"), cityCode) : null
+                        )
+                        .filter(Objects::nonNull)
+                        .toArray(Predicate[]::new)
+        );
+    }
+}

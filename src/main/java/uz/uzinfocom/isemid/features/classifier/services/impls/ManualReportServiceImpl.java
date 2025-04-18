@@ -1,0 +1,124 @@
+package uz.uzinfocom.isemid.features.classifier.services.impls;
+
+import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
+import uz.uzinfocom.isemid.features.classifier.mappers.ManualReportMapper;
+import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
+import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
+import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
+import uz.uzinfocom.isemid.features.classifier.repositories.Mkb10Repository;
+import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.util.StringUtils.hasText;
+import static uz.uzinfocom.isemid.commons.utils.CommonUtil.createApiResponsePage;
+import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
+
+@Service
+@RequiredArgsConstructor
+public class ManualReportServiceImpl implements ManualReportService {
+    private final ManualReportRepository repo;
+    private final Mkb10Repository mkb10Repository;
+    private final ManualReportMapper mapper;
+
+    @Override
+    public ApiResponsePage getAllByFilter(int page, int size, String shortName, String nameUz, String nameUzCyril, String nameRu, String nameKaa, String code, Boolean includeTotal, String fullURL) {
+        Specification<ManualReport> spec = getFilteredSpecification(shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
+        Page<ManualReport> mkb10Page = repo.findAll(spec, pageableNotSorting(page, size));
+        return createApiResponsePage(page, mkb10Page.map(mapper::toResponse), fullURL);
+    }
+
+    @Override
+    public ApiResponse<?> create(ManualReportRequest reqManualReport) {
+        List<Mkb10> mkb10List = mkb10Repository.findAllByCodeIn(reqManualReport.getMkb10Codes());
+        ManualReport manualReport = ManualReport.builder()
+                .code(reqManualReport.getCode())
+                .nameUz(reqManualReport.getNameUz())
+                .nameUzCyril(reqManualReport.getNameUzCyril())
+                .nameRu(reqManualReport.getNameRu())
+                .nameKaa(reqManualReport.getNameKaa())
+                .includeInTotal(reqManualReport.getIncludeInTotal())
+                .mkb10Codes(mkb10List)
+                .build();
+
+        return new ApiResponse<>(true, MessageUtil.CREATED_SUCCESS, mapper.toResponse(repo.save(manualReport)));
+    }
+
+    @Override
+    public ApiResponse<?> getById(long id) {
+        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
+        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, mapper.toResponse(manualReport));
+    }
+
+    @Override
+    public ApiResponse<?> delete(long id) {
+        try {
+            repo.deleteById(id);
+        } catch (Exception e) {
+            throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        }
+        return new ApiResponse<>(true, MessageUtil.DELETED_SUCCESS, null);
+    }
+
+    @Override
+    public ApiResponse<?> put(long id, ManualReportRequest manualReportRequest) {
+        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
+        Optional.ofNullable(manualReportRequest.getCode()).ifPresent(manualReport::setCode);
+        Optional.ofNullable(manualReportRequest.getShortName()).ifPresent(manualReport::setShortName);
+        Optional.ofNullable(manualReportRequest.getNameUz()).ifPresent(manualReport::setNameUz);
+        Optional.ofNullable(manualReportRequest.getNameUzCyril()).ifPresent(manualReport::setNameUzCyril);
+        Optional.ofNullable(manualReportRequest.getNameRu()).ifPresent(manualReport::setNameRu);
+        Optional.ofNullable(manualReportRequest.getNameKaa()).ifPresent(manualReport::setNameKaa);
+        Optional.ofNullable(manualReportRequest.getMkb10Codes()).ifPresent(reqCodes -> {
+            List<Mkb10> newMkb10List = mkb10Repository.findByCodeIn(reqCodes);
+            if (manualReport.getMkb10Codes() == null) {
+                manualReport.setMkb10Codes(new ArrayList<>());
+            } else {
+                manualReport.getMkb10Codes().clear();
+            }
+
+            manualReport.getMkb10Codes().addAll(newMkb10List);
+        });
+
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, mapper.toResponse(repo.save(manualReport)));
+    }
+
+    public static Specification<ManualReport> getFilteredSpecification(
+            String shortName,
+            String nameUz,
+            String nameUzCyril,
+            String nameRu,
+            String nameKaa,
+            String code,
+            Boolean includeTotal
+    ) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                Stream.of(
+                                hasText(shortName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("shortName")), "%" + shortName.toLowerCase() + "%") : null,
+                                hasText(nameUz) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUz")), "%" + nameUz.toLowerCase() + "%") : null,
+                                hasText(nameUzCyril) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUzCyril")), "%" + nameUzCyril.toLowerCase() + "%") : null,
+                                hasText(nameRu) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameRu")), "%" + nameRu.toLowerCase() + "%") : null,
+                                hasText(nameKaa) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameKaa")), "%" + nameKaa.toLowerCase() + "%") : null,
+                                hasText(code) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("code")), "%" + code.toLowerCase() + "%") : null,
+                                includeTotal != null ? criteriaBuilder.equal(root.get("includeTotal"), includeTotal) : null
+                        )
+                        .filter(Objects::nonNull)
+                        .toArray(Predicate[]::new)
+        );
+    }
+}
