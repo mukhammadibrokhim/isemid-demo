@@ -275,7 +275,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     private Form058 getForm058ById(Long id) {
-        return form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Form058", id)));
+        return form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Form 058", id)));
     }
 
     @Override
@@ -374,7 +374,7 @@ public class Form058ServiceImpl implements Form058Service {
         } catch (Exception e) {
             throw new ApiException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
-        return new ApiResponse<>(true, MessageUtil.DELETED_SUCCESS, form058Mapper.toResponse(form058Repository.save(form058)));
+        return new ApiResponse<>(true, MessageUtil.DELETED_SUCCESS, null);
 
     }
 
