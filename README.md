@@ -162,7 +162,7 @@ ISEMID is integrated with:
 ## 👥 Contributors
 
 - Developed and maintained by Uzinfocom SES team  
-- Contact: `dev@ssv.uz`
+- Contact: `m_tursinboyev@uzinfocom.uz`
 
 ---
 
