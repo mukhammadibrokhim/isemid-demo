@@ -27,8 +27,7 @@ src/main/java/uz/uzinfocom/isemid/
 │   ├── patient/        # Patient-related logic
 │   ├── card/           # Card161, Card174, etc.
 │   ├── form058/        # Form058 handling
-│   ├── journal/        # Journal060 and related models
-│   ├── organization/   # Organization and MedCore sync
+│   ├── organization/   # Organization and mis2.ssv.uz sync
 │   ├── report/         # Reporting and analytics
 │   └── ...             # Additional feature modules
 ```
@@ -51,7 +50,7 @@ Ensure the following are installed on your system:
 ### 📂 Clone the Repository
 
 ```bash
-git clone https://git.ssv.uz/ses/emis/backend.git
+git clone https://git.uzinfocom.uz/moh/apdai/ses/emis-ykem/backend.git
 cd backend
 ```
 
@@ -61,23 +60,16 @@ cd backend
 
 Modify the following file to set database and authentication configurations:
 
-📄 `src/main/resources/application.yml`
+📄 `src/main/resources/application.properties`
 
 Example:
 
-```yaml
-server:
-  port: 8081
-
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/isemid
-    username: postgres
-    password: your_password
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+```
+server.port=8081
+spring.datasource.url=jdbc:postgresql://localhost:5432/isemid
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.username=postgres
+spring.datasource.password=your_psw
 ```
 
 ---
@@ -101,7 +93,7 @@ mvn spring-boot:run
 #### Option 2: Using the Jar File
 
 ```bash
-java -jar target/isemid-*.jar
+java -jar target/app.jar
 ```
 
 ---
@@ -122,7 +114,7 @@ All endpoints are prefixed with `/v1`.
 
 Examples:
 
-- `GET /v1/patient`
+- `GET /v1/form058`
 - `POST /v1/card`
 - `PUT /v1/form058/{id}`
 
@@ -162,7 +154,7 @@ ISEMID is integrated with:
 ## 👥 Contributors
 
 - Developed and maintained by Uzinfocom SES team  
-- Contact: `dev@ssv.uz`
+- Contact: `m_tursinboyev@uzinfocom.uz`
 
 ---
 
