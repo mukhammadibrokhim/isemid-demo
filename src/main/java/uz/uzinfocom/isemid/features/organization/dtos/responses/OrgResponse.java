@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.organization.dtos.responses;
 
 import lombok.Builder;
 import lombok.Data;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -21,13 +21,13 @@ public class OrgResponse {
     private String email;
     private String phone;
     private String type;
-    private CatalogRespDto level;
-    private CatalogRespDto country;
-    private CatalogRespDto state;
-    private CatalogRespDto city;
+    private CatalogResponseDto level;
+    private CatalogResponseDto country;
+    private CatalogResponseDto state;
+    private CatalogResponseDto city;
     private String district;
     private String line;
-    private CatalogRespDto serviceArea;
+    private CatalogResponseDto serviceArea;
     private Long parentId;
     private List<OrgChildResponse> children;
 }
