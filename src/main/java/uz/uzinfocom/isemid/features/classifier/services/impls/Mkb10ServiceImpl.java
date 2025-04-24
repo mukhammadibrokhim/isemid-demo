@@ -29,15 +29,15 @@ import java.util.stream.Stream;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
-import static uz.uzinfocom.isemid.commons.utils.CommonUtil.createApiResponsePage;
+import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
 @Service
 @RequiredArgsConstructor
 public class Mkb10ServiceImpl implements Mkb10Service {
 
-    final Mkb10Repository mkb10Repository;
-    final ResourceLoader resourceLoader;
+    private final Mkb10Repository mkb10Repository;
+    private final ResourceLoader resourceLoader;
 
     @Override
     public ApiResponsePage getMkb10ByFilter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
@@ -81,7 +81,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
             search = null;
         }
         List<Mkb10> results = mkb10Repository.searchMkb10(parentId, search);
-        return new ApiResponse<>(true, "Success", results);
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, results);
     }
 
     public static Specification<Mkb10> getFilteredSpecification(
@@ -106,8 +106,6 @@ public class Mkb10ServiceImpl implements Mkb10Service {
                         .toArray(Predicate[]::new)
         );
     }
-
-
 
     @SneakyThrows
     @PostConstruct

@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.util.StringUtils.hasText;
-import static uz.uzinfocom.isemid.commons.utils.CommonUtil.createApiResponsePage;
+import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Service

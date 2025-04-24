@@ -29,10 +29,10 @@ import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkReqUri;
 @RequiredArgsConstructor
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
-    final OrganizationService organizationService;
-    final UserService userService;
-    final RoleService roleService;
-    final ObjectMapper objectMapper;
+    private final OrganizationService organizationService;
+    private final UserService userService;
+    private final RoleService roleService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public AbstractAuthenticationToken convert(@Nonnull Jwt jwt) {

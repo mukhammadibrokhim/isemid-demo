@@ -1,15 +1,21 @@
 package uz.uzinfocom.isemid.commons.utils;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+
+import java.util.ArrayList;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @UtilityClass
 public class PageableUtils {
+
     private static void validatePageAndSize(int page, int size) {
         if (page < 0) {
             throw new ApiException(BAD_REQUEST, "Номер страницы не может быть меньше 0.");
@@ -27,6 +33,30 @@ public class PageableUtils {
     public static Pageable pageableNotSorting(int page, int size) {
         validatePageAndSize(page, size);
         return PageRequest.of(page - 1, size);
+    }
+
+    public static <T> ApiResponsePage createApiResponsePage(int page, Page<T> objectPage, String requestUrl) {
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(requestUrl);
+
+        String selfUrl = uriBuilder.replaceQueryParam("page", page).toUriString();
+        String nextUrl = uriBuilder.replaceQueryParam("page", page + 1).toUriString();
+
+        ApiResponsePage apiResponsePage = new ApiResponsePage(
+                true, MessageUtil.OPERATION_SUCCESS,
+                objectPage.getTotalElements(),
+                new ArrayList<>(),
+                new ArrayList<>(objectPage.getContent())
+        );
+
+        apiResponsePage.addLink("self", selfUrl);
+        apiResponsePage.addLink("next", nextUrl);
+
+        if (page > 1) {
+            String prevUrl = uriBuilder.replaceQueryParam("page", page - 1).toUriString();
+            apiResponsePage.addLink("prev", prevUrl);
+        }
+
+        return apiResponsePage;
     }
 
 }
