@@ -48,6 +48,7 @@ public class ManualReportServiceImpl implements ManualReportService {
         List<Mkb10> mkb10List = mkb10Repository.findAllByCodeIn(reqManualReport.getMkb10Codes());
         ManualReport manualReport = ManualReport.builder()
                 .code(reqManualReport.getCode())
+                .shortName(reqManualReport.getShortName())
                 .nameUz(reqManualReport.getNameUz())
                 .nameUzCyril(reqManualReport.getNameUzCyril())
                 .nameRu(reqManualReport.getNameRu())
