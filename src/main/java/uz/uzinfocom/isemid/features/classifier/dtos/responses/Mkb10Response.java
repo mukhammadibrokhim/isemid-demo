@@ -13,6 +13,7 @@ public class Mkb10Response {
     private Long id;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String code;
     private String nameUz;
     private String nameRu;
     private String nameUzCyril;
