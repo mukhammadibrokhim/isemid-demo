@@ -113,7 +113,6 @@ public class Form058Controller {
         return form058Service.changeDiagnosis(formId, changeDiagnosis);
     }
 
-
     @DeleteMapping("/{formId}")
     public ApiResponse<?> deleteById(@PathVariable Long formId) {
         return form058Service.deleteById(formId);

@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
-import static uz.uzinfocom.isemid.commons.utils.CommonUtil.createApiResponsePage;
+import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 
@@ -68,6 +68,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public ApiResponse<Organization> updateUserFromMis(UUID uuid, User currentUser, String token) {
         OrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, OrganizationResponse.class);
+        System.out.println(response);
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, null);
     }
 

@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.classifier.mappers;
 
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 
@@ -20,12 +20,12 @@ public class CatalogConverter {
         return catalogService.findByCode(code);
     }
     @Named("toCatalog")
-    public CatalogRespDto toCatalog(String code) {
+    public CatalogResponseDto toCatalog(String code) {
         if (code == null) {
             return null;
         }
         Catalog catalog = catalogService.findByCode(code);
-        return (catalog != null) ? CatalogRespDto.builder()
+        return (catalog != null) ? CatalogResponseDto.builder()
                 .id(catalog.getId())
                 .code(catalog.getCode())
                 .parentCode(catalog.getParentCode())
@@ -37,7 +37,7 @@ public class CatalogConverter {
     }
 
     @Named("toCode")
-    public String toCode(CatalogRespDto catalogDto) {
+    public String toCode(CatalogResponseDto catalogDto) {
         return (catalogDto != null) ? catalogDto.getCode() : null;
     }
 }

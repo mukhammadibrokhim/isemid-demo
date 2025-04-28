@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.form058.dtos.responses;
 
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.patient.dtos.responses.PatientResponse;
@@ -41,13 +41,14 @@ public class Form058Response {
     private OrgMiniResponse senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
     private OrgMiniResponse receiverOrganization; // Qayerga (Qabul qiluvchi tashkilot)
     private LocationResponse location;
-    private CatalogRespDto diseasePlace; // Qayerda zaharlangan yoki kasallangan
+    private CatalogResponseDto diseasePlace; // Qayerda zaharlangan yoki kasallangan
     private LocalDateTime initialReportDateTime;
     private String diseaseCause; // Kasallik sababi
     private String epidemicMeasures; // Epidemiya haqida choralar
     private String journalFormCode;
     private String comment;
     private String notifierFullName;
+    //    @JsonIgnoreProperties("form058")
     private List<CardResponse> cards = new ArrayList<>();
     private String cardByFullName;
     private String notApproveComment;

@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.patient.dtos.responses;
 
 import lombok.*;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 
 import java.time.LocalDate;
 
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class IdentifierResponse {
     private Long id;
     private String value;
-    private CatalogRespDto typeCode;
+    private CatalogResponseDto typeCode;
     private LocalDate periodStart;
     private LocalDate periodEnd;
 }

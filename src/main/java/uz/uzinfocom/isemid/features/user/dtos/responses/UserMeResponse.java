@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.user.dtos.responses;
 
 import lombok.*;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 
 import java.time.LocalDate;
@@ -26,12 +26,12 @@ public class UserMeResponse {
     private String fullName;
     private LocalDate birthDate;
     private boolean active;
-    private CatalogRespDto gender;
+    private CatalogResponseDto gender;
     private String phoneNumber;
-    private CatalogRespDto position;
-    private CatalogRespDto country;
-    private CatalogRespDto state;
-    private CatalogRespDto city;
+    private CatalogResponseDto position;
+    private CatalogResponseDto country;
+    private CatalogResponseDto state;
+    private CatalogResponseDto city;
     private String district;
     private String line;
     private List<OrgMiniResponse> organizations;

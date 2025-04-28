@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.patient.dtos.responses;
 
 import lombok.*;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 
 @Getter
@@ -12,9 +12,9 @@ import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 public class AddressResponse {
     private Long id;
     private AddressType type;
-    private CatalogRespDto state;
-    private CatalogRespDto city;
-    private CatalogRespDto neighborhood;
+    private CatalogResponseDto state;
+    private CatalogResponseDto city;
+    private CatalogResponseDto neighborhood;
     private String streetAddress;
     private String houseNumber;
     private String apartmentNumber;

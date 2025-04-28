@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class PatientMiniResponse {
     private LocalDate birthDate;
     private Integer ageYears;
     private Integer ageMonths;
-    private CatalogRespDto gender;
+    private CatalogResponseDto gender;
     @Builder.Default
     private List<AddressResponse> addresses = new ArrayList<>();
 }

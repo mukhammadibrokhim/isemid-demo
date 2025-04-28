@@ -55,12 +55,12 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                     .count();
 
             Form12ReportDto dto = new Form12ReportDto();
+            dto.setShortName(report.getShortName());
             dto.setTitleUz(report.getNameUz());
             dto.setTitleUzCyril(report.getNameUzCyril());
             dto.setTitleRu(report.getNameRu());
             dto.setTitleKaa(report.getNameKaa());
             dto.setCode(report.getCode());
-            dto.setMkb10Codes(String.join(", ", mkb10Codes));
             dto.setTotalCount(total);
             dto.setBelow18Count(below18);
 

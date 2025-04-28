@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.card.dtos.responses.card175.Card175Response;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card205.Card205Response;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card_tube.CardTubeResponse;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
+import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058MiniResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
 
@@ -38,7 +39,7 @@ public abstract class CardResponse {
     private UUID uuid;
     private Timestamp createdAt;
     private Timestamp updatedAt;
-    private String cardType;
+    private CardType cardType;
     private CardStatus status;
     private Form058MiniResponse form058;
     private List<UserMiniResponse> users;

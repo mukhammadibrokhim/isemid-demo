@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.features.card.dtos.responses.card161;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,21 +20,21 @@ public class Card161Response extends CardResponse {
     private Boolean isResident;
     private String residentialTreatmentFacility;
     private LocalDateTime diseaseDetectedDate;
-    private CatalogRespDto region;
-    private CatalogRespDto district;
+    private CatalogResponseDto region;
+    private CatalogResponseDto district;
     private Long polyclinicId;
     private String initialSymptoms;
     //detected catalogga qoshish kerak
-    private CatalogRespDto detected;
+    private CatalogResponseDto detected;
     private LocalDateTime epidemiologicalExamDate;
     private LocalDateTime observationEndDate;
     private LocalDateTime finalDiagnosisDate;
     //catalogga qoshish kerak
-    private CatalogRespDto deliveryMethod;
-    private CatalogRespDto homeStayExclusionReason;
-    private CatalogRespDto lateAdmissionReason;
+    private CatalogResponseDto deliveryMethod;
+    private CatalogResponseDto homeStayExclusionReason;
+    private CatalogResponseDto lateAdmissionReason;
 
-    private CatalogRespDto diagnosisVerified;
+    private CatalogResponseDto diagnosisVerified;
     //LIS bilan integratsiya uchun polya qoshish kerak.
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
@@ -56,25 +56,25 @@ public class Card161Response extends CardResponse {
     private List<EnvironmentalLabTestResponse> environmentalLabTests = new ArrayList<>();
 
     //catalog qoshish kerak
-    private CatalogRespDto livingCondition;
+    private CatalogResponseDto livingCondition;
     private Integer numberOfPeople;
     private Integer numberOfRooms;
     private String area;
 
     //catalog qoshish kerak
-    private CatalogRespDto waterSupply;
-    private CatalogRespDto liquidWasteDisposalType;
-    private CatalogRespDto solidWasteDisposalType;
-    private CatalogRespDto roomCondition;
-    private CatalogRespDto yardCondition;
-    private CatalogRespDto areaCondition;
+    private CatalogResponseDto waterSupply;
+    private CatalogResponseDto liquidWasteDisposalType;
+    private CatalogResponseDto solidWasteDisposalType;
+    private CatalogResponseDto roomCondition;
+    private CatalogResponseDto yardCondition;
+    private CatalogResponseDto areaCondition;
 
     private Boolean hasLice; //bitlash
     private Boolean hasOtherInsects;
     private Boolean hasRodents;
-    private CatalogRespDto importantCausesOfDisease;
+    private CatalogResponseDto importantCausesOfDisease;
 
-    private CatalogRespDto visitedObjects;
+    private CatalogResponseDto visitedObjects;
 
     private String denselyPopulated;
     private String isolationStatus;
@@ -103,16 +103,16 @@ public class Card161Response extends CardResponse {
 
     private String hospitalName;
     //catalog
-    private CatalogRespDto infectionLocation;
-    private CatalogRespDto probableInfectionLocation;
+    private CatalogResponseDto infectionLocation;
+    private CatalogResponseDto probableInfectionLocation;
     private Boolean isInfectionSourceMissing;
     private InfectionSourceDetailResponse infectionSourceDetail;
-    private CatalogRespDto mainProbableInfectionFactor;
+    private CatalogResponseDto mainProbableInfectionFactor;
 
     @Builder.Default
-    private List<CatalogRespDto> infectionCausingConditions = new ArrayList<>();
-    private CatalogRespDto outbreakInfection;
-    private CatalogRespDto caseStatus;
+    private List<CatalogResponseDto> infectionCausingConditions = new ArrayList<>();
+    private CatalogResponseDto outbreakInfection;
+    private CatalogResponseDto caseStatus;
     private String epidemiologist;
     private String epidemiologistAssistant;
 }

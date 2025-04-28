@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.organization.mappers;
 
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogRespDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
@@ -30,7 +30,7 @@ public class OrganizationConverter {
                 .id(organization.getId())
                 .uuid(organization.getUuid())
                 .name(organization.getName())
-                .level(catalog != null ? CatalogRespDto.builder()
+                .level(catalog != null ? CatalogResponseDto.builder()
                         .id(catalog.getId())
                         .code(catalog.getCode())
                         .parentCode(catalog.getParentCode())
