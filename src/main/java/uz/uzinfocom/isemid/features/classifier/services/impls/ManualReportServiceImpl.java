@@ -83,6 +83,7 @@ public class ManualReportServiceImpl implements ManualReportService {
         Optional.ofNullable(manualReportRequest.getNameUz()).ifPresent(manualReport::setNameUz);
         Optional.ofNullable(manualReportRequest.getNameUzCyril()).ifPresent(manualReport::setNameUzCyril);
         Optional.ofNullable(manualReportRequest.getNameRu()).ifPresent(manualReport::setNameRu);
+        Optional.ofNullable(manualReportRequest.getIncludeInTotal()).ifPresent(manualReport::setIncludeInTotal);
         Optional.ofNullable(manualReportRequest.getNameKaa()).ifPresent(manualReport::setNameKaa);
         Optional.ofNullable(manualReportRequest.getMkb10Codes()).ifPresent(reqCodes -> {
             List<Mkb10> newMkb10List = mkb10Repository.findByCodeIn(reqCodes);
