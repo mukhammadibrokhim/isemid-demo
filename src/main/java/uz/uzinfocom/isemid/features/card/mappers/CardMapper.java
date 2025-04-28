@@ -74,12 +74,44 @@ public interface CardMapper {
     @Mapping(target = "form058.patient.addresses", source = "card.form058.patient.addresses")
     Card161Response toCard161Response(Card161 card);
 
+    @Mapping(target = "id", source = "card.id")
+    @Mapping(target = "uuid", source = "card.uuid")  // Assuming Card has uuid field
+    @Mapping(target = "createdAt", source = "card.createdAt")
+    @Mapping(target = "updatedAt", source = "card.updatedAt")
+    @Mapping(target = "cardType", source = "card.cardType")
+    @Mapping(target = "users", source = "card.users")
+    @Mapping(target = "form058", source = "card.form058")
+    @Mapping(target = "status", source = "card.status")
     Card174Response toCard174Response(Card174 card);
 
+    @Mapping(target = "id", source = "card.id")
+    @Mapping(target = "uuid", source = "card.uuid")  // Assuming Card has uuid field
+    @Mapping(target = "createdAt", source = "card.createdAt")
+    @Mapping(target = "updatedAt", source = "card.updatedAt")
+    @Mapping(target = "cardType", source = "card.cardType")
+    @Mapping(target = "users", source = "card.users")
+    @Mapping(target = "form058", source = "card.form058")
+    @Mapping(target = "status", source = "card.status")
     Card175Response toCard175Response(Card175 card);
 
+    @Mapping(target = "id", source = "card.id")
+    @Mapping(target = "uuid", source = "card.uuid")  // Assuming Card has uuid field
+    @Mapping(target = "createdAt", source = "card.createdAt")
+    @Mapping(target = "updatedAt", source = "card.updatedAt")
+    @Mapping(target = "cardType", source = "card.cardType")
+    @Mapping(target = "users", source = "card.users")
+    @Mapping(target = "form058", source = "card.form058")
+    @Mapping(target = "status", source = "card.status")
     Card205Response toCard205Response(Card205 card);
 
+    @Mapping(target = "id", source = "card.id")
+    @Mapping(target = "uuid", source = "card.uuid")  // Assuming Card has uuid field
+    @Mapping(target = "createdAt", source = "card.createdAt")
+    @Mapping(target = "updatedAt", source = "card.updatedAt")
+    @Mapping(target = "cardType", source = "card.cardType")
+    @Mapping(target = "users", source = "card.users")
+    @Mapping(target = "form058", source = "card.form058")
+    @Mapping(target = "status", source = "card.status")
     CardTubeResponse toCardTubeResponse(CardTube card);
 
 

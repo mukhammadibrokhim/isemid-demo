@@ -48,6 +48,7 @@ public class Form058Response {
     private String journalFormCode;
     private String comment;
     private String notifierFullName;
+    //    @JsonIgnoreProperties("form058")
     private List<CardResponse> cards = new ArrayList<>();
     private String cardByFullName;
     private String notApproveComment;
