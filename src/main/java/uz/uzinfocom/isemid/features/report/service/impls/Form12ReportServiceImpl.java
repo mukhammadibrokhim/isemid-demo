@@ -51,8 +51,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                     .filter(f -> {
                         if (f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
                         return Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears() < 18;
-                    })
-                    .count();
+                    }).count();
 
             Form12ReportDto dto = new Form12ReportDto();
             dto.setShortName(report.getShortName());

@@ -145,6 +145,11 @@ public class CatalogServiceImpl implements CatalogService {
         return catalogRepository.findByTypeAndCode(catalogType.name(),code);
     }
 
+    @Override
+    public List<Catalog> finAllByType(CatalogType catalogType) {
+        return catalogRepository.findAllByType(catalogType.name());
+    }
+
 
     public static Specification<Catalog> getFilteredSpecification(
             String type,

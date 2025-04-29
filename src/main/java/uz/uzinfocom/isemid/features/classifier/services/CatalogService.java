@@ -7,6 +7,7 @@ import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponse;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CatalogService {
@@ -32,4 +33,6 @@ public interface CatalogService {
     Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String citizenshipid);
 
     Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code);
+
+    List<Catalog> finAllByType(CatalogType catalogType);
 }
