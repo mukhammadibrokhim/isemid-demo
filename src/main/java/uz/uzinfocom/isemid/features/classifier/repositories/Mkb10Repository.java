@@ -14,20 +14,20 @@ import java.util.Set;
 @Repository
 public interface Mkb10Repository extends JpaRepository<Mkb10, Long>, JpaSpecificationExecutor<Mkb10> {
     @Query(value = """
-        SELECT * FROM public.cls_mkb10\s
-        WHERE (
-            COALESCE(:search, '') = ''\s
-            AND (:parentId IS NULL AND parent_id IS NULL OR parent_id = :parentId)
-        ) OR (
-            COALESCE(:search, '') <> '' AND (
-                LOWER(code) LIKE LOWER(CONCAT('%', :search))\s
-                OR LOWER(name_ru) LIKE LOWER(CONCAT('%', :search))\s
-                OR LOWER(name_uz) LIKE LOWER(CONCAT('%', :search))\s
-                OR LOWER(name_uz_cyril) LIKE LOWER(CONCAT('%', :search))\s
-                OR LOWER(name_kaa) LIKE LOWER(CONCAT('%', :search))
-            )
-        )
-       \s""", nativeQuery = true)
+             SELECT * FROM public.cls_mkb10\s
+             WHERE (
+                 COALESCE(:search, '') = ''\s
+                 AND (:parentId IS NULL AND parent_id IS NULL OR parent_id = :parentId)
+             ) OR (
+                 COALESCE(:search, '') <> '' AND (
+                     LOWER(code) LIKE LOWER(CONCAT('%', :search,'%'))\s
+                     OR LOWER(name_ru) LIKE LOWER(CONCAT('%', :search,'%'))\s
+                     OR LOWER(name_uz) LIKE LOWER(CONCAT('%', :search,'%'))\s
+                     OR LOWER(name_uz_cyril) LIKE LOWER(CONCAT('%', :search,'%'))\s
+                     OR LOWER(name_kaa) LIKE LOWER(CONCAT('%', :search,'%'))
+                 )
+             )
+            \s""", nativeQuery = true)
     List<Mkb10> searchMkb10(@Param("parentId") Long parentId, @Param("search") String search);
 
     List<Mkb10> findAllByCodeIn(Set<String> codes);
