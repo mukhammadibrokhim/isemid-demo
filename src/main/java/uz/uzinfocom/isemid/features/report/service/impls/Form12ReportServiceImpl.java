@@ -37,6 +37,11 @@ public class Form12ReportServiceImpl implements Form12ReportService {
         List<Form12ReportDto> result = new ArrayList<>();
 
         for (ManualReport report : manualReports) {
+
+            if (!Boolean.TRUE.equals(report.getIncludeInTotal())) {
+                continue;
+            }
+
             List<String> mkb10Codes = report.getMkb10Codes()
                     .stream()
                     .map(Mkb10::getCode)

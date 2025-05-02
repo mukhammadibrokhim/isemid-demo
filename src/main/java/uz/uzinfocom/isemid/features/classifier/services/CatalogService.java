@@ -30,7 +30,7 @@ public interface CatalogService {
 
     ApiResponsePage getByHierarchical(int page, int size, CatalogType type, String requestUrl);
 
-    Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String citizenshipid);
+    Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String code);
 
     Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code);
 

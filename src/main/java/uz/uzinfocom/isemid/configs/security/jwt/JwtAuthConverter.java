@@ -14,8 +14,8 @@ import uz.uzinfocom.isemid.commons.dtos.UserInfo;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.models.Role;
-import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.models.User;
+import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.util.List;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.WHITELIST_HEADER_CHECK;
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkReqUri;
+import static uz.uzinfocom.isemid.commons.utils.MessageUtil.*;
 
 @RequiredArgsConstructor
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
@@ -61,14 +62,14 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     private HttpServletRequest getCurrentHttpRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
-            throw new IllegalStateException("No current HTTP request context available");
+            throw new IllegalStateException(NO_HTTP_REQUEST_CONTEXT);
         }
         return attributes.getRequest();
     }
 
     private void validateOrganizationHeader(String selectedOrgId, HttpServletRequest request) {
         if (!checkReqUri(request, WHITELIST_HEADER_CHECK) && (selectedOrgId == null || selectedOrgId.isBlank())) {
-            throw new InsufficientAuthenticationException("Organization-id is required in the header.");
+            throw new InsufficientAuthenticationException(REQUIRED_ORGANIZATION_HEADER);
         }
     }
 
@@ -84,7 +85,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                         .anyMatch(userRole::equals));
 
         if (!hasAuthorizedRole) {
-            throw new InsufficientAuthenticationException("No authorized role found for user.");
+            throw new InsufficientAuthenticationException(NO_AUTHORIZED_ROLE_FOUND);
         }
     }
 
@@ -109,7 +110,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     private void validateUserStatus(User user) {
         if (!user.isActive()) {
-            throw new InsufficientAuthenticationException("User is not active.");
+            throw new InsufficientAuthenticationException(USER_NOT_ACTIVE);
         }
     }
 
@@ -128,7 +129,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                 user.setCurrentOrganization(matchingOrg);
 
             } catch (Exception e) {
-                throw new InsufficientAuthenticationException("Could not find current organization");
+                throw new InsufficientAuthenticationException(CURRENT_ORGANIZATION_NOT_FOUND);
             }
 
         }

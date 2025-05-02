@@ -52,11 +52,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public Organization fetchOrganizationFromMisAndSave(UUID uuid, String tokenValue) {
         OrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, tokenValue, null, OrganizationResponse.class);
-        return organizationRepository.save(convertToOrg(response));
-    }
-
-    private Organization convertToOrg(OrganizationResponse response) {
-        return mapper.toOrganization(response);
+        return organizationRepository.save(mapper.toOrganization(response));
     }
 
     @Override
