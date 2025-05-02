@@ -16,14 +16,17 @@ import java.time.LocalDateTime;
 @Builder
 public class Form058Request {
 
-    @NotBlank
+    @NotBlank(message = "Код МКБ-10 не должен быть пустым.")
     private String mkb10Code;
 
     @NotBlank(message = "Название Mkb10 не может быть пустым и обязательно для заполнения.")
     private String mkb10Name;
     private Integer mkb10UsageLimit;
 
+    @NotBlank(message = "Итоговый код МКБ-10 не должен быть пустым.")
     private String finalMkb10Code;
+
+    @NotBlank(message = "Итоговое название МКБ-10 не должно быть пустым.")
     private String finalMkb10Name;
 
     @Valid
