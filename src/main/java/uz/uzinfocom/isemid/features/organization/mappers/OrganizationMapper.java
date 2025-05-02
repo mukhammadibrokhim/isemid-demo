@@ -10,6 +10,7 @@ import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.report.enums.LevelStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -123,9 +124,12 @@ public interface OrganizationMapper {
     }
 
     default String extractServiceArea(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getServiceArea() != null && !organizationResponse.getServiceArea().isEmpty()) {
         return organizationResponse.getServiceArea().stream()
                 .map(OrganizationResponse.ServiceArea::getState)
                 .findFirst().orElse(null);
+        }
+        return null;
     }
 
     default String extractTin(OrganizationResponse organizationResponse) {
@@ -152,9 +156,9 @@ public interface OrganizationMapper {
                 .findFirst();
 
         return codingOpt.map(coding -> switch (coding.getCode()) {
-            case "1" -> "republic_level";
-            case "2" -> "state_level";
-            case "3", "4" -> "district_level";
+            case "1" -> LevelStatus.republic_level.name();
+            case "2" -> LevelStatus.region_level.name();
+            case "3", "4" -> LevelStatus.district_level.name();
             default -> null;
         }).orElse(null);
     }
