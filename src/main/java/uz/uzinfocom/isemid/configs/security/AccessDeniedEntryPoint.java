@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.configs.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -12,17 +13,24 @@ import uz.uzinfocom.isemid.commons.dtos.ApiErrorResponse;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 public class AccessDeniedEntryPoint implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex) throws IOException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpStatus.FORBIDDEN.value());
-        response.getOutputStream().println(new ObjectMapper().writeValueAsString(ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .message("Forbidden access.")
-                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                        .field(ex.getClass().getSimpleName())
-                        .errorMessage(ex.getMessage()).build())).build()));
+        try {
+
+            response.getOutputStream().println(new ObjectMapper().writeValueAsString(ApiErrorResponse.builder()
+                    .success(false)
+                    .statusCode(HttpStatus.FORBIDDEN.value())
+                    .message("Forbidden access.")
+                    .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                            .field(ex.getClass().getSimpleName())
+                            .errorMessage(ex.getMessage()).build())).build()));
+        } catch (IOException e) {
+            log.debug("Client disconnected before response was written", e);
+
+        }
     }
 }
