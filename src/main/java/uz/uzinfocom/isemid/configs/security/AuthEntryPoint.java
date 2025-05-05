@@ -22,7 +22,7 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {
         response.getOutputStream().println(new ObjectMapper().writeValueAsString(ApiErrorResponse.builder()
                 .success(false)
                 .statusCode(HttpStatus.UNAUTHORIZED.value())
-                .message("Unauthorized access")
+                .message("Несанкционированный доступ.")
                 .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                         .field(authException.getClass().getSimpleName())
                         .errorMessage(authException.getMessage()).build())).build()));

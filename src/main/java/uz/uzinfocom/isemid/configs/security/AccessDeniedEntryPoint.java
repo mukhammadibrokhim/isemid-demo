@@ -20,7 +20,7 @@ public class AccessDeniedEntryPoint implements AccessDeniedHandler {
         response.getOutputStream().println(new ObjectMapper().writeValueAsString(ApiErrorResponse.builder()
                 .success(false)
                 .statusCode(HttpStatus.FORBIDDEN.value())
-                .message("Forbidden")
+                .message("Запрещенный.")
                 .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                         .field(ex.getClass().getSimpleName())
                         .errorMessage(ex.getMessage()).build())).build()));
