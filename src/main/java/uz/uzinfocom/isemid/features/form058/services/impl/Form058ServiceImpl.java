@@ -27,6 +27,8 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.Location;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.patient.models.Address;
 import uz.uzinfocom.isemid.features.patient.models.Identifier;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
@@ -49,6 +51,7 @@ public class Form058ServiceImpl implements Form058Service {
     private final CardFactory cardFactory;
     private final UserService userService;
     private final Form058Mapper form058Mapper;
+    private final OrganizationRepository organizationRepository;
 
 
     @Override
@@ -96,6 +99,9 @@ public class Form058ServiceImpl implements Form058Service {
             return address;
         }).toList();
         patient.setAddresses(addresses);
+        Long senderOrganizationId = organizationRepository.findByUuid(request.getSenderOrganizationId())
+                .map(Organization::getId)
+                .orElse(null);
 
         Form058 form058 = Form058.builder()
                 .mkb10Code(request.getMkb10Code())
@@ -112,7 +118,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .firstVisitDate(request.getFirstVisitDate())
                 .diagnosisDate(request.getDiagnosisDate())
                 .visitDate(request.getVisitDate())
-                .senderOrganizationId(request.getSenderOrganizationId())
+                .senderOrganizationId(senderOrganizationId)
                 .receiverOrganizationId(request.getReceiverOrganizationId())
                 .location(Location.builder()
                         .latitude(request.getLocation().getLatitude())
@@ -243,7 +249,7 @@ public class Form058ServiceImpl implements Form058Service {
         Optional.ofNullable(request.getDiseaseDate()).ifPresent(existedForm058::setDiagnosisDate);
         Optional.ofNullable(request.getVisitDate()).ifPresent(existedForm058::setVisitDate);
         Optional.ofNullable(request.getDocSendDate()).ifPresent(existedForm058::setDocSendDate);
-        Optional.ofNullable(request.getSenderOrganizationId()).ifPresent(existedForm058::setSenderOrganizationId);
+        Optional.ofNullable(request.getSenderOrganizationId()).ifPresent(uuid -> existedForm058.setSenderOrganizationId(organizationRepository.findByUuid(uuid).map(Organization::getId).orElse(null)));
         Optional.ofNullable(request.getReceiverOrganizationId()).ifPresent(existedForm058::setReceiverOrganizationId);
         Optional.ofNullable(request.getLocation()).ifPresent(reqLocation -> {
             Location exsistingLocation = existedForm058.getLocation();

@@ -8,6 +8,7 @@ import lombok.*;
 import uz.uzinfocom.isemid.features.patient.dtos.requests.PatientRequest;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -63,7 +64,7 @@ public class Form058Request {
 
 
     @NotNull(message = "Организация-отправитель обязательна и не может быть пустой.")
-    private Long senderOrganizationId;
+    private UUID senderOrganizationId;
 
     @NotNull(message = "Организация-получатель обязательна и не может быть пустой.")
     private Long receiverOrganizationId;
