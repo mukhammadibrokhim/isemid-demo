@@ -27,7 +27,7 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {
                             ApiErrorResponse.builder()
                                     .success(false)
                                     .statusCode(HttpStatus.UNAUTHORIZED.value())
-                                    .message("Несанкционированный доступ.")
+                                    .message("Unauthorized access.")
                                     .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                             .field(authException.getClass().getSimpleName())
                                             .errorMessage(authException.getMessage()).build()))
