@@ -16,11 +16,10 @@ import java.util.List;
 @Slf4j
 public class AccessDeniedEntryPoint implements AccessDeniedHandler {
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex) throws IOException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex) {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpStatus.FORBIDDEN.value());
         try {
-
             response.getOutputStream().println(new ObjectMapper().writeValueAsString(ApiErrorResponse.builder()
                     .success(false)
                     .statusCode(HttpStatus.FORBIDDEN.value())
