@@ -191,7 +191,7 @@ public class Form058ServiceImpl implements Form058Service {
                 Optional.ofNullable(reqPatient.getKinshipDegree()).ifPresent(patient::setKinshipDegree);
                 Optional.ofNullable(reqPatient.getKinshipFullName()).ifPresent(patient::setKinshipFullName);
                 Optional.ofNullable(reqPatient.getResidentialStatus()).ifPresent(reqResidentialStatus -> patient.setResidentialStatusCode(reqResidentialStatus.name()));
-                Optional.ofNullable(reqPatient.getMaritalStatus()).ifPresent(reqMaritalStatus -> patient.setResidentialStatusCode(reqMaritalStatus.name()));
+                Optional.ofNullable(reqPatient.getMaritalStatus()).ifPresent(reqMaritalStatus -> patient.setMaritalStatusCode(reqMaritalStatus.name()));
                 Optional.ofNullable(reqPatient.getPopulationType()).ifPresent(reqPopulationType -> patient.setPopulationTypeCode(reqPopulationType.name()));
                 Optional.ofNullable(reqPatient.getCategoryCode()).ifPresent(patient::setCategoryCode);
                 Optional.ofNullable(reqPatient.getProfessionCode()).ifPresent(patient::setProfessionCode);
