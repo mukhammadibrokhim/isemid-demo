@@ -412,7 +412,6 @@ public class Form058ServiceImpl implements Form058Service {
                     Expression<UUID> createdOrgUuid = root.get("createdOrgUuid");
 
                     Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
-//                    Join<Patient, Organization> workplaceJoin = patientJoin.join("workPlaceOrg", JoinType.LEFT);
 
                     Expression<UUID> workplaceOrgUuid = patientJoin.get("workPlaceOrgId");
 
