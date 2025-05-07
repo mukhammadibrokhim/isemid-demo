@@ -113,7 +113,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
 
                     case "district_level" -> predicates.add(cb.and(
                             cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
-                            cb.equal(root.get("createdOrg").get("level").get("code"), "district_level")
+                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
                     ));
                 }
             }
