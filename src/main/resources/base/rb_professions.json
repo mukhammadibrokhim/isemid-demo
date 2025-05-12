@@ -85057,5 +85057,12 @@
         "name_ru": "Медсестра ИТ-оператор",
         "name_uz_cyrl": "ИТ-operator ҳамшира"
     }
+        {
+        "id": "12152",
+        "code": "12153",
+        "name_uz": "Maktabgacha ta’lim muassasasi tarbiyalanuvchisi",
+        "name_ru": "Воспитанник дошкольного образовательного учреждения ",
+        "name_uz_cyrl": "Мактабгача таълим муассасаси тарбияланувчиси"
+    }
 ]
 }
