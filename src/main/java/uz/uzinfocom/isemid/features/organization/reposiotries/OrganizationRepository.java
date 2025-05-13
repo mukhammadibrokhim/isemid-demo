@@ -33,4 +33,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
             @Param("name") String name
     );
 
+    @Query(value = "SELECT * FROM organization WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%') ORDER BY LOWER(name) LIMIT 20", nativeQuery = true)
+    List<Organization> getAllOrganizationsBy20(@Param("name") String name);
+
+
 }

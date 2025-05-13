@@ -36,4 +36,6 @@ public interface OrganizationService {
     ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name);
 
     Organization save(Organization newOrg);
+
+    ApiResponse<?> getOrganizationBy20(String search);
 }
