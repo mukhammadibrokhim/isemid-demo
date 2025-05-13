@@ -140,11 +140,6 @@ public class OrganizationServiceImpl implements OrganizationService {
         return organizationRepository.save(newOrg);
     }
 
-    @Override
-    public ApiResponse<?> getOrganizationBy20(String search) {
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, organizationRepository.getAllOrganizationsBy20(search));
-    }
-
     public static Specification<Organization> getFilteredSpecification(
             String name,
             String stateCode,
