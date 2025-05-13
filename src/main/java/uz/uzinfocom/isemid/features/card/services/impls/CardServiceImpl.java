@@ -25,6 +25,8 @@ import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardService;
 import uz.uzinfocom.isemid.features.card.strategy.impls.UpdateCardService;
 import uz.uzinfocom.isemid.features.card.utils.CardMessageUtil;
+import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
@@ -99,9 +101,11 @@ public class CardServiceImpl implements CardService {
         if (card.getStatus() == CardStatus.COMPLETED) {
             throw new ApiException(BAD_REQUEST, CardMessageUtil.CARD_ALREADY_COMPLETED);
         }
+        Form058 form058 = card.getForm058();
+        form058.setStatus(FormStatus.APPROVED_PENDING);
         card.setCompletedDate(LocalDate.now());
         card.setStatus(CardStatus.COMPLETED);
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, cardRepository.save(card));
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, cardMapper.toCardResponse(cardRepository.save(card)));
     }
 
     @Override
@@ -117,7 +121,7 @@ public class CardServiceImpl implements CardService {
             throw new ApiException(BAD_REQUEST, CardMessageUtil.CARD_NOT_COMPLETED);
         }
         card.setStatus(CardStatus.APPROVED);
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, cardRepository.save(card));
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, cardMapper.toCardResponse(cardRepository.save(card)));
     }
 
     @Override
@@ -136,10 +140,11 @@ public class CardServiceImpl implements CardService {
         if (rejectCard.getComment() == null || rejectCard.getComment().trim().isEmpty()) {
             throw new ApiException(BAD_REQUEST, CardMessageUtil.REJECTION_REASON_REQUIRED);
         }
-
+        Form058 form058 = card.getForm058();
+        form058.setStatus(FormStatus.CARD_LINKED);
         card.setStatus(CardStatus.REJECTED);
         card.setSupervisorComment(rejectCard.getComment());
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, cardRepository.save(card));
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, cardMapper.toCardResponse(cardRepository.save(card)));
     }
 
     @Override
@@ -176,7 +181,7 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Card", cardId)));
 
         if (card.getUsers().stream().noneMatch(user -> user.getId().equals(currentUser.getId()))) {
-            throw new ApiException(FORBIDDEN, CardMessageUtil.UNAUTHORIZED_REJECT);
+            throw new ApiException(FORBIDDEN, CardMessageUtil.ACCESS_DENIED);
         }
 
         return card;
