@@ -15,26 +15,40 @@ import java.util.stream.Collectors;
 public class Form058StatisticsUtil {
 
     public static Form1ReportDto calculate(List<Form058> forms, String name, Set<Form1ReportDto> children) {
-        List<Form058> confirmedForm58 = forms.stream().filter(f -> f.getStatus() == FormStatus.APPROVED).toList();
+        long confirmedTotal = 0;
+        long confirmedAdults = 0;
+        long confirmedUnder18 = 0;
+        long confirmedFemales = 0;
 
-        long confirmedTotal = confirmedForm58.size();
+        long emergencyTotal = 0;
+        long emergencyAdults = 0;
+        long emergencyUnder18 = 0;
+        long emergencyFemales = 0;
 
-        long confirmedAdults = confirmedForm58.stream().filter(f -> isAdult(f.getPatient().getBirthDate())).count();
+        LocalDate today = LocalDate.now();
 
-        long confirmedUnder18 =  confirmedForm58.stream().filter(f -> !isAdult(f.getPatient().getBirthDate())).count();
+        for (Form058 form : forms) {
+            if (form == null || form.getPatient() == null || form.getPatient().getBirthDate() == null) {
+                continue; // skip invalid data
+            }
 
-        long confirmedFemales = confirmedForm58.stream()
-                .filter(f -> isAdult(f.getPatient().getBirthDate()))
-                .filter(f -> Gender.female.name().equals(f.getPatient().getGenderCode())).count();
+            boolean isAdult = Period.between(form.getPatient().getBirthDate(), today).getYears() >= 18;
+            boolean isFemale = Gender.female.name().equalsIgnoreCase(form.getPatient().getGenderCode());
 
-        long emergencyTotal = forms.size();
+            // Emergency (all forms)
+            emergencyTotal++;
+            if (isAdult) emergencyAdults++;
+            else emergencyUnder18++;
+            if (isAdult && isFemale) emergencyFemales++;
 
-        long emergencyAdults = forms.stream().filter(f-> isAdult(f.getPatient().getBirthDate())).count();
-        long emergencyUnder18 = forms.stream().filter(f-> !isAdult(f.getPatient().getBirthDate())).count();
-        long emergencyFemales = forms.stream()
-                .filter(f -> isAdult(f.getPatient().getBirthDate()))
-                .filter(f -> Gender.female.name().equals(f.getPatient().getGenderCode())).count();
-
+            // Confirmed (only APPROVED forms)
+            if (form.getStatus() == FormStatus.APPROVED) {
+                confirmedTotal++;
+                if (isAdult) confirmedAdults++;
+                else confirmedUnder18++;
+                if (isAdult && isFemale) confirmedFemales++;
+            }
+        }
 
         return Form1ReportDto.builder()
                 .name(name)
@@ -55,12 +69,13 @@ public class Form058StatisticsUtil {
         return calculate(forms, name, Set.of());
     }
 
-    public static <T> Set<Form1ReportDto> groupAndCalculate(
+    public static Set<Form1ReportDto> groupAndCalculate(
             List<Form058> forms,
             Function<Form058, String> keyExtractor,
             Function<Form058, String> nameExtractor
     ) {
         return forms.stream()
+                .filter(f -> f.getPatient() != null && f.getPatient().getBirthDate() != null)
                 .collect(Collectors.groupingBy(keyExtractor))
                 .values().stream()
                 .map(groupForms -> {
@@ -69,8 +84,5 @@ public class Form058StatisticsUtil {
                 })
                 .collect(Collectors.toSet());
     }
-
-    private static boolean isAdult(LocalDate birthDate) {
-        return Period.between(birthDate, LocalDate.now()).getYears() >= 18;
-    }
 }
+
