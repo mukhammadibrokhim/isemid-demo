@@ -93,17 +93,10 @@ public class OrganizationController {
 
     @GetMapping("/search")
     public ApiResponse<?> getOrganizationsByFilter(
-            @RequestParam String stateCode,
-            @RequestParam String cityCode,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
             @RequestParam(required = false) String name
     ) {
         return organizationService.getOrganizationsBySearch(stateCode, cityCode, name);
-    }
-
-    @GetMapping("/filter")
-    public ApiResponse<?> getOrganizationsByFilter(
-            @RequestParam(required = false) String search
-    ) {
-        return organizationService.getOrganizationBy20(search);
     }
 }
