@@ -87,16 +87,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageConversionException.class)
     public ResponseEntity<ApiErrorResponse> handleHttpMessageConversionException(HttpMessageConversionException ex) {
         logger.error("Request body conversion error: ", ex);
-        return ResponseEntity.status(BAD_REQUEST).body(ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(BAD_REQUEST.value())
-                .message("Неверный формат сообщения")
-                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                        .field(ex.getClass().getSimpleName())
-                        .errorMessage(ex.getLocalizedMessage())
-                        .build()))
-                .build());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .message("Некорректный формат входных данных. Проверьте правильность типов и форматов.")
+                        .errors(List.of(
+                                ApiErrorResponse.ErrorDetail.builder()
+                                        .field("RequestBody")
+                                        .errorMessage(ex.getMostSpecificCause().getMessage())
+                                        .build()))
+                        .build()
+        );
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
