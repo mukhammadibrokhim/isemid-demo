@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum FormStatus {
     NOT_APPROVED("Tasdiqlanmagan", "Неутвержденный"),
+    NEW("Yangi", "Новый"),
     SENT("Yuborilgan", "Отправлено"),
     RECEIVED("Qabul qilingan", "Получено"),
     CARD_LINKED("Karta bog‘langan", "Карта прикреплена"),

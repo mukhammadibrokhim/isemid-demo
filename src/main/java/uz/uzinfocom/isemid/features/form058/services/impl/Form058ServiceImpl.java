@@ -23,6 +23,7 @@ import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
+import uz.uzinfocom.isemid.features.form058.mappers.Form058ResponseAdapter;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.Location;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
@@ -52,6 +53,7 @@ public class Form058ServiceImpl implements Form058Service {
     private final UserService userService;
     private final Form058Mapper form058Mapper;
     private final OrganizationRepository organizationRepository;
+    private final Form058ResponseAdapter form058ResponseAdapter;
 
 
     @Override
@@ -276,7 +278,12 @@ public class Form058ServiceImpl implements Form058Service {
     public ApiResponsePage getAllFilteredForm058(int page, int size, User user, String url, FilterType filterType) {
         Specification<Form058> spec = getFilteredSpecification(user, filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, form058Page.map(form058Mapper::toResponse), url);
+
+        Page<Form058Response> responsePage = form058Page.map(form -> {
+            Form058Response base = form058Mapper.toResponse(form);
+            return form058ResponseAdapter.adapt(base, form, filterType);
+        });
+        return createApiResponsePage(page, responsePage, url);
 
     }
 
@@ -381,9 +388,7 @@ public class Form058ServiceImpl implements Form058Service {
             throw new ApiException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
         return new ApiResponse<>(true, MessageUtil.DELETED_SUCCESS, null);
-
     }
-
 
     @Override
     public ApiResponse<?> changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
