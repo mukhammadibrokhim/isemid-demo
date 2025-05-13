@@ -15,19 +15,26 @@ import java.util.stream.Collectors;
 public class Form058StatisticsUtil {
 
     public static Form1ReportDto calculate(List<Form058> forms, String name, Set<Form1ReportDto> children) {
-        long confirmedTotal = forms.stream().filter(f -> f.getStatus() == FormStatus.APPROVED).count();
-        long confirmedAdults = forms.stream().filter(f -> f.getStatus() == FormStatus.APPROVED)
-                .filter(f -> isAdult(f.getPatient().getBirthDate())).count();
-        long confirmedUnder18 = confirmedTotal - confirmedAdults;
-        long confirmedFemales = forms.stream().filter(f -> f.getStatus() == FormStatus.APPROVED)
+        List<Form058> confirmedForm58 = forms.stream().filter(f -> f.getStatus() == FormStatus.APPROVED).toList();
+
+        long confirmedTotal = confirmedForm58.size();
+
+        long confirmedAdults = confirmedForm58.stream().filter(f -> isAdult(f.getPatient().getBirthDate())).count();
+
+        long confirmedUnder18 =  confirmedForm58.stream().filter(f -> !isAdult(f.getPatient().getBirthDate())).count();
+
+        long confirmedFemales = confirmedForm58.stream()
+                .filter(f -> isAdult(f.getPatient().getBirthDate()))
                 .filter(f -> Gender.female.name().equals(f.getPatient().getGenderCode())).count();
 
         long emergencyTotal = forms.size();
-        long emergencyAdults = forms.stream().filter(f -> f.getStatus() != FormStatus.APPROVED)
-                .filter(f -> isAdult(f.getPatient().getBirthDate())).count();
-        long emergencyUnder18 = emergencyTotal - emergencyAdults;
-        long emergencyFemales = forms.stream().filter(f -> f.getStatus() != FormStatus.APPROVED)
+
+        long emergencyAdults = forms.stream().filter(f-> isAdult(f.getPatient().getBirthDate())).count();
+        long emergencyUnder18 = forms.stream().filter(f-> !isAdult(f.getPatient().getBirthDate())).count();
+        long emergencyFemales = forms.stream()
+                .filter(f -> isAdult(f.getPatient().getBirthDate()))
                 .filter(f -> Gender.female.name().equals(f.getPatient().getGenderCode())).count();
+
 
         return Form1ReportDto.builder()
                 .name(name)
