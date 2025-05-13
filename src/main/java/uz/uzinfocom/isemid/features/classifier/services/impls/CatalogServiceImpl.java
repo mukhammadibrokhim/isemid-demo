@@ -37,8 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
@@ -148,6 +147,12 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public List<Catalog> finAllByType(CatalogType catalogType) {
         return catalogRepository.findAllByType(catalogType.name());
+    }
+
+    @Override
+    public ApiResponse<CatalogResponse> getById(long id) {
+        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS,
+                catalogMapper.toDto(catalogRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)))));
     }
 
 
