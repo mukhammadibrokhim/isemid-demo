@@ -29,19 +29,17 @@ public class Form058StatisticsUtil {
 
         for (Form058 form : forms) {
             if (form == null || form.getPatient() == null || form.getPatient().getBirthDate() == null) {
-                continue; // skip invalid data
+                continue;
             }
 
             boolean isAdult = Period.between(form.getPatient().getBirthDate(), today).getYears() >= 18;
             boolean isFemale = Gender.female.name().equalsIgnoreCase(form.getPatient().getGenderCode());
 
-            // Emergency (all forms)
             emergencyTotal++;
             if (isAdult) emergencyAdults++;
             else emergencyUnder18++;
             if (isAdult && isFemale) emergencyFemales++;
 
-            // Confirmed (only APPROVED forms)
             if (form.getStatus() == FormStatus.APPROVED) {
                 confirmedTotal++;
                 if (isAdult) confirmedAdults++;
@@ -49,6 +47,9 @@ public class Form058StatisticsUtil {
                 if (isAdult && isFemale) confirmedFemales++;
             }
         }
+        double growthRate = confirmedTotal > 0
+                ? ((double) emergencyTotal / confirmedTotal) * 100
+                : 0.0;
 
         return Form1ReportDto.builder()
                 .name(name)
@@ -61,7 +62,7 @@ public class Form058StatisticsUtil {
                 .emergencyUnder18(emergencyUnder18)
                 .emergencyFemales(emergencyFemales)
                 .children(children)
-                .growthRate(((double) emergencyTotal /confirmedTotal) * 100)
+                .growthRate(growthRate)
                 .build();
     }
 
