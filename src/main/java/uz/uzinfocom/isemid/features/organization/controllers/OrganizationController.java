@@ -99,4 +99,11 @@ public class OrganizationController {
     ) {
         return organizationService.getOrganizationsBySearch(stateCode, cityCode, name);
     }
+
+    @GetMapping("/filter")
+    public ApiResponse<?> getOrganizationsByFilter(
+            @RequestParam(required = false) String search
+    ) {
+        return organizationService.getOrganizationBy20(search);
+    }
 }
