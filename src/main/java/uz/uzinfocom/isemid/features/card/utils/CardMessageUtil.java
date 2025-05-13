@@ -7,6 +7,7 @@ public class CardMessageUtil {
 
     public static final String UNAUTHORIZED_REJECT = "У вас нет прав для отклонения данной Card.";
     public static final String UNAUTHORIZED_APPROVE = "У вас нет прав для утверждения данной Card.";
+    public static final String ACCESS_DENIED = "У вас нет доступа к этому ресурсу.";
 
     public static final String CARD_ALREADY_APPROVED = "Card уже утверждена.";
     public static final String CARD_ALREADY_COMPLETED = "Card уже завершена.";
