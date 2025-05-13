@@ -61,7 +61,7 @@ public class Form058StatisticsUtil {
                 .emergencyUnder18(emergencyUnder18)
                 .emergencyFemales(emergencyFemales)
                 .children(children)
-                .growthRate((confirmedTotal + emergencyTotal) * 100)
+                .growthRate(((double) emergencyTotal /confirmedTotal) * 100)
                 .build();
     }
 
