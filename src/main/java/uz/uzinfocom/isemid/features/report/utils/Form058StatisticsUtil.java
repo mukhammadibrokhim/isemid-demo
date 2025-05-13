@@ -47,9 +47,11 @@ public class Form058StatisticsUtil {
                 if (isAdult && isFemale) confirmedFemales++;
             }
         }
-        double growthRate = confirmedTotal > 0
-                ? ((double) emergencyTotal / confirmedTotal) * 100
-                : 0.0;
+        double growthRate = 0.0;
+        if (confirmedTotal > 0) {
+            growthRate = ((double) emergencyTotal / confirmedTotal) * 100;
+            growthRate = Math.round(growthRate * 100.0) / 100.0;
+        }
 
         return Form1ReportDto.builder()
                 .name(name)
