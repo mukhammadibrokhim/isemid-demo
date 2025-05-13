@@ -76,6 +76,11 @@ public class CatalogController {
         return catalogService.update(id, catalogRequest);
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<CatalogResponse> get(@PathVariable long id) {
+        return catalogService.getById(id);
+    }
+
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable long id) {
         return catalogService.delete(id);

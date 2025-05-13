@@ -35,4 +35,6 @@ public interface CatalogService {
     Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code);
 
     List<Catalog> finAllByType(CatalogType catalogType);
+
+    ApiResponse<CatalogResponse> getById(long id);
 }

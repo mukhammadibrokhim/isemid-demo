@@ -9,6 +9,7 @@ import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -96,6 +97,24 @@ public class GlobalExceptionHandler {
                         .build()))
                 .build());
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        logger.error("Request body conversion error: ", ex);
+        List<ApiErrorResponse.ErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> ApiErrorResponse.ErrorDetail.builder()
+                        .field(error.getField())
+                        .errorMessage(error.getDefaultMessage())
+                        .build())
+                .toList();
+        return ResponseEntity.status(BAD_REQUEST).body(ApiErrorResponse.builder()
+                .success(false)
+                .statusCode(BAD_REQUEST.value())
+                .message("Некорректные данные. Проверьте правильность заполнения полей.")
+                .errors(errors)
+                .build());
+    }
+
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
