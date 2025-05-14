@@ -392,14 +392,14 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public ApiResponse<?> changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
-        Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, "Form058 not found."));
+        Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, formId)));
         if (!form058.getStatus().equals(FormStatus.NOT_APPROVED))
-            throw new ApiException(BAD_REQUEST, "Cannot change diagnosis.");
+            throw new ApiException(BAD_REQUEST, MessageUtil.CANNOT_CHANGE_DIAGNOSIS);
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
-        form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10name());
+        form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);
-        return new ApiResponse<>(true, "Success", form058Mapper.toResponse(form058Repository.save(form058)));
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, form058Mapper.toResponse(form058Repository.save(form058)));
     }
 
     public static Specification<Form058> getFilteredSpecification(

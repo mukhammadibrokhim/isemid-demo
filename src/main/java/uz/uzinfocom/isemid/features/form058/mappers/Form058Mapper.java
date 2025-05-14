@@ -14,6 +14,9 @@ import uz.uzinfocom.isemid.features.patient.mappers.PatientMapper;
 public interface Form058Mapper {
 
     @Mapping(target = "id", source = "id")
+    @Mapping(target = "finalMkb10Code", source = "finalMkb10Code")
+    @Mapping(target = "finalMkb10Name", source = "finalMkb10Name")
+    @Mapping(target = "mkb10UsageLimit", source = "mkb10UsageLimit")
     @Mapping(target = "patient", source = "patient")
     @Mapping(target = "diseasePlace", source = "diseasePlaceCode", qualifiedByName = "toCatalog")
     @Mapping(target = "senderOrganization", source = "senderOrganizationId", qualifiedByName = "toOrgMiniResponse")

@@ -13,5 +13,5 @@ public class Form058ChangeDiagnosisRequest {
     @NotBlank
     private String finalMkb10Code;
     @NotBlank
-    private String finalMkb10name;
+    private String finalMkb10Name;
 }
