@@ -399,7 +399,7 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10name());
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);
-        return new ApiResponse<>(true, "Success", form058Repository.save(form058));
+        return new ApiResponse<>(true, "Success", form058Mapper.toResponse(form058Repository.save(form058)));
     }
 
     public static Specification<Form058> getFilteredSpecification(

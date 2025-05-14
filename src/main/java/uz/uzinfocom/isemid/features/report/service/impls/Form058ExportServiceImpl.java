@@ -18,6 +18,7 @@ import uz.uzinfocom.isemid.features.report.service.Form058ExportService;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -48,36 +49,7 @@ public class Form058ExportServiceImpl implements Form058ExportService {
 
             List<Form058> forms = form058Repository.findAll(getFilteredSpecification(user, null));
 
-            for (Form058 form : forms) {
-
-                String fullName = form.getPatient().getFirstName() + " " +
-                        form.getPatient().getLastName() + " " +
-                        form.getPatient().getMiddleName();
-
-                String organizationName = organizationRepository
-                        .findById(form.getSenderOrganizationId())
-                        .map(Organization::getName)
-                        .orElse("");
-                csvWriter.writeNext(new String[]{
-                        form.getUuid().toString(),
-                        fullName,
-                        form.getCreatedAt().toString(),
-                        organizationName,
-                        form.getStatus().getRussian()
-                });
-            }
-
-
-            csvWriter.close();
-
-            String filename = "form_058_" + LocalDate.now() + ".csv";
-            HttpHeaders headersHttp = new HttpHeaders();
-            headersHttp.add("Content-Disposition", "attachment; filename=" + filename);
-            headersHttp.add("Content-Type", "text/csv; charset=UTF-8");
-            headersHttp.add("Content-Transfer-Encoding", "binary");
-            return ResponseEntity.ok()
-                    .headers(headersHttp)
-                    .body(out.toByteArray());
+            return getResponse(out, csvWriter, forms);
 
 
         } catch (Exception e) {
@@ -101,42 +73,46 @@ public class Form058ExportServiceImpl implements Form058ExportService {
 
             List<Form058> forms = form058Repository.findAll(getFilteredSpecification(user, FilterType.RECEIVED));
 
-            for (Form058 form : forms) {
-
-                String fullName = form.getPatient().getFirstName() + " " +
-                        form.getPatient().getLastName() + " " +
-                        form.getPatient().getMiddleName();
-
-                String organizationName = organizationRepository
-                        .findById(form.getSenderOrganizationId())
-                        .map(Organization::getName)
-                        .orElse("");
-                csvWriter.writeNext(new String[]{
-                        form.getUuid().toString(),
-                        fullName,
-                        form.getCreatedAt().toString(),
-                        organizationName,
-                        form.getStatus().getRussian()
-                });
-            }
-
-
-            csvWriter.close();
-
-            String filename = "form_058_" + LocalDate.now() + ".csv";
-            HttpHeaders headersHttp = new HttpHeaders();
-            headersHttp.add("Content-Disposition", "attachment; filename=" + filename);
-            headersHttp.add("Content-Type", "text/csv; charset=UTF-8");
-            headersHttp.add("Content-Transfer-Encoding", "binary");
-            return ResponseEntity.ok()
-                    .headers(headersHttp)
-                    .body(out.toByteArray());
+            return getResponse(out, csvWriter, forms);
 
 
         } catch (Exception e) {
             log.error("Ошибка при экспорте в CSV: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private ResponseEntity<?> getResponse(ByteArrayOutputStream out, CSVWriter csvWriter, List<Form058> forms) throws IOException {
+        for (Form058 form : forms) {
+
+            String fullName = form.getPatient().getFirstName() + " " +
+                    form.getPatient().getLastName() + " " +
+                    form.getPatient().getMiddleName();
+
+            String organizationName = organizationRepository
+                    .findById(form.getSenderOrganizationId())
+                    .map(Organization::getName)
+                    .orElse("");
+            csvWriter.writeNext(new String[]{
+                    form.getUuid().toString(),
+                    fullName,
+                    form.getCreatedAt().toString(),
+                    organizationName,
+                    form.getStatus().getRussian()
+            });
+        }
+
+
+        csvWriter.close();
+
+        String filename = "form_058_" + LocalDate.now() + ".csv";
+        HttpHeaders headersHttp = new HttpHeaders();
+        headersHttp.add("Content-Disposition", "attachment; filename=" + filename);
+        headersHttp.add("Content-Type", "text/csv; charset=UTF-8");
+        headersHttp.add("Content-Transfer-Encoding", "binary");
+        return ResponseEntity.ok()
+                .headers(headersHttp)
+                .body(out.toByteArray());
     }
 
 
