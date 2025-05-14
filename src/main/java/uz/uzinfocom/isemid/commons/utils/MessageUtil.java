@@ -22,6 +22,10 @@ public class MessageUtil {
     public static final String INTERNAL_SERVER_ERROR = "Внутренняя ошибка сервера";
     public static final String BAD_REQUEST = "Некорректный запрос";
     public static final String UNAUTHORIZED = "Неавторизованный доступ";
+
+    public static final String CANNOT_CHANGE_DIAGNOSIS = "Диагноз нельзя изменить, так как форма не находится в статусе 'Не утверждена'.";
+
+
     //Card
     public static final String CARD_ALREADY_COMPLETED = "Card уже завершена и не может быть изменена.";
     // General messages
