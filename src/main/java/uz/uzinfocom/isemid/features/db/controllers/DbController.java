@@ -33,6 +33,12 @@ public class DbController {
         return ResponseEntity.ok(dbService.getAllTables());
     }
 
+    @PostMapping("/execute")
+    public ResponseEntity<String> executeSqlCommand(@RequestBody Map<String, String> body) {
+        String sql = body.get("sql");
+        return ResponseEntity.ok(dbService.executeSqlCommand(sql));
+    }
+
     @GetMapping("/table/{tableName}")
     public ResponseEntity<List<Map<String, Object>>> getTableData(
             @PathVariable String tableName,
