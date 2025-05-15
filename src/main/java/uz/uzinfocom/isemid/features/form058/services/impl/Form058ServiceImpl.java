@@ -386,11 +386,17 @@ public class Form058ServiceImpl implements Form058Service {
     public ApiResponse<?> deleteById(Long formId) {
         Form058 form058 = this.getForm058ById(formId);
         List<Card> cards = form058.getCards();
+
         for (Card card : cards) {
-            Card161 card161 = (Card161) card;
-            card161.setInfectionSourceDetail(null);
-            cardRepository.save(card161);
+            if (card instanceof Card161 card161) {
+                if (card161.getInfectionSourceDetail() != null) {
+                    card161.setInfectionSourceDetail(null);
+                    cardRepository.save(card161);
+                }
+            }
         }
+        cardRepository.flush();
+
         try {
             form058Repository.delete(form058);
         } catch (Exception e) {
