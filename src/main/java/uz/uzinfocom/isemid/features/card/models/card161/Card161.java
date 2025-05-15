@@ -144,8 +144,7 @@ public class Card161 extends Card {
     private String probableInfectionLocationCode;
     private Boolean isInfectionSourceMissing;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "infection_source_detail_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     private InfectionSourceDetail infectionSourceDetail;
     private String mainProbableInfectionFactorCode;
 
