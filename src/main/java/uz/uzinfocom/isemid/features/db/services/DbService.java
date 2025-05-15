@@ -21,6 +21,22 @@ public class DbService {
     @PersistenceContext
     private EntityManager entityManager;
 
+    @Transactional
+    public String executeSqlCommand(String sql) {
+        try {
+            String[] queries = sql.split(";");
+            for (String q : queries) {
+                if (!q.trim().isEmpty()) {
+                    entityManager.createNativeQuery(q.trim()).executeUpdate();
+                }
+            }
+            return "SQL command(s) executed successfully.";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error executing SQL command: " + e.getMessage();
+        }
+    }
+
     public List<TableDto> getAllTables() {
         String query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'";
         Query nativeQuery = entityManager.createNativeQuery(query);
