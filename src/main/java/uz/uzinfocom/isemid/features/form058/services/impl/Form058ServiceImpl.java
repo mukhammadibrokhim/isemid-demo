@@ -16,6 +16,7 @@ import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.factory.CardFactory;
 import uz.uzinfocom.isemid.features.card.models.Card;
+import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.utils.CardMessageUtil;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
@@ -382,6 +383,11 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     public ApiResponse<?> deleteById(Long formId) {
         Form058 form058 = this.getForm058ById(formId);
+        List<Card> cards = form058.getCards();
+        for (Card card : cards) {
+            Card161 card161 = (Card161) card;
+            card161.setInfectionSourceDetail(null);
+        }
         try {
             form058Repository.delete(form058);
         } catch (Exception e) {
