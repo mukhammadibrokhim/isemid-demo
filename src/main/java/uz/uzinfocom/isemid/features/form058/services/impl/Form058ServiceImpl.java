@@ -17,6 +17,7 @@ import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.factory.CardFactory;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
+import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.utils.CardMessageUtil;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
@@ -55,6 +56,7 @@ public class Form058ServiceImpl implements Form058Service {
     private final Form058Mapper form058Mapper;
     private final OrganizationRepository organizationRepository;
     private final Form058ResponseAdapter form058ResponseAdapter;
+    private final CardRepository cardRepository;
 
 
     @Override
@@ -387,6 +389,7 @@ public class Form058ServiceImpl implements Form058Service {
         for (Card card : cards) {
             Card161 card161 = (Card161) card;
             card161.setInfectionSourceDetail(null);
+            cardRepository.save(card161);
         }
         try {
             form058Repository.delete(form058);
