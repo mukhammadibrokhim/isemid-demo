@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 
 @Repository
-public interface Form058Repository extends JpaRepository<Form058, Long>, JpaSpecificationExecutor<Form058> {
+public interface Form058Repository extends JpaRepository<Form058, Long>, JpaSpecificationExecutor<Form058>, Form058RepositoryCustom {
 }
