@@ -12,13 +12,10 @@ import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
 import uz.uzinfocom.isemid.features.classifier.mappers.ManualReportMapper;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
-import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
-import uz.uzinfocom.isemid.features.classifier.repositories.Mkb10Repository;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -33,7 +30,6 @@ import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting
 @RequiredArgsConstructor
 public class ManualReportServiceImpl implements ManualReportService {
     private final ManualReportRepository repo;
-    private final Mkb10Repository mkb10Repository;
     private final ManualReportMapper mapper;
 
     @Override
@@ -45,7 +41,6 @@ public class ManualReportServiceImpl implements ManualReportService {
 
     @Override
     public ApiResponse<?> create(ManualReportRequest reqManualReport) {
-        List<Mkb10> mkb10List = mkb10Repository.findAllByCodeIn(reqManualReport.getMkb10Codes());
         ManualReport manualReport = ManualReport.builder()
                 .code(reqManualReport.getCode())
                 .shortName(reqManualReport.getShortName())
@@ -54,7 +49,7 @@ public class ManualReportServiceImpl implements ManualReportService {
                 .nameRu(reqManualReport.getNameRu())
                 .nameKaa(reqManualReport.getNameKaa())
                 .includeInTotal(reqManualReport.getIncludeInTotal())
-                .mkb10Codes(mkb10List)
+                .mkb10Codes(reqManualReport.getMkb10Codes())
                 .build();
 
         return new ApiResponse<>(true, MessageUtil.CREATED_SUCCESS, mapper.toResponse(repo.save(manualReport)));
@@ -87,14 +82,13 @@ public class ManualReportServiceImpl implements ManualReportService {
         Optional.ofNullable(manualReportRequest.getIncludeInTotal()).ifPresent(manualReport::setIncludeInTotal);
         Optional.ofNullable(manualReportRequest.getNameKaa()).ifPresent(manualReport::setNameKaa);
         Optional.ofNullable(manualReportRequest.getMkb10Codes()).ifPresent(reqCodes -> {
-            List<Mkb10> newMkb10List = mkb10Repository.findByCodeIn(reqCodes);
             if (manualReport.getMkb10Codes() == null) {
-                manualReport.setMkb10Codes(new ArrayList<>());
+                manualReport.setMkb10Codes(new HashSet<>());
             } else {
                 manualReport.getMkb10Codes().clear();
             }
 
-            manualReport.getMkb10Codes().addAll(newMkb10List);
+            manualReport.getMkb10Codes().addAll(reqCodes);
         });
 
         return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, mapper.toResponse(repo.save(manualReport)));

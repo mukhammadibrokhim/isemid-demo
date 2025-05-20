@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
-import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
@@ -21,6 +20,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -42,10 +42,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                 continue;
             }
 
-            List<String> mkb10Codes = report.getMkb10Codes()
-                    .stream()
-                    .map(Mkb10::getCode)
-                    .toList();
+            Set<String> mkb10Codes = report.getMkb10Codes();
 
             List<Form058> matched = form058s.stream()
                     .filter(f -> mkb10Codes.contains(f.getMkb10Code()) || mkb10Codes.contains(f.getFinalMkb10Code()))

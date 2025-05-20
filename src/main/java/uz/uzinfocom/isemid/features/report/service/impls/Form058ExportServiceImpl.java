@@ -25,7 +25,9 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -139,6 +141,15 @@ public class Form058ExportServiceImpl implements Form058ExportService {
                         .orElse("");
                 String hospitalAndDate = String.join(", ", hospitalName, form.getAdmissionDate() != null ? formatter.format(form.getAdmissionDate()) : "");
 
+                Timestamp timestamp = form.getCreatedAt(); // bu java.sql.Timestamp
+                LocalDateTime localDateTime = timestamp.toLocalDateTime();
+                String createdOrgAndDocName = String.join(", ", form.getCreatedOrg().getName(), form.getNotifierFullName(), formatter.format(localDateTime));
+
+                String receiverORg = Optional.ofNullable(form.getReceiverOrganizationId())
+                        .flatMap(organizationRepository::findById)
+                        .map(Organization::getName)
+                        .orElse(null);
+
                 int index = rowIdx.get() - 9;
 
                 String[] values = new String[]{
@@ -154,7 +165,8 @@ public class Form058ExportServiceImpl implements Form058ExportService {
                         hospitalAndDate,
                         String.join(", ", icd10, diagnosisDate),
                         String.join(", ", icd10Final, diagnosisDate),
-                        "", "", "", ""
+                        createdOrgAndDocName,
+                        receiverORg, "", ""
                 };
 
                 for (int i = 0; i < values.length; i++) {

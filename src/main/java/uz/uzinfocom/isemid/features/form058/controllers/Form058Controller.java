@@ -16,6 +16,8 @@ import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+import java.time.LocalDate;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -44,20 +46,24 @@ public class Form058Controller {
     public ApiResponsePage getAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return form058Service.getAllFilteredForm058(page, size, user, getRequestUrl(request), FilterType.ALL);
+        return form058Service.getAllFilteredForm058(page, size, fromDate, toDate, user, getRequestUrl(request), FilterType.ALL);
     }
 
     @GetMapping("/received/all")
     public ApiResponsePage getReceivedAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return form058Service.getAllFilteredForm058(page, size, user, getRequestUrl(request), FilterType.RECEIVED);
+        return form058Service.getAllFilteredForm058(page, size, fromDate, toDate, user, getRequestUrl(request), FilterType.RECEIVED);
     }
 
     @GetMapping("/{id}")

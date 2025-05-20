@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 import java.util.List;
+import java.util.Set;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
@@ -34,7 +35,8 @@ public class ManualReport extends BaseEntity {
     private String nameKaa;
     private Boolean includeInTotal;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "cls_manual_report_id")
-    private List<Mkb10> mkb10Codes;
+    @ElementCollection
+    @CollectionTable(name = "cls_manual_report_mkb10_codes", joinColumns = @JoinColumn(name = "cls_manual_report_id"))
+    @Column(name = "cls_mkb10_code")
+    private Set<String> mkb10Codes;
 }

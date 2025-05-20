@@ -1,9 +1,6 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,7 +35,10 @@ import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -278,8 +278,8 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public ApiResponsePage getAllFilteredForm058(int page, int size, User user, String url, FilterType filterType) {
-        Specification<Form058> spec = getFilteredSpecification(user, filterType);
+    public ApiResponsePage getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType) {
+        Specification<Form058> spec = getFilteredSpecification(fromDate, toDate, user, filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
 
         Page<Form058Response> responsePage = form058Page.map(form -> {
@@ -418,6 +418,8 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     public static Specification<Form058> getFilteredSpecification(
+            LocalDate fromDate,
+            LocalDate toDate,
             User currentUser,
             FilterType filterType
     ) {
@@ -442,6 +444,25 @@ public class Form058ServiceImpl implements Form058Service {
                     predicates.add(eitherMatches);
                 }
             }
+
+            if (fromDate != null && toDate != null) {
+                predicates.add(criteriaBuilder.between(
+                        root.get("createdAt"),
+                        Timestamp.valueOf(fromDate.atStartOfDay()),
+                        Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
+                ));
+            } else if (fromDate != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
+                        root.get("createdAt"),
+                        Timestamp.valueOf(fromDate.atStartOfDay())
+                ));
+            } else if (toDate != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(
+                        root.get("createdAt"),
+                        Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
+                ));
+            }
+
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
