@@ -17,26 +17,31 @@ import java.util.List;
 @Slf4j
 @Component
 public class AuthEntryPoint implements AuthenticationEntryPoint {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
+
         try {
-            response.getOutputStream().println(
-                    new ObjectMapper().writeValueAsString(
-                            ApiErrorResponse.builder()
-                                    .success(false)
-                                    .statusCode(HttpStatus.UNAUTHORIZED.value())
-                                    .message("Unauthorized access.")
-                                    .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                                            .field(authException.getClass().getSimpleName())
-                                            .errorMessage(authException.getMessage()).build()))
-                                    .build()
-                    )
+            String errorJson = objectMapper.writeValueAsString(
+                    ApiErrorResponse.builder()
+                            .success(false)
+                            .statusCode(HttpStatus.UNAUTHORIZED.value())
+                            .message("Неавторизованный доступ.")
+                            .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                    .field(authException.getClass().getSimpleName())
+                                    .errorMessage(authException.getMessage()).build()))
+                            .build()
             );
+
+            response.getWriter().write(errorJson);
+            response.getWriter().flush();
         } catch (IOException e) {
             log.debug("Client disconnected before response was written", e);
         }
-
     }
 }
