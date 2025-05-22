@@ -8,12 +8,14 @@ import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+import java.time.LocalDate;
+
 public interface Form058Service {
     ApiResponse<Form058Response> create(Form058Request form058Request, User user);
 
     ApiResponse<Form058Response> update(Form058Request request, Long id, User user);
 
-    ApiResponsePage getAllFilteredForm058(int page, int size, User user, String url, FilterType filterType);
+    ApiResponsePage getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType);
 
     ApiResponse<Form058Response> getById(long id);
 

@@ -123,14 +123,15 @@ public class Mkb10ServiceImpl implements Mkb10Service {
                     .map(record -> Mkb10.builder()
                             .id(Long.parseLong(record[1]))           // ID
                             .code(record[2]) // code
-                            .isLastLevel(Boolean.parseBoolean(record[3])) // is_last_level
-                            .level(Integer.parseInt(record[4])) // level
-                            .nameKaa(record[6]) // name_en
-                            .nameRu(record[6]) // name_ru
-                            .nameUz(record[7]) // name_uz
-                            .nameUzCyril(record[8]) // name_uz_cyrl
-                            .parentId(record[9].isEmpty() ? null : Long.parseLong(record[9])) // parent_id
-                            .secondaryId(Long.parseLong(record[10])) // secondary_id
+                            .isLastLevel(Boolean.parseBoolean(record[6])) // is_last_level
+                            .level(Integer.parseInt(record[7])) // level
+                            .nameKaa(record[8]) // name_en
+                            .nameRu(record[8]) // name_ru
+                            .nameUz(record[10]) // name_uz
+                            .nameUzCyril(record[11]) // name_uz_cyrl
+                            .parentId(record[12].isEmpty() ? null : Long.parseLong(record[12])) // parent_id
+                            .secondaryId(Long.parseLong(record[13])) // secondary_id
+                            .usageLimit(Integer.parseInt(record[16]))
                             .build())
                     .filter(mkb10 -> !allCodes.contains(mkb10.getCode()))
                     .collect(Collectors.toMap(Mkb10::getId, mkb10 -> mkb10));
