@@ -47,6 +47,8 @@ import static uz.uzinfocom.isemid.configs.security.SecurityConstants.WHITE_LIST;
 public class SecurityConfig {
 
     private final ObjectMapper objectMapper;
+    private final AccessDeniedEntryPoint accessDeniedEntryPoint;
+    private final AuthEntryPoint authEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ApplicationContext context) throws Exception {
@@ -69,14 +71,16 @@ public class SecurityConfig {
                         .requestMatchers(WHITE_LIST).permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authEntryPoint)
+                        .accessDeniedHandler(accessDeniedEntryPoint)
+                )
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer -> jwtConfigurer
                                         .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService, objectMapper)))
-                                .accessDeniedHandler(new AccessDeniedEntryPoint())
-                                .authenticationEntryPoint(new AuthEntryPoint())
-                )
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new AuthEntryPoint()));
+                                .authenticationEntryPoint(authEntryPoint)
+                                .accessDeniedHandler(accessDeniedEntryPoint)
+                );
 
         return http.build();
     }
