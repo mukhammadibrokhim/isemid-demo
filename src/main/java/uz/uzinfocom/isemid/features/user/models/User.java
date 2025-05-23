@@ -39,6 +39,7 @@ public class User implements UserDetails {
     private String ppn;
 
     @JsonIgnore
+    @Column(columnDefinition = "TEXT")
     private String password;
 
     private String firstName;
