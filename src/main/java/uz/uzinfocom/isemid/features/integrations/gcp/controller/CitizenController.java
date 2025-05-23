@@ -24,10 +24,11 @@ public class CitizenController {
     @Operation(
             summary = "Получение информации о гражданине",
             description = """
-                        Получает информацию о гражданине на основе предоставленных параметров:
-                        - Если указаны `nnuzb` и `photo`, то информация о гражданине будет получена по уникальному идентификатору nnuzb и фотографии.
-                        - Если указаны `series` и `number`, то информация будет получена на основе данных о ребенке.
-                    """,
+                Возвращает данные гражданина на основе предоставленных параметров:
+                - При указании `nnuzb` и `photo` — поиск по уникальному идентификатору и фотографии.
+                - При указании `series` и `number` — поиск данных по документу ребенка.
+                Если параметры некорректны или отсутствуют — возвращается ошибка.
+                """,
             parameters = {
                     @Parameter(name = "nnuzb", description = "Уникальный ID гражданина (nnuzb)"),
                     @Parameter(name = "photo", description = "Фотография гражданина"),
@@ -49,6 +50,10 @@ public class CitizenController {
         } else throw new ApiException(BAD_REQUEST, "Неверные параметры запроса");
     }
 
+    @Operation(
+            summary = "Генерация данных гражданина по nnuzb",
+            description = "Возвращает информацию о гражданине по уникальному идентификатору nnuzb с использованием токена."
+    )
     @GetMapping("/qr")
     public ResponseEntity<?> genCitizenByNnuzb(@RequestParam(required = false) String nnuzb) {
         return citizenService.getCitizenByNnuzbByToken(nnuzb);
