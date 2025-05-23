@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uz.uzinfocom.isemid.commons.dtos.ApiErrorResponse;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
@@ -135,6 +136,22 @@ public class GlobalExceptionHandler {
                 .build());
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String expectedType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "неизвестный";
+
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .success(false)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("Неверный тип аргумента: параметр '" + ex.getName() + "'")
+                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                        .field(ex.getName())
+                        .errorMessage("Ожидался тип: " + expectedType)
+                        .build()))
+                .build();
+
+        return ResponseEntity.badRequest().body(response);
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
@@ -142,7 +159,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiErrorResponse.builder()
                 .success(false)
                 .statusCode(HttpStatus.UNAUTHORIZED.value())
-                .message(ex.getLocalizedMessage())
+                .message("Неверный логин или пароль.")
                 .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                         .field(ex.getClass().getSimpleName())
                         .errorMessage(ex.getLocalizedMessage())

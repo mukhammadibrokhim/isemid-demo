@@ -20,20 +20,17 @@ import uz.uzinfocom.isemid.features.security.dtos.responses.TokenResponse;
 import uz.uzinfocom.isemid.features.security.services.AuthService;
 import uz.uzinfocom.isemid.features.user.models.User;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
-
 @RestController
 @RequestMapping(ApiPaths.Auth.ROOT)
 @Tag(name = "Auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    final AuthenticationManager authenticationManager;
-    final JwtUtil jwtUtil;
-    final AuthService authService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final AuthService authService;
 
-    @PostMapping(value = "/sign-in", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/sign-in")
     public ResponseEntity<TokenResponse> signIn(@Valid @RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getNnuzb(), authRequest.getPassword()));
@@ -47,7 +44,7 @@ public class AuthController {
                 .build());
     }
 
-    @PostMapping(value = "/sign-up", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/sign-up")
     public ApiResponse<?> signUp(@Valid @RequestBody RegisterRequest request) {
         return authService.signUp(request);
     }
