@@ -30,4 +30,9 @@ public interface RoleService {
 
     ApiResponse<RoleResponse> deleteById(long id);
 
+    ApiResponse<?> roleSearch(String search);
+
+    ApiResponse<?> addPermission(long roleId, long permissionId);
+
+    ApiResponse<?> removePermission(long roleId, long permissionId);
 }

@@ -23,8 +23,8 @@ import static uz.uzinfocom.isemid.commons.utils.MessageUtil.*;
 public class PermissionServiceImpl implements PermissionService {
 
     private final PermissionRepository permissionRepository;
-
     private final PermissionMapper permissionMapper;
+
     @Override
     public ApiResponse<PermissionResponse> create(PermissionRequest permissionRequest) {
         Permission permission = Permission.builder()

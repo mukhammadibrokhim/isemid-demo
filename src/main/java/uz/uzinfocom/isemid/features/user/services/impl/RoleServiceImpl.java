@@ -99,6 +99,22 @@ public class RoleServiceImpl implements RoleService {
         return null;
     }
 
+    @Override
+    public ApiResponse<?> roleSearch(String search) {
+        List<Role> searchRole = roleRepository.searchRolesNative(search);
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, searchRole.stream().map(roleMapper::toResponse).toList());
+    }
+
+    @Override
+    public ApiResponse<?> addPermission(long roleId, long permissionId) {
+        return null;
+    }
+
+    @Override
+    public ApiResponse<?> removePermission(long roleId, long permissionId) {
+        return null;
+    }
+
     @PostConstruct
     public void initDefaultRolesAndPermissions() {
         Map<String, Map<String, Object>> rolePermissions = Map.of(

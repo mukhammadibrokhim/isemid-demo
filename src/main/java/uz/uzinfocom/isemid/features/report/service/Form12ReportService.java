@@ -7,5 +7,12 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import java.time.LocalDate;
 
 public interface Form12ReportService {
-    ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser);
+    ApiResponse<?> getReport(
+            LocalDate fromDate,
+            LocalDate toDate,
+            LocalDate birthDate,
+            String mkb10Code,
+            Gender gender,
+            User currentUser
+    );
 }

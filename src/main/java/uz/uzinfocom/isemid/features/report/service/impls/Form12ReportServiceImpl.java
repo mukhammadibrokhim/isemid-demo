@@ -29,7 +29,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
     private final ManualReportRepository manualReportRepository;
 
     @Override
-    public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
+    public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
         Specification<Form058> form058Specification = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(form058Specification);
         List<ManualReport> manualReports = manualReportRepository.findAll();

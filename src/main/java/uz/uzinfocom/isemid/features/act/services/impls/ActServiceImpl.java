@@ -14,6 +14,8 @@ import uz.uzinfocom.isemid.features.act.services.ActService;
 import uz.uzinfocom.isemid.features.act.strategy.impls.UpdateActService;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -24,6 +26,12 @@ public class ActServiceImpl implements ActService {
     private final ActRepository actRepository;
     private final UpdateActService updateActService;
     private final ActMapper actMapper;
+
+    @Override
+    public ApiResponse<?> getAllByCardId(Long cardId) {
+        List<Act> acts = actRepository.findAllByCardId(cardId);
+        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, acts);
+    }
 
     @Override
     public ApiResponse<?> getById(long id) {
