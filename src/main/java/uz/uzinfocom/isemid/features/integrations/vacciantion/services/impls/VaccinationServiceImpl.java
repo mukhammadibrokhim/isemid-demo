@@ -17,12 +17,14 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
+import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.validateByNnuzb;
 
 @Service
 @RequiredArgsConstructor
 public class VaccinationServiceImpl implements VaccinationService {
     @Override
     public ApiResponse<?> getVaccinationByNnuzbLast(String nnuzb) {
+        validateByNnuzb(nnuzb);
         String resp = makeRequest(String.format(ApiPaths.ExternalApi.VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class);
         return new ApiResponse<>(true, "", mapping(resp));
     }
