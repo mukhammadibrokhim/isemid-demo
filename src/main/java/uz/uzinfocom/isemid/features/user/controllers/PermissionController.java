@@ -2,14 +2,20 @@ package uz.uzinfocom.isemid.features.user.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
 import uz.uzinfocom.isemid.features.user.dtos.requests.PermissionRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.PermissionResponse;
 import uz.uzinfocom.isemid.features.user.services.PermissionService;
+
+import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
+import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
+import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.Permission.ROOT)
@@ -18,6 +24,22 @@ import uz.uzinfocom.isemid.features.user.services.PermissionService;
 public class PermissionController {
 
     private final PermissionService permissionService;
+
+    @GetMapping
+    public ApiResponsePage getPermissions(
+            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam(required = false) String subject,
+            @RequestParam(required = false) String descriptionUz,
+            @RequestParam(required = false) String descriptionRu,
+            @RequestParam(required = false) String descriptionUzCyril,
+            @RequestParam(required = false) String descriptionKaa,
+            @RequestParam(required = false) Boolean active,
+            HttpServletRequest request
+    ) {
+        return permissionService.
+                getAllPermissionsPage(page, size, subject, descriptionUz, descriptionRu, descriptionUzCyril, descriptionKaa, active, getRequestUrl(request));
+    }
 
     @PostMapping
     @Operation(summary = "Создать разрешение", description = "Создаёт новое разрешение с переданными параметрами")
