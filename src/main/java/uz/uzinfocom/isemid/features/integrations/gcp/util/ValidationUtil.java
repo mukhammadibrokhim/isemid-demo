@@ -10,7 +10,7 @@ import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkNnuzb;
 public class ValidationUtil {
     public static void validateByNnuzb(String nnuzb) {
         if (!checkNnuzb(nnuzb)) {
-            throw new ApiException(BAD_REQUEST, "Неверный NNUZB или неверный параметр запроса фотографии");
+            throw new ApiException(BAD_REQUEST, "Неверный NNUZB");
         }
     }
 
@@ -31,6 +31,4 @@ public class ValidationUtil {
     public static boolean isValidNumber(String number) {
         return number != null && number.matches("\\d+");
     }
-
-
 }

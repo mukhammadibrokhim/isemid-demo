@@ -1,6 +1,9 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -137,7 +140,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .notifierFullName(request.getNotifierFullName())
                 .comment(request.getComment())
                 .initialReportDateTime(request.getInitialReportDateTime())
-                .docSendDate(request.getDocSendDate())
+                .docSendDate(LocalDateTime.now())
                 .build();
 
         return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, form058Mapper.toResponse(form058Repository.save(form058)));

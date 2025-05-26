@@ -52,7 +52,7 @@ public class Form058Request {
     private LocalDateTime firstVisitDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    @NotNull(message = "Дата постановки диагноза обязательна.")
+//    @NotNull(message = "Дата постановки диагноза обязательна.")
     private LocalDateTime diagnosisDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
