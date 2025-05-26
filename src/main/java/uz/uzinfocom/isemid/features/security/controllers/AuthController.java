@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.security.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,8 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final AuthService authService;
 
+    @Operation(summary = "Аутентификация пользователя",
+            description = "Принимает nnuzb и пароль, возвращает JWT токен при успешной аутентификации.")
     @PostMapping(value = "/sign-in")
     public ResponseEntity<TokenResponse> signIn(@Valid @RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -44,6 +47,8 @@ public class AuthController {
                 .build());
     }
 
+    @Operation(summary = "Регистрация нового пользователя",
+            description = "Создаёт нового пользователя с переданными данными регистрации.")
     @PostMapping(value = "/sign-up")
     public ApiResponse<?> signUp(@Valid @RequestBody RegisterRequest request) {
         return authService.signUp(request);

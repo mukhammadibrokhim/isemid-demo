@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.integrations.vacciantion.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,12 +13,15 @@ import uz.uzinfocom.isemid.features.integrations.vacciantion.services.Vaccinatio
 
 @RestController
 @RequestMapping(ApiPaths.Vaccination.ROOT)
-@Tag(name = "Vaccination")
+@Tag(name = "Vaccination", description = "API для получения данных о вакцинации гражданина")
 @RequiredArgsConstructor
 public class VaccinationController {
 
     private final VaccinationService vaccinationService;
 
+    @Operation(
+            summary = "Получение данных о последней вакцинации",
+            description = "Возвращает информацию о последней вакцинации гражданина по уникальному идентификатору nnuzb.")
     @GetMapping
     public ApiResponse<?> getVaccinations(
             @RequestParam String nnuzb

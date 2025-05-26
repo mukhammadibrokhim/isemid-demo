@@ -19,15 +19,15 @@ public class ActController {
 
     private final ActService actService;
 
-    @Operation(summary = "Get act details by ID",
-            description = "Fetches details of a specific act using its unique identifier.")
+    @Operation(summary = "Получить данные акта по ID",
+            description = "Извлекает подробную информацию о конкретном акте по его уникальному идентификатору.")
     @GetMapping("/{id}")
     public ApiResponse<?> getActById(@PathVariable long id) {
         return actService.getById(id);
     }
 
-    @Operation(summary = "Update act details",
-            description = "Updates the details of a specific act. Only authorized users can modify the act.")
+    @Operation(summary = "Обновить данные акта",
+            description = "Обновляет информацию о конкретном акте. Только авторизованные пользователи могут вносить изменения.")
     @PutMapping("/{id}")
     public ApiResponse<?> updateAct(
             @PathVariable long id,
@@ -37,10 +37,11 @@ public class ActController {
         return actService.updateAct(id, actRequest, currentUser);
     }
 
+    @Operation(summary = "Удалить акт по ID",
+            description = "Удаляет акт с указанным идентификатором. Только уполномоченные пользователи имеют право на удаление.")
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteById(@PathVariable Long id) {
         return actService.deleteById(id);
     }
-
 }
 
