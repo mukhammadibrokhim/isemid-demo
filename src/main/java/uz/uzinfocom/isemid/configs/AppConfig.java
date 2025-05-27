@@ -38,11 +38,7 @@ public class AppConfig {
     @Bean
     public WebEndpointProperties webEndpointProperties() {
         WebEndpointProperties properties = new WebEndpointProperties();
-        properties.setBasePath("/actuator");
-
-        WebEndpointProperties.Exposure exposure = properties.getExposure();
-        exposure.setInclude(Set.of("health", "info", "prometheus"));
-
+        properties.getExposure().setInclude(Set.of("health", "info", "prometheus"));
         return properties;
     }
 
