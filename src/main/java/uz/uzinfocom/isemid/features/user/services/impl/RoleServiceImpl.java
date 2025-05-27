@@ -183,13 +183,6 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionRu", "Роль супер администратора",
                         "descriptionKaa", "Супер администратор",
                         "permission", List.of("ALL")),
-//                "isemid_assistant_epidemiologist", Map.of(
-//                        "descriptionUz", "Epidemiolog shifokor yordamchisi",
-//                        "descriptionUzCyril", "Эпидемиолог шифокор ёрдамчиси",
-//                        "descriptionRu", "Помощник врача-эпидемиолога",
-//                        "descriptionKaa", "Epidemiolog-dáriger kómekshisi",
-//                        "permission", List.of()
-//                ),
                 "isemid_admin", Map.of(
                         "descriptionUz", "Admin rol",
                         "descriptionUzCyril", "Админ рол",
@@ -197,15 +190,24 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionKaa", "Администратор",
                         "permission", List.of("ALL"))
         );
-        rolePermissions.forEach((roleName, roleData) -> {
-            String descriptionUz = (String) roleData.get("descriptionUz");
-            String descriptionUzCyril = (String) roleData.get("descriptionUzCyril");
-            String descriptionRu = (String) roleData.get("descriptionRu");
-            String descriptionKaa = (String) roleData.get("descriptionKaa");
-            List<String> permissionsList = (List<String>) roleData.get("permission");
-            if (permissionsList == null) {
-                permissionsList = new ArrayList<>();
+
+        rolePermissions.forEach((roleName, data) -> {
+            String descriptionUz = (String) data.get("descriptionUz");
+            String descriptionUzCyril = (String) data.get("descriptionUzCyril");
+            String descriptionRu = (String) data.get("descriptionRu");
+            String descriptionKaa = (String) data.get("descriptionKaa");
+
+            // Xavfsiz cast uchun:
+            Object permissionObj = data.getOrDefault("permission", List.of());
+            List<String> permissions = new ArrayList<>();
+            if (permissionObj instanceof List<?>) {
+                for (Object item : (List<?>) permissionObj) {
+                    if (item instanceof String) {
+                        permissions.add((String) item);
+                    }
+                }
             }
+
             Role role = roleRepository.findByName(roleName).orElseGet(() -> {
                 Role newRole = Role.builder()
                         .name(roleName)
@@ -218,7 +220,7 @@ public class RoleServiceImpl implements RoleService {
                 return roleRepository.save(newRole);
             });
 
-            for (String permissionName : permissionsList) {
+            for (String permissionName : permissions) {
                 Permission permission = permissionRepository.findBySubject(permissionName).orElseGet(() -> {
                     Permission newPermission = new Permission();
                     newPermission.setSubject(permissionName);
@@ -234,7 +236,6 @@ public class RoleServiceImpl implements RoleService {
 
             roleRepository.save(role);
         });
-
-        log.info("Default roles and permissions initialized successfully.");
+        log.info("✅ Default roles and permissions initialized successfully.");
     }
 }
