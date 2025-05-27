@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.commons.exceptions;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
@@ -166,6 +167,22 @@ public class GlobalExceptionHandler {
                         .build()))
                 .build());
     }
+
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidDataAccessApiUsageException(InvalidDataAccessApiUsageException ex) {
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .success(false)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("Некорректный запрос: неверное имя поля или параметра.")
+                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                        .field("InvalidDataAccessApiUsageException")
+                        .errorMessage(ex.getMessage())
+                        .build()))
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGenericException(Exception ex) {

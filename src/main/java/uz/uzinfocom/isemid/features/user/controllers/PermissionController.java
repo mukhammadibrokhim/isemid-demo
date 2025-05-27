@@ -25,7 +25,10 @@ public class PermissionController {
 
     private final PermissionService permissionService;
 
-    @GetMapping
+    @Operation(
+            summary = "Получить список разрешений (с пагинацией и фильтрацией)",
+            description = "Возвращает постраничный список разрешений. Доступны фильтры по subject, description (на всех языках) и активности.")
+    @GetMapping("/all")
     public ApiResponsePage getPermissions(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,

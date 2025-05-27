@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.organization.services.impl;
 
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,18 +17,16 @@ import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
+import uz.uzinfocom.isemid.features.organization.specifications.OrganizationSpecification;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
 import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
@@ -43,7 +40,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public ApiResponsePage getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url) {
-        Specification<Organization> spec = getFilteredSpecification(name, stateCode, cityCode);
+        Specification<Organization> spec = OrganizationSpecification.getFilteredSpecification(name, stateCode, cityCode);
         Page<Organization> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size));
         Page<OrgResponse> orgResponses = organizationPage.map(mapper::toResponse);
         return createApiResponsePage(page, orgResponses, url);
@@ -138,22 +135,5 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public Organization save(Organization newOrg) {
         return organizationRepository.save(newOrg);
-    }
-
-    public static Specification<Organization> getFilteredSpecification(
-            String name,
-            String stateCode,
-            String cityCode
-    ) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                Stream.of(
-                                criteriaBuilder.isNull(root.get("parent")),
-                                hasText(name) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%") : null,
-                                hasText(stateCode) ? criteriaBuilder.equal(root.get("stateCode"), stateCode) : null,
-                                hasText(cityCode) ? criteriaBuilder.equal(root.get("cityCode"), cityCode) : null
-                        )
-                        .filter(Objects::nonNull)
-                        .toArray(Predicate[]::new)
-        );
     }
 }

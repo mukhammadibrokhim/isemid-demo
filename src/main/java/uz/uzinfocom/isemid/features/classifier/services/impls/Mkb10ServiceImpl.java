@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.features.classifier.services.impls;
 
 import com.opencsv.CSVReader;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.core.io.Resource;
@@ -18,17 +17,19 @@ import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 import uz.uzinfocom.isemid.features.classifier.repositories.Mkb10Repository;
 import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
+import uz.uzinfocom.isemid.features.classifier.specifications.Mkb10Specification;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
@@ -41,7 +42,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
 
     @Override
     public ApiResponsePage getMkb10ByFilter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
-        Specification<Mkb10> spec = getFilteredSpecification(mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn);
+        Specification<Mkb10> spec = Mkb10Specification.getFilteredSpecification(mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn);
         Page<Mkb10> mkb10Page = mkb10Repository.findAll(spec, pageableNotSorting(page, size));
         return createApiResponsePage(page, mkb10Page, fullURL);
     }
@@ -82,29 +83,6 @@ public class Mkb10ServiceImpl implements Mkb10Service {
         }
         List<Mkb10> results = mkb10Repository.searchMkb10(parentId, search);
         return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, results);
-    }
-
-    public static Specification<Mkb10> getFilteredSpecification(
-            String mkbCode,
-            Long parentId,
-            String nameUz,
-            String nameUzCyril,
-            String nameRu,
-            String nameEn
-    ) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                Stream.of(
-                                parentId == null ? criteriaBuilder.isNull(root.get("parentId"))
-                                        : criteriaBuilder.equal(root.get("parentId"), parentId),
-                                hasText(mkbCode) ? criteriaBuilder.equal(root.get("code"), mkbCode) : null,
-                                hasText(nameUz) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUz")), "%" + nameUz.toLowerCase() + "%") : null,
-                                hasText(nameUzCyril) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUzCyril")), "%" + nameUzCyril.toLowerCase() + "%") : null,
-                                hasText(nameRu) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameRu")), "%" + nameRu.toLowerCase() + "%") : null,
-                                hasText(nameEn) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameEn")), "%" + nameEn.toLowerCase() + "%") : null
-                        )
-                        .filter(Objects::nonNull)
-                        .toArray(Predicate[]::new)
-        );
     }
 
     @SneakyThrows

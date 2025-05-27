@@ -1,7 +1,5 @@
 package uz.uzinfocom.isemid.features.card.services.impls;
 
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +21,7 @@ import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardService;
+import uz.uzinfocom.isemid.features.card.specifications.CardSpecification;
 import uz.uzinfocom.isemid.features.card.strategy.impls.UpdateCardService;
 import uz.uzinfocom.isemid.features.card.utils.CardMessageUtil;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
@@ -31,11 +30,8 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.*;
-import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
@@ -49,7 +45,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId);
+        Specification<Card> spec = CardSpecification.getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage.map(cardMapper::toCardResponse), fullURL);
     }
@@ -90,7 +86,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL) {
-        Specification<Card> spec = getFilteredSpecification(null, null, null, null, userId, true, null);
+        Specification<Card> spec = CardSpecification.getFilteredSpecification(null, null, null, null, userId, true, null);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage.map(cardMapper::toCardResponse), fullURL);
     }
@@ -185,26 +181,5 @@ public class CardServiceImpl implements CardService {
         }
 
         return card;
-    }
-
-    public static Specification<Card> getFilteredSpecification(
-            String formTypeCode,
-            String fromOrgName,
-            String toOrgName,
-            CardStatus cardStatus,
-            Long userId,
-            boolean attachedUser,
-            Long formId
-    ) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                Stream.of(
-                        hasText(formTypeCode) ? criteriaBuilder.equal(root.get("cardType"), formTypeCode) : null,
-                        formId != null ? criteriaBuilder.equal(root.join("form058", JoinType.LEFT).get("id"), formId) : null,
-                        hasText(fromOrgName) ? criteriaBuilder.equal(root.get("form058").get("senderOrganization").get("name"), fromOrgName) : null,
-                        hasText(toOrgName) ? criteriaBuilder.equal(root.get("form058").get("receiverOrganization").get("name"), toOrgName) : null,
-                        cardStatus != null ? criteriaBuilder.equal(root.get("cardStatus"), cardStatus) : null,
-                        (attachedUser && userId != null) ? criteriaBuilder.equal(root.get("users").get("id"), userId) : null
-                ).filter(Objects::nonNull).toArray(Predicate[]::new)
-        );
     }
 }

@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.features.user.services.impl;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -19,13 +18,13 @@ import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.reposiotries.PermissionRepository;
 import uz.uzinfocom.isemid.features.user.reposiotries.RoleRepository;
 import uz.uzinfocom.isemid.features.user.services.RoleService;
+import uz.uzinfocom.isemid.features.user.specifications.RoleSpecification;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
@@ -54,9 +53,9 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public ApiResponsePage getAllRolesPage(int page, int size, String name, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, String url) {
-        Specification<Role> spec = getFilteredSpecification(name, descriptionUz, descriptionUzCyril, descriptionRu, descriptionKaa);
+        Specification<Role> spec = RoleSpecification.getFilteredSpecification(name, descriptionUz, descriptionUzCyril, descriptionRu, descriptionKaa);
         Page<Role> rolePage = roleRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, rolePage, url);
+        return createApiResponsePage(page, rolePage.map(roleMapper::toResponse), url);
     }
 
     @Override
@@ -77,26 +76,22 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public ApiResponse<RoleResponse> update(long id, RoleRequest request) {
         Role role = roleRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
-
-        Optional.ofNullable(request.getName()).ifPresent(role::setName);
-        Optional.ofNullable(request.getIsActive()).ifPresent(role::setActive);
-        Optional.ofNullable(request.getPermissionIds()).ifPresent(permissionIds -> {
-            Set<Permission> permissions = permissionIds.stream()
-                    .map(permissionId -> permissionRepository.findById(permissionId)
-                            .orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND + ": " + permissionId)))
-                    .collect(Collectors.toSet());
-            role.setPermissions(permissions);
-        });
-        Optional.ofNullable(request.getDescriptionUz()).ifPresent(role::setDescriptionUz);
-        Optional.ofNullable(request.getDescriptionUzCyril()).ifPresent(role::setDescriptionUzCyril);
-        Optional.ofNullable(request.getDescriptionRu()).ifPresent(role::setDescriptionRu);
-        Optional.ofNullable(request.getDescriptionKaa()).ifPresent(role::setDescriptionKaa);
+        roleMapper.updateRole(request, role);
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, roleMapper.toResponse(roleRepository.save(role)));
     }
 
     @Override
     public ApiResponse<RoleResponse> deleteById(long id) {
-        return null;
+        try {
+            Role role = roleRepository.findById(id)
+                    .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Role", id)));
+
+            roleRepository.delete(role);
+            return new ApiResponse<>(true, "Роль успешно удалена", null);
+        } catch (Exception e) {
+            log.error("Error occurred while deleting role with id: {}", id, e);
+            throw new ApiException(BAD_REQUEST, "Произошла ошибка при удалении роли: " + e.getMessage());
+        }
     }
 
     @Override
@@ -107,12 +102,46 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public ApiResponse<?> addPermission(long roleId, long permissionId) {
-        return null;
+        Role role = getRoleOrThrow(roleId);
+        Permission permission = getPermissionOrThrow(permissionId);
+
+        Set<Permission> permissions = role.getPermissions();
+        if (permissions == null) {
+            permissions = new HashSet<>();
+        }
+        if (permissions.contains(permission)) {
+            throw new ApiException(BAD_REQUEST, "Permission уже добавлен в роль");
+        }
+        permissions.add(permission);
+        role.setPermissions(permissions);
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, roleMapper.toResponse(roleRepository.save(role)));
     }
 
     @Override
     public ApiResponse<?> removePermission(long roleId, long permissionId) {
-        return null;
+        Role role = getRoleOrThrow(roleId);
+        Permission permission = getPermissionOrThrow(permissionId);
+
+        Set<Permission> permissions = role.getPermissions();
+        if (permissions == null || !permissions.contains(permission)) {
+            return new ApiResponse<>(false, "Permission не найдена в роли", null);
+        }
+
+        permissions.remove(permission);
+        role.setPermissions(permissions);
+        Role savedRole = roleRepository.save(role);
+
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, roleMapper.toResponse(savedRole));
+    }
+
+    private Role getRoleOrThrow(long roleId) {
+        return roleRepository.findById(roleId)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Role", roleId)));
+    }
+
+    private Permission getPermissionOrThrow(long permissionId) {
+        return permissionRepository.findById(permissionId)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Permission", permissionId)));
     }
 
     @PostConstruct
@@ -154,13 +183,13 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionRu", "Роль супер администратора",
                         "descriptionKaa", "Супер администратор",
                         "permission", List.of("ALL")),
-                "isemid_assistant_epidemiologist", Map.of(
-                        "descriptionUz", "Epidemiolog shifokor yordamchisi",
-                        "descriptionUzCyril", "Эпидемиолог шифокор ёрдамчиси",
-                        "descriptionRu", "Помощник врача-эпидемиолога",
-                        "descriptionKaa", "Epidemiolog-dáriger kómekshisi",
-                        "permission", List.of()
-                ),
+//                "isemid_assistant_epidemiologist", Map.of(
+//                        "descriptionUz", "Epidemiolog shifokor yordamchisi",
+//                        "descriptionUzCyril", "Эпидемиолог шифокор ёрдамчиси",
+//                        "descriptionRu", "Помощник врача-эпидемиолога",
+//                        "descriptionKaa", "Epidemiolog-dáriger kómekshisi",
+//                        "permission", List.of()
+//                ),
                 "isemid_admin", Map.of(
                         "descriptionUz", "Admin rol",
                         "descriptionUzCyril", "Админ рол",
@@ -208,26 +237,4 @@ public class RoleServiceImpl implements RoleService {
 
         log.info("Default roles and permissions initialized successfully.");
     }
-
-
-    public static Specification<Role> getFilteredSpecification(
-            final String name,
-            final String descriptionUz,
-            final String descriptionUzCyril,
-            final String descriptionRu,
-            final String descriptionKaa
-    ) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                Stream.of(
-                                hasText(name) ? criteriaBuilder.like(root.get("name"), "%" + name + "%") : null,
-                                hasText(descriptionUz) ? criteriaBuilder.like(root.get("description"), "%" + descriptionUz + "%") : null,
-                                hasText(descriptionUzCyril) ? criteriaBuilder.like(root.get("description"), "%" + descriptionUzCyril + "%") : null,
-                                hasText(descriptionRu) ? criteriaBuilder.like(root.get("description"), "%" + descriptionRu + "%") : null,
-                                hasText(descriptionKaa) ? criteriaBuilder.like(root.get("description"), "%" + descriptionKaa + "%") : null
-                        )
-                        .filter(Objects::nonNull)
-                        .toArray(Predicate[]::new)
-        );
-    }
-
 }

@@ -1,10 +1,9 @@
 package uz.uzinfocom.isemid.features.user.mappers;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.NullValueCheckStrategy;
+import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
+import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.PractitionerResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
@@ -14,7 +13,9 @@ import uz.uzinfocom.isemid.features.user.models.User;
 @Mapper(
         componentModel = "spring",
         uses = {CatalogConverter.class, RoleMapper.class, OrganizationMapper.class},
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface UserMapper {
 
     @Mapping(target = "gender", source = "genderCode", qualifiedByName = "toCatalog")
@@ -38,7 +39,6 @@ public interface UserMapper {
 
     UserMiniResponse toMiniResponse(User user);
 
-
     @Mapping(target = "id", ignore = true)
     @Mapping(source = "id", target = "uuid")
     @Mapping(source = "name.firstName", target = "firstName")
@@ -61,6 +61,11 @@ public interface UserMapper {
     @Mapping(target = "currentOrganization", ignore = true)
     @Mapping(target = "positionCode", ignore = true)
     User toUser(PractitionerResponse response);
+
+    @Mapping(target = "genderCode", source = "gender.value", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateUser(UserRequest dto, @MappingTarget User entity);
+
+
 
     default String extractIdentifierByType(PractitionerResponse response, String typeCode) {
         if (response == null || response.getIdentifier() == null || response.getIdentifier().isEmpty()) {
