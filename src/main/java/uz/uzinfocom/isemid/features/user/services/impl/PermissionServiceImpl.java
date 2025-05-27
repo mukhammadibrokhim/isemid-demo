@@ -52,7 +52,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public ApiResponse<PermissionResponse> getBydId(long id) {
         return new ApiResponse<>(true, FETCHED_SUCCESS,
-                permissionMapper.toResponse(permissionRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND))));
+                permissionMapper.toResponse(permissionRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)))));
     }
 
     @Override

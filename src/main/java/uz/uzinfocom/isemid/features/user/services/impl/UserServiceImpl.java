@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public ApiResponse<UserResponse> getById(long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
         return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, userMapper.toResponse(user));
     }
 
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public ApiResponse<UserMeResponse> getByUuid(User currentUser) {
-        User user = userRepository.findByUuid(currentUser.getUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        User user = userRepository.findByUuid(currentUser.getUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, currentUser.getUuid())));
         user.setCurrentOrganization(currentUser.getCurrentOrganization());
         return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, userMapper.toUserMeResponse(user));
     }
@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public ApiResponse<UserResponse> update(long id, @Valid UserRequest userRequest) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
         userMapper.updateUser(userRequest, user);
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, userMapper.toResponse(userRepository.save(user)));
     }
