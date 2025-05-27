@@ -19,6 +19,15 @@ public class ActController {
 
     private final ActService actService;
 
+    @Operation(
+            summary = "Получить список актов по Card ID",
+            description = "Возвращает список всех актов, связанных с указанным Card ID. Только авторизованные пользователи имеют доступ."
+    )
+    @GetMapping("/by-card/{cardId}")
+    public ApiResponse<?> getAllActsByCardId(@PathVariable Long cardId) {
+        return actService.getAllByCardId(cardId);
+    }
+
     @Operation(summary = "Получить данные акта по ID",
             description = "Извлекает подробную информацию о конкретном акте по его уникальному идентификатору.")
     @GetMapping("/{id}")

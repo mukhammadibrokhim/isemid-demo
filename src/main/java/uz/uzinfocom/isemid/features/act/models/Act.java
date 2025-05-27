@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.features.act.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
@@ -41,9 +40,8 @@ public abstract class Act extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private ActStatus actStatus = ActStatus.NEW;
 
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "card_id")
+    @JoinColumn(name = "card_id", nullable = false)
     @JsonIgnore
     private Card card;
 

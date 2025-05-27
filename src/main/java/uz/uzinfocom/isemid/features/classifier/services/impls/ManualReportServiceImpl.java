@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.classifier.services.impls;
 
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,15 +13,13 @@ import uz.uzinfocom.isemid.features.classifier.mappers.ManualReportMapper;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
+import uz.uzinfocom.isemid.features.classifier.specifications.ManualReportSpecification;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
@@ -34,7 +31,7 @@ public class ManualReportServiceImpl implements ManualReportService {
 
     @Override
     public ApiResponsePage getAllByFilter(int page, int size, String shortName, String nameUz, String nameUzCyril, String nameRu, String nameKaa, String code, Boolean includeTotal, String fullURL) {
-        Specification<ManualReport> spec = getFilteredSpecification(shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
+        Specification<ManualReport> spec = ManualReportSpecification.getFilteredSpecification(shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
         Page<ManualReport> mkb10Page = repo.findAll(spec, pageableNotSorting(page, size));
         return createApiResponsePage(page, mkb10Page.map(mapper::toResponse), fullURL);
     }
@@ -92,29 +89,5 @@ public class ManualReportServiceImpl implements ManualReportService {
         });
 
         return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, mapper.toResponse(repo.save(manualReport)));
-    }
-
-    public static Specification<ManualReport> getFilteredSpecification(
-            String shortName,
-            String nameUz,
-            String nameUzCyril,
-            String nameRu,
-            String nameKaa,
-            String code,
-            Boolean includeTotal
-    ) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                Stream.of(
-                                hasText(shortName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("shortName")), "%" + shortName.toLowerCase() + "%") : null,
-                                hasText(nameUz) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUz")), "%" + nameUz.toLowerCase() + "%") : null,
-                                hasText(nameUzCyril) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUzCyril")), "%" + nameUzCyril.toLowerCase() + "%") : null,
-                                hasText(nameRu) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameRu")), "%" + nameRu.toLowerCase() + "%") : null,
-                                hasText(nameKaa) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameKaa")), "%" + nameKaa.toLowerCase() + "%") : null,
-                                hasText(code) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("code")), "%" + code.toLowerCase() + "%") : null,
-                                includeTotal != null ? criteriaBuilder.equal(root.get("includeTotal"), includeTotal) : null
-                        )
-                        .filter(Objects::nonNull)
-                        .toArray(Predicate[]::new)
-        );
     }
 }

@@ -25,6 +25,8 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Service
 @RequiredArgsConstructor
 public class Form1ReportServiceImpl implements Form1ReportService {
@@ -33,8 +35,8 @@ public class Form1ReportServiceImpl implements Form1ReportService {
     private final CatalogService catalogService;
 
     @Override
-    public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, Gender gender, User currentUser) {
-        Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
+    public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
+        Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, mkb10Code,gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(specification);
         Organization organization = currentUser.getCurrentOrganization();
         String level = organization.getLevelCode();
@@ -141,6 +143,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
             LocalDate fromDate,
             LocalDate toDate,
             LocalDate birthDate,
+            String mkb10Code,
             Gender gender,
             User currentUser
     ) {
@@ -161,6 +164,10 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
             if (gender != null) {
                 predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
+            }
+
+            if (hasText(mkb10Code)){
+                predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
 
             if (userOrg != null && userOrg.getLevelCode() != null) {

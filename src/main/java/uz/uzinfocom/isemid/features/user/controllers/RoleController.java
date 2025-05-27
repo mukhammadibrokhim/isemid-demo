@@ -42,6 +42,14 @@ public class RoleController {
     }
 
     @Operation(
+            summary = "Поиск ролей по тексту",
+            description = "Ищет до 10 ролей по имени или описаниям на всех языках. Поиск нечувствителен к регистру.")
+    @GetMapping
+    public ApiResponse<?> getAllRolesBySearch(@RequestParam(required = false) String search) {
+        return roleService.roleSearch(search);
+    }
+
+    @Operation(
             summary = "Создать новую роль",
             description = "Создает новую роль с указанными данными.")
     @PostMapping
@@ -51,18 +59,33 @@ public class RoleController {
 
     @Operation(
             summary = "Обновить существующую роль",
-            description = "Обновляет роль, идентифицированную данным ID, новыми данными.")
+            description = "Обновляет роль по идентификатору ID новыми данными.")
     @PutMapping("/{id}")
     public ApiResponse<RoleResponse> updateRole(@PathVariable long id, @RequestBody RoleRequest roleRequest) {
         return roleService.update(id, roleRequest);
     }
 
     @Operation(
-            summary = "Удалить роль по ID",
-            description = "Удаляет роль, идентифицированную данным ID.")
+            summary = "Удалить роль",
+            description = "Удаляет роль по указанному ID.")
     @DeleteMapping("/{id}")
     public ApiResponse<RoleResponse> deleteRole(@PathVariable long id) {
         return roleService.deleteById(id);
     }
-}
 
+    @Operation(
+            summary = "Добавить разрешение к роли",
+            description = "Прикрепляет разрешение с ID к роли с указанным ID.")
+    @PostMapping("/{roleId}/permissions/{permissionId}")
+    public ApiResponse<?> addPermission(@PathVariable long roleId, @PathVariable long permissionId) {
+        return roleService.addPermission(roleId, permissionId);
+    }
+
+    @Operation(
+            summary = "Удалить разрешение у роли",
+            description = "Удаляет разрешение с ID у роли с указанным ID.")
+    @DeleteMapping("/{roleId}/permissions/{permissionId}")
+    public ApiResponse<?> removePermission(@PathVariable long roleId, @PathVariable long permissionId) {
+        return roleService.removePermission(roleId, permissionId);
+    }
+}

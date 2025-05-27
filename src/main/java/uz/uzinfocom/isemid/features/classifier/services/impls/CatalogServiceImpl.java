@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.features.classifier.services.impls;
 
 import com.opencsv.CSVReader;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -26,19 +25,17 @@ import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapper;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.repositories.CatalogRepository;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
+import uz.uzinfocom.isemid.features.classifier.specifications.CatalogSpecification;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.*;
-import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
@@ -53,7 +50,7 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public ApiResponsePage getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String requestUrl) {
-        Specification<Catalog> spec = getFilteredSpecification(type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
+        Specification<Catalog> spec = CatalogSpecification.getFilteredSpecification(type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
         Page<Catalog> catalogPage = catalogRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, catalogPage, requestUrl);
     }
@@ -153,31 +150,6 @@ public class CatalogServiceImpl implements CatalogService {
     public ApiResponse<CatalogResponse> getById(long id) {
         return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS,
                 catalogMapper.toDto(catalogRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)))));
-    }
-
-
-    public static Specification<Catalog> getFilteredSpecification(
-            String type,
-            String code,
-            String parentCode,
-            String nameRu,
-            String nameUz,
-            String nameUzCyril,
-            String nameKaa
-    ) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                Stream.of(
-                                hasText(type) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("type")), "%" + type.toLowerCase() + "%") : null,
-                                hasText(code) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("code")), "%" + code.toLowerCase() + "%") : null,
-                                hasText(parentCode) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("parentCode")), "%" + parentCode.toLowerCase() + "%") : null,
-                                hasText(nameRu) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameRu")), "%" + nameRu.toLowerCase() + "%") : null,
-                                hasText(nameUz) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUz")), "%" + nameUz.toLowerCase() + "%") : null,
-                                hasText(nameUzCyril) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameUzCyril")), "%" + nameUzCyril.toLowerCase() + "%") : null,
-                                hasText(nameKaa) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("nameKaa")), "%" + nameKaa.toLowerCase() + "%") : null
-                        )
-                        .filter(Objects::nonNull)
-                        .toArray(Predicate[]::new)
-        );
     }
 
     @SneakyThrows

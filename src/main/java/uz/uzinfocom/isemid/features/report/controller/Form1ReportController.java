@@ -51,10 +51,11 @@ public class Form1ReportController {
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
             @RequestParam(required = false) LocalDate birthDate,
+            @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) Gender gender,
             @CurrentUser User currentUser
     ) {
-        return form1Service.getReport(fromDate,toDate, birthDate, gender, currentUser);
+        return form1Service.getReport(fromDate, toDate, birthDate, mkb10Code, gender, currentUser);
     }
 
 }

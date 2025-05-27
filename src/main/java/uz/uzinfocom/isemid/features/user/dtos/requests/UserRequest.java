@@ -1,12 +1,14 @@
 package uz.uzinfocom.isemid.features.user.dtos.requests;
 
 import com.nimbusds.openid.connect.sdk.claims.Gender;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDate;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class UserRequest {
     private String nnuzb;

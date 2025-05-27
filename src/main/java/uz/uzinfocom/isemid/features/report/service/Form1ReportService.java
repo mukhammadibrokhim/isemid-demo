@@ -11,6 +11,7 @@ public interface Form1ReportService {
             LocalDate fromDate,
             LocalDate toDate,
             LocalDate birthDate,
+            String mkb10Code,
             Gender gender,
             User currentUser
     );

@@ -10,7 +10,12 @@ import java.util.List;
 @Setter
 @Builder
 public class PermissionResponse {
+    private Long id;
     private String subject;
     private boolean active;
     private List<String> actions;
+    private String descriptionUz;
+    private String descriptionRu;
+    private String descriptionUzCyril;
+    private String descriptionKaa;
 }

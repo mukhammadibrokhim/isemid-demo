@@ -1,7 +1,5 @@
 package uz.uzinfocom.isemid.features.user.services.impl;
 
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,13 +23,12 @@ import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.reposiotries.UserRepository;
 import uz.uzinfocom.isemid.features.user.services.UserService;
+import uz.uzinfocom.isemid.features.user.specifications.UserSpecification;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
@@ -51,7 +48,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public ApiResponsePage getFilteredUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, String url) {
-        Specification<User> spec = getFilteredSpecification(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active);
+        Specification<User> spec = UserSpecification.getFilteredSpecification(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active);
         Page<User> userPage = userRepository.findAll(spec, pageableSortByIdDesc(page, size));
         Page<UserResponse> userResponsePage = userPage.map(userMapper::toResponse);
         return createApiResponsePage(page, userResponsePage, url);
@@ -83,7 +80,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public ApiResponse<UserResponse> updateUserFromMis(UUID uuid, UserRequest user, String token) {
-
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, null);
     }
 
@@ -102,46 +98,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public ApiResponse<UserResponse> update(long id, @Valid UserRequest userRequest) {
         User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
-        Optional.ofNullable(userRequest.getFirstName()).ifPresent(user::setFirstName);
-        Optional.ofNullable(userRequest.getLastName()).ifPresent(user::setLastName);
-        Optional.ofNullable(userRequest.getMiddleName()).ifPresent(user::setMiddleName);
-        Optional.ofNullable(userRequest.getNnuzb()).ifPresent(user::setNnuzb);
-        Optional.ofNullable(userRequest.getPpn()).ifPresent(user::setPpn);
-        Optional.ofNullable(userRequest.getBirthDate()).ifPresent(user::setBirthDate);
-        Optional.of(userRequest.isActive()).ifPresent(user::setActive);
-        Optional.ofNullable(userRequest.getGender().getValue()).ifPresent(user::setGenderCode);
-        Optional.ofNullable(userRequest.getPhoneNumber()).ifPresent(user::setPhoneNumber);
-
-        Optional.ofNullable(userRequest.getCountryCode()).ifPresent(user::setCountryCode);
-        Optional.ofNullable(userRequest.getStateCode()).ifPresent(user::setStateCode);
-        Optional.ofNullable(userRequest.getCityCode()).ifPresent(user::setCityCode);
-        Optional.ofNullable(userRequest.getDistrict()).ifPresent(user::setDistrict);
-        Optional.ofNullable(userRequest.getLine()).ifPresent(user::setLine);
+        userMapper.updateUser(userRequest, user);
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, userMapper.toResponse(userRepository.save(user)));
     }
-
-    public static Specification<User> getFilteredSpecification(
-            final String nnuzb,
-            final String firstName,
-            final String lastName,
-            final String middleName,
-            final String phoneNumber,
-            final String accessLevelCode,
-            final Boolean active
-    ) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                Stream.of(
-                                hasText(nnuzb) ? criteriaBuilder.equal(root.get("nnuzb"), nnuzb) : null,
-                                hasText(firstName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%") : null,
-                                hasText(lastName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), "%" + lastName.toLowerCase() + "%") : null,
-                                hasText(middleName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("middleName")), "%" + middleName.toLowerCase() + "%") : null,
-                                hasText(phoneNumber) ? criteriaBuilder.equal(root.get("phoneNumber"), phoneNumber) : null,
-                                hasText(accessLevelCode) ? criteriaBuilder.equal(root.join("accessLevel", JoinType.LEFT).get("code"), accessLevelCode) : null,
-                                active != null ? criteriaBuilder.equal(root.get("active"), active) : null
-                        )
-                        .filter(Objects::nonNull)
-                        .toArray(Predicate[]::new)
-        );
-    }
-
 }

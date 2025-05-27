@@ -1,22 +1,26 @@
 package uz.uzinfocom.isemid.features.user.dtos.requests;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
-import lombok.Data;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class PermissionRequest {
-    @NotBlank
+    @NotBlank(message = "Поле subject не должно быть пустым")
     private String subject;
-    @NotBlank
-    private List<String> actions;
+    @NotEmpty(message = "Список действий не должен быть пустым")
+    @Valid
+    private List<@NotBlank(message = "Действие не может быть пустым") String> actions;
     private Boolean active;
     private String descriptionUz;
     private String descriptionRu;
     private String descriptionUzCyril;
     private String descriptionKaa;
-
 }

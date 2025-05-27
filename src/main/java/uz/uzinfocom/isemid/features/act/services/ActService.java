@@ -12,4 +12,6 @@ public interface ActService {
     ApiResponse<?> updateAct(long id, ActRequest reqAct, User currentUser);
 
     ApiResponse<?> deleteById(Long id);
+
+    ApiResponse<?> getAllByCardId(Long cardId);
 }

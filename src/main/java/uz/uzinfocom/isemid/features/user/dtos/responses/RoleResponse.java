@@ -4,12 +4,18 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Timestamp;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Builder
 public class RoleResponse {
+    private Long id;
+    private UUID uuid;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
     private String name;
     private boolean active;
     private String descriptionUz;
