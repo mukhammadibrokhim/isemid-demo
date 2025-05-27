@@ -1,11 +1,8 @@
 package uz.uzinfocom.isemid.features.user.services;
-
-
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
 import uz.uzinfocom.isemid.features.user.dtos.requests.PermissionRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.PermissionResponse;
-
 
 public interface PermissionService {
     ApiResponsePage getAllPermissionsPage(

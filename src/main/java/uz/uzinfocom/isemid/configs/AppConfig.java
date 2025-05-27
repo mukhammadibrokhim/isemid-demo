@@ -7,17 +7,20 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.server.i18n.AcceptHeaderLocaleContextResolver;
 import org.springframework.web.server.i18n.LocaleContextResolver;
 
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +34,17 @@ public class AppConfig {
         return localeResolver;
     }
 
+    @Primary
+    @Bean
+    public WebEndpointProperties webEndpointProperties() {
+        WebEndpointProperties properties = new WebEndpointProperties();
+        properties.setBasePath("/actuator");
+
+        WebEndpointProperties.Exposure exposure = properties.getExposure();
+        exposure.setInclude(Set.of("health", "info", "prometheus"));
+
+        return properties;
+    }
 
     @Bean
     public MessageSource messageSource() {
