@@ -37,5 +37,4 @@ public class MessageUtil {
     public static final String NO_HTTP_REQUEST_CONTEXT = "Нет доступного контекста текущего HTTP-запроса.";
     public static final String USER_NOT_ACTIVE = "Пользователь не активен.";
     public static final String CURRENT_ORGANIZATION_NOT_FOUND = "Не удалось найти текущую организацию.";
-
 }
