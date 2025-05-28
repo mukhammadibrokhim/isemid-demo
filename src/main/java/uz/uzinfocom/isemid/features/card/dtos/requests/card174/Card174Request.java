@@ -65,7 +65,6 @@ public class Card174Request extends CardRequest {
     private String additionalMeasuresInfo;
     private Integer affectedAnimalCount;
 
-    //Catalog
 
     private String affectedAnimalTypeCode;
     private String animalOwnershipCode;

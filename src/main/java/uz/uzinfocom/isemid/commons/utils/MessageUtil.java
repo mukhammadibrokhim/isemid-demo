@@ -32,7 +32,7 @@ public class MessageUtil {
     public static final String OPERATION_SUCCESS = "Операция выполнена успешно";
     public static final String OPERATION_FAILED = "Ошибка выполнения операции";
 
-    public static final String REQUIRED_ORGANIZATION_HEADER = "Organization-id должен быть в заголовке.";
+    public static final String REQUIRED_ORGANIZATION_HEADER = "Organization-id должен быть в header.";
     public static final String NO_AUTHORIZED_ROLE_FOUND = "Для пользователя не найдено авторизованной роли.";
     public static final String NO_HTTP_REQUEST_CONTEXT = "Нет доступного контекста текущего HTTP-запроса.";
     public static final String USER_NOT_ACTIVE = "Пользователь не активен.";

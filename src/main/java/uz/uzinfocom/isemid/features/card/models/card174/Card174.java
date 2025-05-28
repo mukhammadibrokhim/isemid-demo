@@ -72,7 +72,6 @@ public class Card174 extends Card {
     private Integer affectedInOutbreak; // O‘choqda kasallangan odamlar soni
 
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"card174"})
     @OrderBy("id DESC")
     @Builder.Default
     private List<InfectionMonitoring> infectionMonitoring = new ArrayList<>();

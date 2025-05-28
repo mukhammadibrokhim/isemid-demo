@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -21,7 +20,6 @@ public class InfectionMonitoring extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card174_id", nullable = false)
-    @JsonIgnore
     private Card174 card174;
     private Integer sequentialNumber;
     private String lastName;

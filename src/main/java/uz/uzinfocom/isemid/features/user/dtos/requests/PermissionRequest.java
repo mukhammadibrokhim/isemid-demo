@@ -19,6 +19,7 @@ public class PermissionRequest {
     @Valid
     private List<@NotBlank(message = "Действие не может быть пустым") String> actions;
     private Boolean active;
+    @NotBlank(message = "Описание (на узбекском языке) не должно быть пустым")
     private String descriptionUz;
     private String descriptionRu;
     private String descriptionUzCyril;
