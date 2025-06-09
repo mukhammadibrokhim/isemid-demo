@@ -1,11 +1,13 @@
 package uz.uzinfocom.isemid.features.user.dtos.requests;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class RoleRequest {
     private String name;

@@ -140,8 +140,7 @@ public class CardController {
 
     @Operation(
             summary = "Назначить Act к карте",
-            description = "Связывает Act с определённой картой на основании переданных данных."
-    )
+            description = "Связывает Act с определённой картой на основании переданных данных.")
     @PostMapping("/assign-act")
     public ApiResponse<?> assignAct(@Valid @RequestBody CardAssignActRequest reqCardAssignAct, @CurrentUser User user) {
         return cardService.assignAct(reqCardAssignAct, user);
@@ -149,8 +148,7 @@ public class CardController {
 
     @Operation(
             summary = "Получить список Act-ов, связанных с картой",
-            description = "Возвращает список всех Act-ов, связанных с указанной картой по её ID."
-    )
+            description = "Возвращает список всех Act-ов, связанных с указанной картой по её ID.")
     @GetMapping("/{cardId}/acts")
     public ApiResponse<?> cardActs(@PathVariable long cardId) {
         return cardService.getCardActs(cardId);

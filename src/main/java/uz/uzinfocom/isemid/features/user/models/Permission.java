@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.user.models;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;

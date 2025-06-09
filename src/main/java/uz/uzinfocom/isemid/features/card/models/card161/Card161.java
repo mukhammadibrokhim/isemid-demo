@@ -148,15 +148,6 @@ public class Card161 extends Card {
     private InfectionSourceDetail infectionSourceDetail;
     private String mainProbableInfectionFactorCode;
 
-//    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-//    @JoinTable(
-//            name = "card161_indirection_causing",
-//            joinColumns = @JoinColumn(name = "card161_id"),
-//            inverseJoinColumns = @JoinColumn(name = "catalog_code"))
-//    @Builder.Default
-//    private List<Catalog> infectionCausingConditions = new ArrayList<>();
-
-
     @ElementCollection
     @CollectionTable(
             name = "card161_indirection_causing",
@@ -167,7 +158,6 @@ public class Card161 extends Card {
 
     private String outbreakInfectionCode;
     private String caseStatusCode;
-
     private String epidemiologist;
     private String epidemiologistAssistant;
 }

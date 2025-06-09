@@ -9,9 +9,9 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class AuthRequest {
-    @NotBlank
+    @NotBlank(message = "NNUZB не должно быть пустым")
     private String nnuzb;
 
-    @NotBlank
+    @NotBlank(message = "Пароль не должен быть пустым")
     private String password;
 }
