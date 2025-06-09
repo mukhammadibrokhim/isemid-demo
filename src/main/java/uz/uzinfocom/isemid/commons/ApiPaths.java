@@ -76,6 +76,10 @@ public final class ApiPaths {
 
     }
 
+    public static final class Info {
+        public static final String ROOT = BASE_PATH + "/info";
+    }
+
     public static final class ExternalApi {
         public static final String BASE_API_URL = "https://test-api2.ssv.uz";
         public static final String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
