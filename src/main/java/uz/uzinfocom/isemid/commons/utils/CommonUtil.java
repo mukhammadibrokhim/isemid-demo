@@ -70,6 +70,7 @@ public class CommonUtil {
             "/department",
             "/v1/auth",
             "/qr",
-            "/legal-entity"
+            "/legal-entity",
+            "/info"
     };
 }
