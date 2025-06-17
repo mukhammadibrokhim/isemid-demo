@@ -37,7 +37,7 @@ public class Form058Request {
     private Boolean labConfirmation;
 
     @NotNull(message = "Место госпитализации обязательно и не может быть пустым.")
-    private Long hospitalPlaceId;
+    private UUID hospitalPlaceId;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @NotNull(message = "Дата поступления обязательна.")
@@ -67,7 +67,7 @@ public class Form058Request {
     private UUID senderOrganizationId;
 
     @NotNull(message = "Организация-получатель обязательна и не может быть пустой.")
-    private Long receiverOrganizationId;
+    private UUID receiverOrganizationId;
 
     private LocationRequest location;
 

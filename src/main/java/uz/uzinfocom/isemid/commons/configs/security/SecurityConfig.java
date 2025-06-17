@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.security;
+package uz.uzinfocom.isemid.commons.configs.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -26,7 +26,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import uz.uzinfocom.isemid.configs.security.jwt.JwtAuthConverter;
+import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtAuthConverter;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.services.UserService;
@@ -36,9 +36,9 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
 import java.util.List;
 
+import static uz.uzinfocom.isemid.commons.configs.security.SecurityConstants.WHITE_LIST;
 import static uz.uzinfocom.isemid.commons.utils.RSAKeyUtils.publicKey;
 import static uz.uzinfocom.isemid.commons.utils.RSAKeyUtils.publicKeyInternal;
-import static uz.uzinfocom.isemid.configs.security.SecurityConstants.WHITE_LIST;
 
 @Configuration
 @EnableWebSecurity

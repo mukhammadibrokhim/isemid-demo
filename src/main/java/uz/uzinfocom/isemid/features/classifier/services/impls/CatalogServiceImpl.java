@@ -73,7 +73,7 @@ public class CatalogServiceImpl implements CatalogService {
     @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     @Override
     public ApiResponse<CatalogResponse> update(long id, CatalogRequest request) {
-        Catalog catalog = catalogRepository.findById(id).orElseThrow(() -> new ApiException(BAD_REQUEST, "Catalog not found for id: " + id));
+        Catalog catalog = catalogRepository.findById(id).orElseThrow(() -> new ApiException(BAD_REQUEST, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Catalog", id)));
         Optional.ofNullable(request.getType()).ifPresent(catalog::setType);
         Optional.ofNullable(request.getCode()).ifPresent(catalog::setCode);
         Optional.ofNullable(request.getNameRu()).ifPresent(catalog::setNameRu);
@@ -185,7 +185,7 @@ public class CatalogServiceImpl implements CatalogService {
             }
         } catch (IOException e) {
             log.error("Exception: {}",e.getMessage());
-            throw new ApiException(INTERNAL_SERVER_ERROR, "Error reading CSV file: " + e.getMessage());
+            throw new ApiException(INTERNAL_SERVER_ERROR, MessageUtil.OPERATION_FAILED, e);
         }
     }
 }

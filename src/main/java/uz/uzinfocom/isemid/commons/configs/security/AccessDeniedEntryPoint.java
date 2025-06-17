@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.security;
+package uz.uzinfocom.isemid.commons.configs.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

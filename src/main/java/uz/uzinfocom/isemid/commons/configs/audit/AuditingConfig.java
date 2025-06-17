@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.audit;
+package uz.uzinfocom.isemid.commons.configs.audit;
 
 import io.micrometer.common.lang.NonNull;
 import org.springframework.context.annotation.Bean;

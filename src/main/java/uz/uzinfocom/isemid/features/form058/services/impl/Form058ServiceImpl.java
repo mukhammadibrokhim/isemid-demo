@@ -37,10 +37,7 @@ import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -69,7 +66,6 @@ public class Form058ServiceImpl implements Form058Service {
                 .birthDate(request.getPatient().getBirthDate())
                 .genderCode(request.getPatient().getGender().name())
                 .workPlace(request.getPatient().getWorkPlace())
-
                 .workPlaceStateCode(request.getPatient().getWorkPlaceStateCode())
                 .workPlaceCityCode(request.getPatient().getWorkPlaceCityCode())
                 .residentialStatusCode(request.getPatient().getResidentialStatus().name())
@@ -105,9 +101,6 @@ public class Form058ServiceImpl implements Form058Service {
             return address;
         }).toList();
         patient.setAddresses(addresses);
-        Long senderOrganizationId = organizationRepository.findByUuid(request.getSenderOrganizationId())
-                .map(Organization::getId)
-                .orElse(null);
 
         Form058 form058 = Form058.builder()
                 .mkb10Code(request.getMkb10Code())
@@ -118,14 +111,14 @@ public class Form058ServiceImpl implements Form058Service {
                 .status(FormStatus.SENT)
                 .patient(patient)
                 .labConfirmation(request.getLabConfirmation())
-                .hospitalPlaceId(request.getHospitalPlaceId())
+                .hospitalPlaceId(getOrganizationIdByUuid(request.getHospitalPlaceId()))
                 .admissionDate(request.getAdmissionDate())
                 .diseaseDate(request.getDiseaseDate())
                 .firstVisitDate(request.getFirstVisitDate())
                 .diagnosisDate(request.getDiagnosisDate())
                 .visitDate(request.getVisitDate())
-                .senderOrganizationId(senderOrganizationId)
-                .receiverOrganizationId(request.getReceiverOrganizationId())
+                .senderOrganizationId(getOrganizationIdByUuid(request.getSenderOrganizationId()))
+                .receiverOrganizationId(getOrganizationIdByUuid(request.getReceiverOrganizationId()))
                 .location(Location.builder()
                         .latitude(request.getLocation().getLatitude())
                         .longitude(request.getLocation().getLongitude())
@@ -143,6 +136,13 @@ public class Form058ServiceImpl implements Form058Service {
 
         return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, form058Mapper.toResponse(form058Repository.save(form058)));
     }
+
+    private Long getOrganizationIdByUuid(UUID uuid) {
+        return organizationRepository.findByUuid(uuid)
+                .map(Organization::getId)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Organization", uuid.toString())));
+    }
+
 
     @Override
     public ApiResponse<Form058Response> update(Form058Request request, Long id, User user) {
@@ -247,7 +247,7 @@ public class Form058ServiceImpl implements Form058Service {
 
         Optional.ofNullable(request.getLabConfirmation()).ifPresent(existedForm058::setLabConfirmation);
 
-        Optional.ofNullable(request.getHospitalPlaceId()).ifPresent(existedForm058::setHospitalPlaceId);
+        Optional.ofNullable(request.getHospitalPlaceId()).ifPresent(uuid -> existedForm058.setHospitalPlaceId(organizationRepository.findByUuid(uuid).map(Organization::getId).orElse(null)));
 
         Optional.ofNullable(request.getAdmissionDate()).ifPresent(existedForm058::setAdmissionDate);
         Optional.ofNullable(request.getDiagnosisDate()).ifPresent(existedForm058::setDiagnosisDate);
@@ -256,7 +256,7 @@ public class Form058ServiceImpl implements Form058Service {
         Optional.ofNullable(request.getVisitDate()).ifPresent(existedForm058::setVisitDate);
         Optional.ofNullable(request.getDocSendDate()).ifPresent(existedForm058::setDocSendDate);
         Optional.ofNullable(request.getSenderOrganizationId()).ifPresent(uuid -> existedForm058.setSenderOrganizationId(organizationRepository.findByUuid(uuid).map(Organization::getId).orElse(null)));
-        Optional.ofNullable(request.getReceiverOrganizationId()).ifPresent(existedForm058::setReceiverOrganizationId);
+        Optional.ofNullable(request.getReceiverOrganizationId()).ifPresent(uuid -> existedForm058.setReceiverOrganizationId(organizationRepository.findByUuid(uuid).map(Organization::getId).orElse(null)));
         Optional.ofNullable(request.getLocation()).ifPresent(reqLocation -> {
             Location exsistingLocation = existedForm058.getLocation();
             if (exsistingLocation != null) {
@@ -397,7 +397,6 @@ public class Form058ServiceImpl implements Form058Service {
             }
         }
         cardRepository.flush();
-
         try {
             form058Repository.delete(form058);
         } catch (Exception e) {

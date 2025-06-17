@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.swagger;
+package uz.uzinfocom.isemid.commons.configs.swagger;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -20,7 +20,6 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("ISEMID")
                 .pathsToMatch("/**")
-
                 .build();
     }
 

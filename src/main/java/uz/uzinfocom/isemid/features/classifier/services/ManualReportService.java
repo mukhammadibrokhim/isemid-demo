@@ -25,5 +25,5 @@ public interface ManualReportService {
 
     ApiResponse<?> delete(long id);
 
-    ApiResponse<?> put(long id, ManualReportRequest manualReportRequest);
+    ApiResponse<?> update(long id, ManualReportRequest manualReportRequest);
 }
