@@ -79,7 +79,7 @@ public class ManualReportController {
                     @Parameter(name = "id", description = "ID отчета для обновления", required = true)})
     @PutMapping("/{id}")
     public ApiResponse<?> put(@PathVariable Long id, @RequestBody ManualReportRequest manualReportRequest) {
-        return manualReportService.put(id, manualReportRequest);
+        return manualReportService.update(id, manualReportRequest);
     }
 
     @Operation(

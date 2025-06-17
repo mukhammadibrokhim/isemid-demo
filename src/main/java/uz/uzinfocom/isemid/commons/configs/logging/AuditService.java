@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.logging;
+package uz.uzinfocom.isemid.commons.configs.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

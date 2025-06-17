@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.security.jwt;
+package uz.uzinfocom.isemid.commons.configs.security.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

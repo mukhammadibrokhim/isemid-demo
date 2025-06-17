@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.security.jwt;
+package uz.uzinfocom.isemid.commons.configs.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nonnull;

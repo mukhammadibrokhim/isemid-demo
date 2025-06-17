@@ -69,7 +69,7 @@ public class ManualReportServiceImpl implements ManualReportService {
     }
 
     @Override
-    public ApiResponse<?> put(long id, ManualReportRequest manualReportRequest) {
+    public ApiResponse<?> update(long id, ManualReportRequest manualReportRequest) {
         ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
         Optional.ofNullable(manualReportRequest.getCode()).ifPresent(manualReport::setCode);
         Optional.ofNullable(manualReportRequest.getShortName()).ifPresent(manualReport::setShortName);

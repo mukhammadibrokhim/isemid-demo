@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs;
+package uz.uzinfocom.isemid.commons.configs;
 
 import com.fasterxml.jackson.core.StreamWriteConstraints;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -67,8 +67,7 @@ public class AppConfig {
         mapper.getFactory().setStreamWriteConstraints(
                 StreamWriteConstraints.builder()
                         .maxNestingDepth(20000)
-                        .build()
-        );
+                        .build());
         return mapper;
     }
 

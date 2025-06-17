@@ -69,7 +69,6 @@ public class Form058ServiceImpl implements Form058Service {
                 .birthDate(request.getPatient().getBirthDate())
                 .genderCode(request.getPatient().getGender().name())
                 .workPlace(request.getPatient().getWorkPlace())
-
                 .workPlaceStateCode(request.getPatient().getWorkPlaceStateCode())
                 .workPlaceCityCode(request.getPatient().getWorkPlaceCityCode())
                 .residentialStatusCode(request.getPatient().getResidentialStatus().name())
@@ -397,7 +396,6 @@ public class Form058ServiceImpl implements Form058Service {
             }
         }
         cardRepository.flush();
-
         try {
             form058Repository.delete(form058);
         } catch (Exception e) {

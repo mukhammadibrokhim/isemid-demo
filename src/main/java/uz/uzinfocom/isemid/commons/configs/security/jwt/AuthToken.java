@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.security.jwt;
+package uz.uzinfocom.isemid.commons.configs.security.jwt;
 
 import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;

@@ -73,29 +73,18 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public ApiResponse<?> update(UUID uuid, OrgRequest orgRequest) {
         Organization existingOrg = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
-        Optional.ofNullable(orgRequest.getName()).ifPresent(existingOrg::setName);
-        Optional.of(orgRequest.isActive()).ifPresent(existingOrg::setActive);
-        Optional.ofNullable(orgRequest.getTin()).ifPresent(existingOrg::setTin);
-        Optional.ofNullable(orgRequest.getEmail()).ifPresent(existingOrg::setEmail);
-        Optional.ofNullable(orgRequest.getPhone()).ifPresent(existingOrg::setPhone);
-        Optional.ofNullable(orgRequest.getLevelCode()).ifPresent(existingOrg::setLevelCode);
+        mapper.updateFromRequest(orgRequest, existingOrg);
 
-        Optional.ofNullable(orgRequest.getType()).ifPresent(existingOrg::setType);
-        Optional.ofNullable(orgRequest.getDistrict()).ifPresent(existingOrg::setDistrict);
-        Optional.ofNullable(orgRequest.getLine()).ifPresent(existingOrg::setLine);
-        Optional.ofNullable(orgRequest.getServiceAreaCode()).ifPresent(existingOrg::setServiceAreaCode);
-
-        Optional.ofNullable(orgRequest.getCountryCode()).ifPresent(existingOrg::setCountryCode);
-
-        Optional.ofNullable(orgRequest.getStateCode()).ifPresent(existingOrg::setStateCode);
-        Optional.ofNullable(orgRequest.getCityCode()).ifPresent(existingOrg::setCityCode);
         if (orgRequest.getParentUuid() != null) {
-            Organization parentOrg = organizationRepository.findByUuid(orgRequest.getParentUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+            Organization parentOrg = organizationRepository.findByUuid(orgRequest.getParentUuid())
+                    .orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+
             parentOrg.getChildren().add(existingOrg);
             existingOrg.setParent(parentOrg);
             existingOrg.setParentId(parentOrg.getId());
         } else {
             existingOrg.setParent(null);
+            existingOrg.setParentId(null);
         }
 
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, mapper.toResponse(organizationRepository.save(existingOrg)));

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.configs.security.jwt.JwtUtil;
+import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtUtil;
 import uz.uzinfocom.isemid.features.security.dtos.requests.AuthRequest;
 import uz.uzinfocom.isemid.features.security.dtos.requests.RegisterRequest;
 import uz.uzinfocom.isemid.features.security.dtos.responses.TokenResponse;

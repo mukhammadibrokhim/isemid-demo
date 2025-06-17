@@ -1,10 +1,8 @@
 package uz.uzinfocom.isemid.features.organization.mappers;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.NullValueCheckStrategy;
+import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgChildResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
@@ -55,6 +53,9 @@ public interface OrganizationMapper {
     @Mapping(target = "parentId", source = "parentId")
     @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
     OrgMiniResponse toOrgMiniResponse(Organization organization);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateFromRequest(OrgRequest request, @MappingTarget Organization org);
 
     //ADDITIONAL
     @Named("mapChildren")

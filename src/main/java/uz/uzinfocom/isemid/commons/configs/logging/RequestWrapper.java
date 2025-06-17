@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.configs.logging;
+package uz.uzinfocom.isemid.commons.configs.logging;
 
 
 import jakarta.servlet.ReadListener;
