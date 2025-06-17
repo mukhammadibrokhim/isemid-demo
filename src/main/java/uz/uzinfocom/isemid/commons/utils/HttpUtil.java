@@ -4,8 +4,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.commons.ApiPaths;
+import uz.uzinfocom.isemid.commons.dtos.ApiException;
 
 import java.util.Enumeration;
+
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @UtilityClass
 public class HttpUtil {
@@ -20,6 +23,14 @@ public class HttpUtil {
 
         return ApiPaths.BaseDomain.ROOT + fullURL;
     }
+
+    public static String extractToken(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        throw new ApiException(UNAUTHORIZED, MessageUtil.UNAUTHORIZED);
+    }
+
 
     /*
      *  Getting header

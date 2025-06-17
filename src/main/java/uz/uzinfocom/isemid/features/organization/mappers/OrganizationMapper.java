@@ -11,6 +11,7 @@ import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.enums.LevelStatus;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -74,13 +75,22 @@ public interface OrganizationMapper {
         ).collect(Collectors.toList());
     }
     default String extractEmail(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getTelecom() == null) {
+            return null;
+        }
+
         return organizationResponse.getTelecom().stream()
                 .filter(t -> "email".equalsIgnoreCase(t.getSystem()))
                 .map(OrganizationResponse.Telecom::getValue)
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
+
     default String extractPhone(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getTelecom() == null) {
+            return null;
+        }
         return organizationResponse.getTelecom().stream()
                 .filter(t -> "phone".equalsIgnoreCase(t.getSystem()))
                 .map(OrganizationResponse.Telecom::getValue)
@@ -88,6 +98,7 @@ public interface OrganizationMapper {
     }
 
     default String extractType(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getType() == null) return null;
         return organizationResponse.getType().stream()
                 .flatMap(t -> t.getCoding().stream())
                 .map(OrganizationResponse.Coding::getCode)
@@ -95,30 +106,49 @@ public interface OrganizationMapper {
     }
 
     default String extractCountryCode(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getAddress() == null) {
+            return null;
+        }
         return organizationResponse.getAddress().stream()
                 .map(OrganizationResponse.Address::getCountry)
                 .findFirst().orElse(null);
     }
 
     default String extractStateCode(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getAddress() == null) {
+            return null;
+        }
         return organizationResponse.getAddress().stream()
                 .map(OrganizationResponse.Address::getState)
                 .findFirst().orElse(null);
     }
 
     default String extractCityCode(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getAddress() == null) {
+            return null;
+        }
         return organizationResponse.getAddress().stream()
                 .map(OrganizationResponse.Address::getCity)
                 .findFirst().orElse(null);
     }
 
     default String extractDistrict(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getAddress() == null) {
+            return null;
+        }
+
         return organizationResponse.getAddress().stream()
+                .filter(Objects::nonNull)
                 .map(OrganizationResponse.Address::getDistrict)
-                .findFirst().orElse(null);
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     default String extractLine(OrganizationResponse organizationResponse) {
+        if (organizationResponse.getAddress() == null) {
+            return null;
+        }
         return organizationResponse.getAddress().stream()
                 .map(OrganizationResponse.Address::getLine)
                 .findFirst().orElse(null);

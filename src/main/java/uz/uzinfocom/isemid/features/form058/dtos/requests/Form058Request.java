@@ -52,7 +52,6 @@ public class Form058Request {
     private LocalDateTime firstVisitDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-//    @NotNull(message = "Дата постановки диагноза обязательна.")
     private LocalDateTime diagnosisDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -61,7 +60,6 @@ public class Form058Request {
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime docSendDate; // document jo'natilgan sana
-
 
     @NotNull(message = "Организация-отправитель обязательна и не может быть пустой.")
     private UUID senderOrganizationId;
