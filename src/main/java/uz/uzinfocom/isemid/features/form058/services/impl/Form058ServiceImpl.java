@@ -29,6 +29,7 @@ import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.form058.specifications.Form058Specification;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
+import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.patient.models.Address;
 import uz.uzinfocom.isemid.features.patient.models.Identifier;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
@@ -53,12 +54,12 @@ public class Form058ServiceImpl implements Form058Service {
     private final UserService userService;
     private final Form058Mapper form058Mapper;
     private final OrganizationRepository organizationRepository;
+    private final OrganizationService organizationService;
     private final Form058ResponseAdapter form058ResponseAdapter;
     private final CardRepository cardRepository;
 
-
     @Override
-    public ApiResponse<Form058Response> create(Form058Request request, User user) {
+    public ApiResponse<Form058Response> create(Form058Request request, User user, String token) {
         Patient patient = Patient.builder()
                 .firstName(request.getPatient().getFirstName())
                 .lastName(request.getPatient().getLastName())
@@ -111,14 +112,14 @@ public class Form058ServiceImpl implements Form058Service {
                 .status(FormStatus.SENT)
                 .patient(patient)
                 .labConfirmation(request.getLabConfirmation())
-                .hospitalPlaceId(getOrganizationIdByUuid(request.getHospitalPlaceId()))
+                .hospitalPlaceId(getOrganizationIdByUuid(request.getHospitalPlaceId(), token))
                 .admissionDate(request.getAdmissionDate())
                 .diseaseDate(request.getDiseaseDate())
                 .firstVisitDate(request.getFirstVisitDate())
                 .diagnosisDate(request.getDiagnosisDate())
                 .visitDate(request.getVisitDate())
-                .senderOrganizationId(getOrganizationIdByUuid(request.getSenderOrganizationId()))
-                .receiverOrganizationId(getOrganizationIdByUuid(request.getReceiverOrganizationId()))
+                .senderOrganizationId(getOrganizationIdByUuid(request.getSenderOrganizationId(), token))
+                .receiverOrganizationId(getOrganizationIdByUuid(request.getReceiverOrganizationId(), token))
                 .location(Location.builder()
                         .latitude(request.getLocation().getLatitude())
                         .longitude(request.getLocation().getLongitude())
@@ -137,10 +138,11 @@ public class Form058ServiceImpl implements Form058Service {
         return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, form058Mapper.toResponse(form058Repository.save(form058)));
     }
 
-    private Long getOrganizationIdByUuid(UUID uuid) {
+    private Long getOrganizationIdByUuid(UUID uuid,String token) {
         return organizationRepository.findByUuid(uuid)
                 .map(Organization::getId)
-                .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Organization", uuid.toString())));
+                .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(uuid, token).getId());
+//                .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Organization", uuid.toString())));
     }
 
 

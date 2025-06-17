@@ -11,7 +11,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import java.time.LocalDate;
 
 public interface Form058Service {
-    ApiResponse<Form058Response> create(Form058Request form058Request, User user);
+    ApiResponse<Form058Response> create(Form058Request form058Request, User user,String token);
 
     ApiResponse<Form058Response> update(Form058Request request, Long id, User user);
 

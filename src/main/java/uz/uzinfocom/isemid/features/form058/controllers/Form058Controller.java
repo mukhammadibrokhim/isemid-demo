@@ -18,9 +18,11 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
 
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
+import static uz.uzinfocom.isemid.commons.utils.HttpUtil.extractToken;
 import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 
 @RestController
@@ -38,8 +40,10 @@ public class Form058Controller {
     @ResponseStatus(CREATED)
     public ApiResponse<Form058Response> create(
             @Valid @RequestBody Form058Request form058Request,
-            @CurrentUser User user) {
-        return form058Service.create(form058Request, user);
+            @CurrentUser User user,
+            @RequestHeader(AUTHORIZATION) String token
+    ) {
+        return form058Service.create(form058Request, user, extractToken(token));
     }
 
     @Operation(
