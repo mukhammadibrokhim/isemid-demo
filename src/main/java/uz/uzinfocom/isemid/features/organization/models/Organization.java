@@ -5,8 +5,11 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
+import uz.uzinfocom.isemid.features.organization.models.enums.OrganizationType;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.sql.Timestamp;
@@ -26,7 +29,11 @@ public class Organization {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @CreationTimestamp
+    @Column(updatable = false)
     private Timestamp createdAt;
+
+    @UpdateTimestamp
     private Timestamp updatedAt;
 
     @Column(updatable = false, nullable = false, unique = true)
@@ -57,6 +64,9 @@ public class Organization {
     @Column(name = "city_code", updatable = false, insertable = false)
     private String cityCode;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private OrganizationType organizationType = OrganizationType.NONE;
 
     private String district;
     private String line;
