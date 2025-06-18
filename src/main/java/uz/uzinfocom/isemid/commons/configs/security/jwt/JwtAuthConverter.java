@@ -118,7 +118,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         if (selectedOrgId != null && !selectedOrgId.isEmpty()) {
             try {
                 UUID selectedUuid = UUID.fromString(selectedOrgId);
-                Organization matchingOrg = organizations.stream()
+                Organization matchingOrg = organizationService.getAllOrganizations().stream()
                         .filter(org -> org.getUuid().equals(selectedUuid))
                         .findFirst()
                         .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(selectedUuid, "Bearer " + jwt.getTokenValue()));
