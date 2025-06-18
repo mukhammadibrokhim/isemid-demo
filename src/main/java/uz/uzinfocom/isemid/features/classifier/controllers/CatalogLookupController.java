@@ -652,4 +652,9 @@ public class CatalogLookupController {
     public ApiResponse<?> getDiseaseCause(@RequestHeader("Accept-Language") String lang) {
         return catalogService.findAllByType(CatalogType.diseaseCause, lang);
     }
+
+    @GetMapping("/organization-type")
+    public ApiResponse<?> getOrganizationType(@RequestHeader("Accept-Language") String lang) {
+       return catalogService.findAllByType(CatalogType.organizationType, lang);
+    }
 }
