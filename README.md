@@ -163,4 +163,3 @@ ISEMID is integrated with:
 
 © 2025 Uzinfocom. All rights reserved.
 =======
-# backend
