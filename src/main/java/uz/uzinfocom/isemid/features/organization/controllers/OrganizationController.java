@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.OrganizationType;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -108,8 +109,9 @@ public class OrganizationController {
     public ApiResponse<?> getOrganizationsByFilter(
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
+            @RequestParam(required = false) OrganizationType organizationType,
             @RequestParam(required = false) String name
     ) {
-        return organizationService.getOrganizationsBySearch(stateCode, cityCode, name);
+        return organizationService.getOrganizationsBySearch(stateCode, cityCode, organizationType, name);
     }
 }
