@@ -1,0 +1,8 @@
+,--. ,---. ,------.,--.   ,--.,--.,------.
+|  |'   .-'|  .---'|   `.'   ||  ||  .-.  \
+|  |`.  `-.|  `--, |  |'.'|  ||  ||  |  \  :
+|  |.-'    |  `---.|  |   |  ||  ||  '--'  /
+`--'`-----'`------'`--'   `--'`--'`-------'
+${application.title} ${application.version}
+(ISEMID) Information system of epidemiological monitoring of infectious diseases' system.
+Powered by Spring Boot V${spring-boot.version}

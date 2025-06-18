@@ -1,0 +1,57 @@
+image: maven:latest
+
+variables:
+  DEV_SERVER: '10.10.10.104'
+#  PROD_SERVER: '10.10.10.81'
+  PRODUCTION_USER: 'runner'
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+
+include:
+  - project: 'core/templates/global-ci'
+    ref: 'main'
+    file: '.global-gitlab-ci.yml'
+
+before_script:
+  - eval $(ssh-agent -s)
+  - chmod 600 $MOH_PRIVATE_KEY
+
+stages:
+  - validate-and-check
+  - build_and_push_dev
+
+deploy_dev:
+  needs:
+    - check_gitlab_ci_yml
+  stage: build_and_push_dev
+  only:
+    - dev
+  # when: manual
+  script:
+    - echo "Deploying to prod server"
+    - mvn clean package -DskipTests
+
+    - | # Stoping service
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+        sudo systemctl stop backend.service
+
+
+        if [ -f /srv/project/backend/app.jar ]; then
+          sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
+        fi
+        sudo chown -R runner:runner /srv/project/backend
+      EOF
+    - | # Copying the built binary
+      scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
+        `pwd`/target/app*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
+
+
+    - | # Create privilages & run service
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+        sudo chown -R www-data:www-data /srv/project/backend
+        sudo systemctl start backend.service
+        sleep 10
+        sudo systemctl status backend.service
+      EOF
+
+    - echo "Deploy finished"
