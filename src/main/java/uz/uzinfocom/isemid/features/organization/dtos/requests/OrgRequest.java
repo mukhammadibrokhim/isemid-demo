@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.uzinfocom.isemid.features.organization.models.enums.OrganizationType;
 
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public class OrgRequest {
     private String email;
     private String phone;
     private String levelCode;
+    private OrganizationType organizationType;
     private String type;
     private String countryCode;
     private String stateCode;

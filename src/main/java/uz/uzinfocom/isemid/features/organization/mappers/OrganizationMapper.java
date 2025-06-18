@@ -45,6 +45,7 @@ public interface OrganizationMapper {
     @Mapping(target = "city", source = "cityCode", qualifiedByName = "toCatalog")
     @Mapping(target = "level", source = "levelCode", qualifiedByName = "toCatalog")
     @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
+    @Mapping(target = "organizationType", source = "organizationType", qualifiedByName = "toCatalog")
     OrgResponse toResponse(Organization organization);
 
     @Mapping(target = "id", source = "id")
