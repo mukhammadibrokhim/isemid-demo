@@ -120,12 +120,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                 UUID selectedUuid = UUID.fromString(selectedOrgId);
                 Organization matchingOrg = organizations.stream()
                         .filter(org -> org.getUuid().equals(selectedUuid))
-                        .findFirst().orElse(null);
-//                    .orElseThrow(() -> {
-//                        request.setAttribute("FORBIDDEN", true);
-//                        request.setAttribute("ERROR", "Organization does not exist.");
-////                        return new ForbiddenException("Organization not found for user or access denied");
-//                    });
+                        .findFirst()
+                        .orElseThrow(() -> new InsufficientAuthenticationException(CURRENT_ORGANIZATION_NOT_FOUND_FOR_USER));
                 user.setCurrentOrganization(matchingOrg);
 
             } catch (Exception e) {
