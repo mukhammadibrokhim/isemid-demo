@@ -15,7 +15,6 @@ import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
-import uz.uzinfocom.isemid.features.organization.models.enums.OrganizationType;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.organization.specifications.OrganizationSpecification;
@@ -116,8 +115,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, OrganizationType organizationType, String name) {
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, organizationRepository.searchByFilter(stateCode, cityCode, name, organizationType.name())
+    public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String organizationType, String name) {
+        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, organizationRepository.searchByFilter(stateCode, cityCode, name, organizationType)
                 .stream()
                 .map(mapper::toResponse).toList());
     }
