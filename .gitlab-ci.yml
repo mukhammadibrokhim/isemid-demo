@@ -2,10 +2,9 @@ image: maven:latest
 
 variables:
   DEV_SERVER: '10.10.10.104'
-#  PROD_SERVER: '10.10.10.81'
+  PROD_SERVER: '10.10.10.133'
   PRODUCTION_USER: 'runner'
-  DOCKER_HOST: "tcp://docker:2375"
-  DOCKER_TLS_CERTDIR: ""
+
 
 include:
   - project: 'core/templates/global-ci'
@@ -19,6 +18,7 @@ before_script:
 stages:
   - validate-and-check
   - build_and_push_dev
+  - build_and_push_prod
 
 deploy_dev:
   needs:
@@ -28,7 +28,7 @@ deploy_dev:
     - dev
   # when: manual
   script:
-    - echo "Deploying to prod server"
+    - echo "Deploying to DEV server"
     - mvn clean package -DskipTests
 
     - | # Stoping service
@@ -49,6 +49,42 @@ deploy_dev:
     - | # Create privilages & run service
       ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo chown -R www-data:www-data /srv/project/backend
+        sudo systemctl start backend.service
+        sleep 10
+        sudo systemctl status backend.service
+      EOF
+
+    - echo "Deploy finished"
+
+deploy_prod:
+  needs:
+    - check_gitlab_ci_yml
+  stage: build_and_push_prod
+  only:
+    - main
+  # when: manual
+  script:
+    - echo "Deploying to PROD server"
+    - mvn clean package -DskipTests
+
+    - | # Stoping service
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$PROD_SERVER << 'EOF'
+        sudo systemctl stop backend.service
+
+
+        if [ -f /srv/project/backend/app.jar ]; then
+          sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
+        fi
+        sudo chown -R runner:runner /srv/project/backend
+      EOF
+    - | # Copying the built binary
+      scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
+        `pwd`/target/app*.jar $PRODUCTION_USER@$PROD_SERVER:/srv/project/backend/app.jar
+
+
+    - | # Create privilages & run service
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$PROD_SERVER << 'EOF'
+        sudo chown -R nginx:nginx /srv/project/backend
         sudo systemctl start backend.service
         sleep 10
         sudo systemctl status backend.service
