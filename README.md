@@ -1,4 +1,3 @@
-<<<<<<< README.md
 # 🦠 ISEMID - Information System for Epidemiological Monitoring of Infectious Diseases
 
 ISEMID is a web-based system developed to register, track, and monitor infectious diseases. It is designed for use by medical institutions and epidemiological departments to manage cases, generate official forms, and submit statistical reports.
@@ -162,4 +161,3 @@ ISEMID is integrated with:
 ## 📄 License
 
 © 2025 Uzinfocom. All rights reserved.
-=======

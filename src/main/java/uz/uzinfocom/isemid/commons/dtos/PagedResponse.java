@@ -12,13 +12,13 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ApiResponsePage {
+public class PagedResponse<T> {
 
     private boolean success;
     private String message;
     private long total;
     private List<Link> links = new ArrayList<>();
-    private List<Object> data;
+    private List<T> data;
 
     public void addLink(String relation, String url) {
         this.links.add(new Link(relation, url));

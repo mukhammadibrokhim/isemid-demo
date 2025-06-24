@@ -1,6 +1,6 @@
 package uz.uzinfocom.isemid.features.user.services;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.user.dtos.requests.RoleRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.RoleResponse;
 import uz.uzinfocom.isemid.features.user.models.Role;
@@ -12,7 +12,7 @@ public interface RoleService {
 
     List<Role> getAllRoles();
 
-    ApiResponsePage getAllRolesPage(
+    PagedResponse<?> getAllRolesPage(
             int page,
             int size,
             String name,

@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.user.dtos.requests.PermissionRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.PermissionResponse;
 import uz.uzinfocom.isemid.features.user.services.PermissionService;
@@ -29,7 +29,7 @@ public class PermissionController {
             summary = "Получить список разрешений (с пагинацией и фильтрацией)",
             description = "Возвращает постраничный список разрешений. Доступны фильтры по subject, description (на всех языках) и активности.")
     @GetMapping("/all")
-    public ApiResponsePage getPermissions(
+    public PagedResponse<?> getPermissions(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) String subject,

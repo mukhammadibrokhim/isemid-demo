@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.organization.services;
 
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface OrganizationService {
 
-    ApiResponsePage getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url);
+    PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url);
 
     ApiResponse<?> update(UUID uuid, OrgRequest orgRequest);
 

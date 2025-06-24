@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardAssignActRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRejectRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
@@ -35,7 +35,7 @@ public class CardController {
             description = "Возвращает постраничный список карт с учетом необязательных фильтров, таких как код типа формы, названия организаций (отправителя и получателя) и статус карты."
     )
     @GetMapping("/all")
-    public ApiResponsePage allByFilter(
+    public PagedResponse<?> allByFilter(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) String formTypeCode,
@@ -54,7 +54,7 @@ public class CardController {
             description = "Возвращает постраничный список пользователей, назначенных на конкретную карту по userId."
     )
     @GetMapping("/user/{userId}")
-    public ApiResponsePage getUsersByCardId(
+    public PagedResponse<?> getUsersByCardId(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @PathVariable Long userId,
