@@ -104,8 +104,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     private User resolveUser(UserInfo userInfo, Jwt jwt, List<Organization> organizations, Set<Role> roles) {
         return userService.findByUuid(userInfo.getPractitioner())
-                .orElseGet(() -> userService.fetchUserFromMisAndSave(userInfo.getPractitioner(),
-                        "Bearer " + jwt.getTokenValue(), organizations, roles));
+                .orElseGet(() -> userService.fetchUserFromMisAndSave(userInfo.getPractitioner(), jwt.getTokenValue(), organizations, roles));
     }
 
     private void validateUserStatus(User user) {
@@ -121,7 +120,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                 Organization matchingOrg = organizationService.getAllOrganizations().stream()
                         .filter(org -> org.getUuid().equals(selectedUuid))
                         .findFirst()
-                        .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(selectedUuid, "Bearer " + jwt.getTokenValue()));
+                        .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(selectedUuid, jwt.getTokenValue()));
 //                        .orElseThrow(() -> new InsufficientAuthenticationException(CURRENT_ORGANIZATION_NOT_FOUND_FOR_USER));
                 user.setCurrentOrganization(matchingOrg);
 
