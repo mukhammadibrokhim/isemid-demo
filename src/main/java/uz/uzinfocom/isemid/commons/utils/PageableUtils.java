@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 
 import java.util.ArrayList;
 
@@ -35,28 +35,28 @@ public class PageableUtils {
         return PageRequest.of(page - 1, size);
     }
 
-    public static <T> ApiResponsePage createApiResponsePage(int page, Page<T> objectPage, String requestUrl) {
+    public static <T> PagedResponse<?> createApiResponsePage(int page, Page<T> objectPage, String requestUrl) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(requestUrl);
 
         String selfUrl = uriBuilder.replaceQueryParam("page", page).toUriString();
         String nextUrl = uriBuilder.replaceQueryParam("page", page + 1).toUriString();
 
-        ApiResponsePage apiResponsePage = new ApiResponsePage(
+        PagedResponse<?> pagedResponse = new PagedResponse<>(
                 true, MessageUtil.OPERATION_SUCCESS,
                 objectPage.getTotalElements(),
                 new ArrayList<>(),
                 new ArrayList<>(objectPage.getContent())
         );
 
-        apiResponsePage.addLink("self", selfUrl);
-        apiResponsePage.addLink("next", nextUrl);
+        pagedResponse.addLink("self", selfUrl);
+        pagedResponse.addLink("next", nextUrl);
 
         if (page > 1) {
             String prevUrl = uriBuilder.replaceQueryParam("page", page - 1).toUriString();
-            apiResponsePage.addLink("prev", prevUrl);
+            pagedResponse.addLink("prev", prevUrl);
         }
 
-        return apiResponsePage;
+        return pagedResponse;
     }
 
 }

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 
@@ -49,7 +49,7 @@ public class ManualReportController {
                     @Parameter(name = "code", description = "Код"),
                     @Parameter(name = "includeTotal", description = "Включать ли общий результат")})
     @GetMapping("/all")
-    public ApiResponsePage getAll(
+    public PagedResponse<?> getAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) String shortName,

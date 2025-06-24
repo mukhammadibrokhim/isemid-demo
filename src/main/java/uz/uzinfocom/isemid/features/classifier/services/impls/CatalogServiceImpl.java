@@ -16,7 +16,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.CatalogRequest;
 import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponse;
@@ -49,7 +49,7 @@ public class CatalogServiceImpl implements CatalogService {
     private final CatalogMapper catalogMapper;
 
     @Override
-    public ApiResponsePage getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String requestUrl) {
+    public PagedResponse<?> getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String requestUrl) {
         Specification<Catalog> spec = CatalogSpecification.getFilteredSpecification(type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
         Page<Catalog> catalogPage = catalogRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, catalogPage, requestUrl);
@@ -124,7 +124,7 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public ApiResponsePage getByHierarchical(int page, int size, CatalogType type, String requestUrl) {
+    public PagedResponse<?> getByHierarchical(int page, int size, CatalogType type, String requestUrl) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Catalog> catalogPage = catalogRepository.findAllWithParent(type.name(), pageable);
         return createApiResponsePage(page, catalogPage, requestUrl);

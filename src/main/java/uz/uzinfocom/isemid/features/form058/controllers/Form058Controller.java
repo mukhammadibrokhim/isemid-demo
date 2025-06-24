@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
@@ -50,7 +50,7 @@ public class Form058Controller {
             summary = "Получение всех форм 058",
             description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате.")
     @GetMapping("/all")
-    public ApiResponsePage getAll(
+    public PagedResponse<?> getAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) LocalDate fromDate,
@@ -65,7 +65,7 @@ public class Form058Controller {
             summary = "Получение всех полученных форм 058",
             description = "Возвращает постраничный список всех форм 058, которые были получены, с возможностью фильтрации по дате.")
     @GetMapping("/received/all")
-    public ApiResponsePage getReceivedAll(
+    public PagedResponse<?> getReceivedAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) LocalDate fromDate,

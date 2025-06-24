@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.ApiPaths;
@@ -16,17 +17,29 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+import static uz.uzinfocom.isemid.commons.utils.CommonUtil.maskNnuzb;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.validateByNnuzb;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VaccinationServiceImpl implements VaccinationService {
+
     @Override
     public ApiResponse<?> getVaccinationByNnuzbLast(String nnuzb) {
+        String masked = maskNnuzb(nnuzb);
+        log.info("Fetching latest vaccination data for NNUZB: {}", masked);
+
         validateByNnuzb(nnuzb);
+
         String resp = makeRequest(String.format(ApiPaths.ExternalApi.VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class);
-        return new ApiResponse<>(true, "", mapping(resp));
+        log.debug("Raw response received for {}: {}", masked, resp);
+
+        List<VaccinationResponse> mapped = mapping(resp);
+        log.info("Mapped {} latest vaccination records for NNUZB: {}", mapped.size(), masked);
+
+        return new ApiResponse<>(true, "", mapped);
     }
 
     @SneakyThrows
@@ -49,6 +62,8 @@ public class VaccinationServiceImpl implements VaccinationService {
                 }
             }
 
+            log.debug("Latest vaccinations extracted: {}", latestVaccinations.keySet());
+
             return latestVaccinations.values().stream()
                     .map(data1 -> {
                         ZonedDateTime tashkentTime = data1.getVaccinationDate()
@@ -61,7 +76,7 @@ public class VaccinationServiceImpl implements VaccinationService {
                                 .birthDate(data1.getBirthDate())
                                 .mpi(data1.getMpi())
                                 .vaccinationName(data1.getSku().getName())
-                                .vaccinationDate(tashkentTime.toLocalDateTime()) // Eng oxirgi sanani tanlash
+                                .vaccinationDate(tashkentTime.toLocalDateTime())
                                 .unitInDose(data1.getSku().getUnitInDose())
                                 .doseVolume(data1.getSku().getDoseVolume())
                                 .serialNumber(data1.getSku().getSerialNumber())
@@ -69,7 +84,7 @@ public class VaccinationServiceImpl implements VaccinationService {
                                 .build();
                     }).toList();
         }
+        log.warn("No vaccination data found in the API response");
         return Collections.emptyList();
     }
-
 }

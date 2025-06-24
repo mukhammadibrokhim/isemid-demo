@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.form058.services;
 
 
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
@@ -15,7 +15,7 @@ public interface Form058Service {
 
     ApiResponse<Form058Response> update(Form058Request request, Long id, User user);
 
-    ApiResponsePage getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType);
+    PagedResponse<?> getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType);
 
     ApiResponse<Form058Response> getById(long id);
 

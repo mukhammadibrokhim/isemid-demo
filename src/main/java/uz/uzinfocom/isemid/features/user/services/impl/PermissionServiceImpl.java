@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.user.dtos.requests.PermissionRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.PermissionResponse;
@@ -30,7 +30,7 @@ public class PermissionServiceImpl implements PermissionService {
     private final PermissionMapper permissionMapper;
 
     @Override
-    public ApiResponsePage getAllPermissionsPage(int page, int size, String subject, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, Boolean active, String url) {
+    public PagedResponse<?> getAllPermissionsPage(int page, int size, String subject, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, Boolean active, String url) {
         Specification<Permission> spec = PermissionSpecification.getFilteredSpecification(subject, descriptionUz, descriptionRu, descriptionUzCyril, descriptionKaa, active);
         Page<Permission> rolePage = permissionRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, rolePage.map(permissionMapper::toResponse), url);
