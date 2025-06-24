@@ -11,6 +11,8 @@ import uz.uzinfocom.isemid.features.integrations.gcp.dto.CitizenResponse;
 import uz.uzinfocom.isemid.features.integrations.gcp.mappers.CitizenMapper;
 import uz.uzinfocom.isemid.features.integrations.gcp.service.CitizenService;
 
+import java.time.LocalDate;
+
 import static uz.uzinfocom.isemid.commons.ApiPaths.ExternalApi.GCP_CHILD;
 import static uz.uzinfocom.isemid.commons.ApiPaths.ExternalApi.GCP_CITIZEN;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
@@ -25,9 +27,9 @@ public class CitizenServiceImpl implements CitizenService {
     private final CitizenMapper citizenMapper;
 
     @Override
-    public Object getCitizenByNnuzb(String nnuzb, String photo, String token) {
+    public Object getCitizenByNnuzb(String nnuzb, LocalDate birthDate, String photo, String token) {
         validateByNnuzb(nnuzb);
-        CitizenResponse response = makeRequest(String.format(GCP_CITIZEN, nnuzb, photo), HttpMethod.GET, token, null, CitizenResponse.class);
+        CitizenResponse response = makeRequest(String.format(GCP_CITIZEN, nnuzb, birthDate, photo), HttpMethod.GET, token, null, CitizenResponse.class);
 
         CitizenResponse mappedResponse = citizenMapper.mapToResponse(response);
         mappedResponse.getData().forEach(data -> citizenMapper.transformData(data, catalogService));
@@ -43,7 +45,7 @@ public class CitizenServiceImpl implements CitizenService {
     }
 
     @Override
-    public ResponseEntity<?> getCitizenByNnuzbByToken(String nnuzb) {
-        return ResponseEntity.ok(getCitizenByNnuzb(nnuzb, "N", oAuthTokenService.getAccessToken()));
+    public ResponseEntity<?> getCitizenByNnuzbByToken(String nnuzb, LocalDate birthDate) {
+        return ResponseEntity.ok(getCitizenByNnuzb(nnuzb, birthDate, "N", oAuthTokenService.getAccessToken()));
     }
 }
