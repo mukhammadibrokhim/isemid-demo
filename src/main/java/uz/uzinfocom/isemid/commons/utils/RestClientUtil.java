@@ -16,7 +16,7 @@ public class RestClientUtil {
         HttpHeaders headers = new HttpHeaders();
 
         if (token != null && !token.isBlank()) {
-            headers.setBearerAuth(token);
+            headers.set(HttpHeaders.AUTHORIZATION, token);
         }
 
         if (method == HttpMethod.POST || method == HttpMethod.PUT) {

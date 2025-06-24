@@ -77,6 +77,10 @@ public class RoleServiceImpl implements RoleService {
     public ApiResponse<RoleResponse> update(long id, RoleRequest request) {
         Role role = roleRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
         roleMapper.updateRole(request, role);
+        if (request.getPermissionIds() != null && !request.getPermissionIds().isEmpty()) {
+            Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(request.getPermissionIds()));
+            role.setPermissions(permissions);
+        }
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, roleMapper.toResponse(roleRepository.save(role)));
     }
 
