@@ -8,7 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.user.dtos.requests.RoleRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.RoleResponse;
@@ -52,7 +52,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public ApiResponsePage getAllRolesPage(int page, int size, String name, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, String url) {
+    public PagedResponse<?> getAllRolesPage(int page, int size, String name, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, String url) {
         Specification<Role> spec = RoleSpecification.getFilteredSpecification(name, descriptionUz, descriptionUzCyril, descriptionRu, descriptionKaa);
         Page<Role> rolePage = roleRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, rolePage.map(roleMapper::toResponse), url);

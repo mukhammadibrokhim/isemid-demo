@@ -7,7 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
@@ -44,7 +44,7 @@ public class CardServiceImpl implements CardService {
     private final ActFactory actFactory;
 
     @Override
-    public ApiResponsePage getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
+    public PagedResponse<?> getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
         Specification<Card> spec = CardSpecification.getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage.map(cardMapper::toCardResponse), fullURL);
@@ -85,7 +85,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public ApiResponsePage getCardUsers(int page, int size, Long userId, String fullURL) {
+    public PagedResponse<?> getCardUsers(int page, int size, Long userId, String fullURL) {
         Specification<Card> spec = CardSpecification.getFilteredSpecification(null, null, null, null, userId, true, null);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return createApiResponsePage(page, cardPage.map(cardMapper::toCardResponse), fullURL);

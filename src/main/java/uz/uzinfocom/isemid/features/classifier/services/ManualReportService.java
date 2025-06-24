@@ -2,11 +2,11 @@ package uz.uzinfocom.isemid.features.classifier.services;
 
 
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
 
 public interface ManualReportService {
-    ApiResponsePage getAllByFilter(
+    PagedResponse<?> getAllByFilter(
             int page,
             int size,
             String shortName,

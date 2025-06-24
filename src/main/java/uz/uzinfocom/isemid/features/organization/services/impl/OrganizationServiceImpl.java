@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
@@ -39,7 +39,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final UserMapper userMapper;
 
     @Override
-    public ApiResponsePage getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url) {
+    public PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url) {
         Specification<Organization> spec = OrganizationSpecification.getFilteredSpecification(name, stateCode, cityCode);
         Page<Organization> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size));
         Page<OrgResponse> orgResponses = organizationPage.map(mapper::toResponse);

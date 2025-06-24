@@ -11,7 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
@@ -41,7 +41,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
     private final ResourceLoader resourceLoader;
 
     @Override
-    public ApiResponsePage getMkb10ByFilter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
+    public PagedResponse<?> getMkb10ByFilter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
         Specification<Mkb10> spec = Mkb10Specification.getFilteredSpecification(mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn);
         Page<Mkb10> mkb10Page = mkb10Repository.findAll(spec, pageableNotSorting(page, size));
         return createApiResponsePage(page, mkb10Page, fullURL);

@@ -3,13 +3,12 @@ package uz.uzinfocom.isemid.features.integrations.legal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.features.integrations.legal.service.LegalEntityService;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RestController
 @RequestMapping(ApiPaths.LegalEntity.ROOT)
@@ -22,7 +21,7 @@ public class LegalEntityController {
             summary = "Получение информации о юридическом лице",
             description = "Возвращает данные юридического лица по заданному ИНН (Tax Identification Number).")
     @GetMapping
-    public ApiResponse<?> getLegalEntity(@RequestParam String tin) {
-        return legalEntityService.fetchLegalEntityByTin(tin);
+    public ApiResponse<?> getLegalEntity(@RequestParam String tin, @RequestHeader(AUTHORIZATION) String token) {
+        return legalEntityService.fetchLegalEntityByTin(tin, token);
     }
 }

@@ -2,11 +2,11 @@ package uz.uzinfocom.isemid.features.classifier.services;
 
 
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
 
 public interface Mkb10Service {
-    ApiResponsePage getMkb10ByFilter(
+    PagedResponse<?> getMkb10ByFilter(
             int page,
             int size,
             String mkbCode,

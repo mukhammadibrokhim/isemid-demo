@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
@@ -36,7 +36,7 @@ public class OrganizationController {
             summary = "Получить все организации",
             description = "Получает список всех организаций с возможностью пагинации и фильтрации по имени, коду региона и города.")
     @GetMapping("/all")
-    public ApiResponsePage getAllOrganizations(
+    public PagedResponse<?> getAllOrganizations(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) String name,

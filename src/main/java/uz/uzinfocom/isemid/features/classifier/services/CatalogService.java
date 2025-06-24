@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.classifier.services;
 
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.CatalogRequest;
 import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponse;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public interface CatalogService {
 
-    ApiResponsePage getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String request);
+    PagedResponse<?> getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String request);
 
     ApiResponse<CatalogResponse> create(CatalogRequest catalogRequest);
 
@@ -28,7 +28,7 @@ public interface CatalogService {
 
     ApiResponse<?> findFirst20ByTypeAndSearch(CatalogType catalogType, String lang, String search);
 
-    ApiResponsePage getByHierarchical(int page, int size, CatalogType type, String requestUrl);
+    PagedResponse<?> getByHierarchical(int page, int size, CatalogType type, String requestUrl);
 
     Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String code);
 

@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
@@ -281,7 +281,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public ApiResponsePage getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType) {
+    public PagedResponse<?> getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType) {
         Specification<Form058> spec = Form058Specification.getFilteredSpecification(fromDate, toDate, user, filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
 

@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponsePage;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.user.dtos.requests.RoleRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.RoleResponse;
 import uz.uzinfocom.isemid.features.user.services.RoleService;
@@ -28,7 +28,7 @@ public class RoleController {
             summary = "Получить постраничный список ролей с фильтрами",
             description = "Возвращает постраничный список ролей, отфильтрованных по необязательным параметрам, таким как имя и описания на разных языках.")
     @GetMapping("/all")
-    public ApiResponsePage getAllRolesByFilter(
+    public PagedResponse<?> getAllRolesByFilter(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) String name,
