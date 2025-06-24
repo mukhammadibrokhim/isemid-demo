@@ -10,6 +10,8 @@ import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.features.integrations.gcp.service.CitizenService;
 
+import java.time.LocalDate;
+
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -40,11 +42,12 @@ public class CitizenController {
             @RequestParam(required = false) String photo,
             @RequestParam(required = false) String series,
             @RequestParam(required = false) String number,
+            @RequestParam(required = false) LocalDate birthDate,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
 
     ) {
         if (nnuzb != null && photo != null) {
-            return ResponseEntity.ok(citizenService.getCitizenByNnuzb(nnuzb, photo, token));
+            return ResponseEntity.ok(citizenService.getCitizenByNnuzb(nnuzb, birthDate, photo, token));
         } else if (series != null && number != null) {
             return ResponseEntity.ok(citizenService.getCitizenByChild(series, number, token));
         } else throw new ApiException(BAD_REQUEST, "Неверные параметры запроса");
@@ -55,7 +58,7 @@ public class CitizenController {
             description = "Возвращает информацию о гражданине по уникальному идентификатору nnuzb с использованием токена."
     )
     @GetMapping("/qr")
-    public ResponseEntity<?> genCitizenByNnuzb(@RequestParam(required = false) String nnuzb) {
-        return citizenService.getCitizenByNnuzbByToken(nnuzb);
+    public ResponseEntity<?> genCitizenByNnuzb(@RequestParam(required = false) String nnuzb, @RequestParam(required = false) LocalDate birthDate) {
+        return citizenService.getCitizenByNnuzbByToken(nnuzb,birthDate);
     }
 }

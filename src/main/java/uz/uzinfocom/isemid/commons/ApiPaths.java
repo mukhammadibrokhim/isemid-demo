@@ -86,7 +86,7 @@ public final class ApiPaths {
 
         public static final String PRACTITIONER = BASE_API_URL + "/v2/Practitioner/%s";
         public static final String ORGANIZATION = BASE_API_URL + "/v2/Organization/%s";
-        public static final String GCP_CITIZEN = BASE_API_URL + "/v3/Citizen?nnuzb=%s&photo=%s";
+        public static final String GCP_CITIZEN = BASE_API_URL + "/v3/Citizen?nnuzb=%s&birth_date=%s&photo=%s";
         public static final String GCP_CHILD = BASE_API_URL + "/v3/Child?series=%s&number=%s";
         public static final String LEGAL_ENTITY_API = BASE_API_URL + "/v3/LegalEntity?tin=%s";
         public static final String VACCINATION_NNUZB = "https://api2.ssv.uz/Vaccination/%s";
