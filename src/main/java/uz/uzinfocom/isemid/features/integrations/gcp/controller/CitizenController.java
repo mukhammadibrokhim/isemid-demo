@@ -46,7 +46,7 @@ public class CitizenController {
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
 
     ) {
-        if (nnuzb != null && photo != null) {
+        if (nnuzb != null && birthDate != null && photo != null) {
             return ResponseEntity.ok(citizenService.getCitizenByNnuzb(nnuzb, birthDate, photo, token));
         } else if (series != null && number != null) {
             return ResponseEntity.ok(citizenService.getCitizenByChild(series, number, token));
