@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.integrations.config.OAuthTokenService;
 import uz.uzinfocom.isemid.features.integrations.legal.service.LegalEntityService;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -15,13 +16,15 @@ import static uz.uzinfocom.isemid.commons.utils.CommonUtil.maskTin;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 import static uz.uzinfocom.isemid.features.integrations.legal.utils.ValidationUtil.validationTin;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class LegalEntityServiceImpl implements LegalEntityService {
+    private final OAuthTokenService oAuthTokenService;
 
     @Override
-    public ApiResponse<?> fetchLegalEntityByTin(String tin, String token) {
+    public ApiResponse<?> fetchLegalEntityByTin(String tin) {
         log.info("Fetching legal entity info for TIN: {}", maskTin(tin));
 
         if (!validationTin(tin)) {
@@ -29,7 +32,7 @@ public class LegalEntityServiceImpl implements LegalEntityService {
             throw new ApiException(BAD_REQUEST, MessageUtil.VALIDATION_ERROR);
         }
 
-        Object resp = makeRequest(String.format(LEGAL_ENTITY_API, tin), HttpMethod.GET, token, null, Object.class);
+        Object resp = makeRequest(String.format(LEGAL_ENTITY_API, tin), HttpMethod.GET, oAuthTokenService.getAccessToken(), null, Object.class);
 
         log.info("Successfully fetched legal entity info for TIN: {}", maskTin(tin));
         return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, resp);

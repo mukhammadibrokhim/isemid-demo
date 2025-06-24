@@ -63,6 +63,18 @@ public class CommonUtil {
         return false;
     }
 
+    public static String maskTin(String tin) {
+        int visibleCount = 3;
+        if (tin == null || tin.length() <= visibleCount) return "***";
+        return "*".repeat(tin.length() - visibleCount) + tin.substring(tin.length() - visibleCount);
+    }
+
+    public static String maskNnuzb(String nnuzb) {
+        if (nnuzb == null || nnuzb.length() <= 3) return "***";
+        return "*".repeat(nnuzb.length() - 3) + nnuzb.substring(nnuzb.length() - 3);
+    }
+
+
     public static final String[] WHITELIST_HEADER_CHECK = {
             "receive-from-lis",
             "/catalog",

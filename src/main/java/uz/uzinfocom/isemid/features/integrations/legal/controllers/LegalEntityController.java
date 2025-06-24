@@ -8,8 +8,6 @@ import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.features.integrations.legal.service.LegalEntityService;
 
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-
 @RestController
 @RequestMapping(ApiPaths.LegalEntity.ROOT)
 @Tag(name = "Legal entity", description = "API для получения информации о юридическом лице по ИНН")
@@ -21,7 +19,7 @@ public class LegalEntityController {
             summary = "Получение информации о юридическом лице",
             description = "Возвращает данные юридического лица по заданному ИНН (Tax Identification Number).")
     @GetMapping
-    public ApiResponse<?> getLegalEntity(@RequestParam String tin, @RequestHeader(AUTHORIZATION) String token) {
-        return legalEntityService.fetchLegalEntityByTin(tin, token);
+    public ApiResponse<?> getLegalEntity(@RequestParam String tin) {
+        return legalEntityService.fetchLegalEntityByTin(tin);
     }
 }
