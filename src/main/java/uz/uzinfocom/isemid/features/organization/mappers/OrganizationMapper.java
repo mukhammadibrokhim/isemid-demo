@@ -100,10 +100,14 @@ public interface OrganizationMapper {
 
     default String extractType(OrganizationResponse organizationResponse) {
         if (organizationResponse.getType() == null) return null;
+
         return organizationResponse.getType().stream()
+                .filter(t -> t != null && t.getCoding() != null)
                 .flatMap(t -> t.getCoding().stream())
+                .filter(coding -> coding != null && coding.getCode() != null)
                 .map(OrganizationResponse.Coding::getCode)
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     default String extractCountryCode(OrganizationResponse organizationResponse) {
