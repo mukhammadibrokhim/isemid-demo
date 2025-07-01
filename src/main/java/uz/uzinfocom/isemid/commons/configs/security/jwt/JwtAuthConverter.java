@@ -87,7 +87,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                         .anyMatch(userRole::equals));
 
         if (!hasAuthorizedRole) {
-            log.warn("Roles not authorized: {}", userInfo.getRoles());
+            log.warn("Roles not authorize: {}", userInfo.getRoles());
 //            throw new InsufficientAuthenticationException(NO_AUTHORIZED_ROLE_FOUND);
         }
     }

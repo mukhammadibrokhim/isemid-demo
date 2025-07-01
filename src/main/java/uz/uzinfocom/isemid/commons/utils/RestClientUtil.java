@@ -4,13 +4,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uz.uzinfocom.isemid.commons.configs.UnsafeHttpClientFactory;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
 @Slf4j
 public class RestClientUtil {
 
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private static final RestTemplate restTemplate = UnsafeHttpClientFactory.create();
 
     public static <T, R> T makeRequest(String url, HttpMethod method, String token, R requestBody, Class<T> responseType) {
         HttpHeaders headers = new HttpHeaders();
