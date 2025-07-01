@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User fetchUserFromMisAndSave(UUID uuid, String token, List<Organization> organizations, Set<Role> roles) {
         PractitionerResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, PractitionerResponse.class);
-        return userRepository.save(Objects.requireNonNull(convertToUser(response, organizations, roles)));
+        return userRepository.saveAndFlush(Objects.requireNonNull(convertToUser(response, organizations, roles)));
     }
 
     private User convertToUser(PractitionerResponse response, List<Organization> organizations, Set<Role> roles) {
