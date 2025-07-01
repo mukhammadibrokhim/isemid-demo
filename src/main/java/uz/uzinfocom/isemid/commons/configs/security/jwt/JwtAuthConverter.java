@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -27,6 +28,7 @@ import static uz.uzinfocom.isemid.commons.utils.CommonUtil.WHITELIST_HEADER_CHEC
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkReqUri;
 import static uz.uzinfocom.isemid.commons.utils.MessageUtil.*;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
@@ -85,7 +87,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                         .anyMatch(userRole::equals));
 
         if (!hasAuthorizedRole) {
-            throw new InsufficientAuthenticationException(NO_AUTHORIZED_ROLE_FOUND);
+            log.warn("Roles not authorize: {}", userInfo.getRoles());
+//            throw new InsufficientAuthenticationException(NO_AUTHORIZED_ROLE_FOUND);
         }
     }
 
