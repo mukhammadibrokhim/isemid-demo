@@ -156,43 +156,50 @@ public class RoleServiceImpl implements RoleService {
                         "descriptionUzCyril", "QR фойдаланувчи роли",
                         "descriptionRu", "Роль пользователя QR",
                         "descriptionKaa", "QR колдонучунун ролу",
-                        "permission", List.of()),
+                        "permissions", List.of()
+                ),
                 "isemid_epidemiologist", Map.of(
                         "descriptionUz", "Epidemiolog rol",
                         "descriptionUzCyril", "Эпидемиолог рол",
                         "descriptionRu", "Роль эпидемиолога",
                         "descriptionKaa", "Эпидемиология кызматы",
-                        "permission", List.of()),
+                        "permissions", List.of()
+                ),
                 "isemid_head_doctor", Map.of(
                         "descriptionUz", "Bosh shifokor rol",
                         "descriptionUzCyril", "Бош шифокор рол",
                         "descriptionRu", "Роль главного врача",
                         "descriptionKaa", "Башкы врач",
-                        "permission", List.of()),
+                        "permissions", List.of()
+                ),
                 "isemid_epidim_head", Map.of(
                         "descriptionUz", "Epidemiologiya va immunoprofilaktika bo‘limi mudiri",
                         "descriptionUzCyril", "Эпидемиология ва иммунопрофилактика бўлими мудири",
                         "descriptionRu", "Заведующий отделом эпидемиологии и иммунопрофилактики",
                         "descriptionKaa", "Эпидемиология жана иммунопрофилактика бөлүмүнүн мудири",
-                        "permission", List.of()),
+                        "permissions", List.of()
+                ),
                 "isemid_general_practitioner", Map.of(
                         "descriptionUz", "Umumiy amaliyot shifokori",
                         "descriptionUzCyril", "Умумий амалийот шифокори",
                         "descriptionRu", "Врач",
                         "descriptionKaa", "Жалпы практика дарыгери",
-                        "permission", List.of()),
+                        "permissions", List.of()
+                ),
                 "isemid_super_admin", Map.of(
                         "descriptionUz", "Super admin rol",
                         "descriptionUzCyril", "Супер админ рол",
                         "descriptionRu", "Роль супер администратора",
                         "descriptionKaa", "Супер администратор",
-                        "permission", List.of("ALL")),
+                        "permissions", List.of("ALL")
+                ),
                 "isemid_admin", Map.of(
                         "descriptionUz", "Admin rol",
                         "descriptionUzCyril", "Админ рол",
                         "descriptionRu", "Роль администратора",
                         "descriptionKaa", "Администратор",
-                        "permission", List.of("ALL"))
+                        "permissions", List.of("ALL")
+                )
         );
 
         rolePermissions.forEach((roleName, data) -> {
@@ -201,16 +208,7 @@ public class RoleServiceImpl implements RoleService {
             String descriptionRu = (String) data.get("descriptionRu");
             String descriptionKaa = (String) data.get("descriptionKaa");
 
-            // Xavfsiz cast uchun:
-            Object permissionObj = data.getOrDefault("permission", List.of());
-            List<String> permissions = new ArrayList<>();
-            if (permissionObj instanceof List<?>) {
-                for (Object item : (List<?>) permissionObj) {
-                    if (item instanceof String) {
-                        permissions.add((String) item);
-                    }
-                }
-            }
+            List<String> permissionSubjects = (List<String>) data.getOrDefault("permissions", List.of());
 
             Role role = roleRepository.findByName(roleName).orElseGet(() -> {
                 Role newRole = Role.builder()
@@ -220,26 +218,27 @@ public class RoleServiceImpl implements RoleService {
                         .descriptionUzCyril(descriptionUzCyril)
                         .descriptionRu(descriptionRu)
                         .descriptionKaa(descriptionKaa)
+                        .permissions(new HashSet<>())
                         .build();
                 return roleRepository.save(newRole);
             });
 
-            for (String permissionName : permissions) {
-                Permission permission = permissionRepository.findBySubject(permissionName).orElseGet(() -> {
-                    Permission newPermission = new Permission();
-                    newPermission.setSubject(permissionName);
-                    newPermission.setActions(List.of("manager"));
-                    return permissionRepository.save(newPermission);
-                });
+            Set<Permission> permissions = permissionSubjects.stream()
+                    .map(subject -> permissionRepository.findBySubject(subject)
+                            .orElseGet(() -> permissionRepository.save(new Permission(subject, List.of("manager")))))
+                    .collect(Collectors.toSet());
 
-                if (role.getPermissions() == null) {
-                    role.setPermissions(new HashSet<>());
-                }
-                role.getPermissions().add(permission);
+            // Yangilash: faqat agar permissionlar o‘zgargan bo‘lsa
+            if (!role.getPermissions().equals(permissions)) {
+                role.setPermissions(permissions);
+                roleRepository.save(role);
+                log.info("🔄 Role updated: {}", roleName);
+            } else {
+                log.info("✅ Role exists and unchanged: {}", roleName);
             }
-
-            roleRepository.save(role);
         });
+
         log.info("✅ Default roles and permissions initialized successfully.");
     }
+
 }
