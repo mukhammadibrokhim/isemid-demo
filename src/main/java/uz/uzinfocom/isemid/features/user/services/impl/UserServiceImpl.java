@@ -84,6 +84,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    public User save(User existingUser) {
+        return userRepository.save(existingUser);
+    }
+
+    @Override
     public ApiResponse<UserMeResponse> getByUuid(User currentUser) {
         User user = userRepository.findByUuid(currentUser.getUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, currentUser.getUuid())));
         user.setCurrentOrganization(currentUser.getCurrentOrganization());

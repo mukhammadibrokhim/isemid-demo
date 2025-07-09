@@ -55,7 +55,7 @@ public class User implements UserDetails {
     private String district;
     private String line;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_organizations",
             joinColumns = @JoinColumn(name = "user_id"),

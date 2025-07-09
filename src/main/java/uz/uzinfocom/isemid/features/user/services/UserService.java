@@ -31,4 +31,6 @@ public interface UserService {
     User fetchUserFromMisAndSave(UUID practitioner, String token, List<Organization> organizations, Set<Role> roles);
 
     ApiResponse<UserResponse> updateUserFromMis(UUID uuid, UserRequest user, String token);
+
+    User save(User existingUser);
 }
