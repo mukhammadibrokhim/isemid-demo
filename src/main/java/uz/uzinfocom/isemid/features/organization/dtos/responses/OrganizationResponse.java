@@ -1,18 +1,19 @@
 package uz.uzinfocom.isemid.features.organization.dtos.responses;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 
 import java.util.List;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrganizationResponse {
     private String id;
     private Meta meta;
-    private List<Type> type;
+    private List<OrganizationType> type; // o'zgartirildi
     private String name;
     private boolean active;
     private PartOf partOf;
@@ -27,11 +28,12 @@ public class OrganizationResponse {
     public static class Meta {
         private String versionId;
         private String lastUpdated;
+        private String source; // JSONda bor
     }
 
     @Getter
     @Setter
-    public static class OrganizationType {
+    public static class OrganizationType { // nomi Type emas
         private List<Coding> coding;
     }
 
@@ -87,14 +89,24 @@ public class OrganizationResponse {
     @Setter
     public static class Identifier {
         private String use;
-        private Type type;
+        private IdentifierType type; // bu ham "Type" emas
         private String value;
         private String system;
+        private String assigner;
+        private Period period;
     }
 
     @Getter
     @Setter
-    public static class Type {
+    public static class IdentifierType {
         private List<Coding> coding;
     }
+
+    @Getter
+    @Setter
+    public static class Period {
+        private String start;
+        private String end;
+    }
 }
+
