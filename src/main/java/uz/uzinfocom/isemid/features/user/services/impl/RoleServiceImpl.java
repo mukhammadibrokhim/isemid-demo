@@ -240,5 +240,4 @@ public class RoleServiceImpl implements RoleService {
 
         log.info("✅ Default roles and permissions initialized successfully.");
     }
-
 }
