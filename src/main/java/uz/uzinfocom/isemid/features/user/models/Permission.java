@@ -27,4 +27,9 @@ public class Permission extends BaseEntity {
     private String descriptionRu;
     private String descriptionUzCyril;
     private String descriptionKaa;
+
+    public Permission(String subject, List<String> actions) {
+        this.subject = subject;
+        this.actions = actions;
+    }
 }
