@@ -151,14 +151,21 @@ public class RoleServiceImpl implements RoleService {
     @PostConstruct
     public void initDefaultRolesAndPermissions() {
 
+        log.info("♻️ Removing existing roles and permissions...");
+
+        // Avval role-permission bog'lanmalarini tozalang
         roleRepository.findAll().forEach(role -> {
-            role.setPermissions(new HashSet<>()); // bog‘langan permissionlarni tozalash
+            role.setPermissions(new HashSet<>());
             roleRepository.save(role);
-            roleRepository.delete(role);
         });
 
-        // 2. Agar kerak bo‘lsa, barcha permissionlarni ham tozalash (ixtiyoriy)
+        // So‘ng barcha rollarni o‘chirish
+        roleRepository.deleteAll();
+
+        // Va barcha permissionlarni ham
         permissionRepository.deleteAll();
+
+        log.info("✅ Old roles and permissions removed. Re-initializing...");
 
         Map<String, Map<String, Object>> rolePermissions = Map.of(
                 "isemid_qr_user", Map.of(
