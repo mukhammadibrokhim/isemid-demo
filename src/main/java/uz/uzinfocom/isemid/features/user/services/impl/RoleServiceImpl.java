@@ -150,6 +150,16 @@ public class RoleServiceImpl implements RoleService {
 
     @PostConstruct
     public void initDefaultRolesAndPermissions() {
+
+        roleRepository.findAll().forEach(role -> {
+            role.setPermissions(new HashSet<>()); // bog‘langan permissionlarni tozalash
+            roleRepository.save(role);
+            roleRepository.delete(role);
+        });
+
+        // 2. Agar kerak bo‘lsa, barcha permissionlarni ham tozalash (ixtiyoriy)
+        permissionRepository.deleteAll();
+
         Map<String, Map<String, Object>> rolePermissions = Map.of(
                 "isemid_qr_user", Map.of(
                         "descriptionUz", "QR foydalanuvchi roli",
