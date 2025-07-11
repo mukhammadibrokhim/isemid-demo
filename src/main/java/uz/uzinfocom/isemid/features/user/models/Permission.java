@@ -15,6 +15,7 @@ import java.util.List;
 @Builder
 @Entity
 public class Permission extends BaseEntity {
+    @Column(unique = true)
     private String subject;
 
     @ElementCollection(fetch = FetchType.EAGER)
