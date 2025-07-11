@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -32,5 +33,5 @@ public class Role extends BaseEntity {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     @JsonIgnoreProperties({"createdAt", "updatedAt", "createdBy", "updatedBy", "descriptionUz", "descriptionRu", "descriptionUzCyril", "descriptionKaa"})
-    private Set<Permission> permissions;
+    private Set<Permission> permissions = new HashSet<>();
 }

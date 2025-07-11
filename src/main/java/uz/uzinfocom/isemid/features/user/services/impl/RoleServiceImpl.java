@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.user.services.impl;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,7 +19,9 @@ import uz.uzinfocom.isemid.features.user.reposiotries.RoleRepository;
 import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.specifications.RoleSpecification;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -146,115 +147,5 @@ public class RoleServiceImpl implements RoleService {
     private Permission getPermissionOrThrow(long permissionId) {
         return permissionRepository.findById(permissionId)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Permission", permissionId)));
-    }
-
-    @PostConstruct
-    public void initDefaultRolesAndPermissions() {
-
-        log.info("♻️ Removing existing roles and permissions...");
-
-        // Avval role-permission bog'lanmalarini tozalang
-        roleRepository.findAll().forEach(role -> {
-            role.setPermissions(new HashSet<>());
-            roleRepository.save(role);
-        });
-
-        // So‘ng barcha rollarni o‘chirish
-        roleRepository.deleteAll();
-
-        // Va barcha permissionlarni ham
-        permissionRepository.deleteAll();
-
-        log.info("✅ Old roles and permissions removed. Re-initializing...");
-
-        Map<String, Map<String, Object>> rolePermissions = Map.of(
-                "isemid_qr_user", Map.of(
-                        "descriptionUz", "QR foydalanuvchi roli",
-                        "descriptionUzCyril", "QR фойдаланувчи роли",
-                        "descriptionRu", "Роль пользователя QR",
-                        "descriptionKaa", "QR колдонучунун ролу",
-                        "permissions", List.of()
-                ),
-                "isemid_epidemiologist", Map.of(
-                        "descriptionUz", "Epidemiolog rol",
-                        "descriptionUzCyril", "Эпидемиолог рол",
-                        "descriptionRu", "Роль эпидемиолога",
-                        "descriptionKaa", "Эпидемиология кызматы",
-                        "permissions", List.of()
-                ),
-                "isemid_head_doctor", Map.of(
-                        "descriptionUz", "Bosh shifokor rol",
-                        "descriptionUzCyril", "Бош шифокор рол",
-                        "descriptionRu", "Роль главного врача",
-                        "descriptionKaa", "Башкы врач",
-                        "permissions", List.of()
-                ),
-                "isemid_epidim_head", Map.of(
-                        "descriptionUz", "Epidemiologiya va immunoprofilaktika bo‘limi mudiri",
-                        "descriptionUzCyril", "Эпидемиология ва иммунопрофилактика бўлими мудири",
-                        "descriptionRu", "Заведующий отделом эпидемиологии и иммунопрофилактики",
-                        "descriptionKaa", "Эпидемиология жана иммунопрофилактика бөлүмүнүн мудири",
-                        "permissions", List.of()
-                ),
-                "isemid_general_practitioner", Map.of(
-                        "descriptionUz", "Umumiy amaliyot shifokori",
-                        "descriptionUzCyril", "Умумий амалийот шифокори",
-                        "descriptionRu", "Врач",
-                        "descriptionKaa", "Жалпы практика дарыгери",
-                        "permissions", List.of()
-                ),
-                "isemid_super_admin", Map.of(
-                        "descriptionUz", "Super admin rol",
-                        "descriptionUzCyril", "Супер админ рол",
-                        "descriptionRu", "Роль супер администратора",
-                        "descriptionKaa", "Супер администратор",
-                        "permissions", List.of("ALL")
-                ),
-                "isemid_admin", Map.of(
-                        "descriptionUz", "Admin rol",
-                        "descriptionUzCyril", "Админ рол",
-                        "descriptionRu", "Роль администратора",
-                        "descriptionKaa", "Администратор",
-                        "permissions", List.of("ALL")
-                )
-        );
-
-        rolePermissions.forEach((roleName, data) -> {
-            String descriptionUz = (String) data.get("descriptionUz");
-            String descriptionUzCyril = (String) data.get("descriptionUzCyril");
-            String descriptionRu = (String) data.get("descriptionRu");
-            String descriptionKaa = (String) data.get("descriptionKaa");
-
-            List<String> permissionSubjects = (List<String>) data.getOrDefault("permissions", List.of());
-
-            Role role = roleRepository.findByName(roleName).orElseGet(() -> {
-                Role newRole = Role.builder()
-                        .name(roleName)
-                        .isActive(true)
-                        .descriptionUz(descriptionUz)
-                        .descriptionUzCyril(descriptionUzCyril)
-                        .descriptionRu(descriptionRu)
-                        .descriptionKaa(descriptionKaa)
-                        .permissions(new HashSet<>())
-                        .build();
-                return roleRepository.save(newRole);
-            });
-
-            Set<Permission> permissions = permissionSubjects.stream()
-                    .map(subject -> permissionRepository.findBySubject(subject)
-                            .orElseGet(() -> permissionRepository.save(new Permission(subject, List.of("manager")))))
-                    .collect(Collectors.toSet());
-
-            // Yangilash: faqat agar permissionlar o‘zgargan bo‘lsa
-            if (!role.getPermissions().equals(permissions)) {
-                role.setPermissions(permissions);
-                roleRepository.save(role);
-                log.info("🔄 Role updated: {}", roleName);
-            } else {
-                log.info("✅ Role exists and unchanged: {}", roleName);
-            }
-        });
-
-        log.info("✅ Default roles and permissions initialized successfully.");
     }
 }
