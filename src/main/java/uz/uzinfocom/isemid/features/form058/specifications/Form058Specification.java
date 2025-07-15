@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class Form058Specification {
-    public static Specification<Form058> getFilteredSpecification(
+    public static Specification<Form058> build(
             LocalDate fromDate,
             LocalDate toDate,
             User currentUser,

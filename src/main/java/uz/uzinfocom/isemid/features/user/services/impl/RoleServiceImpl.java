@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.user.dtos.requests.RoleRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.RoleResponse;
 import uz.uzinfocom.isemid.features.user.mappers.RoleMapper;
@@ -26,7 +27,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Slf4j
@@ -56,7 +56,7 @@ public class RoleServiceImpl implements RoleService {
     public PagedResponse<?> getAllRolesPage(int page, int size, String name, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, String url) {
         Specification<Role> spec = RoleSpecification.getFilteredSpecification(name, descriptionUz, descriptionUzCyril, descriptionRu, descriptionKaa);
         Page<Role> rolePage = roleRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, rolePage.map(roleMapper::toResponse), url);
+        return PagedResponseUtil.build(page, rolePage.map(roleMapper::toResponse), url);
     }
 
     @Override

@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
@@ -30,7 +31,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 
@@ -46,7 +46,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         Specification<Organization> spec = OrganizationSpecification.getFilteredSpecification(name, stateCode, cityCode);
         Page<Organization> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size));
         Page<OrgResponse> orgResponses = organizationPage.map(mapper::toResponse);
-        return createApiResponsePage(page, orgResponses, url);
+        return PagedResponseUtil.build(page, orgResponses, url);
     }
 
     @Override

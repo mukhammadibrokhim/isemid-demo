@@ -18,6 +18,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.CatalogRequest;
 import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponse;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
@@ -36,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.springframework.http.HttpStatus.*;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Slf4j
@@ -52,7 +52,7 @@ public class CatalogServiceImpl implements CatalogService {
     public PagedResponse<?> getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String requestUrl) {
         Specification<Catalog> spec = CatalogSpecification.getFilteredSpecification(type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
         Page<Catalog> catalogPage = catalogRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, catalogPage, requestUrl);
+        return PagedResponseUtil.build(page, catalogPage, requestUrl);
     }
 
     @Override
@@ -127,7 +127,7 @@ public class CatalogServiceImpl implements CatalogService {
     public PagedResponse<?> getByHierarchical(int page, int size, CatalogType type, String requestUrl) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Catalog> catalogPage = catalogRepository.findAllWithParent(type.name(), pageable);
-        return createApiResponsePage(page, catalogPage, requestUrl);
+        return PagedResponseUtil.build(page, catalogPage, requestUrl);
     }
 
     @Cacheable(value = "findByTypeAndParentCode", key = "T(String).format('%s-%s',#catalogType.name(), #parentCode)", unless = "#result == null")

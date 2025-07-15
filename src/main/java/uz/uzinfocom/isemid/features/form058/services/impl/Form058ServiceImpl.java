@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.factory.CardFactory;
@@ -43,7 +44,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Service
@@ -282,14 +282,14 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public PagedResponse<?> getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType) {
-        Specification<Form058> spec = Form058Specification.getFilteredSpecification(fromDate, toDate, user, filterType);
+        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, user, filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
 
         Page<Form058Response> responsePage = form058Page.map(form -> {
             Form058Response base = form058Mapper.toResponse(form);
             return form058ResponseAdapter.adapt(base, form, filterType);
         });
-        return createApiResponsePage(page, responsePage, url);
+        return PagedResponseUtil.build( page, responsePage, url);
 
     }
 
@@ -335,6 +335,7 @@ public class Form058ServiceImpl implements Form058Service {
             if (existingCardOpt.isPresent()) {
                 Card existingCard = existingCardOpt.get();
                 existingCard.setUsers(new HashSet<>(userMap.values()));
+                existingCard.setStatus(CardStatus.NEW);
                 resultCards.add(existingCard);
             } else {
                 Card newCard = cardFactory.createCard(cardType);

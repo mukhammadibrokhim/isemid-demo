@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.user.dtos.requests.PermissionRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.PermissionResponse;
 import uz.uzinfocom.isemid.features.user.mappers.PermissionMapper;
@@ -19,7 +20,6 @@ import uz.uzinfocom.isemid.features.user.specifications.PermissionSpecification;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.commons.utils.MessageUtil.*;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Service
@@ -33,7 +33,7 @@ public class PermissionServiceImpl implements PermissionService {
     public PagedResponse<?> getAllPermissionsPage(int page, int size, String subject, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, Boolean active, String url) {
         Specification<Permission> spec = PermissionSpecification.getFilteredSpecification(subject, descriptionUz, descriptionRu, descriptionUzCyril, descriptionKaa, active);
         Page<Permission> rolePage = permissionRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, rolePage.map(permissionMapper::toResponse), url);
+        return PagedResponseUtil.build(page, rolePage.map(permissionMapper::toResponse), url);
     }
 
     @Override
