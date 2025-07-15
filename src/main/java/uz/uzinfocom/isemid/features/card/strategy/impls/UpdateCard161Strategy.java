@@ -476,6 +476,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Optional.ofNullable(reqCard161.getCaseStatusCode()).ifPresent(existingCard::setCaseStatusCode);
         Optional.ofNullable(reqCard161.getEpidemiologist()).ifPresent(existingCard::setEpidemiologist);
         Optional.ofNullable(reqCard161.getEpidemiologistAssistant()).ifPresent(existingCard::setEpidemiologistAssistant);
+        Optional.ofNullable(reqCard161.getComment()).ifPresent(existingCard::setComment);
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, cardMapper.toCardResponse(cardRepository.save(existingCard)));
     }
 }

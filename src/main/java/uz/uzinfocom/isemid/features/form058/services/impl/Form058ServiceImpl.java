@@ -325,17 +325,44 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     private List<Card> buildCards(List<CardType> cardTypes, Map<Long, User> userMap, Form058 form058, User assignedBy) {
-        return cardTypes.stream()
-                .map(cardType -> {
-                    Card card = cardFactory.createCard(cardType);
-                    card.setUsers(new HashSet<>(userMap.values()));
-                    card.setStatus(CardStatus.NEW);
-                    card.setCardType(cardType);
-                    card.setAssignedById(assignedBy.getId());
-                    card.setForm058(form058);
-                    return card;
-                }).toList();
+        List<Card> resultCards = new ArrayList<>();
+
+        for (CardType cardType : cardTypes) {
+            Optional<Card> existingCardOpt = form058.getCards().stream()
+                    .filter(card -> card.getCardType() == cardType)
+                    .findFirst();
+
+            if (existingCardOpt.isPresent()) {
+                Card existingCard = existingCardOpt.get();
+                existingCard.setUsers(new HashSet<>(userMap.values()));
+                resultCards.add(existingCard);
+            } else {
+                Card newCard = cardFactory.createCard(cardType);
+                newCard.setUsers(new HashSet<>(userMap.values()));
+                newCard.setStatus(CardStatus.NEW);
+                newCard.setCardType(cardType);
+                newCard.setAssignedById(assignedBy.getId());
+                newCard.setForm058(form058);
+                resultCards.add(newCard);
+            }
+        }
+
+        return resultCards;
     }
+
+
+//    private List<Card> buildCards(List<CardType> cardTypes, Map<Long, User> userMap, Form058 form058, User assignedBy) {
+//        return cardTypes.stream()
+//                .map(cardType -> {
+//                    Card card = cardFactory.createCard(cardType);
+//                    card.setUsers(new HashSet<>(userMap.values()));
+//                    card.setStatus(CardStatus.NEW);
+//                    card.setCardType(cardType);
+//                    card.setAssignedById(assignedBy.getId());
+//                    card.setForm058(form058);
+//                    return card;
+//                }).toList();
+//    }
 
     @Override
     public ApiResponse<Form058Response> changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {

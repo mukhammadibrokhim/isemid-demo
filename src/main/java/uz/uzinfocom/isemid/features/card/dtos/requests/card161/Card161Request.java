@@ -105,4 +105,5 @@ public class Card161Request extends CardRequest {
     private String caseStatusCode;
     private String epidemiologist;
     private String epidemiologistAssistant;
+    private String comment;
 }

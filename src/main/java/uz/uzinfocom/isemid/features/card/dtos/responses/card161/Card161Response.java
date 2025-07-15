@@ -115,4 +115,5 @@ public class Card161Response extends CardResponse {
     private CatalogResponseDto caseStatus;
     private String epidemiologist;
     private String epidemiologistAssistant;
+    private String comment;
 }
