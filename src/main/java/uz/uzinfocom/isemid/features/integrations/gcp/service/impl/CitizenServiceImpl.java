@@ -13,8 +13,8 @@ import uz.uzinfocom.isemid.features.integrations.gcp.service.CitizenService;
 
 import java.time.LocalDate;
 
-import static uz.uzinfocom.isemid.commons.ApiPaths.ExternalApi.GCP_CHILD;
-import static uz.uzinfocom.isemid.commons.ApiPaths.ExternalApi.GCP_CITIZEN;
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CHILD;
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CITIZEN;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.validateByNnuzb;
 import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.validateChildCertificate;

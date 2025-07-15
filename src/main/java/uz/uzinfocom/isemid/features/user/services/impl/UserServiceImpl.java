@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.ApiPaths;
+import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
@@ -81,6 +81,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public ApiResponse<UserResponse> updateUserFromMis(UUID uuid, UserRequest user, String token) {
         return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, null);
+    }
+
+    @Override
+    public User save(User existingUser) {
+        return userRepository.save(existingUser);
     }
 
     @Override

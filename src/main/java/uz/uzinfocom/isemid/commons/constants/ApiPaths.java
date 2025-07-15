@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons;
+package uz.uzinfocom.isemid.commons.constants;
 
 public final class ApiPaths {
     public static final String BASE_PATH = "/v1";
@@ -69,7 +69,7 @@ public final class ApiPaths {
 
     public static final class BaseDomain {
         public static final String ROOT = "https://ykem.sanepid.uz/api";
-        public static final String ROOT_LOCAL = "http://localhost:8081";
+        public static final String ROOT_LOCAL = "http://localhost";
         private BaseDomain() {}
 
     }

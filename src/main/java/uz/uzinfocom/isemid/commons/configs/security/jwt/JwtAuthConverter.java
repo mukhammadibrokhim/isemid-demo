@@ -20,6 +20,7 @@ import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -102,13 +103,58 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     private Set<Role> resolveRoles(UserInfo userInfo) {
         return userInfo.getRoles().stream()
                 .map(roleService::findOrCreateRoleByName)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
-    private User resolveUser(UserInfo userInfo, Jwt jwt, List<Organization> organizations, Set<Role> roles) {
+    private User resolveUser(UserInfo userInfo, Jwt jwt, List<Organization> organizationsFromToken, Set<Role> rolesFromToken) {
         return userService.findByUuid(userInfo.getPractitioner())
-                .orElseGet(() -> userService.fetchUserFromMisAndSave(userInfo.getPractitioner(), jwt.getTokenValue(), organizations, roles));
+                .map(existingUser -> {
+                    // === 1. ROLES UPDATE ===
+                    Set<String> existingRoleNames = existingUser.getRoles().stream()
+                            .map(Role::getName)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+
+                    Set<String> tokenRoleNames = rolesFromToken.stream()
+                            .filter(Objects::nonNull)
+                            .map(Role::getName)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+
+                    if (!existingRoleNames.equals(tokenRoleNames)) {
+                        existingUser.setRoles(rolesFromToken);
+                        log.info("Updated roles for user [{}]: {} -> {}", existingUser.getUsername(), existingRoleNames, tokenRoleNames);
+                    }
+
+                    // === 2. ORGANIZATIONS UPDATE ===
+                    Set<UUID> existingOrgIds = existingUser.getOrganizations().stream()
+                            .map(Organization::getUuid)
+                            .collect(Collectors.toSet());
+
+                    Set<UUID> tokenOrgIds = organizationsFromToken.stream()
+                            .map(Organization::getUuid)
+                            .collect(Collectors.toSet());
+
+                    if (!existingOrgIds.equals(tokenOrgIds)) {
+                        existingUser.setOrganizations(organizationsFromToken);
+                        log.info("Updated organizations for user [{}]: {} -> {}", existingUser.getUsername(), existingOrgIds, tokenOrgIds);
+                    }
+
+                    return userService.save(existingUser);
+                })
+                .orElseGet(() -> {
+                    log.info("User not found in DB. Fetching from MIS and creating...");
+                    return userService.fetchUserFromMisAndSave(
+                            userInfo.getPractitioner(),
+                            jwt.getTokenValue(),
+                            organizationsFromToken,
+                            rolesFromToken
+                    );
+                });
     }
+
+
 
     private void validateUserStatus(User user) {
         if (!user.isActive()) {
