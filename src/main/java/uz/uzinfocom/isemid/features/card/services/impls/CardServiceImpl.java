@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
 import uz.uzinfocom.isemid.features.act.factory.ActFactory;
@@ -32,7 +33,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.*;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Service
@@ -47,7 +47,7 @@ public class CardServiceImpl implements CardService {
     public PagedResponse<?> getAllCardsByFilter(int page, int size, String formTypeCode, String fromOrName, String toOrgName, CardStatus cardStatus, Long formId, User user, String fullURL) {
         Specification<Card> spec = CardSpecification.getFilteredSpecification(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, cardPage.map(cardMapper::toCardResponse), fullURL);
+        return PagedResponseUtil.build(page, cardPage.map(cardMapper::toCardResponse), fullURL);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class CardServiceImpl implements CardService {
     public PagedResponse<?> getCardUsers(int page, int size, Long userId, String fullURL) {
         Specification<Card> spec = CardSpecification.getFilteredSpecification(null, null, null, null, userId, true, null);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return createApiResponsePage(page, cardPage.map(cardMapper::toCardResponse), fullURL);
+        return PagedResponseUtil.build(page, cardPage.map(cardMapper::toCardResponse), fullURL);
     }
 
     @Override

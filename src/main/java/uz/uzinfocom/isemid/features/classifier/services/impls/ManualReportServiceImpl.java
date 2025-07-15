@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
 import uz.uzinfocom.isemid.features.classifier.mappers.ManualReportMapper;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
@@ -20,7 +21,6 @@ import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
 @Service
@@ -33,7 +33,7 @@ public class ManualReportServiceImpl implements ManualReportService {
     public PagedResponse<?> getAllByFilter(int page, int size, String shortName, String nameUz, String nameUzCyril, String nameRu, String nameKaa, String code, Boolean includeTotal, String fullURL) {
         Specification<ManualReport> spec = ManualReportSpecification.getFilteredSpecification(shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
         Page<ManualReport> mkb10Page = repo.findAll(spec, pageableNotSorting(page, size));
-        return createApiResponsePage(page, mkb10Page.map(mapper::toResponse), fullURL);
+        return PagedResponseUtil.build(page, mkb10Page.map(mapper::toResponse), fullURL);
     }
 
     @Override

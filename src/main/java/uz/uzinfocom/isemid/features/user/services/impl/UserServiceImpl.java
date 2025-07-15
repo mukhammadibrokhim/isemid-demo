@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.PractitionerResponse;
@@ -29,7 +30,6 @@ import java.util.*;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         Specification<User> spec = UserSpecification.getFilteredSpecification(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active);
         Page<User> userPage = userRepository.findAll(spec, pageableSortByIdDesc(page, size));
         Page<UserResponse> userResponsePage = userPage.map(userMapper::toResponse);
-        return createApiResponsePage(page, userResponsePage, url);
+        return PagedResponseUtil.build(page, userResponsePage, url);
     }
 
     @Override

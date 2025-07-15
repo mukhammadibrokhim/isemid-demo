@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 import uz.uzinfocom.isemid.features.classifier.repositories.Mkb10Repository;
@@ -30,7 +31,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
 @Service
@@ -44,7 +44,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
     public PagedResponse<?> getMkb10ByFilter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
         Specification<Mkb10> spec = Mkb10Specification.getFilteredSpecification(mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn);
         Page<Mkb10> mkb10Page = mkb10Repository.findAll(spec, pageableNotSorting(page, size));
-        return createApiResponsePage(page, mkb10Page, fullURL);
+        return PagedResponseUtil.build(page, mkb10Page, fullURL);
     }
 
     @Override
