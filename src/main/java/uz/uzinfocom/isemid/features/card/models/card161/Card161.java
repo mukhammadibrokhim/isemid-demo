@@ -139,7 +139,6 @@ public class Card161 extends Card {
 
 
     private String hospitalName;
-    //catalog
     private String infectionLocationCode;
     private String probableInfectionLocationCode;
     private Boolean isInfectionSourceMissing;
@@ -160,5 +159,7 @@ public class Card161 extends Card {
     private String caseStatusCode;
     private String epidemiologist;
     private String epidemiologistAssistant;
+    @Column(columnDefinition = "TEXT")
+    private String comment;
 }
 

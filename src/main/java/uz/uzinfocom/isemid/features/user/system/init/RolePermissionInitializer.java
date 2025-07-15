@@ -34,27 +34,94 @@ public class RolePermissionInitializer implements CommandLineRunner {
                 "POPULATION_TYPES", "GRAPH1", "MANUAL_REPORT", "FORM1", "FORM12", "MAP_GRAPHIC"
         );
 
-        // 1. Create permissions if not exist
-        for (String subject : allSubjects) {
-            permissionRepository.findBySubject(subject).orElseGet(() -> {
-                List<String> actions = subject.equals("ALL")
-                        ? List.of("manager", "manage", "create", "read", "view", "update", "delete")
-                        : List.of("read");
+        Map<String, Map<String, String>> subjectDescriptions = Map.ofEntries(
+                Map.entry("ALL", Map.of("uz", "Barcha ruxsatlar", "ru", "Все разрешения", "uzCyril", "Барча рухсатлар", "kaa", "Bardıq ruqsatlar")),
+                Map.entry("EMPLOYEES", Map.of("uz", "Xodimlar", "ru", "Сотрудники", "uzCyril", "Ходимлар", "kaa", "Qızmetkerler")),
+                Map.entry("ORGANIZATIONS", Map.of("uz", "Tashkilotlar", "ru", "Организации", "uzCyril", "Ташкилотлар", "kaa", "Uyımlar")),
+                Map.entry("ROLES", Map.of("uz", "Rollar", "ru", "Роли", "uzCyril", "Роллар", "kaa", "Rollar")),
+                Map.entry("PERMISSIONS", Map.of("uz", "Ruxsatlar", "ru", "Разрешения", "uzCyril", "Рухсатлар", "kaa", "Ruqsatlar")),
+                Map.entry("FORM058", Map.of("uz", "Ekstren xabarnoma", "ru", "Экстренное извещение", "uzCyril", "Экстрен хабарнома", "kaa", "Täsirli xabarnama")),
+                Map.entry("FORM058_ATTACHED_CARDS", Map.of("uz", "Form058ga biriktirilgan kartalar", "ru", "Карты, прикрепленные к Form058", "uzCyril", "Форм058га бириктирилган карталар", "kaa", "Form058-ge baylanısqan kartalar")),
+                Map.entry("FORM058_CHANGE_ORGANIZATION", Map.of("uz", "Form058 organizatsiyasini o‘zgartirish", "ru", "Изменение организации Form058", "uzCyril", "Форм058 ташкилотини ўзгартириш", "kaa", "Form058 uyımın özgertiw")),
+                Map.entry("RECEIVED", Map.of("uz", "Qabul qilingan formalar", "ru", "Полученные формы", "uzCyril", "Қабул қилинган формалар", "kaa", "Qabıl etilgen formalár")),
+                Map.entry("FORM058_COMPLETE_BY_SUPERVISOR", Map.of("uz", "Form058ni rahbar tomonidan tasdiqlash", "ru", "Подтверждение Form058 руководителем", "uzCyril", "Форм058ни раҳбар томонидан тасдиқлаш", "kaa", "Form058 baslıq tastıyıqlawı arqalı")),
+                Map.entry("USER_INCOMINGS", Map.of("uz", "Menga biriktirilgan kartalar", "ru", "Карты, прикрепленные ко мне", "uzCyril", "Менга бириктирилган карталар", "kaa", "Maǵan baylanısqan kartalar")),
+                Map.entry("CARD_FULL_INFO", Map.of("uz", "Kartaning to‘liq ma’lumoti", "ru", "Дополнительная информация о карте", "uzCyril", "Картанинг тўлиқ маълумоти", "kaa", "Kartanın tolıq malıumatı")),
+                Map.entry("MKB_LIST", Map.of("uz", "MKBlаr ro‘yxati", "ru", "Список МКБ", "uzCyril", "МКБлар рўйхати", "kaa", "MKB-lar tizimi")),
+                Map.entry("COUNTRIES", Map.of("uz", "Davlatlar", "ru", "Страны", "uzCyril", "Давлатлар", "kaa", "Memleketler")),
+                Map.entry("STATES", Map.of("uz", "Viloyatlar", "ru", "Области", "uzCyril", "Вилоятлар", "kaa", "Oblıstar")),
+                Map.entry("CITIES", Map.of("uz", "Shaharlar", "ru", "Города", "uzCyril", "Шаҳарлар", "kaa", "Qalalar")),
+                Map.entry("NEIGHBORHOODS", Map.of("uz", "Tumanlar", "ru", "Районы", "uzCyril", "Туманлар", "kaa", "Awdanlar")),
+                Map.entry("STREETS", Map.of("uz", "Ko‘chalar", "ru", "Улицы", "uzCyril", "Кўчалар", "kaa", "Kósheler")),
+                Map.entry("RESIDENCES", Map.of("uz", "Yashash joyi", "ru", "Место жительства", "uzCyril", "Яшаш жойи", "kaa", "Turaq jayi")),
+                Map.entry("FORM_CATEGORIES", Map.of("uz", "Yagona forma", "ru", "Единая форма", "uzCyril", "Ягона форма", "kaa", "Birgeshe forma")),
+                Map.entry("SICK_PATIENT_CATEGORIES", Map.of("uz", "Kasallangan bemor toifasi", "ru", "Категория больного пациента", "uzCyril", "Касалланган бемор тоифаси", "kaa", "Aǵırǵan naǵras toifası")),
+                Map.entry("DISEASE_PLACES", Map.of("uz", "Kasallik joylari", "ru", "Места расположения больного", "uzCyril", "Касаллик жойлари", "kaa", "Aǵırǵan orınlar")),
+                Map.entry("POPULATION_TYPES", Map.of("uz", "Aholi turlari", "ru", "Тип населения", "uzCyril", "Аҳоли турлари", "kaa", "Xalıqtıń túrleri")),
+                Map.entry("GRAPH1", Map.of("uz", "1-Grafik", "ru", "Первый график", "uzCyril", "1-График", "kaa", "1-Grafik")),
+                Map.entry("MANUAL_REPORT", Map.of("uz", "Qo‘llanma hisoboti", "ru", "Отчет по руководствам", "uzCyril", "Қўлланма ҳисоботи", "kaa", "Qollanba esabatı")),
+                Map.entry("FORM1", Map.of("uz", "1-shakl", "ru", "Форма №1", "uzCyril", "1-шакл", "kaa", "1-shakil")),
+                Map.entry("FORM12", Map.of("uz", "12-shakl", "ru", "Форма №12", "uzCyril", "12-шакл", "kaa", "12-shakil")),
+                Map.entry("MAP_GRAPHIC", Map.of("uz", "Xarita grafikasi", "ru", "Тематический график", "uzCyril", "Харита графикаси", "kaa", "Harita grafikası"))
+        );
 
-                Permission permission = Permission.builder()
+
+        for (String subject : allSubjects) {
+            List<String> actions = subject.equals("ALL")
+                    ? List.of("manager", "manage", "create", "read", "view", "update", "delete")
+                    : List.of("read");
+
+            Map<String, String> desc = subjectDescriptions.getOrDefault(subject, Map.of());
+
+            Permission permission = permissionRepository.findBySubject(subject).orElse(null);
+
+            if (permission == null) {
+                permission = Permission.builder()
                         .subject(subject)
                         .actions(actions)
-                        .descriptionUz("test")
-                        .descriptionRu("test")
-                        .descriptionUzCyril("test")
-                        .descriptionKaa("test")
+                        .descriptionUz(desc.getOrDefault("uz", subject))
+                        .descriptionRu(desc.getOrDefault("ru", subject))
+                        .descriptionUzCyril(desc.getOrDefault("uzCyril", subject))
+                        .descriptionKaa(desc.getOrDefault("kaa", subject))
                         .active(true)
                         .build();
 
+                permissionRepository.save(permission);
                 log.info("➕ Permission created: {} (actions: {})", subject, actions);
-                return permissionRepository.save(permission);
-            });
+            } else {
+                boolean updated = false;
+
+                if (!permission.getActions().containsAll(actions)) {
+                    permission.setActions(actions);
+                    updated = true;
+                }
+
+                if (!Objects.equals(permission.getDescriptionUz(), desc.getOrDefault("uz", subject))) {
+                    permission.setDescriptionUz(desc.getOrDefault("uz", subject));
+                    updated = true;
+                }
+                if (!Objects.equals(permission.getDescriptionRu(), desc.getOrDefault("ru", subject))) {
+                    permission.setDescriptionRu(desc.getOrDefault("ru", subject));
+                    updated = true;
+                }
+                if (!Objects.equals(permission.getDescriptionUzCyril(), desc.getOrDefault("uzCyril", subject))) {
+                    permission.setDescriptionUzCyril(desc.getOrDefault("uzCyril", subject));
+                    updated = true;
+                }
+                if (!Objects.equals(permission.getDescriptionKaa(), desc.getOrDefault("kaa", subject))) {
+                    permission.setDescriptionKaa(desc.getOrDefault("kaa", subject));
+                    updated = true;
+                }
+
+                if (updated) {
+                    permissionRepository.save(permission);
+                    log.info("🔄 Permission updated: {}", subject);
+                } else {
+                    log.info("✅ Permission unchanged: {}", subject);
+                }
+            }
         }
+
 
         Map<String, Map<String, Object>> rolePermissions = Map.of(
                 "isemid_qr_user", Map.of(
