@@ -15,11 +15,29 @@ import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
+
+
     @Bean
-    GroupedOpenApi groupedOpenApi() {
+    public GroupedOpenApi publicClassifierGroup() {
         return GroupedOpenApi.builder()
-                .group("ISEMID")
-                .pathsToMatch("/**")
+                .group("📦Справочники")
+                .pathsToMatch(
+                        ApiPaths.ManualReport.ROOT + "/**",
+                        ApiPaths.Catalog.ROOT + "/**",
+                        ApiPaths.Mkb10.ROOT + "/**"
+                )
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi mainApiGroup() {
+        return GroupedOpenApi.builder()
+                .group("🌐 Основной API")
+                .pathsToMatch(ApiPaths.BASE_PATH + "/**")
+                .pathsToExclude(
+                        ApiPaths.ManualReport.ROOT + "/**",
+                        ApiPaths.Catalog.ROOT + "/**",
+                        ApiPaths.Mkb10.ROOT + "/**")
                 .build();
     }
 
@@ -27,7 +45,7 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("ISEMID API")
+                        .title("ISEMID API / ИСЕМИЗ API")
                         .version("1.0")
                         .description("<h4>ENG: This is the OpenAPI documentation for the </br> <b>(ISEMID) Information system of epidemiological monitoring of infectious diseases system.</b></h4>" +
                                 "<h4>RU: Это документация OpenAPI для </br><b>(ИСЕМИЗ) Информационная система эпидемиологического мониторинга инфекционных заболеваний.</b></h4>"))
