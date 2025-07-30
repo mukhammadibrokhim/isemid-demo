@@ -10,7 +10,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
@@ -179,7 +178,7 @@ public class Form058ExportServiceImpl implements Form058ExportService {
             });
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageUtil.INTERNAL_SERVER_ERROR + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.integrations.gcp.service.CitizenService;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class CitizenController {
 
    private final CitizenService citizenService;
+    private final MessageUtil messageUtil;
 
     @Operation(
             summary = "Получение информации о гражданине",
@@ -50,7 +52,7 @@ public class CitizenController {
             return ResponseEntity.ok(citizenService.getCitizenByNnuzb(nnuzb, birthDate, photo, token));
         } else if (series != null && number != null) {
             return ResponseEntity.ok(citizenService.getCitizenByChild(series, number, token));
-        } else throw new ApiException(BAD_REQUEST, "Неверные параметры запроса");
+        } else throw new ApiException(BAD_REQUEST, messageUtil.get("error.request.invalid_parameters"));
     }
 
     @Operation(

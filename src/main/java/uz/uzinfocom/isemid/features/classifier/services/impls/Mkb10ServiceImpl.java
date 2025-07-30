@@ -36,26 +36,26 @@ import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting
 @Service
 @RequiredArgsConstructor
 public class Mkb10ServiceImpl implements Mkb10Service {
-
     private final Mkb10Repository mkb10Repository;
     private final ResourceLoader resourceLoader;
+    private final MessageUtil messageUtil;
 
     @Override
     public PagedResponse<?> getMkb10ByFilter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn, String fullURL) {
         Specification<Mkb10> spec = Mkb10Specification.getFilteredSpecification(mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn);
         Page<Mkb10> mkb10Page = mkb10Repository.findAll(spec, pageableNotSorting(page, size));
-        return PagedResponseUtil.build(page, mkb10Page, fullURL);
+        return PagedResponseUtil.build(page, mkb10Page, fullURL, messageUtil);
     }
 
     @Override
     public ApiResponse<?> getById(long id) {
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS,
-                mkb10Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND)));
+        return ApiResponse.success(messageUtil.get("message.success"),
+                mkb10Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id))));
     }
 
     @Override
     public ApiResponse<?> update(long id, Mkb10Request reqMkb10) {
-        Mkb10 existedMkb10 = mkb10Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        Mkb10 existedMkb10 = mkb10Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         Optional.ofNullable(reqMkb10.getCode()).ifPresent(existedMkb10::setCode);
         Optional.ofNullable(reqMkb10.getNameUz()).ifPresent(existedMkb10::setNameUz);
         Optional.ofNullable(reqMkb10.getNameRu()).ifPresent(existedMkb10::setNameRu);
@@ -63,7 +63,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
         Optional.ofNullable(reqMkb10.getNameUzCyril()).ifPresent(existedMkb10::setNameUzCyril);
         Optional.ofNullable(reqMkb10.getComment()).ifPresent(existedMkb10::setComment);
         Optional.ofNullable(reqMkb10.getUsageLimit()).ifPresent(existedMkb10::setUsageLimit);
-        return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, mkb10Repository.save(existedMkb10));
+        return ApiResponse.success(messageUtil.get("message.success"), mkb10Repository.save(existedMkb10));
     }
 
     @Override
@@ -71,9 +71,9 @@ public class Mkb10ServiceImpl implements Mkb10Service {
         try {
             mkb10Repository.deleteById(id);
         } catch (Exception e) {
-            throw new ApiException(INTERNAL_SERVER_ERROR,MessageUtil.OPERATION_FAILED, e);
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), e);
         }
-        return new ApiResponse<>(true, MessageUtil.DELETED_SUCCESS, null);
+        return ApiResponse.success(messageUtil.get("message.success"));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
             search = null;
         }
         List<Mkb10> results = mkb10Repository.searchMkb10(parentId, search);
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, results);
+        return ApiResponse.success(messageUtil.get("message.success"), results);
     }
 
     @SneakyThrows

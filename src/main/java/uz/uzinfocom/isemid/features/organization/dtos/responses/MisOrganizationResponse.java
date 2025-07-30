@@ -10,10 +10,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OrganizationResponse {
+public class MisOrganizationResponse {
     private String id;
     private Meta meta;
-    private List<OrganizationType> type; // o'zgartirildi
+    private List<OrganizationType> type;
     private String name;
     private boolean active;
     private PartOf partOf;

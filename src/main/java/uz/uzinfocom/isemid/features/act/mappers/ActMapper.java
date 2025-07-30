@@ -1,7 +1,12 @@
 package uz.uzinfocom.isemid.features.act.mappers;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
+import uz.uzinfocom.isemid.features.act.dtos.requests.act153.Act153Request;
+import uz.uzinfocom.isemid.features.act.dtos.requests.act154.Act154Request;
+import uz.uzinfocom.isemid.features.act.dtos.requests.act155.Act155Request;
+import uz.uzinfocom.isemid.features.act.dtos.requests.act156.Act156Request;
+import uz.uzinfocom.isemid.features.act.dtos.requests.act223.Act223Request;
+import uz.uzinfocom.isemid.features.act.dtos.requests.act224.Act224Request;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act153.Act153Response;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act154.Act154Response;
@@ -17,7 +22,11 @@ import uz.uzinfocom.isemid.features.act.models.act156.Act156;
 import uz.uzinfocom.isemid.features.act.models.act223.Act223;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring",
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        uses = {}
+)
 public interface ActMapper {
 
     @Mapping(target = "id", source = "act.id")
@@ -47,4 +56,22 @@ public interface ActMapper {
             case ACT224 -> toAct224Response((Act224) act);
         };
     }
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Act153 entity, Act153Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Act154 entity, Act154Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Act155 entity, Act155Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Act156 entity, Act156Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Act223 entity, Act223Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Act224 entity, Act224Request dto);
 }

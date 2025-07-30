@@ -25,7 +25,7 @@ public class OrgResponse {
     private CatalogResponseDto country;
     private CatalogResponseDto state;
     private CatalogResponseDto city;
-    private CatalogResponseDto organizationType;
+//    private CatalogResponseDto ;
     private String district;
     private String line;
     private CatalogResponseDto serviceArea;

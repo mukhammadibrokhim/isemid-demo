@@ -12,7 +12,6 @@ import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 
 @Component
 public class ActFactory {
-
     public Act createAct(ActType type) {
         return switch (type) {
             case ACT153 -> new Act153();
@@ -23,5 +22,4 @@ public class ActFactory {
             case ACT224 -> new Act224();
         };
     }
-
 }

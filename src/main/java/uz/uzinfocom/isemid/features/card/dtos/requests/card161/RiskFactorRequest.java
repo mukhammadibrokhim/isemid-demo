@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Card161RiskFactorRequest {
+public class RiskFactorRequest {
     private Long id;
     private String riskFactorCode;
     private String addressLocation;

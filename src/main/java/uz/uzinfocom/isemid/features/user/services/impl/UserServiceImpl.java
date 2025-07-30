@@ -16,7 +16,7 @@ import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
-import uz.uzinfocom.isemid.features.user.dtos.responses.PractitionerResponse;
+import uz.uzinfocom.isemid.features.user.dtos.responses.MisUserResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
 import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
@@ -33,13 +33,13 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final MessageUtil messageUtil;
 
     @Override
     public UserDetails loadUserByUsername(String nnuzb) throws UsernameNotFoundException {
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         Specification<User> spec = UserSpecification.getFilteredSpecification(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active);
         Page<User> userPage = userRepository.findAll(spec, pageableSortByIdDesc(page, size));
         Page<UserResponse> userResponsePage = userPage.map(userMapper::toResponse);
-        return PagedResponseUtil.build(page, userResponsePage, url);
+        return PagedResponseUtil.build(page, userResponsePage, url, messageUtil);
     }
 
     @Override
@@ -61,11 +61,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User fetchUserFromMisAndSave(UUID uuid, String token, List<Organization> organizations, Set<Role> roles) {
-        PractitionerResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, PractitionerResponse.class);
+        MisUserResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, MisUserResponse.class);
         return userRepository.saveAndFlush(Objects.requireNonNull(convertToUser(response, organizations, roles)));
     }
 
-    private User convertToUser(PractitionerResponse response, List<Organization> organizations, Set<Role> roles) {
+    private User convertToUser(MisUserResponse response, List<Organization> organizations, Set<Role> roles) {
         User user = userMapper.toUser(response);
         user.setRoles(roles);
         user.setOrganizations(organizations);
@@ -74,13 +74,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public ApiResponse<UserResponse> getById(long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, userMapper.toResponse(user));
+        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        return ApiResponse.success(messageUtil.get("message.success"), userMapper.toResponse(user));
     }
 
     @Override
     public ApiResponse<UserResponse> updateUserFromMis(UUID uuid, UserRequest user, String token) {
-        return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, null);
+        return ApiResponse.success(messageUtil.get("message.success"), null);
     }
 
     @Override
@@ -89,10 +89,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public ApiResponse<UserMeResponse> getByUuid(User currentUser) {
-        User user = userRepository.findByUuid(currentUser.getUuid()).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, currentUser.getUuid())));
-        user.setCurrentOrganization(currentUser.getCurrentOrganization());
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, userMapper.toUserMeResponse(user));
+    public ApiResponse<UserMeResponse> getByUser(User currentUser) {
+        return ApiResponse.success(messageUtil.get("message.success"), userMapper.toUserMeResponse(currentUser));
     }
 
     @Override
@@ -102,8 +100,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public ApiResponse<UserResponse> update(long id, @Valid UserRequest userRequest) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
+        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         userMapper.updateUser(userRequest, user);
-        return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, userMapper.toResponse(userRepository.save(user)));
+        return ApiResponse.success(messageUtil.get("message.success"), userMapper.toResponse(userRepository.save(user)));
     }
 }

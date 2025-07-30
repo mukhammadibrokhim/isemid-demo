@@ -8,8 +8,6 @@ import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.services.ActService;
-import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
-import uz.uzinfocom.isemid.features.user.models.User;
 
 @RestController
 @RequestMapping(ApiPaths.Act.ROOT)
@@ -40,10 +38,8 @@ public class ActController {
     @PutMapping("/{id}")
     public ApiResponse<?> updateAct(
             @PathVariable long id,
-            @RequestBody ActRequest actRequest,
-            @CurrentUser User currentUser
-    ) {
-        return actService.updateAct(id, actRequest, currentUser);
+            @RequestBody ActRequest actRequest) {
+        return actService.updateAct(id, actRequest);
     }
 
     @Operation(summary = "Удалить акт по ID",

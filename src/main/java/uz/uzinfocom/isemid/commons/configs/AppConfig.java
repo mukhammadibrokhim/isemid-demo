@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import jakarta.annotation.Nonnull;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -17,6 +18,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.server.i18n.AcceptHeaderLocaleContextResolver;
 import org.springframework.web.server.i18n.LocaleContextResolver;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -26,18 +28,37 @@ public class AppConfig {
 
     @Bean
     public LocaleContextResolver localeContextResolver() {
-        AcceptHeaderLocaleContextResolver localeResolver = new AcceptHeaderLocaleContextResolver();
-        localeResolver.setDefaultLocale(Locale.forLanguageTag("ru"));
-        return localeResolver;
+        AcceptHeaderLocaleContextResolver resolver = new AcceptHeaderLocaleContextResolver();
+        resolver.setDefaultLocale(Locale.forLanguageTag("uz"));
+        resolver.setSupportedLocales(List.of(
+                Locale.forLanguageTag("ru"),
+                Locale.forLanguageTag("en"),
+                Locale.forLanguageTag("uz"),
+                Locale.forLanguageTag("uz-Cyrl")
+        ));
+        return resolver;
     }
 
     @Bean
     public MessageSource messageSource() {
-        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.setBasename("classpath:messages");
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource() {
+            @Override
+            protected String resolveCodeWithoutArguments(@Nonnull String code, Locale locale) {
+                if ("uz".equals(locale.getLanguage()) && "Cyrl".equals(locale.getScript())) {
+                    locale = new Locale("uz", "Cyrl");
+                }
+                return super.resolveCodeWithoutArguments(code, locale);
+            }
+        };
+
+        messageSource.setBasename("classpath:i18n/messages");
         messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setCacheMillis(3600000); // 1 soat (ms)
+
+        messageSource.setFallbackToSystemLocale(false);
         return messageSource;
     }
+
 
     @Bean
     public LocalValidatorFactoryBean getValidator() {
@@ -52,7 +73,6 @@ public class AppConfig {
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(10, TimeUnit.HOURS)
                 .maximumSize(10000));
-
         return cacheManager;
     }
 
@@ -63,7 +83,6 @@ public class AppConfig {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.setTimeZone(TimeZone.getTimeZone("Asia/Tashkent"));
-
         mapper.getFactory().setStreamWriteConstraints(
                 StreamWriteConstraints.builder()
                         .maxNestingDepth(20000)

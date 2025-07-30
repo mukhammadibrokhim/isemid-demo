@@ -8,14 +8,14 @@ import java.util.ArrayList;
 
 public class PagedResponseUtil {
 
-    public static <T> PagedResponse<?> build(int page, Page<T> objectPage, String requestUrl) {
+    public static <T> PagedResponse<?> build(int page, Page<T> objectPage, String requestUrl,MessageUtil messageUtil) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(requestUrl);
 
         String selfUrl = uriBuilder.replaceQueryParam("page", page).toUriString();
         String nextUrl = uriBuilder.replaceQueryParam("page", page + 1).toUriString();
 
         PagedResponse<?> pagedResponse = new PagedResponse<>(
-                true, MessageUtil.OPERATION_SUCCESS,
+                true, messageUtil.get("message.success"),
                 objectPage.getTotalElements(),
                 new ArrayList<>(),
                 new ArrayList<>(objectPage.getContent())

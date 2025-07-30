@@ -2,24 +2,25 @@ package uz.uzinfocom.isemid.features.integrations.gcp.util;
 
 import lombok.experimental.UtilityClass;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkNnuzb;
 
 @UtilityClass
 public class ValidationUtil {
-    public static void validateByNnuzb(String nnuzb) {
+    public static void validateByNnuzb(String nnuzb, MessageUtil messageUtil) {
         if (!checkNnuzb(nnuzb)) {
-            throw new ApiException(BAD_REQUEST, "Неверный NNUZB");
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.request.invalid_nnuzb", nnuzb));
         }
     }
 
-    public static void validateChildCertificate(String serial, String number) {
+    public static void validateChildCertificate(String serial, String number, MessageUtil messageUtil) {
         if (!isValidCertificateSeries(serial)) {
-            throw new ApiException(BAD_REQUEST, "Недействительная серия сертификата.");
+            throw new ApiException(BAD_REQUEST, messageUtil.get("validation.certificate.series.invalid"));
         }
         if (!isValidNumber(number)) {
-            throw new ApiException(BAD_REQUEST, "Недействительный номер сертификата.");
+            throw new ApiException(BAD_REQUEST, messageUtil.get("validation.certificate.number.invalid"));
         }
     }
 

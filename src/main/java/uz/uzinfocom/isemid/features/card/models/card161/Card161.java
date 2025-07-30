@@ -27,10 +27,10 @@ public class Card161 extends Card {
     private String districtCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "polyclinic_id")
+    @JoinColumn(name = "polyclinic_id", insertable = false, updatable = false)
     private Organization polyclinic;
 
-    @Column(name = "polyclinic_id", insertable = false, updatable = false)
+    @Column(name = "polyclinic_id")
     private Long polyclinicId;
 
     private String initialSymptoms;
@@ -63,7 +63,7 @@ public class Card161 extends Card {
     @JsonIgnoreProperties({"card161"})
     @OrderBy("id DESC")
     @Builder.Default
-    private List<Card161RiskFactor> riskFactors = new ArrayList<>();
+    private List<RiskFactor> riskFactors = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})

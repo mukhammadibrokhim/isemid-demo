@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uz.uzinfocom.isemid.commons.dtos.UserInfo;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.models.Role;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
 
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.WHITELIST_HEADER_CHECK;
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkReqUri;
-import static uz.uzinfocom.isemid.commons.utils.MessageUtil.*;
 
 @Slf4j
 @Service
@@ -35,19 +35,19 @@ public class JwtAuthHelper {
     private final UserService userService;
     private final RoleService roleService;
     private final ObjectMapper objectMapper;
-
+    private final MessageUtil messageUtil;
 
     protected HttpServletRequest getCurrentHttpRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
-            throw new IllegalStateException(NO_HTTP_REQUEST_CONTEXT);
+            throw new InsufficientAuthenticationException(messageUtil.get("error.security.no_http_request_context"));
         }
         return attributes.getRequest();
     }
 
     protected void validateOrganizationHeader(String selectedOrgId, HttpServletRequest request) {
         if (!checkReqUri(request, WHITELIST_HEADER_CHECK) && (selectedOrgId == null || selectedOrgId.isBlank())) {
-            throw new InsufficientAuthenticationException(REQUIRED_ORGANIZATION_HEADER);
+            throw new InsufficientAuthenticationException(messageUtil.get("error.security.required_organization_header"));
         }
     }
 
@@ -132,7 +132,7 @@ public class JwtAuthHelper {
 
     protected void validateUserStatus(User user) {
         if (!user.isActive()) {
-            throw new InsufficientAuthenticationException(USER_NOT_ACTIVE);
+            throw new InsufficientAuthenticationException(messageUtil.get("error.auth.user_not_active"));
         }
     }
 
@@ -148,7 +148,7 @@ public class JwtAuthHelper {
                 user.setCurrentOrganization(matchingOrg);
 
             } catch (Exception e) {
-                throw new InsufficientAuthenticationException(CURRENT_ORGANIZATION_NOT_FOUND);
+                throw new InsufficientAuthenticationException(messageUtil.get("error.auth.current_organization_not_found"));
             }
 
         }

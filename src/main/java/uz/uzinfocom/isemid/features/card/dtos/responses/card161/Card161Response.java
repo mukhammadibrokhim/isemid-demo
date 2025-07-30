@@ -45,7 +45,7 @@ public class Card161Response extends CardResponse {
     private LocalDate estimatedInfectionDateTo;
 
     @Builder.Default
-    private List<Card161RiskFactorResponse> riskFactors = new ArrayList<>();
+    private List<RiskFactorResponse> riskFactors = new ArrayList<>();
 
     @Builder.Default
     private List<InfectionSourceResponse> possibleInfectionSources = new ArrayList<>();

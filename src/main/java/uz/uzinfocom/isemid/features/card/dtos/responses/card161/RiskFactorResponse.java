@@ -10,7 +10,7 @@ import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Card161RiskFactorResponse {
+public class RiskFactorResponse {
     private Long id;
     private CatalogResponseDto riskFactor;
     private String addressLocation;

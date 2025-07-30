@@ -59,7 +59,7 @@ public class OrganizationController {
 
     @Operation(summary = "Обновить организацию из MIS", description = "Обновляет информацию об организации, используя данные из MIS по UUID организации. Требуется авторизация.")
     @PutMapping("/{uuid}/update-from-mis")
-    public ApiResponse<Organization> updateOrganizationFromMis(
+    public ApiResponse<OrgResponse> updateOrganizationFromMis(
             @PathVariable UUID uuid,
             @CurrentUser User currentUser,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
@@ -86,9 +86,8 @@ public class OrganizationController {
     public ApiResponse<?> getOrganizationsByFilter(
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
-            @RequestParam(required = false) String organizationType,
             @RequestParam(required = false) String name
     ) {
-        return organizationService.getOrganizationsBySearch(stateCode, cityCode, organizationType, name);
+        return organizationService.getOrganizationsBySearch(stateCode, cityCode, name);
     }
 }

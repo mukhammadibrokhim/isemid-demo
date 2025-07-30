@@ -90,7 +90,7 @@ public class UserController {
     )
     @GetMapping("/me")
     public ApiResponse<UserMeResponse> getCurrentUser(@CurrentUser User user) {
-        return userService.getByUuid(user);
+        return userService.getByUser(user);
     }
 
     @Operation(

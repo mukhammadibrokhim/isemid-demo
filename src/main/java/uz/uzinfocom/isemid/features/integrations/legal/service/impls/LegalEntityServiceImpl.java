@@ -22,6 +22,7 @@ import static uz.uzinfocom.isemid.features.integrations.legal.utils.ValidationUt
 @RequiredArgsConstructor
 public class LegalEntityServiceImpl implements LegalEntityService {
     private final OAuthTokenService oAuthTokenService;
+    private final MessageUtil messageUtil;
 
     @Override
     public ApiResponse<?> fetchLegalEntityByTin(String tin) {
@@ -29,12 +30,12 @@ public class LegalEntityServiceImpl implements LegalEntityService {
 
         if (!validationTin(tin)) {
             log.warn("TIN validation failed for: {}", maskTin(tin));
-            throw new ApiException(BAD_REQUEST, MessageUtil.VALIDATION_ERROR);
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.validation_failed"));
         }
 
         Object resp = makeRequest(String.format(LEGAL_ENTITY_API, tin), HttpMethod.GET, oAuthTokenService.getAccessToken(), null, Object.class);
 
         log.info("Successfully fetched legal entity info for TIN: {}", maskTin(tin));
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, resp);
+        return ApiResponse.success(messageUtil.get("message.success"), resp);
     }
 }

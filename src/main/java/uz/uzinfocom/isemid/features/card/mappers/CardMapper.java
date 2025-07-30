@@ -1,7 +1,11 @@
 package uz.uzinfocom.isemid.features.card.mappers;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
+import uz.uzinfocom.isemid.features.card.dtos.requests.card161.Card161Request;
+import uz.uzinfocom.isemid.features.card.dtos.requests.card174.Card174Request;
+import uz.uzinfocom.isemid.features.card.dtos.requests.card175.Card175Request;
+import uz.uzinfocom.isemid.features.card.dtos.requests.card205.Card205Request;
+import uz.uzinfocom.isemid.features.card.dtos.requests.card_tube.CardTubeRequest;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card161.Card161Response;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card174.Card174Response;
@@ -15,17 +19,27 @@ import uz.uzinfocom.isemid.features.card.models.card175.Card175;
 import uz.uzinfocom.isemid.features.card.models.card205.Card205;
 import uz.uzinfocom.isemid.features.card.models.card_tube.CardTube;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
-import uz.uzinfocom.isemid.features.organization.mappers.OrganizationConverter;
+import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 import uz.uzinfocom.isemid.features.patient.mappers.AddressMapper;
 import uz.uzinfocom.isemid.features.patient.mappers.IdentifierMapper;
 
-@Mapper(componentModel = "spring", uses = {
-        OrganizationConverter.class,
-        CatalogConverter.class,
-        IdentifierMapper.class,
-        AddressMapper.class,
-        Card161RiskFactorMapper.class
-})
+@Mapper(
+        componentModel = "spring",
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        uses = {
+                CatalogConverter.class,
+                OrganizationMapperHelper.class,
+                IdentifierMapper.class,
+                AddressMapper.class,
+                RiskFactorMapper.class,
+//                VaccinationMapper.class,
+//                ComplicationMapper.class,
+//                TreatmentMapper.class,
+//                ContactMapper.class,
+//                ExaminationMapper.class
+        }
+)
 public interface CardMapper {
 
     @Mapping(target = "id", source = "card.id")
@@ -124,4 +138,19 @@ public interface CardMapper {
             case CARD_TUBE -> toCardTubeResponse((CardTube) card);
         };
     }
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Card161 entity, Card161Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Card174 entity, Card174Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Card175 entity, Card175Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Card205 entity, Card205Request dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget CardTube entity, CardTubeRequest dto);
 }

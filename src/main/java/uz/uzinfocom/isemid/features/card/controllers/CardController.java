@@ -79,10 +79,9 @@ public class CardController {
     @PutMapping("/{id}")
     public ApiResponse<?> updateCard(
             @PathVariable long id,
-            @RequestBody CardRequest reqCard,
-            @CurrentUser User currentUser
+            @RequestBody CardRequest reqCard
     ) {
-        return cardService.updateCard(id, reqCard, currentUser);
+        return cardService.updateCard(id, reqCard);
     }
 
     @Operation(

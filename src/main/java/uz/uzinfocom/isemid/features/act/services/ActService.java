@@ -9,7 +9,7 @@ public interface ActService {
 
    ApiResponse<?> getById(long id);
 
-    ApiResponse<?> updateAct(long id, ActRequest reqAct, User currentUser);
+    ApiResponse<?> updateAct(long id, ActRequest reqAct);
 
     ApiResponse<?> deleteById(Long id);
 

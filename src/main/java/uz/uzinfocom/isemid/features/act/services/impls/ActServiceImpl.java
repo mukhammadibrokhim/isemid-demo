@@ -7,6 +7,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiException;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.mappers.ActMapper;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
@@ -25,24 +26,26 @@ public class ActServiceImpl implements ActService {
 
     private final ActRepository actRepository;
     private final UpdateActService updateActService;
+    private final MessageUtil messageUtil;
     private final ActMapper actMapper;
 
     @Override
     public ApiResponse<?> getAllByCardId(Long cardId) {
-        List<Act> acts = actRepository.findAllByCardId(cardId);
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, acts);
+        List<ActResponse> acts = actRepository.findAllByCardId(cardId)
+                .stream().map(actMapper::toResponse).toList();
+        return ApiResponse.success(messageUtil.get("message.success"), acts);
     }
 
     @Override
     public ApiResponse<?> getById(long id) {
-        Act act = actRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, actMapper.toResponse(act));
+        Act act = actRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        return ApiResponse.success(messageUtil.get("message.success"), actMapper.toResponse(act));
     }
 
     @Transactional
     @Override
-    public ApiResponse<?> updateAct(long id, ActRequest reqAct, User currentUser) {
-        return updateActService.updateAct(id, reqAct, currentUser);
+    public ApiResponse<?> updateAct(long id, ActRequest reqAct) {
+        return updateActService.updateAct(id, reqAct);
     }
 
     @Override
@@ -50,9 +53,9 @@ public class ActServiceImpl implements ActService {
         try {
             actRepository.deleteById(id);
         } catch (Exception e) {
-            throw new ApiException(INTERNAL_SERVER_ERROR, "Internal Server Error", e);
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), e);
         }
-        return new ApiResponse<>(true, "Successfully deleted.", null);
+        return ApiResponse.success(messageUtil.get("message.deleted"));
     }
 }
 

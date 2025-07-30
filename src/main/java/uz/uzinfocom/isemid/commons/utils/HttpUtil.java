@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.commons.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.experimental.UtilityClass;
+import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
@@ -10,8 +10,9 @@ import java.util.Enumeration;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
-@UtilityClass
+@RequiredArgsConstructor
 public class HttpUtil {
+    private final MessageUtil messageUtil;
 
     public static String getRequestUrl(HttpServletRequest request) {
         String fullURL = request.getRequestURI();
@@ -28,7 +29,7 @@ public class HttpUtil {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authorizationHeader.substring(7);
         }
-        throw new ApiException(UNAUTHORIZED, MessageUtil.UNAUTHORIZED);
+        throw new ApiException(UNAUTHORIZED);
     }
 
 

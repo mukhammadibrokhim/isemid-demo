@@ -33,13 +33,14 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
     private final Form058Repository form058Repository;
     private final CatalogService catalogService;
+    private final MessageUtil messageUtil;
 
     @Override
     public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
         Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, mkb10Code,gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(specification);
         Organization organization = currentUser.getCurrentOrganization();
-        String level = organization.getLevelCode();
+        String level = organization.getLevelType().name();
 
         if (level == null || level.isEmpty()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "У организации текущего пользователя не указан код уровня. Пожалуйста, обратитесь к администратору системы.");
@@ -76,7 +77,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
         Form1ReportDto regionReport = Form058StatisticsUtil.calculate(regionForms, regionName, children);
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, List.of(regionReport));
+        return ApiResponse.success(messageUtil.get("message.success"), List.of(regionReport));
     }
 
 
@@ -96,7 +97,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
         Form1ReportDto districtReport = Form058StatisticsUtil.calculate(districtForms, districtName, organizationReports);
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, List.of(districtReport));
+        return ApiResponse.success(messageUtil.get("message.success"), List.of(districtReport));
     }
 
 
@@ -137,7 +138,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
         reportList.add(Form058StatisticsUtil.calculate(
                 form058s, "Республика Узбекистан", childrenStates));
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, reportList);
+        return ApiResponse.success(messageUtil.get("message.success"), reportList);
     }
     public static Specification<Form058> filterByCriteria(
             LocalDate fromDate,
@@ -170,22 +171,22 @@ public class Form1ReportServiceImpl implements Form1ReportService {
                 predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
 
-            if (userOrg != null && userOrg.getLevelCode() != null) {
-                String userLevelCode = userOrg.getLevelCode();
-
-                switch (userLevelCode) {
-                    case "republic_level" -> {
-                    }
-                    case "region_level" -> predicates.add(cb.and(
-                            cb.equal(root.get("createdOrg").get("state").get("code"),
-                                    userOrg.getState().getCode())));
-
-                    case "district_level" -> predicates.add(cb.and(
-                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
-                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
-                    ));
-                }
-            }
+//            if (userOrg != null && userOrg.getLevelCode() != null) {
+//                String userLevelCode = userOrg.getLevelCode();
+//
+//                switch (userLevelCode) {
+//                    case "republic_level" -> {
+//                    }
+//                    case "region_level" -> predicates.add(cb.and(
+//                            cb.equal(root.get("createdOrg").get("state").get("code"),
+//                                    userOrg.getState().getCode())));
+//
+//                    case "district_level" -> predicates.add(cb.and(
+//                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
+//                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
+//                    ));
+//                }
+//            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

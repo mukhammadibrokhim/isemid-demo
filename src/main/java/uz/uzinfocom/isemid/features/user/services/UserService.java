@@ -22,7 +22,7 @@ public interface UserService {
 
     ApiResponse<UserResponse> getById(long id);
 
-    ApiResponse<UserMeResponse> getByUuid(User user);
+    ApiResponse<UserMeResponse> getByUser(User user);
 
     List<User> getAllByIds(List<Long> userIds);
 
