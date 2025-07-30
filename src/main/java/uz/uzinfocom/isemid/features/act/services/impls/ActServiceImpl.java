@@ -13,7 +13,6 @@ import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.services.ActService;
 import uz.uzinfocom.isemid.features.act.strategy.impls.UpdateActService;
-import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.List;
 

@@ -11,7 +11,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
-import uz.uzinfocom.isemid.features.organization.models.enums.OrganizationType;
 import uz.uzinfocom.isemid.features.organization.models.enums.ServiceType;
 import uz.uzinfocom.isemid.features.user.models.User;
 

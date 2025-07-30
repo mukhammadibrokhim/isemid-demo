@@ -48,12 +48,12 @@ public interface ActMapper {
 
     default ActResponse toResponse(Act act) {
         return switch (act.getActType()) {
-            case ACT153 -> toAct153Response((Act153) act);
-            case ACT154 -> toAct154Response((Act154) act);
-            case ACT155 -> toAct155Response((Act155) act);
-            case ACT156 -> toAct156Response((Act156) act);
-            case ACT223 -> toAct223Response((Act223) act);
-            case ACT224 -> toAct224Response((Act224) act);
+            case ACT153 -> toAct153Response(act);
+            case ACT154 -> toAct154Response(act);
+            case ACT155 -> toAct155Response(act);
+            case ACT156 -> toAct156Response(act);
+            case ACT223 -> toAct223Response(act);
+            case ACT224 -> toAct224Response(act);
         };
     }
 

@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.commons.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiException;
@@ -10,9 +10,8 @@ import java.util.Enumeration;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
-@RequiredArgsConstructor
+@UtilityClass
 public class HttpUtil {
-    private final MessageUtil messageUtil;
 
     public static String getRequestUrl(HttpServletRequest request) {
         String fullURL = request.getRequestURI();

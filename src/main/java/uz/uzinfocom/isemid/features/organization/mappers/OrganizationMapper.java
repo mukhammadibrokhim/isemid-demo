@@ -3,17 +3,10 @@ package uz.uzinfocom.isemid.features.organization.mappers;
 import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgChildResponse;
+import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
-import uz.uzinfocom.isemid.features.report.enums.LevelStatus;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Mapper(
         componentModel = "spring",
