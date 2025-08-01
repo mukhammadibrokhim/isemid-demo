@@ -27,6 +27,7 @@ import java.util.Set;
 public class Form12ReportServiceImpl implements Form12ReportService {
     private final Form058Repository form058Repository;
     private final ManualReportRepository manualReportRepository;
+    private final MessageUtil messageUtil;
 
     @Override
     public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
@@ -68,7 +69,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
             result.add(dto);
         }
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, result);
+        return ApiResponse.success(messageUtil.get("message.success"), result);
     }
 
     public static Specification<Form058> filterByCriteria(
@@ -97,23 +98,23 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                 predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
             }
 
-            if (userOrg != null && userOrg.getLevelCode() != null) {
-                String userLevelCode = userOrg.getLevelCode();
-
-                switch (userLevelCode) {
-                    case "republic_level" -> {
-                    }
-                    case "region_level" -> predicates.add(cb.and(
-                            cb.equal(root.get("createdOrg").get("state").get("code"),
-                                    userOrg.getState().getCode())
-                    ));
-
-                    case "district_level" -> predicates.add(cb.and(
-                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
-                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
-                    ));
-                }
-            }
+//            if (userOrg != null && userOrg.getLevelCode() != null) {
+//                String userLevelCode = userOrg.getLevelCode();
+//
+//                switch (userLevelCode) {
+//                    case "republic_level" -> {
+//                    }
+//                    case "region_level" -> predicates.add(cb.and(
+//                            cb.equal(root.get("createdOrg").get("state").get("code"),
+//                                    userOrg.getState().getCode())
+//                    ));
+//
+//                    case "district_level" -> predicates.add(cb.and(
+//                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
+//                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
+//                    ));
+//                }
+//            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

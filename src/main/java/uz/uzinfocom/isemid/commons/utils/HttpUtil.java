@@ -28,7 +28,7 @@ public class HttpUtil {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authorizationHeader.substring(7);
         }
-        throw new ApiException(UNAUTHORIZED, MessageUtil.UNAUTHORIZED);
+        throw new ApiException(UNAUTHORIZED);
     }
 
 

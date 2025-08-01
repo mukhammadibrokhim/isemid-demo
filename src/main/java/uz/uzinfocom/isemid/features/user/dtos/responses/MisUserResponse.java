@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class PractitionerResponse {
+public class MisUserResponse {
     private String id;
     private Meta meta;
     private Name name;

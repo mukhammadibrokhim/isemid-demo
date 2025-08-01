@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import static org.springframework.util.StringUtils.hasText;
 
 public class CardSpecification {
-    public static Specification<Card> getFilteredSpecification(
+    public static Specification<Card> build(
             String formTypeCode,
             String fromOrgName,
             String toOrgName,

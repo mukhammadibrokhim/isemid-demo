@@ -26,7 +26,7 @@ public interface RoleService {
 
     ApiResponse<RoleResponse> update(long id, RoleRequest roleRequest);
 
-    ApiResponse<RoleResponse> deleteById(long id);
+    ApiResponse<?> deleteById(long id);
 
     ApiResponse<?> roleSearch(String search);
 

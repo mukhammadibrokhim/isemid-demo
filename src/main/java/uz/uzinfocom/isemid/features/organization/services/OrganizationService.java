@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface OrganizationService {
 
-    PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url);
+    PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url, User user);
 
     ApiResponse<?> update(UUID uuid, OrgRequest orgRequest);
 
@@ -21,7 +21,7 @@ public interface OrganizationService {
 
     ApiResponse<OrgResponse> getById(long id);
 
-    ApiResponse<Organization> updateUserFromMis(UUID uuid, User currentUser, String token);
+    ApiResponse<OrgResponse> updateUserFromMis(UUID uuid, User currentUser, String token);
 
     Optional<Organization> findById(UUID uuid);
 
@@ -33,7 +33,7 @@ public interface OrganizationService {
 
     Optional<Organization> findByTin(String tin);
 
-    ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String organizationType, String name);
+    ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name);
 
     Organization save(Organization newOrg);
 

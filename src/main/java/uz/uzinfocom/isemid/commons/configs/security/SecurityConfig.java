@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.commons.configs.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -11,7 +10,6 @@ import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,9 +25,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtAuthConverter;
-import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
-import uz.uzinfocom.isemid.features.user.services.RoleService;
-import uz.uzinfocom.isemid.features.user.services.UserService;
+import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtAuthHelper;
 import uz.uzinfocom.isemid.features.user.services.impl.UserServiceImpl;
 
 import java.security.interfaces.RSAPublicKey;
@@ -46,15 +42,12 @@ import static uz.uzinfocom.isemid.commons.utils.RSAKeyUtils.publicKeyInternal;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ObjectMapper objectMapper;
+    private final JwtAuthHelper jwtAuthHelper;
     private final AccessDeniedEntryPoint accessDeniedEntryPoint;
     private final AuthEntryPoint authEntryPoint;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, ApplicationContext context) throws Exception {
-        OrganizationService organizationService = context.getBean(OrganizationService.class);
-        UserService userService = context.getBean(UserService.class);
-        RoleService roleService = context.getBean(RoleService.class);
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -77,7 +70,7 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer -> jwtConfigurer
-                                        .jwtAuthenticationConverter(new JwtAuthConverter(organizationService, userService, roleService, objectMapper)))
+                                        .jwtAuthenticationConverter(new JwtAuthConverter(jwtAuthHelper)))
                                 .authenticationEntryPoint(authEntryPoint)
                                 .accessDeniedHandler(accessDeniedEntryPoint)
                 );

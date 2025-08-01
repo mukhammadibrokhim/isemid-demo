@@ -30,13 +30,15 @@ public class AuthServiceImpl implements AuthService {
     private final OrganizationService organizationService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private final MessageUtil messageUtil;
 
     @Override
     public ApiResponse<?> signUp(RegisterRequest request) {
-        if (!checkNnuzb(request.getNnuzb())) throw new ApiException(BAD_REQUEST, MessageUtil.BAD_REQUEST + " Nnuzb");
+        if (!checkNnuzb(request.getNnuzb()))
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.request.invalid_nnuzb", request.getNnuzb()));
 
         if (userRepository.findByNnuzb(request.getNnuzb()).isPresent()) {
-            throw new ApiException(BAD_REQUEST, MessageUtil.ALREADY_EXISTS + ": " + request.getNnuzb());
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.request.already_exists", request.getNnuzb()));
         }
 
         Organization organization = organizationService.findByTin(request.getOrganization().getTin())
@@ -78,6 +80,6 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, null);
+        return ApiResponse.success(messageUtil.get("message.success"));
     }
 }

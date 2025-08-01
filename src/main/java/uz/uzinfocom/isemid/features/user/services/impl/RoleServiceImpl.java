@@ -25,18 +25,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
-
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
+    private final MessageUtil messageUtil;
 
     @Override
     public Role findOrCreateRoleByName(String roleName) {
@@ -56,12 +55,12 @@ public class RoleServiceImpl implements RoleService {
     public PagedResponse<?> getAllRolesPage(int page, int size, String name, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, String url) {
         Specification<Role> spec = RoleSpecification.getFilteredSpecification(name, descriptionUz, descriptionUzCyril, descriptionRu, descriptionKaa);
         Page<Role> rolePage = roleRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return PagedResponseUtil.build(page, rolePage.map(roleMapper::toResponse), url);
+        return PagedResponseUtil.build(page, rolePage.map(roleMapper::toResponse), url, messageUtil);
     }
 
     @Override
     public ApiResponse<RoleResponse> create(RoleRequest roleRequest) {
-        return new ApiResponse<>(true, MessageUtil.CREATED_SUCCESS, roleMapper.toResponse(roleRepository.save(Role.builder()
+        return ApiResponse.success(messageUtil.get("message.success"), roleMapper.toResponse(roleRepository.save(Role.builder()
                 .isActive(true)
                 .name(roleRequest.getName())
                 .descriptionUz(roleRequest.getDescriptionUz())
@@ -69,40 +68,40 @@ public class RoleServiceImpl implements RoleService {
                 .descriptionRu(roleRequest.getDescriptionRu())
                 .descriptionKaa(roleRequest.getDescriptionKaa())
                 .permissions(roleRequest.getPermissionIds().stream()
-                        .map(permId -> permissionRepository.findById(permId).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND)))
+                        .map(permId -> permissionRepository.findById(permId).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", permId))))
                         .collect(Collectors.toSet()))
                 .build())));
     }
 
     @Override
     public ApiResponse<RoleResponse> update(long id, RoleRequest request) {
-        Role role = roleRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, MessageUtil.NOT_FOUND));
+        Role role = roleRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         roleMapper.updateRole(request, role);
         if (request.getPermissionIds() != null && !request.getPermissionIds().isEmpty()) {
             Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(request.getPermissionIds()));
             role.setPermissions(permissions);
         }
-        return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, roleMapper.toResponse(roleRepository.save(role)));
+        return ApiResponse.success(messageUtil.get("message.success"), roleMapper.toResponse(roleRepository.save(role)));
     }
 
     @Override
-    public ApiResponse<RoleResponse> deleteById(long id) {
+    public ApiResponse<?> deleteById(long id) {
         try {
             Role role = roleRepository.findById(id)
-                    .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Role", id)));
+                    .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
 
             roleRepository.delete(role);
-            return new ApiResponse<>(true, "Роль успешно удалена", null);
+            return ApiResponse.success(messageUtil.get("message.success"));
         } catch (Exception e) {
             log.error("Error occurred while deleting role with id: {}", id, e);
-            throw new ApiException(BAD_REQUEST, "Произошла ошибка при удалении роли: " + e.getMessage());
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server") + e.getMessage());
         }
     }
 
     @Override
     public ApiResponse<?> roleSearch(String search) {
         List<Role> searchRole = roleRepository.searchRolesNative(search);
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, searchRole.stream().map(roleMapper::toResponse).toList());
+        return ApiResponse.success(messageUtil.get("message.success"), searchRole.stream().map(roleMapper::toResponse).toList());
     }
 
     @Override
@@ -119,7 +118,7 @@ public class RoleServiceImpl implements RoleService {
         }
         permissions.add(permission);
         role.setPermissions(permissions);
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, roleMapper.toResponse(roleRepository.save(role)));
+        return ApiResponse.success(messageUtil.get("message.success"), roleMapper.toResponse(roleRepository.save(role)));
     }
 
     @Override
@@ -129,23 +128,23 @@ public class RoleServiceImpl implements RoleService {
 
         Set<Permission> permissions = role.getPermissions();
         if (permissions == null || !permissions.contains(permission)) {
-            return new ApiResponse<>(false, "Permission не найдена в роли", null);
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.not_found_by_id", permissionId));
         }
 
         permissions.remove(permission);
         role.setPermissions(permissions);
         Role savedRole = roleRepository.save(role);
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, roleMapper.toResponse(savedRole));
+        return ApiResponse.success(messageUtil.get("message.success"), roleMapper.toResponse(savedRole));
     }
 
     private Role getRoleOrThrow(long roleId) {
         return roleRepository.findById(roleId)
-                .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Role", roleId)));
+                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", roleId)));
     }
 
     private Permission getPermissionOrThrow(long permissionId) {
         return permissionRepository.findById(permissionId)
-                .orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Permission", permissionId)));
+                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", permissionId)));
     }
 }

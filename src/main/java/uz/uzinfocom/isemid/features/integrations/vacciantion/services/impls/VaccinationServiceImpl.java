@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.dtos.response.VaccinationApiResponse;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.dtos.response.VaccinationResponse;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.services.VaccinationService;
@@ -25,13 +26,14 @@ import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.
 @Service
 @RequiredArgsConstructor
 public class VaccinationServiceImpl implements VaccinationService {
+    private final MessageUtil messageUtil;
 
     @Override
     public ApiResponse<?> getVaccinationByNnuzbLast(String nnuzb) {
         String masked = maskNnuzb(nnuzb);
         log.info("Fetching latest vaccination data for NNUZB: {}", masked);
 
-        validateByNnuzb(nnuzb);
+        validateByNnuzb(nnuzb,messageUtil);
 
         String resp = makeRequest(String.format(ApiPaths.ExternalApi.VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class);
         log.debug("Raw response received for {}: {}", masked, resp);
@@ -39,7 +41,7 @@ public class VaccinationServiceImpl implements VaccinationService {
         List<VaccinationResponse> mapped = mapping(resp);
         log.info("Mapped {} latest vaccination records for NNUZB: {}", mapped.size(), masked);
 
-        return new ApiResponse<>(true, "", mapped);
+        return ApiResponse.success(messageUtil.get("message.success"), mapped);
     }
 
     @SneakyThrows

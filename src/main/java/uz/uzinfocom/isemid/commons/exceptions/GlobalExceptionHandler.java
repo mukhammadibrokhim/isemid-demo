@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.commons.exceptions;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +24,16 @@ import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
     private static final Logger logger = LoggerFactory.getLogger("uz.uzinfocom.isemid");
+    private final MessageUtil messageUtil;
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFoundException(NoResourceFoundException ex) {
@@ -37,10 +41,10 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.builder()
                         .success(false)
                         .statusCode(ex.getStatusCode().value())
-                        .message("Запрашиваемый ресурс не найден или не существует.")
+                        .message(messageUtil.get("error.not_found"))
                         .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
-                                .errorMessage(ex.getDetailMessageCode())
+                                .errorMessage(ex.getMessage())
                                 .build()))
                         .build());
     }
@@ -51,7 +55,7 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.builder()
                         .success(false)
                         .statusCode(ex.getStatusCode().value())
-                        .message(ex.getReason())
+                        .message((ex.getReason()))
                         .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
                                 .errorMessage(ex.getDetailMessageCode())
@@ -60,141 +64,151 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiErrorResponse> handleApiException(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<ApiErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return ResponseEntity.status(ex.getStatusCode())
                 .body(ApiErrorResponse.builder()
                         .success(false)
                         .statusCode(ex.getStatusCode().value())
-                        .message("Метод " + ex.getMethod() + " не поддерживается! Доступные методы: " + Arrays.toString(ex.getSupportedMethods()))
+                        .message(messageUtil.get("error.method_not_supported", ex.getMethod(), Arrays.toString(ex.getSupportedMethods())))
                         .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
-                                .errorMessage(ex.getDetailMessageCode())
+                                .errorMessage(ex.getMessage())
+                                .build()))
+                        .build());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.validation_failed"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field(ex.getClass().getSimpleName())
+                                .errorMessage(getRootCauseMessage(ex))
                                 .build()))
                         .build());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ApiErrorResponse> handleNotReadable(HttpMessageNotReadableException ex) {
         logger.error("Request body could not be read: ", ex);
-        return ResponseEntity.badRequest().body(ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(BAD_REQUEST.value())
-                .message("Неверный формат JSON")
-                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                        .field(ex.getClass().getSimpleName())
-                        .errorMessage(ex.getLocalizedMessage())
-                        .build()))
-                .build());
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.invalid_request"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field(ex.getClass().getSimpleName())
+                                .errorMessage(ex.getMessage())
+                                .build()))
+                        .build());
     }
 
     @ExceptionHandler(HttpMessageConversionException.class)
-    public ResponseEntity<ApiErrorResponse> handleHttpMessageConversionException(HttpMessageConversionException ex) {
+    public ResponseEntity<ApiErrorResponse> handleConversion(HttpMessageConversionException ex) {
         logger.error("Request body conversion error: ", ex);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                ApiErrorResponse.builder()
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
                         .success(false)
-                        .statusCode(HttpStatus.BAD_REQUEST.value())
-                        .message("Некорректный формат входных данных. Проверьте правильность типов и форматов.")
-                        .errors(List.of(
-                                ApiErrorResponse.ErrorDetail.builder()
-                                        .field("RequestBody")
-                                        .errorMessage(ex.getMostSpecificCause().getMessage())
-                                        .build()))
-                        .build()
-        );
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.invalid_request"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field("RequestBody")
+                                .errorMessage(ex.getMostSpecificCause().getMessage())
+                                .build()))
+                        .build());
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
-        ApiErrorResponse.ErrorDetail errorDetail = ApiErrorResponse.ErrorDetail.builder()
-                .field(ex.getParameterName())
-                .errorMessage("Required request parameter is missing")
-                .build();
-
-        return ResponseEntity.status(BAD_REQUEST).body(ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(BAD_REQUEST.value())
-                .message("Обязательный параметр запроса не найден: " + ex.getParameterName())
-                .errors(List.of(errorDetail))
-                .build());
+    public ResponseEntity<ApiErrorResponse> handleMissingParam(MissingServletRequestParameterException ex) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.invalid_request"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field(ex.getParameterName())
+                                .errorMessage(messageUtil.get("validation.required", ex.getParameterName()))
+                                .build()))
+                        .build());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        logger.error("Request body conversion error: ", ex);
+    public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+        logger.error("Validation failed: ", ex);
         List<ApiErrorResponse.ErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> ApiErrorResponse.ErrorDetail.builder()
                         .field(error.getField())
                         .errorMessage(error.getDefaultMessage())
                         .build())
                 .toList();
-        return ResponseEntity.status(BAD_REQUEST).body(ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(BAD_REQUEST.value())
-                .message("Некорректные данные. Проверьте правильность заполнения полей.")
-                .errors(errors)
-                .build());
+
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.validation_failed"))
+                        .errors(errors)
+                        .build());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        String expectedType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "неизвестный";
-
-        ApiErrorResponse response = ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .message("Неверный тип аргумента: параметр '" + ex.getName() + "'")
-                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                        .field(ex.getName())
-                        .errorMessage("Ожидался тип: " + expectedType)
-                        .build()))
-                .build();
-
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.invalid_request"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field(ex.getName())
+                                .errorMessage(messageUtil.get("validation.invalid_format", ex.getName()))
+                                .build()))
+                        .build());
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
-        logger.error("Bad Credentials Exception", ex);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(HttpStatus.UNAUTHORIZED.value())
-                .message("Неверный логин или пароль.")
-                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                        .field(ex.getClass().getSimpleName())
-                        .errorMessage(ex.getLocalizedMessage())
-                        .build()))
-                .build());
+    public ResponseEntity<ApiErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+        logger.error("Authentication failed: ", ex);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(HttpStatus.UNAUTHORIZED.value())
+                        .message(messageUtil.get("auth.login_failed"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field(ex.getClass().getSimpleName())
+                                .errorMessage(ex.getMessage())
+                                .build()))
+                        .build());
     }
 
     @ExceptionHandler(InvalidDataAccessApiUsageException.class)
-    public ResponseEntity<ApiErrorResponse> handleInvalidDataAccessApiUsageException(InvalidDataAccessApiUsageException ex) {
-        ApiErrorResponse response = ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .message("Некорректный запрос: неверное имя поля или параметра.")
-                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                        .field("InvalidDataAccessApiUsageException")
-                        .errorMessage(ex.getMessage())
-                        .build()))
-                .build();
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ResponseEntity<ApiErrorResponse> handleInvalidDataAccess(InvalidDataAccessApiUsageException ex) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.invalid_request"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field("InvalidDataAccessApiUsageException")
+                                .errorMessage(ex.getMessage())
+                                .build()))
+                        .build());
     }
 
-
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleGenericException(Exception ex) {
-        logger.error("Exception", ex);
-        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(ApiErrorResponse.builder()
-                .success(false)
-                .statusCode(INTERNAL_SERVER_ERROR.value())
-                .message(MessageUtil.INTERNAL_SERVER_ERROR)
-                .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
-                        .field(ex.getClass().getSimpleName())
-                        .errorMessage(ex.getLocalizedMessage())
-                        .build()))
-                .build());
+    public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
+        logger.error("Unhandled exception: ", ex);
+        return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(INTERNAL_SERVER_ERROR.value())
+                        .message(messageUtil.get("error.internal_server"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field(ex.getClass().getSimpleName())
+                                .errorMessage(ex.getMessage())
+                                .build()))
+                        .build());
     }
 }

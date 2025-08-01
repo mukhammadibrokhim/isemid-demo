@@ -89,6 +89,4 @@ public class Card175 extends Card {
             joinColumns = @JoinColumn(name = "card175_id"))
     @Column(name = "catalog_code")
     private List<String> takenMeasuresFromResidence = new ArrayList<>();//Bemorning yashash joyida o‘tkazilgan chora - tadbirlar.(dropdown multiselect)
-
-
 }

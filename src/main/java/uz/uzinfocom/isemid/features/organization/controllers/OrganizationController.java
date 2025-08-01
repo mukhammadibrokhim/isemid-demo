@@ -32,9 +32,7 @@ public class OrganizationController {
 
     private final OrganizationService organizationService;
 
-    @Operation(
-            summary = "Получить все организации",
-            description = "Получает список всех организаций с возможностью пагинации и фильтрации по имени, коду региона и города.")
+    @Operation(summary = "Получить все организации", description = "Получает список всех организаций с возможностью пагинации и фильтрации по имени, коду региона и города.")
     @GetMapping("/all")
     public PagedResponse<?> getAllOrganizations(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
@@ -42,49 +40,34 @@ public class OrganizationController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
+            @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return organizationService.getAllOrgByFilter(page, size, name, stateCode, cityCode, getRequestUrl(request));
+        return organizationService.getAllOrgByFilter(page, size, name, stateCode, cityCode, getRequestUrl(request),user);
     }
 
-    @Operation(
-            summary = "Получить организацию по ID",
-            description = "Получает организацию по заданному идентификатору (ID).",
-            parameters = {
-                    @Parameter(name = "id", description = "ID организации", required = true)
-            })
+    @Operation(summary = "Получить организацию по ID", description = "Получает организацию по заданному идентификатору (ID).")
     @GetMapping("/{id}")
     public ApiResponse<OrgResponse> getOrganizationById(@PathVariable long id) {
         return organizationService.getById(id);
     }
 
-    @Operation(
-            summary = "Получить дочерние организации по UUID родительской организации",
-            description = "Возвращает список дочерних организаций для организации с указанным UUID.")
+    @Operation(summary = "Получить дочерние организации по UUID родительской организации", description = "Возвращает список дочерних организаций для организации с указанным UUID.")
     @GetMapping("/department/{uuid}")
     public ApiResponse<List<Organization>> getOrganizationChildren(@PathVariable UUID uuid) {
         return organizationService.getChildrenByParentUuid(uuid);
     }
 
-    @Operation(
-            summary = "Обновить организацию из MIS",
-            description = "Обновляет информацию об организации, используя данные из MIS по UUID организации. Требуется авторизация.",
-            parameters = {
-                    @Parameter(name = "uuid", description = "UUID организации для обновления", required = true),
-                    @Parameter(name = "Authorization", description = "JWT токен авторизации", required = true)
-            })
+    @Operation(summary = "Обновить организацию из MIS", description = "Обновляет информацию об организации, используя данные из MIS по UUID организации. Требуется авторизация.")
     @PutMapping("/{uuid}/update-from-mis")
-    public ApiResponse<Organization> updateOrganizationFromMis(
+    public ApiResponse<OrgResponse> updateOrganizationFromMis(
             @PathVariable UUID uuid,
             @CurrentUser User currentUser,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
     ) {
         return organizationService.updateUserFromMis(uuid, currentUser, token);
     }
-
-    @Operation(
-            summary = "Обновить организацию",
-            description = "Обновляет данные организации по UUID с новыми данными из тела запроса.")
+    @Operation(summary = "Обновить организацию", description = "Обновляет данные организации по UUID с новыми данными из тела запроса.")
     @PutMapping("/{uuid}/update")
     public ApiResponse<?> updateOrganization(
             @PathVariable UUID uuid,
@@ -93,24 +76,19 @@ public class OrganizationController {
         return organizationService.update(uuid, orgRequest);
     }
 
-    @Operation(
-            summary = "Получить всех пользователей организации",
-            description = "Извлекает всех пользователей, связанных с конкретной организацией по её ID.")
+    @Operation(summary = "Получить всех пользователей организации", description = "Извлекает всех пользователей, связанных с конкретной организацией по её ID.")
     @GetMapping("/{id}/users")
     public ApiResponse<?> getOrganizationUsers(@PathVariable long id) {
         return organizationService.getAllOrgUsers(id);
     }
 
-    @Operation(
-            summary = "Поиск организаций по фильтрам",
-            description = "Поиск организаций с возможностью фильтрации по коду региона, коду города и имени организации.")
+    @Operation(summary = "Поиск организаций по фильтрам", description = "Поиск организаций с возможностью фильтрации по коду региона, коду города и имени организации.")
     @GetMapping("/search")
     public ApiResponse<?> getOrganizationsByFilter(
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
-            @RequestParam(required = false) String organizationType,
             @RequestParam(required = false) String name
     ) {
-        return organizationService.getOrganizationsBySearch(stateCode, cityCode, organizationType, name);
+        return organizationService.getOrganizationsBySearch(stateCode, cityCode, name);
     }
 }

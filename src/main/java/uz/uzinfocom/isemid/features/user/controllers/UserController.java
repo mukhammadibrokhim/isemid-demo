@@ -58,9 +58,10 @@ public class UserController {
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) String accessLevelCode,
             @RequestParam(required = false) Boolean active,
+            @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        return userService.getFilteredUsers(page, size, nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, getRequestUrl(request));
+        return userService.getFilteredUsers(page, size, nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, getRequestUrl(request),currentUser);
     }
 
     @Operation(
@@ -90,7 +91,7 @@ public class UserController {
     )
     @GetMapping("/me")
     public ApiResponse<UserMeResponse> getCurrentUser(@CurrentUser User user) {
-        return userService.getByUuid(user);
+        return userService.getByUser(user);
     }
 
     @Operation(

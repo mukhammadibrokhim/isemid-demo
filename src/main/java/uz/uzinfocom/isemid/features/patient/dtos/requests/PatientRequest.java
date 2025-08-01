@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.features.patient.dtos.requests;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -52,10 +51,7 @@ public class PatientRequest {
     @NotNull(message = "Population Type is required.")
     private PopulationType populationType;
 
-    @NotBlank(message = "Место работы обязательно и не может быть пустым.")
-    private String workPlace;
-    private String workPlaceStateCode;
-    private String workPlaceCityCode;
+    private List<AffiliationRequest> affiliations;
 
     @JsonIgnore
     @AssertTrue(message = "Адреса должны содержать как минимум один TEMPORARY и один PERMANENT адрес.")

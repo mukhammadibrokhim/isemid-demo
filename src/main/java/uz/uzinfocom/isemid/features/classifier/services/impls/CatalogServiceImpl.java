@@ -46,13 +46,14 @@ public class CatalogServiceImpl implements CatalogService {
 
     private final CatalogRepository catalogRepository;
     private final ResourceLoader resourceLoader;
+    private final MessageUtil messageUtil;
     private final CatalogMapper catalogMapper;
 
     @Override
     public PagedResponse<?> getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String requestUrl) {
         Specification<Catalog> spec = CatalogSpecification.getFilteredSpecification(type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
         Page<Catalog> catalogPage = catalogRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return PagedResponseUtil.build(page, catalogPage, requestUrl);
+        return PagedResponseUtil.build(page, catalogPage, requestUrl, messageUtil);
     }
 
     @Override
@@ -67,13 +68,13 @@ public class CatalogServiceImpl implements CatalogService {
                 .nameKaa(reqCatalog.getNameKaa())
                 .build();
 
-        return new ApiResponse<>(true, MessageUtil.CREATED_SUCCESS, catalogMapper.toDto(catalogRepository.save(catalog)));
+        return ApiResponse.success(messageUtil.get("message.success"), catalogMapper.toDto(catalogRepository.save(catalog)));
     }
 
     @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     @Override
     public ApiResponse<CatalogResponse> update(long id, CatalogRequest request) {
-        Catalog catalog = catalogRepository.findById(id).orElseThrow(() -> new ApiException(BAD_REQUEST, String.format(MessageUtil.NOT_FOUND_BY_RESOURCE, "Catalog", id)));
+        Catalog catalog = catalogRepository.findById(id).orElseThrow(() -> new ApiException(BAD_REQUEST, messageUtil.get("error.not_found_by_id", id)));
         Optional.ofNullable(request.getType()).ifPresent(catalog::setType);
         Optional.ofNullable(request.getCode()).ifPresent(catalog::setCode);
         Optional.ofNullable(request.getNameRu()).ifPresent(catalog::setNameRu);
@@ -82,19 +83,19 @@ public class CatalogServiceImpl implements CatalogService {
         Optional.ofNullable(request.getNameKaa()).ifPresent(catalog::setNameKaa);
         Optional.ofNullable(request.getParentCode()).ifPresent(catalog::setParentCode);
         Optional.ofNullable(request.getType()).ifPresent(catalog::setType);
-        return new ApiResponse<>(true, MessageUtil.UPDATED_SUCCESS, catalogMapper.toDto(catalogRepository.save(catalog)));
+        return ApiResponse.success(messageUtil.get("message.success"), catalogMapper.toDto(catalogRepository.save(catalog)));
     }
 
-    @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     @Override
+    @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     public ApiResponse<?> delete(long id) {
         try {
             catalogRepository.deleteById(id);
         } catch (Exception e) {
-            throw new ApiException(INTERNAL_SERVER_ERROR, "Could not delete catalog: ", e);
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), e);
         }
 
-        return new ApiResponse<>(true, "Successfully deleted.", null);
+        return ApiResponse.success(messageUtil.get("message.deleted"));
     }
 
     @Cacheable(value = "catalogCache", key = "#code")
@@ -106,20 +107,20 @@ public class CatalogServiceImpl implements CatalogService {
     @Cacheable(value = "catalogAllType", key = "T(String).format('%s-%s',#catalogType.name(),#lang)", unless = "#result == null")
     @Override
     public ApiResponse<?> findAllByType(CatalogType catalogType, String lang) {
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, catalogRepository.findAllByType(catalogType.name())
+        return ApiResponse.success(messageUtil.get("message.success"), catalogRepository.findAllByType(catalogType.name())
                 .stream().map(catalog -> catalogMapper.toDtoMini(catalog, lang)).toList());
     }
 
     @Cacheable(value = "catalogAllTypeByParentCode", key = "T(String).format('%s-%s-%s', #catalogType.name(), #parentCode, #lang)", unless = "#result == null")
     @Override
     public ApiResponse<?> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode, String lang) {
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, catalogRepository.findAllByTypeAndParentCode(catalogType.name(), parentCode)
+        return ApiResponse.success(messageUtil.get("message.success"), catalogRepository.findAllByTypeAndParentCode(catalogType.name(), parentCode)
                 .stream().map(catalog -> catalogMapper.toDtoMini(catalog, lang)).toList());
     }
 
     @Override
     public ApiResponse<?> findFirst20ByTypeAndSearch(CatalogType catalogType, String lang, String search) {
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, catalogRepository.findByTypeAndSearch(catalogType.name(), search)
+        return ApiResponse.success(messageUtil.get("message.success"), catalogRepository.findByTypeAndSearch(catalogType.name(), search)
                 .stream().map(catalog -> catalogMapper.toDtoMini(catalog, lang)).toList());
     }
 
@@ -127,7 +128,7 @@ public class CatalogServiceImpl implements CatalogService {
     public PagedResponse<?> getByHierarchical(int page, int size, CatalogType type, String requestUrl) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Catalog> catalogPage = catalogRepository.findAllWithParent(type.name(), pageable);
-        return PagedResponseUtil.build(page, catalogPage, requestUrl);
+        return PagedResponseUtil.build(page, catalogPage, requestUrl, messageUtil);
     }
 
     @Cacheable(value = "findByTypeAndParentCode", key = "T(String).format('%s-%s',#catalogType.name(), #parentCode)", unless = "#result == null")
@@ -148,8 +149,8 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public ApiResponse<CatalogResponse> getById(long id) {
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS,
-                catalogMapper.toDto(catalogRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)))));
+        return ApiResponse.success(messageUtil.get("message.success"),
+                catalogMapper.toDto(catalogRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)))));
     }
 
     @SneakyThrows
@@ -185,7 +186,7 @@ public class CatalogServiceImpl implements CatalogService {
             }
         } catch (IOException e) {
             log.error("Exception: {}",e.getMessage());
-            throw new ApiException(INTERNAL_SERVER_ERROR, MessageUtil.OPERATION_FAILED, e);
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("message.failed"), e);
         }
     }
 }

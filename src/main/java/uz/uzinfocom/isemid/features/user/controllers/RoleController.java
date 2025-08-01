@@ -69,7 +69,7 @@ public class RoleController {
             summary = "Удалить роль",
             description = "Удаляет роль по указанному ID.")
     @DeleteMapping("/{id}")
-    public ApiResponse<RoleResponse> deleteRole(@PathVariable long id) {
+    public ApiResponse<?> deleteRole(@PathVariable long id) {
         return roleService.deleteById(id);
     }
 

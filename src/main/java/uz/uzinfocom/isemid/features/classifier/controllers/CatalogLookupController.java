@@ -16,7 +16,6 @@ import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
 import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 
-
 @RestController
 @RequestMapping(ApiPaths.Catalog.ROOT)
 @Tag(name = "Catalog Look UP")

@@ -19,21 +19,20 @@ import uz.uzinfocom.isemid.features.user.specifications.PermissionSpecification;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.MessageUtil.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Service
 @RequiredArgsConstructor
 public class PermissionServiceImpl implements PermissionService {
-
     private final PermissionRepository permissionRepository;
     private final PermissionMapper permissionMapper;
+    private final MessageUtil messageUtil;
 
     @Override
     public PagedResponse<?> getAllPermissionsPage(int page, int size, String subject, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa, Boolean active, String url) {
         Specification<Permission> spec = PermissionSpecification.getFilteredSpecification(subject, descriptionUz, descriptionRu, descriptionUzCyril, descriptionKaa, active);
         Page<Permission> rolePage = permissionRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        return PagedResponseUtil.build(page, rolePage.map(permissionMapper::toResponse), url);
+        return PagedResponseUtil.build(page, rolePage.map(permissionMapper::toResponse), url, messageUtil);
     }
 
     @Override
@@ -46,20 +45,20 @@ public class PermissionServiceImpl implements PermissionService {
                 .descriptionRu(permissionRequest.getDescriptionRu())
                 .descriptionKaa(permissionRequest.getDescriptionKaa())
                 .build();
-        return new ApiResponse<>(true, CREATED_SUCCESS, permissionMapper.toResponse(permissionRepository.save(permission)));
+        return ApiResponse.success(messageUtil.get("message.success"), permissionMapper.toResponse(permissionRepository.save(permission)));
     }
 
     @Override
     public ApiResponse<PermissionResponse> getBydId(long id) {
-        return new ApiResponse<>(true, FETCHED_SUCCESS,
-                permissionMapper.toResponse(permissionRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)))));
+        return ApiResponse.success(messageUtil.get("message.success"),
+                permissionMapper.toResponse(permissionRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)))));
     }
 
     @Override
     public ApiResponse<PermissionResponse> update(long id, PermissionRequest pmRequest) {
-        Permission exsistingPermission = permissionRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(NOT_FOUND_BY_ID, id)));
+        Permission exsistingPermission = permissionRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         permissionMapper.updatePermission(pmRequest, exsistingPermission);
-        return new ApiResponse<>(true, UPDATED_SUCCESS, permissionMapper.toResponse(permissionRepository.save(exsistingPermission)));
+        return ApiResponse.success(messageUtil.get("message.success"), permissionMapper.toResponse(permissionRepository.save(exsistingPermission)));
     }
 
     @Override
@@ -67,8 +66,8 @@ public class PermissionServiceImpl implements PermissionService {
         try {
             permissionRepository.deleteById(id);
         } catch (Exception e) {
-            throw new ApiException(INTERNAL_SERVER_ERROR, MessageUtil.INTERNAL_SERVER_ERROR, e);
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), e);
         }
-        return new ApiResponse<>(true, DELETED_SUCCESS, null);
+        return ApiResponse.success(messageUtil.get("message.deleted"));
     }
 }

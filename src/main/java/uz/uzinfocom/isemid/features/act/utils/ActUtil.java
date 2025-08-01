@@ -13,11 +13,19 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @UtilityClass
 public class ActUtil {
 
-    public static Act validateAct(long id, ActRequest reqAct, ActRepository actRepository) {
-        Act act = actRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
+
+    public static Act validateAct(long id, ActRequest reqAct, ActRepository actRepository, MessageUtil messageUtil) {
+        Act act = actRepository.findById(id)
+                .orElseThrow(() -> new ApiException(
+                        NOT_FOUND,
+                        messageUtil.get("error.not_found_by_id", id)
+                ));
 
         if (reqAct.getActType() == null || !reqAct.getActType().equals(act.getActType())) {
-            throw new ApiException(BAD_REQUEST, String.format(MessageUtil.INVALID_TYPE, act.getActType(), reqAct.getActType()));
+            throw new ApiException(
+                    BAD_REQUEST,
+                    messageUtil.get("error.unsupported_act_type", reqAct.getActType())
+            );
         }
         return act;
     }

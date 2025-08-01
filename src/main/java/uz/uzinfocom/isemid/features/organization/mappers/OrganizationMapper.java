@@ -3,21 +3,18 @@ package uz.uzinfocom.isemid.features.organization.mappers;
 import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgChildResponse;
+import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
-import uz.uzinfocom.isemid.features.report.enums.LevelStatus;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Mapper(
         componentModel = "spring",
-        uses = {CatalogConverter.class, UuidConverter.class},
+        uses = {
+                CatalogConverter.class,
+                UuidConverter.class,
+                OrganizationMapperHelper.class
+        },
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface OrganizationMapper {
 
@@ -25,177 +22,33 @@ public interface OrganizationMapper {
     @Mapping(target = "uuid", source = "id", qualifiedByName = "toUuid")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "active", source = "active")
-    @Mapping(target = "tin", expression = "java(extractTin(organizationResponse))")
-    @Mapping(target = "email", expression = "java(extractEmail(organizationResponse))")
-    @Mapping(target = "phone", expression = "java(extractPhone(organizationResponse))")
-    @Mapping(target = "type", expression = "java(extractType(organizationResponse))")
-    @Mapping(target = "levelCode", expression = "java(extractLevel(organizationResponse))")
-    @Mapping(target = "countryCode", expression = "java(extractCountryCode(organizationResponse))")
-    @Mapping(target = "stateCode", expression = "java(extractStateCode(organizationResponse))")
-    @Mapping(target = "cityCode", expression = "java(extractCityCode(organizationResponse))")
-    @Mapping(target = "state", expression = "java(catalogConverter.toCatalogEntity(extractStateCode(organizationResponse)))")
-    @Mapping(target = "city", expression = "java(catalogConverter.toCatalogEntity(extractCityCode(organizationResponse)))")
-    @Mapping(target = "district", expression = "java(extractDistrict(organizationResponse))")
-    @Mapping(target = "line", expression = "java(extractLine(organizationResponse))")
-    @Mapping(target = "serviceAreaCode", expression = "java(extractServiceArea(organizationResponse))")
-    Organization toOrganization(OrganizationResponse organizationResponse);
+    @Mapping(target = "tin", source = ".", qualifiedByName = "extractTin")
+    @Mapping(target = "email", source = ".", qualifiedByName = "extractEmail")
+    @Mapping(target = "phone", source = ".", qualifiedByName = "extractPhone")
+    @Mapping(target = "serviceTypes", source = ".", qualifiedByName = "extractServiceTypes")
+    @Mapping(target = "medicalType", source = ".", qualifiedByName = "extractMedicalType")
+    @Mapping(target = "levelType", source = ".", qualifiedByName = "extractLevelType")
+    @Mapping(target = "countryCode", source = ".", qualifiedByName = "extractCountryCode")
+    @Mapping(target = "stateCode", source = ".", qualifiedByName = "extractStateCode")
+    @Mapping(target = "cityCode", source = ".", qualifiedByName = "extractCityCode")
+    @Mapping(target = "line", source = ".", qualifiedByName = "extractLine")
+    @Mapping(target = "serviceAreaCode", source = ".", qualifiedByName = "extractServiceArea")
+    Organization toOrganization(MisOrganizationResponse misOrganizationResponse);
 
     @Mapping(target = "country", source = "countryCode", qualifiedByName = "toCatalog")
     @Mapping(target = "state", source = "stateCode", qualifiedByName = "toCatalog")
     @Mapping(target = "city", source = "cityCode", qualifiedByName = "toCatalog")
-    @Mapping(target = "level", source = "levelCode", qualifiedByName = "toCatalog")
+    @Mapping(target = "level", source = "levelType", qualifiedByName = "toCatalog")
     @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
-    @Mapping(target = "organizationType", source = "organizationType", qualifiedByName = "toCatalog")
     OrgResponse toResponse(Organization organization);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "uuid", source = "uuid")
     @Mapping(target = "name", source = "name")
-    @Mapping(target = "level", source = "levelCode", qualifiedByName = "toCatalog")
     @Mapping(target = "parentId", source = "parentId")
     @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
     OrgMiniResponse toOrgMiniResponse(Organization organization);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateFromRequest(OrgRequest request, @MappingTarget Organization org);
-
-    //ADDITIONAL
-    @Named("mapChildren")
-    default List<OrgChildResponse> mapChildren(List<Organization> children) {
-        if (children == null) {
-            return null;
-        }
-        return children.stream().map(org ->
-                OrgChildResponse.builder()
-                        .id(org.getId())
-                        .uuid(org.getUuid())
-                        .name(org.getName())
-                        .parentId(org.getParentId())
-                        .children(mapChildren(org.getChildren()))
-                        .build()
-        ).collect(Collectors.toList());
-    }
-    default String extractEmail(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getTelecom() == null) {
-            return null;
-        }
-
-        return organizationResponse.getTelecom().stream()
-                .filter(t -> "email".equalsIgnoreCase(t.getSystem()))
-                .map(OrganizationResponse.Telecom::getValue)
-                .findFirst()
-                .orElse(null);
-    }
-
-
-    default String extractPhone(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getTelecom() == null) {
-            return null;
-        }
-        return organizationResponse.getTelecom().stream()
-                .filter(t -> "phone".equalsIgnoreCase(t.getSystem()))
-                .map(OrganizationResponse.Telecom::getValue)
-                .findFirst().orElse(null);
-    }
-
-    default String extractType(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getType() == null) return null;
-
-        return organizationResponse.getType().stream()
-                .filter(t -> t != null && t.getCoding() != null)
-                .flatMap(t -> t.getCoding().stream())
-                .filter(coding -> coding != null && coding.getCode() != null)
-                .map(OrganizationResponse.Coding::getCode)
-                .findFirst()
-                .orElse(null);
-    }
-
-    default String extractCountryCode(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getAddress() == null) {
-            return null;
-        }
-        return organizationResponse.getAddress().stream()
-                .map(OrganizationResponse.Address::getCountry)
-                .findFirst().orElse(null);
-    }
-
-    default String extractStateCode(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getAddress() == null) {
-            return null;
-        }
-        return organizationResponse.getAddress().stream()
-                .map(OrganizationResponse.Address::getState)
-                .findFirst().orElse(null);
-    }
-
-    default String extractCityCode(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getAddress() == null) {
-            return null;
-        }
-        return organizationResponse.getAddress().stream()
-                .map(OrganizationResponse.Address::getCity)
-                .findFirst().orElse(null);
-    }
-
-    default String extractDistrict(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getAddress() == null) {
-            return null;
-        }
-
-        return organizationResponse.getAddress().stream()
-                .filter(Objects::nonNull)
-                .map(OrganizationResponse.Address::getDistrict)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
-    }
-
-    default String extractLine(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getAddress() == null) {
-            return null;
-        }
-        return organizationResponse.getAddress().stream()
-                .map(OrganizationResponse.Address::getLine)
-                .findFirst().orElse(null);
-    }
-
-    default String extractServiceArea(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getServiceArea() != null && !organizationResponse.getServiceArea().isEmpty()) {
-        return organizationResponse.getServiceArea().stream()
-                .map(OrganizationResponse.ServiceArea::getState)
-                .findFirst().orElse(null);
-        }
-        return null;
-    }
-
-    default String extractTin(OrganizationResponse organizationResponse) {
-        if (organizationResponse.getIdentifier() == null || organizationResponse.getIdentifier().isEmpty()) {
-            return null;
-        }
-
-        return organizationResponse.getIdentifier().stream()
-                .filter(identifier -> identifier.getType() != null &&
-                        identifier.getType().getCoding().stream()
-                                .anyMatch(coding -> "TAX".equalsIgnoreCase(coding.getCode())))
-                .map(OrganizationResponse.Identifier::getValue)
-                .findFirst()
-                .orElse(null);
-    }
-
-    default String extractLevel(OrganizationResponse response) {
-        if (response.getType() == null || response.getType().isEmpty()) {
-            return null;
-        }
-        Optional<OrganizationResponse.Coding> codingOpt = response.getType().stream()
-                .flatMap(type -> type.getCoding().stream())
-                .filter(coding -> "http://fhir.ssv.uz/ValueSet/organization-type-level".equals(coding.getSystem()))
-                .findFirst();
-
-        return codingOpt.map(coding -> switch (coding.getCode()) {
-            case "1" -> LevelStatus.republic_level.name();
-            case "2" -> LevelStatus.region_level.name();
-            case "3", "4" -> LevelStatus.district_level.name();
-            default -> null;
-        }).orElse(null);
-    }
 }

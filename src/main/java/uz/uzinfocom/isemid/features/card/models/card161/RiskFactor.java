@@ -15,7 +15,7 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
 @NoArgsConstructor
 @Builder
 @Entity(name = "card161_risk_factors")
-public class Card161RiskFactor extends BaseEntity {
+public class RiskFactor extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card161_id", nullable = false)

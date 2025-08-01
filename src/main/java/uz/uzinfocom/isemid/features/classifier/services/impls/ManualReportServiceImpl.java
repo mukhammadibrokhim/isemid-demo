@@ -27,13 +27,14 @@ import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting
 @RequiredArgsConstructor
 public class ManualReportServiceImpl implements ManualReportService {
     private final ManualReportRepository repo;
+    private final MessageUtil messageUtil;
     private final ManualReportMapper mapper;
 
     @Override
     public PagedResponse<?> getAllByFilter(int page, int size, String shortName, String nameUz, String nameUzCyril, String nameRu, String nameKaa, String code, Boolean includeTotal, String fullURL) {
         Specification<ManualReport> spec = ManualReportSpecification.getFilteredSpecification(shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
         Page<ManualReport> mkb10Page = repo.findAll(spec, pageableNotSorting(page, size));
-        return PagedResponseUtil.build(page, mkb10Page.map(mapper::toResponse), fullURL);
+        return PagedResponseUtil.build(page, mkb10Page.map(mapper::toResponse), fullURL, messageUtil);
     }
 
     @Override
@@ -49,13 +50,13 @@ public class ManualReportServiceImpl implements ManualReportService {
                 .mkb10Codes(reqManualReport.getMkb10Codes())
                 .build();
 
-        return new ApiResponse<>(true, MessageUtil.CREATED_SUCCESS, mapper.toResponse(repo.save(manualReport)));
+        return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(repo.save(manualReport)));
     }
 
     @Override
     public ApiResponse<?> getById(long id) {
-        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, mapper.toResponse(manualReport));
+        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(manualReport));
     }
 
     @Override
@@ -65,12 +66,12 @@ public class ManualReportServiceImpl implements ManualReportService {
         } catch (Exception e) {
             throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
-        return new ApiResponse<>(true, MessageUtil.DELETED_SUCCESS, null);
+        return ApiResponse.success(messageUtil.get("message.success"));
     }
 
     @Override
     public ApiResponse<?> update(long id, ManualReportRequest manualReportRequest) {
-        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
+        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         Optional.ofNullable(manualReportRequest.getCode()).ifPresent(manualReport::setCode);
         Optional.ofNullable(manualReportRequest.getShortName()).ifPresent(manualReport::setShortName);
         Optional.ofNullable(manualReportRequest.getNameUz()).ifPresent(manualReport::setNameUz);
@@ -88,6 +89,6 @@ public class ManualReportServiceImpl implements ManualReportService {
             manualReport.getMkb10Codes().addAll(reqCodes);
         });
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, mapper.toResponse(repo.save(manualReport)));
+        return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(repo.save(manualReport)));
     }
 }
