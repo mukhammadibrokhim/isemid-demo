@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface UserService {
-    PagedResponse<?> getFilteredUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, String url);
+    PagedResponse<?> getFilteredUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, String url, User currentUser);
 
     ApiResponse<UserResponse> update(long id, @Valid UserRequest userRequest);
 

@@ -36,7 +36,6 @@ import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService, UserDetailsService {
-
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final MessageUtil messageUtil;
@@ -47,11 +46,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public PagedResponse<?> getFilteredUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, String url) {
-        Specification<User> spec = UserSpecification.getFilteredSpecification(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active);
-        Page<User> userPage = userRepository.findAll(spec, pageableSortByIdDesc(page, size));
-        Page<UserResponse> userResponsePage = userPage.map(userMapper::toResponse);
-        return PagedResponseUtil.build(page, userResponsePage, url, messageUtil);
+    public PagedResponse<?> getFilteredUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, String url, User currentUser) {
+        Specification<User> spec = UserSpecification.build(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, currentUser);
+        Page<UserResponse> userPage = userRepository.findAll(spec, pageableSortByIdDesc(page, size))
+                .map(userMapper::toResponse);
+        return PagedResponseUtil.build(page, userPage, url, messageUtil);
     }
 
     @Override

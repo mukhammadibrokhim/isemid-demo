@@ -158,7 +158,7 @@ public class Form058ExportServiceImpl implements Form058ExportService {
                         fullName,
                         ageString,
                         address,
-                        form.getPatient() != null ? Optional.ofNullable(form.getPatient().getWorkPlace()).orElse("") : "",
+//                        form.getPatient() != null ? Optional.ofNullable(form.getPatient().getWorkPlace()).orElse("") : "",
                         form.getDiseaseDate() != null ? formatter.format(form.getDiseaseDate()) : "",
                         form.getFirstVisitDate() != null ? formatter.format(form.getFirstVisitDate()) : "",
                         hospitalAndDate,

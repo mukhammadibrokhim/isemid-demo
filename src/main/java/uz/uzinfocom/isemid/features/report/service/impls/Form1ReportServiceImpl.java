@@ -14,9 +14,10 @@ import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.dtos.Form1ReportDto;
-import uz.uzinfocom.isemid.features.report.enums.LevelStatus;
 import uz.uzinfocom.isemid.features.report.service.Form1ReportService;
 import uz.uzinfocom.isemid.features.report.utils.Form058StatisticsUtil;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -42,21 +43,22 @@ public class Form1ReportServiceImpl implements Form1ReportService {
         Organization organization = currentUser.getCurrentOrganization();
         String level = organization.getLevelType().name();
 
-        if (level == null || level.isEmpty()) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "У организации текущего пользователя не указан код уровня. Пожалуйста, обратитесь к администратору системы.");
+        if (level.isEmpty()) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, messageUtil.get("error.organization.level.code.missing"));
         }
 
-        if (level.equals(LevelStatus.republic_level.name())) {
+        if (level.equals(LevelType.REPUBLICAN.name())) {
             return createRepublicReport(form058s);
 
-        } else if (level.equals(LevelStatus.region_level.name())) {
+        } else if (level.equals(LevelType.REGIONAL.name())) {
             return creteRegionReport(form058s, organization);
 
-        } else if (level.equals(LevelStatus.district_level.name())) {
+        } else if (level.equals(LevelType.DISTRICT.name()) || level.equals(LevelType.AREA.name()) || level.equals(LevelType.URBAN.name())
+                || level.equals(LevelType.INTERDISTRICT.name()) || level.equals(LevelType.NOT_DEFINED.name())) {
             return creteDistrictReport(form058s, organization);
 
         }
-        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "Неверный уровень организации.");
+        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, messageUtil.get("error.organization.level.invalid"));
     }
 
     private ApiResponse<?> creteRegionReport(List<Form058> form058s, Organization organization) {
@@ -136,10 +138,11 @@ public class Form1ReportServiceImpl implements Form1ReportService {
         }).collect(Collectors.toSet());
 
         reportList.add(Form058StatisticsUtil.calculate(
-                form058s, "Республика Узбекистан", childrenStates));
+                form058s, messageUtil.get("country.name"), childrenStates));
 
         return ApiResponse.success(messageUtil.get("message.success"), reportList);
     }
+
     public static Specification<Form058> filterByCriteria(
             LocalDate fromDate,
             LocalDate toDate,
@@ -171,22 +174,22 @@ public class Form1ReportServiceImpl implements Form1ReportService {
                 predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
 
-//            if (userOrg != null && userOrg.getLevelCode() != null) {
-//                String userLevelCode = userOrg.getLevelCode();
-//
-//                switch (userLevelCode) {
-//                    case "republic_level" -> {
-//                    }
-//                    case "region_level" -> predicates.add(cb.and(
-//                            cb.equal(root.get("createdOrg").get("state").get("code"),
-//                                    userOrg.getState().getCode())));
-//
-//                    case "district_level" -> predicates.add(cb.and(
-//                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
-//                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
-//                    ));
-//                }
-//            }
+            // Filter by organization access
+            if (userOrg != null && userOrg.getMedicalType() == MedicalType.SANEPID_SERVICE) {
+                String stateCode = userOrg.getState() != null ? userOrg.getState().getCode() : null;
+                String cityCode = userOrg.getCity() != null ? userOrg.getCity().getCode() : null;
+                LevelType levelType = userOrg.getLevelType();
+
+                Predicate accessPredicate = switch (levelType) {
+                    case REPUBLICAN -> cb.conjunction(); // Show all
+                    case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
+                    case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
+                            cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
+                    default -> cb.disjunction(); // No access
+                };
+
+                predicates.add(accessPredicate);
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

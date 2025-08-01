@@ -14,7 +14,7 @@ public class Form058MapperHelper {
     private final OrganizationRepository organizationRepository;
 
     @Named("uuidToLongId")
-    public Long uuidToHospitalPlaceId(UUID uuid) {
+    public Long uuidToLongId(UUID uuid) {
         return organizationRepository.findByUuid(uuid)
                 .map(Organization::getId)
                 .orElseThrow(() -> new RuntimeException("HospitalPlace not found by UUID: " + uuid));

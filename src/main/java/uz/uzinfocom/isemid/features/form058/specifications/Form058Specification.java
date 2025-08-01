@@ -1,13 +1,16 @@
 package uz.uzinfocom.isemid.features.form058.specifications;
 
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
+import uz.uzinfocom.isemid.features.patient.models.Affiliation;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
+import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.sql.Timestamp;
@@ -24,48 +27,70 @@ public class Form058Specification {
             User currentUser,
             FilterType filterType
     ) {
-        return (root, query, criteriaBuilder) -> {
+        return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (currentUser.getCurrentOrganization() != null) {
-                if (filterType == FilterType.RECEIVED) {
-                    predicates.add(criteriaBuilder.equal(
-                            root.get("receiverOrganizationId"), currentUser.getCurrentOrganization().getId()));
+                var org = currentUser.getCurrentOrganization();
+                Long orgId = org.getId();
+                UUID orgUuid = org.getUuid();
+                LevelType levelType = org.getLevelType();
+                MedicalType medicalType = org.getMedicalType();
+                String stateCode = org.getStateCode();
+                String cityCode = org.getCityCode();
+
+                // --- Access predicate based on org level & medical type ---
+                Predicate accessPredicate = cb.disjunction();
+
+                if (medicalType == MedicalType.SANEPID_SERVICE) {
+                    accessPredicate = switch (levelType) {
+                        case REPUBLICAN -> cb.conjunction(); // show all
+                        case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
+                        case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
+                                cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
+                        default -> cb.disjunction(); // no access
+                    };
                 } else {
-                    Expression<UUID> createdOrgUuid = root.get("createdOrgUuid");
+                    // --- Fallback: RECEIVED or CREATED filter ---
+                    if (filterType == FilterType.RECEIVED) {
+                        Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
 
-                    Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+                        Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+                        Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
 
-                    Expression<UUID> workplaceOrgUuid = patientJoin.get("workPlaceOrgId");
+                        Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
+                        Predicate typeMatch = affiliationJoin.get("type").in(AffiliationType.WORK, AffiliationType.STUDY);
+                        Predicate affiliationValid = cb.and(orgMatch, typeMatch);
 
-                    Predicate createdMatches = criteriaBuilder.equal(createdOrgUuid, currentUser.getCurrentOrganization().getUuid());
-                    Predicate workplaceMatches = criteriaBuilder.equal(workplaceOrgUuid, currentUser.getCurrentOrganization().getId());
-                    Predicate eitherMatches = criteriaBuilder.or(createdMatches, workplaceMatches);
-
-                    predicates.add(eitherMatches);
+                        accessPredicate = cb.or(receiverMatch, affiliationValid);
+                    } else {
+                        accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
+                    }
                 }
+
+                predicates.add(accessPredicate);
             }
 
+            // --- Date filter ---
             if (fromDate != null && toDate != null) {
-                predicates.add(criteriaBuilder.between(
+                predicates.add(cb.between(
                         root.get("createdAt"),
                         Timestamp.valueOf(fromDate.atStartOfDay()),
                         Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
                 ));
             } else if (fromDate != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
+                predicates.add(cb.greaterThanOrEqualTo(
                         root.get("createdAt"),
                         Timestamp.valueOf(fromDate.atStartOfDay())
                 ));
             } else if (toDate != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(
+                predicates.add(cb.lessThanOrEqualTo(
                         root.get("createdAt"),
                         Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
                 ));
             }
 
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

@@ -43,8 +43,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final UserMapper userMapper;
 
     @Override
-    public PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url) {
-        Specification<Organization> spec = OrganizationSpecification.getFilteredSpecification(name, stateCode, cityCode);
+    public PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url, User user) {
+        Specification<Organization> spec = OrganizationSpecification.build(name, stateCode, cityCode, user);
         Page<OrgResponse> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size))
                 .map(mapper::toResponse);
         return PagedResponseUtil.build(page, organizationPage, url, messageUtil);

@@ -40,9 +40,10 @@ public class OrganizationController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
+            @CurrentUser User user,
             HttpServletRequest request
     ) {
-        return organizationService.getAllOrgByFilter(page, size, name, stateCode, cityCode, getRequestUrl(request));
+        return organizationService.getAllOrgByFilter(page, size, name, stateCode, cityCode, getRequestUrl(request),user);
     }
 
     @Operation(summary = "Получить организацию по ID", description = "Получает организацию по заданному идентификатору (ID).")

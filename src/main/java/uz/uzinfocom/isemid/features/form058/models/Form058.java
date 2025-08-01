@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Form058 extends AbsEntity {
     private String mkb10Code;
     private String mkb10Name;

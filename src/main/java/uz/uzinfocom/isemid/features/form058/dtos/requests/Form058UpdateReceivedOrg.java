@@ -8,9 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class Form058UpdateReceivedOrg {
-    private Long workPlaceOrgId;
-    private String workPlaceStateCode;
-    private String workPlaceCityCode;
+//    private Long workPlaceOrgId;
+//    private String workPlaceStateCode;
+//    private String workPlaceCityCode;
 
     private Long receivedOrgId;
 

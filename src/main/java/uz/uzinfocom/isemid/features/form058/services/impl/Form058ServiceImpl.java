@@ -59,6 +59,7 @@ public class Form058ServiceImpl implements Form058Service {
         if (patient != null && patient.getIdentifiers() != null) {
             patient.getIdentifiers().forEach(identifier -> identifier.setPatient(patient));
             patient.getAddresses().forEach(address -> address.setPatient(patient));
+            patient.getAffiliations().forEach(affiliation -> affiliation.setPatient(patient));
         }
 
         return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
@@ -75,7 +76,6 @@ public class Form058ServiceImpl implements Form058Service {
     public PagedResponse<?> getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType) {
         Specification<Form058> spec = Form058Specification.build(fromDate, toDate, user, filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-
         Page<Form058Response> responsePage = form058Page.map(form -> {
             Form058Response base = form058Mapper.toResponse(form);
             return form058ResponseAdapter.adapt(base, form, filterType);
@@ -144,9 +144,6 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     public ApiResponse<Form058Response> changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {
         Form058 form058 = this.getForm058ById(formId);
-        form058.getPatient().setWorkPlaceOrgId(updateReceivedOrg.getWorkPlaceOrgId());
-        form058.getPatient().setWorkPlaceStateCode(updateReceivedOrg.getWorkPlaceStateCode());
-        form058.getPatient().setWorkPlaceCityCode(updateReceivedOrg.getWorkPlaceCityCode());
         form058.setReceiverOrganizationId(updateReceivedOrg.getReceivedOrgId());
         form058.getPatient().getAddresses().stream()
                 .filter(address -> address.getType().equals(AddressType.TEMPORARY))

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface OrganizationService {
 
-    PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url);
+    PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url, User user);
 
     ApiResponse<?> update(UUID uuid, OrgRequest orgRequest);
 

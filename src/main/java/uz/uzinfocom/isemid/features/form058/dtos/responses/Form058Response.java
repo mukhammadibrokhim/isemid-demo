@@ -23,15 +23,14 @@ public class Form058Response {
     private UUID uuid;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String filterType; // RECEIVER, AFFILIATION, NONE
     private String mkb10Code;
     private String mkb10Name;
     private String finalMkb10Code;
     private String finalMkb10Name;
     private Integer mkb10UsageLimit;
     private FormStatus status;
-
     private PatientResponse patient;
-
     private Boolean labConfirmation; // Tashxisni laborator tasdiqlash
     private OrgMiniResponse hospitalPlace; // Yotqizilgan joyi
     private LocalDateTime admissionDate; // Yotqizilgan sana

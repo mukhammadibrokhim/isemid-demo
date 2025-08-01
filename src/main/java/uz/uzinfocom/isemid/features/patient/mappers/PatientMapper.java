@@ -12,7 +12,8 @@ import uz.uzinfocom.isemid.features.patient.models.Patient;
         CatalogConverter.class,
         IdentifierMapper.class,
         AddressMapper.class,
-        OrganizationMapper.class
+        OrganizationMapper.class,
+        AffiliationMapper.class
 })
 public interface PatientMapper {
 
@@ -27,8 +28,6 @@ public interface PatientMapper {
     @Mapping(target = "populationType", source = "populationTypeCode", qualifiedByName = "toCatalog")
     @Mapping(target = "category", source = "categoryCode", qualifiedByName = "toCatalog")
     @Mapping(target = "profession", source = "professionCode", qualifiedByName = "toCatalog")
-    @Mapping(target = "workPlaceState", source = "workPlaceStateCode", qualifiedByName = "toCatalog")
-    @Mapping(target = "workPlaceCity", source = "workPlaceCityCode", qualifiedByName = "toCatalog")
     @Mapping(target = "identifiers", source = "identifiers")
     @Mapping(target = "gender", source = "genderCode", qualifiedByName = "toCatalog")
     @Mapping(target = "addresses", source = "addresses")
