@@ -7,7 +7,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum LevelType {
-
     REPUBLICAN("1", "Republican"),
     REGIONAL("2", "Regional"),
     URBAN("3", "Urban"),
