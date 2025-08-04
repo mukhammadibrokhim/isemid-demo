@@ -13,8 +13,7 @@ import uz.uzinfocom.isemid.features.card.models.card205.Card205;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.strategy.UpdateCardStrategy;
 
-import java.util.Optional;
-
+import static uz.uzinfocom.isemid.features.card.utils.CardBindingUtil.bindChildEntities;
 import static uz.uzinfocom.isemid.features.card.utils.CardUtil.validateCard;
 
 @Service
@@ -33,14 +32,7 @@ public class UpdateCard205Strategy implements UpdateCardStrategy {
         Card205Request request = (Card205Request) cardRequest;
 
         mapper.update(existingCard, request);
-        Optional.ofNullable(existingCard.getInfoBittenPeople())
-                .ifPresent(list -> list.forEach(item -> item.setCard205(existingCard)));
-
-        Optional.ofNullable(existingCard.getInfoOtherBittenAnimal())
-                .ifPresent(list -> list.forEach(item -> item.setCard205(existingCard)));
-
-        Optional.ofNullable(existingCard.getInfoAbtAnimalBittenPeople())
-                .ifPresent(list -> list.forEach(item -> item.setCard205(existingCard)));
+        bindChildEntities(existingCard);
         return ApiResponse.success(messageUtil.get("message.updated"), mapper.toCardResponse(cardRepository.save(existingCard)));
     }
 }

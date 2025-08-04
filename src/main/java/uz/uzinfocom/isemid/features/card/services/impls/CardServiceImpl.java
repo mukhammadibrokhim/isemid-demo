@@ -56,8 +56,8 @@ public class CardServiceImpl implements CardService {
                 cardMapper.toCardResponse(cardRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)))));
     }
 
-    @Transactional
     @Override
+    @Transactional
     public ApiResponse<?> updateCard(long id, CardRequest cardRequest) {
         return updateCardService.updateCard(id, cardRequest);
     }

@@ -2,12 +2,12 @@ package uz.uzinfocom.isemid.features.patient.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.patient.dtos.requests.AffiliationRequest;
 import uz.uzinfocom.isemid.features.patient.dtos.responses.AffiliationResponse;
 import uz.uzinfocom.isemid.features.patient.models.Affiliation;
 
-@Mapper(componentModel = "spring", uses = {CatalogConverter.class})
+@Mapper(componentModel = "spring", uses = {CatalogMapperHelper.class})
 public interface AffiliationMapper {
     Affiliation toEntity(AffiliationRequest request);
 

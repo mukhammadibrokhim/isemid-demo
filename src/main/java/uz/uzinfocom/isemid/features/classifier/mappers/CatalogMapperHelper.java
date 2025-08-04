@@ -1,31 +1,31 @@
 package uz.uzinfocom.isemid.features.classifier.mappers;
 
+import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogDisplayedResponse;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 
 @Component
-public class CatalogConverter {
-
+@RequiredArgsConstructor
+public class CatalogMapperHelper {
     private final CatalogService catalogService;
 
-    public CatalogConverter(CatalogService catalogService) {
-        this.catalogService = catalogService;
-    }
-
-    @Named("toCatalogEntity")
-    public Catalog toCatalogEntity(String code) {
+    @Named("toEntity")
+    public Catalog toEntity(String code) {
         return catalogService.findByCode(code);
     }
+
     @Named("toCatalog")
-    public CatalogResponseDto toCatalog(String code) {
+    public CatalogMinResponse toCatalog(String code) {
         if (code == null) {
             return null;
         }
         Catalog catalog = catalogService.findByCode(code);
-        return (catalog != null) ? CatalogResponseDto.builder()
+        return (catalog != null) ? CatalogMinResponse.builder()
                 .id(catalog.getId())
                 .code(catalog.getCode())
                 .parentCode(catalog.getParentCode())
@@ -37,7 +37,7 @@ public class CatalogConverter {
     }
 
     @Named("toCode")
-    public String toCode(CatalogResponseDto catalogDto) {
+    public String toCode(CatalogMinResponse catalogDto) {
         return (catalogDto != null) ? catalogDto.getCode() : null;
     }
 }

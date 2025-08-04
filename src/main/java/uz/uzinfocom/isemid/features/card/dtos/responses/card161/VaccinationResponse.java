@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class VaccinationResponse {
-    private CatalogResponseDto vaccinationVerified;
+    private CatalogMinResponse vaccinationVerified;
     private String vaccinationName;   // Preparat nomi
     private String serialNumber;      // Seriya raqami
     private LocalDateTime vaccinationDate; // Vaqti (GMT+5 Toshkent)

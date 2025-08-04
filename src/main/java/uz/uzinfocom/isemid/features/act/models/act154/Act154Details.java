@@ -15,7 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Table(name = "act154_detail")
-public class Act154SampleDetails extends BaseEntity {
+public class Act154Details extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "act154_id")  // Foreign key to Act154

@@ -12,8 +12,7 @@ import uz.uzinfocom.isemid.features.card.models.card_tube.CardTube;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.strategy.UpdateCardStrategy;
 
-import java.util.Optional;
-
+import static uz.uzinfocom.isemid.features.card.utils.CardBindingUtil.bindChildEntities;
 import static uz.uzinfocom.isemid.features.card.utils.CardUtil.validateCard;
 
 @Service
@@ -29,18 +28,7 @@ public class UpdateCardTubeStrategy implements UpdateCardStrategy {
         CardTube existingCard = (CardTube) card;
         CardTubeRequest request = (CardTubeRequest) cardRequest;
         mapper.update(existingCard, request);
-
-        Optional.ofNullable(existingCard.getPreMBTChestXRay())
-                .ifPresent(list -> list.forEach(xRay -> xRay.setCardTube(existingCard)));
-
-        Optional.ofNullable(existingCard.getPreviousTBHistory())
-                .ifPresent(list -> list.forEach(history -> history.setCardTube(existingCard)));
-
-        Optional.ofNullable(existingCard.getPossibleInfectionSources())
-                .ifPresent(list -> list.forEach(possible -> possible.setCardTube(existingCard)));
-
-        Optional.ofNullable(existingCard.getContactMonitoringList())
-                .ifPresent(list -> list.forEach(contactMonitoring -> contactMonitoring.setCardTube(existingCard)));
+        bindChildEntities(existingCard);
         return ApiResponse.success(messageUtil.get("message.updated"), mapper.toCardResponse(cardRepository.save(existingCard)));
     }
 }

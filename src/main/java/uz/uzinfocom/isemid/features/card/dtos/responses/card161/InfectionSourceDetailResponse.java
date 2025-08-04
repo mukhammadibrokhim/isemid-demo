@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 
 @Data
 @AllArgsConstructor
@@ -12,8 +12,8 @@ import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto
 @Builder
 public class InfectionSourceDetailResponse {
     private Long id;
-    private CatalogResponseDto infectionSourceNotFound;
+    private CatalogMinResponse infectionSourceNotFound;
     private String personFullName;
     private String infectionSourceDiseasePeriodCode;
-    private CatalogResponseDto animalType;
+    private CatalogMinResponse animalType;
 }

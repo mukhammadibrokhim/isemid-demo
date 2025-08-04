@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.organization.dtos.responses;
 
 import lombok.*;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ public class OrgMiniResponse {
     private Long id;
     private UUID uuid;
     private String name;
-    private CatalogResponseDto level;
+    private CatalogMinResponse level;
     private Long parentId;
     @Builder.Default
     private List<OrgChildResponse> children = new ArrayList<>();

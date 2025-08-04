@@ -18,7 +18,7 @@ public interface Mkb10Service {
 
     ApiResponse<?> getById(long id);
 
-    ApiResponse<?> update(long id, Mkb10Request mkb10Request);
+    ApiResponse<?> update(long id, Mkb10Request request);
 
     ApiResponse<?> delete(long id);
 

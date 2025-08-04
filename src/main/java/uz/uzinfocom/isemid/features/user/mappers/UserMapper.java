@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.user.mappers;
 
 import org.mapstruct.*;
-import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.MisUserResponse;
@@ -12,7 +12,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 @Mapper(
         componentModel = "spring",
-        uses = {CatalogConverter.class, RoleMapper.class, OrganizationMapper.class},
+        uses = {CatalogMapperHelper.class, RoleMapper.class, OrganizationMapper.class},
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )

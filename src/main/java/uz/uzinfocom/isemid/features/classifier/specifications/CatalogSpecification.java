@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import static org.springframework.util.StringUtils.hasText;
 
 public class CatalogSpecification {
-    public static Specification<Catalog> getFilteredSpecification(
+    public static Specification<Catalog> build(
             String type,
             String code,
             String parentCode,

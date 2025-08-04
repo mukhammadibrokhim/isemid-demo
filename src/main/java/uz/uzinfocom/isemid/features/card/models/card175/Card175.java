@@ -55,9 +55,7 @@ public class Card175 extends Card {
     private String clinicalForm; //Klinik shakli.
 
     @ElementCollection
-    @CollectionTable(
-            name = "card175_part_of_injury",
-            joinColumns = @JoinColumn(name = "card175_id"))
+    @CollectionTable(name = "card175_part_of_injury", joinColumns = @JoinColumn(name = "card175_id"))
     @Column(name = "catalog_code")  // Faqat `catalogCode` qiymatini saqlaymiz
     private List<String> partOfInjury = new ArrayList<>();//Jarohatlangan joyi. (dropdown multiselect)
 
@@ -69,24 +67,17 @@ public class Card175 extends Card {
     private String checkingDiagnosisCode; //Hayvondagi tashxis laboratoriyada tekshiruuvda.(Tasdiqlandi,Tasdiqlanmagan,Tekshirilmagan)
 
     @ElementCollection
-    @CollectionTable(
-            name = "card175_disease_transmission_condition",
-            joinColumns = @JoinColumn(name = "card175_id")
-    )
+    @CollectionTable(name = "card175_disease_transmission_condition", joinColumns = @JoinColumn(name = "card175_id"))
     @Column(name = "catalog_code")  // Faol `catalogCode` qiymatini saqlash
     private List<String> diseaseTransmissionConditionCode = new ArrayList<>();//Kasallik yuqishiga olib keladigan sharoit. (dropdown multiselect)
 
     @ElementCollection
-    @CollectionTable(
-            name = "card175_pathogen_main_factor",
-            joinColumns = @JoinColumn(name = "card175_id"))
+    @CollectionTable(name = "card175_pathogen_main_factor", joinColumns = @JoinColumn(name = "card175_id"))
     @Column(name = "catalog_code")
     private List<String> pathogenMainFactor = new ArrayList<>();//Kasallik chaqiruvchisini yuqtirishga ehtimol qilingan asosiy omil.(dropdown multiselect)
 
     @ElementCollection
-    @CollectionTable(
-            name = "card175_taken_measures_from_residence",
-            joinColumns = @JoinColumn(name = "card175_id"))
+    @CollectionTable(name = "card175_taken_measures_from_residence", joinColumns = @JoinColumn(name = "card175_id"))
     @Column(name = "catalog_code")
     private List<String> takenMeasuresFromResidence = new ArrayList<>();//Bemorning yashash joyida o‘tkazilgan chora - tadbirlar.(dropdown multiselect)
 }

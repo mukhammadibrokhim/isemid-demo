@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 
 @Data
 @AllArgsConstructor
@@ -12,6 +12,6 @@ import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto
 @Builder
 public class RiskFactorResponse {
     private Long id;
-    private CatalogResponseDto riskFactor;
+    private CatalogMinResponse riskFactor;
     private String addressLocation;
     private String seasonTime;}

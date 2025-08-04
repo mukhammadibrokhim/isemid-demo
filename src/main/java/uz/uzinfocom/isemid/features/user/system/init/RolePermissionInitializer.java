@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.user.system.init;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.user.models.Permission;
@@ -15,8 +16,9 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@Order(1)
+@Order(3)
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "runner.role_permission.init", havingValue = "true")
 public class RolePermissionInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;

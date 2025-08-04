@@ -17,8 +17,8 @@ import uz.uzinfocom.isemid.features.act.strategy.UpdateActStrategy;
 import static uz.uzinfocom.isemid.features.act.utils.ActUtil.validateAct;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class UpdateAct153Strategy implements UpdateActStrategy {
     private final ActRepository actRepository;
     private final MessageUtil messageUtil;

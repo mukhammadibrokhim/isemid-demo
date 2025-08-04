@@ -32,6 +32,6 @@ public class Act154 extends Act {
    private String additionalInfo;
 
    @OneToMany(mappedBy = "act154", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-   private List<Act154SampleDetails> act154SampleDetails = new ArrayList<>();
+   private List<Act154Details> act154Details = new ArrayList<>();
 
 }

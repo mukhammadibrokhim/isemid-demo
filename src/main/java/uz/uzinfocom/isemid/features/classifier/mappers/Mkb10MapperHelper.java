@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
-public class Mkb10Converter {
+public class Mkb10MapperHelper {
 
     private final Mkb10Repository mkb10Repository;
     private final Mkb10Mapper mkb10Mapper;

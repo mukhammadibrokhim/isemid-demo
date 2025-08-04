@@ -19,11 +19,11 @@ public interface ManualReportService {
             String fullURL
     );
 
-    ApiResponse<?> create(ManualReportRequest manualReportRequest);
+    ApiResponse<?> create(ManualReportRequest request);
 
     ApiResponse<?> getById(long id);
 
     ApiResponse<?> delete(long id);
 
-    ApiResponse<?> update(long id, ManualReportRequest manualReportRequest);
+    ApiResponse<?> update(long id, ManualReportRequest request);
 }

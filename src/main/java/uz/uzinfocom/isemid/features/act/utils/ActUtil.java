@@ -12,8 +12,6 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @UtilityClass
 public class ActUtil {
-
-
     public static Act validateAct(long id, ActRequest reqAct, ActRepository actRepository, MessageUtil messageUtil) {
         Act act = actRepository.findById(id)
                 .orElseThrow(() -> new ApiException(

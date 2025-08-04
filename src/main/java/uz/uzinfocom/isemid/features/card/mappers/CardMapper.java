@@ -18,7 +18,7 @@ import uz.uzinfocom.isemid.features.card.models.card174.Card174;
 import uz.uzinfocom.isemid.features.card.models.card175.Card175;
 import uz.uzinfocom.isemid.features.card.models.card205.Card205;
 import uz.uzinfocom.isemid.features.card.models.card_tube.CardTube;
-import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 import uz.uzinfocom.isemid.features.patient.mappers.AddressMapper;
 import uz.uzinfocom.isemid.features.patient.mappers.IdentifierMapper;
@@ -28,7 +28,7 @@ import uz.uzinfocom.isemid.features.patient.mappers.IdentifierMapper;
         injectionStrategy = InjectionStrategy.CONSTRUCTOR,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         uses = {
-                CatalogConverter.class,
+                CatalogMapperHelper.class,
                 OrganizationMapperHelper.class,
                 IdentifierMapper.class,
                 AddressMapper.class,

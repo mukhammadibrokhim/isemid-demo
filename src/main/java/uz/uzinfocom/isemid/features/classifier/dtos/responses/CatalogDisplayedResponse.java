@@ -1,11 +1,13 @@
 package uz.uzinfocom.isemid.features.classifier.dtos.responses;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class CatalogMiniResponse {
+public class CatalogDisplayedResponse {
     private Long id;
     private String code;
     private String parentCode;

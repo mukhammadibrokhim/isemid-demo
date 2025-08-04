@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import static org.springframework.util.StringUtils.hasText;
 
 public class Mkb10Specification {
-    public static Specification<Mkb10> getFilteredSpecification(
+    public static Specification<Mkb10> build(
             String mkbCode,
             Long parentId,
             String nameUz,

@@ -68,8 +68,8 @@ public class ManualReportController {
             summary = "Создать новый ручной отчет",
             description = "Создает новый ручной отчет с переданными данными.")
     @PostMapping
-    public ApiResponse<?> post(@Valid @RequestBody ManualReportRequest manualReportRequest) {
-        return manualReportService.create(manualReportRequest);
+    public ApiResponse<?> post(@Valid @RequestBody ManualReportRequest request) {
+        return manualReportService.create(request);
     }
 
     @Operation(
@@ -78,8 +78,8 @@ public class ManualReportController {
             parameters = {
                     @Parameter(name = "id", description = "ID отчета для обновления", required = true)})
     @PutMapping("/{id}")
-    public ApiResponse<?> put(@PathVariable Long id, @RequestBody ManualReportRequest manualReportRequest) {
-        return manualReportService.update(id, manualReportRequest);
+    public ApiResponse<?> put(@PathVariable Long id, @RequestBody ManualReportRequest request) {
+        return manualReportService.update(id, request);
     }
 
     @Operation(
