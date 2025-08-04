@@ -631,7 +631,6 @@ public class CatalogLookupController {
     public ApiResponse<?> getOutBreak(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
         return catalogService.findAllByType(CatalogType.outbreakInfection, lang);
     }
-
     
     @GetMapping("/case-status")
     public ApiResponse<?> getCase(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
