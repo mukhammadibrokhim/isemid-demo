@@ -32,7 +32,7 @@ public class AppConfig {
         resolver.setDefaultLocale(Locale.forLanguageTag("uz"));
         resolver.setSupportedLocales(List.of(
                 Locale.forLanguageTag("ru"),
-                Locale.forLanguageTag("en"),
+                Locale.forLanguageTag("kaa"),
                 Locale.forLanguageTag("uz"),
                 Locale.forLanguageTag("uz-Cyrl")
         ));
@@ -53,7 +53,7 @@ public class AppConfig {
 
         messageSource.setBasename("classpath:i18n/messages");
         messageSource.setDefaultEncoding("UTF-8");
-        messageSource.setCacheMillis(3600000); // 1 soat (ms)
+        messageSource.setCacheMillis(3600000); // 1 hour (ms)
 
         messageSource.setFallbackToSystemLocale(false);
         return messageSource;

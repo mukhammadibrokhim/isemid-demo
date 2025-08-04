@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.patient.dtos.responses;
 
 import lombok.*;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,15 +22,15 @@ public class PatientResponse {
     private LocalDate birthDate;
     private Integer ageYears;
     private Integer ageMonths;
-    private CatalogResponseDto gender;
+    private CatalogMinResponse gender;
     private String phoneNumber;
     private String kinshipDegree; // Example: "Father", "Mother", "Sibling", etc.
     private String kinshipFullName;
-    private CatalogResponseDto residentialStatus;
-    private CatalogResponseDto maritalStatus;
-    private CatalogResponseDto populationType;
-    private CatalogResponseDto category;
-    private CatalogResponseDto profession;
+    private CatalogMinResponse residentialStatus;
+    private CatalogMinResponse maritalStatus;
+    private CatalogMinResponse populationType;
+    private CatalogMinResponse category;
+    private CatalogMinResponse profession;
     private List<AffiliationResponse> affiliations;
     private List<AddressResponse> addresses;
 }

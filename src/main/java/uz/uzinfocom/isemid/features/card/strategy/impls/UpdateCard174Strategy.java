@@ -13,8 +13,7 @@ import uz.uzinfocom.isemid.features.card.models.card174.Card174;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.strategy.UpdateCardStrategy;
 
-import java.util.Optional;
-
+import static uz.uzinfocom.isemid.features.card.utils.CardBindingUtil.bindChildEntities;
 import static uz.uzinfocom.isemid.features.card.utils.CardUtil.validateCard;
 
 @Service
@@ -33,12 +32,7 @@ public class UpdateCard174Strategy implements UpdateCardStrategy {
         Card174Request reqCard174 = (Card174Request) reqCard;
 
         mapper.update(existingCard, reqCard174);
-
-        Optional.ofNullable(existingCard.getInfectionMonitoring())
-                .ifPresent(list -> list.forEach(item -> item.setCard174(existingCard)));
-
-        Optional.ofNullable(existingCard.getOutbreakControlMeasures())
-                .ifPresent(list -> list.forEach(item -> item.setCard174(existingCard)));
+        bindChildEntities(existingCard);
 
         return ApiResponse.success(messageUtil.get("message.updated"), mapper.toCardResponse(cardRepository.save(existingCard)));
     }

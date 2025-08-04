@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.form058.mappers;
 
 import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
-import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
@@ -11,7 +11,7 @@ import uz.uzinfocom.isemid.features.patient.mappers.PatientMapper;
 
 @Mapper(componentModel = "spring", uses = {
         Form058MapperHelper.class,
-        CatalogConverter.class,
+        CatalogMapperHelper.class,
         PatientMapper.class,
         LocationMapper.class,
         OrganizationMapperHelper.class,

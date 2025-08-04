@@ -13,8 +13,7 @@ import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.strategy.UpdateCardStrategy;
 
-import java.util.Optional;
-
+import static uz.uzinfocom.isemid.features.card.utils.CardBindingUtil.bindChildEntities;
 import static uz.uzinfocom.isemid.features.card.utils.CardUtil.validateCard;
 
 @Service
@@ -34,32 +33,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
         Card161Request request161 = (Card161Request) request;
         cardMapper.update(existingCard, request161);
 
-        Optional.ofNullable(existingCard.getVaccinations())
-                .ifPresent(list -> list.forEach(v -> v.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getRiskFactors())
-                .ifPresent(list -> list.forEach(rf -> rf.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getPossibleInfectionSources())
-                .ifPresent(list -> list.forEach(source -> source.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getEnvironmentalSources())
-                .ifPresent(list -> list.forEach(env -> env.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getEnvironmentalLabTests())
-                .ifPresent(list -> list.forEach(test -> test.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getContactPersonDetails())
-                .ifPresent(list -> list.forEach(contact -> contact.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getScreenedGroups())
-                .ifPresent(list -> list.forEach(group -> group.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getHomePreventiveMeasures())
-                .ifPresent(list -> list.forEach(measure -> measure.setCard161(existingCard)));
-
-        Optional.ofNullable(existingCard.getOutbreakDisinfectionMeasures())
-                .ifPresent(list -> list.forEach(measure -> measure.setCard161(existingCard)));
+        bindChildEntities(existingCard);
         return ApiResponse.success(messageUtil.get("message.updated"),
                 cardMapper.toCardResponse(cardRepository.save(existingCard)));
     }

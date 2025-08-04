@@ -59,7 +59,7 @@ public class Form058Specification {
                         Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
 
                         Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
-                        Predicate typeMatch = affiliationJoin.get("type").in(AffiliationType.WORK, AffiliationType.STUDY);
+                        Predicate typeMatch = affiliationJoin.get("type").in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
                         Predicate affiliationValid = cb.and(orgMatch, typeMatch);
 
                         accessPredicate = cb.or(receiverMatch, affiliationValid);

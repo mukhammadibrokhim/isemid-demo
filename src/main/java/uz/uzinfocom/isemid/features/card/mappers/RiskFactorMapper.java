@@ -5,9 +5,9 @@ import org.mapstruct.Mapping;
 import uz.uzinfocom.isemid.features.card.dtos.requests.card161.RiskFactorRequest;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card161.RiskFactorResponse;
 import uz.uzinfocom.isemid.features.card.models.card161.RiskFactor;
-import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 
-@Mapper(componentModel = "spring", uses = CatalogConverter.class)
+@Mapper(componentModel = "spring", uses = CatalogMapperHelper.class)
 public interface RiskFactorMapper {
 
     RiskFactor toEntity(RiskFactorRequest request);

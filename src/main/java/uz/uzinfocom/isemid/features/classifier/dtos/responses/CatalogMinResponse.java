@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CatalogResponseDto {
+public class CatalogMinResponse {
     private Long id;
     private String code;
     private String parentCode;

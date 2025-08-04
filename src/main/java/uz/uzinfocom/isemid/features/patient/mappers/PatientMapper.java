@@ -2,14 +2,14 @@ package uz.uzinfocom.isemid.features.patient.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.patient.dtos.requests.PatientRequest;
 import uz.uzinfocom.isemid.features.patient.dtos.responses.PatientResponse;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
 
 @Mapper(componentModel = "spring", uses = {
-        CatalogConverter.class,
+        CatalogMapperHelper.class,
         IdentifierMapper.class,
         AddressMapper.class,
         OrganizationMapper.class,
