@@ -5,7 +5,7 @@ import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
+import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 
 @Mapper(
@@ -14,8 +14,7 @@ import uz.uzinfocom.isemid.features.organization.models.Organization;
                 CatalogMapperHelper.class,
                 UuidConverter.class,
                 OrganizationMapperHelper.class
-        },
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+        }, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface OrganizationMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -39,15 +38,18 @@ public interface OrganizationMapper {
     @Mapping(target = "country", source = "countryCode", qualifiedByName = "toCatalog")
     @Mapping(target = "state", source = "stateCode", qualifiedByName = "toCatalog")
     @Mapping(target = "city", source = "cityCode", qualifiedByName = "toCatalog")
-    @Mapping(target = "level", source = "levelType", qualifiedByName = "toCatalog")
+    @Mapping(target = "levelType", source = "levelType", qualifiedByName = "toCatalog")
+    @Mapping(target = "medicalType", source = "medicalType", qualifiedByName = "toCatalog")
+    @Mapping(target = "serviceTypes", source = "serviceTypes", qualifiedByName = "toCatalog")
     @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
-    OrgResponse toResponse(Organization organization);
+    OrganizationResponse toResponse(Organization organization);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "uuid", source = "uuid")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "parentId", source = "parentId")
     @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
+    @Mapping(target = "levelType", source = "levelType", qualifiedByName = "toCatalog")
     OrgMiniResponse toOrgMiniResponse(Organization organization);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

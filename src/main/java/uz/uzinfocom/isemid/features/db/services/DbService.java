@@ -5,6 +5,9 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.features.db.dtos.TableDto;
 
@@ -17,23 +20,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DbService {
 
-
     @PersistenceContext
     private EntityManager entityManager;
+    private final JdbcTemplate jdbcTemplate;
+
 
     @Transactional
-    public String executeSqlCommand(String sql) {
+    public ResponseEntity<?> executeSqlCommand(Map<String, String> body) {
+        String query = body.get("query");
+        if (query == null)
+            return ResponseEntity.badRequest().body("Query cannot be null");
         try {
-            String[] queries = sql.split(";");
-            for (String q : queries) {
-                if (!q.trim().isEmpty()) {
-                    entityManager.createNativeQuery(q.trim()).executeUpdate();
-                }
-            }
-            return "SQL command(s) executed successfully.";
+            List<Map<String, Object>> result = jdbcTemplate.queryForList(query);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            e.printStackTrace();
-            return "Error executing SQL command: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 

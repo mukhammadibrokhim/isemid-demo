@@ -19,7 +19,6 @@ import static uz.uzinfocom.isemid.features.db.utils.DbUtil.validateCredentials;
 @RequiredArgsConstructor
 @Hidden
 public class DbController {
-
     private final DbService dbService;
 
     @GetMapping("/all")
@@ -34,9 +33,8 @@ public class DbController {
     }
 
     @PostMapping("/execute")
-    public ResponseEntity<String> executeSqlCommand(@RequestBody Map<String, String> body) {
-        String sql = body.get("sql");
-        return ResponseEntity.ok(dbService.executeSqlCommand(sql));
+    public ResponseEntity<?> executeSqlCommand(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(dbService.executeSqlCommand(body));
     }
 
     @GetMapping("/table/{tableName}")

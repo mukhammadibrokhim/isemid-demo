@@ -16,7 +16,7 @@ public class OrgMiniResponse {
     private Long id;
     private UUID uuid;
     private String name;
-    private CatalogMinResponse level;
+    private CatalogMinResponse levelType;
     private Long parentId;
     @Builder.Default
     private List<OrgChildResponse> children = new ArrayList<>();

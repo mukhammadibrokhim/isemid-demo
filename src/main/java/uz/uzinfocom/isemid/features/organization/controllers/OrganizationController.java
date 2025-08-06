@@ -10,7 +10,7 @@ import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
+import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
@@ -48,7 +48,7 @@ public class OrganizationController {
 
     @Operation(summary = "Получить организацию по ID", description = "Получает организацию по заданному идентификатору (ID).")
     @GetMapping("/{id}")
-    public ApiResponse<OrgResponse> getOrganizationById(@PathVariable long id) {
+    public ApiResponse<OrganizationResponse> getOrganizationById(@PathVariable long id) {
         return organizationService.getById(id);
     }
 
@@ -60,7 +60,7 @@ public class OrganizationController {
 
     @Operation(summary = "Обновить организацию из MIS", description = "Обновляет информацию об организации, используя данные из MIS по UUID организации. Требуется авторизация.")
     @PutMapping("/{uuid}/update-from-mis")
-    public ApiResponse<OrgResponse> updateOrganizationFromMis(
+    public ApiResponse<OrganizationResponse> updateOrganizationFromMis(
             @PathVariable UUID uuid,
             @CurrentUser User currentUser,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
