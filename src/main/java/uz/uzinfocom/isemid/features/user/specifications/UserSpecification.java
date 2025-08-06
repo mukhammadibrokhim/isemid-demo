@@ -27,7 +27,7 @@ public class UserSpecification {
     ) {
         return (root, query, criteriaBuilder) -> {
             var predicates = Stream.of(
-                    hasText(nnuzb) ? criteriaBuilder.equal(root.get("nnuzb"), nnuzb) : null,
+                    hasText(nnuzb) ? criteriaBuilder.like(root.get("nnuzb"), nnuzb) : null,
                     hasText(firstName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%") : null,
                     hasText(lastName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), "%" + lastName.toLowerCase() + "%") : null,
                     hasText(middleName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("middleName")), "%" + middleName.toLowerCase() + "%") : null,
