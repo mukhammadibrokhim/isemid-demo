@@ -17,7 +17,7 @@ import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgResponse;
+import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
@@ -47,7 +47,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url, User user) {
         Specification<Organization> spec = OrganizationSpecification.build(name, stateCode, cityCode, user);
-        Page<OrgResponse> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size))
+        Page<OrganizationResponse> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size))
                 .map(mapper::toResponse);
         return PagedResponseUtil.build(page, organizationPage, url, messageUtil);
     }
@@ -68,13 +68,13 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public ApiResponse<OrgResponse> getById(long id) {
+    public ApiResponse<OrganizationResponse> getById(long id) {
         Organization organization = organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(organization));
     }
 
     @Override
-    public ApiResponse<OrgResponse> updateUserFromMis(UUID uuid, User currentUser, String token) {
+    public ApiResponse<OrganizationResponse> updateUserFromMis(UUID uuid, User currentUser, String token) {
         MisOrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, MisOrganizationResponse.class);
         Organization organization = mapper.toOrganization(response);
         return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(organizationRepository.save(organization)));
