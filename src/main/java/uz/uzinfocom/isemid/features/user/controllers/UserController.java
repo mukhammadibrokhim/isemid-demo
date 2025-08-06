@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -89,7 +90,7 @@ public class UserController {
             summary = "Получить данные текущего пользователя",
             description = "Возвращает информацию о текущем аутентифицированном пользователе."
     )
-    @GetMapping("/me")
+    @GetMapping(value = "/me", produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<UserMeResponse> getCurrentUser(@CurrentUser User user) {
         return userService.getByUser(user);
     }
