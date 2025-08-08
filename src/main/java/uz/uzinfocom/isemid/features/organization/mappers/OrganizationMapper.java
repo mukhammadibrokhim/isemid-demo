@@ -33,6 +33,7 @@ public interface OrganizationMapper {
     @Mapping(target = "line", source = ".", qualifiedByName = "extractLine")
     @Mapping(target = "serviceAreaCode", source = ".", qualifiedByName = "extractServiceArea")
     @Mapping(target = "district", source = ".", qualifiedByName = "extractDistrict")
+    @Mapping(target = "createdAt", expression = "java(java.sql.Timestamp.from(java.time.Instant.now()))")
     Organization toOrganization(MisOrganizationResponse misOrganizationResponse);
 
     @Mapping(target = "country", source = "countryCode", qualifiedByName = "toCatalog")

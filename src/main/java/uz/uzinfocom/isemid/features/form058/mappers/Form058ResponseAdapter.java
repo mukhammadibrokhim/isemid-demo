@@ -1,17 +1,45 @@
 package uz.uzinfocom.isemid.features.form058.mappers;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.features.card.dtos.responses.CardSimpleResponse;
+import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
+import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
+@RequiredArgsConstructor
 public class Form058ResponseAdapter {
+    private final CardMapper cardMapper;
+
     public Form058Response adapt(Form058Response response, Form058 form, FilterType filterType) {
         if (filterType == FilterType.RECEIVED && form.getStatus() == FormStatus.SENT) {
             response.setStatus(FormStatus.NEW);
         }
         return response;
     }
+
+    public Form058DetailsResponse adapt(Form058DetailsResponse response, Form058 form, FilterType filterType) {
+        if (filterType == FilterType.RECEIVED && form.getStatus() == FormStatus.SENT) {
+            response.setStatus(FormStatus.NEW);
+        }
+
+        if (form.getCards() != null && !form.getCards().isEmpty()) {
+            List<CardSimpleResponse> simpleCards = form.getCards().stream()
+                    .map(cardMapper::toSimpleResponse)
+                    .collect(Collectors.toList());
+            response.setCards(simpleCards);
+        }
+
+        return response;
+    }
+
+
+
 }

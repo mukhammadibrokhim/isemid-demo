@@ -16,113 +16,101 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class Card174 extends Card {
-    private Integer serialDocNumber; //Hujjat tartib raqami.
-    private String mkb10Code;
-    private String mkb10Name;
-    private String pathogenType; // Qo‘zg‘atuvchisining turi (serogruppa)
-    private LocalDate dataObtainedDate; // Hayvonlar kasalligi yoki kasallikka shubha tug‘ilganda olingan ma’lumot sanasi
-    private LocalDate reportToVeterinaryDepartmentDate; // Tuman Vetenariya bo‘limiga ma’lumot berilgan sana
-    private String animalPrimaryDiagnosis; // Hayvondagi birlamchi tashxisi (dastlabki)
-    private String humanPrimaryDiagnosis; // Odamdagi birlamchi tashxisi (dastlabki) //MKB 10 spravchnik
-    private LocalDate investigationDate; // Epizootologik-epidemiologik tekshiruv o‘tkazilgan sana
-    private LocalDate lastDiseaseYear; // Hayvonlar va odamlar orasida kasallik qayd etilgan so‘ngi yil
-    private LocalDate currentAnimalInfectionDate; // Hayvon(lar)ning hozirgi kasallangan sanasi
-    private String outbreakLocalization; // O‘chog‘ni lokalizatsiyasi (xo‘jalik, aholi punkti, korxona sex)
-    private String animalOwner; // Hayvon egasi, Familiya, Ismi Sharifi
-    private String ownerAddress; // Manzilgohi
 
-    private String affectedAnimalTypeCode; // Kasallangan yoki o‘lgan (o‘ldirilgan) hayvonlarning turi
-    private Integer affectedAnimalCount; // Kasallangan yoki o‘lgan (o‘ldirilgan) hayvonlarning soni
-    private String animalOwnershipCode; // Hayvonlarni kimga tegishliligi
+    private Integer serialNo; // Hujjat tartib raqami
+    private String mkbCode; // MKB-10 kodi
+    private String mkbName; // MKB-10 nomi
+    private String pathogen; // Qo‘zg‘atuvchi turi (serogruppa)
+    private LocalDate dataDate; // Ma’lumot olingan sana (hayvon kasalligida)
+    private LocalDate reportedDate; // Tuman veterinariyaga xabar berilgan sana
+    private String animalDiag; // Hayvonlardagi birlamchi tashxis
+    private String humanDiag; // Odamlardagi birlamchi tashxis (MKB bilan)
+    private LocalDate investigationDate; // Tekshiruv sanasi
+    private LocalDate lastCaseYear; // So‘nggi kasallik aniqlangan yil
+    private LocalDate currentAnimalInfectionDate; // Hozirgi hayvon infeksiya sanasi
+    private String outbreakLocation; // O‘chog‘ joyi (xo‘jalik, korxona, aholi punkti)
+    private String ownerName; // Hayvon egasining to‘liq FISH
+    private String ownerAddr; // Hayvon egasining manzili
 
-    private boolean isAreaExotic; // Ushbu hudud kasallik bo‘yicha ekzotik
-    private boolean rodentIncrease; // Kemiruvchilar sonining ortishi
-    private boolean vectorIncrease; // Tashuvchilar soni ortishi
-    private boolean wildRodentsIncrease; // Kemiruvchilar soni ortdi (yovvoyi)
-    private boolean synanthropicRodentsIncrease; // Kemiruvchilar soni ortdi (sinantrop)
-    private boolean bloodSuckingArthropodsIncrease; // Bo‘g‘im oyoqli qon so‘ruvchilar soni ortdi
-    private boolean epizootologyExistence;
+    private String affectedAnimalCode; // Kasallangan hayvon turi kodi
+    private Integer affectedAnimalCount; // Kasallangan hayvonlar soni
+    private String ownershipCode; // Hayvon tegishliligi
+
+    private boolean isExoticArea; // Hudud ekzotikmi
+    private boolean rodentsIncreased; // Kemiruvchilar ortganmi
+    private boolean vectorsIncreased; // Tashuvchilar ortganmi
+    private boolean wildRodents; // Yovvoyi kemiruvchilar ortgan
+    private boolean synanthropicRodents; // Sinantrop kemiruvchilar ortgan
+    private boolean arthropodsIncreased; // Qon so‘ruvchi bo‘g‘imoyoqlilar ortgan
+    private boolean epizootologyExists; // Epizootologik holat mavjudmi
 
     @ElementCollection
-    @CollectionTable(
-            name = "card174_disease_factors",
-            joinColumns = @JoinColumn(name = "card174_id"))
+    @CollectionTable(name = "card174_disease_factors", joinColumns = @JoinColumn(name = "card174_id"))
     @Column(name = "catalog_code")
-    private List<String> diseaseFactorCodes = new ArrayList<>();
+    private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
 
-    private String animalType; // Hayvon turi, tekshirilib o'tkazilgan namunalar turi
+    private String animalType; // Tekshiruv o‘tkazilgan hayvon turi
     private LocalDate testDate; // Tekshiruv sanasi
-    private Integer testSampleCount; // Tekshirilgan namunalar soni
-    private String testingMethod; // Tekshiruv usuli
-    private String testResult; // Natija (serovar turi, qo‘zg‘atuvchi, titr)
+    private Integer sampleCount; // Namuna soni
+    private String testMethod; // Tekshiruv usuli
+    private String testResult; // Tekshiruv natijasi (serovar, qo‘zg‘atuvchi)
 
     @ElementCollection
-    @CollectionTable(
-            name = "card174_affected_animals",
-            joinColumns = @JoinColumn(name = "card174_id"))
+    @CollectionTable(name = "card174_affected_animals", joinColumns = @JoinColumn(name = "card174_id"))
     @Column(name = "catalog_code")
-    private List<String> affectedAnimalCodes = new ArrayList<>();
+    private List<String> affectedAnimalCodes = new ArrayList<>(); // Ta’sirlangan hayvonlar ro‘yxati
 
-
-    private Integer affectedHumans; // Kasallangan odamlar soni
-    private Integer includingIndustrialConditions;// Шу жумладан саноат шароитида
-    private Integer includingWhoApplied; //Shu jumladan murojaat etganlar.
-    private Integer includingIdentified; //Shu jumladan aniqlanganlar.
-    private Integer treatedHumans; // Tezkor yordam yoki antirabik yordam olganlar soni
-    private Integer affectedInOutbreak; // O‘choqda kasallangan odamlar soni
+    private Integer infectedHumans; // Kasallangan odamlar soni
+    private Integer atIndustry; // Shu jumladan sanoat sharoitida
+    private Integer reportedCases; // Shu jumladan murojaat qilganlar
+    private Integer confirmedCases; // Shu jumladan aniqlanganlar
+    private Integer treatedHumans; // Antirabik yordam olganlar soni
+    private Integer infectedAtOutbreak; // O‘chog‘da kasallanganlar soni
 
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
     @Builder.Default
-    private List<InfectionMonitoring> infectionMonitoring = new ArrayList<>();
+    private List<InfectionMonitoring> monitoring = new ArrayList<>(); // Infeksiya nazorati
 
-    private String quarantineTypeCode;
+    private String quarantineCode; // Karantin turi kodi
+    private LocalDate quarantineStart; // Karantin boshlanish sanasi
+    private LocalDate quarantineEnd; // Karantin tugash sanasi
 
-    private LocalDate quarantineStartDate;
-    private LocalDate quarantineEndDate;
+    private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
+    private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
+    private String measures; // Oldini olish choralari
+    private String strayCapture; // Daydi hayvonlarni tutish
+    private String wildCulling; // Yovvoyi hayvonlarni yo‘qotish
 
-    private String animalDisposalMethodCode;
-
-    private LocalDate animalDisposalDate;
-    private String precautionaryMeasures;
-    private String strayAnimalCapture;
-    private String wildAnimalCulling;
-
-    private String deratizationCode;
-
-    private Double deratizationArea;
-    private String inspectors;
-    private String isolation;
-    private String meatSubmission;
-    private String treatment;
-    private Boolean measureTaken;
+    private String deratCode; // Deratizatsiya kodi
+    private Double deratArea; // Deratizatsiya qamrovi (m²)
+    private String inspectors; // Tekshiruvchilar FISH
+    private String isolation; // Izolyatsiya choralari
+    private String meatSubmission; // Go‘sht topshirilganligi
+    private String treatment; // Davolash choralari
+    private Boolean actionTaken; // Choralar ko‘rildimi
 
     @ElementCollection
-    @CollectionTable(
-            name = "card174_disinfection_factors",
-            joinColumns = @JoinColumn(name = "card174_id"))
+    @CollectionTable(name = "card174_disinfection_factors", joinColumns = @JoinColumn(name = "card174_id"))
     @Column(name = "catalog_code")
-    private List<String> disinfectionTransmissionFactorCodes = new ArrayList<>();
+    private List<String> disinfectionFactors = new ArrayList<>(); // Dezinfeksiya ob'ektlari
 
-    private Integer disinfectedFactorAmount;//Zararsizlantirilgan omillar miqdori.
-    private LocalDate disinfectionDate;//Zararsizlantirish sanasi.
+    private Integer disinfectedCount; // Zararsizlantirilgan omillar miqdori
+    private LocalDate disinfectionDate; // Zararsizlantirish sanasi
 
     @ElementCollection
-    @CollectionTable(
-            name = "card174_elimination_method",
-            joinColumns = @JoinColumn(name = "card174_id"))
+    @CollectionTable(name = "card174_elimination_method", joinColumns = @JoinColumn(name = "card174_id"))
     @Column(name = "catalog_code")
-    private List<String> eliminationMethodCodes = new ArrayList<>();
+    private List<String> eliminationMethods = new ArrayList<>(); // Yo‘q qilish usullari
 
-    private String locationOfEvent;
-    private String executionControlResults;
+    private String eventLocation; // Hodisa joyi
+    private String controlResults; // Chora nazorati natijasi
 
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card174"})
     @OrderBy("id DESC")
     @Builder.Default
-    private List<OutbreakControlMeasure> outbreakControlMeasures = new ArrayList<>();
+    private List<OutbreakControlMeasure> controlMeasures = new ArrayList<>(); // O‘choqdagi chora-tadbirlar
 
-    private String additionalMeasuresInfo;
-
+    private String additionalInfo; // Qo‘shimcha ma’lumot
 }

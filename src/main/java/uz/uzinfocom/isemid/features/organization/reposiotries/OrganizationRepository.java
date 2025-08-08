@@ -23,6 +23,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
                 SELECT * FROM organization
                 WHERE (:stateCode IS NULL OR TRIM(:stateCode) = '' OR state_code = :stateCode)
                   AND (:cityCode IS NULL OR TRIM(:cityCode) = '' OR city_code = :cityCode)
+                  AND (:medicalType IS NULL OR TRIM(:medicalType) = '' OR medical_type = :medicalType)
                   AND (:name IS NULL OR TRIM(:name) = '' OR LOWER(name) LIKE LOWER(CONCAT('%', :name, '%')))
                 ORDER BY id DESC
                 LIMIT 20
@@ -30,6 +31,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     List<Organization> searchByFilter(
             @Param("stateCode") String stateCode,
             @Param("cityCode") String cityCode,
+            @Param("medicalType") String medicalType,
             @Param("name") String name
     );
 }

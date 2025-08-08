@@ -4,6 +4,7 @@ import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
+import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
@@ -42,4 +43,14 @@ public interface Form058Mapper {
     @Mapping(source = "receiverOrganizationId", target = "receiverOrganizationId", qualifiedByName = "uuidToLongId")
     void update(@MappingTarget Form058 existedForm058, Form058Request request);
 
+    @Mapping(target = "finalMkb10Code", source = "finalMkb10Code")
+    @Mapping(target = "finalMkb10Name", source = "finalMkb10Name")
+    @Mapping(target = "mkb10UsageLimit", source = "mkb10UsageLimit")
+    @Mapping(target = "patient", source = "patient")
+    @Mapping(target = "diseasePlace", source = "diseasePlaceCode", qualifiedByName = "toCatalog")
+    @Mapping(target = "senderOrganization", source = "senderOrganizationId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "cards", source = "cards")
+    Form058DetailsResponse toDetailsResponse(Form058 form);
 }

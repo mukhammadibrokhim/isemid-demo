@@ -7,6 +7,7 @@ import uz.uzinfocom.isemid.features.card.dtos.requests.card175.Card175Request;
 import uz.uzinfocom.isemid.features.card.dtos.requests.card205.Card205Request;
 import uz.uzinfocom.isemid.features.card.dtos.requests.card_tube.CardTubeRequest;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
+import uz.uzinfocom.isemid.features.card.dtos.responses.CardSimpleResponse;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card161.Card161Response;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card174.Card174Response;
 import uz.uzinfocom.isemid.features.card.dtos.responses.card175.Card175Response;
@@ -96,6 +97,14 @@ public interface CardMapper {
     @Mapping(target = "users", source = "card.users")
     @Mapping(target = "form058", source = "card.form058")
     @Mapping(target = "status", source = "card.status")
+    @Mapping(target = "form058.notifierFullName", source = "card.form058.notifierFullName")
+    @Mapping(target = "form058.cardByFullName", source = "card.form058.cardByFullName")
+    @Mapping(target = "form058.senderOrganization", source = "card.form058.senderOrganizationId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "form058.receiverOrganization", source = "card.form058.receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "form058.hospitalPlace", source = "card.form058.hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "form058.patient.gender", source = "card.form058.patient.genderCode", qualifiedByName = "toCatalog")
+    @Mapping(target = "form058.patient.identifiers", source = "card.form058.patient.identifiers")
+    @Mapping(target = "form058.patient.addresses", source = "card.form058.patient.addresses")
     Card174Response toCard174Response(Card174 card);
 
     @Mapping(target = "id", source = "card.id")
@@ -128,6 +137,7 @@ public interface CardMapper {
     @Mapping(target = "status", source = "card.status")
     CardTubeResponse toCardTubeResponse(CardTube card);
 
+    CardSimpleResponse toSimpleResponse(Card card);
 
     default CardResponse toCardResponse(Card card) {
         return switch (card.getCardType()) {

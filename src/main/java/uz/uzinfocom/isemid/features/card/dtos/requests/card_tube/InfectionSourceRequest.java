@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class InfectionSourceRequest {
+    private Long id;
     private String tbContactCode; // Sil bilan kasallangan bemor bilan aloqa qilish (spravochnik)
     private String fullName; // Manbaning familiyasi va ismi
     private String relationDegreeCode; // Qarindoshlik darajasi (spravochnik)

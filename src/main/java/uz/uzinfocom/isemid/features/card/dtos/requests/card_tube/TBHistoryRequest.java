@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class TBHistoryRequest {
+    private Long id;
     private String infectionLocation;
     private LocalDate infectionDate;
     private String mkb10Code;

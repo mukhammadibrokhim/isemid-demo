@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpMethod;
@@ -20,6 +21,7 @@ import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationR
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.organization.specifications.OrganizationSpecification;
@@ -130,9 +132,10 @@ public class OrganizationServiceImpl implements OrganizationService {
         return organizationRepository.findByTin(tin);
     }
 
+    @Cacheable(value = "organizationSearchCache", key = "#stateCode + '-' + #cityCode + '-' + (#medicalType != null ? #medicalType.name() : 'null') + '-' + #name")
     @Override
-    public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name) {
-        return ApiResponse.success(messageUtil.get("message.success"), organizationRepository.searchByFilter(stateCode, cityCode, name)
+    public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name) {
+        return ApiResponse.success(messageUtil.get("message.success"), organizationRepository.searchByFilter(stateCode, cityCode, medicalType != null ? medicalType.name() : null, name)
                 .stream()
                 .map(mapper::toResponse).toList());
     }

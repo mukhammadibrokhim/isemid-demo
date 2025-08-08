@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class InformationOtherBittenAnimalRequest {
+public class OtherBittenAnimal {
     private Long id;
-    private String bittenAnimalCategoryCode;
-    private LocalDateTime bittenDateTime;
-    private String whereAnimalBitten;
+    private String animalCategoryCode;   // Tishlangan hayvon toifasi kodi
+    private LocalDateTime biteDateTime; // Tishlangan vaqt
+    private String biteLocation;        // Tishlanish joyi (qayerda tishlangan)
 }

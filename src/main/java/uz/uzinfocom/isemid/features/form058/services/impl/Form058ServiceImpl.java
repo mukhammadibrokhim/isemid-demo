@@ -16,6 +16,7 @@ import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
+import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
@@ -59,7 +60,9 @@ public class Form058ServiceImpl implements Form058Service {
         if (patient != null && patient.getIdentifiers() != null) {
             patient.getIdentifiers().forEach(identifier -> identifier.setPatient(patient));
             patient.getAddresses().forEach(address -> address.setPatient(patient));
-            patient.getAffiliations().forEach(affiliation -> affiliation.setPatient(patient));
+            if (patient.getAffiliations() != null) {
+                patient.getAffiliations().forEach(affiliation -> affiliation.setPatient(patient));
+            }
         }
 
         return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
@@ -76,8 +79,8 @@ public class Form058ServiceImpl implements Form058Service {
     public PagedResponse<?> getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType) {
         Specification<Form058> spec = Form058Specification.build(fromDate, toDate, user, filterType);
         Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-        Page<Form058Response> responsePage = form058Page.map(form -> {
-            Form058Response base = form058Mapper.toResponse(form);
+        Page<Form058DetailsResponse> responsePage = form058Page.map(form -> {
+            Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return form058ResponseAdapter.adapt(base, form, filterType);
         });
         return PagedResponseUtil.build(page, responsePage, url, messageUtil);

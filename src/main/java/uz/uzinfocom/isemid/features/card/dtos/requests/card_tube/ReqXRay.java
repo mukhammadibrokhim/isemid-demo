@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class ReqXRay {
+    private Long id;
     private LocalDate xrayDate;
     private String xrayPlace;
     private String result;

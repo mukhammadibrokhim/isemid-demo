@@ -3,8 +3,11 @@ package uz.uzinfocom.isemid.features.card.dtos.requests.card174;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
+import uz.uzinfocom.isemid.features.card.models.card174.InfectionMonitoring;
+import uz.uzinfocom.isemid.features.card.models.card174.OutbreakControlMeasure;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -14,70 +17,82 @@ import java.util.List;
 @Builder
 @Schema(description = "Request object for CARD174 type card")
 public class Card174Request extends CardRequest {
+    private Long id;
+    private Integer serialNo; // Hujjat tartib raqami
+    private String mkbCode; // MKB-10 kodi
+    private String mkbName; // MKB-10 nomi
+    private String pathogen; // Qo‘zg‘atuvchi turi (serogruppa)
+    private LocalDate dataDate; // Ma’lumot olingan sana (hayvon kasalligida)
+    private LocalDate reportedDate; // Tuman veterinariyaga xabar berilgan sana
+    private String animalDiag; // Hayvonlardagi birlamchi tashxis
+    private String humanDiag; // Odamlardagi birlamchi tashxis (MKB bilan)
+    private LocalDate investigationDate; // Tekshiruv sanasi
+    private LocalDate lastCaseYear; // So‘nggi kasallik aniqlangan yil
+    private LocalDate currentAnimalInfectionDate; // Hozirgi hayvon infeksiya sanasi
+    private String outbreakLocation; // O‘chog‘ joyi (xo‘jalik, korxona, aholi punkti)
+    private String ownerName; // Hayvon egasining to‘liq FISH
+    private String ownerAddr; // Hayvon egasining manzili
 
-    private Integer serialDocNumber;
-    private String mkb10Code;
-    private String mkb10Name;
-    private String pathogenType;
-    private LocalDate dataObtainedDate;
-    private LocalDate reportToVeterinaryDepartmentDate;
-    private String animalPrimaryDiagnosis;
-    private String humanPrimaryDiagnosis;
-    private LocalDate investigationDate;
-    private LocalDate lastDiseaseYear;
-    private LocalDate currentAnimalInfectionDate;
-    private String outbreakLocalization;
-    private String animalOwner;
-    private String ownerAddress;
-    private boolean rodentIncrease;
-    private boolean vectorIncrease;
-    private boolean wildRodentsIncrease;
-    private boolean synanthropicRodentsIncrease;
-    private boolean bloodSuckingArthropodsIncrease;
-    private boolean epizootologyExistence;
-    private String animalType;
-    private LocalDate testDate;
-    private Integer testSampleCount;
-    private String testingMethod;
-    private String testResult;
-    private Integer affectedHumans;
-    private Integer includingIndustrialConditions;
-    private Integer includingWhoApplied;
-    private Integer includingIdentified;
-    private Integer treatedHumans;
-    private Integer affectedInOutbreak;
-    private LocalDate quarantineStartDate;
-    private LocalDate quarantineEndDate;
-    private LocalDate animalDisposalDate;
-    private String precautionaryMeasures;
-    private String strayAnimalCapture;
-    private String wildAnimalCulling;
-    private Double deratizationArea;
-    private String inspectors;
-    private String isolation;
-    private String meatSubmission;
-    private String treatment;
-    private Boolean measureTaken;
-    private Integer disinfectedFactorAmount;
-    private LocalDate disinfectionDate;
-    private String locationOfEvent;
-    private String executionControlResults;
-    private String additionalMeasuresInfo;
-    private Integer affectedAnimalCount;
+    private String affectedAnimalCode; // Kasallangan hayvon turi kodi
+    private Integer affectedAnimalCount; // Kasallangan hayvonlar soni
+    private String ownershipCode; // Hayvon tegishliligi
 
+    private boolean isExoticArea; // Hudud ekzotikmi
+    private boolean rodentsIncreased; // Kemiruvchilar ortganmi
+    private boolean vectorsIncreased; // Tashuvchilar ortganmi
+    private boolean wildRodents; // Yovvoyi kemiruvchilar ortgan
+    private boolean synanthropicRodents; // Sinantrop kemiruvchilar ortgan
+    private boolean arthropodsIncreased; // Qon so‘ruvchi bo‘g‘imoyoqlilar ortgan
+    private boolean epizootologyExists; // Epizootologik holat mavjudmi
 
-    private String affectedAnimalTypeCode;
-    private String animalOwnershipCode;
-    private Boolean isAreaExotic;
-    private String animalDisposalMethodCode;
-    private String deratizationCode;
-    private String quarantineTypeCode;
+    private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
 
+    private String animalType; // Tekshiruv o‘tkazilgan hayvon turi
+    private LocalDate testDate; // Tekshiruv sanasi
+    private Integer sampleCount; // Namuna soni
+    private String testMethod; // Tekshiruv usuli
+    private String testResult; // Tekshiruv natijasi (serovar, qo‘zg‘atuvchi)
 
-    private List<InfectionMonitoringRequest> infectionMonitoring;
-    private List<OutbreakControlMeasureRequest> outbreakControlMeasures;
-    private List<String> disinfectionTransmissionFactorsCode;
-    private List<String> eliminationMethodCodes;
-    private List<String> diseaseFactorCodes;
+    private List<String> affectedAnimalCodes = new ArrayList<>(); // Ta’sirlangan hayvonlar ro‘yxati
 
+    private Integer infectedHumans; // Kasallangan odamlar soni
+    private Integer atIndustry; // Shu jumladan sanoat sharoitida
+    private Integer reportedCases; // Shu jumladan murojaat qilganlar
+    private Integer confirmedCases; // Shu jumladan aniqlanganlar
+    private Integer treatedHumans; // Antirabik yordam olganlar soni
+    private Integer infectedAtOutbreak; // O‘chog‘da kasallanganlar soni
+
+    private List<InfectionMonitoring> monitoring = new ArrayList<>(); // Infeksiya nazorati
+
+    private String quarantineCode; // Karantin turi kodi
+    private LocalDate quarantineStart; // Karantin boshlanish sanasi
+    private LocalDate quarantineEnd; // Karantin tugash sanasi
+
+    private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
+    private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
+    private String measures; // Oldini olish choralari
+    private String strayCapture; // Daydi hayvonlarni tutish
+    private String wildCulling; // Yovvoyi hayvonlarni yo‘qotish
+
+    private String deratCode; // Deratizatsiya kodi
+    private Double deratArea; // Deratizatsiya qamrovi (m²)
+    private String inspectors; // Tekshiruvchilar FISH
+    private String isolation; // Izolyatsiya choralari
+    private String meatSubmission; // Go‘sht topshirilganligi
+    private String treatment; // Davolash choralari
+    private Boolean actionTaken; // Choralar ko‘rildimi
+
+    private List<String> disinfectionFactors = new ArrayList<>(); // Dezinfeksiya ob'ektlari
+
+    private Integer disinfectedCount; // Zararsizlantirilgan omillar miqdori
+    private LocalDate disinfectionDate; // Zararsizlantirish sanasi
+
+    private List<String> eliminationMethods = new ArrayList<>(); // Yo‘q qilish usullari
+
+    private String eventLocation; // Hodisa joyi
+    private String controlResults; // Chora nazorati natijasi
+
+    private List<OutbreakControlMeasure> controlMeasures = new ArrayList<>(); // O‘choqdagi chora-tadbirlar
+
+    private String additionalInfo; // Qo‘shimcha ma’lumot
 }
