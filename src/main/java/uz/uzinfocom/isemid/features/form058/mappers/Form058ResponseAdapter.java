@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class Form058ResponseAdapter {
     private final CardMapper cardMapper;
+
     public Form058Response adapt(Form058Response response, Form058 form, FilterType filterType) {
         if (filterType == FilterType.RECEIVED && form.getStatus() == FormStatus.SENT) {
             response.setStatus(FormStatus.NEW);
