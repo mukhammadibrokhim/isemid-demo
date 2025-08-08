@@ -28,7 +28,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @Component
 @Order(1)
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "runner.catalog.init", havingValue = "true")
+//@ConditionalOnProperty(name = "runner.catalog.init", havingValue = "true")
 public class CatalogInitializer implements CommandLineRunner {
 
     private final ResourceLoader resourceLoader;
