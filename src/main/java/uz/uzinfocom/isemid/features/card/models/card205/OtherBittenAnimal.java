@@ -15,14 +15,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "card205_info_bitten_animals")
-public class InformationOtherBittenAnimals extends BaseEntity {
+@Entity(name = "card205_other_bitten_animal")
+public class OtherBittenAnimal extends BaseEntity {
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card205_id", nullable = false)
     @JsonIgnore
     private Card205 card205;
 
-    private String bittenAnimalCategoryCode;
-    private LocalDateTime bittenDateTime;
-    private String whereAnimalBitten;
+    private String animalCategoryCode;   // Tishlangan hayvon toifasi kodi
+
+    private LocalDateTime biteDateTime; // Tishlangan vaqt
+
+    private String biteLocation;        // Tishlanish joyi (qayerda tishlangan)
 }
+

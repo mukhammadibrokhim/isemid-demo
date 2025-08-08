@@ -1,10 +1,7 @@
 package uz.uzinfocom.isemid.features.card.models.card_tube;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
@@ -23,9 +20,9 @@ public class TBHistory extends BaseEntity {
     @JsonIgnore
     private CardTube cardTube;
 
-    private String infectionLocation;
-    private LocalDate infectionDate;
-    private String mkb10Code;
-    private String mkb10Name;
-    private String registrationGroup;
+    private String location; // Infeksiya joyi (organ yoki tana qismi)
+    private LocalDate date; // Infeksiya aniqlangan sana
+    private String mkbCode; // MKB-10 kodi
+    private String mkbName; // MKB-10 nomi
+    private String regGroup; // Ro‘yxatga olish guruhi
 }

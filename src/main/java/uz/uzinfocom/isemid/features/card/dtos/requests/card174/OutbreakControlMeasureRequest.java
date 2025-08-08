@@ -16,7 +16,7 @@ public class OutbreakControlMeasureRequest {
     private Integer vaccinatedAnimals;
     private Integer lostAnimals;
     private Integer meatDelivered;
-    private String processingMethodCode;
+    private String processingMethodCode;//Ishlov berish usuli
     private Integer processedArea;
     private Boolean eventConducted;
 }

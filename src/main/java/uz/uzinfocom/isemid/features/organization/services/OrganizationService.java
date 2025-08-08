@@ -5,6 +5,7 @@ import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public interface OrganizationService {
 
     Optional<Organization> findByTin(String tin);
 
-    ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, String name);
+    ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name);
 
     Organization save(Organization newOrg);
 

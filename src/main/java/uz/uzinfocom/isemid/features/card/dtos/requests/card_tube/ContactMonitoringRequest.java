@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class ContactMonitoringRequest {
+    private Long id;
     private String fullName; // 1. Мулоқатдагилар Ф.И.Ш.
     private LocalDate birthDate; // Tug‘ilgan sanasi (12.12.2020)
     private Integer age; // 2. Туғилган йили (ёши)

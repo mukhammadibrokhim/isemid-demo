@@ -17,5 +17,4 @@ public interface CardRepository extends JpaRepository<Card, Long>, JpaSpecificat
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from Card161 c where c.id = :id")
     Optional<Card161> findByIdForUpdate(@Param("id") Long id);
-
 }

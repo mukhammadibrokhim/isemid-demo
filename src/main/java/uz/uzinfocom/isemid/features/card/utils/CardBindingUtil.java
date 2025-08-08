@@ -45,38 +45,38 @@ public class CardBindingUtil {
     }
 
     public static void bindChildEntities(Card174 card) {
-        if (card.getInfectionMonitoring() != null) {
-            card.getInfectionMonitoring().forEach(item -> item.setCard174(card));
+        if (card.getMonitoring() != null) {
+            card.getMonitoring().forEach(item -> item.setCard174(card));
         }
-        if (card.getOutbreakControlMeasures() != null) {
-            card.getOutbreakControlMeasures().forEach(item -> item.setCard174(card));
+        if (card.getControlMeasures() != null) {
+            card.getControlMeasures().forEach(item -> item.setCard174(card));
         }
     }
 
     public static void bindChildEntities(Card205 card) {
-        if (card.getInfoBittenPeople() != null) {
-            card.getInfoBittenPeople().forEach(item -> item.setCard205(card));
+        if (card.getAnimalBiteVictims() != null) {
+            card.getAnimalBiteVictims().forEach(item -> item.setCard205(card));
         }
-        if (card.getInfoOtherBittenAnimal() != null) {
-            card.getInfoOtherBittenAnimal().forEach(item -> item.setCard205(card));
+        if (card.getOtherBittenAnimals() != null) {
+            card.getOtherBittenAnimals().forEach(item -> item.setCard205(card));
         }
-        if (card.getInfoAbtAnimalBittenPeople() != null) {
-            card.getInfoAbtAnimalBittenPeople().forEach(item -> item.setCard205(card));
+        if (card.getOtherBittenPersons() != null) {
+            card.getOtherBittenPersons().forEach(item -> item.setCard205(card));
         }
     }
 
     public static void bindChildEntities(CardTube card) {
-        if (card.getPreMBTChestXRay() != null) {
-            card.getPreMBTChestXRay().forEach(xRay -> xRay.setCardTube(card));
+        if (card.getChestXrays() != null) {
+            card.getChestXrays().forEach(xRay -> xRay.setCardTube(card));
         }
-        if (card.getPreviousTBHistory() != null) {
-            card.getPreviousTBHistory().forEach(history -> history.setCardTube(card));
+        if (card.getTbHistory() != null) {
+            card.getTbHistory().forEach(history -> history.setCardTube(card));
         }
-        if (card.getPossibleInfectionSources() != null) {
-            card.getPossibleInfectionSources().forEach(possible -> possible.setCardTube(card));
+        if (card.getInfectionSources() != null) {
+            card.getInfectionSources().forEach(possible -> possible.setCardTube(card));
         }
-        if (card.getContactMonitoringList() != null) {
-            card.getContactMonitoringList().forEach(contact -> contact.setCardTube(card));
+        if (card.getContactMonitoring() != null) {
+            card.getContactMonitoring().forEach(contact -> contact.setCardTube(card));
         }
     }
 }

@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.organization.models;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;

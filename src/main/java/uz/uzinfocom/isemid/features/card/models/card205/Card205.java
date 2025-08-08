@@ -16,70 +16,64 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class Card205 extends Card {
+    private String mkbCode; // MKB-10 kodi
+    private String mkbName; // Jarohat joyi MKB-10 dan
 
-    private String mkb10Code;
-    private String mkb10Name; //Jarohat joyi MKB 10 spravchnikdan
+    @Temporal(TemporalType.DATE)
+    private Date epiSurveyDate; // Epidemiologik surishtiruv sanasi
 
-    @Temporal(value = TemporalType.DATE)
-    private Date epidemiologicalObservationDate; //Epidemiologik surishtiruv o‘tkazilgan sana.
+    @Temporal(TemporalType.DATE)
+    private Date vetAlertDate; // Veterinariya xizmati ogohlantirilgan sana
 
-    @Temporal(value = TemporalType.DATE)
-    private Date veterinaryEmergencyInformationDate; //Hududiy veterinariya xizmatiga shoshilinch xabar bergan sana.
+    private String biteAddress; // Tishlash manzili
 
-    private String addressOfBiteOccurrence;//Tishlanish sodir bo‘lgan manzili.
+    @Temporal(TemporalType.DATE)
+    private Date biteDate; // Tishlash sanasi
 
-    @Temporal(value = TemporalType.DATE) //Tishlanish sodir bo‘lgan sana.
-    private Date dateOfBiteOccurrence;
-    private String nameOfTreatmentPreventiveInstitution; //Jabrlanganning birinchi bor tibbiy yordamga murojaat qilgan DPM nomi.
+    private String firstClinicName; // Birinchi murojaat qilingan DPM nomi
 
-    @Temporal(value = TemporalType.DATE)
-    private Date dateOfTreatmentPreventiveInstitution; //Jabrlanganning birinchi bor tibbiy yordam uchun DPMga murojaat qilgan sana.
+    @Temporal(TemporalType.DATE)
+    private Date firstClinicDate; // Birinchi murojaat qilingan sana
 
-    //Ушбу ҳайвон томонидан тишланган бошқа шахслар тўғрисида маълумот
     @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"card205"})
+    @JsonIgnoreProperties("card205")
     @Builder.Default
-    private List<InformationOtherBittenPeople> infoBittenPeople = new ArrayList<>();
-    private String animalType;
+    private List<OtherBittenPerson> otherBittenPersons = new ArrayList<>();
 
-    private String whereAnimalComesFrom;
-    private String whenAnimalAppeared;
+    private String animalType; // Hayvon turi
+    private String animalOrigin; // Hayvon qayerdan kelgan
+    private String animalArrivalDate; // Hayvon kelgan sana
+    private String animalConditionCode; // Hayvon holati kodi
+    private Integer animalAge;
+    private String animalBreed;
+    private String animalColor;
+    private String animalSigns; // Individual belgilar
+    private Integer vetCertNum1; // 1-vet. tekshiruv raqami
 
-    private String conditionOfAnimalCode;
-    private Integer ageOfAnimal;
-    private String breedOfAnimal;
-    private String colourOfAnimal;
-    private String individualSignsOfAnimal;
+    @Temporal(TemporalType.DATE)
+    private Date vetCertDate1; // 1-vet. ma’lumotnoma sanasi
 
-    private Integer certificateNumberOfFirstVetResults;
+    private String animalHoldCode; // Hayvon saqlash kodi
+    private String victimPositionCode; // Jabrlanuvchi holati kodi
+    private Integer vetCertNum2; // 2-vet. tekshiruv raqami
 
-    @Temporal(value = TemporalType.DATE)
-    private Date issueDateOfFirstCertificate;
+    @Temporal(TemporalType.DATE)
+    private Date vetCertDate2; // 2-vet. ma’lumotnoma sanasi
 
-    private String animalConservationCode;
-
-    private String positionOfBittenVictimCode;
-    private Integer certificateNumberOfSecondVetResults;
-    private Date issueDateOfSecondaryCertificate;
-    private String dateTimeOfFeatherTaken;
-    private String petRegisteredVetDepartment;
-
-    private String dogOwnerComplianceCode;
-
+    private String sampleTakenDateTime; // Tuk olingan sana/vaqt
+    private String vetDept; // Hayvon ro‘yxatdan o‘tgan bo‘lim
+    private String ownerComplianceCode; // Egasi qoidaga amal qilganmi kodi
 
     @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"card205"})
+    @JsonIgnoreProperties("card205")
     @Builder.Default
-    private List<InformationOtherBittenAnimals> infoOtherBittenAnimal = new ArrayList<>();
+    private List<OtherBittenAnimal> otherBittenAnimals = new ArrayList<>();
 
     @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"card205"})
+    @JsonIgnoreProperties("card205")
     @Builder.Default
-    private List<InformationAboutAnimaBittenPeople> infoAbtAnimalBittenPeople = new ArrayList<>();
+    private List<AnimalBiteVictim> animalBiteVictims = new ArrayList<>();
 
-    private String additionalInformation;
-
-    private String fullNameofAnimalOwner;
-    // DMED, Emlash.uz integratsiya
-
+    private String extraInfo; // Qo‘shimcha ma’lumot
+    private String animalOwnerName; // Hayvon egasining F.I.Sh.
 }
