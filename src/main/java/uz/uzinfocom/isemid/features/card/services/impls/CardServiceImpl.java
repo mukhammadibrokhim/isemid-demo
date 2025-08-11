@@ -86,7 +86,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public PagedResponse<?> getCardUsers(int page, int size, Long userId, String fullURL) {
-        Specification<Card> spec = CardSpecification.build(null, null, null, null, userId, true, null);
+        Specification<Card> spec = CardSpecification.build(userId);
         Page<Card> cardPage = cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
         return PagedResponseUtil.build(page, cardPage.map(cardMapper::toCardResponse), fullURL, messageUtil);
     }

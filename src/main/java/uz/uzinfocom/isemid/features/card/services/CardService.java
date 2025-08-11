@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.card.services;
 
-
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardAssignActRequest;
