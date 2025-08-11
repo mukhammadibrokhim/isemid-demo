@@ -32,4 +32,12 @@ public class CardSpecification {
                 ).filter(Objects::nonNull).toArray(Predicate[]::new)
         );
     }
+
+    public static Specification<Card> build(Long userId) {
+        return ((root, query, criteriaBuilder) -> criteriaBuilder.and(
+                Stream.of(
+                        (userId != null) ? criteriaBuilder.equal(root.get("users").get("id"), userId) : null
+                ).filter(Objects::nonNull).toArray(Predicate[]::new)
+        ));
+    }
 }

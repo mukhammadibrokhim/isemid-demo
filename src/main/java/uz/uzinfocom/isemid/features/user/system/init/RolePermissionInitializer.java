@@ -2,10 +2,10 @@ package uz.uzinfocom.isemid.features.user.system.init;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.commons.seed.ModuleDataInitializer;
 import uz.uzinfocom.isemid.features.user.models.Permission;
 import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.reposiotries.PermissionRepository;
@@ -19,13 +19,12 @@ import java.util.stream.Collectors;
 @Order(3)
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "runner.role_permission.init", havingValue = "true")
-public class RolePermissionInitializer implements CommandLineRunner {
-
+public class RolePermissionInitializer implements ModuleDataInitializer {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 
     @Override
-    public void run(String... args) {
+    public void init() {
         log.info("♻️ Initializing default roles and permissions...");
 
         List<String> allSubjects = List.of(
