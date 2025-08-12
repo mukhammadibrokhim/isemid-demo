@@ -2,9 +2,11 @@ package uz.uzinfocom.isemid.features.act.dtos.responses.act154;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 
 import java.time.LocalDate;
@@ -30,5 +32,5 @@ public class Act154Response extends ActResponse {
     private String samplerFullName;
     private String position;
     private String additionalInfo;
-    private Set<Act154DetailResponse> act154SampleDetailsList;
+    private Set<Act154DetailResponse> act154Details;
 }

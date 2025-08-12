@@ -7,7 +7,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act224.Act224Request;
-import uz.uzinfocom.isemid.features.act.mappers.ActMapper;
+import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
@@ -21,13 +21,14 @@ import static uz.uzinfocom.isemid.features.act.utils.ActUtil.validateAct;
 public class UpdateAct224Strategy implements UpdateActStrategy {
     private final ActRepository actRepository;
     private final MessageUtil messageUtil;
-    private final ActMapper mapper;
+    private final ActMapperFactory mapper;
 
     @Override
     public ApiResponse<?> updateAct(long id, ActRequest reqAct) {
         Act act = validateAct(id, reqAct, actRepository, messageUtil);
         Act224 existingAct = (Act224) act;
         Act224Request reqAct224 = (Act224Request) reqAct;
+
         mapper.update(existingAct, reqAct224);
         return ApiResponse.success(messageUtil.get("message.updated"), mapper.toResponse(actRepository.save(act)));
     }

@@ -19,7 +19,6 @@ import static uz.uzinfocom.isemid.features.card.utils.CardUtil.validateCard;
 @Service
 @RequiredArgsConstructor
 public class UpdateCard161Strategy implements UpdateCardStrategy {
-
     private final CardRepository cardRepository;
     private final MessageUtil messageUtil;
     private final CardMapper cardMapper;

@@ -53,7 +53,6 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public ApiResponse<Form058Response> create(Form058Request request, User user, String token) {
-
         Form058 form058 = form058Mapper.toEntity(request);
         form058.setStatus(FormStatus.SENT);
         Patient patient = form058.getPatient();
@@ -132,6 +131,8 @@ public class Form058ServiceImpl implements Form058Service {
                 resultCards.add(existingCard);
             } else {
                 Card newCard = cardFactory.createCard(cardType);
+                newCard.setCreatedBy(assignedBy.getId());
+                newCard.setUpdatedBy(assignedBy.getId());
                 newCard.setUsers(new HashSet<>(userMap.values()));
                 newCard.setStatus(CardStatus.NEW);
                 newCard.setCardType(cardType);

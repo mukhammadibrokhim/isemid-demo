@@ -18,9 +18,9 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 @Slf4j
-@MappedSuperclass
 @Getter
 @Setter
+@MappedSuperclass
 public abstract class AbsEntity {
 
     @Id

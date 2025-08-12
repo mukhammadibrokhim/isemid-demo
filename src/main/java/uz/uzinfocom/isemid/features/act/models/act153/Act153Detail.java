@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.act.models.act153;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity(name = "act153_detail")
@@ -19,7 +20,6 @@ public class Act153Detail extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "act153_id")
     private Act153 act153;
-
 
     private String objectCode;
 

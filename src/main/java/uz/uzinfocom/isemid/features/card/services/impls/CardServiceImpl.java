@@ -152,18 +152,21 @@ public class CardServiceImpl implements CardService {
     @Override
     public ApiResponse<?> assignAct(CardAssignActRequest reqCardAssignAct, User user) {
         Card card = getCardById(reqCardAssignAct.getCardId());
-        List<Act> acts = actBuilder(reqCardAssignAct.getActTypes(), card);
+        List<Act> acts = actBuilder(reqCardAssignAct.getActTypes(), card, user);
         card.getActs().addAll(acts);
-        return ApiResponse.success(messageUtil.get("message.success"), cardMapper.toCardResponse(cardRepository.save(card)));
+        cardRepository.save(card);
+        return ApiResponse.success(messageUtil.get("message.success"));
     }
 
-    private List<Act> actBuilder(List<ActType> actTypes, Card card) {
+    private List<Act> actBuilder(List<ActType> actTypes, Card card, User user) {
         return actTypes.stream()
                 .map(actType -> {
                     Act act = actFactory.createAct(actType);
+                    act.setCreatedBy(user.getId());
+                    act.setUpdatedBy(user.getId());
                     act.setCard(card);
-                    act.setActType(actType);
-                    act.setActStatus(ActStatus.NEW);
+                    act.setType(actType);
+                    act.setStatus(ActStatus.NEW);
                     return act;
                 }).toList();
     }

@@ -1,16 +1,20 @@
 package uz.uzinfocom.isemid.features.act.models.act223;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 @Setter
 @Getter
 @Entity
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Table(name = "act223_details")
+@Table(name = "act223_detail")
 public class Act223Detail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

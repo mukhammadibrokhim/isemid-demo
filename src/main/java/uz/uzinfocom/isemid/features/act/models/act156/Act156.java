@@ -23,12 +23,14 @@ public class Act156 extends Act {
     private String institutionName;
     private String institutionAddress;
     private LocalDateTime sampleTakenTime;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
+    @JoinColumn(name = "organization_id", nullable = false, insertable = false, updatable = false)
     private Organization organization;
 
-    @Column(name = "organization_id", insertable = false, updatable = false)
+    @Column(name = "organization_id")
     private Long organizationId;
+
     private String laboratoryAddress;
     private LocalDateTime sampleDeliveryTime;
     private String fullNameofSampler;

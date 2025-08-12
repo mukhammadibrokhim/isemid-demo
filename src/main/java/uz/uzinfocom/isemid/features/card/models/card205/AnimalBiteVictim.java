@@ -4,13 +4,14 @@ package uz.uzinfocom.isemid.features.card.models.card205;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Entity(name = "card205_animal_bite_victim")
 public class AnimalBiteVictim extends BaseEntity {
 

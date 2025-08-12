@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Getter
 @Setter
 @Builder
@@ -31,7 +30,6 @@ public class Act154 extends Act {
    private String position;
    private String additionalInfo;
 
-   @OneToMany(mappedBy = "act154", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-   private List<Act154Details> act154Details = new ArrayList<>();
-
+   @OneToMany(mappedBy = "act154", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+   private List<Act154Detail> act154Details = new ArrayList<>();
 }
