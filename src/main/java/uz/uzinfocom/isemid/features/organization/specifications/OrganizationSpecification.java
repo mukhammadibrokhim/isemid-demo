@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 import static org.springframework.util.StringUtils.hasText;
 
 public class OrganizationSpecification {
-
     public static Specification<Organization> build(
             String name,
             String stateCode,

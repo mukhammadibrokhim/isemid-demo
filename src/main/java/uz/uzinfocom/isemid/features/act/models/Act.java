@@ -17,7 +17,6 @@ import uz.uzinfocom.isemid.features.act.models.act223.Act223;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 import uz.uzinfocom.isemid.features.card.models.Card;
 
-
 @Getter
 @Setter
 @Entity
@@ -34,17 +33,17 @@ import uz.uzinfocom.isemid.features.card.models.Card;
 public abstract class Act extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "act_type", nullable = false, columnDefinition = "TEXT")
-    private ActType actType;
+    @Column(name = "act_type", nullable = false)
+    private ActType type;
 
     @Enumerated(EnumType.STRING)
-    private ActStatus actStatus = ActStatus.NEW;
+    private ActStatus status = ActStatus.NEW;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "card_id", nullable = false)
+    @JoinColumn(name = "card_id", nullable = false, insertable = false, updatable = false)
     @JsonIgnore
     private Card card;
 
-    @Column(name = "card_id", insertable = false, updatable = false)
+    @Column(name = "card_id")
     private Long cardId;
 }

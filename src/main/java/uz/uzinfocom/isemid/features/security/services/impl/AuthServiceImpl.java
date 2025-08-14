@@ -25,7 +25,6 @@ import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkNnuzb;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-
     private final UserRepository userRepository;
     private final OrganizationService organizationService;
     private final RoleService roleService;

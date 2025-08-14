@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.act.models.act155;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 
@@ -9,11 +10,11 @@ import uz.uzinfocom.isemid.features.organization.models.Organization;
 @Setter
 @Getter
 @Entity
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Table(name = "act155_detail")
-public class Act155SampleDetails extends BaseEntity {
+public class Act155Detail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "act155_id")  // Foreign key to Act154

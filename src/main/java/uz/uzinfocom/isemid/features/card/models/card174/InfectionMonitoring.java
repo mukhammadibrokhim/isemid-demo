@@ -4,7 +4,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 import java.time.LocalDate;
@@ -13,7 +17,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Entity(name = "card174_infection_monitoring")
 public class InfectionMonitoring extends BaseEntity {
 
@@ -21,7 +25,6 @@ public class InfectionMonitoring extends BaseEntity {
     @JoinColumn(name = "card174_id", nullable = false)
     private Card174 card174;
 
-    private Integer seqNo; // Tartib raqami
     private String lastName; // Familiya
     private String firstName; // Ismi
     private String middleName; // Sharifi

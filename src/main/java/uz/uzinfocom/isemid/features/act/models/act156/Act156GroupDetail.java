@@ -1,16 +1,20 @@
 package uz.uzinfocom.isemid.features.act.models.act156;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 @Setter
 @Getter
 @Entity
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Table(name = "act156_group_details")
+@Table(name = "act156_group_detail")
 public class Act156GroupDetail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -11,6 +11,7 @@ import uz.uzinfocom.isemid.features.patient.enums.PopulationType;
 import uz.uzinfocom.isemid.features.patient.enums.ResidentialStatus;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -22,9 +23,11 @@ public class PatientRequest {
 
     @NotBlank(message = "Имя обязательно и не может быть пустым.")
     private String firstName;
+
     @NotBlank(message = "Фамилия обязательна и не может быть пустой.")
     private String lastName;
     private String middleName;
+
     @Valid
     @NotEmpty(message = "Список идентификаторов обязателен.")
     @Size(min = 1, message = "Список идентификаторов не может быть пустым.")
@@ -51,7 +54,8 @@ public class PatientRequest {
     @NotNull(message = "Population Type is required.")
     private PopulationType populationType;
 
-    private List<AffiliationRequest> affiliations;
+    @Valid
+    private List<AffiliationRequest> affiliations = new ArrayList<>();
 
     @JsonIgnore
     @AssertTrue(message = "Адреса должны содержать как минимум один TEMPORARY и один PERMANENT адрес.")

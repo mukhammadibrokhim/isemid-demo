@@ -26,7 +26,6 @@ import uz.uzinfocom.isemid.features.user.models.User;
 @Tag(name = "Auth")
 @RequiredArgsConstructor
 public class AuthController {
-
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final AuthService authService;

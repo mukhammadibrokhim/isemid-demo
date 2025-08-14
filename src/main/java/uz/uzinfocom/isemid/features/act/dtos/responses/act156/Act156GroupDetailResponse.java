@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.act.dtos.responses.act156;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Act156GroupDetailResponse {
     private Long id;
     private String fullNameOfEducator;

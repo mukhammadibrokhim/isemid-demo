@@ -17,13 +17,11 @@ import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
 import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 
-
 @RestController
 @RequestMapping(ApiPaths.Catalog.ROOT)
 @Tag(name = "Catalog", description = "Работа с каталогом данных")
 @RequiredArgsConstructor
 public class CatalogController {
-
     private final CatalogService catalogService;
 
     @Operation(summary = "Создать новый каталог", description = "Создает новый каталог с предоставленными данными.")

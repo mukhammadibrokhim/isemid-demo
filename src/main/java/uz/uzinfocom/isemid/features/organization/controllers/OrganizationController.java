@@ -30,7 +30,6 @@ import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 @Tag(name = "Organization", description = "API для работы с организациями")
 @RequiredArgsConstructor
 public class OrganizationController {
-
     private final OrganizationService organizationService;
 
     @Operation(summary = "Получить все организации", description = "Получает список всех организаций с возможностью пагинации и фильтрации по имени, коду региона и города.")

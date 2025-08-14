@@ -31,7 +31,6 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-
     private static final Logger logger = LoggerFactory.getLogger("uz.uzinfocom.isemid");
     private final MessageUtil messageUtil;
 

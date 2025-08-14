@@ -22,7 +22,7 @@ public class UpdateActService {
     private final MessageUtil messageUtil;
 
     public ApiResponse<?> updateAct(long id, ActRequest reqAct) {
-        ActType actType = reqAct.getActType();
+        ActType actType = reqAct.getType();
 
         UpdateActStrategy strategy = updateCardStrategies.get(actType);
         if (strategy == null) {

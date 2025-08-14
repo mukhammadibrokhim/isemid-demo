@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.act.dtos.responses.act155.Act155Response;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act156.Act156Response;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act223.Act223Response;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act224.Act224Response;
+import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
 
 import java.sql.Timestamp;
@@ -23,7 +24,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "cardType", visible = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Act153Response.class, name = "ACT153"),
         @JsonSubTypes.Type(value = Act154Response.class, name = "ACT154"),
@@ -37,5 +38,6 @@ public abstract class ActResponse {
     private UUID uuid;
     private Timestamp createdAt;
     private Timestamp updatedAt;
-    private ActType actType;
+    private ActStatus status;
+    private ActType type;
 }

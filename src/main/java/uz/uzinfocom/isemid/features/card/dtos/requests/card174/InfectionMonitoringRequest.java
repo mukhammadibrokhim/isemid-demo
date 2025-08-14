@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InfectionMonitoringRequest {
     private Long id;
-    private Integer seqNo; // Tartib raqami
     private String lastName; // Familiya
     private String firstName; // Ismi
     private String middleName; // Sharifi
@@ -28,7 +27,6 @@ public class InfectionMonitoringRequest {
     private String possibleLocation; // Yuqtirgan joy (taxminiy)
     private String possibleFactor; // Yuqtirish omili (taxminiy)
     private LocalDate possibleDate; // Yuqtirilgan sana (taxminiy)
-
     // Quyidagilar integratsiyaga tayyor fieldlar, hozircha izohda qoldirildi
 
     // private LocalDate previousInfectionDate; // Ilgari infeksiya bo‘lgan sana (emlangan)

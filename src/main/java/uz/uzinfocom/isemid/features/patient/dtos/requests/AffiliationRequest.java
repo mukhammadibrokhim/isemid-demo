@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 public class AffiliationRequest {
     @NotNull(message = "${validation.affiliation_ype_required}")
     private AffiliationType type;
+    private String organizationName;
     private String stateCode;
     private String cityCode;
     private Long organizationId;
