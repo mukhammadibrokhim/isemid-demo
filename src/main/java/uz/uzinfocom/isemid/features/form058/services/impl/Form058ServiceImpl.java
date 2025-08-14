@@ -27,7 +27,6 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.form058.specifications.Form058Specification;
-import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
@@ -39,6 +38,7 @@ import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
+import static uz.uzinfocom.isemid.features.form058.util.Form058BindingUtil.bindChildEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -52,26 +52,18 @@ public class Form058ServiceImpl implements Form058Service {
     private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<Form058Response> create(Form058Request request, User user, String token) {
+    public ApiResponse<Form058Response> create(Form058Request request) {
         Form058 form058 = form058Mapper.toEntity(request);
         form058.setStatus(FormStatus.SENT);
-        Patient patient = form058.getPatient();
-        if (patient != null && patient.getIdentifiers() != null) {
-            patient.getIdentifiers().forEach(identifier -> identifier.setPatient(patient));
-            patient.getAddresses().forEach(address -> address.setPatient(patient));
-            if (patient.getAffiliations() != null) {
-                patient.getAffiliations().forEach(affiliation -> affiliation.setPatient(patient));
-            }
-        }
-
+        bindChildEntity(form058);
         return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
     }
 
     @Override
     public ApiResponse<Form058Response> update(Form058Request request, Long id, User user) {
-        Form058 existedForm058 = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
-        form058Mapper.update(existedForm058, request);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(existedForm058)));
+        Form058 existedEntity = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        form058Mapper.update(existedEntity, request);
+        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(existedEntity)));
     }
 
     @Override

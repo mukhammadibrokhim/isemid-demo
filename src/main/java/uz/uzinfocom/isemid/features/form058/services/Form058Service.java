@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.form058.services;
 
-
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
@@ -11,7 +10,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import java.time.LocalDate;
 
 public interface Form058Service {
-    ApiResponse<Form058Response> create(Form058Request form058Request, User user,String token);
+    ApiResponse<Form058Response> create(Form058Request form058Request);
 
     ApiResponse<Form058Response> update(Form058Request request, Long id, User user);
 

@@ -16,14 +16,15 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class Card174 extends Card {
-
-    private Integer serialNo; // Hujjat tartib raqami
     private String mkbCode; // MKB-10 kodi
     private String mkbName; // MKB-10 nomi
     private String pathogen; // Qo‘zg‘atuvchi turi (serogruppa)
     private LocalDate dataDate; // Ma’lumot olingan sana (hayvon kasalligida)
-    private LocalDate reportedDate; // Tuman veterinariyaga xabar berilgan sana
+    private LocalDate reportedSanepidDate; //Tuman Sanitariya Epidemiologiya Qo‘mitasiga ma’lumot berilagn sana.
+    private LocalDate reportedVetDate; // Tuman veterinariyaga xabar berilgan sana
+    private LocalDate reportedHumanVetDate;
     private String animalDiag; // Hayvonlardagi birlamchi tashxis
+    //humanDiag Mkb10 bilan
     private String humanDiag; // Odamlardagi birlamchi tashxis (MKB bilan)
     private LocalDate investigationDate; // Tekshiruv sanasi
     private LocalDate lastCaseYear; // So‘nggi kasallik aniqlangan yil
@@ -58,7 +59,7 @@ public class Card174 extends Card {
     @ElementCollection
     @CollectionTable(name = "card174_affected_animals", joinColumns = @JoinColumn(name = "card174_id"))
     @Column(name = "catalog_code")
-    private List<String> affectedAnimalCodes = new ArrayList<>(); // Ta’sirlangan hayvonlar ro‘yxati
+    private List<String> affectedAnimals = new ArrayList<>(); // Ta’sirlangan hayvonlar ro‘yxati
 
     private Integer infectedHumans; // Kasallangan odamlar soni
     private Integer atIndustry; // Shu jumladan sanoat sharoitida
@@ -78,6 +79,10 @@ public class Card174 extends Card {
 
     private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
     private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
+    //    private List<Act> acts = new ArrayList<>(); //actlar
+    private LocalDate measuresDate;
+    private LocalDate measuresCount;
+    private LocalDate measuresLocation;
     private String measures; // Oldini olish choralari
     private String strayCapture; // Daydi hayvonlarni tutish
     private String wildCulling; // Yovvoyi hayvonlarni yo‘qotish

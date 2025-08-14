@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.models.Card;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -16,41 +16,26 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class Card175 extends Card {
-
-    private LocalDateTime epiInvestigationTime; // Epidemiologik tekshiruv vaqti
-
-    @Temporal(TemporalType.DATE)
-    private Date illnessDate; // Kasallik boshlanish sanasi
-
-    private LocalDateTime initialDiagnosisDate; // Shoshilinch tashxis sanasi
-    private LocalDateTime finalDiagnosisDate;   // Yakuniy tashxis sanasi
-
-    @Temporal(TemporalType.DATE)
-    private Date dischargeDate; // Kasalxonadan chiqish sanasi
-
-    @Temporal(TemporalType.DATE)
-    private Date vaccinationDate; // Emlash sanasi
-
     private String pathogenType; // Qo‘zg‘atuvchi turi (seroguruxi)
-
     private String originPlaceCode; // Bemor qayerdan kelgan (LIS dan)
     private String patientSourceCode; // Bemor manbai
-
-    private String dischargeStatusCode; // Kasalxonadan chiqish holati
-    private String transportTypeCode;   // Transport turi
-    private String noHospitalReasonCode; // Uyda qolish sababi
-    private String lateHospitalizationReasonCode; // Kech yotqizish sababi
-    private String diagnosisVerifiedCode; // Tashxis laboratoriyada tasdiqlangani
-    private String vaccinationInfoCode;  // Vaksinatsiya ma'lumoti
-    private String lastVaccinationInfo;  // Oxirgi emlash haqida ma'lumot
-
-    private String epiComment;           // Qisqacha epidemiologik sharh
-    private String initialDiagnosisCode; // Birlamchi tashxis
-
-    private String patientStatusCode;    // Bemor aniqlanish holati
+    private String possibleInfectionPlace; // Qisqacha epidimiologik anamnez (yuqish mumkin bo‘lgan joy).
+    private String primaryDiagnosis; //Birlemshi diagnoz.
+    private String patientDetectedCode;    // Bemor aniqlanish holati
+    private LocalDateTime epiCheckTime; // Epidemiologik tekshiruv vaqti
+    private LocalDate illnessDate; // Kasallangan sana
     private String applicationPlace;     // Murojaat qilgan joy
-
-    private String aidInfoCode;          // Antirabik yordam ma'lumoti
+    private LocalDate urgentDiagnosisDate; // Shoshilinch tashxis sanasi
+    private LocalDate finalDiagnosisDate; // Yakuniy tashxis sanasi
+    private LocalDate dischargeDate; // Kasalxonadan Chiqish sanasi
+    private String dischargeStatusCode; // Kasalxonadan Chiqish holati
+    private String transportType; // Kasalxonaga olib borilgan transport vositasi
+    private String noHomeStayReason; // Uyda qoldirilmaslik sababi
+    private String lateHospitalizationReason; // Kech yotqizilish sabablari
+    private String diagnosisLabConfirmed; // Diagnoz va laboratoriya tasdiqlangan
+    private String vaccinationInfo; // Vaksinatsiya ma'lumotlari
+    private String emergencyProphylaxisInfo; // Tezkor profilaktika yoki antirabik yordam ma'lumotlari
+    private LocalDate vaccinationDate; // Emlash sanasi
     private String medicineName;         // Dori nomi
     private Long medicineQty;            // Dori miqdori
     private Long medicineSeries;         // Seriyasi

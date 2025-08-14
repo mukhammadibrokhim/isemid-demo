@@ -27,6 +27,7 @@ public class UpdateCardTubeStrategy implements UpdateCardStrategy {
         Card card = validateCard(id, cardRequest, cardRepository, messageUtil);
         CardTube existingCard = (CardTube) card;
         CardTubeRequest request = (CardTubeRequest) cardRequest;
+
         mapper.update(existingCard, request);
         bindChildEntities(existingCard);
         return ApiResponse.success(messageUtil.get("message.updated"), mapper.toCardResponse(cardRepository.save(existingCard)));

@@ -16,7 +16,6 @@ import uz.uzinfocom.isemid.features.patient.models.Patient;
         AffiliationMapper.class
 })
 public interface PatientMapper {
-
     @Mapping(target = "genderCode", source = "gender")
     @Mapping(target = "residentialStatusCode", source = "residentialStatus")
     @Mapping(target = "maritalStatusCode", source = "maritalStatus")
@@ -31,5 +30,5 @@ public interface PatientMapper {
     @Mapping(target = "identifiers", source = "identifiers")
     @Mapping(target = "gender", source = "genderCode", qualifiedByName = "toCatalog")
     @Mapping(target = "addresses", source = "addresses")
-    PatientResponse toPatientResponse(Patient patient);
+    PatientResponse toResponse(Patient patient);
 }
