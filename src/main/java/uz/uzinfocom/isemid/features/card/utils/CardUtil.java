@@ -15,7 +15,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class CardUtil {
 
     public static Card validateCard(long id, CardRequest cardRequest, CardRepository cardRepository, MessageUtil messageUtil) {
-        Card card = cardRepository.findByIdForUpdate(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        Card card = cardRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
 
         if (cardRequest.getCardType() == null || !cardRequest.getCardType().equals(card.getCardType())) {
             throw new ApiException(BAD_REQUEST, String.format(messageUtil.get("error.card.invalid_type"), card.getCardType(), cardRequest.getCardType()));
