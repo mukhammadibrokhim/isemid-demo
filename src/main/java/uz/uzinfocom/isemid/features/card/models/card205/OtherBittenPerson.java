@@ -39,6 +39,6 @@ public class OtherBittenPerson extends BaseEntity {
     private String houseNumber;          // Uy raqami
     private String apartmentNumber;      // Xonadon raqami
 
-    private LocalDateTime bittenDate;    // Tishlangan sana va vaqt
+    private LocalDateTime bittenDateTime;    // Tishlangan sana va vaqt
 }
 

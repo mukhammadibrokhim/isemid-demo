@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.models.Card;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -18,22 +18,12 @@ import java.util.List;
 public class Card205 extends Card {
     private String mkbCode; // MKB-10 kodi
     private String mkbName; // Jarohat joyi MKB-10 dan
-
-    @Temporal(TemporalType.DATE)
-    private Date epiSurveyDate; // Epidemiologik surishtiruv sanasi
-
-    @Temporal(TemporalType.DATE)
-    private Date vetAlertDate; // Veterinariya xizmati ogohlantirilgan sana
-
+    private LocalDate epiSurveyDate; // Epidemiologik surishtiruv sanasi
+    private LocalDate vetAlertDate; // Veterinariya xizmati ogohlantirilgan sana
     private String biteAddress; // Tishlash manzili
-
-    @Temporal(TemporalType.DATE)
-    private Date biteDate; // Tishlash sanasi
-
+    private LocalDate biteDate; // Tishlash sanasi
     private String firstClinicName; // Birinchi murojaat qilingan DPM nomi
-
-    @Temporal(TemporalType.DATE)
-    private Date firstClinicDate; // Birinchi murojaat qilingan sana
+    private LocalDate firstClinicDate; // Birinchi murojaat qilingan sana
 
     @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("card205")
@@ -41,6 +31,7 @@ public class Card205 extends Card {
     private List<OtherBittenPerson> otherBittenPersons = new ArrayList<>();
 
     private String animalType; // Hayvon turi
+    private String animalCategoryCode; // Hayvon turi
     private String animalOrigin; // Hayvon qayerdan kelgan
     private String animalArrivalDate; // Hayvon kelgan sana
     private String animalConditionCode; // Hayvon holati kodi
@@ -50,15 +41,13 @@ public class Card205 extends Card {
     private String animalSigns; // Individual belgilar
     private Integer vetCertNum1; // 1-vet. tekshiruv raqami
 
-    @Temporal(TemporalType.DATE)
-    private Date vetCertDate1; // 1-vet. ma’lumotnoma sanasi
+    private LocalDate vetCertDate1; // 1-vet. ma’lumotnoma sanasi
 
     private String animalHoldCode; // Hayvon saqlash kodi
     private String victimPositionCode; // Jabrlanuvchi holati kodi
     private Integer vetCertNum2; // 2-vet. tekshiruv raqami
 
-    @Temporal(TemporalType.DATE)
-    private Date vetCertDate2; // 2-vet. ma’lumotnoma sanasi
+    private LocalDate vetCertDate2; // 2-vet. ma’lumotnoma sanasi
 
     private String sampleTakenDateTime; // Tuk olingan sana/vaqt
     private String vetDept; // Hayvon ro‘yxatdan o‘tgan bo‘lim

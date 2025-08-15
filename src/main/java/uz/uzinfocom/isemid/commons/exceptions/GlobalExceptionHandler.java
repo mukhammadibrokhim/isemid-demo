@@ -82,7 +82,7 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.builder()
                         .success(false)
                         .statusCode(BAD_REQUEST.value())
-                        .message(messageUtil.get("error.validation_failed"))
+                        .message(messageUtil.get("error.bad_request"))
                         .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
                                 .errorMessage(getRootCauseMessage(ex))
@@ -148,7 +148,7 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.builder()
                         .success(false)
                         .statusCode(BAD_REQUEST.value())
-                        .message(messageUtil.get("error.validation_failed"))
+                        .message(messageUtil.get("error.bad_request"))
                         .errors(errors)
                         .build());
     }

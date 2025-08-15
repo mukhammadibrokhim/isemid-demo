@@ -15,5 +15,6 @@ public class AffiliationResponse {
     private CatalogMinResponse state;
     private CatalogMinResponse city;
     private OrgMiniResponse organization;
+    private String organizationName;
     private String address;
 }
