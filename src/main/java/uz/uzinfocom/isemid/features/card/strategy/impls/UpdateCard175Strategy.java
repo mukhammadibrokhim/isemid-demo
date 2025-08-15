@@ -25,11 +25,10 @@ public class UpdateCard175Strategy implements UpdateCardStrategy {
     @Override
     @Transactional
     public ApiResponse<?> updateCard(long id, CardRequest cardRequest) {
-
         Card card = validateCard(id, cardRequest, cardRepository, messageUtil);
         Card175 existingCard = (Card175) card;
-
         Card175Request reqCard175 = (Card175Request) cardRequest;
+
         mapper.update(existingCard, reqCard175);
         return ApiResponse.success(messageUtil.get("message.updated"), mapper.toCardResponse(cardRepository.save(existingCard)));
     }

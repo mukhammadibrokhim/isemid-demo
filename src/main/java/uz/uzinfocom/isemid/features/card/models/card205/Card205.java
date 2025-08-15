@@ -1,11 +1,14 @@
 package uz.uzinfocom.isemid.features.card.models.card205;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.models.Card;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +33,11 @@ public class Card205 extends Card {
     @Builder.Default
     private List<OtherBittenPerson> otherBittenPersons = new ArrayList<>();
 
-    private String animalType; // Hayvon turi
-    private String animalCategoryCode; // Hayvon turi
+    @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("card205")
+    @Builder.Default
+    private List<AnimalBiteVictim> animalBiteVictims = new ArrayList<>();
+
     private String animalOrigin; // Hayvon qayerdan kelgan
     private String animalArrivalDate; // Hayvon kelgan sana
     private String animalConditionCode; // Hayvon holati kodi
@@ -40,28 +46,20 @@ public class Card205 extends Card {
     private String animalColor;
     private String animalSigns; // Individual belgilar
     private Integer vetCertNum1; // 1-vet. tekshiruv raqami
-
     private LocalDate vetCertDate1; // 1-vet. ma’lumotnoma sanasi
-
     private String animalHoldCode; // Hayvon saqlash kodi
     private String victimPositionCode; // Jabrlanuvchi holati kodi
     private Integer vetCertNum2; // 2-vet. tekshiruv raqami
-
     private LocalDate vetCertDate2; // 2-vet. ma’lumotnoma sanasi
-
-    private String sampleTakenDateTime; // Tuk olingan sana/vaqt
-    private String vetDept; // Hayvon ro‘yxatdan o‘tgan bo‘lim
+    private String vetStatusInfo; //Hayvonning kasallanganligi, o‘lgan yoki yo‘qolganligi to‘g‘risida veterinariya bo‘limi ma’lumoti
+    private LocalDateTime postMortemDateTime; // Agar hayvon o‘lgan bo‘lsa: patmaterial laboratoriyaga jo‘natilgan sana-vaqt, tekshirish natijalari va SEXga taqdim etilgan vaqt
+    private String vetCertificateInfo; // Egali hayvon veterinariya ro‘yxatida turishi, veterinariya guvohnomasi, jeton raqami, quturishga qarshi emlanganligi va emlash sanasi/joyi
     private String ownerComplianceCode; // Egasi qoidaga amal qilganmi kodi
 
     @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("card205")
     @Builder.Default
     private List<OtherBittenAnimal> otherBittenAnimals = new ArrayList<>();
-
-    @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("card205")
-    @Builder.Default
-    private List<AnimalBiteVictim> animalBiteVictims = new ArrayList<>();
 
     private String extraInfo; // Qo‘shimcha ma’lumot
     private String animalOwnerName; // Hayvon egasining F.I.Sh.

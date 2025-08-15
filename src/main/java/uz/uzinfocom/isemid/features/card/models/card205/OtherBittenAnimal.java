@@ -25,9 +25,7 @@ public class OtherBittenAnimal extends BaseEntity {
     private Card205 card205;
 
     private String animalCategoryCode;   // Tishlangan hayvon toifasi kodi
-
     private LocalDateTime biteDateTime; // Tishlangan vaqt
-
     private String biteLocation;        // Tishlanish joyi (qayerda tishlangan)
 }
 
