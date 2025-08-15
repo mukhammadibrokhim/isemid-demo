@@ -9,8 +9,8 @@ import lombok.*;
 @Builder
 public class InfectionSourceRequest {
     private Long id;
-    private String tbContactCode; // Sil bilan kasallangan bemor bilan aloqa qilish (spravochnik)
-    private String fullName; // Manbaning familiyasi va ismi
-    private String relationDegreeCode; // Qarindoshlik darajasi (spravochnik)
-    private String contactDuration; // Bemor bilan muloqat vaqti va davomiyligi
+    private String contactTypeCode; // Sil kasalligi bilan bog‘liq aloqa turi (kod)
+    private String fullName; // Aloqa qilingan shaxsning F.I.Sh.
+    private String relationCode; // Qarindoshlik darajasi (masalan: ota, ona, qarindosh)
+    private String duration; // Aloqa davomiyligi (masalan: 3 oy, 1 yil)
 }

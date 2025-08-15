@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class OtherBittenAnimalResponse {
+    private Long id;
     private String animalCategoryCode;   // Tishlangan hayvon toifasi kodi
     private LocalDateTime biteDateTime; // Tishlangan vaqt
     private String biteLocation;        // Tishlanish joyi (qayerda tishlangan)

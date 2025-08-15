@@ -1,11 +1,9 @@
 package uz.uzinfocom.isemid.features.card.dtos.responses.card_tube;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
+import uz.uzinfocom.isemid.features.card.dtos.responses.card161.InfectionSourceResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +18,7 @@ import java.util.List;
 public class CardTubeResponse extends CardResponse {
     // Dispanser nazorati bilan bog‘liq maydonlar
     private LocalDate dispensaryStartDate;      // Dispanser ro'yxatga olingan sana
-    private String dispensaryId;                // Dispanser ID raqami
+    private Long dispensaryId;                // Dispanser ID raqami
 
     // MKB-10 bilan bog‘liq ma'lumotlar
     private String mkb10Code;                   // MKB-10 kodi
@@ -38,13 +36,16 @@ public class CardTubeResponse extends CardResponse {
     private String vaccineName;                 // Vaksina/preparat nomi
     private String vaccineSeries;               // Seriya raqami
     private LocalDateTime vaccineDate;          // Emlash vaqti
+    private int unitInDose;                     // Doza hajmi
     private int doseVolume;                     // Doza hajmi
-    private boolean isScheduled;                // Rejali emlashmi yoki yo‘q
+    private boolean scheduled;                // Rejali emlashmi yoki yo‘q
 
     // MB oldidan olingan ko‘krak rentgen natijalari
+    @Builder.Default
     private List<XRayResponse> chestXrays = new ArrayList<>();
 
     // Oldingi sil (TB) tarixi
+    @Builder.Default
     private List<TBHistoryResponse> tbHistory = new ArrayList<>();
 
     // Dispanser guruhiga oid ma'lumot
@@ -53,6 +54,7 @@ public class CardTubeResponse extends CardResponse {
     private String dgMkb10Name;
 
     // So‘nggi 2 yildagi tibbiy ko‘rik sanalari
+    @Builder.Default
     private List<LocalDate> checkupDates = new ArrayList<>();
 
     // Qayta davolanish
@@ -66,7 +68,8 @@ public class CardTubeResponse extends CardResponse {
     private LocalDate clinicNotificationDate;     // Poliklinikaga yuborilgan sana
 
     // Oziqlanish turlari (dropdown multiselect)
-    private List<String> nutritionCodes = new ArrayList<>();
+    @Builder.Default
+    private List<String> nutritionTypes = new ArrayList<>();
 
     // Ijtimoiy-iqtisodiy holatlar
     private String workConditionCode;             // Mehnat sharoiti
@@ -74,6 +77,7 @@ public class CardTubeResponse extends CardResponse {
     private String harmfulHabitCode;              // Zarur odatlar (masalan, chekish)
 
     // Yuqtirish manbalari
+    @Builder.Default
     private List<InfectionSourceResponse> infectionSources = new ArrayList<>();
 
     // Uy-joy sharoitlari
@@ -129,10 +133,11 @@ public class CardTubeResponse extends CardResponse {
     // Tashrif intervallari
     private Integer visitIntervalValue;          // Masalan: 2
     private String visitIntervalUnit;            // Masalan: "weeks"
-    private Integer ftbVisitIntervalValue;       // FTB tashrifi: 2
-    private String ftbVisitIntervalUnit;         // FTB birlik: "weeks"
+//    private Integer ftbVisitIntervalValue;       // FTB tashrifi: 2
+//    private String ftbVisitIntervalUnit;         // FTB birlik: "weeks"
 
     // Aloqalarni monitoring qilish
+    @Builder.Default
     private List<ContactMonitoringResponse> contactMonitoring = new ArrayList<>();
 
     // Sog‘ayish rejasi

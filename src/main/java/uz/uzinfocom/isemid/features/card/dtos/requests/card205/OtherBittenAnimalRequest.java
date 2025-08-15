@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OtherBittenAnimal {
+public class OtherBittenAnimalRequest {
     private Long id;
     private String animalCategoryCode;   // Tishlangan hayvon toifasi kodi
     private LocalDateTime biteDateTime; // Tishlangan vaqt

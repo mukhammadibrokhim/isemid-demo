@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class XRayResponse {
-
+    private Long id;
     private LocalDate xrayDate;
     private String xrayPlace;
     private String result;

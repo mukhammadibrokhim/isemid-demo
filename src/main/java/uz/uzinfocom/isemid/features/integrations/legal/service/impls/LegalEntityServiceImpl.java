@@ -30,7 +30,7 @@ public class LegalEntityServiceImpl implements LegalEntityService {
 
         if (!validationTin(tin)) {
             log.warn("TIN validation failed for: {}", maskTin(tin));
-            throw new ApiException(BAD_REQUEST, messageUtil.get("error.validation_failed"));
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.bad_request"));
         }
 
         Object resp = makeRequest(String.format(LEGAL_ENTITY_API, tin), HttpMethod.GET, oAuthTokenService.getAccessToken(), null, Object.class);

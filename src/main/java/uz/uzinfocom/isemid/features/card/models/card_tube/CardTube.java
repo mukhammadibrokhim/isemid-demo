@@ -17,10 +17,9 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class CardTube extends Card {
-
     // Dispanser nazorati bilan bog‘liq maydonlar
     private LocalDate dispensaryStartDate;      // Dispanser ro'yxatga olingan sana
-    private String dispensaryId;                // Dispanser ID raqami
+    private Long dispensaryId;                // Dispanser ID raqami
 
     // MKB-10 bilan bog‘liq ma'lumotlar
     private String mkb10Code;                   // MKB-10 kodi
@@ -38,8 +37,9 @@ public class CardTube extends Card {
     private String vaccineName;                 // Vaksina/preparat nomi
     private String vaccineSeries;               // Seriya raqami
     private LocalDateTime vaccineDate;          // Emlash vaqti
+    private int unitInDose;                     // Doza hajmi
     private int doseVolume;                     // Doza hajmi
-    private boolean isScheduled;                // Rejali emlashmi yoki yo‘q
+    private boolean scheduled;                // Rejali emlashmi yoki yo‘q
 
     // MB oldidan olingan ko‘krak rentgen natijalari
     @OneToMany(mappedBy = "cardTube", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -80,7 +80,7 @@ public class CardTube extends Card {
     @ElementCollection
     @CollectionTable(name = "card_tube_nutrition_type", joinColumns = @JoinColumn(name = "card_tube_id"))
     @Column(name = "code")
-    private List<String> nutritionCodes = new ArrayList<>();
+    private List<String> nutritionTypes = new ArrayList<>();
 
     // Ijtimoiy-iqtisodiy holatlar
     private String workConditionCode;             // Mehnat sharoiti
@@ -147,8 +147,8 @@ public class CardTube extends Card {
     // Tashrif intervallari
     private Integer visitIntervalValue;          // Masalan: 2
     private String visitIntervalUnit;            // Masalan: "weeks"
-    private Integer ftbVisitIntervalValue;       // FTB tashrifi: 2
-    private String ftbVisitIntervalUnit;         // FTB birlik: "weeks"
+//    private Integer ftbVisitIntervalValue;       // FTB tashrifi: 2
+//    private String ftbVisitIntervalUnit;         // FTB birlik: "weeks"
 
     // Aloqalarni monitoring qilish
     @OneToMany(mappedBy = "cardTube", cascade = CascadeType.ALL, orphanRemoval = true)
