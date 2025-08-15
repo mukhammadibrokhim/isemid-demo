@@ -25,11 +25,11 @@ public class UpdateCard174Strategy implements UpdateCardStrategy {
 
     @Override
     @Transactional
-    public ApiResponse<?> updateCard(long id, CardRequest reqCard) {
-        Card card = validateCard(id, reqCard, cardRepository, messageUtil);
+    public ApiResponse<?> updateCard(long id, CardRequest request) {
+        Card card = validateCard(id, request.getCardType(), request, cardRepository, messageUtil);
         Card174 existingCard = (Card174) card;
 
-        Card174Request reqCard174 = (Card174Request) reqCard;
+        Card174Request reqCard174 = (Card174Request) request;
 
         mapper.update(existingCard, reqCard174);
         bindChildEntities(existingCard);

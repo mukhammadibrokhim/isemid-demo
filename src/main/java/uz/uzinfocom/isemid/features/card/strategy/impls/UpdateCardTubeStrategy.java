@@ -23,12 +23,12 @@ public class UpdateCardTubeStrategy implements UpdateCardStrategy {
     private final CardMapper mapper;
 
     @Override
-    public ApiResponse<?> updateCard(long id, CardRequest cardRequest) {
-        Card card = validateCard(id, cardRequest, cardRepository, messageUtil);
+    public ApiResponse<?> updateCard(long id, CardRequest request) {
+        Card card = validateCard(id, request.getCardType(), request, cardRepository, messageUtil);
         CardTube existingCard = (CardTube) card;
-        CardTubeRequest request = (CardTubeRequest) cardRequest;
+        CardTubeRequest cardTubeRequest = (CardTubeRequest) request;
 
-        mapper.update(existingCard, request);
+        mapper.update(existingCard, cardTubeRequest);
         bindChildEntities(existingCard);
         return ApiResponse.success(messageUtil.get("message.updated"), mapper.toCardResponse(cardRepository.save(existingCard)));
     }

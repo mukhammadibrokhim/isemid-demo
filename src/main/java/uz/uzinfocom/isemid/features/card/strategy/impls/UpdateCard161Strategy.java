@@ -26,7 +26,7 @@ public class UpdateCard161Strategy implements UpdateCardStrategy {
     @Override
     @Transactional
     public ApiResponse<?> updateCard(long id, CardRequest request) {
-        Card card = validateCard(id, request, cardRepository, messageUtil);
+        Card card = validateCard(id,request.getCardType(), request, cardRepository, messageUtil);
 
         Card161 existingCard = (Card161) card;
         Card161Request request161 = (Card161Request) request;
