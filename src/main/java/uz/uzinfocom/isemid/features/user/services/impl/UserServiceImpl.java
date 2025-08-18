@@ -9,16 +9,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.ApiPaths;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.MisUserResponse;
-import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
-import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
 import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
 import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -46,11 +41,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public PagedResponse<?> getFilteredUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, String url, User currentUser) {
+    public Page<User> filter(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, User currentUser) {
         Specification<User> spec = UserSpecification.build(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, currentUser);
-        Page<UserResponse> userPage = userRepository.findAll(spec, pageableSortByIdDesc(page, size))
-                .map(userMapper::toResponse);
-        return PagedResponseUtil.build(page, userPage, url, messageUtil);
+        return userRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
     @Override
@@ -72,14 +65,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public ApiResponse<UserResponse> getById(long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
-        return ApiResponse.success(messageUtil.get("message.success"), userMapper.toResponse(user));
+    public User getById(long id) {
+        return userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override
-    public ApiResponse<UserResponse> updateUserFromMis(UUID uuid, UserRequest user, String token) {
-        return ApiResponse.success(messageUtil.get("message.success"), null);
+    public User updateUserFromMis(UUID uuid, UserRequest user, String token) {
+        return new User();
     }
 
     @Override
@@ -88,19 +80,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public ApiResponse<UserMeResponse> getByUser(User currentUser) {
-        return ApiResponse.success(messageUtil.get("message.success"), userMapper.toUserMeResponse(currentUser));
-    }
-
-    @Override
     public List<User> getAllByIds(List<Long> userIds) {
         return userRepository.findAllById(userIds);
     }
 
     @Override
-    public ApiResponse<UserResponse> update(long id, @Valid UserRequest userRequest) {
+    public User update(long id, @Valid UserRequest userRequest) {
         User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
-        userMapper.updateUser(userRequest, user);
-        return ApiResponse.success(messageUtil.get("message.success"), userMapper.toResponse(userRepository.save(user)));
+        userMapper.update(userRequest, user);
+        return userRepository.save(user);
     }
 }

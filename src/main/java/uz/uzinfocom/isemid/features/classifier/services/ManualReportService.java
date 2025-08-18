@@ -1,12 +1,12 @@
 package uz.uzinfocom.isemid.features.classifier.services;
 
 
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
+import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 
 public interface ManualReportService {
-    PagedResponse<?> getAllByFilter(
+    Page<ManualReport> filter(
             int page,
             int size,
             String shortName,
@@ -15,15 +15,14 @@ public interface ManualReportService {
             String nameRu,
             String nameKaa,
             String code,
-            Boolean includeTotal,
-            String fullURL
+            Boolean includeTotal
     );
 
-    ApiResponse<?> create(ManualReportRequest request);
+    ManualReport create(ManualReportRequest request);
 
-    ApiResponse<?> getById(long id);
+    ManualReport getById(long id);
 
-    ApiResponse<?> delete(long id);
+    void delete(long id);
 
-    ApiResponse<?> update(long id, ManualReportRequest request);
+    ManualReport update(long id, ManualReportRequest request);
 }

@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.ApiPaths;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.dtos.response.VaccinationApiResponse;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.dtos.response.VaccinationResponse;
@@ -29,7 +28,7 @@ public class VaccinationServiceImpl implements VaccinationService {
     private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<?> getVaccinationByNnuzbLast(String nnuzb) {
+    public Object getVaccinationByNnuzbLast(String nnuzb) {
         String masked = maskNnuzb(nnuzb);
         log.info("Fetching latest vaccination data for NNUZB: {}", masked);
 
@@ -40,8 +39,7 @@ public class VaccinationServiceImpl implements VaccinationService {
 
         List<VaccinationResponse> mapped = mapping(resp);
         log.info("Mapped {} latest vaccination records for NNUZB: {}", mapped.size(), masked);
-
-        return ApiResponse.success(messageUtil.get("message.success"), mapped);
+        return mapped;
     }
 
     @SneakyThrows

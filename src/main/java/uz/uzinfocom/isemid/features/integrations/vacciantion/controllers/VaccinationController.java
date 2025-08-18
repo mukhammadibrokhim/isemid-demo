@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.services.VaccinationService;
 
 @RestController
@@ -16,9 +17,8 @@ import uz.uzinfocom.isemid.features.integrations.vacciantion.services.Vaccinatio
 @Tag(name = "Vaccination", description = "API для получения данных о вакцинации гражданина")
 @RequiredArgsConstructor
 public class VaccinationController {
-
     private final VaccinationService vaccinationService;
-
+    private final MessageUtil messageUtil;
     @Operation(
             summary = "Получение данных о последней вакцинации",
             description = "Возвращает информацию о последней вакцинации гражданина по уникальному идентификатору nnuzb.")
@@ -26,6 +26,6 @@ public class VaccinationController {
     public ApiResponse<?> getVaccinations(
             @RequestParam String nnuzb
     ) {
-        return vaccinationService.getVaccinationByNnuzbLast(nnuzb);
+        return ApiResponse.success(messageUtil, vaccinationService.getVaccinationByNnuzbLast(nnuzb));
     }
 }

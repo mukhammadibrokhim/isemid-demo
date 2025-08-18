@@ -1,12 +1,9 @@
 package uz.uzinfocom.isemid.features.user.services;
 
 import jakarta.validation.Valid;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
-import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
-import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
 import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.models.User;
 
@@ -16,13 +13,11 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface UserService {
-    PagedResponse<?> getFilteredUsers(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, String url, User currentUser);
+    Page<User> filter(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, User currentUser);
 
-    ApiResponse<UserResponse> update(long id, @Valid UserRequest userRequest);
+    User update(long id, @Valid UserRequest userRequest);
 
-    ApiResponse<UserResponse> getById(long id);
-
-    ApiResponse<UserMeResponse> getByUser(User user);
+    User getById(long id);
 
     List<User> getAllByIds(List<Long> userIds);
 
@@ -30,7 +25,7 @@ public interface UserService {
 
     User fetchUserFromMisAndSave(UUID practitioner, String token, List<Organization> organizations, Set<Role> roles);
 
-    ApiResponse<UserResponse> updateUserFromMis(UUID uuid, UserRequest user, String token);
+    User updateUserFromMis(UUID uuid, UserRequest user, String token);
 
     User save(User existingUser);
 }

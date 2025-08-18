@@ -11,22 +11,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.ApiPaths;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.organization.specifications.OrganizationSpecification;
-import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
-import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.List;
@@ -44,14 +38,11 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final MessageUtil messageUtil;
     private final OrganizationMapper mapper;
-    private final UserMapper userMapper;
 
     @Override
-    public PagedResponse<?> getAllOrgByFilter(int page, int size, String name, String stateCode, String cityCode, String url, User user) {
+    public Page<Organization> filter(int page, int size, String name, String stateCode, String cityCode, User user) {
         Specification<Organization> spec = OrganizationSpecification.build(name, stateCode, cityCode, user);
-        Page<OrganizationResponse> organizationPage = organizationRepository.findAll(spec, pageableSortByIdDesc(page, size))
-                .map(mapper::toResponse);
-        return PagedResponseUtil.build(page, organizationPage, url, messageUtil);
+        return organizationRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
     @Override
@@ -70,16 +61,15 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public ApiResponse<OrganizationResponse> getById(long id) {
-        Organization organization = organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
-        return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(organization));
+    public Organization getById(long id) {
+        return organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override
-    public ApiResponse<OrganizationResponse> updateUserFromMis(UUID uuid, User currentUser, String token) {
+    public Organization updateUserFromMis(UUID uuid, User currentUser, String token) {
         MisOrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, MisOrganizationResponse.class);
         Organization organization = mapper.toOrganization(response);
-        return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(organizationRepository.save(organization)));
+        return organizationRepository.save(organization);
 
     }
 
@@ -89,7 +79,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public ApiResponse<?> update(UUID uuid, OrgRequest orgRequest) {
+    public Organization update(UUID uuid, OrgRequest orgRequest) {
         Organization existingOrg = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
         mapper.updateFromRequest(orgRequest, existingOrg);
 
@@ -105,21 +95,22 @@ public class OrganizationServiceImpl implements OrganizationService {
             existingOrg.setParentId(null);
         }
 
-        return ApiResponse.success(messageUtil.get("message.success"), mapper.toResponse(organizationRepository.save(existingOrg)));
+        return organizationRepository.save(existingOrg);
     }
 
     @Override
-    public ApiResponse<List<Organization>> getChildrenByParentUuid(UUID uuid) {
+    public List<Organization> getChildrenByParentUuid(UUID uuid) {
         Organization organization = organizationRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
-        return ApiResponse.success(messageUtil.get("message.success"), organization.getChildren());
+        return organization.getChildren();
     }
 
     @Override
-    public ApiResponse<?> getAllOrgUsers(long id) {
-        Organization organization = organizationRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
-        List<UserMiniResponse> userResponses = organization.getUsers()
-                .stream().map(userMapper::toMiniResponse).toList();
-        return ApiResponse.success(messageUtil.get("message.success"), userResponses);
+    public List<User> getAllOrgUsers(long id) {
+        Organization organization = organizationRepository.findById(id)
+                .orElseThrow(() -> new ApiException(NOT_FOUND,
+                        messageUtil.get("error.not_found_by_id", id)));
+
+        return organization.getUsers();
     }
 
     @Override
@@ -134,10 +125,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Cacheable(value = "organizationSearchCache", key = "#stateCode + '-' + #cityCode + '-' + (#medicalType != null ? #medicalType.name() : 'null') + '-' + #name")
     @Override
-    public ApiResponse<?> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name) {
-        return ApiResponse.success(messageUtil.get("message.success"), organizationRepository.searchByFilter(stateCode, cityCode, medicalType != null ? medicalType.name() : null, name)
-                .stream()
-                .map(mapper::toResponse).toList());
+    public List<Organization> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name) {
+        return organizationRepository.searchByFilter(stateCode, cityCode, medicalType != null ? medicalType.name() : null, name);
     }
 
     @Override

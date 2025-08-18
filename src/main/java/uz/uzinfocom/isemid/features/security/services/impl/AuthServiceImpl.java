@@ -3,8 +3,8 @@ package uz.uzinfocom.isemid.features.security.services.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
@@ -32,7 +32,8 @@ public class AuthServiceImpl implements AuthService {
     private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<?> signUp(RegisterRequest request) {
+    @Transactional
+    public void signUp(RegisterRequest request) {
         if (!checkNnuzb(request.getNnuzb()))
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.request.invalid_nnuzb", request.getNnuzb()));
 
@@ -79,6 +80,5 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        return ApiResponse.success(messageUtil.get("message.success"));
     }
 }

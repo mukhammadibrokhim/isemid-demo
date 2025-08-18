@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.integrations.gcp.util;
 
 import lombok.experimental.UtilityClass;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;

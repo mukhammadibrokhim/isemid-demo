@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
