@@ -7,6 +7,7 @@ public class SecurityConstants {
             "/actuator/**",
             "/api/actuator/**",
             "/v1/auth/**",
+            "/v1/db/**",
             "/v1/legal-entity/**",
             "/v1/citizen/qr**",
             "/v1/catalog/country/**",
