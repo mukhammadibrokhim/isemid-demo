@@ -26,11 +26,8 @@ public class Address extends BaseEntity {
     private AddressType type;
 
     private String stateCode;
-
     private String cityCode;
-
     private String neighborhoodCode;
-
     private String streetAddress;
     private String houseNumber;
     private String apartmentNumber;

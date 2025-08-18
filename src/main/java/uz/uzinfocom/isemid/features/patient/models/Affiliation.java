@@ -28,6 +28,7 @@ public class Affiliation extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private AffiliationType type;
 
+    private String organizationName;
     private String stateCode;
     private String cityCode;
     private Long organizationId;
