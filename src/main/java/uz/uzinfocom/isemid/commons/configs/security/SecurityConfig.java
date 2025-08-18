@@ -62,6 +62,7 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(authRequests -> authRequests
                         .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/v1/db/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
