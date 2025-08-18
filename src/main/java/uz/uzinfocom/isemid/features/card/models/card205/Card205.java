@@ -28,12 +28,12 @@ public class Card205 extends Card {
     private String firstClinicName; // Birinchi murojaat qilingan DPM nomi
     private LocalDate firstClinicDate; // Birinchi murojaat qilingan sana
 
-    @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("card205")
     @Builder.Default
     private List<OtherBittenPerson> otherBittenPersons = new ArrayList<>();
 
-    @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "card205", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("card205")
     @Builder.Default
     private List<AnimalBiteVictim> animalBiteVictims = new ArrayList<>();
