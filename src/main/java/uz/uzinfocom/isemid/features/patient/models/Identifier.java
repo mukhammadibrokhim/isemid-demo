@@ -29,7 +29,6 @@ public class Identifier extends BaseEntity {
     private String value;
 
     private String typeCode;
-
     private LocalDate periodStart;
     private LocalDate periodEnd;
 }

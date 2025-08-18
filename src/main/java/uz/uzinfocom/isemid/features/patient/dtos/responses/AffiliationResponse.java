@@ -12,9 +12,9 @@ import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 @Builder
 public class AffiliationResponse {
     private AffiliationType type;
+    private String organizationName;
     private CatalogMinResponse state;
     private CatalogMinResponse city;
     private OrgMiniResponse organization;
-    private String organizationName;
     private String address;
 }
