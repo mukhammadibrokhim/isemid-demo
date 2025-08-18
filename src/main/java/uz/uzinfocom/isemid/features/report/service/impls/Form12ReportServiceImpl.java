@@ -4,7 +4,6 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
@@ -27,10 +26,9 @@ import java.util.Set;
 public class Form12ReportServiceImpl implements Form12ReportService {
     private final Form058Repository form058Repository;
     private final ManualReportRepository manualReportRepository;
-    private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
+    public Object getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
         Specification<Form058> form058Specification = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(form058Specification);
         List<ManualReport> manualReports = manualReportRepository.findAll();
@@ -69,7 +67,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
             result.add(dto);
         }
 
-        return ApiResponse.success(messageUtil.get("message.success"), result);
+        return result;
     }
 
     public static Specification<Form058> filterByCriteria(

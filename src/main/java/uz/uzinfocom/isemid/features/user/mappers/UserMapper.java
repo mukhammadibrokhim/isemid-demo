@@ -63,7 +63,7 @@ public interface UserMapper {
     User toUser(MisUserResponse response);
 
     @Mapping(target = "genderCode", source = "gender.value", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateUser(UserRequest dto, @MappingTarget User entity);
+    void update(UserRequest dto, @MappingTarget User entity);
 
 
 

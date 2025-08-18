@@ -5,12 +5,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.CatalogRequest;
 import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponse;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapper;
+import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
@@ -23,11 +27,13 @@ import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 @RequiredArgsConstructor
 public class CatalogController {
     private final CatalogService catalogService;
+    private final MessageUtil messageUtil;
+    private final CatalogMapper catalogMapper;
 
     @Operation(summary = "Создать новый каталог", description = "Создает новый каталог с предоставленными данными.")
     @PostMapping
     public ApiResponse<CatalogResponse> createCatalog(@Valid @RequestBody CatalogRequest request) {
-        return catalogService.create(request);
+        return ApiResponse.success(messageUtil, catalogMapper.toDto(catalogService.create(request)));
     }
 
     @Operation(
@@ -57,24 +63,26 @@ public class CatalogController {
             @RequestParam(required = false) String nameKaa,
             HttpServletRequest request
     ) {
-        return catalogService.getFilteredCatalogs(page, size, type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa, getRequestUrl(request));
+        Page<Catalog> catalogPage = catalogService.filter(page, size, type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
+        return PagedResponse.build(page, catalogPage, getRequestUrl(request), messageUtil);
     }
 
     @Operation(summary = "Обновить каталог по ID", description = "Обновляет существующий каталог, используя ID каталога и предоставленные данные.")
     @PutMapping("/{id}")
     public ApiResponse<CatalogResponse> update(@PathVariable long id, @RequestBody CatalogRequest catalogRequest) {
-        return catalogService.update(id, catalogRequest);
+        return ApiResponse.success(messageUtil, catalogMapper.toDto(catalogService.update(id, catalogRequest)));
     }
 
     @Operation(summary = "Получить каталог по ID", description = "Возвращает данные каталога по его уникальному идентификатору.")
     @GetMapping("/{id}")
     public ApiResponse<CatalogResponse> get(@PathVariable long id) {
-        return catalogService.getById(id);
+        return ApiResponse.success(messageUtil, catalogMapper.toDto(catalogService.getById(id)));
     }
 
     @Operation(summary = "Удалить каталог по ID", description = "Удаляет каталог по его уникальному идентификатору.")
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable long id) {
-        return catalogService.delete(id);
+        catalogService.delete(id);
+        return ApiResponse.success(messageUtil, null);
     }
 }

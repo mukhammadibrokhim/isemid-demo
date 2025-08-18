@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons.dtos;
+package uz.uzinfocom.isemid.commons.exceptions;
 
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatusCode;

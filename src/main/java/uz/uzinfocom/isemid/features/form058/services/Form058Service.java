@@ -1,34 +1,33 @@
 package uz.uzinfocom.isemid.features.form058.services;
 
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
-import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
 
 public interface Form058Service {
-    ApiResponse<Form058Response> create(Form058Request form058Request);
+    Form058 create(Form058Request form058Request);
 
-    ApiResponse<Form058Response> update(Form058Request request, Long id, User user);
+    Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, User user, FilterType filterType);
 
-    PagedResponse<?> getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType);
+    Form058 update(Form058Request request, Long id, User user);
 
-    ApiResponse<Form058Response> getById(long id);
+    Form058 getById(long id);
 
-    ApiResponse<Form058Response> assignCard(Form058AssignCardRequest request, User user);
+    Form058 assignCard(Form058AssignCardRequest request, User user);
 
-    ApiResponse<Form058Response> changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg);
+    Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg);
 
-    ApiResponse<Form058Response> cancel(Long formId);
+    Form058 cancel(Long formId);
 
-    ApiResponse<Form058Response> approveForm(Long formId);
+    Form058 approveForm(Long formId);
 
-    ApiResponse<Form058Response> notApprove(Long formId, Form058NotApproveRequest notApprove);
+    Form058 notApprove(Long formId, Form058NotApproveRequest notApprove);
 
-    ApiResponse<?> deleteById(Long formId);
+    void deleteById(Long formId);
 
-    ApiResponse<?> changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis);
+    Form058 changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis);
 }

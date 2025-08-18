@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
@@ -31,13 +30,12 @@ import static org.springframework.util.StringUtils.hasText;
 @Service
 @RequiredArgsConstructor
 public class Form1ReportServiceImpl implements Form1ReportService {
-
     private final Form058Repository form058Repository;
     private final CatalogService catalogService;
     private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
+    public Object getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
         Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, mkb10Code,gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(specification);
         Organization organization = currentUser.getCurrentOrganization();
@@ -61,7 +59,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
         throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, messageUtil.get("error.organization.level.invalid"));
     }
 
-    private ApiResponse<?> creteRegionReport(List<Form058> form058s, Organization organization) {
+    private Object creteRegionReport(List<Form058> form058s, Organization organization) {
         String regionCode = organization.getState().getCode();
         String regionName = organization.getState().getNameRu();
 
@@ -79,12 +77,11 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
         Form1ReportDto regionReport = Form058StatisticsUtil.calculate(regionForms, regionName, children);
 
-        return ApiResponse.success(messageUtil.get("message.success"), List.of(regionReport));
+        return List.of(regionReport);
     }
 
 
-
-    private ApiResponse<?> creteDistrictReport(List<Form058> form058s, Organization organization) {
+    private Object creteDistrictReport(List<Form058> form058s, Organization organization) {
         List<Form058> districtForms = form058s.stream()
                 .filter(f -> f.getCreatedOrg().getCity().getCode().equals(organization.getCity().getCode()))
                 .toList();
@@ -99,11 +96,11 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
         Form1ReportDto districtReport = Form058StatisticsUtil.calculate(districtForms, districtName, organizationReports);
 
-        return ApiResponse.success(messageUtil.get("message.success"), List.of(districtReport));
+        return List.of(districtReport);
     }
 
 
-    private ApiResponse<?> createRepublicReport(List<Form058> form058s) {
+    private Object createRepublicReport(List<Form058> form058s) {
         List<Catalog> states = catalogService.finAllByType(CatalogType.state);
 
         List<Form1ReportDto> reportList = new LinkedList<>();
@@ -140,7 +137,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
         reportList.add(Form058StatisticsUtil.calculate(
                 form058s, messageUtil.get("country.name"), childrenStates));
 
-        return ApiResponse.success(messageUtil.get("message.success"), reportList);
+        return reportList;
     }
 
     public static Specification<Form058> filterByCriteria(

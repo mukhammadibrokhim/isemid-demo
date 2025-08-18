@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.act.utils;
 
 import lombok.experimental.UtilityClass;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;

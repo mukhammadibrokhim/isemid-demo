@@ -3,7 +3,6 @@ package uz.uzinfocom.isemid.features.act.strategy.impls;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act155.Act155Request;
@@ -25,7 +24,7 @@ public class UpdateAct155Strategy implements UpdateActStrategy {
     private final ActMapperFactory mapper;
 
     @Override
-    public ApiResponse<?> updateAct(long id, ActRequest reqAct) {
+    public Act updateAct(long id, ActRequest reqAct) {
         Act act = validateAct(id, reqAct, actRepository, messageUtil);
 
         Act155 existingAct = (Act155) act;
@@ -33,6 +32,6 @@ public class UpdateAct155Strategy implements UpdateActStrategy {
 
         mapper.update(existingAct, reqAct155);
         bindChildEntities(existingAct);
-        return ApiResponse.success(messageUtil.get("message.updated"), mapper.toResponse(actRepository.save(act)));
+        return actRepository.save(act);
     }
 }

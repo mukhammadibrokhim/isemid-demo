@@ -1,27 +1,28 @@
 package uz.uzinfocom.isemid.features.classifier.services;
 
 
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
+import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
+
+import java.util.List;
 
 public interface Mkb10Service {
-    PagedResponse<?> getMkb10ByFilter(
+    Page<Mkb10> filter(
             int page,
             int size,
             String mkbCode,
             Long parentId, String nameUz,
             String nameUzCyril,
             String nameRu,
-            String nameEn,
-            String fullURL);
+            String nameEn);
 
-    ApiResponse<?> getById(long id);
+    Mkb10 getById(long id);
 
-    ApiResponse<?> update(long id, Mkb10Request request);
+    Mkb10 update(long id, Mkb10Request request);
 
-    ApiResponse<?> delete(long id);
+    void delete(long id);
 
-    ApiResponse<?> getAllMkb10s(Long parentId, String search);
+    List<Mkb10> getAllMkb10s(Long parentId, String search);
 
 }

@@ -3,11 +3,11 @@ package uz.uzinfocom.isemid.features.act.strategy.impls;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
+import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.strategy.UpdateActStrategy;
 
 import java.util.Map;
@@ -21,7 +21,7 @@ public class UpdateActService {
     private final Map<ActType, UpdateActStrategy> updateCardStrategies;
     private final MessageUtil messageUtil;
 
-    public ApiResponse<?> updateAct(long id, ActRequest reqAct) {
+    public Act updateAct(long id, ActRequest reqAct) {
         ActType actType = reqAct.getType();
 
         UpdateActStrategy strategy = updateCardStrategies.get(actType);

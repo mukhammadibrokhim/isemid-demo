@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.services.ActService;
 
 @RestController
@@ -15,17 +17,19 @@ import uz.uzinfocom.isemid.features.act.services.ActService;
 @Tag(name = "Act")
 public class ActController {
     private final ActService actService;
+    private final MessageUtil messageUtil;
+    private final ActMapperFactory factory;
 
     @Operation(summary = "Получить список актов по Card ID", description = "Возвращает список всех актов, связанных с указанным Card ID. Только авторизованные пользователи имеют доступ.")
     @GetMapping("/by-card/{cardId}")
     public ApiResponse<?> getAllActsByCardId(@PathVariable Long cardId) {
-        return actService.getAllByCardId(cardId);
+        return ApiResponse.success(messageUtil, actService.getAllByCardId(cardId).stream().map(factory::toResponse));
     }
 
     @Operation(summary = "Получить данные акта по ID", description = "Извлекает подробную информацию о конкретном акте по его уникальному идентификатору.")
     @GetMapping("/{id}")
     public ApiResponse<?> getActById(@PathVariable long id) {
-        return actService.getById(id);
+        return ApiResponse.success(messageUtil, factory.toResponse(actService.getById(id)));
     }
 
     @Operation(summary = "Обновить данные акта", description = "Обновляет информацию о конкретном акте. Только авторизованные пользователи могут вносить изменения.")
@@ -33,13 +37,14 @@ public class ActController {
     public ApiResponse<?> updateAct(
             @PathVariable long id,
             @RequestBody ActRequest actRequest) {
-        return actService.update(id, actRequest);
+        return ApiResponse.success(messageUtil, factory.toResponse(actService.update(id, actRequest)));
     }
 
     @Operation(summary = "Удалить акт по ID", description = "Удаляет акт с указанным идентификатором. Только уполномоченные пользователи имеют право на удаление.")
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteById(@PathVariable Long id) {
-        return actService.deleteById(id);
+        actService.deleteById(id);
+        return ApiResponse.deleteSuccess(messageUtil);
     }
 }
 

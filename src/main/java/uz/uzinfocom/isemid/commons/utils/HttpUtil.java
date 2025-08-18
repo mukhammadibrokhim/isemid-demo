@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.commons.ApiPaths;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 
 import java.util.Enumeration;
 

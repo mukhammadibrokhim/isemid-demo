@@ -4,11 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.commons.utils.PagedResponseUtil;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.factory.CardFactory;
@@ -16,13 +13,10 @@ import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
-import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
-import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
-import uz.uzinfocom.isemid.features.form058.mappers.Form058ResponseAdapter;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
@@ -47,48 +41,37 @@ public class Form058ServiceImpl implements Form058Service {
     private final CardFactory cardFactory;
     private final UserService userService;
     private final Form058Mapper form058Mapper;
-    private final Form058ResponseAdapter form058ResponseAdapter;
     private final CardRepository cardRepository;
     private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<Form058Response> create(Form058Request request) {
+    public Form058 create(Form058Request request) {
         Form058 form058 = form058Mapper.toEntity(request);
         form058.setStatus(FormStatus.SENT);
         bindChildEntity(form058);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
+        return form058Repository.save(form058);
     }
 
     @Override
-    public ApiResponse<Form058Response> update(Form058Request request, Long id, User user) {
+    public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, User user, FilterType filterType) {
+        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, user, filterType);
+        return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
+    }
+
+    @Override
+    public Form058 update(Form058Request request, Long id, User user) {
         Form058 existedEntity = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         form058Mapper.update(existedEntity, request);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(existedEntity)));
+        return form058Repository.save(existedEntity);
     }
 
     @Override
-    public PagedResponse<?> getAllFilteredForm058(int page, int size, LocalDate fromDate, LocalDate toDate, User user, String url, FilterType filterType) {
-        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, user, filterType);
-        Page<Form058> form058Page = form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
-        Page<Form058DetailsResponse> responsePage = form058Page.map(form -> {
-            Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
-            return form058ResponseAdapter.adapt(base, form, filterType);
-        });
-        return PagedResponseUtil.build(page, responsePage, url, messageUtil);
-    }
-
-    private Form058 getForm058ById(Long id) {
+    public Form058 getById(long id) {
         return form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override
-    public ApiResponse<Form058Response> getById(long id) {
-        return ApiResponse.success(messageUtil.get("message.success"),
-                form058Mapper.toResponse(form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)))));
-    }
-
-    @Override
-    public ApiResponse<Form058Response> assignCard(Form058AssignCardRequest request, User user) {
+    public Form058 assignCard(Form058AssignCardRequest request, User user) {
         if (request.getAssignUserIds() == null || request.getAssignUserIds().isEmpty()) {
             throw new ApiException(BAD_REQUEST, "Список назначенных пользователей пуст.");
         }
@@ -96,7 +79,8 @@ public class Form058ServiceImpl implements Form058Service {
         if (request.getCardType() == null || request.getCardType().isEmpty()) {
             throw new ApiException(BAD_REQUEST, "Требуются типы карт.");
         }
-        Form058 form058 = this.getForm058ById(request.getForm058Id());
+
+        Form058 form058 = this.getById(request.getForm058Id());
 
         Map<Long, User> userMap = userService.getAllByIds(request.getAssignUserIds()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
@@ -105,7 +89,7 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setCardByFullName(user.getFullName());
         form058.getCards().addAll(cards);
         form058.setStatus(FormStatus.CARD_LINKED);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
+        return form058Repository.save(form058);
     }
 
     private List<Card> buildCards(List<CardType> cardTypes, Map<Long, User> userMap, Form058 form058, User assignedBy) {
@@ -138,8 +122,8 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public ApiResponse<Form058Response> changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {
-        Form058 form058 = this.getForm058ById(formId);
+    public Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {
+        Form058 form058 = this.getById(formId);
         form058.setReceiverOrganizationId(updateReceivedOrg.getReceivedOrgId());
         form058.getPatient().getAddresses().stream()
                 .filter(address -> address.getType().equals(AddressType.TEMPORARY))
@@ -152,39 +136,39 @@ public class Form058ServiceImpl implements Form058Service {
                     address.setHouseNumber(updateReceivedOrg.getHouseNumber());
                     address.setApartmentNumber(updateReceivedOrg.getApartmentNumber());
                 });
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
+        return form058Repository.save(form058);
     }
 
     @Override
-    public ApiResponse<Form058Response> cancel(Long formId) {
-        Form058 form058 = this.getForm058ById(formId);
+    public Form058 cancel(Long formId) {
+        Form058 form058 = this.getById(formId);
         form058.setStatus(FormStatus.CANCELED);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
+        return form058Repository.save(form058);
     }
 
     @Override
-    public ApiResponse<Form058Response> approveForm(Long formId) {
-        Form058 form058 = this.getForm058ById(formId);
+    public Form058 approveForm(Long formId) {
+        Form058 form058 = this.getById(formId);
         boolean allCardsApproved = form058.getCards().stream()
                 .allMatch(card -> card.getStatus().equals(CardStatus.APPROVED));
         if (!allCardsApproved) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.not_approved"));
         }
         form058.setStatus(FormStatus.APPROVED);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
+        return form058Repository.save(form058);
     }
 
     @Override
-    public ApiResponse<Form058Response> notApprove(Long formId, Form058NotApproveRequest notApprove) {
-        Form058 form058 = this.getForm058ById(formId);
+    public Form058 notApprove(Long formId, Form058NotApproveRequest notApprove) {
+        Form058 form058 = this.getById(formId);
         form058.setNotApproveComment(notApprove.getComment());
         form058.setStatus(FormStatus.NOT_APPROVED);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
+        return form058Repository.save(form058);
     }
 
     @Override
-    public ApiResponse<?> deleteById(Long formId) {
-        Form058 form058 = this.getForm058ById(formId);
+    public void deleteById(Long formId) {
+        Form058 form058 = this.getById(formId);
         List<Card> cards = form058.getCards();
 
         for (Card card : cards) {
@@ -201,11 +185,10 @@ public class Form058ServiceImpl implements Form058Service {
         } catch (Exception e) {
             throw new ApiException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
-        return ApiResponse.success(messageUtil.get("message.success"));
     }
 
     @Override
-    public ApiResponse<?> changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
+    public Form058 changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
         Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", formId)));
         if (!form058.getStatus().equals(FormStatus.NOT_APPROVED))
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.cannot_change_diagnosis"));
@@ -213,6 +196,6 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);
-        return ApiResponse.success(messageUtil.get("message.success"), form058Mapper.toResponse(form058Repository.save(form058)));
+        return form058Repository.save(form058);
     }
 }
