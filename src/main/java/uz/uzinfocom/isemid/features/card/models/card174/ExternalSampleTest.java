@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@Entity(name = "card174_infection_monitoring")
+@Entity(name = "card174_external_sample_test")
 public class ExternalSampleTest extends BaseEntity {
     private String specimen; // Tekshiruv o‘tkazilgan hayvon turi
     private LocalDate testDate; // Tekshiruv sanasi
