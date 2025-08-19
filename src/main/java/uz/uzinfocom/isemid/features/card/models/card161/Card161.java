@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.card.models.card161;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import uz.uzinfocom.isemid.commons.models.Vaccination;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 
@@ -22,7 +23,6 @@ public class Card161 extends Card {
     private Boolean isResident;
     private String residentialTreatmentFacility;
     private LocalDateTime diseaseDetectedDate;
-
     private String regionCode;
     private String districtCode;
 
@@ -34,27 +34,23 @@ public class Card161 extends Card {
     private Long polyclinicId;
 
     private String initialSymptoms;
-
     private String detectedCode;
-
     private LocalDateTime epidemiologicalExamDate;
     private LocalDateTime observationEndDate;
     private LocalDateTime finalDiagnosisDate;
     private String deliveryMethodCode;
     private String homeStayExclusionReasonCode;
-
     private String lateAdmissionReasonCode;
-
     private String diagnosisVerifiedCode;
-    //LIS bilan integratsiya uchun polya qoshish kerak.
-    // emlash uz bialn integratsiya uchun polyalar.
-    // DMED bilan integratsiya uchun polyalar.
 
-    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"card161"})
-    @OrderBy("id DESC")
     @Builder.Default
-    List<Vaccination> vaccinations = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "card161_vaccination",
+            joinColumns = @JoinColumn(name = "card161_id"),
+            inverseJoinColumns = @JoinColumn(name = "vaccination_id")
+    )
+    private List<Vaccination> vaccinations = new ArrayList<>();
 
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;

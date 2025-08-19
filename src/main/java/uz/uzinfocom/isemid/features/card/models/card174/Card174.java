@@ -51,6 +51,7 @@ public class Card174 extends Card {
     private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
 
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card174"})
     @OrderBy("id DESC")
     @Builder.Default
     private List<ExternalSampleTest> externalSampleTests = new ArrayList<>(); //bu tashqi muhitdan olingan labaratoriya namunalari tekshiruvi boladi
@@ -68,6 +69,7 @@ public class Card174 extends Card {
     private Integer infectedAtOutbreak; // O‘chog‘da kasallanganlar soni
 
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card174"})
     @OrderBy("id DESC")
     @Builder.Default
     private List<InfectionMonitoring> monitoring = new ArrayList<>(); // Infeksiya nazorati
@@ -78,8 +80,9 @@ public class Card174 extends Card {
 
     private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
     private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
-    //    private List<Act> acts = new ArrayList<>(); //actlar
+
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"card174"})
     @OrderBy("id DESC")
     @Builder.Default
     private List<PreventiveMeasure> preventiveMeasures = new ArrayList<>();

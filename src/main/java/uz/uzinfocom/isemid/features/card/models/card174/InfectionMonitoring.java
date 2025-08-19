@@ -1,17 +1,17 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
+import uz.uzinfocom.isemid.commons.models.Vaccination;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -39,17 +39,11 @@ public class InfectionMonitoring extends BaseEntity {
     private LocalDate possibleDate; // Yuqtirilgan sana (taxminiy)
     private LocalDate contactInfectionDate; // Muloqatda bo‘lganlarning kasallanish sanasi
 
-    // Quyidagilar integratsiyaga tayyor fieldlar, hozircha izohda qoldirildi
-
-    // private LocalDate previousInfectionDate; // Ilgari infeksiya bo‘lgan sana (emlangan)
-    // private String emergencyProphylaxis; // Zudlik bilan oldini olish
-    // private String antibioticSeries; // Antibiotik davolash seriyasi
-    // private String antibioticScheme; // Davolash sxemasi (Emlash.uz orqali)
-
-    // private String provizorName; // 058 dan olinadi
-    // private LocalDate provizorRecordDate; // Provizor qayd sanasi
-    // private LocalDate discussionDate; // Muhokama sanasi
-
-    // private LocalDate labTestDate; // Laborator test sanasi (LIS bilan integratsiya)
-    // private String labTestResult; // Laborator test natijasi
+    @ManyToMany
+    @JoinTable(
+            name = "infection_monitoring_vaccination",
+            joinColumns = @JoinColumn(name = "infection_monitoring_id"),
+            inverseJoinColumns = @JoinColumn(name = "vaccination_id"))
+    private List<Vaccination> vaccinations = new ArrayList<>();
+    private String vaccinationSummary;
 }
