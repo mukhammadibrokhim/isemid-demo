@@ -5,6 +5,8 @@ import uz.uzinfocom.isemid.features.card.models.card174.Card174;
 import uz.uzinfocom.isemid.features.card.models.card205.Card205;
 import uz.uzinfocom.isemid.features.card.models.card_tube.CardTube;
 
+import java.util.Optional;
+
 public class CardBindingUtil {
     public static void bindChildEntities(Card161 card) {
         if (card.getVaccinations() != null) {
@@ -45,13 +47,16 @@ public class CardBindingUtil {
     }
 
     public static void bindChildEntities(Card174 card) {
-        if (card.getMonitoring() != null) {
-            card.getMonitoring().forEach(item -> item.setCard174(card));
-        }
-        if (card.getControlMeasures() != null) {
-            card.getControlMeasures().forEach(item -> item.setCard174(card));
-        }
+        Optional.ofNullable(card.getMonitoring())
+                .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
+
+        Optional.ofNullable(card.getControlMeasures())
+                .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
+
+        Optional.ofNullable(card.getExternalSampleTests())
+                .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
     }
+
 
     public static void bindChildEntities(Card205 card) {
         if (card.getAnimalBiteVictims() != null) {
