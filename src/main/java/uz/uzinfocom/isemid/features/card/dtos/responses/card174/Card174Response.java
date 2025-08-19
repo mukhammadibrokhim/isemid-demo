@@ -63,9 +63,12 @@ public class Card174Response extends CardResponse {
 
     private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
     private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
-    private String measures; // Oldini olish choralari
-    private String strayCapture; // Daydi hayvonlarni tutish
-    private String wildCulling; // Yovvoyi hayvonlarni yo‘qotish
+
+    private List<PreventiveMeasureResponse> preventiveMeasures = new ArrayList<>();
+
+    private String vaccinationByEpizootic; // Ehtiyotdan emlanishi keraklar (epizootik ko‘rsatmaga asosan)
+    private String strayCapture;       // Daydi hayvonlarni tutish
+    private String wildCulling;        // Yovvoyi hayvonlarni yo‘qotish
 
     private String deratCode; // Deratizatsiya kodi
     private Double deratArea; // Deratizatsiya qamrovi (m²)

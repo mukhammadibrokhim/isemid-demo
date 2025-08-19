@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
+import uz.uzinfocom.isemid.features.card.models.card174.PreventiveMeasure;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -62,13 +63,12 @@ public class Card174Request extends CardRequest {
     private LocalDate quarantineEnd; // Karantin tugash sanasi
     private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
     private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
-    private List<Act> acts = new ArrayList<>(); //actlar
-    private LocalDate measuresDate;
-    private LocalDate measuresCount;
-    private LocalDate measuresLocation;
-    private String measures; // Oldini olish choralari
-    private String strayCapture; // Daydi hayvonlarni tutish
-    private String wildCulling; // Yovvoyi hayvonlarni yo‘qotish
+
+    private List<PreventiveMeasure> preventiveMeasures = new ArrayList<>();
+    private String vaccinationByEpizootic; // Ehtiyotdan emlanishi keraklar (epizootik ko‘rsatmaga asosan)
+    private String strayCapture;       // Daydi hayvonlarni tutish
+    private String wildCulling;        // Yovvoyi hayvonlarni yo‘qotish
+
     private String deratCode; // Deratizatsiya kodi
     private Double deratArea; // Deratizatsiya qamrovi (m²)
     private String inspectors; // Tekshiruvchilar FISH
