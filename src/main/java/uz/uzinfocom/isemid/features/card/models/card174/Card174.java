@@ -50,11 +50,10 @@ public class Card174 extends Card {
     @Column(name = "catalog_code")
     private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
 
-    private String animalType; // Tekshiruv o‘tkazilgan hayvon turi
-    private LocalDate testDate; // Tekshiruv sanasi
-    private Integer sampleCount; // Namuna soni
-    private String testMethod; // Tekshiruv usuli
-    private String testResult; // Tekshiruv natijasi (serovar, qo‘zg‘atuvchi)
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id DESC")
+    @Builder.Default
+    private List<ExternalSampleTest> externalSampleTests = new ArrayList<>(); //bu tashqi muhitdan olingan labaratoriya namunalari tekshiruvi boladi
 
     @ElementCollection
     @CollectionTable(name = "card174_affected_animals", joinColumns = @JoinColumn(name = "card174_id"))

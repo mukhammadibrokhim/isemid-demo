@@ -45,12 +45,7 @@ public class Card174Response extends CardResponse {
     private boolean epizootologyExists; // Epizootologik holat mavjudmi
 
     private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
-    private String animalType; // Tekshiruv o‘tkazilgan hayvon turi
-    private LocalDate testDate; // Tekshiruv sanasi
-    private Integer sampleCount; // Namuna soni
-    private String testMethod; // Tekshiruv usuli
-    private String testResult; // Tekshiruv natijasi (serovar, qo‘zg‘atuvchi)
-
+    private List<ExternalSampleTestResponse> externalSampleTests = new ArrayList<>();
     private List<String> affectedAnimalCodes = new ArrayList<>(); // Ta’sirlangan hayvonlar ro‘yxati
 
     private Integer infectedHumans; // Kasallangan odamlar soni

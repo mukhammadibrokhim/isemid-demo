@@ -12,16 +12,14 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import uz.uzinfocom.isemid.commons.dtos.UserInfo;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.WHITELIST_HEADER_CHECK;
@@ -36,6 +34,7 @@ public class JwtAuthHelper {
     private final RoleService roleService;
     private final ObjectMapper objectMapper;
     private final MessageUtil messageUtil;
+    private final OrganizationRepository organizationRepository;
 
     protected HttpServletRequest getCurrentHttpRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -82,7 +81,12 @@ public class JwtAuthHelper {
                 .collect(Collectors.toSet());
     }
 
-    protected User resolveUser(UserInfo userInfo, Jwt jwt, List<Organization> organizationsFromToken, Set<Role> rolesFromToken) {
+    protected User resolveUser(
+            UserInfo userInfo,
+            Jwt jwt,
+            List<Organization> organizationsFromToken,
+            Set<Role> rolesFromToken
+    ) {
         return userService.findByUuid(userInfo.getPractitioner())
                 .map(existingUser -> {
                     // === 1. ROLES UPDATE ===
@@ -112,7 +116,24 @@ public class JwtAuthHelper {
                             .collect(Collectors.toSet());
 
                     if (!existingOrgIds.equals(tokenOrgIds)) {
-                        existingUser.setOrganizations(organizationsFromToken);
+                        List<Organization> finalOrganizations = new ArrayList<>();
+
+                        for (UUID orgId : tokenOrgIds) {
+                            organizationRepository.findByUuid(orgId)
+                                    .ifPresentOrElse(
+                                            finalOrganizations::add,
+                                            () -> {
+                                                Organization orgFromMis = organizationService.fetchOrganizationFromMisAndSave(orgId, jwt.getTokenValue());
+                                                if (orgFromMis != null) {
+                                                    finalOrganizations.add(orgFromMis);
+                                                } else {
+                                                    log.warn("Organization [{}] not found in MIS", orgId);
+                                                }
+                                            }
+                                    );
+                        }
+
+                        existingUser.setOrganizations(finalOrganizations);
                         log.info("Updated organizations for user [{}]: {} -> {}", existingUser.getUsername(), existingOrgIds, tokenOrgIds);
                     }
 
