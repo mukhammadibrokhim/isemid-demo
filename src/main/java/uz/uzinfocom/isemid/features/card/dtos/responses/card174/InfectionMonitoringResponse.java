@@ -23,6 +23,7 @@ public class InfectionMonitoringResponse {
     private String possibleLocation; // Yuqtirgan joy (taxminiy)
     private String possibleFactor; // Yuqtirish omili (taxminiy)
     private LocalDate possibleDate; // Yuqtirilgan sana (taxminiy)
+    private LocalDate contactInfectionDate; // Muloqatda bo‘lganlarning kasallanish sanasi
 
     // Quyidagilar integratsiyaga tayyor fieldlar, hozircha izohda qoldirildi
 
