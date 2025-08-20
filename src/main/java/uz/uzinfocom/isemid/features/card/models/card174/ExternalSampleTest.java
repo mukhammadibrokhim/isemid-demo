@@ -1,6 +1,6 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -24,7 +24,7 @@ public class ExternalSampleTest extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card174_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore
     private Card174 card174;
 
     private String specimen; // Tekshiruv o‘tkazilgan hayvon turi
