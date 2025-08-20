@@ -1,6 +1,6 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.models.Card;
@@ -50,9 +50,10 @@ public class Card174 extends Card {
     @Column(name = "catalog_code")
     private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
 
-    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("id DESC")
     @Builder.Default
+    @JsonManagedReference
+    @OrderBy("id DESC")
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExternalSampleTest> externalSampleTests = new ArrayList<>(); //bu tashqi muhitdan olingan labaratoriya namunalari tekshiruvi boladi
 
     @ElementCollection
@@ -67,9 +68,10 @@ public class Card174 extends Card {
     private Integer treatedHumans; // Antirabik yordam olganlar soni
     private Integer infectedAtOutbreak; // O‘chog‘da kasallanganlar soni
 
-    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
     @Builder.Default
+    @JsonManagedReference
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InfectionMonitoring> monitoring = new ArrayList<>(); // Infeksiya nazorati
 
     private String quarantineCode; // Karantin turi kodi
@@ -78,10 +80,11 @@ public class Card174 extends Card {
 
     private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
     private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
-    //    private List<Act> acts = new ArrayList<>(); //actlar
-    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+
     @OrderBy("id DESC")
     @Builder.Default
+    @JsonManagedReference
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreventiveMeasure> preventiveMeasures = new ArrayList<>();
 
     private String vaccinationByEpizootic; // Ehtiyotdan emlanishi keraklar (epizootik ko‘rsatmaga asosan)
@@ -112,10 +115,10 @@ public class Card174 extends Card {
     private String eventLocation; // Hodisa joyi
     private String controlResults; // Chora nazorati natijasi
 
-    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"card174"})
     @OrderBy("id DESC")
     @Builder.Default
+    @JsonManagedReference
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OutbreakControlMeasure> controlMeasures = new ArrayList<>(); // O‘choqdagi chora-tadbirlar
 
     private String additionalInfo; // Qo‘shimcha ma’lumot

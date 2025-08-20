@@ -9,10 +9,6 @@ import java.util.Optional;
 
 public class CardBindingUtil {
     public static void bindChildEntities(Card161 card) {
-        if (card.getVaccinations() != null) {
-            card.getVaccinations().forEach(v -> v.setCard161(card));
-        }
-
         if (card.getRiskFactors() != null) {
             card.getRiskFactors().forEach(rf -> rf.setCard161(card));
         }
