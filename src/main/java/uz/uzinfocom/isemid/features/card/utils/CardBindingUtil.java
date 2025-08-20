@@ -49,6 +49,9 @@ public class CardBindingUtil {
         Optional.ofNullable(card.getControlMeasures())
                 .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
 
+        Optional.ofNullable(card.getPreventiveMeasures())
+                .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
+
         Optional.ofNullable(card.getExternalSampleTests())
                 .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
     }
