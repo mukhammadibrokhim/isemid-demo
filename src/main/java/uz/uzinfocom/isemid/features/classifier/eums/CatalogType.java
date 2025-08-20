@@ -30,7 +30,9 @@ public enum CatalogType {
     animalCategory,dogOwnerCompliance,
 
     //Card Tube
-    reasonForStayAtHome, eatingHabits,
+    reasonStayHome, nutritionType, workCondition, incomingLevel,
+    harmfulHabit, contactType, kinship, housingCondition, hygieneAssessment, heating, sewerage, renovationNeeded,
+    habitability, sputumDisposal, getsDisinfectant, visitInterval, epidemicPlanType, recoveryPlan,
 
     //card174
     affectedAnimalType,diseaseFactors,animalDisposalMethod,deratization,quarantineType,eliminationMethod,
