@@ -73,7 +73,6 @@ public class Card161 extends Card {
     @Builder.Default
     private List<EnvironmentalSource> environmentalSources = new ArrayList<>();
 
-
     //catalog qoshish kerak
     private String livingConditionCode;
     private int numberOfPeople;

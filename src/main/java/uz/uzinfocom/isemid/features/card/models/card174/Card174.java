@@ -81,9 +81,9 @@ public class Card174 extends Card {
     private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
     private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
 
-    @OrderBy("id DESC")
     @Builder.Default
     @JsonIgnoreProperties({"card174"})
+    @OrderBy("id DESC")
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreventiveMeasure> preventiveMeasures = new ArrayList<>();
 
