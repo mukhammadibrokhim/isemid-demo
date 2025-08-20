@@ -102,7 +102,6 @@ public class Card161 extends Card {
     private String foodPreparation;
     private String diseaseCausingFactors;
 
-
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
     @OrderBy("id DESC")
@@ -132,7 +131,6 @@ public class Card161 extends Card {
     @OrderBy("id DESC")
     @Builder.Default
     private List<OutbreakDisinfectionMeasure> outbreakDisinfectionMeasures = new ArrayList<>();
-
 
     private String hospitalName;
     private String infectionLocationCode;

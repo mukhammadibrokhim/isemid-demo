@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 public class PreventiveMeasure extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "card174_id", nullable = false)
     private Card174 card174;
 

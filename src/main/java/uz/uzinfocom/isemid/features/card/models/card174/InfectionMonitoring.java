@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +23,7 @@ import java.util.List;
 public class InfectionMonitoring extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "card174_id", nullable = false)
     private Card174 card174;
 
