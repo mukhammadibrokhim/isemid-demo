@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.card.models.card161;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -17,6 +18,7 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
 public class InfectionSourceDetail extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card161_id")
+    @JsonIgnore
     private Card161 card161;
 
     private String infectionSourceNotFoundCode;

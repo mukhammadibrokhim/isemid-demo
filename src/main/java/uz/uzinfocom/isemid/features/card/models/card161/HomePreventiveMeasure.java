@@ -23,6 +23,7 @@ public class HomePreventiveMeasure extends BaseEntity {
     @JoinColumn(name = "card161_id", nullable = false)
     @JsonIgnore
     private Card161 card161;
+
     private String notifiedPerson;
     private LocalDateTime nextDiseaseTime; //DMED integration
     private String drugName; //DMED integration

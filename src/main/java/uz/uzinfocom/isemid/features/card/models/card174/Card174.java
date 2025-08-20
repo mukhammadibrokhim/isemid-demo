@@ -1,6 +1,6 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.models.Card;
@@ -51,7 +51,7 @@ public class Card174 extends Card {
     private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
 
     @Builder.Default
-    @JsonManagedReference
+    @JsonIgnoreProperties({"card174"})
     @OrderBy("id DESC")
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExternalSampleTest> externalSampleTests = new ArrayList<>(); //bu tashqi muhitdan olingan labaratoriya namunalari tekshiruvi boladi
@@ -70,7 +70,7 @@ public class Card174 extends Card {
 
     @OrderBy("id DESC")
     @Builder.Default
-    @JsonManagedReference
+    @JsonIgnoreProperties({"card174"})
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InfectionMonitoring> monitoring = new ArrayList<>(); // Infeksiya nazorati
 
@@ -83,7 +83,7 @@ public class Card174 extends Card {
 
     @OrderBy("id DESC")
     @Builder.Default
-    @JsonManagedReference
+    @JsonIgnoreProperties({"card174"})
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreventiveMeasure> preventiveMeasures = new ArrayList<>();
 
@@ -117,7 +117,7 @@ public class Card174 extends Card {
 
     @OrderBy("id DESC")
     @Builder.Default
-    @JsonManagedReference
+    @JsonIgnoreProperties({"card174"})
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OutbreakControlMeasure> controlMeasures = new ArrayList<>(); // O‘choqdagi chora-tadbirlar
 
