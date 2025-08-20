@@ -636,20 +636,17 @@ public class CatalogLookupController {
                 .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
     }
 
-
     @GetMapping("/infection-location")
     public ApiResponse<?> getInfectionLoc(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
         return ApiResponse.success(messageUtil, catalogService.findAllByType(CatalogType.infectedLocation)
                 .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
     }
 
-
     @GetMapping("/probable-infection-location")
     public ApiResponse<?> getProbableInfectionLoc(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
         return ApiResponse.success(messageUtil, catalogService.findAllByType(CatalogType.probableInfectionLoc)
                 .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
     }
-
 
     @GetMapping("/infection-source")
     public ApiResponse<?> getInfectionSource(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
@@ -725,5 +722,15 @@ public class CatalogLookupController {
     public ApiResponse<?> getAffiliationTypes(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
         return ApiResponse.success(messageUtil, catalogService.findAllByType(CatalogType.affiliationType)
                 .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
+    }
+
+    @GetMapping
+    public ApiResponse<?> getCatalogs(
+            @RequestParam("type") CatalogType type,
+            @RequestHeader(ACCEPT_LANGUAGE) String lang) {
+
+        return ApiResponse.success(messageUtil, catalogService.findAllByType(type)
+                .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList()
+        );
     }
 }

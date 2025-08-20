@@ -40,7 +40,6 @@ public abstract class Card extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
     private CardType cardType;
-
     private Long assignedById;
 
     @ManyToMany(cascade = CascadeType.ALL)
