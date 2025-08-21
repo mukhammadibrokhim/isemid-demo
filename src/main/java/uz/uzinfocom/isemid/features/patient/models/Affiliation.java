@@ -7,6 +7,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -28,6 +30,7 @@ public class Affiliation extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private AffiliationType type;
 
+    private LocalDate lastVisitedDate;
     private String organizationName;
     private String stateCode;
     private String cityCode;

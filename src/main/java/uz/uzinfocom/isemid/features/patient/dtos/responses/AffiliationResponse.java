@@ -5,6 +5,8 @@ import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -12,6 +14,7 @@ import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 @Builder
 public class AffiliationResponse {
     private AffiliationType type;
+    private LocalDate lastVisitedDate;
     private String organizationName;
     private CatalogMinResponse state;
     private CatalogMinResponse city;
