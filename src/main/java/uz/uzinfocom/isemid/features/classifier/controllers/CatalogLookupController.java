@@ -423,7 +423,6 @@ public class CatalogLookupController {
     ) {
         return ApiResponse.success(messageUtil, catalogService.findAllByType(CatalogType.reasonOfLateHospitalization)
                 .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
-
     }
 
     @GetMapping("/diagnosis-verified")
@@ -559,13 +558,6 @@ public class CatalogLookupController {
         return ApiResponse.success(messageUtil, catalogService.findAllByType(CatalogType.detected)
                 .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
     }
-
-//
-//    @GetMapping("/vaccination-verified")
-//    public ApiResponse<?> getHoeStayReason(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
-//        return catalogService.findAllByType(CatalogType.vaccinationVerified, lang);
-//    }
-
 
     @GetMapping("/living-condition")
     public ApiResponse<?> getLivingCon(@RequestHeader(ACCEPT_LANGUAGE) String lang) {
@@ -730,7 +722,6 @@ public class CatalogLookupController {
             @RequestHeader(ACCEPT_LANGUAGE) String lang) {
 
         return ApiResponse.success(messageUtil, catalogService.findAllByType(type)
-                .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList()
-        );
+                .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
     }
 }
