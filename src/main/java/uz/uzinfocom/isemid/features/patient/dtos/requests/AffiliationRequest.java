@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -12,6 +14,7 @@ import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 public class AffiliationRequest {
     @NotNull(message = "${validation.affiliation_ype_required}")
     private AffiliationType type;
+    private LocalDate lastVisitedDate;
     private String organizationName;
     private String stateCode;
     private String cityCode;
