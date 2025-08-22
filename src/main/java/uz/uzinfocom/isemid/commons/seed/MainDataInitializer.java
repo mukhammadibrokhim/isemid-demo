@@ -11,7 +11,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "runner.main.init", havingValue = "true")
+//@ConditionalOnProperty(name = "runner.main.init", havingValue = "true")
 public class MainDataInitializer implements CommandLineRunner {
     private final List<ModuleDataInitializer> initializers;
 
@@ -22,7 +22,7 @@ public class MainDataInitializer implements CommandLineRunner {
         for (ModuleDataInitializer initializer : initializers) {
             log.info("▶️ Initializing: {}", initializer.getClass().getSimpleName());
             try {
-                initializer.init();
+//                initializer.init();
             } catch (Exception e) {
                 log.error("❌ Failed to initialize module {}: {}", initializer.getClass().getSimpleName(), e.getMessage(), e);
                 throw e; // Fail fast if one of them is critical
