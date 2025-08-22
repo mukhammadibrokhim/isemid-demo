@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.organization.models;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -9,20 +8,23 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
-import uz.uzinfocom.isemid.features.organization.models.enums.OrganizationType;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
+import uz.uzinfocom.isemid.features.organization.models.enums.ServiceType;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Organization {
 
     @Id
@@ -46,27 +48,37 @@ public class Organization {
     private String tin;
     private String email;
     private String phone;
-    private String type;
-    private String levelCode;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "organization_service_types", joinColumns = @JoinColumn(name = "organization_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "service_type")
+    private List<ServiceType> serviceTypes = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "level_type")
+    private LevelType levelType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "medical_type")
+    private MedicalType medicalType;
+
+    @Column(name = "country_code")
     private String countryCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_code", referencedColumnName = "code")
+    @JoinColumn(name = "state_code", referencedColumnName = "code", updatable = false, insertable = false)
     private Catalog state;
 
-    @Column(name = "state_code", updatable = false, insertable = false)
+    @Column(name = "state_code")
     private String stateCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "city_code", referencedColumnName = "code")
+    @JoinColumn(name = "city_code", referencedColumnName = "code", updatable = false, insertable = false)
     private Catalog city;
 
-    @Column(name = "city_code", updatable = false, insertable = false)
+    @Column(name = "city_code")
     private String cityCode;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    private OrganizationType organizationType = OrganizationType.NONE;
 
     private String district;
     private String line;
@@ -82,7 +94,6 @@ public class Organization {
 
     @Column(name = "parent_id",insertable = false, updatable = false)
     private Long parentId;
-
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

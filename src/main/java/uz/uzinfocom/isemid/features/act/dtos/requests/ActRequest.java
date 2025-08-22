@@ -14,7 +14,7 @@ import uz.uzinfocom.isemid.features.act.enums.ActType;
 
 @Getter
 @Setter
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "actType", visible = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Act156Request.class, name = "ACT153"),
         @JsonSubTypes.Type(value = Act154Request.class, name = "ACT154"),
@@ -25,5 +25,5 @@ import uz.uzinfocom.isemid.features.act.enums.ActType;
 })
 public abstract class ActRequest {
     @NotNull(message = "act type is required.")
-    private ActType actType;
+    private ActType type;
 }

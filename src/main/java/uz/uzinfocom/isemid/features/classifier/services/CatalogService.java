@@ -1,9 +1,7 @@
 package uz.uzinfocom.isemid.features.classifier.services;
 
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.CatalogRequest;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponse;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 
@@ -12,23 +10,23 @@ import java.util.Optional;
 
 public interface CatalogService {
 
-    PagedResponse<?> getFilteredCatalogs(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa, String request);
+    Page<Catalog> filter(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa);
 
-    ApiResponse<CatalogResponse> create(CatalogRequest catalogRequest);
+    Catalog create(CatalogRequest catalogRequest);
 
-    ApiResponse<CatalogResponse> update(long id, CatalogRequest catalogRequest);
+    Catalog update(long id, CatalogRequest catalogRequest);
 
-    ApiResponse<?> delete(long id);
+    void delete(long id);
 
     Catalog findByCode(String code);
 
-    ApiResponse<?> findAllByType(CatalogType catalogType, String lang);
+    List<Catalog> findAllByType(CatalogType catalogType);
 
-    ApiResponse<?> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode, String lang);
+    List<Catalog> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode);
 
-    ApiResponse<?> findFirst20ByTypeAndSearch(CatalogType catalogType, String lang, String search);
+    List<Catalog> findFirst20ByTypeAndSearch(CatalogType catalogType, String search);
 
-    PagedResponse<?> getByHierarchical(int page, int size, CatalogType type, String requestUrl);
+    Page<Catalog> getByHierarchical(int page, int size, CatalogType type);
 
     Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String code);
 
@@ -36,5 +34,5 @@ public interface CatalogService {
 
     List<Catalog> finAllByType(CatalogType catalogType);
 
-    ApiResponse<CatalogResponse> getById(long id);
+    Catalog getById(long id);
 }

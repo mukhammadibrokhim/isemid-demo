@@ -1,112 +1,36 @@
 package uz.uzinfocom.isemid.features.organization.dtos.responses;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrganizationResponse {
-    private String id;
-    private Meta meta;
-    private List<OrganizationType> type; // o'zgartirildi
+    private Long id;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private UUID uuid;
     private String name;
     private boolean active;
-    private PartOf partOf;
-    private List<Address> address;
-    private List<Telecom> telecom;
-    private List<ServiceArea> serviceArea;
-    private String resourceType;
-    private List<Identifier> identifier;
-
-    @Getter
-    @Setter
-    public static class Meta {
-        private String versionId;
-        private String lastUpdated;
-        private String source; // JSONda bor
-    }
-
-    @Getter
-    @Setter
-    public static class OrganizationType { // nomi Type emas
-        private List<Coding> coding;
-    }
-
-    @Getter
-    @Setter
-    public static class Coding {
-        private String code;
-        private String system;
-        private String display;
-    }
-
-    @Getter
-    @Setter
-    public static class Alias {
-        private String value;
-        private String language;
-    }
-
-    @Getter
-    @Setter
-    public static class PartOf {
-        private String display;
-        private String reference;
-    }
-
-    @Getter
-    @Setter
-    public static class Address {
-        private String use;
-        private String city;
-        private String line;
-        private String type;
-        private String state;
-        private String country;
-        private String district;
-    }
-
-    @Getter
-    @Setter
-    public static class Telecom {
-        private String use;
-        private String value;
-        private String system;
-    }
-
-    @Getter
-    @Setter
-    public static class ServiceArea {
-        private String state;
-    }
-
-    @Getter
-    @Setter
-    public static class Identifier {
-        private String use;
-        private IdentifierType type; // bu ham "Type" emas
-        private String value;
-        private String system;
-        private String assigner;
-        private Period period;
-    }
-
-    @Getter
-    @Setter
-    public static class IdentifierType {
-        private List<Coding> coding;
-    }
-
-    @Getter
-    @Setter
-    public static class Period {
-        private String start;
-        private String end;
-    }
+    private String tin;
+    private String email;
+    private String phone;
+    private CatalogMinResponse medicalType;
+    private CatalogMinResponse levelType;
+    private List<CatalogMinResponse> serviceTypes;
+    private CatalogMinResponse country;
+    private CatalogMinResponse state;
+    private CatalogMinResponse city;
+    private String district;
+    private String line;
+    private CatalogMinResponse serviceArea;
+    private Long parentId;
+    private List<OrgChildResponse> children;
 }
-

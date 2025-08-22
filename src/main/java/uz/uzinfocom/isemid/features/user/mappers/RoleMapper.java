@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {PermissionMapper.class}, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface RoleMapper {
+    Role toEntity(RoleRequest roleRequest);
 
     @Mapping(target = "permissions", source = "permissions")
     RoleResponse toResponse(Role role);

@@ -29,5 +29,5 @@ public class Act155 extends Act {
     private String additionalInfo;
 
     @OneToMany(mappedBy = "act155", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Act155SampleDetails> act155SampleDetails = new HashSet<>();
+    private Set<Act155Detail> act155Details = new HashSet<>();
 }

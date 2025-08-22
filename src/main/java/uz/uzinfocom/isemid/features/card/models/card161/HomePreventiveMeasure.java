@@ -6,6 +6,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 import java.time.LocalDate;
@@ -15,13 +16,14 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Entity(name = "card161_prevent_measure")
 public class HomePreventiveMeasure extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card161_id", nullable = false)
     @JsonIgnore
     private Card161 card161;
+
     private String notifiedPerson;
     private LocalDateTime nextDiseaseTime; //DMED integration
     private String drugName; //DMED integration

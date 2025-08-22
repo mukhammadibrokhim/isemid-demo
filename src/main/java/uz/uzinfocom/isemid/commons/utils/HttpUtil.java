@@ -3,8 +3,8 @@ package uz.uzinfocom.isemid.commons.utils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.isemid.commons.constants.ApiPaths;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
+import uz.uzinfocom.isemid.commons.ApiPaths;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 
 import java.util.Enumeration;
 
@@ -28,7 +28,7 @@ public class HttpUtil {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authorizationHeader.substring(7);
         }
-        throw new ApiException(UNAUTHORIZED, MessageUtil.UNAUTHORIZED);
+        throw new ApiException(UNAUTHORIZED);
     }
 
 

@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.features.classifier.eums;
 public enum CatalogType {
     //General
     gender, state, city, neighborhood, country, nationality, identifierType, catalogType, maritalStatus, addressType,
-    populationType, residentialStatus, position, formType, diseasePlace, category, profession,
+    populationType, residentialStatus, position, formType, diseasePlace, category, profession, affiliationType,
 
     //Card 161
     detected, definedDisease, homeStayExclusionReason,diagnosisVerified,
@@ -30,7 +30,9 @@ public enum CatalogType {
     animalCategory,dogOwnerCompliance,
 
     //Card Tube
-    reasonForStayAtHome, eatingHabits,
+    reasonStayHome, nutritionType, workCondition, incomingLevel,
+    harmfulHabit, contactType, kinship, housingCondition, hygieneAssessment, heating, sewerage, renovationNeeded,
+    habitability, sputumDisposal, getsDisinfectant, visitInterval, epidemicPlanType, recoveryPlan,
 
     //card174
     affectedAnimalType,diseaseFactors,animalDisposalMethod,deratization,quarantineType,eliminationMethod,

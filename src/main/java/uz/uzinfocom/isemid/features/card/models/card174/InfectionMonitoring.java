@@ -1,48 +1,51 @@
 package uz.uzinfocom.isemid.features.card.models.card174;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
+import uz.uzinfocom.isemid.commons.models.Vaccination;
 
 import java.time.LocalDate;
-
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Entity(name = "card174_infection_monitoring")
 public class InfectionMonitoring extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "card174_id", nullable = false)
     private Card174 card174;
-    private Integer sequentialNumber;
-    private String lastName;
-    private String firstName;
-    private String middleName;
-    private String genderCode;
-    private LocalDate birthDate;
-    private String address;//Manzil.
-    private String profession;//Kasbi, ish joyi.
-    private LocalDate applicationDate;//Murojat sanasi.
-    private LocalDate confirmationDate;//Aniqlangan sana.
-    private String possibleInfectionLocation;//Yuqtirilishi mumkin bo‘lgan joyi.
-    private String possibleInfectionFactor;//Yuqtirilishi mumkin bo‘lgan yuqish omili.
-    private LocalDate possibleInfectionDate;//Yuqtirilishi mumkin bo‘lgan sana.
-//    private LocalDate previousInfectionDate;//Ilgari ushbu infeksiyaga qarshi emlangan sana.
-//    private String emergencyProphylaxis;
-//    private String antibioticTreatmentSeries;
-//    private String antibioticTreatmentScheme;  Integration with DMED Emlash.uz
 
-//    private String provizorName; takes from 058
-//    private LocalDate provizorRecordingDate;
-//    private LocalDate discussionDate;
+    private String lastName; // Familiya
+    private String firstName; // Ismi
+    private String middleName; // Sharifi
+    private String genderCode; // Jins kodi (M/F)
+    private LocalDate birthDate; // Tug‘ilgan sana
+    private String address; // Yashash manzili
+    private String profession; // Kasbi yoki ish joyi
+    private LocalDate applyDate; // Murojaat qilingan sana
+    private LocalDate confirmDate; // Kasallik tasdiqlangan sana
+    private String possibleLocation; // Yuqtirgan joy (taxminiy)
+    private String possibleFactor; // Yuqtirish omili (taxminiy)
+    private LocalDate possibleDate; // Yuqtirilgan sana (taxminiy)
+    private LocalDate contactInfectionDate; // Muloqatda bo‘lganlarning kasallanish sanasi
 
-//    private LocalDate labTestDate; integration with LIS
-//    private String labTestResult;
+    @ManyToMany
+    @JoinTable(
+            name = "infection_monitoring_vaccination",
+            joinColumns = @JoinColumn(name = "infection_monitoring_id"),
+            inverseJoinColumns = @JoinColumn(name = "vaccination_id"))
+    private List<Vaccination> vaccinations = new ArrayList<>();
+    private String vaccinationSummary;
 }

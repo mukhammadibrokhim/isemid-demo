@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.features.card.dtos.responses.card161;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,21 +20,21 @@ public class Card161Response extends CardResponse {
     private Boolean isResident;
     private String residentialTreatmentFacility;
     private LocalDateTime diseaseDetectedDate;
-    private CatalogResponseDto region;
-    private CatalogResponseDto district;
+    private CatalogMinResponse region;
+    private CatalogMinResponse district;
     private Long polyclinicId;
     private String initialSymptoms;
     //detected catalogga qoshish kerak
-    private CatalogResponseDto detected;
+    private CatalogMinResponse detected;
     private LocalDateTime epidemiologicalExamDate;
     private LocalDateTime observationEndDate;
     private LocalDateTime finalDiagnosisDate;
     //catalogga qoshish kerak
-    private CatalogResponseDto deliveryMethod;
-    private CatalogResponseDto homeStayExclusionReason;
-    private CatalogResponseDto lateAdmissionReason;
+    private CatalogMinResponse deliveryMethod;
+    private CatalogMinResponse homeStayExclusionReason;
+    private CatalogMinResponse lateAdmissionReason;
 
-    private CatalogResponseDto diagnosisVerified;
+    private CatalogMinResponse diagnosisVerified;
     //LIS bilan integratsiya uchun polya qoshish kerak.
     // emlash uz bialn integratsiya uchun polyalar.
     // DMED bilan integratsiya uchun polyalar.
@@ -45,7 +45,7 @@ public class Card161Response extends CardResponse {
     private LocalDate estimatedInfectionDateTo;
 
     @Builder.Default
-    private List<Card161RiskFactorResponse> riskFactors = new ArrayList<>();
+    private List<RiskFactorResponse> riskFactors = new ArrayList<>();
 
     @Builder.Default
     private List<InfectionSourceResponse> possibleInfectionSources = new ArrayList<>();
@@ -56,25 +56,25 @@ public class Card161Response extends CardResponse {
     private List<EnvironmentalLabTestResponse> environmentalLabTests = new ArrayList<>();
 
     //catalog qoshish kerak
-    private CatalogResponseDto livingCondition;
+    private CatalogMinResponse livingCondition;
     private Integer numberOfPeople;
     private Integer numberOfRooms;
     private String area;
 
     //catalog qoshish kerak
-    private CatalogResponseDto waterSupply;
-    private CatalogResponseDto liquidWasteDisposalType;
-    private CatalogResponseDto solidWasteDisposalType;
-    private CatalogResponseDto roomCondition;
-    private CatalogResponseDto yardCondition;
-    private CatalogResponseDto areaCondition;
+    private CatalogMinResponse waterSupply;
+    private CatalogMinResponse liquidWasteDisposalType;
+    private CatalogMinResponse solidWasteDisposalType;
+    private CatalogMinResponse roomCondition;
+    private CatalogMinResponse yardCondition;
+    private CatalogMinResponse areaCondition;
 
     private Boolean hasLice; //bitlash
     private Boolean hasOtherInsects;
     private Boolean hasRodents;
-    private CatalogResponseDto importantCausesOfDisease;
+    private CatalogMinResponse importantCausesOfDisease;
 
-    private CatalogResponseDto visitedObjects;
+    private CatalogMinResponse visitedObjects;
 
     private String denselyPopulated;
     private String isolationStatus;
@@ -103,16 +103,17 @@ public class Card161Response extends CardResponse {
 
     private String hospitalName;
     //catalog
-    private CatalogResponseDto infectionLocation;
-    private CatalogResponseDto probableInfectionLocation;
+    private CatalogMinResponse infectionLocation;
+    private CatalogMinResponse probableInfectionLocation;
     private Boolean isInfectionSourceMissing;
     private InfectionSourceDetailResponse infectionSourceDetail;
-    private CatalogResponseDto mainProbableInfectionFactor;
+    private CatalogMinResponse mainProbableInfectionFactor;
 
     @Builder.Default
-    private List<CatalogResponseDto> infectionCausingConditions = new ArrayList<>();
-    private CatalogResponseDto outbreakInfection;
-    private CatalogResponseDto caseStatus;
+    private List<CatalogMinResponse> infectionCausingConditions = new ArrayList<>();
+    private CatalogMinResponse outbreakInfection;
+    private CatalogMinResponse caseStatus;
     private String epidemiologist;
     private String epidemiologistAssistant;
+    private String comment;
 }

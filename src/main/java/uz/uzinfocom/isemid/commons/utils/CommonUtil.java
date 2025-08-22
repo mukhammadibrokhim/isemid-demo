@@ -79,6 +79,7 @@ public class CommonUtil {
             "receive-from-lis",
             "/catalog",
             "/user/me",
+            "/db",
             "/department",
             "/v1/auth",
             "/qr",

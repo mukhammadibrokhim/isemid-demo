@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import static org.springframework.util.StringUtils.hasText;
 
 public class CardSpecification {
-    public static Specification<Card> getFilteredSpecification(
+    public static Specification<Card> build(
             String formTypeCode,
             String fromOrgName,
             String toOrgName,
@@ -31,5 +31,13 @@ public class CardSpecification {
                         (attachedUser && userId != null) ? criteriaBuilder.equal(root.get("users").get("id"), userId) : null
                 ).filter(Objects::nonNull).toArray(Predicate[]::new)
         );
+    }
+
+    public static Specification<Card> build(Long userId) {
+        return ((root, query, criteriaBuilder) -> criteriaBuilder.and(
+                Stream.of(
+                        (userId != null) ? criteriaBuilder.equal(root.get("users").get("id"), userId) : null
+                ).filter(Objects::nonNull).toArray(Predicate[]::new)
+        ));
     }
 }

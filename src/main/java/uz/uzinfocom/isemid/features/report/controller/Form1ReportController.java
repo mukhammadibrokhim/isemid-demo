@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.service.Form1ReportService;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
@@ -24,7 +25,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class Form1ReportController {
     private final Form1ReportService form1Service;
-
+    private final MessageUtil messageUtil;
     @Operation(
             summary = "Отчёт по инфекциям (Форма 1)",
             description = "Получение статистики инфекций по форме 058 с фильтрацией по датам.",
@@ -55,7 +56,7 @@ public class Form1ReportController {
             @RequestParam(required = false) Gender gender,
             @CurrentUser User currentUser
     ) {
-        return form1Service.getReport(fromDate, toDate, birthDate, mkb10Code, gender, currentUser);
+        return ApiResponse.success(messageUtil, form1Service.getReport(fromDate, toDate, birthDate, mkb10Code, gender, currentUser));
     }
 
 }

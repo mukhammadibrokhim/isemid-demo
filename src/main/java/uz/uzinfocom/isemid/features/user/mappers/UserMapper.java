@@ -1,10 +1,10 @@
 package uz.uzinfocom.isemid.features.user.mappers;
 
 import org.mapstruct.*;
-import uz.uzinfocom.isemid.features.classifier.mappers.CatalogConverter;
+import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
-import uz.uzinfocom.isemid.features.user.dtos.responses.PractitionerResponse;
+import uz.uzinfocom.isemid.features.user.dtos.responses.MisUserResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
@@ -12,7 +12,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 @Mapper(
         componentModel = "spring",
-        uses = {CatalogConverter.class, RoleMapper.class, OrganizationMapper.class},
+        uses = {CatalogMapperHelper.class, RoleMapper.class, OrganizationMapper.class},
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
@@ -60,14 +60,14 @@ public interface UserMapper {
     @Mapping(target = "organizations", ignore = true)
     @Mapping(target = "currentOrganization", ignore = true)
     @Mapping(target = "positionCode", ignore = true)
-    User toUser(PractitionerResponse response);
+    User toUser(MisUserResponse response);
 
     @Mapping(target = "genderCode", source = "gender.value", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateUser(UserRequest dto, @MappingTarget User entity);
+    void update(UserRequest dto, @MappingTarget User entity);
 
 
 
-    default String extractIdentifierByType(PractitionerResponse response, String typeCode) {
+    default String extractIdentifierByType(MisUserResponse response, String typeCode) {
         if (response == null || response.getIdentifier() == null || response.getIdentifier().isEmpty()) {
             System.out.println("response.getIdentifier() is null or empty");
             return null;
@@ -80,7 +80,7 @@ public interface UserMapper {
                                 identifier.getType().getCoding().stream()
                                         .anyMatch(coding -> typeCode.equals(coding.getCode()))
                 )
-                .map(PractitionerResponse.Identifier::getValue)
+                .map(MisUserResponse.Identifier::getValue)
                 .findFirst()
                 .orElse(null);
     }

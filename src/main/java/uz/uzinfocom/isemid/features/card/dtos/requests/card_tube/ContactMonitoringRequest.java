@@ -10,12 +10,13 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class ContactMonitoringRequest {
-    private String fullName; // 1. Мулоқатдагилар Ф.И.Ш.
-    private LocalDate birthDate; // Tug‘ilgan sanasi (12.12.2020)
-    private Integer age; // 2. Туғилган йили (ёши)
-    private String relationCode; // 3. Қариндошлик даражаси (spravichnik)
-    private String workplaceOrStudyPlace; // 4. Иш жойи (ўқиш жойи)
-    private String notificationReceiver; // 5. Силга қарши диспансер хабарномани ким қабул қилган
-    private LocalDate diagnosisDate; // 6. Tashxis qo‘yilgan vaqt
-    private String contactStatusCode; // 7. Мулоқатдагилар ҳолати (spravichnik)
+    private Long id;
+    private String fullName; // F.I.Sh. (To‘liq ism sharifi)
+    private LocalDate birthDate; // Tug‘ilgan sana (Date of Birth)
+    private Integer age; // Yoshi
+    private String relationCode; // Qarindoshlik darajasi (masalan: ota, ona, aka)
+    private String workStudyPlace; // Ish yoki o‘qish joyi
+    private String notifier; // Xabar olgan shaxs yoki muassasa
+    private LocalDate diagDate; // Tashxis qo‘yilgan sana (Diagnosis Date)
+    private String statusCode; // Aloqa holati (Active, Monitored, Infected va h.k.)
 }

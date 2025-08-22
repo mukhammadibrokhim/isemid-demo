@@ -11,7 +11,6 @@ import uz.uzinfocom.isemid.features.card.models.card_tube.CardTube;
 
 @Component
 public class CardFactory {
-
     public Card createCard(CardType type) {
         return switch (type) {
             case CARD161 -> new Card161();

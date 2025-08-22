@@ -1,36 +1,35 @@
 package uz.uzinfocom.isemid.features.user.services;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+
+import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.user.dtos.requests.RoleRequest;
-import uz.uzinfocom.isemid.features.user.dtos.responses.RoleResponse;
 import uz.uzinfocom.isemid.features.user.models.Role;
 
 import java.util.List;
 
 public interface RoleService {
-    Role findOrCreateRoleByName(String s);
-
-    List<Role> getAllRoles();
-
-    PagedResponse<?> getAllRolesPage(
+    Page<Role> filter(
             int page,
             int size,
             String name,
             String descriptionUz,
             String descriptionRu,
             String descriptionUzCyril,
-            String descriptionKaa,
-            String url);
+            String descriptionKaa
+    );
 
-    ApiResponse<RoleResponse> create(RoleRequest reqRole);
+    Role findOrCreateRoleByName(String s);
 
-    ApiResponse<RoleResponse> update(long id, RoleRequest roleRequest);
+    List<Role> getAllRoles();
 
-    ApiResponse<RoleResponse> deleteById(long id);
+    Role create(RoleRequest reqRole);
 
-    ApiResponse<?> roleSearch(String search);
+    Role update(long id, RoleRequest roleRequest);
 
-    ApiResponse<?> addPermission(long roleId, long permissionId);
+    void deleteById(long id);
 
-    ApiResponse<?> removePermission(long roleId, long permissionId);
+    List<Role> roleSearch(String search);
+
+    Role addPermission(long roleId, long permissionId);
+
+    Role removePermission(long roleId, long permissionId);
 }

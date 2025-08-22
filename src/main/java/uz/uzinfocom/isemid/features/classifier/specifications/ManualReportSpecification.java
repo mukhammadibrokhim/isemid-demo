@@ -11,7 +11,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 public class ManualReportSpecification {
 
-    public static Specification<ManualReport> getFilteredSpecification(
+    public static Specification<ManualReport> build(
             String shortName,
             String nameUz,
             String nameUzCyril,

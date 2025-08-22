@@ -8,7 +8,6 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 import java.time.LocalDate;
 
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
@@ -18,6 +17,7 @@ import java.time.LocalDate;
 @Table(
         indexes = @Index(name = "idx_value_type", columnList = "value, typeCode"),
         name = "pt_identifier")
+@EntityListeners(AuditingEntityListener.class)
 public class Identifier extends BaseEntity {
 
     @JsonIgnore
@@ -29,7 +29,6 @@ public class Identifier extends BaseEntity {
     private String value;
 
     private String typeCode;
-
     private LocalDate periodStart;
     private LocalDate periodEnd;
 }

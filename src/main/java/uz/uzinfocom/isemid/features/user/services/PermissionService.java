@@ -1,25 +1,24 @@
 package uz.uzinfocom.isemid.features.user.services;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+
+import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.user.dtos.requests.PermissionRequest;
-import uz.uzinfocom.isemid.features.user.dtos.responses.PermissionResponse;
+import uz.uzinfocom.isemid.features.user.models.Permission;
 
 public interface PermissionService {
-    PagedResponse<?> getAllPermissionsPage(
+    Page<Permission> filter(
             int page, int size, String subject,
             String descriptionUz,
             String descriptionRu,
             String descriptionUzCyril,
             String descriptionKaa,
-            Boolean active,
-            String requestUrl
+            Boolean active
     );
 
-    ApiResponse<PermissionResponse> create(PermissionRequest permissionRequest);
+    Permission create(PermissionRequest permissionRequest);
 
-    ApiResponse<PermissionResponse> update(long id, PermissionRequest permissionRequest);
+    Permission update(long id, PermissionRequest permissionRequest);
 
-    ApiResponse<PermissionResponse> getBydId(long id);
+    Permission getBydId(long id);
 
-    ApiResponse<?> deleteById(long id);
+    void deleteById(long id);
 }

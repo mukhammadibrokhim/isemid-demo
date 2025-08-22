@@ -3,8 +3,8 @@ package uz.uzinfocom.isemid.features.security.services.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
@@ -25,18 +25,20 @@ import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkNnuzb;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-
     private final UserRepository userRepository;
     private final OrganizationService organizationService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<?> signUp(RegisterRequest request) {
-        if (!checkNnuzb(request.getNnuzb())) throw new ApiException(BAD_REQUEST, MessageUtil.BAD_REQUEST + " Nnuzb");
+    @Transactional
+    public void signUp(RegisterRequest request) {
+        if (!checkNnuzb(request.getNnuzb()))
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.request.invalid_nnuzb", request.getNnuzb()));
 
         if (userRepository.findByNnuzb(request.getNnuzb()).isPresent()) {
-            throw new ApiException(BAD_REQUEST, MessageUtil.ALREADY_EXISTS + ": " + request.getNnuzb());
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.request.already_exists", request.getNnuzb()));
         }
 
         Organization organization = organizationService.findByTin(request.getOrganization().getTin())
@@ -78,6 +80,5 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, null);
     }
 }

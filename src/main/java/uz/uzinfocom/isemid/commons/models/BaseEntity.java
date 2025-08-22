@@ -1,8 +1,11 @@
 package uz.uzinfocom.isemid.commons.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
@@ -12,10 +15,13 @@ import org.springframework.data.annotation.LastModifiedBy;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-@MappedSuperclass
 @Getter
 @Setter
-public class BaseEntity {
+@MappedSuperclass
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
+public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -46,7 +46,7 @@ public class Card161Request extends CardRequest {
     private LocalDate estimatedInfectionDateTo;
 
 
-    private List<Card161RiskFactorRequest> riskFactors;
+    private List<RiskFactorRequest> riskFactors;
 
     private List<InfectionSourceRequest> possibleInfectionSources;
 
@@ -105,4 +105,5 @@ public class Card161Request extends CardRequest {
     private String caseStatusCode;
     private String epidemiologist;
     private String epidemiologistAssistant;
+    private String comment;
 }

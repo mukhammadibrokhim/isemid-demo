@@ -17,7 +17,6 @@ import java.util.Set;
 @Schema(description = "Request object for Act154")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act154Request extends ActRequest {
-    private Long id;
     private String title;
     private Long serialNumber;
     private LocalDate documentSendDate;
@@ -28,5 +27,5 @@ public class Act154Request extends ActRequest {
     private String samplerFullName;
     private String position;
     private String additionalInfo;
-    private Set<Act154DetailRequest> act154SampleDetailsList;
+    private Set<Act154DetailRequest> act154Details;
 }

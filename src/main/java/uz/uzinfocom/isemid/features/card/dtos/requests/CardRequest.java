@@ -25,5 +25,5 @@ import uz.uzinfocom.isemid.features.card.enums.CardType;
 public abstract class CardRequest {
     @NotNull(message = "card type is required.")
     private CardType cardType;
-    private long userId;
+    private Long userId;
 }

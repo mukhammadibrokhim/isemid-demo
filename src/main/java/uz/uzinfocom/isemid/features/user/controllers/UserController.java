@@ -6,14 +6,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
+import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
@@ -29,8 +33,9 @@ import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 @RequiredArgsConstructor
 @Tag(name = "User", description = "API для работы с пользователями")
 public class UserController {
-
     private final UserService userService;
+    private final UserMapper userMapper;
+    private final MessageUtil messageUtil;
 
     @Operation(
             summary = "Получить всех пользователей",
@@ -58,55 +63,38 @@ public class UserController {
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) String accessLevelCode,
             @RequestParam(required = false) Boolean active,
+            @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        return userService.getFilteredUsers(page, size, nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, getRequestUrl(request));
+        Page<User> userPage = userService.filter(page, size, nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, currentUser);
+        return PagedResponse.build(page, userPage.map(userMapper::toResponse), getRequestUrl(request), messageUtil);
     }
 
-    @Operation(
-            summary = "Получить пользователя по ID",
-            description = "Получает пользователя по заданному идентификатору (ID).",
-            parameters = {
-                    @Parameter(name = "id", description = "ID пользователя", required = true)
-            }
-    )
+    @Operation(summary = "Получить пользователя по ID", description = "Получает пользователя по заданному идентификатору (ID).")
     @GetMapping("/{id}")
     public ApiResponse<UserResponse> getUserById(@PathVariable long id) {
-        return userService.getById(id);
+        return ApiResponse.success(messageUtil, userMapper.toResponse(userService.getById(id)));
     }
 
-    @Operation(
-            summary = "Обновить данные пользователя",
-            description = "Обновляет данные пользователя по заданному ID."
-    )
+    @Operation(summary = "Обновить данные пользователя", description = "Обновляет данные пользователя по заданному ID.")
     @PutMapping("/{id}")
-    public ApiResponse<UserResponse> updateUser(@PathVariable long id, @Valid @RequestBody UserRequest reqUser) {
-        return userService.update(id, reqUser);
+    public ApiResponse<UserResponse> updateUser(@PathVariable long id, @Valid @RequestBody UserRequest request) {
+        return ApiResponse.success(messageUtil, userMapper.toResponse(userService.update(id, request)));
     }
 
-    @Operation(
-            summary = "Получить данные текущего пользователя",
-            description = "Возвращает информацию о текущем аутентифицированном пользователе."
-    )
-    @GetMapping("/me")
+    @Operation(summary = "Получить данные текущего пользователя", description = "Возвращает информацию о текущем аутентифицированном пользователе.")
+    @GetMapping(value = "/me", produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<UserMeResponse> getCurrentUser(@CurrentUser User user) {
-        return userService.getByUuid(user);
+        return ApiResponse.success(messageUtil, userMapper.toUserMeResponse(user));
     }
 
-    @Operation(
-            summary = "Обновить пользователя из MIS",
-            description = "Обновляет данные пользователя, используя информацию из MIS по UUID пользователя.",
-            parameters = {
-                    @Parameter(name = "uuid", description = "UUID пользователя для обновления", required = true),
-                    @Parameter(name = "Authorization", description = "JWT токен для авторизации", required = true)
-            }
-    )
+    @Operation(summary = "Обновить пользователя из MIS", description = "Обновляет данные пользователя, используя информацию из MIS по UUID пользователя.")
     @PutMapping("/{uuid}/update-from-mis")
     public ApiResponse<UserResponse> updateUserFromMis(
             @PathVariable UUID uuid,
             @RequestBody UserRequest user,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
     ) {
-        return userService.updateUserFromMis(uuid, user, token);
+        return ApiResponse.success(messageUtil, userMapper.toResponse(userService.updateUserFromMis(uuid, user, token)));
     }
 }
