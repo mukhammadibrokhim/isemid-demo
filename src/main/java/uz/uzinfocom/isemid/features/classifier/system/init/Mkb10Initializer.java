@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.features.classifier.system.init;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.commons.seed.CsvLoaderUtil;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 @Component
 @Order(2)
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "runner.mkb10.init", havingValue = "true")
+//@ConditionalOnProperty(name = "runner.mkb10.init", havingValue = "true")
 public class Mkb10Initializer implements ModuleDataInitializer {
 
     private final Mkb10Repository mkb10Repository;

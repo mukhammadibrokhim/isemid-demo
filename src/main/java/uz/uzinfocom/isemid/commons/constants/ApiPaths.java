@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons;
+package uz.uzinfocom.isemid.commons.constants;
 
 public final class ApiPaths {
     public static final String BASE_PATH = "/v1";

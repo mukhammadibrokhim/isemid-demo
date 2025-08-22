@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uz.uzinfocom.isemid.commons.ApiPaths;
+import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.features.report.service.Form058ExportService;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;

@@ -13,7 +13,7 @@ import uz.uzinfocom.isemid.features.security.dtos.responses.TokenResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import static uz.uzinfocom.isemid.commons.ApiPaths.ExternalApi.SSO_TOKEN;
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.SSO_TOKEN;
 
 @Service
 @AllArgsConstructor
