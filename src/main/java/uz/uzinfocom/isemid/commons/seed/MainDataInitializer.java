@@ -11,7 +11,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "runner.main.init", havingValue = "true")
+//@ConditionalOnProperty(name = "runner.main.init", havingValue = "true")
 public class MainDataInitializer implements CommandLineRunner {
     private final List<ModuleDataInitializer> initializers;
 

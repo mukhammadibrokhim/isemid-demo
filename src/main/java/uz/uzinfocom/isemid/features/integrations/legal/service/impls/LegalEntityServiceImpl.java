@@ -11,7 +11,7 @@ import uz.uzinfocom.isemid.features.integrations.config.OAuthTokenService;
 import uz.uzinfocom.isemid.features.integrations.legal.service.LegalEntityService;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static uz.uzinfocom.isemid.commons.ApiPaths.ExternalApi.LEGAL_ENTITY_API;
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LEGAL_ENTITY_API;
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.maskTin;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 import static uz.uzinfocom.isemid.features.integrations.legal.utils.ValidationUtil.validationTin;

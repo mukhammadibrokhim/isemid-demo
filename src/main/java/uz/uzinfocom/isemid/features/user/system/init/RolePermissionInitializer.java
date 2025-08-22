@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.features.user.system.init;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.commons.seed.ModuleDataInitializer;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 @Order(3)
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "runner.role_permission.init", havingValue = "true")
+//@ConditionalOnProperty(name = "runner.role_permission.init", havingValue = "true")
 public class RolePermissionInitializer implements ModuleDataInitializer {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
