@@ -6,11 +6,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
+import uz.uzinfocom.isemid.features.classifier.mappers.ManualReportMapper;
+import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
@@ -22,8 +26,9 @@ import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 @Tag(name = "Manual Report")
 @RequiredArgsConstructor
 public class ManualReportController {
-
     private final ManualReportService manualReportService;
+    private final ManualReportMapper manualReportMapper;
+    private final MessageUtil messageUtil;
 
     @Operation(
             summary = "Получить все ручные отчеты",
@@ -61,48 +66,43 @@ public class ManualReportController {
             @RequestParam(required = false) Boolean includeTotal,
             HttpServletRequest request
     ) {
-        return manualReportService.getAllByFilter(page, size, shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal, getRequestUrl(request));
+        Page<ManualReport> manualReportPage = manualReportService.filter(page, size, shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
+        return PagedResponse.build(page, manualReportPage.map(manualReportMapper::toResponse), getRequestUrl(request), messageUtil);
     }
 
     @Operation(
             summary = "Создать новый ручной отчет",
             description = "Создает новый ручной отчет с переданными данными.")
     @PostMapping
-    public ApiResponse<?> post(@Valid @RequestBody ManualReportRequest manualReportRequest) {
-        return manualReportService.create(manualReportRequest);
+    public ApiResponse<?> post(@Valid @RequestBody ManualReportRequest request) {
+        return ApiResponse.success(messageUtil, manualReportMapper.toResponse(manualReportService.create(request)));
     }
 
     @Operation(
             summary = "Обновить ручной отчет по ID",
-            description = "Обновляет существующий ручной отчет с указанным ID.",
-            parameters = {
-                    @Parameter(name = "id", description = "ID отчета для обновления", required = true)})
+            description = "Обновляет существующий ручной отчет с указанным ID.")
     @PutMapping("/{id}")
-    public ApiResponse<?> put(@PathVariable Long id, @RequestBody ManualReportRequest manualReportRequest) {
-        return manualReportService.update(id, manualReportRequest);
+    public ApiResponse<?> put(@PathVariable Long id, @RequestBody ManualReportRequest request) {
+        return ApiResponse.success(messageUtil, manualReportMapper.toResponse(manualReportService.update(id, request)));
     }
 
     @Operation(
             summary = "Получить ручной отчет по ID",
-            description = "Возвращает ручной отчет по указанному ID.",
-            parameters = {
-                    @Parameter(name = "id", description = "ID отчета", required = true)
-            }
+            description = "Возвращает ручной отчет по указанному ID."
     )
     @GetMapping("/{id}")
     public ApiResponse<?> getOne(@PathVariable Long id) {
-        return manualReportService.getById(id);
+        ;
+        return ApiResponse.success(messageUtil, manualReportMapper.toResponse(manualReportService.getById(id)));
     }
 
     @Operation(
             summary = "Удалить ручной отчет по ID",
-            description = "Удаляет ручной отчет по указанному ID.",
-            parameters = {
-                    @Parameter(name = "id", description = "ID отчета для удаления", required = true)
-            }
+            description = "Удаляет ручной отчет по указанному ID."
     )
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
-        return manualReportService.delete(id);
+        manualReportService.delete(id);
+        return ApiResponse.deleteSuccess(messageUtil);
     }
 }

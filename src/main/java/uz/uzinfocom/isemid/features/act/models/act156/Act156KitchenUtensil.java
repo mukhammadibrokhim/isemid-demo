@@ -2,15 +2,16 @@ package uz.uzinfocom.isemid.features.act.models.act156;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 @Setter
 @Getter
 @Entity
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Table(name = "act156_kitchen_utensils")
+@Table(name = "act156_kitchen_utensil")
 public class Act156KitchenUtensil extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

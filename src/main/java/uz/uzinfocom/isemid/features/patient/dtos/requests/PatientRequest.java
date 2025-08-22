@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.features.patient.dtos.requests;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -12,6 +11,7 @@ import uz.uzinfocom.isemid.features.patient.enums.PopulationType;
 import uz.uzinfocom.isemid.features.patient.enums.ResidentialStatus;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -23,9 +23,11 @@ public class PatientRequest {
 
     @NotBlank(message = "Имя обязательно и не может быть пустым.")
     private String firstName;
+
     @NotBlank(message = "Фамилия обязательна и не может быть пустой.")
     private String lastName;
     private String middleName;
+
     @Valid
     @NotEmpty(message = "Список идентификаторов обязателен.")
     @Size(min = 1, message = "Список идентификаторов не может быть пустым.")
@@ -52,10 +54,8 @@ public class PatientRequest {
     @NotNull(message = "Population Type is required.")
     private PopulationType populationType;
 
-    @NotBlank(message = "Место работы обязательно и не может быть пустым.")
-    private String workPlace;
-    private String workPlaceStateCode;
-    private String workPlaceCityCode;
+    @Valid
+    private List<AffiliationRequest> affiliations = new ArrayList<>();
 
     @JsonIgnore
     @AssertTrue(message = "Адреса должны содержать как минимум один TEMPORARY и один PERMANENT адрес.")

@@ -4,8 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -15,44 +16,39 @@ import java.util.List;
 @Builder
 @Schema(description = "Request object for CARD175 type card")
 public class Card175Request extends CardRequest {
-
-    private LocalDateTime timeOfEpidemiologicalInvestigation;
-    private Date dateOfIllness;
-    private LocalDateTime dateOfDiagnosisOfEmergencyDay;
-    private LocalDateTime dateOfFinalDiagnosis;
-    private Date dateOfDischargeFromHospital;
-    private Date dateOfVaccination;//Emlash sanasi
-    private String pathogenType; //Qo‘zg‘atuvchi turi, seroguruxi.
-
-
-    private String informationAboutLastVaccination; //Oxirgi emlash haqida ma’lumot (rejali, epidemik ko‘rsatma bo‘yicha, vaqti, dozasi preparat nomi, seriyasi.
-    private String briefEpidemiologicalComment; //Qisqacha epidimiologik anamnez (yuqish mumkin bo‘lgan joy).
-    private String placeOfApplication; //Murojaat etgan joy.
-    private String nameOfMedicine; //Dori nomi.
-    private Long quantityOfMedicine; //Miqdori.
-    private Long serialNumber; //Seriyasi.
-    private Long vaccinationCount; //O‘tkazish jadvali.
-    private String clinicalForm; //Klinik shakli.
-
-    //Catalogs
-    private String wherePatientCome;//Bemor qayerdan kelgan.
-    private String hospitalDischargeStatusCode;//Kasalxonadan chiqish xolati.
-    private String transportTypeCode; //Yotkizilgan kasalxona, qaysi transport vositasi bilan.
-    private String reasonOfLeavingHomeCode; //Uyda qoldirish (sababi) yo‘qligi.
-    private String reasonOfLateHospitalizationCode; //Kech yotqizilish sabablari.
-    private String diagnosisConfirmedCode; //Tashxis tasdiqlandi. Laboratoriya tekshiruvi  utkazildi.
-    private String informationAboutVaccinationCode; //Vaksinatsiya o‘tkazilishi ma’lumotlar.
-    private String initialDiagnosisCode; //Birlamchi tashxis.
-    private String patientIdentifiedCode; //Bemor aniqlandi.
-    private String preventionAndAidCode; //Tezkor profilaktika yoki antirabik yordam haqida ma’lumot.(jadval buzilganda yoki emlash o‘tkazilmagan holda).
-    private List<String> partOfInjuryCode; //Jarohatlangan joyi.
-    private String severityOfIllnessCode; //Kasallik kechishining og‘irligi.
-    private String relevanceOfDiseaseToProfessionCode; //Kasallik kasbiy tegishliligi.
-    private String diseaseSpreaderTypeCode; // Kasallik manbai haqida ma’lumot (kuchuklar,qora mollar,itlar)
-    private String ownerOfDiseaseSpreaderCode; //Hayvonlarni kimga tegishliligi.
-    private String observationResultOfAnimalsCode; //Xayvonlarning kuzatish natijasi.
-    private String checkingDiagnosisCode; //Hayvondagi tashxis laboratoriyada tekshiruuvda.(Tasdiqlandi,Tasdiqlanmagan,Tekshirilmagan)
-    private List<String> diseaseTransmissionConditionCode; //Kasallik yuqishiga olib keladigan sharoit.
-    private List<String> pathogenMainFactorCode; //Kasallik chaqiruvchisini yuqtirishga ehtimol qilingan asosiy omil.
-    private List<String> takenMeasuresFromResidenceCode;//Bemorning yashash joyida o‘tkazilgan chora - tadbirlar.
+    private String pathogenType; // Qo‘zg‘atuvchi turi (seroguruxi)
+    private String originPlaceCode; // Bemor qayerdan kelgan (LIS dan)
+    private String patientSourceCode; // Bemor manbai
+    private String possibleInfectionPlace; // Qisqacha epidimiologik anamnez (yuqish mumkin bo‘lgan joy).
+    private String primaryDiagnosis; //Birlemshi diagnoz.
+    private String patientDetectedCode;    // Bemor aniqlanish holati
+    private LocalDateTime epiCheckTime; // Epidemiologik tekshiruv vaqti
+    private LocalDate illnessDate; // Kasallangan sana
+    private String applicationPlace;     // Murojaat qilgan joy
+    private LocalDate urgentDiagnosisDate; // Shoshilinch tashxis sanasi
+    private LocalDate finalDiagnosisDate; // Yakuniy tashxis sanasi
+    private LocalDate dischargeDate; // Kasalxonadan Chiqish sanasi
+    private String dischargeStatusCode; // Kasalxonadan Chiqish holati
+    private String transportType; // Kasalxonaga olib borilgan transport vositasi
+    private String noHomeStayReason; // Uyda qoldirilmaslik sababi
+    private String lateHospitalizationReason; // Kech yotqizilish sabablari
+    private String diagnosisLabConfirmed; // Diagnoz va laboratoriya tasdiqlangan
+    private String vaccinationInfo; // Vaksinatsiya ma'lumotlari
+    private String emergencyProphylaxisInfo; // Tezkor profilaktika yoki antirabik yordam ma'lumotlari
+    private LocalDate vaccinationDate; // Emlash sanasi
+    private String medicineName;         // Dori nomi
+    private Long medicineQty;            // Dori miqdori
+    private Long medicineSeries;         // Seriyasi
+    private Long vaccinationPlan;        // Jadval bo‘yicha soni
+    private String clinicalForm;         // Klinik shakl
+    private List<String> injuryParts = new ArrayList<>(); // Jarohat joylari (dropdown multi)
+    private String illnessSeverityCode;  // Kasallik og‘irligi
+    private String jobRelationCode;      // Kasbiy tegishlilik
+    private String spreaderTypeCode;     // Yuqtiruvchi manba turi
+    private String spreaderOwnerCode;    // Hayvon egasi
+    private String animalObsResultCode;  // Hayvon kuzatuv natijasi
+    private String animalDiagnosisCode;  // Hayvon tashxis natijasi
+    private List<String> transmissionConditions = new ArrayList<>(); // Yuqtirish sharoitlari
+    private List<String> mainPathogenFactors = new ArrayList<>(); // Yuqtirish omillari
+    private List<String> residenceMeasures = new ArrayList<>(); // Yashash joyidagi chora-tadbirlar
 }

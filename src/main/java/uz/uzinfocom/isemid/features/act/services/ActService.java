@@ -1,17 +1,18 @@
 package uz.uzinfocom.isemid.features.act.services;
 
 
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
-import uz.uzinfocom.isemid.features.user.models.User;
+import uz.uzinfocom.isemid.features.act.models.Act;
+
+import java.util.List;
 
 public interface ActService {
 
-   ApiResponse<?> getById(long id);
+    Act getById(long id);
 
-    ApiResponse<?> updateAct(long id, ActRequest reqAct, User currentUser);
+    Act update(long id, ActRequest reqAct);
 
-    ApiResponse<?> deleteById(Long id);
+    void deleteById(Long id);
 
-    ApiResponse<?> getAllByCardId(Long cardId);
+    List<Act> getAllByCardId(Long cardId);
 }

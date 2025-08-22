@@ -17,4 +17,5 @@ public class CardAssignActRequest {
     @NotNull(message = "Card id is required.")
     private Long cardId;
     @NotNull(message = "Act type is required.")
-    private List<ActType> actTypes;}
+    private List<ActType> actTypes;
+}

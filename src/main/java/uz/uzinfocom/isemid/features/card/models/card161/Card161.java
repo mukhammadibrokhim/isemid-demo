@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.card.models.card161;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import uz.uzinfocom.isemid.commons.models.Vaccination;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 
@@ -22,39 +23,34 @@ public class Card161 extends Card {
     private Boolean isResident;
     private String residentialTreatmentFacility;
     private LocalDateTime diseaseDetectedDate;
-
     private String regionCode;
     private String districtCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "polyclinic_id")
+    @JoinColumn(name = "polyclinic_id", insertable = false, updatable = false)
     private Organization polyclinic;
 
-    @Column(name = "polyclinic_id", insertable = false, updatable = false)
+    @Column(name = "polyclinic_id")
     private Long polyclinicId;
 
     private String initialSymptoms;
-
     private String detectedCode;
-
     private LocalDateTime epidemiologicalExamDate;
     private LocalDateTime observationEndDate;
     private LocalDateTime finalDiagnosisDate;
     private String deliveryMethodCode;
     private String homeStayExclusionReasonCode;
-
     private String lateAdmissionReasonCode;
-
     private String diagnosisVerifiedCode;
-    //LIS bilan integratsiya uchun polya qoshish kerak.
-    // emlash uz bialn integratsiya uchun polyalar.
-    // DMED bilan integratsiya uchun polyalar.
 
-    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"card161"})
-    @OrderBy("id DESC")
     @Builder.Default
-    List<Vaccination> vaccinations = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "card161_vaccination",
+            joinColumns = @JoinColumn(name = "card161_id"),
+            inverseJoinColumns = @JoinColumn(name = "vaccination_id")
+    )
+    private List<Vaccination> vaccinations = new ArrayList<>();
 
     private LocalDate estimatedInfectionDateFrom;
     private LocalDate estimatedInfectionDateTo;
@@ -63,7 +59,7 @@ public class Card161 extends Card {
     @JsonIgnoreProperties({"card161"})
     @OrderBy("id DESC")
     @Builder.Default
-    private List<Card161RiskFactor> riskFactors = new ArrayList<>();
+    private List<RiskFactor> riskFactors = new ArrayList<>();
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
@@ -76,7 +72,6 @@ public class Card161 extends Card {
     @OrderBy("id DESC")
     @Builder.Default
     private List<EnvironmentalSource> environmentalSources = new ArrayList<>();
-
 
     //catalog qoshish kerak
     private String livingConditionCode;
@@ -105,7 +100,6 @@ public class Card161 extends Card {
     private String foodStorage;
     private String foodPreparation;
     private String diseaseCausingFactors;
-
 
     @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"card161"})
@@ -137,9 +131,7 @@ public class Card161 extends Card {
     @Builder.Default
     private List<OutbreakDisinfectionMeasure> outbreakDisinfectionMeasures = new ArrayList<>();
 
-
     private String hospitalName;
-    //catalog
     private String infectionLocationCode;
     private String probableInfectionLocationCode;
     private Boolean isInfectionSourceMissing;
@@ -160,5 +152,7 @@ public class Card161 extends Card {
     private String caseStatusCode;
     private String epidemiologist;
     private String epidemiologistAssistant;
+    @Column(columnDefinition = "TEXT")
+    private String comment;
 }
 

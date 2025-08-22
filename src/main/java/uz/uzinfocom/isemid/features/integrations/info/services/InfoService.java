@@ -1,10 +1,11 @@
 package uz.uzinfocom.isemid.features.integrations.info.services;
 
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.features.integrations.info.dtos.responses.InfoIcd10Response;
+import uz.uzinfocom.isemid.features.form058.models.Form058;
+
+import java.util.List;
 
 public interface InfoService {
-    ApiResponse<?> getPatientMHByNnuzb(String nnuzb);
+    List<Form058> getPatientMHByNnuzb(String nnuzb);
 
-    ApiResponse<InfoIcd10Response> getConfirmedMkb10ByNnuzb(String nnuzb);
+    List<Form058> getConfirmedMkb10ByNnuzb(String nnuzb);
 }

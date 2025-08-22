@@ -10,6 +10,7 @@ import uz.uzinfocom.isemid.features.user.models.Permission;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface PermissionMapper {
+    Permission toEntity(PermissionRequest request);
     @Mapping(target = "id", source = "id")
     PermissionResponse toResponse(Permission permission);
 

@@ -1,12 +1,11 @@
 package uz.uzinfocom.isemid.features.classifier.services.impls;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
 import uz.uzinfocom.isemid.features.classifier.mappers.ManualReportMapper;
@@ -15,79 +14,49 @@ import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportReposito
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.classifier.specifications.ManualReportSpecification;
 
-import java.util.HashSet;
-import java.util.Optional;
-
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.createApiResponsePage;
+import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
 @Service
 @RequiredArgsConstructor
 public class ManualReportServiceImpl implements ManualReportService {
     private final ManualReportRepository repo;
+    private final MessageUtil messageUtil;
     private final ManualReportMapper mapper;
 
     @Override
-    public PagedResponse<?> getAllByFilter(int page, int size, String shortName, String nameUz, String nameUzCyril, String nameRu, String nameKaa, String code, Boolean includeTotal, String fullURL) {
-        Specification<ManualReport> spec = ManualReportSpecification.getFilteredSpecification(shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
-        Page<ManualReport> mkb10Page = repo.findAll(spec, pageableNotSorting(page, size));
-        return createApiResponsePage(page, mkb10Page.map(mapper::toResponse), fullURL);
+    public Page<ManualReport> filter(int page, int size, String shortName, String nameUz, String nameUzCyril, String nameRu, String nameKaa, String code, Boolean includeTotal) {
+        Specification<ManualReport> spec = ManualReportSpecification.build(shortName, nameUz, nameUzCyril, nameRu, nameKaa, code, includeTotal);
+        return repo.findAll(spec, pageableNotSorting(page, size));
     }
 
     @Override
-    public ApiResponse<?> create(ManualReportRequest reqManualReport) {
-        ManualReport manualReport = ManualReport.builder()
-                .code(reqManualReport.getCode())
-                .shortName(reqManualReport.getShortName())
-                .nameUz(reqManualReport.getNameUz())
-                .nameUzCyril(reqManualReport.getNameUzCyril())
-                .nameRu(reqManualReport.getNameRu())
-                .nameKaa(reqManualReport.getNameKaa())
-                .includeInTotal(reqManualReport.getIncludeInTotal())
-                .mkb10Codes(reqManualReport.getMkb10Codes())
-                .build();
-
-        return new ApiResponse<>(true, MessageUtil.CREATED_SUCCESS, mapper.toResponse(repo.save(manualReport)));
+    public ManualReport create(ManualReportRequest request) {
+        ManualReport manualReport = mapper.toEntity(request);
+        return repo.save(manualReport);
     }
 
     @Override
-    public ApiResponse<?> getById(long id) {
-        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
-        return new ApiResponse<>(true, MessageUtil.FETCHED_SUCCESS, mapper.toResponse(manualReport));
+    public ManualReport getById(long id) {
+        return repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override
-    public ApiResponse<?> delete(long id) {
+    public void delete(long id) {
+        ManualReport report = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         try {
-            repo.deleteById(id);
-        } catch (Exception e) {
-            throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            repo.delete(report);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ApiException(CONFLICT, messageUtil.get("error.cannot_delete_due_to_relations"));
+        } catch (Exception ex) {
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), ex);
         }
-        return new ApiResponse<>(true, MessageUtil.DELETED_SUCCESS, null);
     }
 
     @Override
-    public ApiResponse<?> update(long id, ManualReportRequest manualReportRequest) {
-        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, String.format(MessageUtil.NOT_FOUND_BY_ID, id)));
-        Optional.ofNullable(manualReportRequest.getCode()).ifPresent(manualReport::setCode);
-        Optional.ofNullable(manualReportRequest.getShortName()).ifPresent(manualReport::setShortName);
-        Optional.ofNullable(manualReportRequest.getNameUz()).ifPresent(manualReport::setNameUz);
-        Optional.ofNullable(manualReportRequest.getNameUzCyril()).ifPresent(manualReport::setNameUzCyril);
-        Optional.ofNullable(manualReportRequest.getNameRu()).ifPresent(manualReport::setNameRu);
-        Optional.ofNullable(manualReportRequest.getIncludeInTotal()).ifPresent(manualReport::setIncludeInTotal);
-        Optional.ofNullable(manualReportRequest.getNameKaa()).ifPresent(manualReport::setNameKaa);
-        Optional.ofNullable(manualReportRequest.getMkb10Codes()).ifPresent(reqCodes -> {
-            if (manualReport.getMkb10Codes() == null) {
-                manualReport.setMkb10Codes(new HashSet<>());
-            } else {
-                manualReport.getMkb10Codes().clear();
-            }
-
-            manualReport.getMkb10Codes().addAll(reqCodes);
-        });
-
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, mapper.toResponse(repo.save(manualReport)));
+    public ManualReport update(long id, ManualReportRequest request) {
+        ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        mapper.update(manualReport, request);
+        return repo.save(manualReport);
     }
 }

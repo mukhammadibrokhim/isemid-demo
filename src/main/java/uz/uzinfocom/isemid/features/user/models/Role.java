@@ -9,13 +9,13 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import java.util.HashSet;
 import java.util.Set;
 
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Role extends BaseEntity {
 
     @Column(nullable = false, unique = true)

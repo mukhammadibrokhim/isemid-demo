@@ -5,11 +5,15 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
+import uz.uzinfocom.isemid.features.classifier.mappers.Mkb10Mapper;
+import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
@@ -21,8 +25,9 @@ import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 @Tag(name = "Mkb10")
 @RequiredArgsConstructor
 public class Mkb10Controller {
-
     private final Mkb10Service mkb10Service;
+    private final MessageUtil messageUtil;
+    private final Mkb10Mapper mapper;
 
     @Operation(
             summary = "Получить все записи МКБ-10 с фильтром и пагинацией",
@@ -58,7 +63,8 @@ public class Mkb10Controller {
             @RequestParam(required = false) String nameEn,
             HttpServletRequest request
     ) {
-        return mkb10Service.getMkb10ByFilter(page, size, mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn, getRequestUrl(request));
+        Page<Mkb10> mkb10Page = mkb10Service.filter(page, size, mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn);
+        return PagedResponse.build(page, mkb10Page.map(mapper::toResponse), getRequestUrl(request), messageUtil);
     }
 
     @Operation(
@@ -72,7 +78,7 @@ public class Mkb10Controller {
             @RequestParam(required = false) Long parentId,
             @RequestParam(required = false) String search
     ) {
-        return mkb10Service.getAllMkb10s(parentId, search);
+        return ApiResponse.success(messageUtil, mkb10Service.getAllMkb10s(parentId, search));
     }
 
     @Operation(
@@ -84,7 +90,7 @@ public class Mkb10Controller {
     )
     @GetMapping("/{id}")
     public ApiResponse<?> getById(@PathVariable long id) {
-        return mkb10Service.getById(id);
+        return ApiResponse.success(messageUtil, mapper.toResponse(mkb10Service.getById(id)));
     }
 
     @Operation(
@@ -96,7 +102,7 @@ public class Mkb10Controller {
     )
     @PutMapping("/{id}")
     public ApiResponse<?> updateById(@PathVariable long id, @RequestBody Mkb10Request request) {
-        return mkb10Service.update(id, request);
+        return ApiResponse.success(messageUtil, mapper.toResponse(mkb10Service.update(id, request)));
     }
 
     @Operation(
@@ -108,6 +114,7 @@ public class Mkb10Controller {
     )
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteById(@PathVariable long id) {
-        return mkb10Service.delete(id);
+        mkb10Service.delete(id);
+        return ApiResponse.deleteSuccess(messageUtil);
     }
 }

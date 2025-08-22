@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtUtil;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
-import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtUtil;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.security.dtos.requests.AuthRequest;
 import uz.uzinfocom.isemid.features.security.dtos.requests.RegisterRequest;
 import uz.uzinfocom.isemid.features.security.dtos.responses.TokenResponse;
@@ -26,10 +27,10 @@ import uz.uzinfocom.isemid.features.user.models.User;
 @Tag(name = "Auth")
 @RequiredArgsConstructor
 public class AuthController {
-
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final AuthService authService;
+    private final MessageUtil messageUtil;
 
     @Operation(summary = "Аутентификация пользователя",
             description = "Принимает nnuzb и пароль, возвращает JWT токен при успешной аутентификации.")
@@ -51,6 +52,7 @@ public class AuthController {
             description = "Создаёт нового пользователя с переданными данными регистрации.")
     @PostMapping(value = "/sign-up")
     public ApiResponse<?> signUp(@Valid @RequestBody RegisterRequest request) {
-        return authService.signUp(request);
+        authService.signUp(request);
+        return ApiResponse.success(messageUtil, null);
     }
 }

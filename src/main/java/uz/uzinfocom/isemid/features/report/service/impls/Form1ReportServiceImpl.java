@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.dtos.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
@@ -14,9 +13,10 @@ import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.dtos.Form1ReportDto;
-import uz.uzinfocom.isemid.features.report.enums.LevelStatus;
 import uz.uzinfocom.isemid.features.report.service.Form1ReportService;
 import uz.uzinfocom.isemid.features.report.utils.Form058StatisticsUtil;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -30,35 +30,36 @@ import static org.springframework.util.StringUtils.hasText;
 @Service
 @RequiredArgsConstructor
 public class Form1ReportServiceImpl implements Form1ReportService {
-
     private final Form058Repository form058Repository;
     private final CatalogService catalogService;
+    private final MessageUtil messageUtil;
 
     @Override
-    public ApiResponse<?> getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
+    public Object getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
         Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, mkb10Code,gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(specification);
         Organization organization = currentUser.getCurrentOrganization();
-        String level = organization.getLevelCode();
+        String level = organization.getLevelType().name();
 
-        if (level == null || level.isEmpty()) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "У организации текущего пользователя не указан код уровня. Пожалуйста, обратитесь к администратору системы.");
+        if (level.isEmpty()) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, messageUtil.get("error.organization.level.code.missing"));
         }
 
-        if (level.equals(LevelStatus.republic_level.name())) {
+        if (level.equals(LevelType.REPUBLICAN.name())) {
             return createRepublicReport(form058s);
 
-        } else if (level.equals(LevelStatus.region_level.name())) {
+        } else if (level.equals(LevelType.REGIONAL.name())) {
             return creteRegionReport(form058s, organization);
 
-        } else if (level.equals(LevelStatus.district_level.name())) {
+        } else if (level.equals(LevelType.DISTRICT.name()) || level.equals(LevelType.AREA.name()) || level.equals(LevelType.URBAN.name())
+                || level.equals(LevelType.INTERDISTRICT.name()) || level.equals(LevelType.NOT_DEFINED.name())) {
             return creteDistrictReport(form058s, organization);
 
         }
-        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "Неверный уровень организации.");
+        throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, messageUtil.get("error.organization.level.invalid"));
     }
 
-    private ApiResponse<?> creteRegionReport(List<Form058> form058s, Organization organization) {
+    private Object creteRegionReport(List<Form058> form058s, Organization organization) {
         String regionCode = organization.getState().getCode();
         String regionName = organization.getState().getNameRu();
 
@@ -76,12 +77,11 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
         Form1ReportDto regionReport = Form058StatisticsUtil.calculate(regionForms, regionName, children);
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, List.of(regionReport));
+        return List.of(regionReport);
     }
 
 
-
-    private ApiResponse<?> creteDistrictReport(List<Form058> form058s, Organization organization) {
+    private Object creteDistrictReport(List<Form058> form058s, Organization organization) {
         List<Form058> districtForms = form058s.stream()
                 .filter(f -> f.getCreatedOrg().getCity().getCode().equals(organization.getCity().getCode()))
                 .toList();
@@ -96,11 +96,11 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
         Form1ReportDto districtReport = Form058StatisticsUtil.calculate(districtForms, districtName, organizationReports);
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, List.of(districtReport));
+        return List.of(districtReport);
     }
 
 
-    private ApiResponse<?> createRepublicReport(List<Form058> form058s) {
+    private Object createRepublicReport(List<Form058> form058s) {
         List<Catalog> states = catalogService.finAllByType(CatalogType.state);
 
         List<Form1ReportDto> reportList = new LinkedList<>();
@@ -135,10 +135,11 @@ public class Form1ReportServiceImpl implements Form1ReportService {
         }).collect(Collectors.toSet());
 
         reportList.add(Form058StatisticsUtil.calculate(
-                form058s, "Республика Узбекистан", childrenStates));
+                form058s, messageUtil.get("country.name"), childrenStates));
 
-        return new ApiResponse<>(true, MessageUtil.OPERATION_SUCCESS, reportList);
+        return reportList;
     }
+
     public static Specification<Form058> filterByCriteria(
             LocalDate fromDate,
             LocalDate toDate,
@@ -170,21 +171,21 @@ public class Form1ReportServiceImpl implements Form1ReportService {
                 predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
 
-            if (userOrg != null && userOrg.getLevelCode() != null) {
-                String userLevelCode = userOrg.getLevelCode();
+            // Filter by organization access
+            if (userOrg != null && userOrg.getMedicalType() == MedicalType.SANEPID_SERVICE) {
+                String stateCode = userOrg.getState() != null ? userOrg.getState().getCode() : null;
+                String cityCode = userOrg.getCity() != null ? userOrg.getCity().getCode() : null;
+                LevelType levelType = userOrg.getLevelType();
 
-                switch (userLevelCode) {
-                    case "republic_level" -> {
-                    }
-                    case "region_level" -> predicates.add(cb.and(
-                            cb.equal(root.get("createdOrg").get("state").get("code"),
-                                    userOrg.getState().getCode())));
+                Predicate accessPredicate = switch (levelType) {
+                    case REPUBLICAN -> cb.conjunction(); // Show all
+                    case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
+                    case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
+                            cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
+                    default -> cb.disjunction(); // No access
+                };
 
-                    case "district_level" -> predicates.add(cb.and(
-                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
-                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
-                    ));
-                }
+                predicates.add(accessPredicate);
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.uzinfocom.isemid.features.card.dtos.requests.card161.VaccinationRequest;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,17 +17,19 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InfectionMonitoringRequest {
     private Long id;
-    private Integer sequentialNumber;
-    private String lastName;
-    private String firstName;
-    private String middleName;
-    private String genderCode;
-    private LocalDate birthDate;
-    private String address;//Manzil.
-    private String profession;//Kasbi, ish joyi.
-    private LocalDate applicationDate;//Murojat sanasi.
-    private LocalDate confirmationDate;//Aniqlangan sana.
-    private String possibleInfectionLocation;//Yuqtirilishi mumkin bo‘lgan joyi.
-    private String possibleInfectionFactor;//Yuqtirilishi mumkin bo‘lgan yuqish omili.
-    private LocalDate possibleInfectionDate;//Yuqtirilishi mumkin bo‘lgan sana.
+    private String lastName; // Familiya
+    private String firstName; // Ismi
+    private String middleName; // Sharifi
+    private String genderCode; // Jins kodi (M/F)
+    private LocalDate birthDate; // Tug‘ilgan sana
+    private String address; // Yashash manzili
+    private String profession; // Kasbi yoki ish joyi
+    private LocalDate applyDate; // Murojaat qilingan sana
+    private LocalDate confirmDate; // Kasallik tasdiqlangan sana
+    private String possibleLocation; // Yuqtirgan joy (taxminiy)
+    private String possibleFactor; // Yuqtirish omili (taxminiy)
+    private LocalDate possibleDate; // Yuqtirilgan sana (taxminiy)
+    private LocalDate contactInfectionDate; // Muloqatda bo‘lganlarning kasallanish sanasi
+    private List<VaccinationRequest> vaccinations;
+    private String vaccinationSummary;
 }

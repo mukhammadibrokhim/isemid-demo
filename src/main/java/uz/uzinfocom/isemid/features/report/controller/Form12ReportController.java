@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.service.Form12ReportService;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
@@ -24,7 +25,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class Form12ReportController {
     private final Form12ReportService form12ReportService;
-
+    private final MessageUtil messageUtil;
     @Operation(
             summary = "Отчёт по форме 12",
             description = "Получение отчёта по форме 12 с фильтрацией по дате, дате рождения и полу пациента.",
@@ -60,6 +61,6 @@ public class Form12ReportController {
             @RequestParam(required = false) Gender gender,
             @CurrentUser User currentUser
     ) {
-        return form12ReportService.getReport(fromDate, toDate, birthDate,mkb10Code, gender, currentUser);
+        return ApiResponse.success(messageUtil, form12ReportService.getReport(fromDate, toDate, birthDate, mkb10Code, gender, currentUser));
     }
 }

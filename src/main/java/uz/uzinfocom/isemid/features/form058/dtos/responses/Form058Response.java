@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.form058.dtos.responses;
 
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponseDto;
+import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.patient.dtos.responses.PatientResponse;
@@ -23,15 +23,14 @@ public class Form058Response {
     private UUID uuid;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String filterType; // RECEIVER, AFFILIATION, NONE
     private String mkb10Code;
     private String mkb10Name;
     private String finalMkb10Code;
     private String finalMkb10Name;
     private Integer mkb10UsageLimit;
     private FormStatus status;
-
     private PatientResponse patient;
-
     private Boolean labConfirmation; // Tashxisni laborator tasdiqlash
     private OrgMiniResponse hospitalPlace; // Yotqizilgan joyi
     private LocalDateTime admissionDate; // Yotqizilgan sana
@@ -43,7 +42,7 @@ public class Form058Response {
     private OrgMiniResponse senderOrganization; // Qayerdan (Yuboruvchi tashkilot)
     private OrgMiniResponse receiverOrganization; // Qayerga (Qabul qiluvchi tashkilot)
     private LocationResponse location;
-    private CatalogResponseDto diseasePlace; // Qayerda zaharlangan yoki kasallangan
+    private CatalogMinResponse diseasePlace; // Qayerda zaharlangan yoki kasallangan
     private LocalDateTime initialReportDateTime;
     private String diseaseCause; // Kasallik sababi
     private String epidemicMeasures; // Epidemiya haqida choralar

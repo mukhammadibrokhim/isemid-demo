@@ -42,10 +42,10 @@ public class Patient extends AbsEntity {
     private String populationTypeCode;
     private String categoryCode;
     private String professionCode;
-    private String workPlace;
-    private String workPlaceStateCode;
-    private String workPlaceCityCode;
-    private Long workPlaceOrgId;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id DESC")
+    private List<Affiliation> affiliations;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
