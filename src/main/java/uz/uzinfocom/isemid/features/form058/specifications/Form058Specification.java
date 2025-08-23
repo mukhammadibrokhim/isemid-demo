@@ -43,28 +43,36 @@ public class Form058Specification {
                 Predicate accessPredicate = cb.disjunction();
 
                 if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    accessPredicate = switch (levelType) {
+                    Predicate levelFilter = switch (levelType) {
                         case REPUBLICAN -> cb.conjunction(); // show all
                         case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
                         case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
                                 cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
-                        default -> cb.disjunction(); // no access
                     };
-                } else {
-                    // --- Fallback: RECEIVED or CREATED filter ---
+
                     if (filterType == FilterType.RECEIVED) {
                         Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
+                        accessPredicate = cb.and(levelFilter, receiverMatch);
+                    } else {
+                        Predicate createdMatch = cb.equal(root.get("createdOrgUuid"), orgUuid);
+                        accessPredicate = cb.and(levelFilter, createdMatch);
+                    }
+
+                } else {
+                    if (filterType == FilterType.RECEIVED) {
+                        Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), org.getId());
 
                         Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
                         Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
 
-                        Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
-                        Predicate typeMatch = affiliationJoin.get("type").in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
+                        Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), org.getId());
+                        Predicate typeMatch = affiliationJoin.get("type")
+                                .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
                         Predicate affiliationValid = cb.and(orgMatch, typeMatch);
 
                         accessPredicate = cb.or(receiverMatch, affiliationValid);
                     } else {
-                        accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
+                        accessPredicate = cb.equal(root.get("createdOrgUuid"), org.getUuid());
                     }
                 }
 
