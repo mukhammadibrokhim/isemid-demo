@@ -39,40 +39,32 @@ public class Form058Specification {
                 String stateCode = org.getStateCode();
                 String cityCode = org.getCityCode();
 
-                // --- Access predicate based on org level & medical type ---
-                Predicate accessPredicate = cb.disjunction();
+                Predicate accessPredicate;
 
                 if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    Predicate levelFilter = switch (levelType) {
-                        case REPUBLICAN -> cb.conjunction(); // show all
-                        case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
-                        case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
+                    // --- SANEPID_SERVICE: faqat LevelType hududi bo‘yicha ko‘radi ---
+                    accessPredicate = switch (levelType) {
+                        case REPUBLICAN -> cb.conjunction(); // Respublika → hamma ko‘rinadi
+                        case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
+                        case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
                                 cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
                     };
-
+                } else {
+                    // --- Boshqa medicalType uchun filterType ishlaydi ---
                     if (filterType == FilterType.RECEIVED) {
                         Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
-                        accessPredicate = cb.and(levelFilter, receiverMatch);
-                    } else {
-                        Predicate createdMatch = cb.equal(root.get("createdOrgUuid"), orgUuid);
-                        accessPredicate = cb.and(levelFilter, createdMatch);
-                    }
-
-                } else {
-                    if (filterType == FilterType.RECEIVED) {
-                        Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), org.getId());
 
                         Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
                         Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
 
-                        Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), org.getId());
+                        Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
                         Predicate typeMatch = affiliationJoin.get("type")
                                 .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
                         Predicate affiliationValid = cb.and(orgMatch, typeMatch);
 
                         accessPredicate = cb.or(receiverMatch, affiliationValid);
                     } else {
-                        accessPredicate = cb.equal(root.get("createdOrgUuid"), org.getUuid());
+                        accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
                     }
                 }
 
