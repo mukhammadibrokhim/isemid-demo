@@ -125,17 +125,17 @@ public class Form058ServiceImpl implements Form058Service {
     public Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {
         Form058 form058 = this.getById(formId);
         form058.setReceiverOrganizationId(updateReceivedOrg.getReceivedOrgId());
-        form058.getPatient().getAddresses().stream()
-                .filter(address -> address.getType().equals(AddressType.TEMPORARY))
-                .findFirst()
-                .ifPresent(address -> {
-                    address.setStateCode(updateReceivedOrg.getAddressStateCode());
-                    address.setCityCode(updateReceivedOrg.getAddressCityCode());
-                    address.setNeighborhoodCode(updateReceivedOrg.getAddressNeighborhoodCode());
-                    address.setStreetAddress(updateReceivedOrg.getStreetAddress());
-                    address.setHouseNumber(updateReceivedOrg.getHouseNumber());
-                    address.setApartmentNumber(updateReceivedOrg.getApartmentNumber());
-                });
+//        form058.getPatient().getAddresses().stream()
+//                .filter(address -> address.getType().equals(AddressType.TEMPORARY))
+//                .findFirst()
+//                .ifPresent(address -> {
+//                    address.setStateCode(updateReceivedOrg.getAddressStateCode());
+//                    address.setCityCode(updateReceivedOrg.getAddressCityCode());
+//                    address.setNeighborhoodCode(updateReceivedOrg.getAddressNeighborhoodCode());
+//                    address.setStreetAddress(updateReceivedOrg.getStreetAddress());
+//                    address.setHouseNumber(updateReceivedOrg.getHouseNumber());
+//                    address.setApartmentNumber(updateReceivedOrg.getApartmentNumber());
+//                });
         return form058Repository.save(form058);
     }
 
