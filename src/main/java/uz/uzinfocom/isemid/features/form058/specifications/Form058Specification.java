@@ -39,19 +39,18 @@ public class Form058Specification {
                 String stateCode = org.getStateCode();
                 String cityCode = org.getCityCode();
 
-                // --- Access predicate based on org level & medical type ---
-                Predicate accessPredicate = cb.disjunction();
+                Predicate accessPredicate;
 
                 if (medicalType == MedicalType.SANEPID_SERVICE) {
+                    // --- SANEPID_SERVICE: faqat LevelType hududi bo‘yicha ko‘radi ---
                     accessPredicate = switch (levelType) {
-                        case REPUBLICAN -> cb.conjunction(); // show all
-                        case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
-                        case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
+                        case REPUBLICAN -> cb.conjunction(); // Respublika → hamma ko‘rinadi
+                        case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
+                        case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
                                 cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
-                        default -> cb.disjunction(); // no access
                     };
                 } else {
-                    // --- Fallback: RECEIVED or CREATED filter ---
+                    // --- Boshqa medicalType uchun filterType ishlaydi ---
                     if (filterType == FilterType.RECEIVED) {
                         Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
 
@@ -59,7 +58,8 @@ public class Form058Specification {
                         Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
 
                         Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
-                        Predicate typeMatch = affiliationJoin.get("type").in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
+                        Predicate typeMatch = affiliationJoin.get("type")
+                                .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
                         Predicate affiliationValid = cb.and(orgMatch, typeMatch);
 
                         accessPredicate = cb.or(receiverMatch, affiliationValid);
