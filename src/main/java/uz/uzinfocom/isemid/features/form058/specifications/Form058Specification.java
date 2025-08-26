@@ -42,13 +42,15 @@ public class Form058Specification {
                 Predicate accessPredicate;
 
                 if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    // --- SANEPID_SERVICE: faqat LevelType hududi bo‘yicha ko‘radi ---
-                    accessPredicate = switch (levelType) {
+                    Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
+
+                    Predicate levelPredicate = switch (levelType) {
                         case REPUBLICAN -> cb.conjunction(); // Respublika → hamma ko‘rinadi
                         case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
                         case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
                                 cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
                     };
+                    accessPredicate = cb.or(receiverMatch, levelPredicate);
                 } else {
                     // --- Boshqa medicalType uchun filterType ishlaydi ---
                     if (filterType == FilterType.RECEIVED) {
