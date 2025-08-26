@@ -28,4 +28,6 @@ public interface UserService {
     User updateUserFromMis(UUID uuid, UserRequest user, String token);
 
     User save(User existingUser);
+
+    void removeRoleFromUser(Long id, Long roleId);
 }
