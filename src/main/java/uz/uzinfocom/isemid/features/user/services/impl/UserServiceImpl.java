@@ -21,12 +21,16 @@ import uz.uzinfocom.isemid.features.user.reposiotries.UserRepository;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 import uz.uzinfocom.isemid.features.user.specifications.UserSpecification;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
+import static uz.uzinfocom.isemid.features.user.utils.UserUtil.checkSuperAdminConstraint;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +58,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User fetchUserFromMisAndSave(UUID uuid, String token, List<Organization> organizations, Set<Role> roles) {
         MisUserResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, MisUserResponse.class);
-        return userRepository.saveAndFlush(Objects.requireNonNull(convertToUser(response, organizations, roles)));
+        User user = convertToUser(response, organizations, roles);
+        checkSuperAdminConstraint(userRepository, user, messageUtil);
+        return userRepository.saveAndFlush(user);
     }
 
     private User convertToUser(MisUserResponse response, List<Organization> organizations, Set<Role> roles) {
@@ -76,6 +82,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User save(User existingUser) {
+        checkSuperAdminConstraint(userRepository, existingUser, messageUtil);
         return userRepository.save(existingUser);
     }
 
@@ -88,6 +95,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public User update(long id, @Valid UserRequest userRequest) {
         User user = userRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         userMapper.update(userRequest, user);
+        checkSuperAdminConstraint(userRepository, user, messageUtil);
         return userRepository.save(user);
     }
 }
