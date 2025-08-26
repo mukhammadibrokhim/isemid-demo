@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findByUuid(UUID uuid);
 
     Optional<User> findByNnuzb(String nnuzb);
+
+    boolean existsByRoles_Name(String name);
 }
