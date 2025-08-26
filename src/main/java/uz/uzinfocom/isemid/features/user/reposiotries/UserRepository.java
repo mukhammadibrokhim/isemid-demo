@@ -2,9 +2,11 @@ package uz.uzinfocom.isemid.features.user.reposiotries;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.Optional;
@@ -31,4 +33,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
         WHERE r.name = :roleName
         """, nativeQuery = true)
     boolean existsByRoleName(String roleName);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM user_roles WHERE user_id = :userId AND role_id = :roleId", nativeQuery = true)
+    void removeRoleFromUser(Long userId, Long roleId);
 }

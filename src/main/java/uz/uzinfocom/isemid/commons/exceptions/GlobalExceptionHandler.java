@@ -205,7 +205,7 @@ public class GlobalExceptionHandler {
                         .message(messageUtil.get("error.internal_server"))
                         .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
-                                .errorMessage(ex.getMessage())
+                                .errorMessage(ex.getLocalizedMessage())
                                 .build()))
                         .build());
     }

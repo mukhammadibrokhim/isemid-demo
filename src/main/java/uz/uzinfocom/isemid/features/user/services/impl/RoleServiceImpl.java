@@ -48,6 +48,11 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public Role getById(long id) {
+        return roleRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+    }
+
+    @Override
     public Page<Role> filter(int page, int size, String name, String descriptionUz, String descriptionRu, String descriptionUzCyril, String descriptionKaa) {
         Specification<Role> spec = RoleSpecification.getFilteredSpecification(name, descriptionUz, descriptionUzCyril, descriptionRu, descriptionKaa);
         return roleRepository.findAll(spec, pageableSortByIdDesc(page, size));
@@ -82,7 +87,7 @@ public class RoleServiceImpl implements RoleService {
             roleRepository.delete(role);
         } catch (Exception e) {
             log.error("Error occurred while deleting role with id: {}", id, e);
-            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server") + e.getMessage());
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"));
         }
     }
 
