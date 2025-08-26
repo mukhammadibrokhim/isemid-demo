@@ -66,7 +66,7 @@ public class RoleController {
     @Operation(
             summary = "Обновить существующую роль",
             description = "Обновляет роль по идентификатору ID новыми данными.")
-    @PreAuthorize("hasRole('isemid_super_admin')")
+    @PreAuthorize("hasRole('ROLE_isemid_super_admin')")
     @PutMapping("/{id}")
     public ApiResponse<RoleResponse> updateRole(@PathVariable long id, @RequestBody RoleRequest roleRequest) {
         return ApiResponse.success(messageUtil, roleMapper.toResponse(roleService.update(id, roleRequest)));
