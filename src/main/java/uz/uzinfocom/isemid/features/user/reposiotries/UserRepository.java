@@ -24,7 +24,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     boolean existsSuperAdminForOtherUser(@Param("roleName") String roleName,
                                          @Param("currentUserId") Long currentUserId);
 
-
     @Query(value = """
         SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END
         FROM user_roles ur
