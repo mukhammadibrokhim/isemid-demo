@@ -13,7 +13,6 @@ import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
-import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
@@ -53,8 +52,8 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, User user, FilterType filterType) {
-        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, user, filterType);
+    public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode, Boolean affiliation, User user, FilterType filterType) {
+        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, user, filterType);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
@@ -125,17 +124,6 @@ public class Form058ServiceImpl implements Form058Service {
     public Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {
         Form058 form058 = this.getById(formId);
         form058.setReceiverOrganizationId(updateReceivedOrg.getReceivedOrgId());
-//        form058.getPatient().getAddresses().stream()
-//                .filter(address -> address.getType().equals(AddressType.TEMPORARY))
-//                .findFirst()
-//                .ifPresent(address -> {
-//                    address.setStateCode(updateReceivedOrg.getAddressStateCode());
-//                    address.setCityCode(updateReceivedOrg.getAddressCityCode());
-//                    address.setNeighborhoodCode(updateReceivedOrg.getAddressNeighborhoodCode());
-//                    address.setStreetAddress(updateReceivedOrg.getStreetAddress());
-//                    address.setHouseNumber(updateReceivedOrg.getHouseNumber());
-//                    address.setApartmentNumber(updateReceivedOrg.getApartmentNumber());
-//                });
         return form058Repository.save(form058);
     }
 

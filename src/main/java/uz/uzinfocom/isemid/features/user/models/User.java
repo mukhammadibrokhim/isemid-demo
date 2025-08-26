@@ -123,4 +123,12 @@ public class User implements UserDetails {
     public String getFullName() {
         return String.join(" ", firstName, lastName, middleName);
     }
+
+    public boolean hasRole(String roleName) {
+        if (roles == null || roles.isEmpty()) {
+            return false;
+        }
+        return roles.stream()
+                .anyMatch(role -> role.getName().equalsIgnoreCase(roleName));
+    }
 }

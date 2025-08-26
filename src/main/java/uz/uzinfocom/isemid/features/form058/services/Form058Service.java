@@ -11,7 +11,16 @@ import java.time.LocalDate;
 public interface Form058Service {
     Form058 create(Form058Request form058Request);
 
-    Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, User user, FilterType filterType);
+    Page<Form058> filter(
+            int page,
+            int size,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            Boolean isAffiliation, User user,
+            FilterType filterType
+    );
 
     Form058 update(Form058Request request, Long id, User user);
 
