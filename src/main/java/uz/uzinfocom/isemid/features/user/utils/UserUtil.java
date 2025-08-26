@@ -15,7 +15,7 @@ public class UserUtil {
                 .anyMatch(role -> "isemid_super_admin".equals(role.getName()));
 
         if (hasSuperAdminRole) {
-            boolean exists = userRepository.existsByRoles_Name("isemid_super_admin");
+            boolean exists = userRepository.existsSuperAdminForOtherUser("isemid_super_admin", user.getId());
             if (exists) {
                 throw new ApiException(BAD_REQUEST, messageUtil.get("error.unique_super_admin"));
             }
