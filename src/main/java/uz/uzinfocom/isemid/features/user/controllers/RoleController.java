@@ -18,6 +18,8 @@ import uz.uzinfocom.isemid.features.user.mappers.RoleMapper;
 import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.services.RoleService;
 
+import java.util.stream.Collectors;
+
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
 import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
@@ -33,7 +35,7 @@ public class RoleController {
 
     @Operation(summary = "Получить постраничный список ролей с фильтрами", description = "Возвращает постраничный список ролей, отфильтрованных по необязательным параметрам, таким как имя и описания на разных языках.")
     @GetMapping("/all")
-    public PagedResponse<?> getAllRolesByFilter(
+    public PagedResponse<?> getByFilter(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) String name,
@@ -52,7 +54,7 @@ public class RoleController {
             description = "Ищет до 10 ролей по имени или описаниям на всех языках. Поиск нечувствителен к регистру.")
     @GetMapping
     public ApiResponse<?> getAllRolesBySearch(@RequestParam(required = false) String search) {
-        return ApiResponse.success(messageUtil, roleService.roleSearch(search).stream().map(roleMapper::toResponse));
+        return ApiResponse.success(messageUtil, roleService.roleSearch(search).stream().map(roleMapper::toResponse).collect(Collectors.toSet()));
     }
 
     @Operation(
@@ -66,7 +68,7 @@ public class RoleController {
     @Operation(
             summary = "Обновить существующую роль",
             description = "Обновляет роль по идентификатору ID новыми данными.")
-    @PreAuthorize("hasAuthority('isemid_super_admin')")
+    @PreAuthorize("hasRole('ROLE_isemid_super_admin')")
     @PutMapping("/{id}")
     public ApiResponse<RoleResponse> updateRole(@PathVariable long id, @RequestBody RoleRequest roleRequest) {
         return ApiResponse.success(messageUtil, roleMapper.toResponse(roleService.update(id, roleRequest)));

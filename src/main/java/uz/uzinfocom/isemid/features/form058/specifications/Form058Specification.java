@@ -47,11 +47,10 @@ public class Form058Specification {
                 Predicate accessPredicate;
 
                 if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    accessPredicate = switch (levelType) {
                     Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
 
                     Predicate levelPredicate = switch (levelType) {
-                        case REPUBLICAN -> cb.conjunction(); // Respublika → hamma ko‘rinadi
+                        case REPUBLICAN -> cb.conjunction();
                         case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
                         case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
                                 cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
@@ -77,7 +76,6 @@ public class Form058Specification {
                     } else {
                         accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
                     }
-
                 }
 
                 predicates.add(accessPredicate);
