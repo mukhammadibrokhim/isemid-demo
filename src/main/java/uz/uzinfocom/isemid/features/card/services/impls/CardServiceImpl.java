@@ -162,7 +162,7 @@ public class CardServiceImpl implements CardService {
                     Act act = actFactory.createAct(actType);
                     act.setCreatedBy(user.getId());
                     act.setUpdatedBy(user.getId());
-                    act.setCard(card);
+                    act.setCardId(card.getId());
                     act.setType(actType);
                     act.setStatus(ActStatus.NEW);
                     return act;

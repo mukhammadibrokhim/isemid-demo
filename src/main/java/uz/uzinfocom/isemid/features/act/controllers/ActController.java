@@ -11,6 +11,8 @@ import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.services.ActService;
 
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping(ApiPaths.Act.ROOT)
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class ActController {
     @Operation(summary = "Получить список актов по Card ID", description = "Возвращает список всех актов, связанных с указанным Card ID. Только авторизованные пользователи имеют доступ.")
     @GetMapping("/by-card/{cardId}")
     public ApiResponse<?> getAllActsByCardId(@PathVariable Long cardId) {
-        return ApiResponse.success(messageUtil, actService.getAllByCardId(cardId).stream().map(factory::toResponse));
+        return ApiResponse.success(messageUtil, actService.getAllByCardId(cardId).stream().map(factory::toResponse).collect(Collectors.toSet()));
     }
 
     @Operation(summary = "Получить данные акта по ID", description = "Извлекает подробную информацию о конкретном акте по его уникальному идентификатору.")
