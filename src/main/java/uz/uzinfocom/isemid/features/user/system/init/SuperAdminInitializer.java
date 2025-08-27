@@ -55,11 +55,12 @@ public class SuperAdminInitializer implements ModuleDataInitializer {
                         .email("test@bk.ru")
                         .line("2- МАССИВ 45/15")
                         .build());
+        organizationService.save(organization);
         boolean exists = userRepository.existsByRoleName("isemid_super_admin");
         if (!exists) {
             User superAdmin = userRepository.findByUuid(UUID.fromString("c2f1be85-7688-4eae-82ac-20dc956933e9"))
                     .orElseGet(() -> User.builder()
-                            .uuid(UUID.fromString(""))
+                            .uuid(UUID.fromString("c2f1be85-7688-4eae-82ac-20dc956933e9"))
                             .organizations(List.of(organization))
                             .active(true)
                             .nnuzb("12345678901234")
