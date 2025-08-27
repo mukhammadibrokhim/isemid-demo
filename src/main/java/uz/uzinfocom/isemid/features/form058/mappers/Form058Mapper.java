@@ -37,6 +37,19 @@ public interface Form058Mapper {
     @Mapping(target = "cards", source = "cards")
     Form058Response toResponse(Form058 form058);
 
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "finalMkb10Code", source = "finalMkb10Code")
+    @Mapping(target = "finalMkb10Name", source = "finalMkb10Name")
+    @Mapping(target = "mkb10UsageLimit", source = "mkb10UsageLimit")
+    @Mapping(target = "patient", source = "patient")
+    @Mapping(target = "diseasePlace", source = "diseasePlaceCode", qualifiedByName = "toCatalog")
+    @Mapping(target = "senderOrganization", source = "senderOrganizationId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "cards", source = "cards")
+    @Mapping(target = "affiliation", source = ".", qualifiedByName = "mapAffiliation")
+    Form058Response toResponse(Form058 form058, @Context Long orgId);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "hospitalPlaceId", target = "hospitalPlaceId", qualifiedByName = "uuidToLongId")
     @Mapping(source = "senderOrganizationId", target = "senderOrganizationId", qualifiedByName = "uuidToLongId")
