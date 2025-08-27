@@ -20,10 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.springframework.util.StringUtils.hasText;
+
 public class Form058Specification {
     public static Specification<Form058> build(
             LocalDate fromDate,
             LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            Boolean affiliation,
             User currentUser,
             FilterType filterType
     ) {
@@ -36,21 +41,22 @@ public class Form058Specification {
                 UUID orgUuid = org.getUuid();
                 LevelType levelType = org.getLevelType();
                 MedicalType medicalType = org.getMedicalType();
-                String stateCode = org.getStateCode();
-                String cityCode = org.getCityCode();
+                String orgStateCode = org.getStateCode();
+                String orgCityCode = org.getCityCode();
 
                 Predicate accessPredicate;
 
                 if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    // --- SANEPID_SERVICE: faqat LevelType hududi bo‘yicha ko‘radi ---
-                    accessPredicate = switch (levelType) {
-                        case REPUBLICAN -> cb.conjunction(); // Respublika → hamma ko‘rinadi
-                        case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
+                    Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
+
+                    Predicate levelPredicate = switch (levelType) {
+                        case REPUBLICAN -> cb.conjunction();
+                        case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
                         case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                                cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
+                                cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
                     };
+                    accessPredicate = cb.or(receiverMatch, levelPredicate);
                 } else {
-                    // --- Boshqa medicalType uchun filterType ishlaydi ---
                     if (filterType == FilterType.RECEIVED) {
                         Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
 
@@ -62,13 +68,24 @@ public class Form058Specification {
                                 .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
                         Predicate affiliationValid = cb.and(orgMatch, typeMatch);
 
-                        accessPredicate = cb.or(receiverMatch, affiliationValid);
+                        if (Boolean.TRUE.equals(affiliation)) {
+                            accessPredicate = affiliationValid;
+                        } else {
+                            accessPredicate = receiverMatch;
+                        }
                     } else {
                         accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
                     }
                 }
 
                 predicates.add(accessPredicate);
+            }
+
+            if (hasText(stateCode)) {
+                predicates.add(cb.equal(root.get("createdOrg").get("stateCode"), stateCode));
+            }
+            if (hasText(cityCode)) {
+                predicates.add(cb.equal(root.get("createdOrg").get("cityCode"), cityCode));
             }
 
             // --- Date filter ---

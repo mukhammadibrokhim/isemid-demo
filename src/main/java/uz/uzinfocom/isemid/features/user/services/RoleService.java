@@ -21,6 +21,8 @@ public interface RoleService {
 
     List<Role> getAllRoles();
 
+    Role getById(long id);
+
     Role create(RoleRequest reqRole);
 
     Role update(long id, RoleRequest roleRequest);

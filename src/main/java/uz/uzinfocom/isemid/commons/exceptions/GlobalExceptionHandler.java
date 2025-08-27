@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -24,8 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -195,6 +195,21 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthorizationDenied(AuthorizationDeniedException ex) {
+        return ResponseEntity.status(FORBIDDEN)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(FORBIDDEN.value())
+                        .message(messageUtil.get("error.forbidden"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field("AuthorizationDeniedException")
+                                .errorMessage(ex.getMessage())
+                                .build()))
+                        .build());
+    }
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
         logger.error("Unhandled exception: ", ex);
@@ -205,7 +220,7 @@ public class GlobalExceptionHandler {
                         .message(messageUtil.get("error.internal_server"))
                         .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
-                                .errorMessage(ex.getMessage())
+                                .errorMessage(ex.getLocalizedMessage())
                                 .build()))
                         .build());
     }

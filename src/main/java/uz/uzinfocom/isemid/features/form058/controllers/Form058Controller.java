@@ -56,10 +56,12 @@ public class Form058Controller {
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, user, FilterType.ALL);
+        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, null, user, FilterType.ALL);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return formAdapter.adapt(base, form, FilterType.ALL);
@@ -75,10 +77,13 @@ public class Form058Controller {
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
+            @RequestParam(required = false) Boolean affiliation,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, user, FilterType.RECEIVED);
+        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, affiliation, user, FilterType.RECEIVED);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return formAdapter.adapt(base, form, FilterType.RECEIVED);

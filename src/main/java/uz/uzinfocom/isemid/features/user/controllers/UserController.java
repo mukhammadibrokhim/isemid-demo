@@ -97,4 +97,10 @@ public class UserController {
     ) {
         return ApiResponse.success(messageUtil, userMapper.toResponse(userService.updateUserFromMis(uuid, user, token)));
     }
+
+    @DeleteMapping("/{userId}/roles/{roleId}")
+    public ApiResponse<?> deleteUserRole(@PathVariable long userId, @PathVariable long roleId) {
+        userService.removeRoleFromUser(userId, roleId);
+        return ApiResponse.deleteSuccess(messageUtil);
+    }
 }

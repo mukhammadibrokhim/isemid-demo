@@ -122,7 +122,6 @@ public class RolePermissionInitializer implements ModuleDataInitializer {
             }
         }
 
-
         Map<String, Map<String, Object>> rolePermissions = Map.of(
                 "isemid_qr_user", Map.of(
                         "descriptionUz", "QR foydalanuvchi",

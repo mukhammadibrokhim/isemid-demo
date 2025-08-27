@@ -18,12 +18,17 @@ import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
 import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.reposiotries.UserRepository;
+import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 import uz.uzinfocom.isemid.features.user.specifications.UserSpecification;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
@@ -34,6 +39,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final MessageUtil messageUtil;
+    private final RoleService roleService;
 
     @Override
     public UserDetails loadUserByUsername(String nnuzb) throws UsernameNotFoundException {
@@ -54,7 +60,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User fetchUserFromMisAndSave(UUID uuid, String token, List<Organization> organizations, Set<Role> roles) {
         MisUserResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, MisUserResponse.class);
-        return userRepository.saveAndFlush(Objects.requireNonNull(convertToUser(response, organizations, roles)));
+        User user = convertToUser(response, organizations, roles);
+        return userRepository.saveAndFlush(user);
     }
 
     private User convertToUser(MisUserResponse response, List<Organization> organizations, Set<Role> roles) {
@@ -77,6 +84,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User save(User existingUser) {
         return userRepository.save(existingUser);
+    }
+
+    @Override
+    public void removeRoleFromUser(Long id, Long roleId) {
+        User user = this.getById(id);
+        Role role = roleService.getById(roleId);
+        if (!user.getRoles().contains(role)) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.user_no_role"));
+        }
+        userRepository.removeRoleFromUser(id, roleId);
+
     }
 
     @Override

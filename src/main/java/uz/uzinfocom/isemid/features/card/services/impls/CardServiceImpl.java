@@ -82,12 +82,6 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public Page<Card> getCardsByUserId(int page, int size, Long userId) {
-        Specification<Card> spec = CardSpecification.build(userId);
-        return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
-    }
-
-    @Override
     public Card saveAndComplete(Long cardId, User currentUser) {
         Card card = validateAndGetCard(cardId, currentUser);
         if (card.getStatus() == CardStatus.COMPLETED) {
@@ -138,17 +132,28 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public List<Act> getCardActs(long cardId) {
-        Card card = this.getById(cardId);
-        return card.getActs();
-    }
-
-    @Override
     public Card assignAct(CardAssignActRequest reqCardAssignAct, User user) {
         Card card = this.getById(reqCardAssignAct.getCardId());
         List<Act> acts = actBuilder(reqCardAssignAct.getActTypes(), card, user);
         card.getActs().addAll(acts);
         return cardRepository.save(card);
+    }
+
+    @Override
+    public Page<Card> getAssignedCards(int page, int size, User currentUser) {
+        boolean isHead = currentUser.hasRole("isemid_epidim_head");
+        Long orgId = null;
+        Long userId = null;
+
+        if (isHead) {
+            if (currentUser.getCurrentOrganization() != null) {
+                orgId = currentUser.getCurrentOrganization().getId();
+            }
+        } else {
+            userId = currentUser.getId();
+        }
+        Specification<Card> spec = CardSpecification.build(userId, orgId, isHead);
+        return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
     private List<Act> actBuilder(List<ActType> actTypes, Card card, User user) {
@@ -157,7 +162,7 @@ public class CardServiceImpl implements CardService {
                     Act act = actFactory.createAct(actType);
                     act.setCreatedBy(user.getId());
                     act.setUpdatedBy(user.getId());
-                    act.setCard(card);
+                    act.setCardId(card.getId());
                     act.setType(actType);
                     act.setStatus(ActStatus.NEW);
                     return act;

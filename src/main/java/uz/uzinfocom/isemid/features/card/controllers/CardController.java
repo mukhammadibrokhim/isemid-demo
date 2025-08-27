@@ -12,8 +12,6 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
-import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardAssignActRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRejectRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
@@ -24,8 +22,6 @@ import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.services.CardService;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
-
-import java.util.List;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -39,7 +35,6 @@ public class CardController {
     private final CardService cardService;
     private final MessageUtil messageUtil;
     private final CardMapper mapper;
-    private final ActMapperFactory actMapperFactory;
 
     @Operation(summary = "Получить все карты с фильтрами", description = "Возвращает постраничный список карт с учетом необязательных фильтров, таких как код типа формы, названия организаций (отправителя и получателя) и статус карты.")
     @GetMapping("/all")
@@ -55,20 +50,22 @@ public class CardController {
             HttpServletRequest request
     ) {
         Page<Card> pagedCards = cardService.filter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, formId, user);
-        Page<CardResponse> pagedDto = pagedCards.map(mapper::toCardResponse);
-        return PagedResponse.build(page, pagedDto, getRequestUrl(request), messageUtil);
+        return PagedResponse.build(page, pagedCards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
-    @Operation(summary = "Получить пользователей, назначенных на карту", description = "Возвращает постраничный список пользователей, назначенных на конкретную карту по userId.")
-    @GetMapping("/user/{userId}")
-    public PagedResponse<?> getUsersByCardId(
+    @Operation(
+            summary = "Получить назначенные карты текущего пользователя или его организации",
+            description = "Если пользователь имеет роль isemid_epidim_head — возвращаются все карты, назначенные на его организацию. "
+                    + "Если роль отсутствует — возвращаются только карты, назначенные текущему пользователю.")
+    @GetMapping("/assigned")
+    public PagedResponse<?> getAssignedCards(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-            @PathVariable Long userId,
+            @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<Card> cardUsers = cardService.getCardsByUserId(page, size, userId);
-        return PagedResponse.build(page, cardUsers.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
+        Page<Card> cards = cardService.getAssignedCards(page, size, currentUser);
+        return PagedResponse.build(page, cards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
     @Operation(summary = "Получить данные карты по ID", description = "Извлекает подробную информацию о конкретной карте по её уникальному идентификатору.")
@@ -129,11 +126,5 @@ public class CardController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<?> assignAct(@Valid @RequestBody CardAssignActRequest request, @CurrentUser User user) {
         return ApiResponse.success(messageUtil, mapper.toCardResponse(cardService.assignAct(request, user)));
-    }
-
-    @Operation(summary = "Получить список Act-ов, связанных с картой", description = "Возвращает список всех Act-ов, связанных с указанной картой по её ID.")
-    @GetMapping("/{cardId}/acts")
-    public ApiResponse<List<ActResponse>> getCardActs(@PathVariable long cardId) {
-        return ApiResponse.success(messageUtil, cardService.getCardActs(cardId).stream().map(actMapperFactory::toResponse).toList());
     }
 }
