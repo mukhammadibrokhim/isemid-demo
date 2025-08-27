@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -65,6 +66,7 @@ public class RoleController {
     @Operation(
             summary = "Обновить существующую роль",
             description = "Обновляет роль по идентификатору ID новыми данными.")
+    @PreAuthorize("hasAuthority('isemid_super_admin')")
     @PutMapping("/{id}")
     public ApiResponse<RoleResponse> updateRole(@PathVariable long id, @RequestBody RoleRequest roleRequest) {
         return ApiResponse.success(messageUtil, roleMapper.toResponse(roleService.update(id, roleRequest)));
