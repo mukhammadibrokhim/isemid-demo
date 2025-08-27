@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.form058.mappers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardSimpleResponse;
 import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
@@ -9,8 +10,10 @@ import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -36,6 +39,13 @@ public class Form058ResponseAdapter {
                     .collect(Collectors.toList());
             response.setCards(simpleCards);
         }
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        boolean hasAffiliation = form.getPatient() != null &&
+                form.getPatient().getAffiliations().stream()
+                        .anyMatch(a -> Objects.equals(a.getOrganizationId(), currentUser.getCurrentOrganization().getId()));
+
+        response.setAffiliation(hasAffiliation);
 
         return response;
     }

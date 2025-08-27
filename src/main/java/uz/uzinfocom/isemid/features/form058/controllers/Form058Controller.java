@@ -93,8 +93,8 @@ public class Form058Controller {
 
     @Operation(summary = "Получение формы 058 по ID", description = "Возвращает данные конкретной формы 058 по заданному идентификатору.")
     @GetMapping("/{id}")
-    public ApiResponse<Form058Response> get(@PathVariable long id) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.getById(id)));
+    public ApiResponse<Form058Response> get(@PathVariable long id, @CurrentUser User user) {
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.getById(id), user.getCurrentOrganization().getId()));
     }
 
     @Operation(summary = "Обновление формы 058", description = "Обновляет данные существующей формы 058 по заданному идентификатору.")
