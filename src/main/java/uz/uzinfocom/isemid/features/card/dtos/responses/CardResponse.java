@@ -18,6 +18,7 @@ import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058MiniResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +42,9 @@ public abstract class CardResponse {
     private Timestamp updatedAt;
     private CardType cardType;
     private CardStatus status;
+    private String supervisorComment;
+    private String attachedUserComment;
+    private LocalDate completedDate;
     private Form058MiniResponse form058;
     private List<UserMiniResponse> users;
 }
