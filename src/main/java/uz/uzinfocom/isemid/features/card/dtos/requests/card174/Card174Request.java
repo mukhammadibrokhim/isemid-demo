@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.features.card.dtos.requests.card174;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
-import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
 import uz.uzinfocom.isemid.features.card.models.card174.PreventiveMeasure;
 
@@ -76,12 +75,7 @@ public class Card174Request extends CardRequest {
     private String meatSubmission; // Go‘sht topshirilganligi
     private String treatment; // Davolash choralari
     private Boolean actionTaken; // Choralar ko‘rildimi
-    private List<String> disinfectionFactors = new ArrayList<>(); // Dezinfeksiya ob'ektlari
-    private Integer disinfectedCount; // Zararsizlantirilgan omillar miqdori
-    private LocalDate disinfectionDate; // Zararsizlantirish sanasi
-    private List<String> eliminationMethods = new ArrayList<>(); // Yo‘q qilish usullari
-    private String eventLocation; // Hodisa joyi
-    private String controlResults; // Chora nazorati natijasi
+    private List<DisinfectionInfoRequest> disinfectionInfos = new ArrayList<>();
     private List<OutbreakControlMeasureRequest> controlMeasures = new ArrayList<>(); // O‘choqdagi chora-tadbirlar
     private String additionalInfo; // Qo‘shimcha ma’lumot
 }

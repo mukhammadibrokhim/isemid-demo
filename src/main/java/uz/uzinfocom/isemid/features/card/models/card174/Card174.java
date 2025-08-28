@@ -99,21 +99,12 @@ public class Card174 extends Card {
     private String treatment; // Davolash choralari
     private Boolean actionTaken; // Choralar ko‘rildimi
 
-    @ElementCollection
-    @CollectionTable(name = "card174_disinfection_factors", joinColumns = @JoinColumn(name = "card174_id"))
-    @Column(name = "catalog_code")
-    private List<String> disinfectionFactors = new ArrayList<>(); // Dezinfeksiya ob'ektlari
+    @Builder.Default
+    @JsonIgnoreProperties({"card174"})
+    @OrderBy("id DESC")
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DisinfectionInfo> disinfectionInfos = new ArrayList<>();
 
-    private Integer disinfectedCount; // Zararsizlantirilgan omillar miqdori
-    private LocalDate disinfectionDate; // Zararsizlantirish sanasi
-
-    @ElementCollection
-    @CollectionTable(name = "card174_elimination_method", joinColumns = @JoinColumn(name = "card174_id"))
-    @Column(name = "catalog_code")
-    private List<String> eliminationMethods = new ArrayList<>(); // Yo‘q qilish usullari
-
-    private String eventLocation; // Hodisa joyi
-    private String controlResults; // Chora nazorati natijasi
 
     @OrderBy("id DESC")
     @Builder.Default
