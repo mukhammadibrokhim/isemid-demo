@@ -54,6 +54,8 @@ public class CardBindingUtil {
 
         Optional.ofNullable(card.getExternalSampleTests())
                 .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
+        Optional.ofNullable(card.getDisinfectionInfos())
+                .ifPresent(list -> list.forEach(item -> item.setCard174(card)));
     }
 
 
