@@ -18,7 +18,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 //@ConditionalOnProperty(name = "runner.catalog.init", havingValue = "true")
 public class CatalogInitializer implements ModuleDataInitializer {
-
     private final CsvLoaderUtil csvLoaderUtil;
     private final CatalogRepository catalogRepository;
 
@@ -32,11 +31,11 @@ public class CatalogInitializer implements ModuleDataInitializer {
         List<Catalog> newCatalogs = rows.stream()
                 .skip(1) //skip header
                 .map(record -> Catalog.builder()
-                        .code(record[7])
-                        .nameKaa(record[8])
-                        .nameRu(record[9])
-                        .nameUz(record[10])
-                        .nameUzCyril(record[11])
+                        .nameKaa(record[7])
+                        .nameRu(record[8])
+                        .nameUz(record[9])
+                        .nameUzCyril(record[10])
+                        .code(record[11])
                         .parentCode(record[12])
                         .type(record[13])
                         .build())
