@@ -16,6 +16,10 @@ import uz.uzinfocom.isemid.features.act.models.act156.Act156;
 import uz.uzinfocom.isemid.features.act.models.act223.Act223;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 import uz.uzinfocom.isemid.features.card.models.Card;
+import uz.uzinfocom.isemid.features.user.models.User;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -38,6 +42,13 @@ public abstract class Act extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
     private ActStatus status = ActStatus.NEW;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "act_users",
+            joinColumns = @JoinColumn(name = "act_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> users = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", nullable = false, insertable = false, updatable = false)
