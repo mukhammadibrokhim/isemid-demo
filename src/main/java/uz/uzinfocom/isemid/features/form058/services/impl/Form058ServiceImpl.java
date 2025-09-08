@@ -138,7 +138,7 @@ public class Form058ServiceImpl implements Form058Service {
     public Form058 approveForm(Long formId) {
         Form058 form058 = this.getById(formId);
         boolean allCardsApproved = form058.getCards().stream()
-                .allMatch(card -> card.getStatus().equals(CardStatus.APPROVED));
+                .allMatch(card -> card.getStatus().equals(CardStatus.COMPLETED));
         if (!allCardsApproved) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.not_approved"));
         }

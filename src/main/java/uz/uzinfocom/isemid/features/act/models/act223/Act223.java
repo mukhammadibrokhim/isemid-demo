@@ -1,6 +1,9 @@
 package uz.uzinfocom.isemid.features.act.models.act223;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
@@ -16,7 +19,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 public class Act223 extends Act {
-    private String title;
     private LocalDate documentSendDate;
     private Integer tin;
     private String institutionName;
