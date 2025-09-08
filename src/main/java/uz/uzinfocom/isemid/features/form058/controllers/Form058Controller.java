@@ -46,10 +46,7 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.create(form058Request)));
     }
 
-    @Operation(
-            summary = "Получение всех форм 058",
-            description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате."
-    )
+    @Operation(summary = "Получение всех форм 058", description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате.")
     @GetMapping("/all")
     public PagedResponse<?> getAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
@@ -68,7 +65,6 @@ public class Form058Controller {
         });
         return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
     }
-
 
     @Operation(summary = "Получение всех полученных форм 058", description = "Возвращает постраничный список всех форм 058, которые были получены, с возможностью фильтрации по дате.")
     @GetMapping("/received/all")
