@@ -68,6 +68,9 @@ public class JwtAuthHelper {
     }
 
     protected List<Organization> resolveOrganizations(UserInfo userInfo, Jwt jwt) {
+        if (userInfo.getOrganization().isEmpty()) {
+            throw new InsufficientAuthenticationException(messageUtil.get("error.auth.user_organizations_required"));
+        }
         return userInfo.getOrganization().stream()
                 .map(orgDto -> organizationService.findById(orgDto.getUuid())
                         .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(orgDto.getUuid(), "Bearer " + jwt.getTokenValue())))
