@@ -47,7 +47,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Organization fetchOrganizationFromMisAndSave(UUID uuid, String tokenValue) {
-        String json = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, tokenValue, null, String.class);
+        String json = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, tokenValue, null, String.class, messageUtil);
         MisOrganizationResponse response;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -67,7 +67,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Organization updateUserFromMis(UUID uuid, User currentUser, String token) {
-        MisOrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, MisOrganizationResponse.class);
+        MisOrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, MisOrganizationResponse.class, messageUtil);
         Organization organization = mapper.toOrganization(response);
         return organizationRepository.save(organization);
 

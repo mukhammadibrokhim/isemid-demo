@@ -34,7 +34,7 @@ public class VaccinationServiceImpl implements VaccinationService {
 
         validateByNnuzb(nnuzb,messageUtil);
 
-        String resp = makeRequest(String.format(ApiPaths.ExternalApi.VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class);
+        String resp = makeRequest(String.format(ApiPaths.ExternalApi.VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class, messageUtil);
         log.debug("Raw response received for {}: {}", masked, resp);
 
         List<VaccinationResponse> mapped = mapping(resp);

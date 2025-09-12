@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
-import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.integrations.config.OAuthTokenService;
 import uz.uzinfocom.isemid.features.integrations.legal.service.LegalEntityService;
@@ -32,7 +31,7 @@ public class LegalEntityServiceImpl implements LegalEntityService {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.bad_request"));
         }
 
-        Object resp = makeRequest(String.format(LEGAL_ENTITY_API, tin), HttpMethod.GET, oAuthTokenService.getAccessToken(), null, Object.class);
+        Object resp = makeRequest(String.format(LEGAL_ENTITY_API, tin), HttpMethod.GET, oAuthTokenService.getAccessToken(), null, Object.class, messageUtil);
 
         log.info("Successfully fetched legal entity info for TIN: {}", maskTin(tin));
         return  resp;

@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 import static org.springframework.util.StringUtils.hasText;
 
 public class UserSpecification {
-
-
     public static Specification<User> build(
             final String nnuzb,
             final String firstName,
@@ -43,13 +41,13 @@ public class UserSpecification {
                 switch (level) {
                     case LevelType.REPUBLICAN:
                         break;
-                    case REGIONAL:
+                    case REGIONAL, URBAN:
                         predicates.add(criteriaBuilder.equal(
                                 orgJoin.get("stateCode"),
                                 currentUser.getCurrentOrganization().getStateCode()
                         ));
                         break;
-                    case DISTRICT, AREA, URBAN, INTERDISTRICT, NOT_DEFINED:
+                    case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED:
                         predicates.add(criteriaBuilder.equal(
                                 orgJoin.get("cityCode"),
                                 currentUser.getCurrentOrganization().getCityCode()

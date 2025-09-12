@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.commons.utils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.client.RestClientException;
@@ -10,10 +11,12 @@ import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @Slf4j
+@RequiredArgsConstructor
 public class RestClientUtil {
     private static final RestTemplate restTemplate = UnsafeHttpClientFactory.create();
 
-    public static <T, R> T makeRequest(String url, HttpMethod method, String token, R requestBody, Class<T> responseType) {
+    public static <T, R> T makeRequest(String url, HttpMethod method, String token, R requestBody,
+                                       Class<T> responseType, MessageUtil messageUtil) {
         HttpHeaders headers = new HttpHeaders();
 
         if (token != null && !token.isBlank()) {
@@ -37,11 +40,11 @@ public class RestClientUtil {
                 return response.getBody();
             }
 
-            throw new ApiException(INTERNAL_SERVER_ERROR, "Empty response body from: " + url);
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.api.empty_response", url));
 
         } catch (RestClientException e) {
             log.error("REST call to {} failed: {}", url, e.getMessage(), e);
-            throw new ApiException(INTERNAL_SERVER_ERROR, "Failed to call REST API: " + e.getMessage());
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.api.failed_call", e.getMessage()));
         }
     }
 }

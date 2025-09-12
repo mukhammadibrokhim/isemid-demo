@@ -33,7 +33,7 @@ public class CitizenServiceImpl implements CitizenService {
     @Override
     public Object getCitizenByNnuzb(String nnuzb, LocalDate birthDate, String photo, String token) {
         validateByNnuzb(nnuzb,messageUtil);
-        CitizenResponse response = makeRequest(String.format(GCP_CITIZEN, nnuzb, birthDate, photo), HttpMethod.GET, token, null, CitizenResponse.class);
+        CitizenResponse response = makeRequest(String.format(GCP_CITIZEN, nnuzb, birthDate, photo), HttpMethod.GET, token, null, CitizenResponse.class, messageUtil);
         if (response == null || response.getData() == null) {
             throw new ApiException(NOT_FOUND, messageUtil.get("error.citizen.not_found_by_nnuzb", nnuzb));
         }
@@ -46,7 +46,7 @@ public class CitizenServiceImpl implements CitizenService {
     @Override
     public Object getCitizenByChild(String series, String number, String token) {
         validateChildCertificate(series, number, messageUtil);
-        ChildResponse response = makeRequest(String.format(GCP_CHILD, series, number), HttpMethod.GET, token, null, ChildResponse.class);
+        ChildResponse response = makeRequest(String.format(GCP_CHILD, series, number), HttpMethod.GET, token, null, ChildResponse.class, messageUtil);
 
         if (response == null || response.getItems() == null || response.getItems().isEmpty()) {
             throw new ApiException(NOT_FOUND, messageUtil.get("error.citizen.not_found_by_document", series, number));
