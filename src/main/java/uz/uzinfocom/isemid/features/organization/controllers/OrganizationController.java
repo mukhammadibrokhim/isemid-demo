@@ -126,7 +126,8 @@ public class OrganizationController {
                         HttpMethod.GET,
                         tokenValue,
                         null,
-                        MisOrganizationResponse.class
+                        MisOrganizationResponse.class,
+                        messageUtil
                 );
 
                 if (body != null) {
