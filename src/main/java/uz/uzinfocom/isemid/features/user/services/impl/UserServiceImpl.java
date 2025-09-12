@@ -77,8 +77,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User updateUserFromMis(UUID uuid, UserRequest user, String token) {
-        return new User();
+    public User updateUserFromMis(UUID uuid, String token) {
+        MisUserResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, MisUserResponse.class, messageUtil);
+        return userRepository.saveAndFlush(userMapper.toUser(response));
     }
 
     @Override

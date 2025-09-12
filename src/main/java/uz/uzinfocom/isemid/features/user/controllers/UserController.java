@@ -92,10 +92,9 @@ public class UserController {
     @PutMapping("/{uuid}/update-from-mis")
     public ApiResponse<UserResponse> updateUserFromMis(
             @PathVariable UUID uuid,
-            @RequestBody UserRequest user,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
     ) {
-        return ApiResponse.success(messageUtil, userMapper.toResponse(userService.updateUserFromMis(uuid, user, token)));
+        return ApiResponse.success(messageUtil, userMapper.toResponse(userService.updateUserFromMis(uuid, token)));
     }
 
     @DeleteMapping("/{userId}/roles/{roleId}")
