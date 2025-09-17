@@ -26,6 +26,7 @@ import java.time.LocalDate;
 public class Form1ReportController {
     private final Form1ReportService form1Service;
     private final MessageUtil messageUtil;
+
     @Operation(
             summary = "Отчёт по инфекциям (Форма 1)",
             description = "Получение статистики инфекций по форме 058 с фильтрацией по датам.",

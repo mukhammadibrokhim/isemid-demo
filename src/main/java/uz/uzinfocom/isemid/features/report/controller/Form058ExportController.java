@@ -17,7 +17,6 @@ import uz.uzinfocom.isemid.features.user.models.User;
 @Tag(name = "Form058 EXCEL Export", description = "API для экспорта данных формы 058 в Excel")
 @RequiredArgsConstructor
 public class Form058ExportController {
-
     private final Form058ExportService form058ExportService;
 
     @Operation(summary = "Экспорт всех данных формы 058 в Excel",
