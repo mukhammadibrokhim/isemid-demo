@@ -20,6 +20,8 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
 
     List<Catalog> findAllByType(String catalogType);
 
+    List<Catalog> findAllByParentCode(String parentCode);
+
     Optional<Catalog> findByCode(String code);
 
     @Query(value = """

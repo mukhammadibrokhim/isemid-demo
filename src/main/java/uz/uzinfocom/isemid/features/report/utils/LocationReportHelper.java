@@ -1,8 +1,12 @@
 package uz.uzinfocom.isemid.features.report.utils;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
+import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
@@ -12,135 +16,140 @@ import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto;
 
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 @Component
 @RequiredArgsConstructor
 public class LocationReportHelper {
     private final CatalogService catalogService;
+    private final MessageUtil messageUtil;
 
     public LocationReportDto buildRegionReports(List<Form058> forms) {
+        var regions = catalogService.finAllByType(CatalogType.state).stream()
+                .map(region -> LocationReportDto.ReportDto.builder()
+                        .code(region.getCode())
+                        .name(getLocalizedName(region))
+                        .confirmed((int) countByStatus(forms, FormStatus.APPROVED, region.getCode(), "state"))
+                        .unconfirmed((int) countByStatus(forms, null, region.getCode(), "state"))
+                        .build()
+                )
+                .toList();
 
-        List<LocationReportDto.ReportDto> regions = catalogService.finAllByType(CatalogType.state).stream()
-                .map(region -> {
-                    long confirmed = forms.stream()
-                            .filter(f -> f.getStatus() == FormStatus.APPROVED)
-                            .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && region.getCode().equals(addr.getStateCode()))
-                            .count();
+        return getLocationReportDto(forms, regions, "state", null);
+    }
 
-                    long unconfirmed = forms.stream()
-                            .filter(f -> f.getStatus() != FormStatus.APPROVED)
-                            .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && region.getCode().equals(addr.getStateCode()))
-                            .count();
+    public LocationReportDto buildDistrictReports(String parentCode, List<Form058> forms) {
+        var districts = catalogService.findAllByTypeAndParentCode(CatalogType.city, parentCode).stream()
+                .map(district -> LocationReportDto.ReportDto.builder()
+                        .code(district.getCode())
+                        .name(getLocalizedName(district))
+                        .confirmed((int) countByStatus(forms, FormStatus.APPROVED, district.getCode(), "city"))
+                        .unconfirmed((int) countByStatus(forms, null, district.getCode(), "city"))
+                        .build()
+                )
+                .toList();
 
+        return getLocationReportDto(forms, districts, "state", parentCode);
+    }
 
-                    return LocationReportDto.ReportDto.builder()
-                            .code(region.getCode())
-                            .name(region.getNameRu())
-                            .confirmed((int) confirmed)
-                            .unconfirmed((int) unconfirmed)
-                            .children(List.of())
-                            .build();
+    public LocationReportDto buildNeighborhoodReports(String parentCode, List<Form058> forms) {
+        var neighborhoods = catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode).stream()
+                .map(nbh -> LocationReportDto.ReportDto.builder()
+                        .code(nbh.getCode())
+                        .name(getLocalizedName(nbh))
+                        .confirmed((int) countByStatus(forms, FormStatus.APPROVED, nbh.getCode(), "neighborhood"))
+                        .unconfirmed((int) countByStatus(forms, null, nbh.getCode(), "neighborhood"))
+                        .build()
+                )
+                .toList();
+
+        return getLocationReportDto(forms, neighborhoods, "city", parentCode);
+    }
+
+    private String getLocalizedName(Catalog catalog) {
+        var locale = LocaleContextHolder.getLocale().getLanguage();
+
+        return switch (locale) {
+            case "uz-Cyrl" -> catalog.getNameUzCyril();
+            case "ru" -> catalog.getNameRu();
+            case "kaa" -> catalog.getNameKaa();
+            default -> catalog.getNameUz();
+        };
+    }
+
+    private LocationReportDto getLocationReportDto(List<Form058> addrForms,
+                                                   List<LocationReportDto.ReportDto> reports,
+                                                   String level,
+                                                   String parentCode) {
+
+        var filtered = addrForms.stream()
+                .filter(f -> {
+                    var addr = getTemporaryAddress(f);
+                    if (addr == null) return false;
+                    return switch (level) {
+                        case "state" -> parentCode == null || parentCode.equals(addr.getStateCode());
+                        case "city" -> parentCode == null || parentCode.equals(addr.getCityCode());
+                        case "neighborhood" -> parentCode == null || parentCode.equals(addr.getNeighborhoodCode());
+                        default -> false;
+                    };
                 })
                 .toList();
 
-        return getLocationReportDto(forms, regions, forms.size());
-    }
+        long confirmed = filtered.stream().filter(f -> f.getStatus() == FormStatus.APPROVED).count();
+        long unconfirmed = filtered.stream().filter(f -> f.getStatus() != FormStatus.APPROVED).count();
 
-    private LocationReportDto getLocationReportDto(List<Form058> addrForms, List<LocationReportDto.ReportDto> regions,
-                                                   int size) {
-        long confirmed = addrForms.stream()
-                .filter(f -> f.getStatus() == FormStatus.APPROVED)
-                .count();
-
-        long unconfirmed = addrForms.stream()
-                .filter(f -> f.getStatus() != FormStatus.APPROVED)
-                .count();
         return LocationReportDto.builder()
-                .reports(regions)
+                .reports(reports)
                 .totalConfirmed((int) confirmed)
                 .totalUnconfirmed((int) unconfirmed)
-                .totalDocuments(size)
+                .totalDocuments(filtered.size())
                 .build();
     }
 
     private Address getTemporaryAddress(Form058 form) {
-        return form.getPatient().getAddresses()
-                .stream()
+        return form.getPatient().getAddresses().stream()
                 .filter(addr -> addr.getType().equals(AddressType.TEMPORARY))
                 .findFirst()
                 .orElse(null);
     }
 
-
-    public LocationReportDto buildDistrictReports(String parentCode, List<Form058> forms) {
-        List<LocationReportDto.ReportDto> districts = catalogService.findAllByTypeAndParentCode(CatalogType.city, parentCode).stream()
-                .map(district -> {
-
-                    long confirmed = forms.stream()
-                            .filter(f -> f.getStatus() == FormStatus.APPROVED)
-                            .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && district.getCode().equals(addr.getCityCode()))
-                            .count();
-
-                    long unconfirmed = forms.stream()
-                            .filter(f -> f.getStatus() != FormStatus.APPROVED)
-                            .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && district.getCode().equals(addr.getCityCode()))
-                            .count();
-
-
-                    return LocationReportDto.ReportDto.builder()
-                            .code(district.getCode())
-                            .name(district.getNameRu())
-                            .confirmed((int) confirmed)
-                            .unconfirmed((int) unconfirmed)
-                            .children(List.of())
-                            .build();
-                }).toList();
-
-        long confirmed = forms.stream()
-                .filter(f -> f.getStatus() == FormStatus.APPROVED)
+    private long countByStatus(List<Form058> forms, FormStatus status, String code, String level) {
+        return forms.stream()
+                .filter(f -> (status == null && f.getStatus() != FormStatus.APPROVED)
+                        || (status != null && f.getStatus() == status))
+                .map(this::getTemporaryAddress)
+                .filter(addr -> addr != null && switch (level) {
+                    case "state" -> code.equals(addr.getStateCode());
+                    case "city" -> code.equals(addr.getCityCode());
+                    case "neighborhood" -> code.equals(addr.getNeighborhoodCode());
+                    default -> false;
+                })
                 .count();
-
-        long unconfirmed = forms.stream()
-                .filter(f -> f.getStatus() != FormStatus.APPROVED)
-                .count();
-        return LocationReportDto.builder()
-                .reports(districts)
-                .totalConfirmed((int) confirmed)
-                .totalUnconfirmed((int) unconfirmed)
-                .totalDocuments(forms.size())
-                .build();
     }
 
+    public LocationReportDto buildByParentCode(String parentCode, List<Form058> forms) {
+        var catalogs = catalogService.findAllByParentCode(parentCode);
 
-    public LocationReportDto buildNeighborhoodReports(String parentCode, List<Form058> forms) {
-        List<LocationReportDto.ReportDto> regions = catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode).stream()
-                .map(nbh -> {
-                    long confirmed = forms.stream()
-                            .filter(f -> f.getStatus() == FormStatus.APPROVED)
-                            .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && nbh.getCode().equals(addr.getNeighborhoodCode()))
-                            .count();
+        if (catalogs.isEmpty()) {
+            throw new ApiException(NOT_FOUND, messageUtil.get("error.catalog.notfound", parentCode));
+        }
 
-                    long unconfirmed = forms.stream()
-                            .filter(f -> f.getStatus() != FormStatus.APPROVED)
-                            .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && nbh.getCode().equals(addr.getNeighborhoodCode()))
-                            .count();
+        var distinctTypes = catalogs.stream()
+                .map(Catalog::getType)
+                .distinct()
+                .toList();
 
+        if (distinctTypes.size() > 1) {
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.catalog.mixed", parentCode, distinctTypes));
+        }
 
-                    return LocationReportDto.ReportDto.builder()
-                            .code(nbh.getCode())
-                            .name(nbh.getNameRu())
-                            .confirmed((int) confirmed)
-                            .unconfirmed((int) unconfirmed)
-                            .children(List.of())
-                            .build();
-                }).toList();
+        var catalogType = distinctTypes.getFirst();
 
-        return getLocationReportDto(forms, regions, forms.size());
+        return switch (catalogType) {
+            case "city" -> buildDistrictReports(parentCode, forms);
+            case "neighborhood" -> buildNeighborhoodReports(parentCode, forms);
+            default -> buildRegionReports(forms);
+        };
     }
-
 }
