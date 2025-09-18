@@ -48,7 +48,7 @@ public class SuperAdminInitializer implements ModuleDataInitializer {
                         .cityCode("TK-273")
                         .district("TK-273012")
                         .levelType(LevelType.REPUBLICAN)
-                        .medicalType(MedicalType.HOSPITAL)
+                        .medicalType(MedicalType.SANEPID_SERVICE)
                         .serviceTypes(List.of(ServiceType.OTHER))
                         .serviceAreaCode("UZ-TK")
                         .phone("900000000")

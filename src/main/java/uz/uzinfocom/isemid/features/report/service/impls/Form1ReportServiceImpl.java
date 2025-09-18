@@ -182,7 +182,6 @@ public class Form1ReportServiceImpl implements Form1ReportService {
                     case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
                     case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
                             cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
-                    default -> cb.disjunction(); // No access
                 };
 
                 predicates.add(accessPredicate);

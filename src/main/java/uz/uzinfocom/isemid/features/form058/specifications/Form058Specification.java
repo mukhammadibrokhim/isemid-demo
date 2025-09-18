@@ -11,11 +11,10 @@ import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.models.Affiliation;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
+import uz.uzinfocom.isemid.features.report.service.impls.LocationReportServiceImpl;
 import uz.uzinfocom.isemid.features.user.models.User;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -88,24 +87,7 @@ public class Form058Specification {
                 predicates.add(cb.equal(root.get("createdOrg").get("cityCode"), cityCode));
             }
 
-            // --- Date filter ---
-            if (fromDate != null && toDate != null) {
-                predicates.add(cb.between(
-                        root.get("createdAt"),
-                        Timestamp.valueOf(fromDate.atStartOfDay()),
-                        Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
-                ));
-            } else if (fromDate != null) {
-                predicates.add(cb.greaterThanOrEqualTo(
-                        root.get("createdAt"),
-                        Timestamp.valueOf(fromDate.atStartOfDay())
-                ));
-            } else if (toDate != null) {
-                predicates.add(cb.lessThanOrEqualTo(
-                        root.get("createdAt"),
-                        Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
-                ));
-            }
+            LocationReportServiceImpl.fromToFilter(fromDate, toDate, root, cb, predicates);
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
