@@ -24,6 +24,8 @@ public interface CatalogService {
 
     List<Catalog> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode);
 
+    List<Catalog> findAllByParentCode(String parentCode);
+
     List<Catalog> findFirst20ByTypeAndSearch(CatalogType catalogType, String search);
 
     Page<Catalog> getByHierarchical(int page, int size, CatalogType type);

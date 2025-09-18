@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.patient.models.Address;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto;
@@ -38,19 +39,27 @@ public class LocationReportServiceImpl implements LocationReportService {
             String mkb10Code,
             LocalDate fromDate,
             LocalDate toDate,
+            LevelType level,
+            String parentCode,
             User currentUser
     ) {
         Specification<Form058> spec = this.build(mkb10Code, fromDate, toDate, currentUser);
         List<Form058> forms = form058Repository.findAll(spec);
 
-        var org = currentUser.getCurrentOrganization();
-        var level = org.getLevelType();
+        if (level == null) {
+            level = currentUser.getCurrentOrganization().getLevelType();
+        }
+
+        if (parentCode != null && !parentCode.isBlank()) {
+            return helper.buildByParentCode(parentCode, forms);
+
+        }
 
         return switch (level) {
             case REPUBLICAN -> helper.buildRegionReports(forms);
-            case REGIONAL, URBAN -> helper.buildDistrictReports(org.getStateCode(), forms);
+            case REGIONAL, URBAN -> helper.buildDistrictReports(parentCode, forms);
             case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                    helper.buildNeighborhoodReports(org.getCityCode(), forms);
+                    helper.buildNeighborhoodReports(parentCode, forms);
         };
     }
 

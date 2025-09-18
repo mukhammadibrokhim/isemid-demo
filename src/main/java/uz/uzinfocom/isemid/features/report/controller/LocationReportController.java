@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.report.service.LocationReportService;
 import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -29,8 +30,10 @@ public class LocationReportController {
             @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) LevelType level,
+            @RequestParam(required = false) String parentCode,
             @CurrentUser User currentUser
     ) {
-        return ApiResponse.success(messageUtil, locationReportService.getByLocation(mkb10Code, fromDate, toDate, currentUser));
+        return ApiResponse.success(messageUtil, locationReportService.getByLocation(mkb10Code, fromDate, toDate, level, parentCode, currentUser));
     }
 }

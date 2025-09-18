@@ -25,6 +25,5 @@ public class LocationReportDto {
         private String name;
         private int confirmed;
         private int unconfirmed;
-        private List<ReportDto> children;
     }
 }
