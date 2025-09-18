@@ -62,6 +62,9 @@ public final class ApiPaths {
     public final static class Db {
         public static final String ROOT = BASE_PATH + "/db";
     }
+    public final static class Log {
+        public static final String ROOT = BASE_PATH + "/log";
+    }
 
     public static final class Report {
         public static final String ROOT = BASE_PATH  + "/report";
