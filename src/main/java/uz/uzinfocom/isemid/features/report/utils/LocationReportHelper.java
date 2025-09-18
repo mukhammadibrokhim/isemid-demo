@@ -74,7 +74,7 @@ public class LocationReportHelper {
 
 
     public LocationReportDto buildDistrictReports(String parentCode, List<Form058> forms) {
-        List<LocationReportDto.ReportDto> regions = catalogService.findAllByTypeAndParentCode(CatalogType.city, parentCode).stream()
+        List<LocationReportDto.ReportDto> districts = catalogService.findAllByTypeAndParentCode(CatalogType.city, parentCode).stream()
                 .map(district -> {
 
                     long confirmed = forms.stream()
@@ -107,7 +107,7 @@ public class LocationReportHelper {
                 .filter(f -> f.getStatus() != FormStatus.APPROVED)
                 .count();
         return LocationReportDto.builder()
-                .reports(regions)
+                .reports(districts)
                 .totalConfirmed((int) confirmed)
                 .totalUnconfirmed((int) unconfirmed)
                 .totalDocuments(forms.size())
@@ -117,23 +117,23 @@ public class LocationReportHelper {
 
     public LocationReportDto buildNeighborhoodReports(String parentCode, List<Form058> forms) {
         List<LocationReportDto.ReportDto> regions = catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode).stream()
-                .map(district -> {
+                .map(nbh -> {
                     long confirmed = forms.stream()
                             .filter(f -> f.getStatus() == FormStatus.APPROVED)
                             .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && district.getCode().equals(addr.getCityCode()))
+                            .filter(addr -> addr != null && nbh.getCode().equals(addr.getNeighborhoodCode()))
                             .count();
 
                     long unconfirmed = forms.stream()
                             .filter(f -> f.getStatus() != FormStatus.APPROVED)
                             .map(this::getTemporaryAddress)
-                            .filter(addr -> addr != null && district.getCode().equals(addr.getCityCode()))
+                            .filter(addr -> addr != null && nbh.getCode().equals(addr.getNeighborhoodCode()))
                             .count();
 
 
                     return LocationReportDto.ReportDto.builder()
-                            .code(district.getCode())
-                            .name(district.getNameRu())
+                            .code(nbh.getCode())
+                            .name(nbh.getNameRu())
                             .confirmed((int) confirmed)
                             .unconfirmed((int) unconfirmed)
                             .children(List.of())

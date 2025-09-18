@@ -1,7 +1,9 @@
 package uz.uzinfocom.isemid.features.report.service.impls;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
@@ -52,7 +54,6 @@ public class LocationReportServiceImpl implements LocationReportService {
         };
     }
 
-
     private Specification<Form058> build(
             final String mkb10Code,
             final LocalDate fromDate,
@@ -65,43 +66,46 @@ public class LocationReportServiceImpl implements LocationReportService {
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
-            if (fromDate != null && toDate != null) {
-                predicates.add(cb.between(
-                        root.get("createdAt"),
-                        Timestamp.valueOf(fromDate.atStartOfDay()),
-                        Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
-                ));
-            } else if (fromDate != null) {
-                predicates.add(cb.greaterThanOrEqualTo(
-                        root.get("createdAt"),
-                        Timestamp.valueOf(fromDate.atStartOfDay())
-                ));
-            } else if (toDate != null) {
-                predicates.add(cb.lessThanOrEqualTo(
-                        root.get("createdAt"),
-                        Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
-                ));
-            }
+            fromToFilter(fromDate, toDate, root, cb, predicates);
+
+            Join<Form058, Patient> patient = root.join("patient");
+            Join<Patient, Address> addresses = patient.join("addresses");
+            predicates.add(cb.equal(addresses.get("type"), AddressType.TEMPORARY));
 
             if (currentUser != null && currentUser.getCurrentOrganization() != null) {
                 var org = currentUser.getCurrentOrganization();
                 var level = org.getLevelType();
 
                 switch (level) {
-                    case REPUBLICAN -> {
-                    }
-                    case REGIONAL, URBAN ->
-                            predicates.add(cb.equal(root.get("createdOrg").get("stateCode"), org.getStateCode()));
-                    case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                            predicates.add(cb.equal(root.get("createdOrg").get("cityCode"), org.getCityCode()));
+                    case REPUBLICAN -> {}
+                    case REGIONAL, URBAN -> predicates.add(cb.equal(addresses.get("stateCode"), org.getStateCode()));
+                    case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> predicates.add(cb.equal(addresses.get("cityCode"), org.getCityCode()));
                 }
             }
-
-            Join<Form058, Patient> patient = root.join("patient");
-            Join<Patient, Address> addresses = patient.join("addresses");
-            predicates.add(cb.equal(addresses.get("type"), AddressType.TEMPORARY));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
+    public static void fromToFilter(LocalDate fromDate, LocalDate toDate, Root<Form058> root, CriteriaBuilder cb,
+                                    List<Predicate> predicates) {
+        if (fromDate != null && toDate != null) {
+            predicates.add(cb.between(
+                    root.get("createdAt"),
+                    Timestamp.valueOf(fromDate.atStartOfDay()),
+                    Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
+            ));
+        } else if (fromDate != null) {
+            predicates.add(cb.greaterThanOrEqualTo(
+                    root.get("createdAt"),
+                    Timestamp.valueOf(fromDate.atStartOfDay())
+            ));
+        } else if (toDate != null) {
+            predicates.add(cb.lessThanOrEqualTo(
+                    root.get("createdAt"),
+                    Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
+            ));
+        }
+    }
+
 }
