@@ -33,11 +33,15 @@ public class CardSpecification {
         );
     }
 
-    public static Specification<Card> build(Long userId) {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.and(
+    public static Specification<Card> build(Long userId, Long orgId, boolean isHead) {
+        return (root, query, cb) -> cb.and(
                 Stream.of(
-                        (userId != null) ? criteriaBuilder.equal(root.get("users").get("id"), userId) : null
-                ).filter(Objects::nonNull).toArray(Predicate[]::new)
-        ));
+                                (isHead && orgId != null) ? cb.equal(root.get("createdOrg").get("id"), orgId) : null,
+                                (!isHead && userId != null) ? cb.equal(root.join("users").get("id"), userId) : null
+                        )
+                        .filter(Objects::nonNull)
+                        .toArray(Predicate[]::new)
+        );
     }
+
 }

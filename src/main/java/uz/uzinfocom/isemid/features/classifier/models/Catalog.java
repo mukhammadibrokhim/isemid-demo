@@ -17,10 +17,7 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
         @Index(name = "idx_type", columnList = "type"),
         @Index(name = "idx_code", columnList = "code"),
         @Index(name = "idx_parent_code", columnList = "parentCode"),
-        @Index(name = "idx_name_ru", columnList = "nameRu"),
         @Index(name = "idx_name_uz", columnList = "nameUz"),
-        @Index(name = "idx_name_uz_cyril", columnList = "nameUzCyril"),
-        @Index(name = "idx_name_kaa", columnList = "nameKaa"),
 },name = "cls_catalog")
 public class Catalog extends BaseEntity {
     @Column(nullable = false)

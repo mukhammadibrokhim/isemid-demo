@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.features.form058.reposiotries;
 
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +19,7 @@ public interface Form058Repository extends JpaRepository<Form058, Long>, JpaSpec
             "JOIN p.identifiers i " +
             "WHERE i.typeCode = 'NNUZB' AND i.value = :nnuzb")
     List<Form058> findAllByNnuzbIdentifier(@Param("nnuzb") String nnuzb);
+
+    @EntityGraph(attributePaths = {"patient.addresses"})
+    List<Form058> findAll(Specification<Form058> spec);
 }

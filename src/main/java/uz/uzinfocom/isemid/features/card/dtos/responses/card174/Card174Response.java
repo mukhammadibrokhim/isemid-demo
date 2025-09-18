@@ -31,11 +31,9 @@ public class Card174Response extends CardResponse {
     private String outbreakLocation; // O‘chog‘ joyi (xo‘jalik, korxona, aholi punkti)
     private String ownerName; // Hayvon egasining to‘liq FISH
     private String ownerAddr; // Hayvon egasining manzili
-
     private String affectedAnimalCode; // Kasallangan hayvon turi kodi
     private Integer affectedAnimalCount; // Kasallangan hayvonlar soni
     private String ownershipCode; // Hayvon tegishliligi
-
     private boolean isExoticArea; // Hudud ekzotikmi
     private boolean rodentsIncreased; // Kemiruvchilar ortganmi
     private boolean vectorsIncreased; // Tashuvchilar ortganmi
@@ -43,33 +41,25 @@ public class Card174Response extends CardResponse {
     private boolean synanthropicRodents; // Sinantrop kemiruvchilar ortgan
     private boolean arthropodsIncreased; // Qon so‘ruvchi bo‘g‘imoyoqlilar ortgan
     private boolean epizootologyExists; // Epizootologik holat mavjudmi
-
     private List<String> diseaseFactors = new ArrayList<>(); // Kasallik manbalari
     private List<ExternalSampleTestResponse> externalSampleTests = new ArrayList<>();
     private List<String> affectedAnimalCodes = new ArrayList<>(); // Ta’sirlangan hayvonlar ro‘yxati
-
     private Integer infectedHumans; // Kasallangan odamlar soni
     private Integer atIndustry; // Shu jumladan sanoat sharoitida
     private Integer reportedCases; // Shu jumladan murojaat qilganlar
     private Integer confirmedCases; // Shu jumladan aniqlanganlar
     private Integer treatedHumans; // Antirabik yordam olganlar soni
     private Integer infectedAtOutbreak; // O‘chog‘da kasallanganlar soni
-
     private List<InfectionMonitoringResponse> monitoring = new ArrayList<>(); // Infeksiya nazorati
-
     private String quarantineCode; // Karantin turi kodi
     private LocalDate quarantineStart; // Karantin boshlanish sanasi
     private LocalDate quarantineEnd; // Karantin tugash sanasi
-
     private String disposalMethodCode; // Hayvonni yo‘q qilish usuli kodi
     private LocalDate disposalDate; // Hayvonni yo‘q qilish sanasi
-
     private List<PreventiveMeasureResponse> preventiveMeasures = new ArrayList<>();
-
     private String vaccinationByEpizootic; // Ehtiyotdan emlanishi keraklar (epizootik ko‘rsatmaga asosan)
     private String strayCapture;       // Daydi hayvonlarni tutish
     private String wildCulling;        // Yovvoyi hayvonlarni yo‘qotish
-
     private String deratCode; // Deratizatsiya kodi
     private Double deratArea; // Deratizatsiya qamrovi (m²)
     private String inspectors; // Tekshiruvchilar FISH
@@ -77,19 +67,8 @@ public class Card174Response extends CardResponse {
     private String meatSubmission; // Go‘sht topshirilganligi
     private String treatment; // Davolash choralari
     private Boolean actionTaken; // Choralar ko‘rildimi
-
-    private List<String> disinfectionFactors = new ArrayList<>(); // Dezinfeksiya ob'ektlari
-
-    private Integer disinfectedCount; // Zararsizlantirilgan omillar miqdori
-    private LocalDate disinfectionDate; // Zararsizlantirish sanasi
-
-    private List<String> eliminationMethods = new ArrayList<>(); // Yo‘q qilish usullari
-
-    private String eventLocation; // Hodisa joyi
-    private String controlResults; // Chora nazorati natijasi
-
+    private List<DisinfectionInfoResponse> disinfectionInfos= new ArrayList<>();
     private List<OutbreakControlMeasureResponse> controlMeasures = new ArrayList<>(); // O‘choqdagi chora-tadbirlar
-
     private String additionalInfo; // Qo‘shimcha ma’lumot
 
 }

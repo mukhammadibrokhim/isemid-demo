@@ -14,13 +14,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 public class Act224 extends Act {
-    private String title;
     private LocalDate documentSendDate;
     private String regionCode;
     private String fullNameOfEpidStaff;
     private String positionOfEpidStaff;
+    private String fullNameOfParticipantEpid;
+    private String positionOfParticipantEpid;
+
     private String nameOfInstitution;
-    private String addressOfEpidStaff;
+    private String addressOfInstitution;
     private String nameOfRegulatoryActs;
     private String checkingFulfillmentOfRequirements;
     private String fullNameOfParticipant;

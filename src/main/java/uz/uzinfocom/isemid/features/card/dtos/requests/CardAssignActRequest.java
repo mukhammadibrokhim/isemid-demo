@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.features.card.dtos.requests;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,4 +20,7 @@ public class CardAssignActRequest {
     private Long cardId;
     @NotNull(message = "Act type is required.")
     private List<ActType> actTypes;
+    @Valid
+    @NotEmpty
+    private List<Long> assignUserIds;
 }

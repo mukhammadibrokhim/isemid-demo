@@ -46,27 +46,25 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.create(form058Request)));
     }
 
-    @Operation(
-            summary = "Получение всех форм 058",
-            description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате."
-    )
+    @Operation(summary = "Получение всех форм 058", description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате.")
     @GetMapping("/all")
     public PagedResponse<?> getAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, user, FilterType.ALL);
+        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, null, user, FilterType.ALL);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return formAdapter.adapt(base, form, FilterType.ALL);
         });
         return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
     }
-
 
     @Operation(summary = "Получение всех полученных форм 058", description = "Возвращает постраничный список всех форм 058, которые были получены, с возможностью фильтрации по дате.")
     @GetMapping("/received/all")
@@ -75,10 +73,13 @@ public class Form058Controller {
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
+            @RequestParam(required = false) Boolean affiliation,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, user, FilterType.RECEIVED);
+        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, affiliation, user, FilterType.RECEIVED);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return formAdapter.adapt(base, form, FilterType.RECEIVED);
@@ -88,8 +89,8 @@ public class Form058Controller {
 
     @Operation(summary = "Получение формы 058 по ID", description = "Возвращает данные конкретной формы 058 по заданному идентификатору.")
     @GetMapping("/{id}")
-    public ApiResponse<Form058Response> get(@PathVariable long id) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.getById(id)));
+    public ApiResponse<Form058Response> get(@PathVariable long id, @CurrentUser User user) {
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.getById(id), user.getCurrentOrganization().getId()));
     }
 
     @Operation(summary = "Обновление формы 058", description = "Обновляет данные существующей формы 058 по заданному идентификатору.")

@@ -30,13 +30,13 @@ public class OrganizationSpecification {
                 switch (level) {
                     case REPUBLICAN:
                         break;
-                    case REGIONAL:
+                    case REGIONAL, URBAN:
                         predicates.add(criteriaBuilder.equal(
                                 root.get("stateCode"),
                                 currentUser.getCurrentOrganization().getStateCode()
                         ));
                         break;
-                    case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED:
+                    case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED:
                         predicates.add(criteriaBuilder.equal(
                                 root.get("cityCode"),
                                 currentUser.getCurrentOrganization().getCityCode()

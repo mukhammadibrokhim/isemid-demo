@@ -38,6 +38,8 @@ public enum CatalogType {
     affectedAnimalType,diseaseFactors,animalDisposalMethod,deratization,quarantineType,eliminationMethod,
     disinfectionTransmissionFactors,processingMethod,
 
+    //acts
+    actType,
     //act154
     shift,
 

@@ -25,7 +25,7 @@ public interface UserService {
 
     User fetchUserFromMisAndSave(UUID practitioner, String token, List<Organization> organizations, Set<Role> roles);
 
-    User updateUserFromMis(UUID uuid, UserRequest user, String token);
+    User updateUserFromMis(UUID uuid, String token);
 
     User save(User existingUser);
 

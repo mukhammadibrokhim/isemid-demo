@@ -23,9 +23,14 @@ import uz.uzinfocom.isemid.features.card.strategy.impls.UpdateCardService;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
+import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
@@ -37,6 +42,7 @@ public class CardServiceImpl implements CardService {
     private final UpdateCardService updateCardService;
     private final MessageUtil messageUtil;
     private final ActFactory actFactory;
+    private final UserService userService;
 
     @Override
     public Page<Card> filter(
@@ -79,12 +85,6 @@ public class CardServiceImpl implements CardService {
         card.setStatus(CardStatus.REJECTED_BY_USER);
         card.setAttachedUserComment(rejectCard.getComment());
         return cardRepository.save(card);
-    }
-
-    @Override
-    public Page<Card> getCardsByUserId(int page, int size, Long userId) {
-        Specification<Card> spec = CardSpecification.build(userId);
-        return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
     @Override
@@ -138,32 +138,47 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public List<Act> getCardActs(long cardId) {
-        Card card = this.getById(cardId);
-        return card.getActs();
-    }
+    public Card assignAct(CardAssignActRequest request, User user) {
+        Card card = this.getById(request.getCardId());
 
-    @Override
-    public Card assignAct(CardAssignActRequest reqCardAssignAct, User user) {
-        Card card = this.getById(reqCardAssignAct.getCardId());
-        List<Act> acts = actBuilder(reqCardAssignAct.getActTypes(), card, user);
+        Map<Long, User> userMap = userService.getAllByIds(request.getAssignUserIds()).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        List<Act> acts = actBuilder(request.getActTypes(), card, user, userMap);
         card.getActs().addAll(acts);
         return cardRepository.save(card);
     }
 
-    private List<Act> actBuilder(List<ActType> actTypes, Card card, User user) {
+    @Override
+    public Page<Card> getAssignedCards(int page, int size, User currentUser) {
+        boolean isHead = currentUser.hasRole("isemid_epidim_head");
+        Long orgId = null;
+        Long userId = null;
+
+        if (isHead) {
+            if (currentUser.getCurrentOrganization() != null) {
+                orgId = currentUser.getCurrentOrganization().getId();
+            }
+        } else {
+            userId = currentUser.getId();
+        }
+        Specification<Card> spec = CardSpecification.build(userId, orgId, isHead);
+        return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
+    }
+
+    private List<Act> actBuilder(List<ActType> actTypes, Card card, User user, Map<Long, User> userMap) {
         return actTypes.stream()
                 .map(actType -> {
                     Act act = actFactory.createAct(actType);
                     act.setCreatedBy(user.getId());
                     act.setUpdatedBy(user.getId());
-                    act.setCard(card);
+                    act.setUsers((new HashSet<>(userMap.values())));
+                    act.setCardId(card.getId());
                     act.setType(actType);
                     act.setStatus(ActStatus.NEW);
                     return act;
                 }).toList();
     }
-
 
     private Card validateAndGetCard(long cardId, User currentUser) {
         Card card = this.getById(cardId);

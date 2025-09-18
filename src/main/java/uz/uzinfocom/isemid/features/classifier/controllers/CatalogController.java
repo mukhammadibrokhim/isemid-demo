@@ -10,15 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
-import uz.uzinfocom.isemid.commons.seed.ModuleDataInitializer;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.CatalogRequest;
 import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogResponse;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapper;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
-
-import java.util.List;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -86,19 +83,6 @@ public class CatalogController {
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable long id) {
         catalogService.delete(id);
-        return ApiResponse.success(messageUtil, null);
-    }
-    private final List<ModuleDataInitializer> initializers;
-
-    @PostMapping("/init")
-    public ApiResponse<?> initCatalog() {
-        for (ModuleDataInitializer initializer : initializers) {
-            try {
-                initializer.init();
-            } catch (Exception e) {
-                throw e; // Fail fast if one of them is critical
-            }
-        }
         return ApiResponse.success(messageUtil, null);
     }
 }

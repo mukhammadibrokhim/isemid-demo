@@ -47,17 +47,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Organization fetchOrganizationFromMisAndSave(UUID uuid, String tokenValue) {
-        String json = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, tokenValue, null, String.class);
-        MisOrganizationResponse response;
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-            response = mapper.readValue(json, MisOrganizationResponse.class);
-        } catch (Exception e) {
-            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "JSON parsing failed", e);
-        }
-        return organizationRepository.saveAndFlush(mapper.toOrganization(response));
+        return organizationRepository.saveAndFlush(mapper.toOrganization(fetchOrganization(uuid, tokenValue)));
     }
 
     @Override
@@ -67,10 +57,20 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Organization updateUserFromMis(UUID uuid, User currentUser, String token) {
-        MisOrganizationResponse response = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, MisOrganizationResponse.class);
-        Organization organization = mapper.toOrganization(response);
-        return organizationRepository.save(organization);
+        MisOrganizationResponse response = fetchOrganization(uuid, token);
+        return organizationRepository.save(mapper.toOrganization(response));
+    }
 
+    private MisOrganizationResponse fetchOrganization(UUID uuid, String token) {
+        String json = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, String.class, messageUtil);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+            return mapper.readValue(json, MisOrganizationResponse.class);
+        } catch (Exception e) {
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "JSON parsing failed", e);
+        }
     }
 
     @Override
@@ -109,7 +109,6 @@ public class OrganizationServiceImpl implements OrganizationService {
         Organization organization = organizationRepository.findById(id)
                 .orElseThrow(() -> new ApiException(NOT_FOUND,
                         messageUtil.get("error.not_found_by_id", id)));
-
         return organization.getUsers();
     }
 

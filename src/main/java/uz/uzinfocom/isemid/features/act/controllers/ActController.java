@@ -2,14 +2,23 @@ package uz.uzinfocom.isemid.features.act.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
+import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
+import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.services.ActService;
+
+import static org.springframework.security.web.util.UrlUtils.buildRequestUrl;
+import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
+import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
 
 @RestController
 @RequestMapping(ApiPaths.Act.ROOT)
@@ -20,10 +29,15 @@ public class ActController {
     private final MessageUtil messageUtil;
     private final ActMapperFactory factory;
 
-    @Operation(summary = "Получить список актов по Card ID", description = "Возвращает список всех актов, связанных с указанным Card ID. Только авторизованные пользователи имеют доступ.")
-    @GetMapping("/by-card/{cardId}")
-    public ApiResponse<?> getAllActsByCardId(@PathVariable Long cardId) {
-        return ApiResponse.success(messageUtil, actService.getAllByCardId(cardId).stream().map(factory::toResponse));
+    @GetMapping("/all")
+    public PagedResponse<ActResponse> getAll(
+            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam Long cardId,
+            HttpServletRequest request
+    ) {
+        Page<Act> actPage = actService.filter(page, size, cardId);
+        return PagedResponse.build(page, actPage.map(factory::toResponse), buildRequestUrl(request), messageUtil);
     }
 
     @Operation(summary = "Получить данные акта по ID", description = "Извлекает подробную информацию о конкретном акте по его уникальному идентификатору.")

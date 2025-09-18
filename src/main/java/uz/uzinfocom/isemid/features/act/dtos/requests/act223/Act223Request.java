@@ -18,7 +18,6 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act223Request extends ActRequest {
     private Long id;
-    private String title;
     private LocalDate documentSendDate;
     private Integer tin;
     private String institutionName;

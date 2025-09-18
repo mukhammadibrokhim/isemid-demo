@@ -23,7 +23,7 @@ public class Form058Response {
     private UUID uuid;
     private Timestamp createdAt;
     private Timestamp updatedAt;
-    private String filterType; // RECEIVER, AFFILIATION, NONE
+    private Boolean affiliation;
     private String mkb10Code;
     private String mkb10Name;
     private String finalMkb10Code;
