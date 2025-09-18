@@ -3,7 +3,6 @@ package uz.uzinfocom.isemid.features.user.specifications;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
-import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.Objects;
@@ -11,7 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.springframework.util.StringUtils.hasText;
-
 public class UserSpecification {
     public static Specification<User> build(
             final String nnuzb,
@@ -25,7 +23,7 @@ public class UserSpecification {
     ) {
         return (root, query, criteriaBuilder) -> {
             var predicates = Stream.of(
-                    hasText(nnuzb) ? criteriaBuilder.like(root.get("nnuzb"), nnuzb) : null,
+                    hasText(nnuzb) ? criteriaBuilder.equal(root.get("nnuzb"), nnuzb) : null,
                     hasText(firstName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%") : null,
                     hasText(lastName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), "%" + lastName.toLowerCase() + "%") : null,
                     hasText(middleName) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("middleName")), "%" + middleName.toLowerCase() + "%") : null,
@@ -35,26 +33,27 @@ public class UserSpecification {
             ).filter(Objects::nonNull).collect(Collectors.toList());
 
             if (currentUser != null && currentUser.getCurrentOrganization() != null) {
-                var orgJoin = root.joinList("organizations", JoinType.LEFT);
+                var currentOrg = currentUser.getCurrentOrganization();
+                var level = currentOrg.getLevelType();
 
-                var level = currentUser.getCurrentOrganization().getLevelType();
                 switch (level) {
-                    case LevelType.REPUBLICAN:
+                    case REPUBLICAN:
                         break;
                     case REGIONAL, URBAN:
                         predicates.add(criteriaBuilder.equal(
-                                orgJoin.get("stateCode"),
-                                currentUser.getCurrentOrganization().getStateCode()
+                                root.get("stateCode"),
+                                currentOrg.getStateCode()
                         ));
                         break;
                     case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED:
                         predicates.add(criteriaBuilder.equal(
-                                orgJoin.get("cityCode"),
-                                currentUser.getCurrentOrganization().getCityCode()
+                                root.get("cityCode"),
+                                currentOrg.getCityCode()
                         ));
                         break;
                 }
             }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
