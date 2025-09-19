@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class Form058ExportServiceImpl implements Form058ExportService {
-
     private final Form058Repository form058Repository;
     private final OrganizationRepository organizationRepository;
     private final CatalogService catalogService;
