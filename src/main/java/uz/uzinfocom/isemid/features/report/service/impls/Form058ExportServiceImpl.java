@@ -16,6 +16,8 @@ import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.report.service.Form058ExportService;
@@ -35,7 +37,6 @@ import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.*;
 @Service
 @RequiredArgsConstructor
 public class Form058ExportServiceImpl implements Form058ExportService {
-
     private final Form058Repository form058Repository;
     private final OrganizationRepository organizationRepository;
     private final CatalogService catalogService;
@@ -343,16 +344,43 @@ public class Form058ExportServiceImpl implements Form058ExportService {
     public static Specification<Form058> getFilteredSpecification(User currentUser, FilterType filterType) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (currentUser.getCurrentOrganization() != null) {
-                UUID orgId = currentUser.getCurrentOrganization().getUuid();
-                if (filterType == FilterType.RECEIVED) {
-                    predicates.add(cb.equal(root.get("receiverOrganizationId"),
-                            currentUser.getCurrentOrganization().getId()));
+
+            var userOrg = currentUser.getCurrentOrganization();
+            if (userOrg != null) {
+                UUID orgUuid = userOrg.getUuid();
+                Long orgId = userOrg.getId();
+                LevelType levelType = userOrg.getLevelType();
+                MedicalType medicalType = userOrg.getMedicalType();
+
+                Predicate accessPredicate;
+
+                if (medicalType == MedicalType.SANEPID_SERVICE) {
+                    // Sanepid xizmatlari uchun -> darajaga qarab filter
+                    Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
+
+                    Predicate levelPredicate = switch (levelType) {
+                        case REPUBLICAN -> cb.conjunction(); // barchasi chiqadi
+                        case REGIONAL, URBAN ->
+                                cb.equal(root.get("createdOrg").get("stateCode"), userOrg.getStateCode());
+                        case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
+                                cb.equal(root.get("createdOrg").get("cityCode"), userOrg.getCityCode());
+                    };
+
+                    accessPredicate = cb.or(receiverMatch, levelPredicate);
                 } else {
-                    predicates.add(cb.equal(root.get("createdOrgUuid"), orgId));
+                    // Oddiy tashkilotlar uchun -> filterType bo‘yicha
+                    if (filterType == FilterType.RECEIVED) {
+                        accessPredicate = cb.equal(root.get("receiverOrganizationId"), orgId);
+                    } else {
+                        accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
+                    }
                 }
+
+                predicates.add(accessPredicate);
             }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
 }
