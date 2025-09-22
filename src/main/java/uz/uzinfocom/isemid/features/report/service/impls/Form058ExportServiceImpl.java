@@ -6,32 +6,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
-import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
-import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
+import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.report.service.Form058ExportService;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.AddressUtil.resolvePermanentAddress;
+import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.*;
 
 @Slf4j
 @Service
@@ -42,48 +40,71 @@ public class Form058ExportServiceImpl implements Form058ExportService {
     private final OrganizationRepository organizationRepository;
     private final CatalogService catalogService;
 
+    private static final int HEADER_ROW_INDEX = 9;
+
     @Transactional
     @Override
     public ResponseEntity<?> allExport(User user) {
-        return getResponse(user, FilterType.ALL);
+        return buildExportResponse(user, FilterType.ALL);
     }
 
     @Transactional
     @Override
     public ResponseEntity<?> receivedExport(User user) {
-        return getResponse(user, FilterType.RECEIVED);
+        return buildExportResponse(user, FilterType.RECEIVED);
     }
 
+    private ResponseEntity<?> buildExportResponse(User user, FilterType filterType) {
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+             ByteArrayOutputStream out = new ByteArrayOutputStream();
+             Stream<Form058> formStream = form058Repository.streamAll(getFilteredSpecification(user, filterType))) {
 
-    protected ResponseEntity<?> getResponse(User user, FilterType filterType) {
-        SXSSFWorkbook workbook = new SXSSFWorkbook(100);
-        workbook.setCompressTempFiles(true);
+            workbook.setCompressTempFiles(true);
+            Sheet sheet = workbook.createSheet("Юқумли касалликлар");
+            Map<String, CellStyle> styles = createStyles(workbook);
 
-        Sheet sheet = workbook.createSheet("Юқумли касалликлар");
-        Map<String, CellStyle> styles = createStyles(workbook);
-        generateHeader(sheet, styles);
+            generateHeader(sheet, styles, workbook);
+            setColumnWidths(sheet);
 
-        for (int i = 0; i < 16; i++) {
-            sheet.setColumnWidth(i, 4000);
+            writeTableHeader(sheet, styles);
+            writeDataRows(sheet, styles, formStream, user);
+
+            workbook.write(out);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDisposition(ContentDisposition.attachment()
+                    .filename("journal_060_" + LocalDate.now() + ".xlsx").build());
+            headers.setContentType(MediaType.parseMediaType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+
+            return ResponseEntity.ok().headers(headers).body(out.toByteArray());
+
+        } catch (IOException e) {
+            log.error("Excel export error", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while writing to Excel.");
         }
+    }
 
-        Row headerRow = sheet.createRow(9);
+    private void writeTableHeader(Sheet sheet, Map<String, CellStyle> styles) {
+        Row headerRow = sheet.createRow(HEADER_ROW_INDEX);
+
         String[] headers = {
                 "№",
-                "Бирналмчи тезкор ҳабар номини телефонда ҳабар бериш (қабул қилиш) куни, соати ва жўнатиш (олиш) куни, ким юборган ким олган",
-                "Хабар берувчи даволаш профилактика муассасаси номи",
-                "Беморнинг фамилия исми шарифи",
-                "Ёши (3 ёшгача болган болалар учун туғилган йили ва ойи курсатилсин)",
-                "Уй манзили (шахар, қишлоқ, кўча, уй №, кв №)",
-                "Иш жойи, ўқиш, мактабгача болалар муассасалари номи, гурухи, синфи, сўнгги марта қатнашган куни",
+                "Бирламчи хабар вақти ва ким юборган/олган",
+                "Хабар берувчи муассаса",
+                "Бемор ФИШ",
+                "Ёши",
+                "Манзили",
+                "Иш/ўқиш жойи",
                 "Касал бўлган кун",
-                "Биринчи марта мурожаат қилнган кун",
+                "Биринчи мурожаат санаси",
                 "Ётқизилган жойи, куни",
-                "Ташхис (диагноз) ва у қойилган кун ",
-                "Ўзгарган (аниқланган) ташхис (диагноз) ва у тасдиқланган кун",
-                "Эпидимиологик текширув ўтказилаган кун, текширув отказган шахс фамилияси)",
-                "Касаллик ҳақида ҳабар қилнган (доимий яшаш жойи бўйича ДСEНМга, болалар муассасалари, ўқиш иш жойлари в.б)",
-                "Лаборатория текшируи ва унинг натижаси",
+                "Ташхис ва қўйилган сана",
+                "Якуний ташхис ва сана",
+                "Эпидемиологик текширув",
+                "Хабар қилинган ташкилот",
+                "Лаборатория натижаси",
                 "Эслатма"
         };
 
@@ -92,153 +113,190 @@ public class Form058ExportServiceImpl implements Form058ExportService {
             cell.setCellValue(headers[i]);
             cell.setCellStyle(styles.get("header"));
         }
+    }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        AtomicInteger rowIdx = new AtomicInteger(10);
+    private void writeDataRows(Sheet sheet, Map<String, CellStyle> styles, Stream<Form058> stream, User user) {
+        AtomicInteger rowIdx = new AtomicInteger(HEADER_ROW_INDEX + 1);
 
-        try (Stream<Form058> stream = form058Repository.streamAll(getFilteredSpecification(user, filterType))) {
-            stream.forEach(form -> {
-                Row row = sheet.createRow(rowIdx.get());
+        stream.forEach(form -> {
+            Row row = sheet.createRow(rowIdx.get());
 
-                String fullName = Optional.ofNullable(form.getPatient())
-                        .map(p -> p.getLastName() + " " + p.getFirstName() + " " + Optional.ofNullable(p.getMiddleName()).orElse(""))
-                        .orElse("");
+            String[] values = mapFormToRowValues(form);
+            for (int i = 0; i < values.length; i++) {
+                Cell cell = row.createCell(i);
+                cell.setCellValue(values[i]);
+                cell.setCellStyle(styles.get("data"));
+            }
+            rowIdx.incrementAndGet();
+        });
+    }
 
-                String ageString = "";
-                if (form.getPatient() != null) {
-                    if (form.getPatient().getBirthDate() != null) {
-                        ageString = form.getPatient().getBirthDate().toString();
-                    } else {
-                        Integer ageYears = form.getPatient().getAgeYears();
-                        Integer ageMonths = form.getPatient().getAgeMonths();
-                        if (ageYears != null) ageString += ageYears + " йил";
-                        if (ageMonths != null) ageString += " " + ageMonths + " ой";
-                    }
-                }
+    private String[] mapFormToRowValues(Form058 form) {
+        String fullName = Optional.ofNullable(form.getPatient()).map(Patient::getFullName).orElse("");
 
-                String address = Optional.ofNullable(form.getPatient())
-                        .map(p -> p.getAddresses().stream()
-                                .filter(a -> AddressType.PERMANENT.equals(a.getType()))
-                                .findFirst()
-                                .map(a -> Stream.of(
-                                        catalogService.findByTypeAndCode(CatalogType.state, a.getStateCode()).map(Catalog::getNameUzCyril).orElse(""),
-                                        catalogService.findByTypeAndCode(CatalogType.city, a.getCityCode()).map(Catalog::getNameUzCyril).orElse(""),
-                                        catalogService.findByTypeAndCode(CatalogType.neighborhood, a.getNeighborhoodCode()).map(Catalog::getNameUzCyril).orElse(""),
-                                        a.getHouseNumber(),
-                                        a.getApartmentNumber()
-                                ).filter(Objects::nonNull).filter(s -> !s.isBlank()).collect(Collectors.joining(", ")))
-                                .orElse("")
-                        ).orElse("");
+        assert form.getPatient() != null;
+        Patient patient = form.getPatient();
+        String ageString = resolveAge(patient.getBirthDate() != null ? patient.getBirthDate() : null, patient.getAgeYears(), patient.getAgeMonths());
 
-                String icd10 = form.getMkb10Code() + "-" + form.getMkb10Name();
-                String icd10Final = form.getFinalMkb10Code() + "-" + form.getFinalMkb10Name();
-                String diagnosisDate = form.getDiagnosisDate() != null ? formatter.format(form.getDiagnosisDate()) : "";
+        String address = resolvePermanentAddress(form, catalogService);
 
-                String hospitalName = Optional.ofNullable(form.getHospitalPlaceId())
-                        .flatMap(organizationRepository::findById)
-                        .map(Organization::getName)
-                        .orElse("");
-                String hospitalAndDate = String.join(", ", hospitalName, form.getAdmissionDate() != null ? formatter.format(form.getAdmissionDate()) : "");
+        String icd10 = form.getMkb10Code() + "-" + form.getMkb10Name();
+        String icd10Final = form.getFinalMkb10Code() + "-" + form.getFinalMkb10Name();
 
-                Timestamp timestamp = form.getCreatedAt(); // bu java.sql.Timestamp
-                LocalDateTime localDateTime = timestamp.toLocalDateTime();
-                String createdOrgAndDocName = String.join(", ", form.getCreatedOrg().getName(), form.getNotifierFullName(), formatter.format(localDateTime));
+        String hospitalAndDate = resolveHospitalAndDate(form, organizationRepository);
 
-                String receiverORg = Optional.ofNullable(form.getReceiverOrganizationId())
-                        .flatMap(organizationRepository::findById)
-                        .map(Organization::getName)
-                        .orElse(null);
+        String createdOrgAndDocName = resolveCreatedOrgAndDocName(form);
 
-                int index = rowIdx.get() - 9;
+        String receiverOrg = resolveOrganizationName(form.getReceiverOrganizationId(), organizationRepository);
 
-                String[] values = new String[]{
-                        String.valueOf(index),
-                        form.getFirstVisitDate() != null ? formatter.format(form.getFirstVisitDate()) : "",
-                        Optional.ofNullable(form.getCreatedOrg()).map(Organization::getName).orElse(""),
-                        fullName,
-                        ageString,
-                        address,
-//                        form.getPatient() != null ? Optional.ofNullable(form.getPatient().getWorkPlace()).orElse("") : "",
-                        form.getDiseaseDate() != null ? formatter.format(form.getDiseaseDate()) : "",
-                        form.getFirstVisitDate() != null ? formatter.format(form.getFirstVisitDate()) : "",
-                        hospitalAndDate,
-                        String.join(", ", icd10, diagnosisDate),
-                        String.join(", ", icd10Final, diagnosisDate),
-                        createdOrgAndDocName,
-                        receiverORg, "", ""
-                };
+        return new String[]{
+                String.valueOf(form.getId()),
+                formatDateTime(form.getFirstVisitDate()),
+                Optional.ofNullable(form.getCreatedOrg()).map(Organization::getName).orElse(""),
+                fullName,
+                ageString,
+                address,
+                "", // work/study place hozircha bo‘sh
+                formatDate(form.getDiseaseDate()),
+                formatDateTime(form.getFirstVisitDate()),
+                hospitalAndDate,
+                String.join(", ", icd10, formatDate(form.getDiagnosisDate())),
+                String.join(", ", icd10Final, formatDate(form.getDiagnosisDate())),
+                createdOrgAndDocName,
+                receiverOrg,
+                "", "" // lab result, notes
+        };
+    }
 
-                for (int i = 0; i < values.length; i++) {
-                    Cell cell = row.createCell(i);
-                    cell.setCellValue(values[i]);
-                    cell.setCellStyle(styles.get("data"));
-                }
-
-                rowIdx.incrementAndGet();
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            workbook.write(out);
-            workbook.dispose();
-
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentDisposition(ContentDisposition.attachment()
-                    .filename("journal_060_" + LocalDate.now() + ".xlsx").build());
-            responseHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-
-            return ResponseEntity.ok()
-                    .headers(responseHeaders)
-                    .body(out.toByteArray());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while writing to Excel.");
+    private void setColumnWidths(Sheet sheet) {
+        for (int i = 0; i < 16; i++) {
+            sheet.setColumnWidth(i, 4000);
         }
     }
 
-    private void generateHeader(Sheet sheet, Map<String, CellStyle> styles) {
-        for (int i = 0; i <= 4; i++) sheet.createRow(i);
+    // Merge qilingan region ichidagi barcha cell’larni oq fon + border yo‘q qilib tozalash
+    private void clearMergedRegionCells(Sheet sheet, Workbook workbook, CellRangeAddress region) {
+        CellStyle whiteNoBorder = workbook.createCellStyle();
+        whiteNoBorder.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+        whiteNoBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        whiteNoBorder.setBorderTop(BorderStyle.NONE);
+        whiteNoBorder.setBorderBottom(BorderStyle.NONE);
+        whiteNoBorder.setBorderLeft(BorderStyle.NONE);
+        whiteNoBorder.setBorderRight(BorderStyle.NONE);
 
-        // Chap va o‘ng qismlarni merge qilish
-        sheet.addMergedRegion(new CellRangeAddress(0, 4, 0, 6));  // Chap blok
-        sheet.addMergedRegion(new CellRangeAddress(0, 4, 8, 15)); // O‘ng blok
-        sheet.addMergedRegion(new CellRangeAddress(0, 4, 7, 7)); // O‘ng blok
+        for (int r = region.getFirstRow(); r <= region.getLastRow(); r++) {
+            Row row = sheet.getRow(r);
+            if (row == null) row = sheet.createRow(r);
+            for (int c = region.getFirstColumn(); c <= region.getLastColumn(); c++) {
+                Cell cell = row.getCell(c);
+                if (cell == null) cell = row.createCell(c);
+                cell.setCellStyle(whiteNoBorder);
+            }
+        }
+    }
 
+    // HEADER (borderlarsiz)
+    private void generateHeader(Sheet sheet, Map<String, CellStyle> styles, SXSSFWorkbook workbook) {
+        for (int i = 0; i <= 8; i++) sheet.createRow(i);
+
+        CellStyle centerNoBorder = createNoBorderStyle(workbook, true, HorizontalAlignment.CENTER);
+
+        // Chap yozuv
+        CellRangeAddress leftRegion = new CellRangeAddress(0, 4, 0, 6);
+        sheet.addMergedRegion(leftRegion);
+        removeBorders(leftRegion, sheet);
+        clearMergedRegionCells(sheet, workbook, leftRegion);
 
         Cell cellLeft = sheet.getRow(0).createCell(0);
-        cellLeft.setCellValue("     Ўзбекистон Республикаси\nСоғлиқни сақлаш Вазирлиги\n\n___________________________\nМуассаса номи");
-        cellLeft.setCellStyle(styles.get("left"));
+        cellLeft.setCellValue("Ўзбекистон Республикаси\nСоғлиқни сақлаш Вазирлиги\n\n___________________________\nМуассаса номи");
+        cellLeft.setCellStyle(centerNoBorder);
+
+        // Bo‘sh ustun (H ustun, index = 7)
+        CellRangeAddress emptyRegion = new CellRangeAddress(0, 4, 7, 7);
+        sheet.addMergedRegion(emptyRegion);
+        removeBorders(emptyRegion, sheet);
+        clearMergedRegionCells(sheet, workbook, emptyRegion);
+
+        // O‘ng yozuv
+        CellRangeAddress rightRegion = new CellRangeAddress(0, 4, 8, 15);
+        sheet.addMergedRegion(rightRegion);
+        removeBorders(rightRegion, sheet);
+        clearMergedRegionCells(sheet, workbook, rightRegion);
 
         Cell cellRight = sheet.getRow(0).createCell(8);
-        cellRight.setCellValue("Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлигининг\n2020 йил 31 декабрдаги 363 -сонли\nбуйруғи билан тасдиқланган\n060- рақамли тиббий ҳужжат шакли     ");
-        cellRight.setCellStyle(styles.get("right"));
+        cellRight.setCellValue("Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлигининг\n2020 йил 31 декабрдаги 363-сонли\nбуйруғи билан тасдиқланган\n060-рақамли тиббий ҳужжат шакли");
+        cellRight.setCellStyle(centerNoBorder);
 
-        // 5-qator: Бошланган сана
-        Row row5 = sheet.createRow(5);
-        sheet.addMergedRegion(new CellRangeAddress(5, 5, 0, 15));
+        // Sanalar qatori (5-qator)
+        Row row5 = sheet.getRow(5);
+        if (row5 == null) row5 = sheet.createRow(5);
+        CellRangeAddress dateRegion = new CellRangeAddress(5, 5, 0, 15);
+        sheet.addMergedRegion(dateRegion);
+        removeBorders(dateRegion, sheet);
+        clearMergedRegionCells(sheet, workbook, dateRegion);
+
         Cell bothDates = row5.createCell(0);
-        bothDates.setCellValue("      Бошланган сана «____» __________ 20__ йил           Тугатилган сана «____» __________ 20__ йил");
-        bothDates.setCellStyle(styles.get("center"));
+        bothDates.setCellValue("Бошланган сана «____» __________ 20__ йил   Тугатилган сана «____» __________ 20__ йил");
+        bothDates.setCellStyle(centerNoBorder);
         row5.setHeightInPoints(30);
 
-        // 6-qator: Тугатилган сана
-        sheet.createRow(6);
-        sheet.addMergedRegion(new CellRangeAddress(6, 6, 0, 15));
+        // Bo‘sh 6-qator
+        Row row6 = sheet.getRow(6);
+        if (row6 == null) row6 = sheet.createRow(6);
+        CellRangeAddress emptyRow6 = new CellRangeAddress(6, 6, 0, 15);
+        sheet.addMergedRegion(emptyRow6);
+        removeBorders(emptyRow6, sheet);
+        clearMergedRegionCells(sheet, workbook, emptyRow6);
 
-        // 7-qator: Журнал номи
-        Row row7 = sheet.createRow(7);
-        sheet.addMergedRegion(new CellRangeAddress(7, 7, 0, 15));
+        // Sarlavha (7-qator)
+        Row row7 = sheet.getRow(7);
+        if (row7 == null) row7 = sheet.createRow(7);
+        CellRangeAddress titleRegion = new CellRangeAddress(7, 7, 0, 15);
+        sheet.addMergedRegion(titleRegion);
+        removeBorders(titleRegion, sheet);
+        clearMergedRegionCells(sheet, workbook, titleRegion);
+
         Cell titleCell = row7.createCell(0);
         titleCell.setCellValue("ЮҚУМЛИ КАСАЛЛИКЛАРНИ ҚАЙД ҚИЛИШ\nЖУРНАЛИ");
-        titleCell.setCellStyle(styles.get("center"));
+        titleCell.setCellStyle(centerNoBorder);
         row7.setHeightInPoints(30);
 
-        // 8-qator bo‘sh (ajratish uchun, optional)
-        sheet.createRow(8);
+        // Separator (8-qator)
+        Row row8 = sheet.getRow(8);
+        if (row8 == null) row8 = sheet.createRow(8);
+        CellRangeAddress emptyRow = new CellRangeAddress(8, 8, 0, 15);
+        sheet.addMergedRegion(emptyRow);
+        removeBorders(emptyRow, sheet);
+        clearMergedRegionCells(sheet, workbook, emptyRow);
+    }
+
+    // Borderlarsiz style
+    private CellStyle createNoBorderStyle(Workbook workbook, boolean bold, HorizontalAlignment alignment) {
+        CellStyle style = workbook.createCellStyle();
+        style.setAlignment(alignment);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setWrapText(true);
+
+        if (bold) {
+            Font font = workbook.createFont();
+            font.setBold(true);
+            style.setFont(font);
+        }
+
+        style.setBorderTop(BorderStyle.NONE);
+        style.setBorderBottom(BorderStyle.NONE);
+        style.setBorderLeft(BorderStyle.NONE);
+        style.setBorderRight(BorderStyle.NONE);
+
+        return style;
+    }
+
+    // Region borderlarini o‘chirish
+    private void removeBorders(CellRangeAddress region, Sheet sheet) {
+        RegionUtil.setBorderTop(BorderStyle.NONE, region, sheet);
+        RegionUtil.setBorderBottom(BorderStyle.NONE, region, sheet);
+        RegionUtil.setBorderLeft(BorderStyle.NONE, region, sheet);
+        RegionUtil.setBorderRight(BorderStyle.NONE, region, sheet);
     }
 
     private Map<String, CellStyle> createStyles(Workbook workbook) {
@@ -247,49 +305,11 @@ public class Form058ExportServiceImpl implements Form058ExportService {
         Font boldFont = workbook.createFont();
         boldFont.setBold(true);
 
+        styles.put("left", buildStyle(workbook, boldFont, HorizontalAlignment.LEFT));
+        styles.put("right", buildStyle(workbook, boldFont, HorizontalAlignment.RIGHT));
+        styles.put("center", buildStyle(workbook, boldFont, HorizontalAlignment.CENTER));
 
-        CellStyle left = workbook.createCellStyle();
-        left.setFont(boldFont);
-        left.setAlignment(HorizontalAlignment.LEFT);
-        left.setVerticalAlignment(VerticalAlignment.CENTER);
-        left.setBorderTop(BorderStyle.THIN);
-        left.setBorderBottom(BorderStyle.THIN);
-        left.setBorderLeft(BorderStyle.THIN);
-        left.setBorderRight(BorderStyle.THIN);
-        left.setWrapText(true);
-        styles.put("left", left);
-
-        CellStyle right = workbook.createCellStyle();
-        right.setFont(boldFont);
-        right.setAlignment(HorizontalAlignment.RIGHT);
-        right.setVerticalAlignment(VerticalAlignment.CENTER);
-        right.setBorderTop(BorderStyle.THIN);
-        right.setBorderBottom(BorderStyle.THIN);
-        right.setBorderLeft(BorderStyle.THIN);
-        right.setBorderRight(BorderStyle.THIN);
-        right.setWrapText(true);
-        styles.put("right", right);
-
-        CellStyle center = workbook.createCellStyle();
-        center.setFont(boldFont);
-        center.setAlignment(HorizontalAlignment.CENTER);
-        center.setVerticalAlignment(VerticalAlignment.CENTER);
-        center.setWrapText(true);
-        center.setBorderTop(BorderStyle.THIN);
-        center.setBorderBottom(BorderStyle.THIN);
-        center.setBorderLeft(BorderStyle.THIN);
-        center.setBorderRight(BorderStyle.THIN);
-        styles.put("center", center);
-
-        CellStyle header = workbook.createCellStyle();
-        header.setFont(boldFont);
-        header.setAlignment(HorizontalAlignment.CENTER);
-        header.setVerticalAlignment(VerticalAlignment.CENTER);
-        header.setWrapText(true);
-        header.setBorderTop(BorderStyle.THIN);
-        header.setBorderBottom(BorderStyle.THIN);
-        header.setBorderLeft(BorderStyle.THIN);
-        header.setBorderRight(BorderStyle.THIN);
+        CellStyle header = buildStyle(workbook, boldFont, HorizontalAlignment.CENTER);
         header.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         header.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         styles.put("header", header);
@@ -297,33 +317,42 @@ public class Form058ExportServiceImpl implements Form058ExportService {
         CellStyle data = workbook.createCellStyle();
         data.setWrapText(true);
         data.setVerticalAlignment(VerticalAlignment.TOP);
-        data.setBorderTop(BorderStyle.THIN);
-        data.setBorderBottom(BorderStyle.THIN);
-        data.setBorderLeft(BorderStyle.THIN);
-        data.setBorderRight(BorderStyle.THIN);
+        setBorders(data);
         styles.put("data", data);
 
         return styles;
     }
 
-    public static Specification<Form058> getFilteredSpecification(
-            User currentUser,
-            FilterType filterType
-    ) {
-        return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+    private CellStyle buildStyle(Workbook workbook, Font font, HorizontalAlignment alignment) {
+        CellStyle style = workbook.createCellStyle();
+        style.setFont(font);
+        style.setAlignment(alignment);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setWrapText(true);
+        setBorders(style);
+        return style;
+    }
 
+    private void setBorders(CellStyle style) {
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+    }
+
+    public static Specification<Form058> getFilteredSpecification(User currentUser, FilterType filterType) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
             if (currentUser.getCurrentOrganization() != null) {
                 UUID orgId = currentUser.getCurrentOrganization().getUuid();
-
                 if (filterType == FilterType.RECEIVED) {
-                    predicates.add(criteriaBuilder.equal(root.get("receiverOrganizationId"), currentUser.getCurrentOrganization().getId()));
+                    predicates.add(cb.equal(root.get("receiverOrganizationId"),
+                            currentUser.getCurrentOrganization().getId()));
                 } else {
-                    predicates.add(criteriaBuilder.equal(root.get("createdOrgUuid"), orgId));
+                    predicates.add(cb.equal(root.get("createdOrgUuid"), orgId));
                 }
             }
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }
