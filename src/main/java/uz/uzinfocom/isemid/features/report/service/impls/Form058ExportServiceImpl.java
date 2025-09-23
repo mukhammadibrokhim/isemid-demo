@@ -64,7 +64,7 @@ public class Form058ExportServiceImpl implements Form058ExportService {
             Sheet sheet = workbook.createSheet("Юқумли касалликлар");
             Map<String, CellStyle> styles = createStyles(workbook);
 
-            generateHeader(sheet, styles, workbook);
+            generateHeader(sheet, workbook);
             setColumnWidths(sheet);
 
             writeTableHeader(sheet, styles);
@@ -197,10 +197,10 @@ public class Form058ExportServiceImpl implements Form058ExportService {
     }
 
     // HEADER (borderlarsiz)
-    private void generateHeader(Sheet sheet, Map<String, CellStyle> styles, SXSSFWorkbook workbook) {
+    private void generateHeader(Sheet sheet, SXSSFWorkbook workbook) {
         for (int i = 0; i <= 8; i++) sheet.createRow(i);
 
-        CellStyle centerNoBorder = createNoBorderStyle(workbook, true, HorizontalAlignment.CENTER);
+        CellStyle centerNoBorder = createNoBorderStyle(workbook);
 
         // Chap yozuv
         CellRangeAddress leftRegion = new CellRangeAddress(0, 4, 0, 6);
@@ -272,17 +272,15 @@ public class Form058ExportServiceImpl implements Form058ExportService {
     }
 
     // Borderlarsiz style
-    private CellStyle createNoBorderStyle(Workbook workbook, boolean bold, HorizontalAlignment alignment) {
+    private CellStyle createNoBorderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
-        style.setAlignment(alignment);
+        style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         style.setWrapText(true);
 
-        if (bold) {
-            Font font = workbook.createFont();
-            font.setBold(true);
-            style.setFont(font);
-        }
+        Font font = workbook.createFont();
+        font.setBold(true);
+        style.setFont(font);
 
         style.setBorderTop(BorderStyle.NONE);
         style.setBorderBottom(BorderStyle.NONE);
