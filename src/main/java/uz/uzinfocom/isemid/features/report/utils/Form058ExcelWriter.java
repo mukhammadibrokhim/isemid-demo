@@ -12,12 +12,12 @@ import uz.uzinfocom.isemid.features.report.mapper.Form058RowMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+
+import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.buildDateText;
 
 @Component
 @RequiredArgsConstructor
@@ -99,7 +99,9 @@ public class Form058ExcelWriter {
         for (int i = 0; i <= 8; i++) sheet.createRow(i);
 
         CellStyle centerNoBorder = createNoBorderStyle(workbook);
-        sheet.setDisplayGridlines(false);
+
+        removeGridlinesInHeaderArea(sheet, workbook);
+
         // Chap yozuv
         CellRangeAddress leftRegion = new CellRangeAddress(0, 4, 0, 6);
         sheet.addMergedRegion(leftRegion);
@@ -109,7 +111,7 @@ public class Form058ExcelWriter {
         String leftText = "Ўзбекистон Республикаси\n" +
                 "Соғлиқни сақлаш Вазирлиги\n\n" +
                 (name != null && !name.isBlank() ? name : "Муассаса номи") + "\n" +
-                "___________________________";
+                "___________________________\nМуассаса номи";
 
         Cell cellLeft = sheet.getRow(0).createCell(0);
         cellLeft.setCellValue(leftText);
@@ -174,25 +176,25 @@ public class Form058ExcelWriter {
         clearMergedRegionCells(sheet, workbook, emptyRow);
     }
 
-    private String buildDateText(LocalDate fromDate, LocalDate toDate) {
-        DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("dd");
-        DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("MMMM", new Locale("ru")); // кирилл
-        DateTimeFormatter yearFmt = DateTimeFormatter.ofPattern("yyyy");
+    private void removeGridlinesInHeaderArea(Sheet sheet, Workbook workbook) {
+        CellStyle whiteNoBorder = workbook.createCellStyle();
+        whiteNoBorder.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+        whiteNoBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        whiteNoBorder.setBorderTop(BorderStyle.NONE);
+        whiteNoBorder.setBorderBottom(BorderStyle.NONE);
+        whiteNoBorder.setBorderLeft(BorderStyle.NONE);
+        whiteNoBorder.setBorderRight(BorderStyle.NONE);
 
-        // fromDate
-        String fromDay = (fromDate != null) ? fromDate.format(dayFmt) : "____";
-        String fromMonth = (fromDate != null) ? fromDate.format(monthFmt) : "________";
-        String fromYear = (fromDate != null) ? fromDate.format(yearFmt) : "20__";
-
-        // toDate
-        String toDay = (toDate != null) ? toDate.format(dayFmt) : "____";
-        String toMonth = (toDate != null) ? toDate.format(monthFmt) : "________";
-        String toYear = (toDate != null) ? toDate.format(yearFmt) : "20__";
-
-        return "Бошланган сана «" + fromDay + "» " + fromMonth + " " + fromYear + " йил   " +
-                "Тугатилган сана «" + toDay + "» " + toMonth + " " + toYear + " йил";
+        for (int r = 0; r <= 8; r++) {
+            Row row = sheet.getRow(r);
+            if (row == null) row = sheet.createRow(r);
+            for (int c = 0; c <= 15; c++) {
+                Cell cell = row.getCell(c);
+                if (cell == null) cell = row.createCell(c);
+                cell.setCellStyle(whiteNoBorder);
+            }
+        }
     }
-
 
     private void removeBorders(CellRangeAddress region, Sheet sheet) {
         RegionUtil.setBorderTop(BorderStyle.NONE, region, sheet);
