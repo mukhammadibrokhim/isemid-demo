@@ -25,6 +25,6 @@ public enum ServiceType {
                 return type;
             }
         }
-        return null; // oldingi throw new IllegalArgumentException o‘rniga
+        return null;
     }
 }
