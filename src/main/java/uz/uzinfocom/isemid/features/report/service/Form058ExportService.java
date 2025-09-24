@@ -3,8 +3,22 @@ package uz.uzinfocom.isemid.features.report.service;
 import org.springframework.http.ResponseEntity;
 import uz.uzinfocom.isemid.features.user.models.User;
 
-public interface Form058ExportService {
-    ResponseEntity<?> allExport(User user);
+import java.time.LocalDate;
 
-    ResponseEntity<?> receivedExport(User user);
+public interface Form058ExportService {
+    ResponseEntity<?> allExport(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            User user
+    );
+
+    ResponseEntity<?> receivedExport(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            User user
+    );
 }

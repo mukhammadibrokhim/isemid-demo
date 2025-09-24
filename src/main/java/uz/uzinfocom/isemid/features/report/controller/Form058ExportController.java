@@ -6,11 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.features.report.service.Form058ExportService;
-import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
+import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping(ApiPaths.Form058.ROOT)
@@ -22,14 +25,26 @@ public class Form058ExportController {
     @Operation(summary = "Экспорт всех данных формы 058 в Excel",
             description = "Позволяет экспортировать все записи формы 058 в Excel файл.")
     @GetMapping("/all/export")
-    public ResponseEntity<?> exportAll(@CurrentUser User user) {
-        return form058ExportService.allExport(user);
+    public ResponseEntity<?> exportAll(
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
+            @CurrentUser User user
+    ) {
+        return form058ExportService.allExport(fromDate, toDate, stateCode, cityCode, user);
     }
 
     @Operation(summary = "Экспорт полученных данных формы 058 в Excel",
             description = "Позволяет экспортировать только полученные записи формы 058 в Excel файл.")
     @GetMapping("/received/export")
-    public ResponseEntity<?> exportReceived(@CurrentUser User user) {
-        return form058ExportService.receivedExport(user);
+    public ResponseEntity<?> exportReceived(
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
+            @CurrentUser User user
+    ) {
+        return form058ExportService.receivedExport(fromDate, toDate, stateCode, cityCode,user);
     }
 }

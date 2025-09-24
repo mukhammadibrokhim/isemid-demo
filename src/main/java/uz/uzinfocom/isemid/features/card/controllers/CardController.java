@@ -20,7 +20,7 @@ import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.services.CardService;
-import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
+import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;

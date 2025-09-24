@@ -3,6 +3,8 @@ package uz.uzinfocom.isemid.commons.utils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 @UtilityClass
@@ -86,4 +88,24 @@ public class CommonUtil {
             "/legal-entity",
             "/info"
     };
+
+    private static final Map<Integer, String> uzMonthsCyrl = Map.ofEntries(
+            Map.entry(1, "январь"),
+            Map.entry(2, "февраль"),
+            Map.entry(3, "март"),
+            Map.entry(4, "апрель"),
+            Map.entry(5, "май"),
+            Map.entry(6, "июнь"),
+            Map.entry(7, "июль"),
+            Map.entry(8, "август"),
+            Map.entry(9, "сентябрь"),
+            Map.entry(10, "октябрь"),
+            Map.entry(11, "ноябрь"),
+            Map.entry(12, "декабрь")
+    );
+
+    private String getUzMonthCyril(LocalDate date) {
+        return (date != null) ? uzMonthsCyrl.get(date.getMonthValue()) : "________";
+    }
+
 }
