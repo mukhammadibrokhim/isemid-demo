@@ -45,7 +45,16 @@ public class Form058Specification {
 
                 Predicate accessPredicate;
 
-                if (medicalType == MedicalType.SANEPID_SERVICE) {
+                if (Boolean.TRUE.equals(affiliation)) {
+                    Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+                    Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
+
+                    Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
+                    Predicate typeMatch = affiliationJoin.get("type")
+                            .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
+
+                    accessPredicate = cb.and(orgMatch, typeMatch);
+                } else if (medicalType == MedicalType.SANEPID_SERVICE) {
                     Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
 
                     Predicate levelPredicate = switch (levelType) {
@@ -54,24 +63,11 @@ public class Form058Specification {
                         case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
                                 cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
                     };
+
                     accessPredicate = cb.or(receiverMatch, levelPredicate);
                 } else {
                     if (filterType == FilterType.RECEIVED) {
-                        Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
-
-                        Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
-                        Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
-
-                        Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
-                        Predicate typeMatch = affiliationJoin.get("type")
-                                .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
-                        Predicate affiliationValid = cb.and(orgMatch, typeMatch);
-
-                        if (Boolean.TRUE.equals(affiliation)) {
-                            accessPredicate = affiliationValid;
-                        } else {
-                            accessPredicate = receiverMatch;
-                        }
+                        accessPredicate = cb.equal(root.get("receiverOrganizationId"), orgId);
                     } else {
                         accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
                     }
