@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 //@ConditionalOnProperty(name = "runner.mkb10.init", havingValue = "true")
 public class Mkb10Initializer implements ModuleDataInitializer {
-
     private final Mkb10Repository mkb10Repository;
     private final CsvLoaderUtil csvLoaderUtil;
 
