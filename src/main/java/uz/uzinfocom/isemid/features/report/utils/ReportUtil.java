@@ -13,17 +13,17 @@ import uz.uzinfocom.isemid.features.patient.models.Address;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static uz.uzinfocom.isemid.commons.utils.DateTimeUtil.formatDate;
+import static uz.uzinfocom.isemid.commons.utils.DateTimeUtil.formatDateTime;
 
 @UtilityClass
 public class ReportUtil {
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
     public static String resolveAge(LocalDate birthDate, Integer ageYears, Integer ageMonths) {
         if (birthDate != null) {
@@ -32,7 +32,7 @@ public class ReportUtil {
             int months = period.getMonths();
             int days = period.getDays();
 
-            String birthStr = birthDate.format(DATE_FORMATTER);
+            String birthStr = formatDate(birthDate);
 
             if (years == 0) {
                 // 1 yoshga yetmagan chaqaloq: oy va kun
@@ -161,11 +161,49 @@ public class ReportUtil {
 
         String createdDate = "";
         if (form.getCreatedAt() != null) {
-            createdDate = DATE_TIME_FORMATTER.format(form.getCreatedAt().toLocalDateTime());
+            createdDate = formatDateTime(form.getCreatedAt());
         }
 
         return Stream.of(orgName, notifierName, createdDate)
                 .filter(s -> !s.isBlank())
                 .collect(Collectors.joining(", "));
     }
+
+    private static final Map<Integer, String> uzMonthsCyrl = Map.ofEntries(
+            Map.entry(1, "январь"),
+            Map.entry(2, "февраль"),
+            Map.entry(3, "март"),
+            Map.entry(4, "апрель"),
+            Map.entry(5, "май"),
+            Map.entry(6, "июнь"),
+            Map.entry(7, "июль"),
+            Map.entry(8, "август"),
+            Map.entry(9, "сентябрь"),
+            Map.entry(10, "октябрь"),
+            Map.entry(11, "ноябрь"),
+            Map.entry(12, "декабрь")
+    );
+
+    private String getUzMonthCyril(LocalDate date) {
+        return (date != null) ? uzMonthsCyrl.get(date.getMonthValue()) : "________";
+    }
+
+    public static String buildDateText(LocalDate fromDate, LocalDate toDate) {
+        DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("dd");
+        DateTimeFormatter yearFmt = DateTimeFormatter.ofPattern("yyyy");
+
+        // fromDate
+        String fromDay = (fromDate != null) ? fromDate.format(dayFmt) : "____";
+        String fromMonth = getUzMonthCyril(fromDate);
+        String fromYear = (fromDate != null) ? fromDate.format(yearFmt) : "20__";
+
+        // toDate
+        String toDay = (toDate != null) ? toDate.format(dayFmt) : "____";
+        String toMonth = getUzMonthCyril(toDate);
+        String toYear = (toDate != null) ? toDate.format(yearFmt) : "20__";
+
+        return "Бошланган сана «" + fromDay + "» " + fromMonth + " " + fromYear + " йил   " +
+                "Тугатилган сана «" + toDay + "» " + toMonth + " " + toYear + " йил";
+    }
+
 }

@@ -21,7 +21,7 @@ public class Act153Detail extends BaseEntity {
     @JoinColumn(name = "act153_id")
     private Act153 act153;
 
-    private String objectCode;
+    private String objectName;
 
     @Column(columnDefinition = "TEXT")
     private String samplingPurpose;

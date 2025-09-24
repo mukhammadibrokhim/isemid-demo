@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -58,6 +59,19 @@ public class DateTimeUtil {
     public static String formatDate(LocalDateTime dateTime) {
         return formatInstant(
                 dateTime == null ? null : dateTime.atZone(ZONE_TASHKENT).toInstant(),
+                DATE_FORMATTER
+        );
+    }
+
+    /**
+     * Formats a LocalDate into a date string in Asia/Tashkent zone
+     *
+     * @param date LocalDate object
+     * @return formatted date string or empty string if null
+     */
+    public static String formatDate(LocalDate date) {
+        return formatInstant(
+                date == null ? null : date.atStartOfDay(ZONE_TASHKENT).toInstant(),
                 DATE_FORMATTER
         );
     }
