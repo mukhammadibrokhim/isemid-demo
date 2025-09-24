@@ -22,7 +22,6 @@ import java.util.UUID;
 import static org.springframework.util.StringUtils.hasText;
 
 public class Form058Specification {
-
     public static Specification<Form058> build(
             LocalDate fromDate,
             LocalDate toDate,
