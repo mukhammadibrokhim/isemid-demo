@@ -14,7 +14,7 @@ import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.service.Form1ReportService;
-import uz.uzinfocom.isemid.features.user.annotation.CurrentUser;
+import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;

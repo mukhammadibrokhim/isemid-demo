@@ -50,4 +50,8 @@ public class Patient extends AbsEntity {
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
     private List<Address> addresses;
+
+    public String getFullName() {
+        return String.format("%s %s %s", firstName, lastName, middleName);
+    }
 }

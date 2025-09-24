@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.features.user.annotation;
+package uz.uzinfocom.isemid.features.user.models.annotation;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
