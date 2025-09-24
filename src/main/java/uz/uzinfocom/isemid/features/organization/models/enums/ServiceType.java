@@ -9,7 +9,7 @@ public enum ServiceType {
     EMERGENCY("3", "Emergency medicine"),
     COMBINED("4", "Combined"),
     DIAGNOSTIC("5", "Diagnostic"),
-    OTHER("6", "Other");
+    OTHER_S("6", "Other");
 
     private final String code;
     private final String displayName;
