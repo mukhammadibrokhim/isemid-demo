@@ -30,6 +30,7 @@ public class Form058Specification {
             Boolean affiliation,
             User currentUser,
             FilterType filterType
+
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
