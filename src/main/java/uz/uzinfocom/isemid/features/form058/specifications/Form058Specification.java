@@ -30,6 +30,7 @@ public class Form058Specification {
             Boolean affiliation,
             User currentUser,
             FilterType filterType
+
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -59,7 +60,14 @@ public class Form058Specification {
 
                     Predicate levelPredicate = switch (levelType) {
                         case REPUBLICAN -> cb.conjunction();
-                        case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
+                        case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
+                        case URBAN -> {
+                            if ("UZ-TO".equals(orgStateCode)) {
+                                yield cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
+                            } else {
+                                yield cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
+                            }
+                        }
                         case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
                                 cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
                     };

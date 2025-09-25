@@ -30,6 +30,7 @@ public class Act223 extends Act {
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
     private String reasonInspectoringLoinc;
+    private String additionalInfo;
 
     @OneToMany(mappedBy = "act223", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Act223Detail> act223Details = new HashSet<>();
