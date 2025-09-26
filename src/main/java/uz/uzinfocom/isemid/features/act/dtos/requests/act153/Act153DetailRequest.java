@@ -20,6 +20,7 @@ public class Act153DetailRequest {
     private Double distanceFromShore;
     private Double sampleVolume;
     private String sampleLocation;
+    private String sampleName;
     private Double weatherAtSampling;
     private Double waterTemperature;
     private String sampleType;
