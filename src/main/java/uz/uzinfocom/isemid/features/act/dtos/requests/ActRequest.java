@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import uz.uzinfocom.isemid.features.act.dtos.requests.act153.Act153Request;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act154.Act154Request;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act155.Act155Request;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act156.Act156Request;
@@ -16,7 +17,7 @@ import uz.uzinfocom.isemid.features.act.enums.ActType;
 @Setter
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = Act156Request.class, name = "ACT153"),
+        @JsonSubTypes.Type(value = Act153Request.class, name = "ACT153"),
         @JsonSubTypes.Type(value = Act154Request.class, name = "ACT154"),
         @JsonSubTypes.Type(value = Act155Request.class, name = "ACT155"),
         @JsonSubTypes.Type(value = Act156Request.class, name = "ACT156"),
