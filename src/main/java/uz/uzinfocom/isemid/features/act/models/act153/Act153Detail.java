@@ -41,6 +41,8 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "sample_volume")
     private Double sampleVolume; // number
 
+    private String sampleName;
+
     @Column(name = "sample_location", columnDefinition = "TEXT")
     private String sampleLocation;
 
