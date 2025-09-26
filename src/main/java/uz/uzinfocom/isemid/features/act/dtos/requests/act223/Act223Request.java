@@ -28,7 +28,7 @@ public class Act223Request extends ActRequest {
     private String positionOfParticipant;
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
-    private String reasonInspectoringLoinc;
+    private String loinc;
     private String additionalInfo;
 
     private Set<Act223DetailRequest> act223Details;

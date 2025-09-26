@@ -20,6 +20,9 @@ public class Act153 extends Act {
     private Integer tin;
 
     @Column(columnDefinition = "TEXT")
+    private String loinc;
+
+    @Column(columnDefinition = "TEXT")
     private String sampleObjectName;
 
     @Column(columnDefinition = "TEXT")

@@ -15,7 +15,7 @@ public class Act155DetailRequest {
     private Long id;
     private String productName;
     private String purposeOfTesting;
-    private String purposeOfTestingLoinc;//loinc
+    private String loinc;//loinc
     private String laboratoryAddress;
     private String sampleTakenLocation;
     private Long sampleQuantity;

@@ -22,6 +22,77 @@ import java.util.UUID;
 import static org.springframework.util.StringUtils.hasText;
 
 public class Form058Specification {
+//    public static Specification<Form058> build(
+//            LocalDate fromDate,
+//            LocalDate toDate,
+//            String stateCode,
+//            String cityCode,
+//            Boolean affiliation,
+//            User currentUser,
+//            FilterType filterType
+//    ) {
+//        return (root, query, cb) -> {
+//            List<Predicate> predicates = new ArrayList<>();
+//
+//            if (currentUser.getCurrentOrganization() != null) {
+//                var org = currentUser.getCurrentOrganization();
+//                Long orgId = org.getId();
+//                UUID orgUuid = org.getUuid();
+//                LevelType levelType = org.getLevelType();
+//                MedicalType medicalType = org.getMedicalType();
+//                String orgStateCode = org.getStateCode();
+//                String orgCityCode = org.getCityCode();
+//
+//                Predicate accessPredicate;
+//
+//                if (medicalType == MedicalType.SANEPID_SERVICE) {
+//                    Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
+//
+//                    Predicate levelPredicate = switch (levelType) {
+//                        case REPUBLICAN -> cb.conjunction();
+//                        case REGIONAL, URBAN -> cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
+//                        case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
+//                                cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
+//                    };
+//                    accessPredicate = cb.or(receiverMatch, levelPredicate);
+//                } else {
+//                    if (filterType == FilterType.RECEIVED) {
+//                        Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
+//
+//                        Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+//                        Join<Patient, Affiliation> affiliationJoin = patientJoin.join("affiliations", JoinType.LEFT);
+//
+//                        Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
+//                        Predicate typeMatch = affiliationJoin.get("type")
+//                                .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
+//                        Predicate affiliationValid = cb.and(orgMatch, typeMatch);
+//
+//                        if (Boolean.TRUE.equals(affiliation)) {
+//                            accessPredicate = affiliationValid;
+//                        } else {
+//                            accessPredicate = receiverMatch;
+//                        }
+//                    } else {
+//                        accessPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
+//                    }
+//                }
+//
+//                predicates.add(accessPredicate);
+//            }
+//
+//            if (hasText(stateCode)) {
+//                predicates.add(cb.equal(root.get("createdOrg").get("stateCode"), stateCode));
+//            }
+//            if (hasText(cityCode)) {
+//                predicates.add(cb.equal(root.get("createdOrg").get("cityCode"), cityCode));
+//            }
+//
+//            LocationReportServiceImpl.fromToFilter(fromDate, toDate, root, cb, predicates);
+//
+//            return cb.and(predicates.toArray(new Predicate[0]));
+//        };
+//    }
+
     public static Specification<Form058> build(
             LocalDate fromDate,
             LocalDate toDate,
