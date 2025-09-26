@@ -1,11 +1,16 @@
 package uz.uzinfocom.isemid.features.form058.specifications;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
+import uz.uzinfocom.isemid.features.patient.models.Affiliation;
+import uz.uzinfocom.isemid.features.patient.models.Patient;
+import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 import uz.uzinfocom.isemid.features.report.service.impls.LocationReportServiceImpl;
 import uz.uzinfocom.isemid.features.user.models.User;
 

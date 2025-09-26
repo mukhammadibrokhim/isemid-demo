@@ -1,9 +1,6 @@
 package uz.uzinfocom.isemid.features.act.models.act223;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
@@ -29,6 +26,10 @@ public class Act223 extends Act {
     private String positionOfParticipant;
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
+
+    @Column(columnDefinition = "TEXT")
+    private String loinc;
+    
     private String reasonInspectoringLoinc;
     private String additionalInfo;
 

@@ -20,6 +20,7 @@ public class Act153Request extends ActRequest {
     private Long id;
     private LocalDate documentSendDate;
     private Integer tin;
+    private String loinc;
     private String sampleObjectName;
     private String samplingDocuments;
     private LocalDateTime hospitalizationDate;
