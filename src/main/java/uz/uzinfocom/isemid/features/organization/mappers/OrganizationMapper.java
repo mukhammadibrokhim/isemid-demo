@@ -55,4 +55,29 @@ public interface OrganizationMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateFromRequest(OrgRequest request, @MappingTarget Organization org);
+
+    @BeanMapping(
+            nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
+            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+    )
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "uuid", ignore = true)
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "active", source = "active")
+    @Mapping(target = "tin", source = ".", qualifiedByName = "extractTin")
+    @Mapping(target = "email", source = ".", qualifiedByName = "extractEmail")
+    @Mapping(target = "phone", source = ".", qualifiedByName = "extractPhone")
+    @Mapping(target = "serviceTypes", source = ".", qualifiedByName = "extractServiceTypes")
+    @Mapping(target = "medicalType", source = ".", qualifiedByName = "extractMedicalType")
+    @Mapping(target = "levelType", source = ".", qualifiedByName = "extractLevelType")
+    @Mapping(target = "countryCode", source = ".", qualifiedByName = "extractCountryCode")
+    @Mapping(target = "stateCode", source = ".", qualifiedByName = "extractStateCode")
+    @Mapping(target = "cityCode", source = ".", qualifiedByName = "extractCityCode")
+    @Mapping(target = "line", source = ".", qualifiedByName = "extractLine")
+    @Mapping(target = "serviceAreaCode", source = ".", qualifiedByName = "extractServiceArea")
+    @Mapping(target = "district", source = ".", qualifiedByName = "extractDistrict")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateFromMis(MisOrganizationResponse src, @MappingTarget Organization target);
+
 }
