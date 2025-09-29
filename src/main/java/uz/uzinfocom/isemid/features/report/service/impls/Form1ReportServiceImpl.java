@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.SpecificationUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
@@ -26,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.util.StringUtils.hasText;
+import static uz.uzinfocom.isemid.commons.utils.SpecificationUtil.fromToFilter;
 
 @Service
 @RequiredArgsConstructor
@@ -153,11 +155,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
             Organization userOrg = currentUser.getCurrentOrganization();
 
-            if (fromDate != null && toDate != null) {
-                predicates.add(cb.between(root.get("createdAt"),
-                        fromDate.atStartOfDay(),
-                        toDate.atTime(23, 59, 59)));
-            }
+            fromToFilter(fromDate, toDate, root, cb, predicates);
 
             if (birthDate != null) {
                 predicates.add(cb.equal(root.get("patient").get("birthDate"), birthDate));
@@ -167,27 +165,17 @@ public class Form1ReportServiceImpl implements Form1ReportService {
                 predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
             }
 
-            if (hasText(mkb10Code)){
+            if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
 
-            // Filter by organization access
             if (userOrg != null && userOrg.getMedicalType() == MedicalType.SANEPID_SERVICE) {
-                String stateCode = userOrg.getState() != null ? userOrg.getState().getCode() : null;
-                String cityCode = userOrg.getCity() != null ? userOrg.getCity().getCode() : null;
-                LevelType levelType = userOrg.getLevelType();
-
-                Predicate accessPredicate = switch (levelType) {
-                    case REPUBLICAN -> cb.conjunction(); // Show all
-                    case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
-                    case DISTRICT, URBAN, AREA, INTERDISTRICT, NOT_DEFINED ->
-                            cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
-                };
-
-                predicates.add(accessPredicate);
+                Predicate orgPredicate = SpecificationUtil.buildOrganizationLevelPredicate(root, cb, userOrg);
+                predicates.add(orgPredicate);
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
 }
