@@ -180,10 +180,8 @@ public class CardServiceImpl implements CardService {
                     act.setType(actType);
                     act.setStatus(ActStatus.NEW);
 
-                    // Form058 dan admissionDate olish
                     LocalDateTime admissionDate = card.getForm058() != null ? card.getForm058().getAdmissionDate() : null;
 
-                    // Type bo‘yicha qo‘shimcha maydonlarni to‘ldirish
                     switch (actType) {
                         case ACT153 -> {
                             if (act instanceof Act153 act153 && admissionDate != null) {
@@ -195,7 +193,6 @@ public class CardServiceImpl implements CardService {
                                 act154.setHospitalizationDate(admissionDate);
                             }
                         }
-                        // boshqa turdagi actlar uchun kerak bo‘lsa shu yerda qo‘shasiz
                         default -> {
                         }
                     }

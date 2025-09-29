@@ -6,8 +6,8 @@ import uz.uzinfocom.isemid.features.act.models.Act;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,6 +33,6 @@ public class Act223 extends Act {
     private String reasonInspectoringLoinc;
     private String additionalInfo;
 
-    @OneToMany(mappedBy = "act223", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Act223Detail> act223Details = new HashSet<>();
+    @OneToMany(mappedBy = "act223", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Act223Detail> act223Details = new ArrayList<>();
 }

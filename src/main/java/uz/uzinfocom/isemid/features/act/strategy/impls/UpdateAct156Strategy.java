@@ -11,9 +11,9 @@ import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.act156.Act156;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.strategy.UpdateActStrategy;
-import uz.uzinfocom.isemid.features.act.utils.ActUtil;
 
 import static uz.uzinfocom.isemid.features.act.utils.ActBindingUtil.bindChildEntities;
+import static uz.uzinfocom.isemid.features.act.utils.ActUtil.validateAct;
 
 
 @Service
@@ -26,13 +26,11 @@ public class UpdateAct156Strategy implements UpdateActStrategy {
 
     @Override
     public Act updateAct(long id, ActRequest reqAct) {
-        Act act = ActUtil.validateAct(id, reqAct, actRepository, messageUtil);
-
-        Act156 existingAct = (Act156) act;
+        Act156 existingAct = (Act156) validateAct(id, reqAct, actRepository, messageUtil);
         Act156Request reqAct156 = (Act156Request) reqAct;
 
         mapper.update(existingAct, reqAct156);
         bindChildEntities(existingAct);
-        return actRepository.save(act);
+        return actRepository.save(existingAct);
     }
 }
