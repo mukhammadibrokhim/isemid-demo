@@ -7,8 +7,8 @@ import uz.uzinfocom.isemid.features.organization.models.Organization;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -38,9 +38,9 @@ public class Act156 extends Act {
     private String fullNameOfObjectRepresentative;
     private String positionOfObjectRepresentative;
 
-    @OneToMany(mappedBy = "act156", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Act156KitchenUtensil> act156KitchenUtensils = new HashSet<>();
+    @OneToMany(mappedBy = "act156", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Act156KitchenUtensil> act156KitchenUtensils = new ArrayList<>();
 
-    @OneToMany(mappedBy = "act156", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Act156GroupDetail> act156GroupDetails = new HashSet<>();
+    @OneToMany(mappedBy = "act156", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Act156GroupDetail> act156GroupDetails = new ArrayList<>();
 }

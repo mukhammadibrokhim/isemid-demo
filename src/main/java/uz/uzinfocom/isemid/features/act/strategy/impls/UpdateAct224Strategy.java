@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.strategy.UpdateActStrategy;
 
+import static uz.uzinfocom.isemid.features.act.utils.ActBindingUtil.bindChildEntities;
 import static uz.uzinfocom.isemid.features.act.utils.ActUtil.validateAct;
 
 @Service
@@ -23,12 +24,14 @@ public class UpdateAct224Strategy implements UpdateActStrategy {
     private final ActMapperFactory mapper;
 
     @Override
-    public Act updateAct(long id, ActRequest reqAct) {
-        Act act = validateAct(id, reqAct, actRepository, messageUtil);
-        Act224 existingAct = (Act224) act;
-        Act224Request reqAct224 = (Act224Request) reqAct;
+    @Transactional
+    public Act updateAct(long id, ActRequest request) {
+        Act224 existingAct = (Act224) validateAct(id, request, actRepository, messageUtil);
+        Act224Request request224 = (Act224Request) request;
 
-        mapper.update(existingAct, reqAct224);
-        return actRepository.save(act);
+        mapper.update(existingAct, request224);
+        bindChildEntities(existingAct);
+
+        return actRepository.save(existingAct);
     }
 }

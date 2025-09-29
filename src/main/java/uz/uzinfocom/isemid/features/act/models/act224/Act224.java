@@ -1,11 +1,16 @@
 package uz.uzinfocom.isemid.features.act.models.act224;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,4 +33,7 @@ public class Act224 extends Act {
     private String fullNameOfParticipant;
     private String recommendedActivities;
     private LocalDateTime executionPeriod;
+
+    @OneToMany(mappedBy = "act224", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RecommendedAction> recommendedActions = new ArrayList<>();
 }

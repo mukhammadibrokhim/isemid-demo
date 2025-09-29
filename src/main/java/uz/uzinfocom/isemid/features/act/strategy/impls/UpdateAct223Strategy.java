@@ -25,13 +25,11 @@ public class UpdateAct223Strategy implements UpdateActStrategy {
 
     @Override
     public Act updateAct(long id, ActRequest reqAct) {
-        Act act = validateAct(id, reqAct, actRepository, messageUtil);
-
-        Act223 existingAct = (Act223) act;
+        Act223 existingAct = (Act223) validateAct(id, reqAct, actRepository, messageUtil);
         Act223Request reqAct223 = (Act223Request) reqAct;
 
         mapper.update(existingAct, reqAct223);
         bindChildEntities(existingAct);
-        return actRepository.save(act);
+        return actRepository.save(existingAct);
     }
 }

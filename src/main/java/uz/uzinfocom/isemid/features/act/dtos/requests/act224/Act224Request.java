@@ -7,13 +7,14 @@ import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Schema(description = "Request object for Act224")
+@Schema(description = "Request objectsafor Act224")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act224Request extends ActRequest {
     private Long id;
@@ -31,4 +32,5 @@ public class Act224Request extends ActRequest {
     private String fullNameOfParticipant;
     private String recommendedActivities;
     private LocalDateTime executionPeriod;
+    private List<RecommendedActionRequest> recommendedActions;
 }
