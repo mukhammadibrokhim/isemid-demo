@@ -4,7 +4,6 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
@@ -86,6 +85,10 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                 predicates.add(cb.between(root.get("createdAt"),
                         fromDate.atStartOfDay(),
                         toDate.atTime(23, 59, 59)));
+            } else if (fromDate != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate.atStartOfDay()));
+            } else if (toDate != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toDate.atTime(23, 59, 59)));
             }
 
             if (birthDate != null) {
@@ -96,23 +99,27 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                 predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
             }
 
-//            if (userOrg != null && userOrg.getLevelCode() != null) {
-//                String userLevelCode = userOrg.getLevelCode();
-//
-//                switch (userLevelCode) {
-//                    case "republic_level" -> {
-//                    }
-//                    case "region_level" -> predicates.add(cb.and(
-//                            cb.equal(root.get("createdOrg").get("state").get("code"),
-//                                    userOrg.getState().getCode())
-//                    ));
-//
-//                    case "district_level" -> predicates.add(cb.and(
-//                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
-//                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
-//                    ));
-//                }
-//            }
+            if (userOrg != null && userOrg.getLevelType() != null) {
+                var level = userOrg.getLevelType();
+                var stateCode = userOrg.getStateCode();
+                var cityCode = userOrg.getCityCode();
+
+                Predicate levelPredicate = switch (level) {
+                    case REPUBLICAN -> cb.conjunction(); // hech qanday filter emas
+                    case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
+                    case URBAN -> {
+                        if ("UZ-TO".equals(stateCode)) {
+                            yield cb.equal(root.get("createdOrg").get("stateCode"), stateCode); // Toshkent sh.
+                        } else {
+                            yield cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
+                        }
+                    }
+                    case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
+                            cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
+                };
+
+                predicates.add(levelPredicate);
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
