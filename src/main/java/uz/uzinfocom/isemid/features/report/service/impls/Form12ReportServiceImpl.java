@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.commons.utils.SpecificationUtil;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
@@ -79,17 +80,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            Organization userOrg = currentUser.getCurrentOrganization();
-
-            if (fromDate != null && toDate != null) {
-                predicates.add(cb.between(root.get("createdAt"),
-                        fromDate.atStartOfDay(),
-                        toDate.atTime(23, 59, 59)));
-            } else if (fromDate != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate.atStartOfDay()));
-            } else if (toDate != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toDate.atTime(23, 59, 59)));
-            }
+            SpecificationUtil.fromToFilter(fromDate, toDate, root, cb, predicates);
 
             if (birthDate != null) {
                 predicates.add(cb.equal(root.get("patient").get("birthDate"), birthDate));
@@ -99,29 +90,14 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                 predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
             }
 
-            if (userOrg != null && userOrg.getLevelType() != null) {
-                var level = userOrg.getLevelType();
-                var stateCode = userOrg.getStateCode();
-                var cityCode = userOrg.getCityCode();
-
-                Predicate levelPredicate = switch (level) {
-                    case REPUBLICAN -> cb.conjunction(); // hech qanday filter emas
-                    case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), stateCode);
-                    case URBAN -> {
-                        if ("UZ-TO".equals(stateCode)) {
-                            yield cb.equal(root.get("createdOrg").get("stateCode"), stateCode); // Toshkent sh.
-                        } else {
-                            yield cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
-                        }
-                    }
-                    case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                            cb.equal(root.get("createdOrg").get("cityCode"), cityCode);
-                };
-
+            Organization userOrg = currentUser.getCurrentOrganization();
+            if (userOrg != null) {
+                Predicate levelPredicate = SpecificationUtil.buildOrganizationLevelPredicate(root, cb, userOrg);
                 predicates.add(levelPredicate);
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
 }
