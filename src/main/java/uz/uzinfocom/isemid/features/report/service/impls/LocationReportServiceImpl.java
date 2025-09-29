@@ -52,7 +52,6 @@ public class LocationReportServiceImpl implements LocationReportService {
 
         if (parentCode != null && !parentCode.isBlank()) {
             return helper.buildByParentCode(parentCode, forms);
-
         }
 
         return switch (level) {

@@ -146,10 +146,21 @@ public class LocationReportHelper {
 
         var catalogType = distinctTypes.getFirst();
 
-        return switch (catalogType) {
+        LocationReportDto report = switch (catalogType) {
             case "city" -> buildDistrictReports(parentCode, forms);
             case "neighborhood" -> buildNeighborhoodReports(parentCode, forms);
             default -> buildRegionReports(forms);
+        };
+
+        report.setLast(isLeafByCatalogType(parentCode));
+        return report;
+    }
+
+    public boolean isLeafByCatalogType(String parentCode) {
+        Catalog catalog = catalogService.findByCode(parentCode);
+        return switch (catalog.getType()) {
+            case "neighborhood","city" -> true;
+            default -> false;
         };
     }
 }
