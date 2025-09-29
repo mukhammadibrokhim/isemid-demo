@@ -59,14 +59,15 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public Form058 update(Form058Request request, Long id, User user) {
-        Form058 existedEntity = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        Form058 existedEntity = this.getById(id);
         form058Mapper.update(existedEntity, request);
         return form058Repository.save(existedEntity);
     }
 
     @Override
     public Form058 getById(long id) {
-        return form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        return form058Repository.findById(id)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override

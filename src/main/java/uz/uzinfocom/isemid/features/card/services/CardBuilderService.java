@@ -9,5 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface CardBuilderService {
-    List<Card> buildCards(List<CardType> cardTypes, Map<Long, User> userMap, Form058 form058, User assignedBy);
+    List<Card> buildCards(
+            List<CardType> cardTypes,
+            Map<Long, User> userMap,
+            Form058 form058,
+            User assignedBy
+    );
 }
