@@ -152,7 +152,7 @@ public class LocationReportHelper {
             default -> buildRegionReports(forms);
         };
 
-        report.setLast(isLeafByCatalogType(parentCode));
+//        report.setLast(isLeafByCatalogType(parentCode));
         return report;
     }
 
