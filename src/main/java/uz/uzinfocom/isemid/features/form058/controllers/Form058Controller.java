@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -105,6 +106,7 @@ public class Form058Controller {
 
     @Operation(summary = "Назначение карты для формы 058", description = "Позволяет назначить карту (Card) для существующей формы 058.")
     @PostMapping("/assign-card")
+    @PreAuthorize("hasRole('isemid_super_admin') or hasRole('isemid_epidim_head')")
     public ApiResponse<Form058Response> assignCard(@Valid @RequestBody Form058AssignCardRequest request, @CurrentUser User user) {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.assignCard(request, user)));
     }
@@ -144,6 +146,7 @@ public class Form058Controller {
 
     @Operation(summary = "Удаление формы 058 по ID", description = "Удаляет форму 058 по заданному идентификатору.")
     @DeleteMapping("/{formId}")
+    @PreAuthorize("hasRole('isemid_super_admin')")
     public ApiResponse<?> deleteById(@PathVariable Long formId) {
         form058Service.deleteById(formId);
         return ApiResponse.deleteSuccess(messageUtil);

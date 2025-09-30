@@ -7,12 +7,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.act.enums.ActStatus;
-import uz.uzinfocom.isemid.features.act.enums.ActType;
-import uz.uzinfocom.isemid.features.act.factory.ActFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
-import uz.uzinfocom.isemid.features.act.models.act153.Act153;
-import uz.uzinfocom.isemid.features.act.models.act154.Act154;
+import uz.uzinfocom.isemid.features.act.services.ActBuilderService;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardAssignActRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRejectRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
@@ -28,8 +24,6 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -44,7 +38,7 @@ public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final UpdateCardService updateCardService;
     private final MessageUtil messageUtil;
-    private final ActFactory actFactory;
+    private final ActBuilderService actBuilder;
     private final UserService userService;
 
     @Override
@@ -147,7 +141,7 @@ public class CardServiceImpl implements CardService {
         Map<Long, User> userMap = userService.getAllByIds(request.getAssignUserIds()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
-        List<Act> acts = actBuilder(request.getActTypes(), card, user, userMap);
+        List<Act> acts = actBuilder.buildActs(request.getActTypes(), card, user, userMap);
         card.getActs().addAll(acts);
         return cardRepository.save(card);
     }
@@ -167,39 +161,6 @@ public class CardServiceImpl implements CardService {
         }
         Specification<Card> spec = CardSpecification.build(userId, orgId, isHead);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
-    }
-
-    private List<Act> actBuilder(List<ActType> actTypes, Card card, User user, Map<Long, User> userMap) {
-        return actTypes.stream()
-                .map(actType -> {
-                    Act act = actFactory.createAct(actType);
-                    act.setCreatedBy(user.getId());
-                    act.setUpdatedBy(user.getId());
-                    act.setUsers(new HashSet<>(userMap.values()));
-                    act.setCardId(card.getId());
-                    act.setType(actType);
-                    act.setStatus(ActStatus.NEW);
-
-                    LocalDateTime admissionDate = card.getForm058() != null ? card.getForm058().getAdmissionDate() : null;
-
-                    switch (actType) {
-                        case ACT153 -> {
-                            if (act instanceof Act153 act153 && admissionDate != null) {
-                                act153.setHospitalizationDate(admissionDate);
-                            }
-                        }
-                        case ACT154 -> {
-                            if (act instanceof Act154 act154 && admissionDate != null) {
-                                act154.setHospitalizationDate(admissionDate);
-                            }
-                        }
-                        default -> {
-                        }
-                    }
-
-                    return act;
-                })
-                .toList();
     }
 
 
