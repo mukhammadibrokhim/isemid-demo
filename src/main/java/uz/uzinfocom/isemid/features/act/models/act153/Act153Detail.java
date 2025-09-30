@@ -21,7 +21,7 @@ public class Act153Detail extends BaseEntity {
     @JoinColumn(name = "act153_id")
     private Act153 act153;
 
-    private String objectName;
+    private String objectCode;
 
     @Column(columnDefinition = "TEXT")
     private String samplingPurpose;
@@ -40,8 +40,6 @@ public class Act153Detail extends BaseEntity {
 
     @Column(name = "sample_volume")
     private Double sampleVolume; // number
-
-    private String sampleName;
 
     @Column(name = "sample_location", columnDefinition = "TEXT")
     private String sampleLocation;

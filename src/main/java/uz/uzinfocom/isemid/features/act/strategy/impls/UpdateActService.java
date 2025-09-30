@@ -21,13 +21,13 @@ public class UpdateActService {
     private final Map<ActType, UpdateActStrategy> updateCardStrategies;
     private final MessageUtil messageUtil;
 
-    public Act updateAct(long id, ActRequest request) {
-        ActType actType = request.getType();
+    public Act updateAct(long id, ActRequest reqAct) {
+        ActType actType = reqAct.getType();
 
         UpdateActStrategy strategy = updateCardStrategies.get(actType);
         if (strategy == null) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.unsupported_act_type"));
         }
-        return strategy.updateAct(id, request);
+        return strategy.updateAct(id, reqAct);
     }
 }

@@ -57,10 +57,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Organization updateUserFromMis(UUID uuid, User currentUser, String token) {
-        Organization org = this.getByUuid(uuid);
-        MisOrganizationResponse resp = fetchOrganization(uuid, token);
-        mapper.updateFromMis(resp, org);
-        return organizationRepository.save(org);
+        MisOrganizationResponse response = fetchOrganization(uuid, token);
+        return organizationRepository.save(mapper.toOrganization(response));
     }
 
     private MisOrganizationResponse fetchOrganization(UUID uuid, String token) {
@@ -78,11 +76,6 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public Optional<Organization> findById(UUID uuid) {
         return organizationRepository.findByUuid(uuid);
-    }
-
-    public Organization getByUuid(UUID uuid) {
-        return organizationRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
     }
 
     @Override

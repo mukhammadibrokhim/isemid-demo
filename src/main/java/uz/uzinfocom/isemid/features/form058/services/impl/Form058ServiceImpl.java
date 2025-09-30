@@ -7,10 +7,11 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
+import uz.uzinfocom.isemid.features.card.enums.CardType;
+import uz.uzinfocom.isemid.features.card.factory.CardFactory;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
-import uz.uzinfocom.isemid.features.card.services.CardBuilderService;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
@@ -24,8 +25,7 @@ import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,7 +37,7 @@ import static uz.uzinfocom.isemid.features.form058.util.Form058BindingUtil.bindC
 @RequiredArgsConstructor
 public class Form058ServiceImpl implements Form058Service {
     private final Form058Repository form058Repository;
-    private final CardBuilderService cardBuilderService;
+    private final CardFactory cardFactory;
     private final UserService userService;
     private final Form058Mapper form058Mapper;
     private final CardRepository cardRepository;
@@ -59,15 +59,14 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     public Form058 update(Form058Request request, Long id, User user) {
-        Form058 existedEntity = this.getById(id);
+        Form058 existedEntity = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         form058Mapper.update(existedEntity, request);
         return form058Repository.save(existedEntity);
     }
 
     @Override
     public Form058 getById(long id) {
-        return form058Repository.findById(id)
-                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        return form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override
@@ -85,13 +84,41 @@ public class Form058ServiceImpl implements Form058Service {
         Map<Long, User> userMap = userService.getAllByIds(request.getAssignUserIds()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
-        List<Card> cards = cardBuilderService.buildCards(request.getCardType(), userMap, form058, user);
+        List<Card> cards = buildCards(request.getCardType(), userMap, form058, user);
         form058.setCardByFullName(user.getFullName());
         form058.getCards().addAll(cards);
         form058.setStatus(FormStatus.CARD_LINKED);
         return form058Repository.save(form058);
     }
 
+    private List<Card> buildCards(List<CardType> cardTypes, Map<Long, User> userMap, Form058 form058, User assignedBy) {
+        List<Card> resultCards = new ArrayList<>();
+
+        for (CardType cardType : cardTypes) {
+            Optional<Card> existingCardOpt = form058.getCards().stream()
+                    .filter(card -> card.getCardType() == cardType)
+                    .findFirst();
+
+            if (existingCardOpt.isPresent()) {
+                Card existingCard = existingCardOpt.get();
+                existingCard.setUsers(new HashSet<>(userMap.values()));
+                existingCard.setStatus(CardStatus.NEW);
+                resultCards.add(existingCard);
+            } else {
+                Card newCard = cardFactory.createCard(cardType);
+                newCard.setCreatedBy(assignedBy.getId());
+                newCard.setUpdatedBy(assignedBy.getId());
+                newCard.setUsers(new HashSet<>(userMap.values()));
+                newCard.setStatus(CardStatus.NEW);
+                newCard.setCardType(cardType);
+                newCard.setAssignedById(assignedBy.getId());
+                newCard.setForm058(form058);
+                resultCards.add(newCard);
+            }
+        }
+
+        return resultCards;
+    }
 
     @Override
     public Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {

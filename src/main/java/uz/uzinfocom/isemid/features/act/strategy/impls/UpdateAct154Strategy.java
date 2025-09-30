@@ -25,10 +25,13 @@ public class UpdateAct154Strategy implements UpdateActStrategy {
 
     @Override
     public Act updateAct(long id, ActRequest request) {
-        Act154 existingAct = (Act154) validateAct(id, request, actRepository, messageUtil);
+
+        Act act = validateAct(id, request, actRepository, messageUtil);
+        Act154 existingAct = (Act154) act;
+
         Act154Request request1 = (Act154Request) request;
         mapper.update(existingAct, request1);
         bindChildEntities(existingAct);
-        return actRepository.save(existingAct);
+        return actRepository.save(act);
     }
 }

@@ -29,7 +29,6 @@ public class Act223Response extends ActResponse {
     private String positionOfParticipant;
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
-    private String loinc;
-    private String additionalInfo;
+    private String reasonInspectoringLoinc;
     private Set<Act223DetailResponse> act223Details;
 }

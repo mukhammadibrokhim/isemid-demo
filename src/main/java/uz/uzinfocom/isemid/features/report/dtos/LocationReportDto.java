@@ -14,7 +14,6 @@ public class LocationReportDto {
     private int totalConfirmed;
     private int totalUnconfirmed;
     private int totalDocuments;
-//    private boolean last;
 
     @Getter
     @Setter
