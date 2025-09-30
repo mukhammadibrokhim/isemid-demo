@@ -34,6 +34,6 @@ public class Act224 extends Act {
     private String recommendedActivities;
     private LocalDateTime executionPeriod;
 
-//    @OneToMany(mappedBy = "act224", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private List<RecommendedAction> recommendedActions = new ArrayList<>();
+    @OneToMany(mappedBy = "act224", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RecommendedAction> recommendedActions = new ArrayList<>();
 }
