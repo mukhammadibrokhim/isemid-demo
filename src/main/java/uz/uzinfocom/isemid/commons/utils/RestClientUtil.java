@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.commons.utils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.client.RestClientException;
@@ -13,7 +12,6 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @Slf4j
 @RequiredArgsConstructor
-@UtilityClass
 public class RestClientUtil {
     private static final RestTemplate restTemplate = UnsafeHttpClientFactory.create();
 
