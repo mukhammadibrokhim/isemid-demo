@@ -181,10 +181,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version> <!-- 🔥 Java 21 bilan mos versiya -->
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release> <!-- ✅ release ishlatamiz -->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
