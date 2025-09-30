@@ -37,5 +37,5 @@ public class Act224Response extends ActResponse {
     private String fullNameOfParticipant;
     private String recommendedActivities;
     private LocalDateTime executionPeriod;
-    private List<RecommendedActionResponse> recommendedActions;
+//    private List<RecommendedActionResponse> recommendedActions;
 }

@@ -8,13 +8,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class RecommendedActionResponse {
-    private Long id;
-    private String recommendedActivity; // Taklif etilayotgan chora-tadbir
-    private LocalDateTime executionPeriod; // Amalga oshirish muddati
-}
+//@Data
+//@AllArgsConstructor
+//@NoArgsConstructor
+//@Builder
+//@JsonIgnoreProperties(ignoreUnknown = true)
+//public class RecommendedActionResponse {
+//    private Long id;
+//    private String recommendedActivity; // Taklif etilayotgan chora-tadbir
+//    private LocalDateTime executionPeriod; // Amalga oshirish muddati
+//}
