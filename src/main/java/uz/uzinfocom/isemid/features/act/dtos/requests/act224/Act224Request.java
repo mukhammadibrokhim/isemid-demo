@@ -32,5 +32,5 @@ public class Act224Request extends ActRequest {
     private String fullNameOfParticipant;
     private String recommendedActivities;
     private LocalDateTime executionPeriod;
-    private List<RecommendedActionRequest> recommendedActions;
+//    private List<RecommendedActionRequest> recommendedActions;
 }
