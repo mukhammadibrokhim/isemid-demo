@@ -41,9 +41,9 @@ public class ActBindingUtil {
         }
     }
 
-//    public static void bindChildEntities(Act224 act) {
-//        if (act.getRecommendedActions() != null) {
-//            act.getRecommendedActions().forEach(child -> child.setAct224(act));
-//        }
-//    }
+    public static void bindChildEntities(Act224 act) {
+        if (act.getRecommendedActions() != null) {
+            act.getRecommendedActions().forEach(child -> child.setAct224(act));
+        }
+    }
 }

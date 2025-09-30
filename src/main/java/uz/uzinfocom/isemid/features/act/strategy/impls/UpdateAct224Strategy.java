@@ -30,7 +30,7 @@ public class UpdateAct224Strategy implements UpdateActStrategy {
         Act224Request request224 = (Act224Request) request;
 
         mapper.update(existingAct, request224);
-//        bindChildEntities(existingAct);
+        bindChildEntities(existingAct);
 
         return actRepository.save(existingAct);
     }
