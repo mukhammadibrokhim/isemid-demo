@@ -19,7 +19,6 @@ public class Act153DetailResponse {
     private Double samplingDepth;
     private Double distanceFromShore;
     private Double sampleVolume;
-    private String sampleName;
     private String sampleLocation;
     private Double weatherAtSampling;
     private Double waterTemperature;

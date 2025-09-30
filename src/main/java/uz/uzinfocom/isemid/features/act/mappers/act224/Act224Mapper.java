@@ -5,12 +5,7 @@ import uz.uzinfocom.isemid.features.act.dtos.requests.act224.Act224Request;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act224.Act224Response;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 
-@Mapper(
-        componentModel = "spring",
-        collectionMappingStrategy = CollectionMappingStrategy.SETTER_PREFERRED,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        uses = RecommendActionMapper.class
-)
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface Act224Mapper {
 
     @Mapping(target = "id", source = "act.id")

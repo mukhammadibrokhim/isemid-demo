@@ -22,7 +22,6 @@ public class Act153Response extends ActResponse {
     private Long id;
     private LocalDate documentSendDate;
     private Integer tin;
-    private String loinc;
     private String sampleObjectName;
     private String samplingDocuments;
     private LocalDateTime hospitalizationDate;

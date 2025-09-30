@@ -24,9 +24,6 @@ public class Act155Detail extends BaseEntity {
     private String purposeOfTesting;
     private String purposeOfTestingLoinc;//loinc
 
-    @Column(columnDefinition = "TEXT")
-    private String loinc;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;

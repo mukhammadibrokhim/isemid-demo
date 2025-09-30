@@ -1,13 +1,16 @@
 package uz.uzinfocom.isemid.features.act.models.act223;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -26,13 +29,8 @@ public class Act223 extends Act {
     private String positionOfParticipant;
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
-
-    @Column(columnDefinition = "TEXT")
-    private String loinc;
-    
     private String reasonInspectoringLoinc;
-    private String additionalInfo;
 
-    @OneToMany(mappedBy = "act223", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Act223Detail> act223Details = new ArrayList<>();
+    @OneToMany(mappedBy = "act223", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Act223Detail> act223Details = new HashSet<>();
 }
