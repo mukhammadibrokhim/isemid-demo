@@ -80,6 +80,12 @@ public class CatalogServiceImpl implements CatalogService {
         return catalogRepository.findAllByType(catalogType.name());
     }
 
+    @Cacheable(value = "catalogAllTypeSt", key = "#catalogType", unless = "#result == null")
+    @Override
+    public List<Catalog> findAllByTypeString(String catalogType) {
+        return catalogRepository.findAllByType(catalogType);
+    }
+
     @Cacheable(value = "catalogAllTypeByParentCode", key = "T(String).format('%s-%s', #catalogType.name(), #parentCode)", unless = "#result == null")
     @Override
     public List<Catalog> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode) {
