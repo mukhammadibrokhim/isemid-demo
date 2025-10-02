@@ -54,7 +54,6 @@ public class PatientRequest {
     @NotNull(message = "Population Type is required.")
     private PopulationType populationType;
 
-    @Valid
     private List<AffiliationRequest> affiliations = new ArrayList<>();
 
     @JsonIgnore
