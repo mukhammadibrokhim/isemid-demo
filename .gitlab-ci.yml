@@ -29,7 +29,7 @@ deploy_dev:
   # when: manual
   script:
     - echo "Deploying to DEV server"
-    - mvn clean package -DskipTests
+    - mvn clean package -U -DskipTests
 
     - | # Stoping service
       ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
