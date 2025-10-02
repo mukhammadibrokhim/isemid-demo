@@ -4,11 +4,13 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.dtos.Form12ReportDto;
 import uz.uzinfocom.isemid.features.report.service.Form12ReportService;
@@ -81,37 +83,22 @@ public class Form12ReportServiceImpl implements Form12ReportService {
 
             Organization userOrg = currentUser.getCurrentOrganization();
 
-            if (fromDate != null && toDate != null) {
-                predicates.add(cb.between(root.get("createdAt"),
-                        fromDate.atStartOfDay(),
-                        toDate.atTime(23, 59, 59)));
-            }
+            // ✅ Reuse date range filter
+            SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
+            // 🎂 Birth date filter
             if (birthDate != null) {
                 predicates.add(cb.equal(root.get("patient").get("birthDate"), birthDate));
             }
 
+            // 👩 Gender filter
             if (gender != null) {
                 predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
             }
 
-//            if (userOrg != null && userOrg.getLevelCode() != null) {
-//                String userLevelCode = userOrg.getLevelCode();
-//
-//                switch (userLevelCode) {
-//                    case "republic_level" -> {
-//                    }
-//                    case "region_level" -> predicates.add(cb.and(
-//                            cb.equal(root.get("createdOrg").get("state").get("code"),
-//                                    userOrg.getState().getCode())
-//                    ));
-//
-//                    case "district_level" -> predicates.add(cb.and(
-//                            cb.equal(root.get("createdOrg").get("city").get("parentCode"), userOrg.getCity().getParentCode()),
-//                            cb.equal(root.get("createdOrg").get("levelCode"), "district_level")
-//                    ));
-//                }
-//            }
+            if (userOrg != null && userOrg.getMedicalType() == MedicalType.SANEPID_SERVICE) {
+                SpecificationUtils.addSanepidAccessPredicate(root, cb, userOrg, predicates);
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
