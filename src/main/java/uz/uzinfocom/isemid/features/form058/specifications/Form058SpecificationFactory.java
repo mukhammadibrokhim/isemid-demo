@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.form058.specifications;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
@@ -27,12 +28,7 @@ public class Form058SpecificationFactory {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (fromDate != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate.atStartOfDay()));
-            }
-            if (toDate != null) {
-                predicates.add(cb.lessThan(root.get("createdAt"), toDate.plusDays(1).atStartOfDay()));
-            }
+            SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
             if (stateCode != null && !stateCode.isBlank()) {
                 predicates.add(cb.equal(root.get("createdOrg").get("stateCode"), stateCode));
@@ -53,13 +49,13 @@ public class Form058SpecificationFactory {
                 if (medicalType == MedicalType.SANEPID_SERVICE) {
                     Predicate receiverMatch = cb.equal(root.get("receiverOrganizationId"), orgId);
 
-                    Predicate levelPredicate = switch (levelType) {
-                        case REPUBLICAN -> cb.conjunction();
-                        case REGIONAL, URBAN ->
-                                cb.equal(root.get("createdOrg").get("stateCode"), userOrg.getStateCode());
-                        case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                                cb.equal(root.get("createdOrg").get("cityCode"), userOrg.getCityCode());
-                    };
+                    Predicate levelPredicate = SpecificationUtils.buildLevelPredicate(
+                            root,
+                            cb,
+                            levelType,
+                            userOrg.getStateCode(),
+                            userOrg.getCityCode()
+                    );
 
                     accessPredicate = cb.or(receiverMatch, levelPredicate);
                 } else {
