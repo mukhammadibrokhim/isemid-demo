@@ -26,6 +26,8 @@ public class Form058SpecificationFactory {
             FilterType filterType
     ) {
         return (root, query, cb) -> {
+            query.distinct(true);
+
             List<Predicate> predicates = new ArrayList<>();
 
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");

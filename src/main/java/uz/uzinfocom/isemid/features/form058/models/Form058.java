@@ -21,6 +21,17 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
+@Table(
+        name = "form058",
+        indexes = {
+                @Index(name = "idx_form058_status", columnList = "status"),
+                @Index(name = "idx_form058_patient_id", columnList = "patient_id"),
+                @Index(name = "idx_form058_sender_org_id", columnList = "sender_organization_id"),
+                @Index(name = "idx_form058_receiver_org_id", columnList = "receiver_organization_id"),
+                @Index(name = "idx_form058_created_at", columnList = "created_at"),
+                @Index(name = "idx_form058_mkb10_code", columnList = "mkb10Code")
+        }
+)
 @EntityListeners(AuditingEntityListener.class)
 public class Form058 extends AbsEntity {
     private String mkb10Code;
