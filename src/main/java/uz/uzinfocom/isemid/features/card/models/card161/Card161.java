@@ -18,6 +18,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+//@Table(
+//        name = "card161",
+//        indexes = {
+//                @Index(name = "idx_card161_region", columnList = "regionCode"),
+//                @Index(name = "idx_card161_district", columnList = "districtCode"),
+//                @Index(name = "idx_card161_polyclinic", columnList = "polyclinic_id")
+//        }
+//)
 public class Card161 extends Card {
     private String callerType;
     private Boolean isResident;
