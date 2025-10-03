@@ -27,7 +27,15 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
+@Table(
+        name = "card",
+        indexes = {
+                @Index(name = "idx_card_type", columnList = "cardType"),
+                @Index(name = "idx_card_status", columnList = "status"),
+                @Index(name = "idx_card_assigned_by", columnList = "assignedById"),
+                @Index(name = "idx_card_form058", columnList = "form058_id")
+        }
+)@Inheritance(strategy = InheritanceType.JOINED)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Card161.class, name = "CARD161"),

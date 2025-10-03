@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -69,13 +70,14 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public Form058 assignCard(Form058AssignCardRequest request, User user) {
         if (request.getAssignUserIds() == null || request.getAssignUserIds().isEmpty()) {
-            throw new ApiException(BAD_REQUEST, "Список назначенных пользователей пуст.");
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.assign_user_empty"));
         }
 
         if (request.getCardType() == null || request.getCardType().isEmpty()) {
-            throw new ApiException(BAD_REQUEST, "Требуются типы карт.");
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.card_type_required"));
         }
 
         Form058 form058 = this.getById(request.getForm058Id());
@@ -124,6 +126,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long formId) {
         Form058 form058 = this.getById(formId);
         List<Card> cards = form058.getCards();
@@ -145,6 +148,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public Form058 changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
         Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", formId)));
         if (!form058.getStatus().equals(FormStatus.NOT_APPROVED))
