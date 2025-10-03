@@ -103,8 +103,9 @@ public class Form058Specification {
             FilterType filterType
     ) {
         return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+            query.distinct(true);
 
+            List<Predicate> predicates = new ArrayList<>();
             if (currentUser.getCurrentOrganization() != null) {
                 var org = currentUser.getCurrentOrganization();
                 Long orgId = org.getId();
