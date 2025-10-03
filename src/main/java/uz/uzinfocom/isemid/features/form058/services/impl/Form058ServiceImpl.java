@@ -6,7 +6,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
@@ -108,10 +107,9 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     public Form058 approveForm(Long formId) {
         Form058 form058 = this.getById(formId);
-        boolean allCardsApproved = form058.getCards().stream()
-                .allMatch(card -> card.getStatus().equals(CardStatus.COMPLETED));
-        if (!allCardsApproved) {
-            throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.not_approved"));
+
+        if (!form058.getStatus().equals(FormStatus.CARD_LINKED)) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.not_allowed_to_approve_form"));
         }
         form058.setStatus(FormStatus.APPROVED);
         return form058Repository.save(form058);
