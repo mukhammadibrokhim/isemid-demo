@@ -10,8 +10,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class Form058ChangeDiagnosisRequest {
-    @NotBlank
+    @NotBlank(message = "{validation.form058.finalMkb10Code.notBlank}")
     private String finalMkb10Code;
-    @NotBlank
+    @NotBlank(message = "{validation.form058.finalMkb10Name.notBlank}")
     private String finalMkb10Name;
 }
