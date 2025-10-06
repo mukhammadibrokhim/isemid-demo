@@ -24,10 +24,7 @@ public class Form058Request {
     private String mkb10Name;
     private Integer mkb10UsageLimit;
 
-    @NotBlank(message = "Итоговый код МКБ-10 не должен быть пустым.")
     private String finalMkb10Code;
-
-    @NotBlank(message = "Итоговое название МКБ-10 не должно быть пустым.")
     private String finalMkb10Name;
 
     @Valid
