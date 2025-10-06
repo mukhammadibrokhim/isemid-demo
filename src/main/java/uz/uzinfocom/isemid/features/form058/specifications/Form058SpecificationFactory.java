@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -26,7 +27,7 @@ public class Form058SpecificationFactory {
             FilterType filterType
     ) {
         return (root, query, cb) -> {
-            query.distinct(true);
+            Objects.requireNonNull(query).distinct(true);
 
             List<Predicate> predicates = new ArrayList<>();
 

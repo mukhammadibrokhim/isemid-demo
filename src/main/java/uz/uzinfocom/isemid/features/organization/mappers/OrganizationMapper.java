@@ -55,4 +55,23 @@ public interface OrganizationMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateFromRequest(OrgRequest request, @MappingTarget Organization org);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "uuid", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", expression = "java(java.sql.Timestamp.from(java.time.Instant.now()))")
+    @Mapping(target = "tin", source = ".", qualifiedByName = "extractTin")
+    @Mapping(target = "email", source = ".", qualifiedByName = "extractEmail")
+    @Mapping(target = "phone", source = ".", qualifiedByName = "extractPhone")
+    @Mapping(target = "serviceTypes", source = ".", qualifiedByName = "extractServiceTypes")
+    @Mapping(target = "medicalType", source = ".", qualifiedByName = "extractMedicalType")
+    @Mapping(target = "levelType", source = ".", qualifiedByName = "extractLevelType")
+    @Mapping(target = "countryCode", source = ".", qualifiedByName = "extractCountryCode")
+    @Mapping(target = "stateCode", source = ".", qualifiedByName = "extractStateCode")
+    @Mapping(target = "cityCode", source = ".", qualifiedByName = "extractCityCode")
+    @Mapping(target = "line", source = ".", qualifiedByName = "extractLine")
+    @Mapping(target = "serviceAreaCode", source = ".", qualifiedByName = "extractServiceArea")
+    @Mapping(target = "district", source = ".", qualifiedByName = "extractDistrict")
+    void updateOrganizationFromMis(@MappingTarget Organization target, MisOrganizationResponse source);
+
 }

@@ -32,8 +32,6 @@ public class Form058Request {
     private PatientRequest patient;
 
     private Boolean labConfirmation;
-
-//    @NotNull(message = "Место госпитализации обязательно и не может быть пустым.")
     private UUID hospitalPlaceId;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
