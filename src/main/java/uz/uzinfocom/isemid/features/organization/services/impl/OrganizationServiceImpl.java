@@ -57,9 +57,16 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Organization updateUserFromMis(UUID uuid, User currentUser, String token) {
+        Organization existingOrganization = organizationRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
+
         MisOrganizationResponse response = fetchOrganization(uuid, token);
-        return organizationRepository.save(mapper.toOrganization(response));
+
+        mapper.updateOrganizationFromMis(existingOrganization, response);
+
+        return organizationRepository.save(existingOrganization);
     }
+
 
     private MisOrganizationResponse fetchOrganization(UUID uuid, String token) {
         String json = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, String.class, messageUtil);
