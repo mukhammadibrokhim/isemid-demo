@@ -48,5 +48,6 @@ public class Form058DetailsResponse {
     private String epidemicMeasures; // Epidemiya haqida choralar
     private String journalFormCode;
     private String comment;
+    private String cardByFullName;
     private String notifierFullName;
 }

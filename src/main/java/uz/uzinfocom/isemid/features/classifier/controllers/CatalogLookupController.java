@@ -718,10 +718,11 @@ public class CatalogLookupController {
 
     @GetMapping
     public ApiResponse<?> getCatalogs(
-            @RequestParam("type") CatalogType type,
+            @RequestParam("type") String type,
+            @RequestParam(value = "search", required = false) String search,
             @RequestHeader(ACCEPT_LANGUAGE) String lang) {
 
-        return ApiResponse.success(messageUtil, catalogService.findAllByType(type)
+        return ApiResponse.success(messageUtil, catalogService.findAllByTypeString(type, search)
                 .stream().map(catalog -> catalogMapper.toDisplayedDto(catalog, lang)).toList());
     }
 }

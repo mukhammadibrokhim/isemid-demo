@@ -1,4 +1,4 @@
-image: maven:latest
+image: maven:3.9.6-eclipse-temurin-21
 
 variables:
   DEV_SERVER: '10.10.10.104'
@@ -14,6 +14,7 @@ include:
 before_script:
   - eval $(ssh-agent -s)
   - chmod 600 $MOH_PRIVATE_KEY
+  - apt-get update && apt-get install -y openssh-client
 
 stages:
   - validate-and-check
@@ -49,7 +50,7 @@ deploy_dev:
     - | # Create privilages & run service
       ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo chown -R www-data:www-data /srv/project/backend
-        sudo systemctl start backend.service
+        sudo systemctl restart backend.service
         sleep 10
         sudo systemctl status backend.service
       EOF
@@ -85,7 +86,7 @@ deploy_prod:
     - | # Create privilages & run service
       ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$PROD_SERVER << 'EOF'
         sudo chown -R nginx:nginx /srv/project/backend
-        sudo systemctl start backend.service
+        sudo systemctl restart backend.service
         sleep 10
         sudo systemctl status backend.service
       EOF

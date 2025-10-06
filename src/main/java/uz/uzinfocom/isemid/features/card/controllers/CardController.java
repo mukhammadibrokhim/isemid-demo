@@ -45,11 +45,12 @@ public class CardController {
             @RequestParam(required = false) String fromOrgName,
             @RequestParam(required = false) String toOrgName,
             @RequestParam(required = false) CardStatus cardStatus,
+            @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) Long formId,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Card> pagedCards = cardService.filter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, formId, user);
+        Page<Card> pagedCards = cardService.filter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, formId, mkb10Code,user);
         return PagedResponse.build(page, pagedCards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
