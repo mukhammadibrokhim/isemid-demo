@@ -23,6 +23,7 @@ import java.util.UUID;
 import static org.springframework.util.StringUtils.hasText;
 
 public class Form058Specification {
+
     public static Specification<Form058> build(
             LocalDate fromDate,
             LocalDate toDate,
@@ -35,6 +36,13 @@ public class Form058Specification {
         return (root, query, cb) -> {
             Objects.requireNonNull(query).distinct(true);
             List<Predicate> predicates = new ArrayList<>();
+
+            if (hasText(stateCode)) {
+                predicates.add(cb.equal(root.get("createdOrg").get("stateCode"), stateCode));
+            }
+            if (hasText(cityCode)) {
+                predicates.add(cb.equal(root.get("createdOrg").get("cityCode"), cityCode));
+            }
 
             if (currentUser.getCurrentOrganization() != null) {
                 var org = currentUser.getCurrentOrganization();
@@ -55,27 +63,16 @@ public class Form058Specification {
                     Predicate orgMatch = cb.equal(affiliationJoin.get("organizationId"), orgId);
                     Predicate typeMatch = affiliationJoin.get("type")
                             .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
-
                     accessPredicate = cb.and(orgMatch, typeMatch);
-                }
-
-                else if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    Predicate levelPredicate = SpecificationUtils.buildLevelPredicate(
-                            root, cb, levelType, orgStateCode, orgCityCode
-                    );
-
-                    if (filterType == FilterType.RECEIVED) {
-                        Predicate receiverPredicate = cb.equal(root.get("receiverOrganizationId"), orgId);
-                        accessPredicate = cb.and(levelPredicate, receiverPredicate);
-                    } else if (filterType == FilterType.ALL) {
-                        Predicate createdPredicate = cb.equal(root.get("createdOrgUuid"), orgUuid);
-                        accessPredicate = cb.and(levelPredicate, createdPredicate);
+                } else if (medicalType == MedicalType.SANEPID_SERVICE) {
+                    if (levelType == LevelType.REPUBLICAN) {
+                        accessPredicate = cb.conjunction();
                     } else {
-                        accessPredicate = levelPredicate;
+                        accessPredicate = SpecificationUtils.buildLevelPredicate(
+                                root, cb, levelType, orgStateCode, orgCityCode
+                        );
                     }
-                }
-
-                else {
+                } else {
                     if (filterType == FilterType.RECEIVED) {
                         accessPredicate = cb.equal(root.get("receiverOrganizationId"), orgId);
                     } else {
@@ -86,14 +83,8 @@ public class Form058Specification {
                 predicates.add(accessPredicate);
             }
 
-            if (hasText(stateCode)) {
-                predicates.add(cb.equal(root.get("createdOrg").get("stateCode"), stateCode));
-            }
-            if (hasText(cityCode)) {
-                predicates.add(cb.equal(root.get("createdOrg").get("cityCode"), cityCode));
-            }
-
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
