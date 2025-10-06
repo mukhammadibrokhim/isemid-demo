@@ -19,8 +19,8 @@ import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058ResponseAdapter;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
-import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
+import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 
 import java.time.LocalDate;
 
@@ -136,11 +136,23 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.notApprove(formId, notApprove)));
     }
 
-    @Operation(summary = "Изменение диагноза в форме 058", description = "Позволяет изменить диагноз, указанный в форме 058.")
-    @PutMapping("/{formId}/change-diagnosis")
-    public ApiResponse<?> changeDiagnosis(@PathVariable Long formId, @RequestBody Form058ChangeDiagnosisRequest changeDiagnosis) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.changeDiagnosis(formId, changeDiagnosis)));
+    @Operation(
+            summary = "Подтверждение диагноза в форме 058",
+            description = """
+                        Позволяет подтвердить диагноз, указанный в форме 058.
+                        При необходимости можно изменить диагноз перед подтверждением.
+                        Если новый диагноз не передан, будет подтверждён существующий.
+                    """
+    )
+    @PutMapping("/{formId}/approve-diagnosis")
+    public ApiResponse<Form058Response> approveDiagnosis(
+            @PathVariable Long formId,
+            @Valid @RequestBody Form058ChangeDiagnosisRequest request
+    ) {
+        Form058 form = form058Service.approveDiagnosis(formId, request);
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form));
     }
+
 
     @Operation(summary = "Удаление формы 058 по ID", description = "Удаляет форму 058 по заданному идентификатору.")
     @DeleteMapping("/{formId}")

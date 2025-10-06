@@ -35,7 +35,8 @@ import java.util.Set;
                 @Index(name = "idx_card_assigned_by", columnList = "assignedById"),
                 @Index(name = "idx_card_form058", columnList = "form058_id")
         }
-)@Inheritance(strategy = InheritanceType.JOINED)
+)
+@Inheritance(strategy = InheritanceType.JOINED)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Card161.class, name = "CARD161"),

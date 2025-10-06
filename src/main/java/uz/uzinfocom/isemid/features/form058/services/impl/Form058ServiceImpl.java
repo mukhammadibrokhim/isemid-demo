@@ -149,9 +149,9 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     @Transactional
-    public Form058 changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
-        Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", formId)));
-        if (!form058.getStatus().equals(FormStatus.NOT_APPROVED))
+    public Form058 approveDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
+        Form058 form058 = this.getById(formId);
+        if (!form058.getStatus().equals(FormStatus.CARD_LINKED))
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.cannot_change_diagnosis"));
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());
