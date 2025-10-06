@@ -17,7 +17,7 @@ public interface CardService {
             String toOrgName,
             CardStatus cardStatus,
             Long formId,
-            User user
+            String mkb10Code, User user
     );
 
     Card getById(long id);

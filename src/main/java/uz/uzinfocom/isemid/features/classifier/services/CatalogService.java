@@ -22,6 +22,8 @@ public interface CatalogService {
 
     List<Catalog> findAllByType(CatalogType catalogType);
 
+    List<Catalog> findAllByTypeString(String catalogType, String search);
+
     List<Catalog> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode);
 
     List<Catalog> findAllByParentCode(String parentCode);

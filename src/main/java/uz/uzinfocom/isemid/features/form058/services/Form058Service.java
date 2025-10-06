@@ -38,5 +38,5 @@ public interface Form058Service {
 
     void deleteById(Long formId);
 
-    Form058 changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis);
+    Form058 approveDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis);
 }

@@ -1,17 +1,16 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.card.enums.CardStatus;
-import uz.uzinfocom.isemid.features.card.enums.CardType;
-import uz.uzinfocom.isemid.features.card.factory.CardFactory;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
+import uz.uzinfocom.isemid.features.card.services.CardBuildService;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
@@ -25,7 +24,8 @@ import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,7 +37,7 @@ import static uz.uzinfocom.isemid.features.form058.util.Form058BindingUtil.bindC
 @RequiredArgsConstructor
 public class Form058ServiceImpl implements Form058Service {
     private final Form058Repository form058Repository;
-    private final CardFactory cardFactory;
+    private final CardBuildService cardBuildService;
     private final UserService userService;
     private final Form058Mapper form058Mapper;
     private final CardRepository cardRepository;
@@ -70,13 +70,14 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public Form058 assignCard(Form058AssignCardRequest request, User user) {
         if (request.getAssignUserIds() == null || request.getAssignUserIds().isEmpty()) {
-            throw new ApiException(BAD_REQUEST, "Список назначенных пользователей пуст.");
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.assign_user_empty"));
         }
 
         if (request.getCardType() == null || request.getCardType().isEmpty()) {
-            throw new ApiException(BAD_REQUEST, "Требуются типы карт.");
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.card_type_required"));
         }
 
         Form058 form058 = this.getById(request.getForm058Id());
@@ -84,40 +85,11 @@ public class Form058ServiceImpl implements Form058Service {
         Map<Long, User> userMap = userService.getAllByIds(request.getAssignUserIds()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
-        List<Card> cards = buildCards(request.getCardType(), userMap, form058, user);
+        List<Card> cards = cardBuildService.buildCards(request.getCardType(), userMap, form058, user);
         form058.setCardByFullName(user.getFullName());
         form058.getCards().addAll(cards);
         form058.setStatus(FormStatus.CARD_LINKED);
         return form058Repository.save(form058);
-    }
-
-    private List<Card> buildCards(List<CardType> cardTypes, Map<Long, User> userMap, Form058 form058, User assignedBy) {
-        List<Card> resultCards = new ArrayList<>();
-
-        for (CardType cardType : cardTypes) {
-            Optional<Card> existingCardOpt = form058.getCards().stream()
-                    .filter(card -> card.getCardType() == cardType)
-                    .findFirst();
-
-            if (existingCardOpt.isPresent()) {
-                Card existingCard = existingCardOpt.get();
-                existingCard.setUsers(new HashSet<>(userMap.values()));
-                existingCard.setStatus(CardStatus.NEW);
-                resultCards.add(existingCard);
-            } else {
-                Card newCard = cardFactory.createCard(cardType);
-                newCard.setCreatedBy(assignedBy.getId());
-                newCard.setUpdatedBy(assignedBy.getId());
-                newCard.setUsers(new HashSet<>(userMap.values()));
-                newCard.setStatus(CardStatus.NEW);
-                newCard.setCardType(cardType);
-                newCard.setAssignedById(assignedBy.getId());
-                newCard.setForm058(form058);
-                resultCards.add(newCard);
-            }
-        }
-
-        return resultCards;
     }
 
     @Override
@@ -137,10 +109,9 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     public Form058 approveForm(Long formId) {
         Form058 form058 = this.getById(formId);
-        boolean allCardsApproved = form058.getCards().stream()
-                .allMatch(card -> card.getStatus().equals(CardStatus.COMPLETED));
-        if (!allCardsApproved) {
-            throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.not_approved"));
+
+        if (!form058.getStatus().equals(FormStatus.CARD_LINKED)) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.not_allowed_to_approve_form"));
         }
         form058.setStatus(FormStatus.APPROVED);
         return form058Repository.save(form058);
@@ -155,6 +126,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long formId) {
         Form058 form058 = this.getById(formId);
         List<Card> cards = form058.getCards();
@@ -176,9 +148,10 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Form058 changeDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
-        Form058 form058 = form058Repository.findById(formId).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", formId)));
-        if (!form058.getStatus().equals(FormStatus.NOT_APPROVED))
+    @Transactional
+    public Form058 approveDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
+        Form058 form058 = this.getById(formId);
+        if (!form058.getStatus().equals(FormStatus.CARD_LINKED))
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.cannot_change_diagnosis"));
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());

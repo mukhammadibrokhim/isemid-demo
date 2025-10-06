@@ -25,6 +25,9 @@ public class LocationReportHelper {
     private final CatalogService catalogService;
     private final MessageUtil messageUtil;
 
+    /**
+     * Build report for regions (level = 2)
+     */
     public LocationReportDto buildRegionReports(List<Form058> forms) {
         var regions = catalogService.finAllByType(CatalogType.state).stream()
                 .map(region -> LocationReportDto.ReportDto.builder()
@@ -36,9 +39,12 @@ public class LocationReportHelper {
                 )
                 .toList();
 
-        return getLocationReportDto(forms, regions, "state", null);
+        return getLocationReportDto(forms, regions, "state", null, 2);
     }
 
+    /**
+     * Build report for districts/cities (level = 3)
+     */
     public LocationReportDto buildDistrictReports(String parentCode, List<Form058> forms) {
         var districts = catalogService.findAllByTypeAndParentCode(CatalogType.city, parentCode).stream()
                 .map(district -> LocationReportDto.ReportDto.builder()
@@ -50,9 +56,12 @@ public class LocationReportHelper {
                 )
                 .toList();
 
-        return getLocationReportDto(forms, districts, "state", parentCode);
+        return getLocationReportDto(forms, districts, "state", parentCode, 3);
     }
 
+    /**
+     * Build report for neighborhoods (level = 4)
+     */
     public LocationReportDto buildNeighborhoodReports(String parentCode, List<Form058> forms) {
         var neighborhoods = catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode).stream()
                 .map(nbh -> LocationReportDto.ReportDto.builder()
@@ -64,12 +73,14 @@ public class LocationReportHelper {
                 )
                 .toList();
 
-        return getLocationReportDto(forms, neighborhoods, "city", parentCode);
+        return getLocationReportDto(forms, neighborhoods, "city", parentCode, 4);
     }
 
+    /**
+     * Get localized name depending on user locale
+     */
     private String getLocalizedName(Catalog catalog) {
         var locale = LocaleContextHolder.getLocale().getLanguage();
-
         return switch (locale) {
             case "uz-Cyrl" -> catalog.getNameUzCyril();
             case "ru" -> catalog.getNameRu();
@@ -78,16 +89,20 @@ public class LocationReportHelper {
         };
     }
 
+    /**
+     * Build the final LocationReportDto with totals and level
+     */
     private LocationReportDto getLocationReportDto(List<Form058> addrForms,
                                                    List<LocationReportDto.ReportDto> reports,
-                                                   String level,
-                                                   String parentCode) {
+                                                   String levelField,
+                                                   String parentCode,
+                                                   int level) {
 
         var filtered = addrForms.stream()
                 .filter(f -> {
                     var addr = getTemporaryAddress(f);
                     if (addr == null) return false;
-                    return switch (level) {
+                    return switch (levelField) {
                         case "state" -> parentCode == null || parentCode.equals(addr.getStateCode());
                         case "city" -> parentCode == null || parentCode.equals(addr.getCityCode());
                         case "neighborhood" -> parentCode == null || parentCode.equals(addr.getNeighborhoodCode());
@@ -100,6 +115,7 @@ public class LocationReportHelper {
         long unconfirmed = filtered.stream().filter(f -> f.getStatus() != FormStatus.APPROVED).count();
 
         return LocationReportDto.builder()
+                .level(level)
                 .reports(reports)
                 .totalConfirmed((int) confirmed)
                 .totalUnconfirmed((int) unconfirmed)
@@ -107,6 +123,9 @@ public class LocationReportHelper {
                 .build();
     }
 
+    /**
+     * Get patient's temporary address
+     */
     private Address getTemporaryAddress(Form058 form) {
         return form.getPatient().getAddresses().stream()
                 .filter(addr -> addr.getType().equals(AddressType.TEMPORARY))
@@ -114,6 +133,9 @@ public class LocationReportHelper {
                 .orElse(null);
     }
 
+    /**
+     * Count by form status and location level
+     */
     private long countByStatus(List<Form058> forms, FormStatus status, String code, String level) {
         return forms.stream()
                 .filter(f -> (status == null && f.getStatus() != FormStatus.APPROVED)
@@ -128,6 +150,9 @@ public class LocationReportHelper {
                 .count();
     }
 
+    /**
+     * Dynamically build by parentCode, automatically detects catalog type
+     */
     public LocationReportDto buildByParentCode(String parentCode, List<Form058> forms) {
         var catalogs = catalogService.findAllByParentCode(parentCode);
 
