@@ -20,6 +20,18 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
 
     List<Catalog> findAllByType(String catalogType);
 
+    @Query("""
+        SELECT c FROM Catalog c
+        WHERE c.type = :catalogType AND (
+              LOWER(c.nameUz) LIKE LOWER(CONCAT('%', :search, '%'))
+           OR LOWER(c.nameRu) LIKE LOWER(CONCAT('%', :search, '%'))
+           OR LOWER(c.nameUzCyril) LIKE LOWER(CONCAT('%', :search, '%'))
+           OR LOWER(c.nameKaa) LIKE LOWER(CONCAT('%', :search, '%'))
+        )
+        """)
+    List<Catalog> searchByTypeAndName(@Param("catalogType") String catalogType,
+                                      @Param("search") String search);
+
     List<Catalog> findAllByParentCode(String parentCode);
 
     Optional<Catalog> findByCode(String code);
@@ -31,17 +43,17 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
            OR LOWER(c.name_ru) LIKE LOWER(CONCAT('%', :search, '%'))
            OR LOWER(c.name_uz) LIKE LOWER(CONCAT('%', :search, '%'))
            OR LOWER(c.name_uz_cyril) LIKE LOWER(CONCAT('%', :search, '%')))
-    ORDER BY 
-        CASE 
+    ORDER BY\s
+        CASE\s
             WHEN LOWER(c.code) = 'uzb' THEN 1
             WHEN LOWER(c.code) = '207' THEN 2
             WHEN LOWER(c.code) = 'rus' THEN 3
             WHEN LOWER(c.code) = '226' THEN 4
             ELSE 3
         END,
-        c.name_uz ASC
+        c.name_uz
     LIMIT 20
-    """, nativeQuery = true)
+   \s""", nativeQuery = true)
     List<Catalog> findByTypeAndSearch(@Param("type") String type, @Param("search") String search);
 
     @Query("SELECT c.code FROM Catalog c")
