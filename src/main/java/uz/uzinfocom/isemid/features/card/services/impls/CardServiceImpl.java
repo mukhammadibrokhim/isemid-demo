@@ -44,9 +44,9 @@ public class CardServiceImpl implements CardService {
     @Override
     public Page<Card> filter(
             int page, int size, String formTypeCode, String fromOrName,
-            String toOrgName, CardStatus cardStatus, Long formId, User user
+            String toOrgName, CardStatus cardStatus, Long formId, String mkb10Code, User user
     ) {
-        Specification<Card> spec = CardSpecification.build(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId);
+        Specification<Card> spec = CardSpecification.build(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId, mkb10Code);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
