@@ -52,36 +52,47 @@ public class SpecificationUtils {
     }
 
     /**
-     * Builds a {@link Predicate} for filtering by organization level.
-     * This variant is used when the target entity contains a
-     * {@code createdOrg} reference.
+     * Builds a {@link Predicate} for filtering by organization level,
+     * considering both created organization and receiver organization.
      *
-     * @param root         root entity
-     * @param cb           criteria builder
-     * @param levelType    level of current organization
-     * @param orgStateCode state code of current organization
-     * @param orgCityCode  city code of current organization
+     * This method ensures:
+     * 1️⃣ Records created by organizations within the same city/state (depending on levelType)
+     * 2️⃣ OR records received by the current organization (receiverOrganizationId)
+     *
+     * @param root          root entity (e.g. Form058)
+     * @param cb            criteria builder
+     * @param levelType     current org’s level
+     * @param orgStateCode  current org’s state code
+     * @param orgCityCode   current org’s city code
+     * @param currentOrgId  current organization ID
      */
     public static <T> Predicate buildLevelPredicate(
             Root<T> root,
             CriteriaBuilder cb,
             LevelType levelType,
             String orgStateCode,
-            String orgCityCode
+            String orgCityCode,
+            Long currentOrgId
     ) {
+        // 🔹 Join to createdOrg
         Join<T, ?> createdOrgJoin = root.join("createdOrg", JoinType.LEFT);
-        return buildLevelPredicateInternal(createdOrgJoin, cb, levelType, orgStateCode, orgCityCode);
+
+        // 🔹 Build base predicate by level
+        Predicate levelPredicate = buildLevelPredicateInternal(
+                createdOrgJoin, cb, levelType, orgStateCode, orgCityCode
+        );
+
+        // 🔹 Add receiverOrganizationId = currentOrgId
+        Predicate receiverPredicate = cb.equal(root.get("receiverOrganizationId"), currentOrgId);
+
+        // 🔹 Combine: createdOrg in scope OR received by me
+        return cb.or(levelPredicate, receiverPredicate);
     }
+
 
     /**
      * Builds a {@link Predicate} for filtering by organization level
-     * using a provided path (e.g. for nested relations such as Address).
-     *
-     * @param path         path to filter
-     * @param cb           criteria builder
-     * @param levelType    level of current organization
-     * @param orgStateCode state code of current organization
-     * @param orgCityCode  city code of current organization
+     * using a provided path (for nested joins).
      */
     public static Predicate buildLevelPredicate(
             Path<?> path,
@@ -93,11 +104,11 @@ public class SpecificationUtils {
         return buildLevelPredicateInternal(path, cb, levelType, orgStateCode, orgCityCode);
     }
 
-    /**
-     * Internal method that implements the shared logic for
-     * organization-level filtering.
-     */
 
+    /**
+     * Internal logic for level-based filtering.
+     * Decides what organizations' data are visible depending on the user's level.
+     */
     private static Predicate buildLevelPredicateInternal(
             Path<?> orgPath,
             CriteriaBuilder cb,
@@ -110,20 +121,15 @@ public class SpecificationUtils {
 
         switch (levelType) {
             case REPUBLICAN -> {
-                // Sees everything
-                regionFilter = cb.conjunction();
+                regionFilter = cb.conjunction(); // sees all
                 levelFilter = cb.conjunction();
             }
             case REGIONAL -> {
-                // Sees only within its state
                 regionFilter = cb.equal(orgPath.get("stateCode"), orgStateCode);
-                // Exclude republican
                 levelFilter = cb.notEqual(orgPath.get("levelType"), LevelType.REPUBLICAN.name());
             }
             case URBAN -> {
-                // Sees only within its city
                 regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
-                // Sees URBAN + DISTRICT + NOT_DEFINED
                 levelFilter = orgPath.get("levelType").in(
                         LevelType.URBAN.name(),
                         LevelType.DISTRICT.name(),
@@ -131,9 +137,7 @@ public class SpecificationUtils {
                 );
             }
             case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> {
-                // Sees only within its city
                 regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
-                // Sees DISTRICT + NOT_DEFINED only
                 levelFilter = orgPath.get("levelType").in(
                         LevelType.DISTRICT.name(),
                         LevelType.NOT_DEFINED.name(),
@@ -149,6 +153,7 @@ public class SpecificationUtils {
 
         return cb.and(regionFilter, levelFilter);
     }
+
 
 
 
