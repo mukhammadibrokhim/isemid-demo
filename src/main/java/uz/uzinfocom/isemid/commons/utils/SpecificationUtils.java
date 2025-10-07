@@ -116,10 +116,13 @@ public class SpecificationUtils {
                     // Tashkent City: filter by state only
                     yield cb.equal(orgPath.get("stateCode"), orgStateCode);
                 } else {
-                    // Other cities: filter by city, exclude regional orgs
-                    Predicate sameCity = cb.equal(orgPath.get("cityCode"), orgCityCode);
-                    Predicate notRegional = cb.notEqual(orgPath.get("levelType"), LevelType.REGIONAL.name());
-                    yield cb.and(sameCity, notRegional);
+//                    // Other cities: filter by city, exclude regional orgs
+//                    Predicate sameCity = cb.equal(orgPath.get("cityCode"), orgCityCode);
+//                    Predicate notRegional = cb.notEqual(orgPath.get("levelType"), LevelType.REGIONAL.name());
+//                    yield cb.and(sameCity, notRegional);
+
+                    yield cb.equal(orgPath.get("cityCode"), orgCityCode);
+
                 }
             }
 
