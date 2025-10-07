@@ -1,7 +1,5 @@
 package uz.uzinfocom.isemid.features.form058.reposiotries;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,13 +23,7 @@ public interface Form058Repository extends JpaRepository<Form058, Long>, JpaSpec
     @EntityGraph(attributePaths = {"patient.addresses"})
     List<Form058> findAll(Specification<Form058> spec);
 
-    @Override
-    @EntityGraph(attributePaths = {
-            "patient",
-            "patient.identifiers",
-            "patient.affiliations",
-            "patient.addresses"
-    })
-    Page<Form058> findAll(Specification<Form058> spec, Pageable pageable);
+//    @Override
+//    Page<Form058> findAll(Specification<Form058> spec, Pageable pageable);
 
 }
