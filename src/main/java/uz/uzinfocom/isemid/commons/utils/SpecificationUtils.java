@@ -105,39 +105,51 @@ public class SpecificationUtils {
             String orgStateCode,
             String orgCityCode
     ) {
-        // 🔹 1. Hududiy cheklov
         Predicate regionFilter;
-
-        if (levelType == LevelType.REPUBLICAN) {
-            regionFilter = cb.conjunction(); // ko‘rishda cheklov yo‘q
-        } else if (levelType == LevelType.REGIONAL) {
-            regionFilter = cb.equal(orgPath.get("stateCode"), orgStateCode);
-        } else {
-            // URBAN, DISTRICT va boshqalar uchun cityCode bo‘yicha
-            regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
-        }
-
-        // 🔹 2. Daraja bo‘yicha cheklov
         Predicate levelFilter;
 
         switch (levelType) {
-            case REPUBLICAN -> levelFilter = cb.conjunction(); // hamma darajani ko‘radi
-            case REGIONAL -> levelFilter = cb.notEqual(orgPath.get("levelType"), LevelType.REPUBLICAN.name());
-            case URBAN -> levelFilter = cb.not(orgPath.get("levelType").in(
-                    LevelType.REPUBLICAN.name(),
-                    LevelType.REGIONAL.name()
-            ));
-            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> levelFilter = cb.not(orgPath.get("levelType").in(
-                    LevelType.REPUBLICAN.name(),
-                    LevelType.REGIONAL.name(),
-                    LevelType.URBAN.name()
-            ));
-            default -> levelFilter = cb.conjunction();
+            case REPUBLICAN -> {
+                // Sees everything
+                regionFilter = cb.conjunction();
+                levelFilter = cb.conjunction();
+            }
+            case REGIONAL -> {
+                // Sees only within its state
+                regionFilter = cb.equal(orgPath.get("stateCode"), orgStateCode);
+                // Exclude republican
+                levelFilter = cb.notEqual(orgPath.get("levelType"), LevelType.REPUBLICAN.name());
+            }
+            case URBAN -> {
+                // Sees only within its city
+                regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
+                // Sees URBAN + DISTRICT + NOT_DEFINED
+                levelFilter = orgPath.get("levelType").in(
+                        LevelType.URBAN.name(),
+                        LevelType.DISTRICT.name(),
+                        LevelType.NOT_DEFINED.name()
+                );
+            }
+            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> {
+                // Sees only within its city
+                regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
+                // Sees DISTRICT + NOT_DEFINED only
+                levelFilter = orgPath.get("levelType").in(
+                        LevelType.DISTRICT.name(),
+                        LevelType.NOT_DEFINED.name(),
+                        LevelType.AREA.name(),
+                        LevelType.INTERDISTRICT.name()
+                );
+            }
+            default -> {
+                regionFilter = cb.conjunction();
+                levelFilter = cb.conjunction();
+            }
         }
 
-        // 🔹 3. Ikkisini birlashtiramiz
         return cb.and(regionFilter, levelFilter);
     }
+
 
 
 //    private static Predicate buildLevelPredicateInternal(
