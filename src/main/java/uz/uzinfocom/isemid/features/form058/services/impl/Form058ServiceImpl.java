@@ -52,7 +52,6 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode, Boolean affiliation, User user, FilterType filterType) {
         Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, user, filterType);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));

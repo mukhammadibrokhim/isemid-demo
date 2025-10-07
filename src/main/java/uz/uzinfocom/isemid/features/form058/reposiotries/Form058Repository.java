@@ -26,6 +26,12 @@ public interface Form058Repository extends JpaRepository<Form058, Long>, JpaSpec
     List<Form058> findAll(Specification<Form058> spec);
 
     @Override
-    @EntityGraph(attributePaths = "patient")
+    @EntityGraph(attributePaths = {
+            "patient",
+            "patient.identifiers",
+            "patient.affiliations",
+            "patient.addresses"
+    })
     Page<Form058> findAll(Specification<Form058> spec, Pageable pageable);
+
 }
