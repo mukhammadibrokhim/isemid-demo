@@ -106,74 +106,26 @@ public class SpecificationUtils {
     ) {
         return switch (levelType) {
             case REPUBLICAN ->
-                // Respublika darajadagi tashkilot hamma narsani ko‘radi
-                    cb.conjunction();
+                    cb.conjunction(); // No restriction (see all)
 
             case REGIONAL ->
-                // Viloyat darajadagi tashkilot faqat viloyatdagi ma’lumotlarni ko‘radi,
-                // lekin undan yuqori (REPUBLICAN) ma’lumotlar bo‘lmaydi, chunki ular viloyat scope’ida yo‘q
                     cb.equal(orgPath.get("stateCode"), orgStateCode);
 
             case URBAN -> {
                 if ("UZ-TK".equals(orgStateCode)) {
-                    // Toshkent shahri — faqat Toshkent ichidagi ma’lumotlar
-                    yield cb.and(
-                            cb.equal(orgPath.get("stateCode"), orgStateCode),
-                            cb.not(orgPath.get("levelType").in(LevelType.REPUBLICAN.name(), LevelType.REGIONAL.name()))
-                    );
+                    // Tashkent City: filter by state only
+                    yield cb.equal(orgPath.get("stateCode"), orgStateCode);
                 } else {
-                    // Jizzax shahar kabi — faqat shu cityCode ichidagi tashkilotlar,
-                    // lekin REGIONAL va REPUBLICAN darajadagilarni chiqarib tashlaymiz
-                    yield cb.and(
-                            cb.equal(orgPath.get("cityCode"), orgCityCode),
-                            cb.not(orgPath.get("levelType").in(LevelType.REPUBLICAN.name(), LevelType.REGIONAL.name()))
-                    );
+//                    // Other cities: filter by city, exclude regional orgs
+                    yield cb.equal(orgPath.get("cityCode"), orgCityCode);
+
                 }
             }
 
             case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                // Tuman darajasi: faqat o‘z cityCode’ida,
-                // lekin yuqori darajadagi tashkilotlarni chiqarib tashlash
-                    cb.and(
-                            cb.equal(orgPath.get("cityCode"), orgCityCode),
-                            cb.not(orgPath.get("levelType").in(LevelType.REPUBLICAN.name(), LevelType.REGIONAL.name(), LevelType.URBAN.name()))
-                    );
+                    cb.equal(orgPath.get("cityCode"), orgCityCode);
         };
     }
-
-//    private static Predicate buildLevelPredicateInternal(
-//            Path<?> orgPath,
-//            CriteriaBuilder cb,
-//            LevelType levelType,
-//            String orgStateCode,
-//            String orgCityCode
-//    ) {
-//        return switch (levelType) {
-//            case REPUBLICAN ->
-//                    cb.conjunction(); // No restriction (see all)
-//
-//            case REGIONAL ->
-//                    cb.equal(orgPath.get("stateCode"), orgStateCode);
-//
-//            case URBAN -> {
-//                if ("UZ-TK".equals(orgStateCode)) {
-//                    // Tashkent City: filter by state only
-//                    yield cb.equal(orgPath.get("stateCode"), orgStateCode);
-//                } else {
-////                    // Other cities: filter by city, exclude regional orgs
-////                    Predicate sameCity = cb.equal(orgPath.get("cityCode"), orgCityCode);
-////                    Predicate notRegional = cb.notEqual(orgPath.get("levelType"), LevelType.REGIONAL.name());
-////                    yield cb.and(sameCity, notRegional);
-//
-//                    yield cb.equal(orgPath.get("cityCode"), orgCityCode);
-//
-//                }
-//            }
-//
-//            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-//                    cb.equal(orgPath.get("cityCode"), orgCityCode);
-//        };
-//    }
 
     /**
      * Adds an access-level predicate for Sanepid organizations
