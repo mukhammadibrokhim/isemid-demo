@@ -44,7 +44,7 @@ public class Form058 extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private FormStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 

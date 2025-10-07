@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.features.patient.models;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,14 +10,20 @@ import uz.uzinfocom.isemid.commons.models.AbsEntity;
 import java.time.LocalDate;
 import java.util.List;
 
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Table(
+        name = "patient",
+        indexes = {
+                @Index(name = "idx_patient_fullname", columnList = "lastName, firstName, middleName"),
+                @Index(name = "idx_patient_gender", columnList = "genderCode"),
+                @Index(name = "idx_patient_created_at", columnList = "created_at"),
+        }
+)@EntityListeners(AuditingEntityListener.class)
 public class Patient extends AbsEntity {
     private String firstName;
     private String lastName;

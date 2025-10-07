@@ -59,8 +59,10 @@ public class Form058Specification {
                 if (Boolean.TRUE.equals(affiliation)) {
                     Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
                     Join<Patient, Affiliation> affJoin = patientJoin.join("affiliations", JoinType.LEFT);
+
                     Predicate orgMatch = cb.equal(affJoin.get("organizationId"), orgId);
                     Predicate typeMatch = affJoin.get("type").in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
+
                     accessPredicate = cb.and(orgMatch, typeMatch);
                 }
                 else if (medicalType == MedicalType.SANEPID_SERVICE) {

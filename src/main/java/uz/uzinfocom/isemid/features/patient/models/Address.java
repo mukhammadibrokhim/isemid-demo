@@ -8,13 +8,20 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "pt_address")
+@Entity
+@Table(
+        name = "pt_address",
+        indexes = {
+                @Index(name = "idx_address_patient", columnList = "patient_id"),
+                @Index(name = "idx_address_location", columnList = "stateCode, cityCode, districtCode")
+        }
+)
+@EntityListeners(AuditingEntityListener.class)
 public class Address extends BaseEntity {
 
     @JsonIgnore
