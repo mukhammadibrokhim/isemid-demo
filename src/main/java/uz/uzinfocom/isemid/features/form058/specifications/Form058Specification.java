@@ -66,7 +66,7 @@ public class Form058Specification {
                     accessPredicate = cb.and(orgMatch, typeMatch);
                 }
                 else if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    accessPredicate = SpecificationUtils.buildLevelPredicate(root, cb, levelType, orgStateCode, orgCityCode);
+                    accessPredicate = SpecificationUtils.buildLevelPredicate(root, cb, levelType, orgStateCode, orgCityCode, orgId);
                 }
                 else {
                     accessPredicate = (filterType == FilterType.RECEIVED)
