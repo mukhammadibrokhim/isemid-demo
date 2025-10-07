@@ -97,6 +97,7 @@ public class SpecificationUtils {
      * Internal method that implements the shared logic for
      * organization-level filtering.
      */
+
     private static Predicate buildLevelPredicateInternal(
             Path<?> orgPath,
             CriteriaBuilder cb,
@@ -104,28 +105,70 @@ public class SpecificationUtils {
             String orgStateCode,
             String orgCityCode
     ) {
-        return switch (levelType) {
-            case REPUBLICAN ->
-                    cb.conjunction(); // No restriction (see all)
+        // 🔹 1. Hududiy cheklov
+        Predicate regionFilter;
 
-            case REGIONAL ->
-                    cb.equal(orgPath.get("stateCode"), orgStateCode);
+        if (levelType == LevelType.REPUBLICAN) {
+            regionFilter = cb.conjunction(); // ko‘rishda cheklov yo‘q
+        } else if (levelType == LevelType.REGIONAL) {
+            regionFilter = cb.equal(orgPath.get("stateCode"), orgStateCode);
+        } else {
+            // URBAN, DISTRICT va boshqalar uchun cityCode bo‘yicha
+            regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
+        }
 
-            case URBAN -> {
-                if ("UZ-TK".equals(orgStateCode)) {
-                    // Tashkent City: filter by state only
-                    yield cb.equal(orgPath.get("stateCode"), orgStateCode);
-                } else {
-//                    // Other cities: filter by city, exclude regional orgs
-                    yield cb.equal(orgPath.get("cityCode"), orgCityCode);
+        // 🔹 2. Daraja bo‘yicha cheklov
+        Predicate levelFilter;
 
-                }
-            }
+        switch (levelType) {
+            case REPUBLICAN -> levelFilter = cb.conjunction(); // hamma darajani ko‘radi
+            case REGIONAL -> levelFilter = cb.notEqual(orgPath.get("levelType"), LevelType.REPUBLICAN.name());
+            case URBAN -> levelFilter = cb.not(orgPath.get("levelType").in(
+                    LevelType.REPUBLICAN.name(),
+                    LevelType.REGIONAL.name()
+            ));
+            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> levelFilter = cb.not(orgPath.get("levelType").in(
+                    LevelType.REPUBLICAN.name(),
+                    LevelType.REGIONAL.name(),
+                    LevelType.URBAN.name()
+            ));
+            default -> levelFilter = cb.conjunction();
+        }
 
-            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                    cb.equal(orgPath.get("cityCode"), orgCityCode);
-        };
+        // 🔹 3. Ikkisini birlashtiramiz
+        return cb.and(regionFilter, levelFilter);
     }
+
+
+//    private static Predicate buildLevelPredicateInternal(
+//            Path<?> orgPath,
+//            CriteriaBuilder cb,
+//            LevelType levelType,
+//            String orgStateCode,
+//            String orgCityCode
+//    ) {
+//        return switch (levelType) {
+//            case REPUBLICAN ->
+//                    cb.conjunction(); // No restriction (see all)
+//
+//            case REGIONAL ->
+//                    cb.equal(orgPath.get("stateCode"), orgStateCode);
+//
+//            case URBAN -> {
+//                if ("UZ-TK".equals(orgStateCode)) {
+//                    // Tashkent City: filter by state only
+//                    yield cb.equal(orgPath.get("stateCode"), orgStateCode);
+//                } else {
+////                    // Other cities: filter by city, exclude regional orgs
+//                    yield cb.equal(orgPath.get("cityCode"), orgCityCode);
+//
+//                }
+//            }
+//
+//            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
+//                    cb.equal(orgPath.get("cityCode"), orgCityCode);
+//        };
+//    }
 
     /**
      * Adds an access-level predicate for Sanepid organizations
