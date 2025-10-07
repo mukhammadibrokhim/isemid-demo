@@ -1,34 +1,30 @@
 package uz.uzinfocom.isemid.commons.utils;
 
-
 import jakarta.persistence.criteria.*;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+/**
+ * Utility class providing reusable JPA Specification helpers
+ * for building dynamic query predicates (date range filters,
+ * organization-level filters, etc.).
+ */
 public class SpecificationUtils {
 
     /**
-     * Adds a date range filter to the given list of predicates.
-     * <p>
-     * This method checks whether the given {@code fromDate} and {@code toDate} are present
-     * and creates a {@link Predicate} accordingly:
-     * <ul>
-     *     <li>If both {@code fromDate} and {@code toDate} are provided, it adds a BETWEEN predicate.</li>
-     *     <li>If only {@code fromDate} is provided, it adds a GREATER THAN OR EQUAL predicate.</li>
-     *     <li>If only {@code toDate} is provided, it adds a LESS THAN OR EQUAL predicate.</li>
-     * </ul>
+     * Adds a date range filter to a predicate list.
      *
-     * @param fromDate   the start date (inclusive), may be null
-     * @param toDate     the end date (inclusive), may be null
-     * @param root       the JPA root entity
-     * @param cb         the {@link CriteriaBuilder} used to construct predicates
-     * @param predicates the list of predicates to which the generated filter will be added
-     * @param fieldName  the name of the field in the entity representing the date/time to filter by
-     * @param <T>        the entity type
+     * <ul>
+     *   <li>Both {@code fromDate} and {@code toDate} present → {@code BETWEEN}</li>
+     *   <li>Only {@code fromDate} present → {@code >= fromDate}</li>
+     *   <li>Only {@code toDate} present → {@code <= toDate}</li>
+     * </ul>
      */
     public static <T> void fromToDateFilter(LocalDate fromDate,
                                             LocalDate toDate,
@@ -36,24 +32,18 @@ public class SpecificationUtils {
                                             CriteriaBuilder cb,
                                             List<Predicate> predicates,
                                             String fieldName) {
-
-        // If both fromDate and toDate are provided → filter records between those dates
         if (fromDate != null && toDate != null) {
             predicates.add(cb.between(
                     root.get(fieldName),
                     Timestamp.valueOf(fromDate.atStartOfDay()),
                     Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
             ));
-        }
-        // If only fromDate is provided → filter records created on or after this date
-        else if (fromDate != null) {
+        } else if (fromDate != null) {
             predicates.add(cb.greaterThanOrEqualTo(
                     root.get(fieldName),
                     Timestamp.valueOf(fromDate.atStartOfDay())
             ));
-        }
-        // If only toDate is provided → filter records created on or before this date
-        else if (toDate != null) {
+        } else if (toDate != null) {
             predicates.add(cb.lessThanOrEqualTo(
                     root.get(fieldName),
                     Timestamp.valueOf(toDate.atTime(LocalTime.MAX))
@@ -61,17 +51,16 @@ public class SpecificationUtils {
         }
     }
 
-
     /**
-     * Builds a generic predicate for filtering by organization level.
+     * Builds a {@link Predicate} for filtering by organization level.
+     * This variant is used when the target entity contains a
+     * {@code createdOrg} reference.
      *
-     * @param root         the JPA root entity
-     * @param cb           the CriteriaBuilder instance
-     * @param levelType    the level type (REPUBLICAN, REGIONAL, URBAN, DISTRICT, etc.)
-     * @param orgStateCode the organization's state code
-     * @param orgCityCode  the organization's city code
-     * @param <T>          the entity type
-     * @return a Predicate representing the organization-level filter
+     * @param root         root entity
+     * @param cb           criteria builder
+     * @param levelType    level of current organization
+     * @param orgStateCode state code of current organization
+     * @param orgCityCode  city code of current organization
      */
     public static <T> Predicate buildLevelPredicate(
             Root<T> root,
@@ -80,72 +69,84 @@ public class SpecificationUtils {
             String orgStateCode,
             String orgCityCode
     ) {
-        // 🔹 Form058 → Organization (createdOrg) bilan join qilamiz
         Join<T, ?> createdOrgJoin = root.join("createdOrg", JoinType.LEFT);
-
-        return switch (levelType) {
-            case REPUBLICAN -> cb.conjunction(); // barcha ko‘radi
-            case REGIONAL -> cb.equal(createdOrgJoin.get("stateCode"), orgStateCode);
-            case URBAN -> {
-                if ("UZ-TK".equals(orgStateCode)) {
-                    yield cb.equal(createdOrgJoin.get("stateCode"), orgStateCode);
-                } else {
-                    yield cb.equal(createdOrgJoin.get("cityCode"), orgCityCode);
-                }
-            }
-            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                    cb.equal(createdOrgJoin.get("cityCode"), orgCityCode);
-        };
+        return buildLevelPredicateInternal(createdOrgJoin, cb, levelType, orgStateCode, orgCityCode);
     }
 
+    /**
+     * Builds a {@link Predicate} for filtering by organization level
+     * using a provided path (e.g. for nested relations such as Address).
+     *
+     * @param path         path to filter
+     * @param cb           criteria builder
+     * @param levelType    level of current organization
+     * @param orgStateCode state code of current organization
+     * @param orgCityCode  city code of current organization
+     */
+    public static Predicate buildLevelPredicate(
+            Path<?> path,
+            CriteriaBuilder cb,
+            LevelType levelType,
+            String orgStateCode,
+            String orgCityCode
+    ) {
+        return buildLevelPredicateInternal(path, cb, levelType, orgStateCode, orgCityCode);
+    }
 
-    // ✅ NEW: buildLevelPredicate for a custom path (like "addresses")
-    public static Predicate buildLevelPredicate(Path<?> path,
-                                                CriteriaBuilder cb,
-                                                LevelType levelType,
-                                                String orgStateCode,
-                                                String orgCityCode) {
+    /**
+     * Internal method that implements the shared logic for
+     * organization-level filtering.
+     */
+    private static Predicate buildLevelPredicateInternal(
+            Path<?> orgPath,
+            CriteriaBuilder cb,
+            LevelType levelType,
+            String orgStateCode,
+            String orgCityCode
+    ) {
         return switch (levelType) {
-            case REPUBLICAN -> cb.conjunction();
-            case REGIONAL -> cb.equal(path.get("stateCode"), orgStateCode);
+            case REPUBLICAN ->
+                    cb.conjunction(); // No restriction (see all)
+
+            case REGIONAL ->
+                    cb.equal(orgPath.get("stateCode"), orgStateCode);
+
             case URBAN -> {
                 if ("UZ-TK".equals(orgStateCode)) {
-                    yield cb.equal(path.get("stateCode"), orgStateCode);
+                    // Tashkent City: filter by state only
+                    yield cb.equal(orgPath.get("stateCode"), orgStateCode);
                 } else {
-                    yield cb.equal(path.get("cityCode"), orgCityCode);
+                    // Other cities: filter by city, exclude regional orgs
+                    Predicate sameCity = cb.equal(orgPath.get("cityCode"), orgCityCode);
+                    Predicate notRegional = cb.notEqual(orgPath.get("levelType"), LevelType.REGIONAL.name());
+                    yield cb.and(sameCity, notRegional);
                 }
             }
+
             case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                    cb.equal(path.get("cityCode"), orgCityCode);
+                    cb.equal(orgPath.get("cityCode"), orgCityCode);
         };
     }
 
     /**
-     * Adds a level-based access predicate for Sanepid organizations to the given predicates list.
-     *
-     * @param root       the JPA root entity
-     * @param cb         the CriteriaBuilder
-     * @param userOrg    the current user's organization
-     * @param predicates the list to which the predicate will be added
-     * @param <T>        the entity type
+     * Adds an access-level predicate for Sanepid organizations
+     * based on their hierarchy (state/city).
      */
-    public static <T> void addSanepidAccessPredicate(Root<T> root,
-                                                     CriteriaBuilder cb,
-                                                     uz.uzinfocom.isemid.features.organization.models.Organization userOrg,
-                                                     List<Predicate> predicates) {
+    public static <T> void addSanepidAccessPredicate(
+            Root<T> root,
+            CriteriaBuilder cb,
+            Organization userOrg,
+            List<Predicate> predicates
+    ) {
         if (userOrg == null) return;
+        if (userOrg.getMedicalType() != MedicalType.SANEPID_SERVICE) return;
 
-        // Only apply for Sanepid organizations
-        if (userOrg.getMedicalType() != uz.uzinfocom.isemid.features.organization.models.enums.MedicalType.SANEPID_SERVICE)
-            return;
+        String stateCode = userOrg.getStateCode();
+        String cityCode = userOrg.getCityCode();
+        LevelType levelType = userOrg.getLevelType();
 
-        String stateCode = userOrg.getState() != null ? userOrg.getState().getCode() : null;
-        String cityCode = userOrg.getCity() != null ? userOrg.getCity().getCode() : null;
-        var levelType = userOrg.getLevelType();
-
-        // Build level predicate
-        Predicate levelPredicate = buildLevelPredicate(root, cb, levelType, stateCode, cityCode);
+        Predicate levelPredicate =
+                buildLevelPredicate(root, cb, levelType, stateCode, cityCode);
         predicates.add(levelPredicate);
     }
-
 }
