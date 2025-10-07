@@ -1,10 +1,7 @@
 package uz.uzinfocom.isemid.commons.utils;
 
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 
 import java.sql.Timestamp;
@@ -76,24 +73,28 @@ public class SpecificationUtils {
      * @param <T>          the entity type
      * @return a Predicate representing the organization-level filter
      */
-    public static <T> Predicate buildLevelPredicate(Root<T> root,
-                                                    CriteriaBuilder cb,
-                                                    LevelType levelType,
-                                                    String orgStateCode,
-                                                    String orgCityCode) {
+    public static <T> Predicate buildLevelPredicate(
+            Root<T> root,
+            CriteriaBuilder cb,
+            LevelType levelType,
+            String orgStateCode,
+            String orgCityCode
+    ) {
+        // 🔹 Form058 → Organization (createdOrg) bilan join qilamiz
+        Join<T, ?> createdOrgJoin = root.join("createdOrg", JoinType.LEFT);
 
         return switch (levelType) {
-            case REPUBLICAN -> cb.conjunction(); // no restriction, sees all
-            case REGIONAL -> cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
+            case REPUBLICAN -> cb.conjunction(); // barcha ko‘radi
+            case REGIONAL -> cb.equal(createdOrgJoin.get("stateCode"), orgStateCode);
             case URBAN -> {
                 if ("UZ-TK".equals(orgStateCode)) {
-                    yield cb.equal(root.get("createdOrg").get("stateCode"), orgStateCode);
+                    yield cb.equal(createdOrgJoin.get("stateCode"), orgStateCode);
                 } else {
-                    yield cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
+                    yield cb.equal(createdOrgJoin.get("cityCode"), orgCityCode);
                 }
             }
             case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                    cb.equal(root.get("createdOrg").get("cityCode"), orgCityCode);
+                    cb.equal(createdOrgJoin.get("cityCode"), orgCityCode);
         };
     }
 
