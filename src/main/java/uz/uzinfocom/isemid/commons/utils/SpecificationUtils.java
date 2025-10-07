@@ -97,6 +97,7 @@ public class SpecificationUtils {
      * Internal method that implements the shared logic for
      * organization-level filtering.
      */
+
     private static Predicate buildLevelPredicateInternal(
             Path<?> orgPath,
             CriteriaBuilder cb,
@@ -104,42 +105,40 @@ public class SpecificationUtils {
             String orgStateCode,
             String orgCityCode
     ) {
-        return switch (levelType) {
-            case REPUBLICAN ->
-                // Respublika darajadagi tashkilot hamma narsani ko‘radi
-                    cb.conjunction();
+        // 🔹 1. Hududiy cheklov
+        Predicate regionFilter;
 
-            case REGIONAL ->
-                // Viloyat darajadagi tashkilot faqat viloyatdagi ma’lumotlarni ko‘radi,
-                // lekin undan yuqori (REPUBLICAN) ma’lumotlar bo‘lmaydi, chunki ular viloyat scope’ida yo‘q
-                    cb.equal(orgPath.get("stateCode"), orgStateCode);
+        if (levelType == LevelType.REPUBLICAN) {
+            regionFilter = cb.conjunction(); // ko‘rishda cheklov yo‘q
+        } else if (levelType == LevelType.REGIONAL) {
+            regionFilter = cb.equal(orgPath.get("stateCode"), orgStateCode);
+        } else {
+            // URBAN, DISTRICT va boshqalar uchun cityCode bo‘yicha
+            regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
+        }
 
-            case URBAN -> {
-                if ("UZ-TK".equals(orgStateCode)) {
-                    // Toshkent shahri — faqat Toshkent ichidagi ma’lumotlar
-                    yield cb.and(
-                            cb.equal(orgPath.get("stateCode"), orgStateCode),
-                            cb.not(orgPath.get("levelType").in(LevelType.REPUBLICAN.name(), LevelType.REGIONAL.name()))
-                    );
-                } else {
-                    // Jizzax shahar kabi — faqat shu cityCode ichidagi tashkilotlar,
-                    // lekin REGIONAL va REPUBLICAN darajadagilarni chiqarib tashlaymiz
-                    yield cb.and(
-                            cb.equal(orgPath.get("cityCode"), orgCityCode),
-                            cb.not(orgPath.get("levelType").in(LevelType.REPUBLICAN.name(), LevelType.REGIONAL.name()))
-                    );
-                }
-            }
+        // 🔹 2. Daraja bo‘yicha cheklov
+        Predicate levelFilter;
 
-            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                // Tuman darajasi: faqat o‘z cityCode’ida,
-                // lekin yuqori darajadagi tashkilotlarni chiqarib tashlash
-                    cb.and(
-                            cb.equal(orgPath.get("cityCode"), orgCityCode),
-                            cb.not(orgPath.get("levelType").in(LevelType.REPUBLICAN.name(), LevelType.REGIONAL.name(), LevelType.URBAN.name()))
-                    );
-        };
+        switch (levelType) {
+            case REPUBLICAN -> levelFilter = cb.conjunction(); // hamma darajani ko‘radi
+            case REGIONAL -> levelFilter = cb.notEqual(orgPath.get("levelType"), LevelType.REPUBLICAN.name());
+            case URBAN -> levelFilter = cb.not(orgPath.get("levelType").in(
+                    LevelType.REPUBLICAN.name(),
+                    LevelType.REGIONAL.name()
+            ));
+            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> levelFilter = cb.not(orgPath.get("levelType").in(
+                    LevelType.REPUBLICAN.name(),
+                    LevelType.REGIONAL.name(),
+                    LevelType.URBAN.name()
+            ));
+            default -> levelFilter = cb.conjunction();
+        }
+
+        // 🔹 3. Ikkisini birlashtiramiz
+        return cb.and(regionFilter, levelFilter);
     }
+
 
 //    private static Predicate buildLevelPredicateInternal(
 //            Path<?> orgPath,
@@ -161,10 +160,6 @@ public class SpecificationUtils {
 //                    yield cb.equal(orgPath.get("stateCode"), orgStateCode);
 //                } else {
 ////                    // Other cities: filter by city, exclude regional orgs
-////                    Predicate sameCity = cb.equal(orgPath.get("cityCode"), orgCityCode);
-////                    Predicate notRegional = cb.notEqual(orgPath.get("levelType"), LevelType.REGIONAL.name());
-////                    yield cb.and(sameCity, notRegional);
-//
 //                    yield cb.equal(orgPath.get("cityCode"), orgCityCode);
 //
 //                }
