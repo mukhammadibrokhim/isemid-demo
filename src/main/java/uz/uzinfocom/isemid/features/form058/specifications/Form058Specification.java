@@ -66,15 +66,18 @@ public class Form058Specification {
                     accessPredicate = cb.and(orgMatch, typeMatch);
                 }
                 else if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    if (levelType == LevelType.REPUBLICAN) {
-                        accessPredicate = cb.conjunction();
-                    } else if (levelType == LevelType.REGIONAL) {
-                        accessPredicate = SpecificationUtils.buildLevelPredicate(
-                                root, cb, levelType, orgStateCode, orgCityCode
-                        );
-                    } else {
-                        accessPredicate = cb.equal(root.get("receiverOrganizationId"), orgId);
-                    }
+//                    if (levelType == LevelType.REPUBLICAN) {
+//                        accessPredicate = cb.conjunction();
+//                    } else if (levelType == LevelType.REGIONAL) {
+//                        accessPredicate = SpecificationUtils.buildLevelPredicate(
+//                                root, cb, levelType, orgStateCode, orgCityCode
+//                        );
+//                    } else {
+//                        accessPredicate = cb.equal(root.get("receiverOrganizationId"), orgId);
+//                    }
+                    accessPredicate = SpecificationUtils.buildLevelPredicate(
+                            root, cb, levelType, orgStateCode, orgCityCode
+                    );
                 }
                 else {
                     accessPredicate = (filterType == FilterType.RECEIVED)
