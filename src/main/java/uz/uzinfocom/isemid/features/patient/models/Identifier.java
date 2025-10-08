@@ -1,6 +1,6 @@
 package uz.uzinfocom.isemid.features.patient.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,9 +23,9 @@ import java.time.LocalDate;
 @EntityListeners(AuditingEntityListener.class)
 public class Identifier extends BaseEntity {
 
-    @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
+    @JsonBackReference
     private Patient patient;
 
     @Column(nullable = false, length = 50)

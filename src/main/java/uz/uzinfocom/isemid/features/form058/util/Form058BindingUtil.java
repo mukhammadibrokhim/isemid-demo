@@ -6,12 +6,16 @@ import uz.uzinfocom.isemid.features.patient.models.Patient;
 public class Form058BindingUtil {
     public static void bindChildEntity(Form058 form058) {
         Patient patient = form058.getPatient();
-        if (patient != null && patient.getIdentifiers() != null) {
-            patient.getIdentifiers().forEach(identifier -> identifier.setPatient(patient));
-            patient.getAddresses().forEach(address -> address.setPatient(patient));
-        }
-        if ((patient != null ? patient.getAffiliations() : null) != null) {
-            patient.getAffiliations().forEach(affiliation -> affiliation.setPatient(patient));
+        if (patient != null) {
+            if (patient.getIdentifiers() != null) {
+                patient.getIdentifiers().forEach(i -> i.setPatient(patient));
+            }
+            if (patient.getAddresses() != null) {
+                patient.getAddresses().forEach(a -> a.setPatient(patient));
+            }
+            if (patient.getAffiliations() != null) {
+                patient.getAffiliations().forEach(aff -> aff.setPatient(patient));
+            }
         }
     }
 }

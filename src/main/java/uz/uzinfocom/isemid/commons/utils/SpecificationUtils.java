@@ -54,7 +54,6 @@ public class SpecificationUtils {
     /**
      * Builds a {@link Predicate} for filtering by organization level,
      * considering both created organization and receiver organization.
-     *
      * This method ensures:
      * 1️⃣ Records created by organizations within the same city/state (depending on levelType)
      * 2️⃣ OR records received by the current organization (receiverOrganizationId)
@@ -153,39 +152,6 @@ public class SpecificationUtils {
 
         return cb.and(regionFilter, levelFilter);
     }
-
-
-
-
-//    private static Predicate buildLevelPredicateInternal(
-//            Path<?> orgPath,
-//            CriteriaBuilder cb,
-//            LevelType levelType,
-//            String orgStateCode,
-//            String orgCityCode
-//    ) {
-//        return switch (levelType) {
-//            case REPUBLICAN ->
-//                    cb.conjunction(); // No restriction (see all)
-//
-//            case REGIONAL ->
-//                    cb.equal(orgPath.get("stateCode"), orgStateCode);
-//
-//            case URBAN -> {
-//                if ("UZ-TK".equals(orgStateCode)) {
-//                    // Tashkent City: filter by state only
-//                    yield cb.equal(orgPath.get("stateCode"), orgStateCode);
-//                } else {
-////                    // Other cities: filter by city, exclude regional orgs
-//                    yield cb.equal(orgPath.get("cityCode"), orgCityCode);
-//
-//                }
-//            }
-//
-//            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-//                    cb.equal(orgPath.get("cityCode"), orgCityCode);
-//        };
-//    }
 
     /**
      * Adds an access-level predicate for Sanepid organizations
