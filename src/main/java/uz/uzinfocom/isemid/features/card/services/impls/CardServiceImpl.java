@@ -79,6 +79,8 @@ public class CardServiceImpl implements CardService {
         if (card.getStatus() == CardStatus.COMPLETED) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.completed_cannot_be_rejected"));
         }
+        Form058 form058 = card.getForm058();
+        form058.setStatus(FormStatus.CARD_REJECTED);
         card.setStatus(CardStatus.REJECTED_BY_USER);
         card.setAttachedUserComment(rejectCard.getComment());
         return cardRepository.save(card);
