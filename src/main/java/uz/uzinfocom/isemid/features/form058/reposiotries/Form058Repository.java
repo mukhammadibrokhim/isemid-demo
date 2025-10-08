@@ -22,4 +22,5 @@ public interface Form058Repository extends JpaRepository<Form058, Long>, JpaSpec
 
     @EntityGraph(attributePaths = {"patient.addresses"})
     List<Form058> findAll(Specification<Form058> spec);
+
 }

@@ -15,7 +15,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Entity
 @Table(
-        indexes = @Index(name = "idx_value_type", columnList = "value, typeCode"),
+        indexes = {
+                @Index(name = "idx_value_type", columnList = "value, typeCode"),
+                @Index(name = "idx_identifier_patient_id", columnList = "patient_id"),
+        },
         name = "pt_identifier")
 @EntityListeners(AuditingEntityListener.class)
 public class Identifier extends BaseEntity {

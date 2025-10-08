@@ -21,16 +21,21 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     List<Catalog> findAllByType(String catalogType);
 
     @Query("""
-        SELECT c FROM Catalog c
-        WHERE c.type = :catalogType AND (
-              LOWER(c.nameUz) LIKE LOWER(CONCAT('%', :search, '%'))
-           OR LOWER(c.nameRu) LIKE LOWER(CONCAT('%', :search, '%'))
-           OR LOWER(c.nameUzCyril) LIKE LOWER(CONCAT('%', :search, '%'))
-           OR LOWER(c.nameKaa) LIKE LOWER(CONCAT('%', :search, '%'))
-        )
-        """)
-    List<Catalog> searchByTypeAndName(@Param("catalogType") String catalogType,
-                                      @Param("search") String search);
+                SELECT c FROM Catalog c
+                WHERE c.type = :catalogType
+                  AND (
+                        :search IS NULL OR :search = ''
+                        OR LOWER(c.nameUz) LIKE LOWER(CONCAT('%', :search, '%'))
+                        OR LOWER(c.nameRu) LIKE LOWER(CONCAT('%', :search, '%'))
+                        OR LOWER(c.nameUzCyril) LIKE LOWER(CONCAT('%', :search, '%'))
+                        OR LOWER(c.nameKaa) LIKE LOWER(CONCAT('%', :search, '%'))
+                  )
+            """)
+    List<Catalog> searchByTypeAndName(
+            @Param("catalogType") String catalogType,
+            @Param("search") String search
+    );
+
 
     List<Catalog> findAllByParentCode(String parentCode);
 
