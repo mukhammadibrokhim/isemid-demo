@@ -23,8 +23,8 @@ import java.time.LocalDate;
 public class Affiliation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id", nullable = false)
     @JsonBackReference
-    @JoinColumn(name = "patient_id")
     private Patient patient;
 
     @Enumerated(EnumType.STRING)
