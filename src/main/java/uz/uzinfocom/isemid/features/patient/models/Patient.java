@@ -48,10 +48,12 @@ public class Patient extends AbsEntity {
     private String categoryCode;
     private String professionCode;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
     private List<Affiliation> affiliations;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
     private List<Address> addresses;

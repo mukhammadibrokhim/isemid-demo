@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.patient.models;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -24,9 +24,9 @@ import uz.uzinfocom.isemid.features.form058.enums.AddressType;
 @EntityListeners(AuditingEntityListener.class)
 public class Address extends BaseEntity {
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id")
+    @JoinColumn(name = "patient_id", nullable = false)
+    @JsonBackReference
     private Patient patient;
 
     @Enumerated(EnumType.STRING)
