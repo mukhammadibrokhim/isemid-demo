@@ -9,6 +9,7 @@ public enum FormStatus {
     SENT("Yuborilgan", "Отправлено"),
     RECEIVED("Qabul qilingan", "Получено"),
     CARD_LINKED("Karta bog‘langan", "Карта прикреплена"),
+    CARD_REJECTED("", ""),
     APPROVED_PENDING("Tasdiqlashga tayyor", "Готово к подтверждению"),
     APPROVED("Tasdiqlangan", "Подтвержденный"),
     CANCELED("Bekor qilingan", "Отменено");
