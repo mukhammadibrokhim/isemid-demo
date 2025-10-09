@@ -38,4 +38,9 @@ public class Form058MapperHelper {
         return affiliations.stream()
                 .anyMatch(a -> orgId.equals(a.getOrganizationId()));
     }
+    @Named("toUpperCase")
+    public String toUpperCase(String value) {
+        return value != null ? value.trim().toUpperCase() : null;
+    }
+
 }

@@ -69,7 +69,7 @@ public interface CardMapper {
     @Mapping(target = "visitedObjects", source = "visitedObjectsCode", qualifiedByName = "toCatalog")
     @Mapping(target = "infectionLocation", source = "infectionLocationCode", qualifiedByName = "toCatalog")
     @Mapping(target = "probableInfectionLocation", source = "probableInfectionLocationCode", qualifiedByName = "toCatalog")
-    @Mapping(target = "mainProbableInfectionFactor", source = "mainProbableInfectionFactorCode", qualifiedByName = "toCatalog")
+    @Mapping(target = "mainProbableInfectionFactors", source = "mainProbableInfectionFactors", qualifiedByName = "toCatalog")
     @Mapping(target = "outbreakInfection", source = "outbreakInfectionCode", qualifiedByName = "toCatalog")
     @Mapping(target = "caseStatus", source = "caseStatusCode", qualifiedByName = "toCatalog")
     @Mapping(target = "infectionSourceDetail.animalType", source = "infectionSourceDetail.animalTypeCode", qualifiedByName = "toCatalog")
