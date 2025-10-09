@@ -146,7 +146,14 @@ public class Card161 extends Card {
 
     @OneToOne(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
     private InfectionSourceDetail infectionSourceDetail;
-    private String mainProbableInfectionFactorCode;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "card161_main_probable_infection_factor",
+            joinColumns = @JoinColumn(name = "card161_id")
+    )
+    @Column(name = "catalog_code")
+    private List<String> mainProbableInfectionFactors = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(
