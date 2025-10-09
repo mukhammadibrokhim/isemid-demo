@@ -17,5 +17,7 @@ public enum IdentifierType {
 
     DL,
 
-    TAX
+    TAX,
+
+    FPPN
 }
