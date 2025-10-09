@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -155,6 +156,7 @@ public class Form058Controller {
 
 
     @Operation(summary = "Удаление формы 058 по ID", description = "Удаляет форму 058 по заданному идентификатору.")
+    @PreAuthorize("hasRole('ROLE_isemid_super_admin')")
     @DeleteMapping("/{formId}")
     public ApiResponse<?> deleteById(@PathVariable Long formId) {
         form058Service.deleteById(formId);

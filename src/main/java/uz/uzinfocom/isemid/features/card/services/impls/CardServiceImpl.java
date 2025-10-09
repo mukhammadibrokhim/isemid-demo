@@ -90,8 +90,6 @@ public class CardServiceImpl implements CardService {
         if (card.getStatus() == CardStatus.COMPLETED) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.already_completed"));
         }
-//        Form058 form058 = card.getForm058();
-//        form058.setStatus(FormStatus.APPROVED_PENDING);
         card.setCompletedDate(LocalDate.now());
         card.setStatus(CardStatus.COMPLETED);
         return cardRepository.save(card);

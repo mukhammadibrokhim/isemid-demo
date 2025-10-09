@@ -102,7 +102,8 @@ public class Card161Request extends CardRequest {
     private List<String> mainProbableInfectionFactors;
     private List<String> infectionCausingConditionsCode;
     private String outbreakInfectionCode;
-    private String caseStatusCode;
+    private String infectionPlaceCode;
+    private String activityPlaceCode;
     private String epidemiologist;
     private String epidemiologistAssistant;
     private String comment;
