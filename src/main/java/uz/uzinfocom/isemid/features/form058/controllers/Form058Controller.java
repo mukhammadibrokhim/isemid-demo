@@ -113,13 +113,14 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.assignCard(request, user)));
     }
 
-    @Operation(summary = "Перевод формы 058 в другую организацию", description = "Позволяет изменить организацию, в которую была получена форма 058.")
-    @PutMapping("/{formId}/change-received-org/{orgId}")
+    @Operation(summary = "Изменение организации получателя формы 058", description = "Позволяет изменить только организацию, получившую форму 058, без изменения других данных формы.")
+    @PatchMapping("/{formId}/change-received-org/{orgId}")
     public ApiResponse<?> changeReceivedOrg(
             @PathVariable Long formId, @PathVariable Long orgId
     ) {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.changeReceivedOrd(formId, orgId)));
     }
+
 
     @Operation(summary = "Отмена формы 058", description = "Позволяет отменить (отклонить) форму 058 по её идентификатору.")
     @PatchMapping("/{formId}/cancel")
