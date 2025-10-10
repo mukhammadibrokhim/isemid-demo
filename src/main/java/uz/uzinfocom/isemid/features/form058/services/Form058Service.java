@@ -28,7 +28,7 @@ public interface Form058Service {
 
     Form058 assignCard(Form058AssignCardRequest request, User user);
 
-    Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg);
+    Form058 changeReceivedOrd(Long formId, Long orgId);
 
     Form058 cancel(Long formId);
 
