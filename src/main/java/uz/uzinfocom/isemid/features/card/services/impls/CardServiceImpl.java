@@ -18,6 +18,7 @@ import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardService;
 import uz.uzinfocom.isemid.features.card.specifications.CardSpecification;
 import uz.uzinfocom.isemid.features.card.strategy.impls.UpdateCardService;
+import uz.uzinfocom.isemid.features.card.utils.CardValidationUtil;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -40,6 +41,7 @@ public class CardServiceImpl implements CardService {
     private final MessageUtil messageUtil;
     private final ActBuildService actBuilder;
     private final UserService userService;
+    private final CardValidationUtil cardValidationUtil;
 
     @Override
     public Page<Card> filter(
@@ -65,7 +67,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public Card acceptCard(Long cardId, User currentUser) {
-        Card card = validateAndGetCard(cardId, currentUser);
+        Card card = cardValidationUtil.validateAndGetCard(cardId, currentUser);
         if (card.getStatus() != CardStatus.NEW && card.getStatus() != CardStatus.IN_PROGRESS) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.invalid_card_status", card.getStatus()));
         }
@@ -75,10 +77,12 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public Card rejectCard(Long cardId, User currentUser, CardRejectRequest rejectCard) {
-        Card card = validateAndGetCard(cardId, currentUser);
+        Card card = cardValidationUtil.validateAndGetCard(cardId, currentUser);
         if (card.getStatus() == CardStatus.COMPLETED) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.completed_cannot_be_rejected"));
         }
+        Form058 form058 = card.getForm058();
+        form058.setStatus(FormStatus.CARD_REJECTED);
         card.setStatus(CardStatus.REJECTED_BY_USER);
         card.setAttachedUserComment(rejectCard.getComment());
         return cardRepository.save(card);
@@ -86,7 +90,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public Card saveAndComplete(Long cardId, User currentUser) {
-        Card card = validateAndGetCard(cardId, currentUser);
+        Card card = cardValidationUtil.validateAndGetCard(cardId, currentUser);
         if (card.getStatus() == CardStatus.COMPLETED) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.card.already_completed"));
         }
@@ -159,13 +163,5 @@ public class CardServiceImpl implements CardService {
         }
         Specification<Card> spec = CardSpecification.build(userId, orgId, isHead);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
-    }
-
-    private Card validateAndGetCard(long cardId, User currentUser) {
-        Card card = this.getById(cardId);
-        if (card.getUsers().stream().noneMatch(user -> user.getId().equals(currentUser.getId()))) {
-            throw new ApiException(FORBIDDEN, messageUtil.get("error.card.access_denied"));
-        }
-        return card;
     }
 }

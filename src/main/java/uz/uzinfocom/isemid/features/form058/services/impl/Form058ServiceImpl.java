@@ -11,7 +11,10 @@ import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardBuildService;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
@@ -93,9 +96,9 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {
+    public Form058 changeReceivedOrd(Long formId, Long orgId) {
         Form058 form058 = this.getById(formId);
-        form058.setReceiverOrganizationId(updateReceivedOrg.getReceivedOrgId());
+        form058.setReceiverOrganizationId(orgId);
         return form058Repository.save(form058);
     }
 
