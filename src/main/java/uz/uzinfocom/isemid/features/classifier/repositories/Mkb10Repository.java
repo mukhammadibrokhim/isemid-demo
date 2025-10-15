@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -32,9 +33,12 @@ public interface Mkb10Repository extends JpaRepository<Mkb10, Long>, JpaSpecific
 
     List<Mkb10> findAllByCodeIn(Set<String> codes);
 
-    List<Mkb10> findByCodeIn(Set<String> codes);
-
     @Query("SELECT c.code FROM Mkb10 c")
     Set<String> findAllCodes();
+
+    Optional<Mkb10> findByCode(String code);
+
+    Optional<Mkb10> findById(Long id);
+
 
 }
