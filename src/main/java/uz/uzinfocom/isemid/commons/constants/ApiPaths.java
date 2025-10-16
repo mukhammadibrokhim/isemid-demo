@@ -70,6 +70,10 @@ public final class ApiPaths {
         public static final String ROOT = BASE_PATH  + "/report";
     }
 
+    public static final class AnalyticReport {
+        public static final String ROOT = BASE_PATH + "/analytic-reports";
+    }
+
     public static final class BaseDomain {
         public static final String ROOT = "https://test-ykem.sanepid.uz/api";
         public static final String ROOT_LOCAL = "http://localhost:8081";
