@@ -6,6 +6,6 @@ import uz.uzinfocom.isemid.features.analytic.model.AnalyticTemplate;
 import java.util.List;
 
 public interface AnalyticTemplateRepository extends JpaRepository<AnalyticTemplate, Long> {
-    List<AnalyticTemplate> findAllByOwnerIdOrGlobalTrue(Long ownerId);
+    List<AnalyticTemplate> findAllByOwnerId(Long ownerId);
 
 }

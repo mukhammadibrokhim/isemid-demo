@@ -21,7 +21,7 @@ public class AnalyticTemplateServiceImpl implements AnalyticTemplateService {
 
     @Override
     public List<AnalyticTemplate> getAll(User user) {
-        return repository.findAllByOwnerIdOrGlobalTrue(user.getId());
+        return repository.findAllByOwnerId(user.getId());
     }
 
     @Override
