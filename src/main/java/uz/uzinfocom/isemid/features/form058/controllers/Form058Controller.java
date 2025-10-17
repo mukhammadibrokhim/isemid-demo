@@ -27,6 +27,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
@@ -164,6 +165,11 @@ public class Form058Controller {
     public ApiResponse<?> deleteById(@PathVariable Long formId) {
         form058Service.deleteById(formId);
         return ApiResponse.deleteSuccess(messageUtil);
+    }
+
+    @GetMapping("/confirmation-stats")
+    public ApiResponse<Map<String, Long>> getConfirmationStats() {
+        return ApiResponse.success(messageUtil, form058Service.getConfirmationStats());
     }
 }
 

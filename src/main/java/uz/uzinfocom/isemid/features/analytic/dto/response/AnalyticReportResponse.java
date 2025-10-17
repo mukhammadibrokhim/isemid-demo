@@ -9,4 +9,6 @@ import lombok.*;
 @Builder
 public class AnalyticReportResponse {
     private Long id;
+    private String title;
+    private String payload;
 }

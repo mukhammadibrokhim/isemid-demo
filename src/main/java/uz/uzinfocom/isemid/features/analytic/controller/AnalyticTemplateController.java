@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.analytic.controller;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(ApiPaths.AnalyticTemplate.ROOT)
+@Tag(name = "Analytic Template")
 @RequiredArgsConstructor
 public class AnalyticTemplateController {
     private final AnalyticTemplateService service;
@@ -33,20 +35,20 @@ public class AnalyticTemplateController {
     }
 
     @PostMapping
-    public ApiResponse<AnalyticTemplateResponse> create(@RequestBody AnalyticTemplateRequest request,
-                                                        @CurrentUser User user) {
-        return ApiResponse.success(
-                messageUtil,
-                mapper.toResponse(service.create(request, user)));
+    public ApiResponse<AnalyticTemplateResponse> create(
+            @RequestBody AnalyticTemplateRequest request,
+            @CurrentUser User user
+    ) {
+        return ApiResponse.success(messageUtil, mapper.toResponse(service.create(request, user)));
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<AnalyticTemplateResponse> update(@PathVariable Long id,
-                                                        @RequestBody AnalyticTemplateRequest request,
-                                                        @CurrentUser User user) {
-        return ApiResponse.success(messageUtil,
-                mapper.toResponse(service.update(id, mapper.toEntity(request), user))
-        );
+    public ApiResponse<AnalyticTemplateResponse> update(
+            @PathVariable Long id,
+            @RequestBody AnalyticTemplateRequest request,
+            @CurrentUser User user
+    ) {
+        return ApiResponse.success(messageUtil, mapper.toResponse(service.update(id, mapper.toEntity(request), user)));
     }
 
     @DeleteMapping("/{id}")
