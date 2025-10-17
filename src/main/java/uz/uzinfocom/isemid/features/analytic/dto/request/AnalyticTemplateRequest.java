@@ -9,6 +9,5 @@ import lombok.*;
 @Builder
 public class AnalyticTemplateRequest {
     private String name;
-
     private String content;
 }
