@@ -22,7 +22,4 @@ public class AnalyticTemplate extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User owner;
-
-    @Column(nullable = false)
-    private Boolean global = false;
 }
