@@ -162,4 +162,15 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setStatus(FormStatus.APPROVED);
         return form058Repository.save(form058);
     }
+
+    @Override
+    public Map<String, Long> getConfirmationStats() {
+        Long confirmed = form058Repository.countConfirmed();
+        Long unconfirmed = form058Repository.countUnconfirmed();
+
+        return Map.of(
+                "confirmed", confirmed,
+                "unconfirmed", unconfirmed
+        );
+    }
 }
