@@ -1,10 +1,10 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.card.models.Card;
@@ -171,7 +171,6 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Form058ConfirmationStatsResponse> getConfirmationStats(
             List<String> mkb10Codes,
             List<String> regionCodes,
