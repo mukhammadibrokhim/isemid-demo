@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.card.models.Card;
@@ -11,7 +12,7 @@ import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardBuildService;
 import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
-import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
+import uz.uzinfocom.isemid.features.classifier.repositories.CatalogRepository;
 import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
@@ -49,7 +50,7 @@ public class Form058ServiceImpl implements Form058Service {
     private final Form058Mapper form058Mapper;
     private final CardRepository cardRepository;
     private final Mkb10Service mkb10Service;
-    private final CatalogService catalogService;
+    private final CatalogRepository catalogRepository;
     private final MessageUtil messageUtil;
 
     @Override
@@ -61,6 +62,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode, Boolean affiliation, User user, FilterType filterType) {
         Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, user, filterType);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
@@ -134,6 +136,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long formId) {
         Form058 form058 = this.getById(formId);
         List<Card> cards = form058.getCards();
@@ -155,6 +158,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public Form058 approveDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
         Form058 form058 = this.getById(formId);
         if (!form058.getStatus().equals(FormStatus.CARD_LINKED))
@@ -185,7 +189,7 @@ public class Form058ServiceImpl implements Form058Service {
         List<Form058ConfirmationStatsResponse> responses = new ArrayList<>();
 
         for (String region : regions) {
-            String regionName = catalogService.getRegionNameByCodeAndLocale(region, locale);
+            String regionName = catalogRepository.findRegionNameByCodeAndLocale(region, locale).orElse(null);
             List<Form058ConfirmationStatsResponse.Form058Mkb10Stat> mkbStats = new ArrayList<>();
 
             for (Mkb10Projection mkb : mkb10List) {
