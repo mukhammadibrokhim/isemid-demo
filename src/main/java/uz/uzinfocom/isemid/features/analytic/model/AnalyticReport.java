@@ -14,6 +14,7 @@ import uz.uzinfocom.isemid.commons.models.AbsEntity;
 public class AnalyticReport extends AbsEntity {
     @Column(length = 500)
     private String title;
+
     @Column(columnDefinition = "TEXT")
     private String payload;
 }
