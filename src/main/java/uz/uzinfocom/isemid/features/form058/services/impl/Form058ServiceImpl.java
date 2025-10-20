@@ -1,10 +1,10 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.card.models.Card;
@@ -15,6 +15,7 @@ import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardReque
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
+import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058ConfirmationStatsResponse;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
@@ -27,6 +28,7 @@ import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -164,20 +166,41 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Map<String, Long> getConfirmationStats(List<String> mkb10Codes,
-                                                  LocalDate fromDate,
-                                                  LocalDate toDate,
-                                                  User currentUser) {
+    @Transactional(readOnly = true)
+    public List<Form058ConfirmationStatsResponse> getConfirmationStats(List<String> mkb10Codes,
+                                                                       List<String> regionCodes,
+                                                                       LocalDate fromDate,
+                                                                       LocalDate toDate,
+                                                                       User currentUser) {
 
-        String stateCode = currentUser.getCurrentOrganization().getStateCode();
+        List<String> regions = (regionCodes == null || regionCodes.isEmpty())
+                ? List.of(currentUser.getCurrentOrganization().getStateCode())
+                : regionCodes;
 
-        Specification<Form058> specConfirmed = Form058Specification.buildStats(stateCode, fromDate, toDate, mkb10Codes, true);
-        Specification<Form058> specUnconfirmed = Form058Specification.buildStats(stateCode, fromDate, toDate, mkb10Codes, false);
+        List<String> mkbCodes = (mkb10Codes == null || mkb10Codes.isEmpty())
+                ? null
+                : mkb10Codes;
 
-        long confirmed = form058Repository.count(specConfirmed);
-        long unconfirmed = form058Repository.count(specUnconfirmed);
+        List<Form058ConfirmationStatsResponse> responses = new ArrayList<>();
 
-        return Map.of("confirmed", confirmed, "unconfirmed", unconfirmed);
+        for (String region : regions) {
+            Specification<Form058> specConfirmed = Form058Specification.buildStats(List.of(region), fromDate, toDate, mkbCodes, true);
+            Specification<Form058> specUnconfirmed = Form058Specification.buildStats(List.of(region), fromDate, toDate, mkbCodes, false);
+
+            long confirmed = form058Repository.count(specConfirmed);
+            long unconfirmed = form058Repository.count(specUnconfirmed);
+
+            responses.add(Form058ConfirmationStatsResponse.builder()
+                    .regionCode(region)
+                    .mkb10Codes(mkbCodes)
+                    .confirmed(confirmed)
+                    .unconfirmed(unconfirmed)
+                    .build());
+        }
+
+        return responses;
     }
+
+
 
 }

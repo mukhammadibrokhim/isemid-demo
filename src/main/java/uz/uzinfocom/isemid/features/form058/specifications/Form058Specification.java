@@ -81,7 +81,7 @@ public class Form058Specification {
         };
     }
 
-    public static Specification<Form058> buildStats(String stateCode,
+    public static Specification<Form058> buildStats(List<String> regionCodes,
                                                     LocalDate fromDate,
                                                     LocalDate toDate,
                                                     List<String> mkb10Codes,
@@ -89,24 +89,28 @@ public class Form058Specification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1️⃣ State filter
-            predicates.add(cb.equal(root.get("createdOrg").get("stateCode"), stateCode));
+            if (regionCodes != null && !regionCodes.isEmpty()) {
+                predicates.add(root.get("createdOrg").get("stateCode").in(regionCodes));
+            }
 
-            // 2️⃣ Status filter
             if (confirmed)
                 predicates.add(cb.equal(root.get("status"), "APPROVED"));
             else
                 predicates.add(cb.notEqual(root.get("status"), "APPROVED"));
 
-            // 3️⃣ Date filters
-            SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+            if (fromDate != null)
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate));
 
-            // 4️⃣ MKB10 filter
-            if (mkb10Codes != null && !mkb10Codes.isEmpty())
+            if (toDate != null)
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toDate));
+
+            if (mkb10Codes != null && !mkb10Codes.isEmpty()) {
                 predicates.add(root.get("finalMkb10Code").in(mkb10Codes));
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
 
 }
