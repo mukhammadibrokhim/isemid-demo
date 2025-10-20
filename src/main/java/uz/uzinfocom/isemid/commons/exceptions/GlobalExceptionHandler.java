@@ -30,11 +30,14 @@ import static org.springframework.http.HttpStatus.*;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
     private static final Logger logger = LoggerFactory.getLogger("uz.uzinfocom.isemid");
     private final MessageUtil messageUtil;
 
+    // 404 – resurs topilmadi
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFoundException(NoResourceFoundException ex) {
+        logger.warn("❌ NoResourceFoundException: {}", ex.getMessage(), ex);
         return ResponseEntity.status(ex.getStatusCode())
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -47,13 +50,15 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // ApiException (custom biznes xatoliklar)
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiErrorResponse> handleApiException(ApiException ex) {
+        logger.error("⚠️ ApiException ({}): {}", ex.getStatusCode(), ex.getReason(), ex);
         return ResponseEntity.status(ex.getStatusCode())
                 .body(ApiErrorResponse.builder()
                         .success(false)
                         .statusCode(ex.getStatusCode().value())
-                        .message((ex.getReason()))
+                        .message(ex.getReason())
                         .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
                                 .field(ex.getClass().getSimpleName())
                                 .errorMessage(ex.getDetailMessageCode())
@@ -61,8 +66,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // HTTP metod mos emas
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        logger.warn("⚠️ HttpRequestMethodNotSupportedException: method={}, supported={}", ex.getMethod(), ex.getSupportedMethods(), ex);
         return ResponseEntity.status(ex.getStatusCode())
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -75,8 +82,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Ma'lumot bazasida cheklov (constraint) buzilgan
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        logger.error("❌ DataIntegrityViolationException: {}", getRootCauseMessage(ex), ex);
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -89,9 +98,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Request JSON not readable
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleNotReadable(HttpMessageNotReadableException ex) {
-        logger.error("Request body could not be read: ", ex);
+        logger.error("⚠️ HttpMessageNotReadableException (Request body could not be read): {}", ex.getMessage(), ex);
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -104,9 +114,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // JSON field conversion error
     @ExceptionHandler(HttpMessageConversionException.class)
     public ResponseEntity<ApiErrorResponse> handleConversion(HttpMessageConversionException ex) {
-        logger.error("Request body conversion error: ", ex);
+        logger.error("⚠️ HttpMessageConversionException: {}", ex.getMessage(), ex);
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -119,8 +130,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Request param yetishmayapti
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiErrorResponse> handleMissingParam(MissingServletRequestParameterException ex) {
+        logger.warn("⚠️ MissingServletRequestParameterException: {}", ex.getParameterName(), ex);
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -133,9 +146,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // DTO validation xatoliklari
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
-        logger.error("Validation failed: ", ex);
+        logger.warn("⚠️ MethodArgumentNotValidException: {} errors", ex.getErrorCount(), ex);
         List<ApiErrorResponse.ErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> ApiErrorResponse.ErrorDetail.builder()
                         .field(error.getField())
@@ -152,8 +166,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Parametr tipi mos emas (masalan: LocalDate kutilgan, String keldi)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        logger.warn("⚠️ MethodArgumentTypeMismatchException: param={} type={}", ex.getName(), ex.getRequiredType(), ex);
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -166,9 +182,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Login parol xato
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> handleBadCredentials(BadCredentialsException ex) {
-        logger.error("Authentication failed: ", ex);
+        logger.warn("🚫 BadCredentialsException: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -181,8 +198,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Noto‘g‘ri repository ishlatilishi yoki query
     @ExceptionHandler(InvalidDataAccessApiUsageException.class)
     public ResponseEntity<ApiErrorResponse> handleInvalidDataAccess(InvalidDataAccessApiUsageException ex) {
+        logger.error("❌ InvalidDataAccessApiUsageException: {}", ex.getMessage(), ex);
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -195,8 +214,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Avtorizatsiya rad etilgan (403)
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAuthorizationDenied(AuthorizationDeniedException ex) {
+        logger.warn("🚫 AuthorizationDeniedException: {}", ex.getMessage(), ex);
         return ResponseEntity.status(FORBIDDEN)
                 .body(ApiErrorResponse.builder()
                         .success(false)
@@ -209,10 +230,10 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-
+    // Boshqa barcha xatoliklar
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
-        logger.error("Unhandled exception: ", ex);
+        logger.error("💥 Unhandled Exception: {}", ex.getMessage(), ex);
         return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                 .body(ApiErrorResponse.builder()
                         .success(false)
