@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.classifier.services;
 
 
 import org.springframework.data.domain.Page;
+import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 
@@ -25,4 +26,5 @@ public interface Mkb10Service {
 
     List<Mkb10> getAllMkb10s(Long parentId, String search);
 
+    List<Mkb10Projection> getNamesByCodesAndLocale(List<String> codes, String locale);
 }
