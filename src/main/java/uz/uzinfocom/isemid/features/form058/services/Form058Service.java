@@ -47,6 +47,6 @@ public interface Form058Service {
 
     List<Form058ConfirmationStatsResponse> getConfirmationStats(List<String> mkb10Codes, List<String> regionCodes,
                                                                 LocalDate fromDate, LocalDate toDate,
-                                                                User currentUser);
+                                                                String locale, User currentUser);
 
 }

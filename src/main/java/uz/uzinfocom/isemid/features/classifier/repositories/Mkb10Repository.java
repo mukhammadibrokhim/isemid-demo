@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 
 import java.util.List;
@@ -40,5 +41,19 @@ public interface Mkb10Repository extends JpaRepository<Mkb10, Long>, JpaSpecific
 
     Optional<Mkb10> findById(Long id);
 
-
+    @Query("""
+                SELECT new uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection(
+                    m.code,
+                    CASE
+                        WHEN :locale = 'ru' THEN m.nameRu
+                        WHEN :locale = 'kaa' THEN m.nameKaa
+                        WHEN :locale = 'uz_cyrl' THEN m.nameUzCyril
+                        ELSE m.nameUz
+                    END
+                )
+                FROM Mkb10 m
+                WHERE m.code IN :codes
+            """)
+    List<Mkb10Projection> findNamesByCodesAndLocale(@Param("codes") List<String> codes,
+                                                    @Param("locale") String locale);
 }
