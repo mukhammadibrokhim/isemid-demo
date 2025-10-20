@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardBuildService;
 import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
+import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
@@ -49,6 +50,7 @@ public class Form058ServiceImpl implements Form058Service {
     private final Form058Mapper form058Mapper;
     private final CardRepository cardRepository;
     private final Mkb10Service mkb10Service;
+    private final CatalogService catalogService;
     private final MessageUtil messageUtil;
 
     @Override
@@ -188,7 +190,7 @@ public class Form058ServiceImpl implements Form058Service {
         List<Form058ConfirmationStatsResponse> responses = new ArrayList<>();
 
         for (String region : regions) {
-
+            String regionName = catalogService.getRegionNameByCodeAndLocale(region, locale);
             List<Form058ConfirmationStatsResponse.Form058Mkb10Stat> mkbStats = new ArrayList<>();
 
             for (Mkb10Projection mkb : mkb10List) {
@@ -214,6 +216,7 @@ public class Form058ServiceImpl implements Form058Service {
 
             responses.add(Form058ConfirmationStatsResponse.builder()
                     .regionCode(region)
+                    .regionName(regionName)
                     .mkb10Stats(mkbStats)
                     .build());
         }

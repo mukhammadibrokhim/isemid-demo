@@ -2,9 +2,7 @@ package uz.uzinfocom.isemid.features.classifier.mappers;
 
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
-import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogDisplayedResponse;
 import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
@@ -16,7 +14,7 @@ public class CatalogMapperHelper {
 
     @Named("toEntity")
     public Catalog toEntity(String code) {
-        return catalogService.findByCode(code);
+        return catalogService.getByCode(code);
     }
 
     @Named("toCatalog")
@@ -24,7 +22,7 @@ public class CatalogMapperHelper {
         if (code == null) {
             return null;
         }
-        Catalog catalog = catalogService.findByCode(code);
+        Catalog catalog = catalogService.getByCode(code);
         return (catalog != null) ? CatalogMinResponse.builder()
                 .id(catalog.getId())
                 .code(catalog.getCode())
@@ -34,10 +32,5 @@ public class CatalogMapperHelper {
                 .nameKaa(catalog.getNameKaa())
                 .nameUzCyril(catalog.getNameUzCyril())
                 .build() : null;
-    }
-
-    @Named("toCode")
-    public String toCode(CatalogMinResponse catalogDto) {
-        return (catalogDto != null) ? catalogDto.getCode() : null;
     }
 }

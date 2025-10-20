@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Form058ConfirmationStatsResponse {
     private String regionCode;
+    private String regionName;
     private List<Form058Mkb10Stat> mkb10Stats;
 
     @Data

@@ -18,7 +18,9 @@ public interface CatalogService {
 
     void delete(long id);
 
-    Catalog findByCode(String code);
+    Catalog getByCode(String code);
+
+    Optional<Catalog> findByCode(String code);
 
     List<Catalog> findAllByType(CatalogType catalogType);
 
@@ -39,4 +41,7 @@ public interface CatalogService {
     List<Catalog> finAllByType(CatalogType catalogType);
 
     Catalog getById(long id);
+
+    String getRegionNameByCodeAndLocale(String code, String locale);
+
 }
