@@ -11,6 +11,8 @@ import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardBuildService;
+import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
+import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
@@ -46,6 +48,7 @@ public class Form058ServiceImpl implements Form058Service {
     private final UserService userService;
     private final Form058Mapper form058Mapper;
     private final CardRepository cardRepository;
+    private final Mkb10Service mkb10Service;
     private final MessageUtil messageUtil;
 
     @Override
@@ -167,40 +170,55 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Form058ConfirmationStatsResponse> getConfirmationStats(List<String> mkb10Codes,
-                                                                       List<String> regionCodes,
-                                                                       LocalDate fromDate,
-                                                                       LocalDate toDate,
-                                                                       User currentUser) {
-
+    public List<Form058ConfirmationStatsResponse> getConfirmationStats(
+            List<String> mkb10Codes,
+            List<String> regionCodes,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String locale,
+            User currentUser
+    ) {
         List<String> regions = (regionCodes == null || regionCodes.isEmpty())
                 ? List.of(currentUser.getCurrentOrganization().getStateCode())
                 : regionCodes;
 
-        List<String> mkbCodes = (mkb10Codes == null || mkb10Codes.isEmpty())
-                ? null
-                : mkb10Codes;
+
+        List<Mkb10Projection> mkb10List = mkb10Service.getNamesByCodesAndLocale(mkb10Codes, locale);
 
         List<Form058ConfirmationStatsResponse> responses = new ArrayList<>();
 
         for (String region : regions) {
-            Specification<Form058> specConfirmed = Form058Specification.buildStats(List.of(region), fromDate, toDate, mkbCodes, true);
-            Specification<Form058> specUnconfirmed = Form058Specification.buildStats(List.of(region), fromDate, toDate, mkbCodes, false);
 
-            long confirmed = form058Repository.count(specConfirmed);
-            long unconfirmed = form058Repository.count(specUnconfirmed);
+            List<Form058ConfirmationStatsResponse.Form058Mkb10Stat> mkbStats = new ArrayList<>();
+
+            for (Mkb10Projection mkb : mkb10List) {
+                String mkbCode = mkb.getCode();
+                String mkbName = mkb.getName() != null ? mkb.getName() : "Unknown ICD-10";
+
+                Specification<Form058> confirmedSpec =
+                        Form058Specification.buildStats(List.of(region), fromDate, toDate, List.of(mkbCode), true);
+
+                Specification<Form058> unconfirmedSpec =
+                        Form058Specification.buildStats(List.of(region), fromDate, toDate, List.of(mkbCode), false);
+
+                long confirmed = form058Repository.count(confirmedSpec);
+                long unconfirmed = form058Repository.count(unconfirmedSpec);
+
+                mkbStats.add(Form058ConfirmationStatsResponse.Form058Mkb10Stat.builder()
+                        .code(mkbCode)
+                        .name(mkbName)
+                        .confirmed(confirmed)
+                        .unconfirmed(unconfirmed)
+                        .build());
+            }
 
             responses.add(Form058ConfirmationStatsResponse.builder()
                     .regionCode(region)
-                    .mkb10Codes(mkbCodes)
-                    .confirmed(confirmed)
-                    .unconfirmed(unconfirmed)
+                    .mkb10Stats(mkbStats)
                     .build());
         }
 
         return responses;
     }
-
-
 
 }

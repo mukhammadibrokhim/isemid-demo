@@ -29,6 +29,7 @@ import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.springframework.http.HttpHeaders.ACCEPT_LANGUAGE;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -172,9 +173,10 @@ public class Form058Controller {
             @RequestParam(required = false) List<String> regionCodes,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
+            @RequestHeader(value = ACCEPT_LANGUAGE, required = false) String locale,
             @CurrentUser User currentUser
     ) {
-        return ApiResponse.success(messageUtil, form058Service.getConfirmationStats(mkb10Codes, regionCodes, fromDate, toDate, currentUser));
+        return ApiResponse.success(messageUtil, form058Service.getConfirmationStats(mkb10Codes, regionCodes, fromDate, toDate, locale, currentUser));
     }
 }
 

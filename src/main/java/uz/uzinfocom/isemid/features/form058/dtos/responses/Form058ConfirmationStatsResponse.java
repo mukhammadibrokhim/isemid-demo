@@ -12,7 +12,16 @@ import java.util.List;
 @AllArgsConstructor
 public class Form058ConfirmationStatsResponse {
     private String regionCode;
-    private List<String> mkb10Codes;
-    private Long confirmed;
-    private Long unconfirmed;
+    private List<Form058Mkb10Stat> mkb10Stats;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Form058Mkb10Stat {
+        private String code;
+        private String name;
+        private Long confirmed;
+        private Long unconfirmed;
+    }
 }
