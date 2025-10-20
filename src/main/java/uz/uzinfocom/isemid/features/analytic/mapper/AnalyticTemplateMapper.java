@@ -8,8 +8,8 @@ import uz.uzinfocom.isemid.features.analytic.model.AnalyticTemplate;
 
 @Mapper(componentModel = "spring")
 public interface AnalyticTemplateMapper {
-    @Mapping(target = "name", source = "name")
-    @Mapping(target = "content", source = "content")
+    @Mapping(target = "title", source = "title")
+    @Mapping(target = "payload", source = "payload")
     @Mapping(target = "owner", ignore = true)
     AnalyticTemplate toEntity(AnalyticTemplateRequest request);
 

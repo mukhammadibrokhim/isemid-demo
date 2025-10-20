@@ -8,6 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class AnalyticTemplateRequest {
-    private String name;
-    private String content;
+    private String title;
+    private String payload;
 }

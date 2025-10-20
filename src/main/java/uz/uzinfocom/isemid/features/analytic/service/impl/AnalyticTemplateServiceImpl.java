@@ -38,8 +38,8 @@ public class AnalyticTemplateServiceImpl implements AnalyticTemplateService {
         if (!existing.getOwner().getId().equals(user.getId())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You cannot edit this template");
         }
-        existing.setName(updated.getName());
-        existing.setContent(updated.getContent());
+        existing.setTitle(updated.getTitle());
+        existing.setPayload(updated.getPayload());
         return repository.save(existing);
     }
 

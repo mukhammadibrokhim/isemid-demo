@@ -14,10 +14,10 @@ import uz.uzinfocom.isemid.features.user.models.User;
 @Builder
 public class AnalyticTemplate extends BaseEntity {
     @Column(nullable = false)
-    private String name;
+    private String title;
 
     @Column(columnDefinition = "TEXT")
-    private String content;
+    private String payload;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

@@ -9,6 +9,6 @@ import lombok.*;
 @Builder
 public class AnalyticTemplateResponse {
     private Long id;
-    private String name;
-    private String content;
+    private String title;
+    private String payload;
 }
