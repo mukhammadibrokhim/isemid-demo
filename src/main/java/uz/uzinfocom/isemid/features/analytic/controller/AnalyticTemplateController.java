@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.analytic.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
@@ -35,7 +36,7 @@ public class AnalyticTemplateController {
 
     @PostMapping
     public ApiResponse<AnalyticTemplateResponse> create(
-            @RequestBody AnalyticTemplateRequest request,
+            @Valid @RequestBody AnalyticTemplateRequest request,
             @CurrentUser User user
     ) {
         return ApiResponse.success(messageUtil, mapper.toResponse(service.create(request, user)));
