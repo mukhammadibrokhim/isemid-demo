@@ -98,11 +98,7 @@ public class Form058Specification {
             else
                 predicates.add(cb.notEqual(root.get("status"), "APPROVED"));
 
-            if (fromDate != null)
-                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate));
-
-            if (toDate != null)
-                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toDate));
+            SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
             if (mkb10Codes != null && !mkb10Codes.isEmpty()) {
                 predicates.add(root.get("finalMkb10Code").in(mkb10Codes));
