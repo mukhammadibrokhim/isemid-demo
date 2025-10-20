@@ -14,7 +14,7 @@ public class CatalogMapperHelper {
 
     @Named("toEntity")
     public Catalog toEntity(String code) {
-        return catalogService.getByCode(code);
+        return catalogService.findByCode(code);
     }
 
     @Named("toCatalog")
@@ -22,7 +22,7 @@ public class CatalogMapperHelper {
         if (code == null) {
             return null;
         }
-        Catalog catalog = catalogService.getByCode(code);
+        Catalog catalog = catalogService.findByCode(code);
         return (catalog != null) ? CatalogMinResponse.builder()
                 .id(catalog.getId())
                 .code(catalog.getCode())
