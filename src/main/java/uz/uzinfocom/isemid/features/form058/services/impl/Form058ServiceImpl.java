@@ -80,7 +80,6 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    @Transactional
     public Form058 assignCard(Form058AssignCardRequest request, User user) {
         if (request.getAssignUserIds() == null || request.getAssignUserIds().isEmpty()) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.assign_user_empty"));
