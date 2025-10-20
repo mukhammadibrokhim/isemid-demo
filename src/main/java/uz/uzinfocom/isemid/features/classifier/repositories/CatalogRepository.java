@@ -76,16 +76,16 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     Optional<Catalog> findByTypeAndCode(String name, String code);
 
     @Query("""
-        SELECT 
-            CASE
-                WHEN :locale = 'ru' THEN c.nameRu
-                WHEN :locale = 'kaa' THEN c.nameKaa
-                WHEN :locale = 'uz_cyrl' THEN c.nameUzCyril
-                ELSE c.nameUz
-            END
-        FROM Catalog c
-        WHERE LOWER(c.type) = 'state' AND c.code = :code
-    """)
+                SELECT\s
+                    CASE
+                        WHEN :locale = 'ru' THEN c.nameRu
+                        WHEN :locale = 'kaa' THEN c.nameKaa
+                        WHEN :locale = 'uz_cyrl' THEN c.nameUzCyril
+                        ELSE c.nameUz
+                    END
+                FROM Catalog c
+                WHERE LOWER(c.type) = 'state' AND c.code = :code
+           \s""")
     Optional<String> findRegionNameByCodeAndLocale(@Param("code") String code,
                                                    @Param("locale") String locale);
 }
