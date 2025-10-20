@@ -27,6 +27,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -168,8 +169,13 @@ public class Form058Controller {
     }
 
     @GetMapping("/confirmation-stats")
-    public ApiResponse<Map<String, Long>> getConfirmationStats() {
-        return ApiResponse.success(messageUtil, form058Service.getConfirmationStats());
+    public ApiResponse<Map<String, Long>> getConfirmationStats(
+            @RequestParam(required = false) List<String> mkb10Codes,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @CurrentUser User currentUser
+    ) {
+        return ApiResponse.success(messageUtil, form058Service.getConfirmationStats(mkb10Codes, fromDate, toDate, currentUser));
     }
 }
 

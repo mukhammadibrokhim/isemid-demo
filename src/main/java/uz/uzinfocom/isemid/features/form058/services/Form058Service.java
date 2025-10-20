@@ -7,6 +7,7 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 public interface Form058Service {
@@ -41,6 +42,7 @@ public interface Form058Service {
 
     Form058 approveDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis);
 
-    Map<String, Long> getConfirmationStats();
+    Map<String, Long> getConfirmationStats(List<String> mkb10Codes, LocalDate fromDate, LocalDate toDate,
+                                           User currentUser);
 
 }
