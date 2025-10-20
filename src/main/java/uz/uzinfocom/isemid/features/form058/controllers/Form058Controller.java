@@ -159,7 +159,6 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form));
     }
 
-
     @Operation(summary = "Удаление формы 058 по ID", description = "Удаляет форму 058 по заданному идентификатору.")
     @PreAuthorize("hasRole('ROLE_isemid_super_admin')")
     @DeleteMapping("/{formId}")

@@ -164,16 +164,20 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Map<String, Long> getConfirmationStats(List<String> mkb10Codes, LocalDate fromDate, LocalDate toDate,
+    public Map<String, Long> getConfirmationStats(List<String> mkb10Codes,
+                                                  LocalDate fromDate,
+                                                  LocalDate toDate,
                                                   User currentUser) {
 
         String stateCode = currentUser.getCurrentOrganization().getStateCode();
-        Long confirmed = form058Repository.countConfirmedByState(stateCode, fromDate, toDate, mkb10Codes);
-        Long unconfirmed = form058Repository.countUnconfirmedByState(stateCode, fromDate, toDate, mkb10Codes);
 
-        return Map.of(
-                "confirmed", confirmed,
-                "unconfirmed", unconfirmed
-        );
+        Specification<Form058> specConfirmed = Form058Specification.buildStats(stateCode, fromDate, toDate, mkb10Codes, true);
+        Specification<Form058> specUnconfirmed = Form058Specification.buildStats(stateCode, fromDate, toDate, mkb10Codes, false);
+
+        long confirmed = form058Repository.count(specConfirmed);
+        long unconfirmed = form058Repository.count(specUnconfirmed);
+
+        return Map.of("confirmed", confirmed, "unconfirmed", unconfirmed);
     }
+
 }
