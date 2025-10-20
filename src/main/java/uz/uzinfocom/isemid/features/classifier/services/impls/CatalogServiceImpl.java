@@ -70,8 +70,13 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Cacheable(value = "catalogCache", key = "#code")
     @Override
-    public Catalog findByCode(String code) {
-        return catalogRepository.findByCode(code).orElse(null);
+    public Catalog getByCode(String code) {
+        return this.findByCode(code).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", code)));
+    }
+
+    @Override
+    public Optional<Catalog> findByCode(String code) {
+        return catalogRepository.findByCode(code);
     }
 
     @Cacheable(value = "catalogAllType", key = "#catalogType.name()", unless = "#result == null")
@@ -127,5 +132,11 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public Catalog getById(long id) {
         return catalogRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+    }
+
+    @Override
+    public String getRegionNameByCodeAndLocale(String code, String locale) {
+        return catalogRepository.findRegionNameByCodeAndLocale(code, locale)
+                .orElse("Unknown region");
     }
 }
