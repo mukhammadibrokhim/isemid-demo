@@ -25,25 +25,19 @@ public class AnalyticReportSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 🔹 1. Sana oralig‘i bo‘yicha filter (umumiy util)
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
-            // 🔹 2. Foydalanuvchi cheklovi
             if (user != null && user.getCurrentOrganization() != null) {
                 Organization org = user.getCurrentOrganization();
 
                 if (org.getLevelType() == LevelType.REPUBLICAN) {
-                    // Respublika — barcha hisobotlarni ko‘ra oladi, hech qanday cheklov qo‘shilmaydi
                 } else {
-                    // Oddiy foydalanuvchi — faqat o‘zinikini ko‘radi
                     predicates.add(cb.equal(root.get("createdBy"), user.getId()));
                 }
             } else {
-                // Tizimda organization bo‘lmasa ham — faqat o‘zinikini ko‘rsin
                 predicates.add(cb.equal(root.get("createdBy"), user.getId()));
             }
 
-            // 🔹 3. Region / MKB10 bo‘yicha filterlar (ixtiyoriy)
             if (regionCode != null && !regionCode.isEmpty()) {
 //                predicates.add(cb.equal(root.get("regionCode"), regionCode));
             }
