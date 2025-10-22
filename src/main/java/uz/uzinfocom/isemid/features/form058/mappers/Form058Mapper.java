@@ -23,6 +23,10 @@ public interface Form058Mapper {
     @Mapping(source = "hospitalPlaceId", target = "hospitalPlaceId", qualifiedByName = "uuidToLongId")
     @Mapping(source = "senderOrganizationId", target = "senderOrganizationId", qualifiedByName = "uuidToLongId")
     @Mapping(source = "receiverOrganizationId", target = "receiverOrganizationId", qualifiedByName = "uuidToLongId")
+    // 🔠 Apply uppercase normalization for patient names
+    @Mapping(source = "patient.firstName", target = "patient.firstName", qualifiedByName = "toUpperCase")
+    @Mapping(source = "patient.lastName", target = "patient.lastName", qualifiedByName = "toUpperCase")
+    @Mapping(source = "patient.middleName", target = "patient.middleName", qualifiedByName = "toUpperCase")
     Form058 toEntity(Form058Request request);
 
     @Mapping(target = "id", source = "id")

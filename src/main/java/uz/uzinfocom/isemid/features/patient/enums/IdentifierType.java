@@ -9,5 +9,15 @@ public enum IdentifierType {
 
     CZ,     //Карта гражданства (ID-карта)
 
-    BCT     //Свидетельство о рождении
+    BCT,     //Свидетельство о рождении
+
+    REO,
+
+    MD,
+
+    DL,
+
+    TAX,
+
+    FPPN
 }

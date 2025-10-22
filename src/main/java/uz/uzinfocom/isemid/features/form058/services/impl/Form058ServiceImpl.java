@@ -1,17 +1,24 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardBuildService;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
+import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
+import uz.uzinfocom.isemid.features.classifier.repositories.CatalogRepository;
+import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
+import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058ConfirmationStatsResponse;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
@@ -24,6 +31,7 @@ import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -41,6 +49,8 @@ public class Form058ServiceImpl implements Form058Service {
     private final UserService userService;
     private final Form058Mapper form058Mapper;
     private final CardRepository cardRepository;
+    private final Mkb10Service mkb10Service;
+    private final CatalogRepository catalogRepository;
     private final MessageUtil messageUtil;
 
     @Override
@@ -52,6 +62,7 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional
     public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode, Boolean affiliation, User user, FilterType filterType) {
         Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, user, filterType);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
@@ -70,7 +81,6 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    @Transactional
     public Form058 assignCard(Form058AssignCardRequest request, User user) {
         if (request.getAssignUserIds() == null || request.getAssignUserIds().isEmpty()) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.assign_user_empty"));
@@ -93,9 +103,9 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Form058 changeReceivedOrd(Long formId, Form058UpdateReceivedOrg updateReceivedOrg) {
+    public Form058 changeReceivedOrd(Long formId, Long orgId) {
         Form058 form058 = this.getById(formId);
-        form058.setReceiverOrganizationId(updateReceivedOrg.getReceivedOrgId());
+        form058.setReceiverOrganizationId(orgId);
         return form058Repository.save(form058);
     }
 
@@ -159,4 +169,58 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setStatus(FormStatus.APPROVED);
         return form058Repository.save(form058);
     }
+
+    @Override
+    public List<Form058ConfirmationStatsResponse> getConfirmationStats(
+            List<String> mkb10Codes,
+            List<String> regionCodes,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String locale,
+            User currentUser
+    ) {
+        List<String> regions = (regionCodes == null || regionCodes.isEmpty())
+                ? List.of(currentUser.getCurrentOrganization().getStateCode())
+                : regionCodes;
+
+
+        List<Mkb10Projection> mkb10List = mkb10Service.getNamesByCodesAndLocale(mkb10Codes, locale);
+
+        List<Form058ConfirmationStatsResponse> responses = new ArrayList<>();
+
+        for (String region : regions) {
+            String regionName = catalogRepository.findRegionNameByCodeAndLocale(region, locale).orElse(null);
+            List<Form058ConfirmationStatsResponse.Form058Mkb10Stat> mkbStats = new ArrayList<>();
+
+            for (Mkb10Projection mkb : mkb10List) {
+                String mkbCode = mkb.getCode();
+                String mkbName = mkb.getName() != null ? mkb.getName() : "Unknown ICD-10";
+
+                Specification<Form058> confirmedSpec =
+                        Form058Specification.buildStats(List.of(region), fromDate, toDate, List.of(mkbCode), true);
+
+                Specification<Form058> unconfirmedSpec =
+                        Form058Specification.buildStats(List.of(region), fromDate, toDate, List.of(mkbCode), false);
+
+                long confirmed = form058Repository.count(confirmedSpec);
+                long unconfirmed = form058Repository.count(unconfirmedSpec);
+
+                mkbStats.add(Form058ConfirmationStatsResponse.Form058Mkb10Stat.builder()
+                        .code(mkbCode)
+                        .name(mkbName)
+                        .confirmed(confirmed)
+                        .unconfirmed(unconfirmed)
+                        .build());
+            }
+
+            responses.add(Form058ConfirmationStatsResponse.builder()
+                    .regionCode(region)
+                    .regionName(regionName)
+                    .mkb10Stats(mkbStats)
+                    .build());
+        }
+
+        return responses;
+    }
+
 }

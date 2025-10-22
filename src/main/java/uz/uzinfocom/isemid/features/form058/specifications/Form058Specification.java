@@ -80,4 +80,33 @@ public class Form058Specification {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
+    public static Specification<Form058> buildStats(List<String> regionCodes,
+                                                    LocalDate fromDate,
+                                                    LocalDate toDate,
+                                                    List<String> mkb10Codes,
+                                                    boolean confirmed) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (regionCodes != null && !regionCodes.isEmpty()) {
+                predicates.add(root.get("createdOrg").get("stateCode").in(regionCodes));
+            }
+
+            if (confirmed)
+                predicates.add(cb.equal(root.get("status"), "APPROVED"));
+            else
+                predicates.add(cb.notEqual(root.get("status"), "APPROVED"));
+
+            SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+
+            if (mkb10Codes != null && !mkb10Codes.isEmpty()) {
+                predicates.add(root.get("finalMkb10Code").in(mkb10Codes));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+
 }

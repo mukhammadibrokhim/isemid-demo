@@ -107,12 +107,14 @@ public class Card161Response extends CardResponse {
     private CatalogMinResponse probableInfectionLocation;
     private Boolean isInfectionSourceMissing;
     private InfectionSourceDetailResponse infectionSourceDetail;
-    private CatalogMinResponse mainProbableInfectionFactor;
+    @Builder.Default
+    private List<CatalogMinResponse> mainProbableInfectionFactors = new ArrayList<>();
 
     @Builder.Default
     private List<CatalogMinResponse> infectionCausingConditions = new ArrayList<>();
     private CatalogMinResponse outbreakInfection;
-    private CatalogMinResponse caseStatus;
+    private CatalogMinResponse infectionPlace;
+    private CatalogMinResponse activityPlace;
     private String epidemiologist;
     private String epidemiologistAssistant;
     private String comment;

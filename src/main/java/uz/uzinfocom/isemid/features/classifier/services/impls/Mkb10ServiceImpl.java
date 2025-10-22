@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.classifier.services.impls;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;
 import uz.uzinfocom.isemid.features.classifier.mappers.Mkb10Mapper;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
@@ -65,5 +67,10 @@ public class Mkb10ServiceImpl implements Mkb10Service {
             search = null;
         }
         return mkb10Repository.searchMkb10(parentId, search);
+    }
+
+    @Cacheable(value = "mkb10NamesByLocale", key = "#locale + '_' + #codes.hashCode()")
+    public List<Mkb10Projection> getNamesByCodesAndLocale(List<String> codes, String locale) {
+        return mkb10Repository.findNamesByCodesAndLocale(codes, locale);
     }
 }

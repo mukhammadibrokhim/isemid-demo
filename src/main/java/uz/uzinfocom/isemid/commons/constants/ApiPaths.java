@@ -70,8 +70,16 @@ public final class ApiPaths {
         public static final String ROOT = BASE_PATH  + "/report";
     }
 
+    public static final class AnalyticReport {
+        public static final String ROOT = BASE_PATH + "/analytic-reports";
+    }
+
+    public static final class AnalyticTemplate {
+        public static final String ROOT = BASE_PATH + "/analytic-templates";
+    }
+
     public static final class BaseDomain {
-        public static final String ROOT = "https://test-ykem.sanepid.uz/api";
+        public static final String ROOT = "https://ykem.sanepid.uz/api";
         public static final String ROOT_LOCAL = "http://localhost:8081";
         private BaseDomain() {}
 
@@ -84,7 +92,7 @@ public final class ApiPaths {
     public static final class ExternalApi {
 //        public static final String BASE_API_URL = "https://test-api2.ssv.uz";
 //        public static final String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
-//
+
         public static final String BASE_API_URL = "https://api2.ssv.uz";
         public static final String SSO_TOKEN = "https://sso.ssv.uz/oauth/token";
 

@@ -6,12 +6,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
@@ -23,7 +27,9 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 
 import java.time.LocalDate;
+import java.util.List;
 
+import static org.springframework.http.HttpHeaders.ACCEPT_LANGUAGE;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -109,14 +115,14 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.assignCard(request, user)));
     }
 
-    @Operation(summary = "Перевод формы 058 в другую организацию", description = "Позволяет изменить организацию, в которую была получена форма 058.")
-    @PutMapping("/{formId}/change-received-org")
+    @Operation(summary = "Изменение организации получателя формы 058", description = "Позволяет изменить только организацию, получившую форму 058, без изменения других данных формы.")
+    @PatchMapping("/{formId}/change-received-org/{orgId}")
     public ApiResponse<?> changeReceivedOrg(
-            @PathVariable Long formId,
-            @Valid @RequestBody Form058UpdateReceivedOrg updateReceivedOrg
+            @PathVariable Long formId, @PathVariable Long orgId
     ) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.changeReceivedOrd(formId, updateReceivedOrg)));
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.changeReceivedOrd(formId, orgId)));
     }
+
 
     @Operation(summary = "Отмена формы 058", description = "Позволяет отменить (отклонить) форму 058 по её идентификатору.")
     @PatchMapping("/{formId}/cancel")
@@ -153,12 +159,24 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form));
     }
 
-
     @Operation(summary = "Удаление формы 058 по ID", description = "Удаляет форму 058 по заданному идентификатору.")
+    @PreAuthorize("hasRole('ROLE_isemid_super_admin')")
     @DeleteMapping("/{formId}")
     public ApiResponse<?> deleteById(@PathVariable Long formId) {
         form058Service.deleteById(formId);
         return ApiResponse.deleteSuccess(messageUtil);
+    }
+
+    @GetMapping("/confirmation-stats")
+    public ApiResponse<?> getConfirmationStats(
+            @RequestParam(required = false) List<String> mkb10Codes,
+            @RequestParam(required = false) List<String> regionCodes,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestHeader(value = ACCEPT_LANGUAGE, required = false) String locale,
+            @CurrentUser User currentUser
+    ) {
+        return ApiResponse.success(messageUtil, form058Service.getConfirmationStats(mkb10Codes, regionCodes, fromDate, toDate, locale, currentUser));
     }
 }
 
