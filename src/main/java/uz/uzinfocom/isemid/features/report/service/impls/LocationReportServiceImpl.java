@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.report.service.impls;
 
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,23 +73,19 @@ public class LocationReportServiceImpl implements LocationReportService {
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
+
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
-            Join<Form058, Patient> patient = root.join("patient");
-            Join<Patient, Address> addresses = patient.join("addresses");
+            Join<Form058, Patient> patient = root.join("patient", JoinType.LEFT);
+            Join<Patient, Address> addresses = patient.join("addresses", JoinType.LEFT);
             predicates.add(cb.equal(addresses.get("type"), AddressType.TEMPORARY));
 
             if (currentUser != null && currentUser.getCurrentOrganization() != null) {
                 var org = currentUser.getCurrentOrganization();
-                var level = org.getLevelType();
-                Predicate levelPredicate = SpecificationUtils.buildLevelPredicate(
-                        addresses, cb, level, org.getStateCode(), org.getCityCode()
-                );
-                predicates.add(levelPredicate);
+                SpecificationUtils.addSanepidAccessPredicate(root, cb, org, predicates);
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
-
 }
