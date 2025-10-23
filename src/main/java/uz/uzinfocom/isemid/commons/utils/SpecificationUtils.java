@@ -11,9 +11,11 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * Utility class providing reusable JPA Specification helpers
- * for building dynamic query predicates (date range filters,
- * organization-level filters, etc.).
+ * ✅ Universal Specification utility for dynamic query predicates.
+ * Supports:
+ * - Date range filtering
+ * - Organization hierarchy filtering (state/city level)
+ * - Sanepid access filtering
  */
 public class SpecificationUtils {
 
@@ -57,13 +59,6 @@ public class SpecificationUtils {
      * This method ensures:
      * 1️⃣ Records created by organizations within the same city/state (depending on levelType)
      * 2️⃣ OR records received by the current organization (receiverOrganizationId)
-     *
-     * @param root          root entity (e.g. Form058)
-     * @param cb            criteria builder
-     * @param levelType     current org’s level
-     * @param orgStateCode  current org’s state code
-     * @param orgCityCode   current org’s city code
-     * @param currentOrgId  current organization ID
      */
     public static <T> Predicate buildLevelPredicate(
             Root<T> root,
@@ -88,7 +83,6 @@ public class SpecificationUtils {
         return cb.or(levelPredicate, receiverPredicate);
     }
 
-
     /**
      * Builds a {@link Predicate} for filtering by organization level
      * using a provided path (for nested joins).
@@ -102,7 +96,6 @@ public class SpecificationUtils {
     ) {
         return buildLevelPredicateInternal(path, cb, levelType, orgStateCode, orgCityCode);
     }
-
 
     /**
      * Internal logic for level-based filtering.
@@ -154,8 +147,9 @@ public class SpecificationUtils {
     }
 
     /**
-     * Adds an access-level predicate for Sanepid organizations
+     * ✅ Adds an access-level predicate for Sanepid organizations
      * based on their hierarchy (state/city).
+     * Works only if current org is of type {@link MedicalType#SANEPID_SERVICE}.
      */
     public static <T> void addSanepidAccessPredicate(
             Root<T> root,
@@ -170,8 +164,12 @@ public class SpecificationUtils {
         String cityCode = userOrg.getCityCode();
         LevelType levelType = userOrg.getLevelType();
 
+        // ✅ Corrected: join createdOrg (cityCode lives inside Organization)
+        Join<T, ?> createdOrgJoin = root.join("createdOrg", JoinType.LEFT);
+
         Predicate levelPredicate =
-                buildLevelPredicate(root, cb, levelType, stateCode, cityCode);
+                buildLevelPredicate(createdOrgJoin, cb, levelType, stateCode, cityCode);
+
         predicates.add(levelPredicate);
     }
 }
