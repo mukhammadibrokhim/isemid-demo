@@ -164,7 +164,6 @@ public class SpecificationUtils {
         String cityCode = userOrg.getCityCode();
         LevelType levelType = userOrg.getLevelType();
 
-        // ✅ Corrected: join createdOrg (cityCode lives inside Organization)
         Join<T, ?> createdOrgJoin = root.join("createdOrg", JoinType.LEFT);
 
         Predicate levelPredicate =
