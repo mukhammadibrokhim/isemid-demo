@@ -161,7 +161,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
             }
 
             if (gender != null) {
-                predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
+                predicates.add(cb.equal(root.get("patient").get("genderCode"), gender.name()));
             }
 
             if (hasText(mkb10Code)) {

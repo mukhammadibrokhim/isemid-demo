@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.springframework.util.StringUtils.hasText;
+import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin;
 
 public class Form058Specification {
     public static Specification<Form058> build(
@@ -47,6 +48,9 @@ public class Form058Specification {
 
             var org = currentUser.getCurrentOrganization();
             if (org != null) {
+                if (isSuperAdmin(currentUser)) {
+                    return cb.and(predicates.toArray(new Predicate[0]));
+                }
                 Long orgId = org.getId();
                 UUID orgUuid = org.getUuid();
                 LevelType levelType = org.getLevelType();
