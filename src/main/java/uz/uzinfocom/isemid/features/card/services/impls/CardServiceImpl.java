@@ -48,7 +48,7 @@ public class CardServiceImpl implements CardService {
             int page, int size, String formTypeCode, String fromOrName,
             String toOrgName, CardStatus cardStatus, Long formId, String mkb10Code, User user
     ) {
-        Specification<Card> spec = CardSpecification.build(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId, mkb10Code);
+        Specification<Card> spec = CardSpecification.build(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId, mkb10Code,user);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
@@ -150,18 +150,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public Page<Card> getAssignedCards(int page, int size, User currentUser) {
-        boolean isHead = currentUser.hasRole("isemid_epidim_head");
-        Long orgId = null;
-        Long userId = null;
-
-        if (isHead) {
-            if (currentUser.getCurrentOrganization() != null) {
-                orgId = currentUser.getCurrentOrganization().getId();
-            }
-        } else {
-            userId = currentUser.getId();
-        }
-        Specification<Card> spec = CardSpecification.build(userId, orgId, isHead);
+        Specification<Card> spec = CardSpecification.build(currentUser);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 }
