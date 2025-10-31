@@ -23,7 +23,10 @@ public interface Form058Service {
             LocalDate toDate,
             String stateCode,
             String cityCode,
-            Boolean isAffiliation, User user,
+            Boolean isAffiliation,
+            String mkb10Code,
+            Long organizationId,
+            User user,
             FilterType filterType
     );
 
