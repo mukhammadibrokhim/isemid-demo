@@ -51,6 +51,7 @@ public class SwaggerConfig {
                                 "<h4>RU: Это документация OpenAPI для </br><b>(ИСЕМИЗ) Информационная система эпидемиологического мониторинга инфекционных заболеваний.</b></h4>"))
                 .servers(List.of(
                         new Server().url(ApiPaths.BaseDomain.ROOT).description("ISEMID API"),
+                        new Server().url(ApiPaths.BaseDomain.ROOT_DEV).description("ISEMID DEV API"),
                         new Server().url(ApiPaths.BaseDomain.ROOT_LOCAL).description("LOCAL")))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Auth"))
                 .components(new Components()

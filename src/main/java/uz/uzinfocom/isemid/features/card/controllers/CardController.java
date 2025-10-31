@@ -17,11 +17,12 @@ import uz.uzinfocom.isemid.features.card.dtos.requests.CardRejectRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardResponse;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
+import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.services.CardService;
-import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.models.User;
+import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -41,16 +42,12 @@ public class CardController {
     public PagedResponse<CardResponse> allByFilter(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-            @RequestParam(required = false) String formTypeCode,
-            @RequestParam(required = false) String fromOrgName,
-            @RequestParam(required = false) String toOrgName,
             @RequestParam(required = false) CardStatus cardStatus,
             @RequestParam(required = false) String mkb10Code,
-            @RequestParam(required = false) Long formId,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Card> pagedCards = cardService.filter(page, size, formTypeCode, fromOrgName, toOrgName, cardStatus, formId, mkb10Code,user);
+        Page<Card> pagedCards = cardService.filter(page, size, cardStatus, mkb10Code, user);
         return PagedResponse.build(page, pagedCards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
@@ -62,10 +59,13 @@ public class CardController {
     public PagedResponse<?> getAssignedCards(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam(required = false) CardType cardType,
+            @RequestParam(required = false) CardStatus cardStatus,
+            @RequestParam(required = false) String mkb10Code,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<Card> cards = cardService.getAssignedCards(page, size, currentUser);
+        Page<Card> cards = cardService.getAssignedCards(page, size, cardType, cardStatus, mkb10Code, currentUser);
         return PagedResponse.build(page, cards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
