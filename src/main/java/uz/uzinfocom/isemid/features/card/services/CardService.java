@@ -9,6 +9,8 @@ import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+import java.time.LocalDate;
+
 public interface CardService {
     Page<Card> filter(
             int page,
@@ -33,5 +35,5 @@ public interface CardService {
 
     Card assignAct(CardAssignActRequest request, User user);
 
-    Page<Card> getAssignedCards(int page, int size, CardType cardType, CardStatus cardStatus, String mkb10Code, User currentUser);
+    Page<Card> getAssignedCards(int page, int size, LocalDate fromDate, LocalDate toDate, CardType cardType, CardStatus cardStatus, String mkb10Code, User currentUser);
 }
