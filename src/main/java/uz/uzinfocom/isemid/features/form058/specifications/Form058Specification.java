@@ -50,11 +50,13 @@ public class Form058Specification {
                 predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
             }
 
-            if (FilterType.ALL == filterType) {
-                predicates.add(cb.equal(root.get("senderOrganizationId"), organizationId));
-            } else if (FilterType.RECEIVED == filterType) {
-                predicates.add(cb.equal(root.get("receiverOrganizationId"), organizationId));
+            if (organizationId != null && filterType != null) {
+                switch (filterType) {
+                    case ALL -> predicates.add(cb.equal(root.get("senderOrganizationId"), organizationId));
+                    case RECEIVED -> predicates.add(cb.equal(root.get("receiverOrganizationId"), organizationId));
+                }
             }
+
 
             var org = currentUser.getCurrentOrganization();
             if (org != null) {
