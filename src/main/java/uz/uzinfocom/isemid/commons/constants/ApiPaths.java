@@ -80,6 +80,7 @@ public final class ApiPaths {
 
     public static final class BaseDomain {
         public static final String ROOT = "https://ykem.sanepid.uz/api";
+        public static final String ROOT_DEV = "https://test-ykem.sanepid.uz/api";
         public static final String ROOT_LOCAL = "http://localhost:8081";
         private BaseDomain() {}
 
