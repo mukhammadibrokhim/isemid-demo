@@ -46,8 +46,6 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
 
             for (String code : mkbCodes) {
 
-                // ✅ Final kod mavjud bo‘lsa — faqat finalMkb10Code bo‘yicha
-                // ✅ Aks holda — oddiy mkb10Code bo‘yicha hisoblaymiz
                 List<Form058> matched = form058List.stream()
                         .filter(f -> {
                             String finalCode = f.getFinalMkb10Code();
