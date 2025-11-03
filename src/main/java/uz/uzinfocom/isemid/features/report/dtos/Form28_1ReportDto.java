@@ -16,19 +16,17 @@ public class Form28_1ReportDto {
     private String titleRu;
     private String titleKaa;
 
-    private String icd10Code;          // ICD-10 code
+    private String icd10Code;      // ICD-10 code
 
-    private Long totalCases;            // Total registered cases
+    private Long totalCount;       // ✅ Jami hisob
+    private Long femaleCount;      // ✅ Ayollar soni
+    private Long age0to17Count;    // ✅ 17 yoshgacha
+    private Long age0to14Count;    // ✅ 14 yoshgacha
+    private Long under1YearCount;  // ✅ 1 yoshgacha
+    private Long age1to2Count;     // ✅ 1–2 yosh
+    private Long age3to5Count;     // ✅ 3–5 yosh
 
-    // --- "Shu jumladan / including" ---
-    private Long femaleCases;           // Among females
-    private Long age0to17Cases;         // Children up to 17 (inclusive)
-    private Long age0to14Cases;         // Children up to 14 (inclusive)
-    private Long under1YearCases;       // Of which: under 1 year
-    private Long age1to2Cases;          // Age 1–2 (inclusive)
-    private Long age3to5Cases;          // Age 3–5
-
-    private RuralBreakdownDto ruralBreakdown;
+    private RuralBreakdownDto rural;  // ✅ Qishloq aholisi statistikasi
 
     @Getter
     @Setter
@@ -37,7 +35,7 @@ public class Form28_1ReportDto {
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RuralBreakdownDto {
-        private Long total;        // Total rural population cases
-        private Long below17;      // Of which: children aged ≤17 in rural population
+        private Long totalCount;    // ✅ Qishloq aholisi jami
+        private Long age0to17Count; // ✅ Qishloqda 17 yoshgacha
     }
 }
