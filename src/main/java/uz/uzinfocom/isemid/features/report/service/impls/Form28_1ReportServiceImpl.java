@@ -124,7 +124,7 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
     private boolean isRural(Form058 f) {
         return f.getPatient() != null &&
                 f.getPatient().getPopulationTypeCode() != null &&
-                f.getPatient().getPopulationTypeCode().equalsIgnoreCase("CITY_RESIDENT");
+                f.getPatient().getPopulationTypeCode().equalsIgnoreCase("VILLAGE_RESIDENT");
     }
 }
 
