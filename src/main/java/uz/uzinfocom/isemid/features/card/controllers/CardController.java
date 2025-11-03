@@ -24,6 +24,8 @@ import uz.uzinfocom.isemid.features.card.services.CardService;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 
+import java.time.LocalDate;
+
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
 import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
@@ -59,13 +61,15 @@ public class CardController {
     public PagedResponse<?> getAssignedCards(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
             @RequestParam(required = false) CardType cardType,
             @RequestParam(required = false) CardStatus cardStatus,
             @RequestParam(required = false) String mkb10Code,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<Card> cards = cardService.getAssignedCards(page, size, cardType, cardStatus, mkb10Code, currentUser);
+        Page<Card> cards = cardService.getAssignedCards(page, size, fromDate, toDate, cardType, cardStatus, mkb10Code, currentUser);
         return PagedResponse.build(page, cards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 

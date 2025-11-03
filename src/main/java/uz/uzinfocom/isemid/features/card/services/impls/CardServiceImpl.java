@@ -150,9 +150,10 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public Page<Card> getAssignedCards(int page, int size, CardType cardType, CardStatus cardStatus, String mkb10Code,
+    public Page<Card> getAssignedCards(int page, int size, LocalDate fromDate, LocalDate toDate, CardType cardType,
+                                       CardStatus cardStatus, String mkb10Code,
                                        User currentUser) {
-        Specification<Card> spec = CardSpecification.build(cardType, cardStatus, mkb10Code, currentUser);
+        Specification<Card> spec = CardSpecification.build(fromDate, toDate, cardType, cardStatus, mkb10Code, currentUser);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 }

@@ -4,12 +4,14 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -59,6 +61,8 @@ public class CardSpecification {
     }
 
     public static Specification<Card> build(
+            LocalDate fromDate,
+            LocalDate toDate,
             CardType cardType,
             CardStatus cardStatus,
             String mkb10Code,
@@ -84,7 +88,9 @@ public class CardSpecification {
             if (isSuperAdmin) {
                 return cb.conjunction();
             }
-
+            if (fromDate != null || toDate != null) {
+                SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+            }
             if (cardType != null) {
                 predicates.add(cb.equal(root.get("cardType"), cardType));
             }
