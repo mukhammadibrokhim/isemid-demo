@@ -75,14 +75,14 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                 dto.setTitleKaa(report.getNameKaa());
                 dto.setIcd10Code(code);
 
-                dto.setTotalCases(total);
-                dto.setFemaleCases(female);
-                dto.setAge0to17Cases(age017);
-                dto.setAge0to14Cases(age014);
-                dto.setUnder1YearCases(under1);
-                dto.setAge1to2Cases(age1to2);
-                dto.setAge3to5Cases(age3to5);
-                dto.setRuralBreakdown(new Form28_1ReportDto.RuralBreakdownDto(rural, rural017));
+                dto.setTotalCount(total);
+                dto.setFemaleCount(female);
+                dto.setAge0to17Count(age017);
+                dto.setAge0to14Count(age014);
+                dto.setUnder1YearCount(under1);
+                dto.setAge1to2Count(age1to2);
+                dto.setAge3to5Count(age3to5);
+                dto.setRural(new Form28_1ReportDto.RuralBreakdownDto(rural, rural017));
 
                 result.add(dto);
             }
@@ -124,7 +124,7 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
     private boolean isRural(Form058 f) {
         return f.getPatient() != null &&
                 f.getPatient().getPopulationTypeCode() != null &&
-                f.getPatient().getPopulationTypeCode().equalsIgnoreCase("RURAL");
+                f.getPatient().getPopulationTypeCode().equalsIgnoreCase("CITY_RESIDENT");
     }
 }
 
