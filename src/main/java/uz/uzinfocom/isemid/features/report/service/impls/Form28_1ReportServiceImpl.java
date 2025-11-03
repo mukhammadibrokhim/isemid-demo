@@ -30,12 +30,10 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
     @Override
     public List<Form28_1ReportDto> getReports(LocalDate fromDate, LocalDate toDate, String mkb10Code) {
 
-        // ✅ Form058’larni vaqt va MKB bo‘yicha filterlash
         List<Form058> form058List = form058Repository.findAll(
                 filterByCriteria(fromDate, toDate, mkb10Code)
         );
 
-        // ✅ ManualReport dan faqat includeInTotal = true satrlar
         List<ManualReport> manualReports = manualReportRepository.findAll()
                 .stream()
                 .filter(r -> Boolean.TRUE.equals(r.getIncludeInTotal()))
@@ -47,44 +45,44 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
 
             Set<String> mkbCodes = report.getMkb10Codes();
 
-            // ✅ Form058 ichidan shu ManualReport’ga mos keladiganlar
-            List<Form058> matched = form058List.stream()
-                    .filter(f -> mkbCodes.contains(f.getMkb10Code()) ||
-                            mkbCodes.contains(f.getFinalMkb10Code()))
-                    .toList();
+            for (String code : mkbCodes) {
 
-            // ✅ Statistika hisoblash
-            long total = matched.size();
-            long female = matched.stream().filter(this::isFemale).count();
-            long age017 = matched.stream().filter(f -> isAgeLessOrEqual(f, 17)).count();
-            long age014 = matched.stream().filter(f -> isAgeLessOrEqual(f, 14)).count();
-            long ageUnder1 = matched.stream().filter(f -> isAgeLessOrEqual(f, 1)).count();
-            long age1to2 = matched.stream().filter(f -> isAgeBetween(f, 1, 2)).count();
-            long age3to5 = matched.stream().filter(f -> isAgeBetween(f, 3, 5)).count();
-            long rural = matched.stream().filter(this::isRural).count();
-            long ruralBelow17 = matched.stream().filter(f -> isRural(f) && isAgeLessOrEqual(f, 17)).count();
+                List<Form058> matched = form058List.stream()
+                        .filter(f -> code.equalsIgnoreCase(f.getMkb10Code()) ||
+                                code.equalsIgnoreCase(f.getFinalMkb10Code()))
+                        .toList();
 
-            // ✅ DTO to‘ldirish
-            Form28_1ReportDto dto = new Form28_1ReportDto();
-            dto.setShortName(report.getShortName());
-            dto.setTitleUz(report.getNameUz());
-            dto.setTitleUzCyril(report.getNameUzCyril());
-            dto.setTitleRu(report.getNameRu());
-            dto.setTitleKaa(report.getNameKaa());
-            dto.setIcd10Codes(String.join(",", mkbCodes));
+                if (matched.isEmpty()) continue; // Agar shu kod bo‘yicha hech nima bo‘lmasa – tashlab ketamiz
 
-            dto.setTotalCases(total);
-            dto.setFemaleCases(female);
-            dto.setAge0to17Cases(age017);
-            dto.setAge0to14Cases(age014);
-            dto.setUnder1YearCases(ageUnder1);
-            dto.setAge1to2Cases(age1to2);
-            dto.setAge3to5Cases(age3to5);
+                long total = matched.size();
+                long female = matched.stream().filter(this::isFemale).count();
+                long age017 = matched.stream().filter(f -> isAgeLessOrEqual(f, 17)).count();
+                long age014 = matched.stream().filter(f -> isAgeLessOrEqual(f, 14)).count();
+                long ageUnder1 = matched.stream().filter(f -> isAgeLessOrEqual(f, 1)).count();
+                long age1to2 = matched.stream().filter(f -> isAgeBetween(f, 1, 2)).count();
+                long age3to5 = matched.stream().filter(f -> isAgeBetween(f, 3, 5)).count();
+                long rural = matched.stream().filter(this::isRural).count();
+                long ruralBelow17 = matched.stream().filter(f -> isRural(f) && isAgeLessOrEqual(f, 17)).count();
 
-            // ✅ Nested object: rural
-            dto.setRuralBreakdown(new Form28_1ReportDto.RuralBreakdownDto(rural, ruralBelow17));
+                Form28_1ReportDto dto = new Form28_1ReportDto();
+                dto.setShortName(report.getShortName());
+                dto.setTitleUz(report.getNameUz());
+                dto.setTitleUzCyril(report.getNameUzCyril());
+                dto.setTitleRu(report.getNameRu());
+                dto.setTitleKaa(report.getNameKaa());
+                dto.setIcd10Codes(code);
 
-            result.add(dto);
+                dto.setTotalCases(total);
+                dto.setFemaleCases(female);
+                dto.setAge0to17Cases(age017);
+                dto.setAge0to14Cases(age014);
+                dto.setUnder1YearCases(ageUnder1);
+                dto.setAge1to2Cases(age1to2);
+                dto.setAge3to5Cases(age3to5);
+                dto.setRuralBreakdown(new Form28_1ReportDto.RuralBreakdownDto(rural, ruralBelow17));
+
+                result.add(dto);
+            }
         }
         return result;
     }
@@ -96,7 +94,7 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
             if (hasText(mkb10Code)) {
-                predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
+                predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
