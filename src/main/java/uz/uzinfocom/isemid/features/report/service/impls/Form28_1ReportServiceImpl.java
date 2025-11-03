@@ -51,12 +51,11 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                 List<Form058> matched = form058List.stream()
                         .filter(f -> {
                             String finalCode = f.getFinalMkb10Code();
-                            String initialCode = f.getMkb10Code();
 
                             if (finalCode != null && !finalCode.isBlank()) {
                                 return code.equalsIgnoreCase(finalCode);
                             }
-                            return code.equalsIgnoreCase(initialCode);
+                            return false;
                         })
                         .toList();
 
