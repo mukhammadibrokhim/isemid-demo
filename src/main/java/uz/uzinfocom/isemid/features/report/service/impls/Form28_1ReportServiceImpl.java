@@ -52,7 +52,7 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                                 code.equalsIgnoreCase(f.getFinalMkb10Code()))
                         .toList();
 
-                if (matched.isEmpty()) continue; // Agar shu kod bo‘yicha hech nima bo‘lmasa – tashlab ketamiz
+                if (matched.isEmpty()) continue;
 
                 long total = matched.size();
                 long female = matched.stream().filter(this::isFemale).count();
