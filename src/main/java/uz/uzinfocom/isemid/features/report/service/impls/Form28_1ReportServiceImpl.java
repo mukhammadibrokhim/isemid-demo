@@ -42,14 +42,22 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
         List<Form28_1ReportDto> result = new ArrayList<>();
 
         for (ManualReport report : manualReports) {
-
             Set<String> mkbCodes = report.getMkb10Codes();
 
             for (String code : mkbCodes) {
 
+                // ✅ Final kod mavjud bo‘lsa — faqat finalMkb10Code bo‘yicha
+                // ✅ Aks holda — oddiy mkb10Code bo‘yicha hisoblaymiz
                 List<Form058> matched = form058List.stream()
-                        .filter(f -> code.equalsIgnoreCase(f.getMkb10Code()) ||
-                                code.equalsIgnoreCase(f.getFinalMkb10Code()))
+                        .filter(f -> {
+                            String finalCode = f.getFinalMkb10Code();
+                            String initialCode = f.getMkb10Code();
+
+                            if (finalCode != null && !finalCode.isBlank()) {
+                                return code.equalsIgnoreCase(finalCode);
+                            }
+                            return code.equalsIgnoreCase(initialCode);
+                        })
                         .toList();
 
                 if (matched.isEmpty()) continue;
@@ -58,11 +66,11 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                 long female = matched.stream().filter(this::isFemale).count();
                 long age017 = matched.stream().filter(f -> isAgeLessOrEqual(f, 17)).count();
                 long age014 = matched.stream().filter(f -> isAgeLessOrEqual(f, 14)).count();
-                long ageUnder1 = matched.stream().filter(f -> isAgeLessOrEqual(f, 1)).count();
+                long under1 = matched.stream().filter(f -> isAgeLessOrEqual(f, 1)).count();
                 long age1to2 = matched.stream().filter(f -> isAgeBetween(f, 1, 2)).count();
                 long age3to5 = matched.stream().filter(f -> isAgeBetween(f, 3, 5)).count();
                 long rural = matched.stream().filter(this::isRural).count();
-                long ruralBelow17 = matched.stream().filter(f -> isRural(f) && isAgeLessOrEqual(f, 17)).count();
+                long rural017 = matched.stream().filter(f -> isRural(f) && isAgeLessOrEqual(f, 17)).count();
 
                 Form28_1ReportDto dto = new Form28_1ReportDto();
                 dto.setShortName(report.getShortName());
@@ -70,16 +78,16 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                 dto.setTitleUzCyril(report.getNameUzCyril());
                 dto.setTitleRu(report.getNameRu());
                 dto.setTitleKaa(report.getNameKaa());
-                dto.setIcd10Codes(code);
+                dto.setIcd10Code(code);
 
                 dto.setTotalCases(total);
                 dto.setFemaleCases(female);
                 dto.setAge0to17Cases(age017);
                 dto.setAge0to14Cases(age014);
-                dto.setUnder1YearCases(ageUnder1);
+                dto.setUnder1YearCases(under1);
                 dto.setAge1to2Cases(age1to2);
                 dto.setAge3to5Cases(age3to5);
-                dto.setRuralBreakdown(new Form28_1ReportDto.RuralBreakdownDto(rural, ruralBelow17));
+                dto.setRuralBreakdown(new Form28_1ReportDto.RuralBreakdownDto(rural, rural017));
 
                 result.add(dto);
             }
