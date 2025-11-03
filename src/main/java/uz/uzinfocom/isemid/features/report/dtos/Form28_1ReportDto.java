@@ -16,7 +16,7 @@ public class Form28_1ReportDto {
     private String titleRu;
     private String titleKaa;
 
-    private String icd10Codes;          // ICD-10 codes
+    private String icd10Code;          // ICD-10 code
 
     private Long totalCases;            // Total registered cases
 
