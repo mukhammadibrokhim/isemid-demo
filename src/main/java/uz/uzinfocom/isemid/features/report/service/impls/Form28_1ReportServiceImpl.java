@@ -57,8 +57,6 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                         })
                         .toList();
 
-                if (matched.isEmpty()) continue;
-
                 long total = matched.size();
                 long female = matched.stream().filter(this::isFemale).count();
                 long age017 = matched.stream().filter(f -> isAgeLessOrEqual(f, 17)).count();
