@@ -18,14 +18,14 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping(ApiPaths.Report.ROOT)
+@RequestMapping(ApiPaths.Report.LOCATION)
 @Tag(name = "Location report")
 @RequiredArgsConstructor
 public class LocationReportController {
     private final LocationReportService locationReportService;
     private final MessageUtil messageUtil;
 
-    @GetMapping("/by-location")
+    @GetMapping
     public ApiResponse<?> reportByLocation(
             @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
