@@ -74,7 +74,6 @@ public class CardSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             boolean isHead = isHead(currentUser);
-            boolean isSuperAdmin = isSuperAdmin(currentUser);
 
             Long orgId = null;
             Long userId = null;
@@ -85,9 +84,6 @@ public class CardSpecification {
                 userId = currentUser.getId();
             }
 
-            if (isSuperAdmin) {
-                return cb.conjunction();
-            }
             if (fromDate != null || toDate != null) {
                 SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
             }
@@ -103,15 +99,15 @@ public class CardSpecification {
                 predicates.add(cb.equal(root.get("form058").get("finalMkb10Code"), mkb10Code.trim()));
             }
 
-            if (isHead && orgId != null) {
-                predicates.add(cb.equal(root.get("createdOrg").get("id"), orgId));
-            } else if (!isHead && userId != null) {
-                predicates.add(cb.equal(root.join("users", JoinType.LEFT).get("id"), userId));
+            if (!isSuperAdmin(currentUser)) {
+                if (isHead && orgId != null) {
+                    predicates.add(cb.equal(root.get("createdOrg").get("id"), orgId));
+                } else if (userId != null) {
+                    predicates.add(cb.equal(root.join("users", JoinType.LEFT).get("id"), userId));
+                }
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
-
-
 }
