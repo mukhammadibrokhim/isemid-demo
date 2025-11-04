@@ -72,7 +72,7 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                 dto.setTitleUzCyril(report.getNameUzCyril());
                 dto.setTitleRu(report.getNameRu());
                 dto.setTitleKaa(report.getNameKaa());
-                dto.setIcd10Code(code);
+                dto.setCode(report.getCode());
 
                 dto.setTotalCount(total);
                 dto.setFemaleCount(female);

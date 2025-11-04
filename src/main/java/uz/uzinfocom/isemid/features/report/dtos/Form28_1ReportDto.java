@@ -15,9 +15,7 @@ public class Form28_1ReportDto {
     private String titleUzCyril;
     private String titleRu;
     private String titleKaa;
-
-    private String icd10Code;      // ICD-10 code
-
+    private String code;
     private Long totalCount;
     private Long femaleCount;
     private Long age0to17Count;

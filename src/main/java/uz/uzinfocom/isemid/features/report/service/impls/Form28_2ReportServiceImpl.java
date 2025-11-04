@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.springframework.util.StringUtils.hasText;
-import static uz.uzinfocom.isemid.commons.utils.PatientUtils.*;
+import static uz.uzinfocom.isemid.commons.utils.PatientUtils.isAgeLessOrEqual;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +61,7 @@ public class Form28_2ReportServiceImpl implements Form28_2ReportService {
                 dto.setTitleUzCyril(report.getNameUzCyril());
                 dto.setTitleRu(report.getNameRu());
                 dto.setTitleKaa(report.getNameKaa());
-                dto.setIcd10Code(code);
+                dto.setCode(report.getCode());
 
                 dto.setTotalCount(total);
                 dto.setAge0to17Count(age0to17);

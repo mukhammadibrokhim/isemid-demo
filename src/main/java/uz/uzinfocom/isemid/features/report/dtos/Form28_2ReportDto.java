@@ -13,9 +13,7 @@ public class Form28_2ReportDto {
     private String titleUzCyril;
     private String titleRu;
     private String titleKaa;
-
-    private String icd10Code;
-
+    private String code;
     private Long totalCount;
     private Long age0to17Count;
     private Long under1MonthCount;      // 1 ойгача / до 1 месяца
