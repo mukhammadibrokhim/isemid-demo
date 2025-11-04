@@ -14,6 +14,8 @@ import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportReposito
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.classifier.specifications.ManualReportSpecification;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
@@ -59,4 +61,11 @@ public class ManualReportServiceImpl implements ManualReportService {
         mapper.update(manualReport, request);
         return repo.save(manualReport);
     }
+
+    public List<ManualReport> getManualReportsForForm(String type) {
+        return repo.findAll().stream()
+                .filter(r -> r.getReportTypes() != null && r.getReportTypes().contains(type))
+                .toList();
+    }
+
 }

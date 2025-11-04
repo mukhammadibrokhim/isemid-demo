@@ -4,28 +4,30 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.commons.utils.PatientUtils;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
-import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
+import uz.uzinfocom.isemid.features.classifier.models.enums.ReportType;
+import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.report.dtos.Form28_1ReportDto;
 import uz.uzinfocom.isemid.features.report.service.Form28_1ReportService;
 
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static org.springframework.util.StringUtils.hasText;
+import static uz.uzinfocom.isemid.commons.utils.PatientUtils.*;
 
 @Service
 @RequiredArgsConstructor
 public class Form28_1ReportServiceImpl implements Form28_1ReportService {
 
     private final Form058Repository form058Repository;
-    private final ManualReportRepository manualReportRepository;
+    private final ManualReportService manualReportService;
 
     @Override
     public List<Form28_1ReportDto> getReports(LocalDate fromDate, LocalDate toDate, String mkb10Code) {
@@ -34,10 +36,7 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                 filterByCriteria(fromDate, toDate, mkb10Code)
         );
 
-        List<ManualReport> manualReports = manualReportRepository.findAll()
-                .stream()
-                .filter(r -> Boolean.TRUE.equals(r.getIncludeInTotal()))
-                .toList();
+        List<ManualReport> manualReports = manualReportService.getManualReportsForForm(ReportType.FORM_28_1.name());
 
         List<Form28_1ReportDto> result = new ArrayList<>();
 
@@ -58,13 +57,13 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
                         .toList();
 
                 long total = matched.size();
-                long female = matched.stream().filter(this::isFemale).count();
+                long female = matched.stream().filter(PatientUtils::isFemale).count();
                 long age017 = matched.stream().filter(f -> isAgeLessOrEqual(f, 17)).count();
                 long age014 = matched.stream().filter(f -> isAgeLessOrEqual(f, 14)).count();
                 long under1 = matched.stream().filter(f -> isAgeLessOrEqual(f, 1)).count();
                 long age1to2 = matched.stream().filter(f -> isAgeBetween(f, 1, 2)).count();
                 long age3to5 = matched.stream().filter(f -> isAgeBetween(f, 3, 5)).count();
-                long rural = matched.stream().filter(this::isRural).count();
+                long rural = matched.stream().filter(PatientUtils::isRural).count();
                 long rural017 = matched.stream().filter(f -> isRural(f) && isAgeLessOrEqual(f, 17)).count();
 
                 Form28_1ReportDto dto = new Form28_1ReportDto();
@@ -101,30 +100,6 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-    }
-
-    private boolean isFemale(Form058 f) {
-        return f.getPatient() != null &&
-                f.getPatient().getGenderCode() != null &&
-                f.getPatient().getGenderCode().equalsIgnoreCase("FEMALE");
-    }
-
-    private boolean isAgeLessOrEqual(Form058 f, int maxAge) {
-        if (f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
-        int age = Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears();
-        return age <= maxAge;
-    }
-
-    private boolean isAgeBetween(Form058 f, int min, int max) {
-        if (f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
-        int age = Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears();
-        return age >= min && age <= max;
-    }
-
-    private boolean isRural(Form058 f) {
-        return f.getPatient() != null &&
-                f.getPatient().getPopulationTypeCode() != null &&
-                f.getPatient().getPopulationTypeCode().equalsIgnoreCase("VILLAGE_RESIDENT");
     }
 }
 

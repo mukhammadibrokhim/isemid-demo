@@ -17,6 +17,7 @@ public class CatalogResponse {
     private Timestamp updatedAt;
     private Long createdBy;
     private Long updatedBy;
+    private String type;
     private String code;
     private String parentCode;
     private String nameUz;
