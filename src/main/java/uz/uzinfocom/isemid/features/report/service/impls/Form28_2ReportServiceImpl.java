@@ -55,7 +55,6 @@ public class Form28_2ReportServiceImpl implements Form28_2ReportService {
                 long under1Month = matched.stream().filter(PatientUtils::isUnderOneMonth).count();
                 long from1MonthTo1Year = matched.stream().filter(PatientUtils::isAgeFrom1MonthTo1Year).count();
 
-                // ✅ DTO ni to‘ldirish
                 Form28_2ReportDto dto = new Form28_2ReportDto();
                 dto.setShortName(report.getShortName());
                 dto.setTitleUz(report.getNameUz());
@@ -84,6 +83,8 @@ public class Form28_2ReportServiceImpl implements Form28_2ReportService {
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
             }
+
+            predicates.add(cb.equal(root.get("diseasePlaceCode"), "IN_MEDICAL_INSTITUTION"));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
