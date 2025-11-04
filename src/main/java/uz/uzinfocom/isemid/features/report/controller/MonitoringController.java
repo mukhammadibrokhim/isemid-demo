@@ -12,13 +12,13 @@ import uz.uzinfocom.isemid.features.report.dtos.MonitoringResponse;
 import uz.uzinfocom.isemid.features.report.service.MonitoringService;
 
 @RestController
-@RequestMapping(ApiPaths.Report.ROOT)
+@RequestMapping(ApiPaths.Report.MONITORING)
 @RequiredArgsConstructor
 public class MonitoringController {
     private final MonitoringService monitoringService;
     private final MessageUtil messageUtil;
 
-    @GetMapping("/monitoring")
+    @GetMapping
     public ApiResponse<MonitoringResponse> getMonitoring(
             @RequestParam String fromDate,
             @RequestParam String toDate
