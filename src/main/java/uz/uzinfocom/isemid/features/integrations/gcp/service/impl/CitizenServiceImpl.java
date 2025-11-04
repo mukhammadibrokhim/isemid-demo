@@ -16,6 +16,7 @@ import uz.uzinfocom.isemid.features.integrations.gcp.service.CitizenService;
 import java.time.LocalDate;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CHILD;
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CITIZEN;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
@@ -59,7 +60,7 @@ public class CitizenServiceImpl implements CitizenService {
 
         } catch (Exception e) {
             throw new ApiException(
-                    NOT_FOUND,
+                    SERVICE_UNAVAILABLE,
                     messageUtil.get("error.citizen.gcp_unavailable")
             );
         }
@@ -90,7 +91,7 @@ public class CitizenServiceImpl implements CitizenService {
 
         } catch (Exception e) {
             throw new ApiException(
-                    NOT_FOUND,
+                    SERVICE_UNAVAILABLE,
                     messageUtil.get("error.citizen.gcp_unavailable")
             );
         }
