@@ -44,10 +44,8 @@ public class Form28_2ReportServiceImpl implements Form28_2ReportService {
         for (ManualReport report : manualReports) {
             Set<String> mkbCodes = report.getMkb10Codes();
 
-            for (String code : mkbCodes) {
                 List<Form058> matched = form058List.stream()
-                        .filter(f -> f.getFinalMkb10Code() != null &&
-                                f.getFinalMkb10Code().equalsIgnoreCase(code))
+                        .filter(f -> mkbCodes.contains(f.getFinalMkb10Code()))
                         .toList();
 
                 long total = matched.size();
@@ -69,7 +67,6 @@ public class Form28_2ReportServiceImpl implements Form28_2ReportService {
                 dto.setAge1MonthTo1YearCount(from1MonthTo1Year);
 
                 result.add(dto);
-            }
         }
 
         return result;
