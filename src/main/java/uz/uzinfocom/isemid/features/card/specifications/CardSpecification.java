@@ -83,10 +83,6 @@ public class CardSpecification {
                 userId = currentUser.getId();
             }
 
-            if (isSuperAdmin) {
-                return cb.conjunction();
-            }
-
             return cb.and(
                     Stream.of(
                                     (isHead && orgId != null)
