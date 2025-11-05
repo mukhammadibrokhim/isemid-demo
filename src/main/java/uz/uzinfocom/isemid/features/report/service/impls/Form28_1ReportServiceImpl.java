@@ -43,18 +43,10 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
         for (ManualReport report : manualReports) {
             Set<String> mkbCodes = report.getMkb10Codes();
 
-            for (String code : mkbCodes) {
 
-                List<Form058> matched = form058List.stream()
-                        .filter(f -> {
-                            String finalCode = f.getFinalMkb10Code();
-
-                            if (finalCode != null && !finalCode.isBlank()) {
-                                return code.equalsIgnoreCase(finalCode);
-                            }
-                            return false;
-                        })
-                        .toList();
+            List<Form058> matched = form058List.stream()
+                    .filter(f -> mkbCodes.contains(f.getFinalMkb10Code()))
+                    .toList();
 
                 long total = matched.size();
                 long female = matched.stream().filter(PatientUtils::isFemale).count();
@@ -85,7 +77,6 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
 
                 result.add(dto);
             }
-        }
         return result;
     }
 
