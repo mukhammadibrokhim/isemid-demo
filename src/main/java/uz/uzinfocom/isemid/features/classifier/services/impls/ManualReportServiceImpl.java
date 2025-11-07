@@ -63,9 +63,6 @@ public class ManualReportServiceImpl implements ManualReportService {
     }
 
     public List<ManualReport> getManualReportsForForm(String type) {
-        return repo.findAll().stream()
-                .filter(r -> r.getReportTypes() != null && r.getReportTypes().contains(type))
-                .toList();
+        return repo.findByTypeAndIncludeInTotal(type);
     }
-
 }

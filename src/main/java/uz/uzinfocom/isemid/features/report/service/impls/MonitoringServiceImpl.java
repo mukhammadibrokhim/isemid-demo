@@ -35,7 +35,6 @@ public class MonitoringServiceImpl implements MonitoringService {
         Specification<Form058> spec = filterByCreatedDate(from, to);
         List<Form058> forms = form058Repository.findAll(spec);
 
-        // 🧮 Statistikani yig‘ish
         MonitoringResponse result = new MonitoringResponse();
         result.setDiseaseDate(LocalDate.now());
         result.setTotalCases(forms.size());
