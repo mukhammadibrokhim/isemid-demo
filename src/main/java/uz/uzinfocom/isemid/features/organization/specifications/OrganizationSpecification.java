@@ -9,6 +9,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.springframework.util.StringUtils.hasText;
+import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin;
+import static uz.uzinfocom.isemid.commons.utils.SpecificationUtils.buildLevelPredicate;
 
 public class OrganizationSpecification {
     public static Specification<Organization> build(
@@ -26,23 +28,11 @@ public class OrganizationSpecification {
             ).filter(Objects::nonNull).collect(java.util.stream.Collectors.toList());
 
             if (currentUser != null && currentUser.getCurrentOrganization() != null) {
-                var level = currentUser.getCurrentOrganization().getLevelType();
-                switch (level) {
-                    case REPUBLICAN:
-                        break;
-                    case REGIONAL, URBAN:
-                        predicates.add(criteriaBuilder.equal(
-                                root.get("stateCode"),
-                                currentUser.getCurrentOrganization().getStateCode()
-                        ));
-                        break;
-                    case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED:
-                        predicates.add(criteriaBuilder.equal(
-                                root.get("cityCode"),
-                                currentUser.getCurrentOrganization().getCityCode()
-                        ));
-                        break;
+                Organization currOrgan = currentUser.getCurrentOrganization();
+                if (isSuperAdmin(currentUser)) {
+                    return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
                 }
+                predicates.add(buildLevelPredicate(root, criteriaBuilder, currOrgan.getLevelType(), currOrgan.getStateCode(), currOrgan.getCityCode(), currOrgan.getId()));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

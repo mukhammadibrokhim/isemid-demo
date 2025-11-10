@@ -48,7 +48,9 @@ public class PatientRequest {
     private ResidentialStatus residentialStatus;
     private MaritalStatus maritalStatus;
 
+    @NotBlank(message = "Категория обязательна и не может быть пустой.")
     private String categoryCode;
+
     private String professionCode;
 
     @NotNull(message = "Population Type is required.")
