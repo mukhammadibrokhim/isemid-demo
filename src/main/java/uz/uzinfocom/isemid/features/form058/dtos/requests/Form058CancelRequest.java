@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class Form058CancelRequest {
-    private String reason;
+    private String cancelReason;
 }
