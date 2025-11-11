@@ -52,5 +52,6 @@ public class Form058Response {
     //    @JsonIgnoreProperties("form058")
     private List<CardResponse> cards = new ArrayList<>();
     private String cardByFullName;
+    private String cancelReason;
     private String notApproveComment;
 }

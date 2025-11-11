@@ -133,7 +133,7 @@ public class Form058Controller {
     ) {
         return ApiResponse.success(
                 messageUtil,
-                form058Mapper.toResponse(form058Service.cancel(formId, request.getReason()))
+                form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason()))
         );
     }
 
