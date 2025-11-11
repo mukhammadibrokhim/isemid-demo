@@ -38,7 +38,7 @@ public interface Form058Service {
 
     Form058 changeReceivedOrd(Long formId, Long orgId);
 
-    Form058 cancel(Long formId);
+    Form058 cancel(Long formId, String reason);
 
     Form058 approveForm(Long formId);
 

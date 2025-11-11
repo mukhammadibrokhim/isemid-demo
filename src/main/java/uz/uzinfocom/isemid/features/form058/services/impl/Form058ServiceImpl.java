@@ -112,9 +112,10 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Form058 cancel(Long formId) {
+    public Form058 cancel(Long formId, String reason) {
         Form058 form058 = this.getById(formId);
         form058.setStatus(FormStatus.CANCELED);
+        form058.setCancelReason(reason);
         return form058Repository.save(form058);
     }
 

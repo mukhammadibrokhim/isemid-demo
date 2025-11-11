@@ -20,7 +20,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping(ApiPaths.Report.ROOT)
+@RequestMapping(ApiPaths.Report.FORM1)
 @Tag(name = "Report Forms")
 @RequiredArgsConstructor
 public class Form1ReportController {
@@ -48,7 +48,7 @@ public class Form1ReportController {
                     )
             }
     )
-    @GetMapping("/form1")
+    @GetMapping
     public ApiResponse<?> infections(
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
