@@ -85,6 +85,7 @@ public class Form058 extends AbsEntity {
     private List<Card> cards = new ArrayList<>();
 
     private String cardByFullName;
+    private String cancelReason;
 
     @Column(length = 1000)
     private String notApproveComment;

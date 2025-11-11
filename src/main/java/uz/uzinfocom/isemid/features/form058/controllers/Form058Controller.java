@@ -12,10 +12,7 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
@@ -128,11 +125,18 @@ public class Form058Controller {
     }
 
 
-    @Operation(summary = "Отмена формы 058", description = "Позволяет отменить (отклонить) форму 058 по её идентификатору.")
+    @Operation(summary = "Отмена формы 058", description = "Позволяет отменить (отклонить) форму 058 по её идентификатору с указанием причины.")
     @PatchMapping("/{formId}/cancel")
-    public ApiResponse<?> cancel(@PathVariable Long formId) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.cancel(formId)));
+    public ApiResponse<?> cancel(
+            @PathVariable Long formId,
+            @RequestBody @Valid Form058CancelRequest request
+    ) {
+        return ApiResponse.success(
+                messageUtil,
+                form058Mapper.toResponse(form058Service.cancel(formId, request.getReason()))
+        );
     }
+
 
     @Operation(summary = "Подтверждение формы 058", description = "Позволяет утвердить форму 058.")
     @PatchMapping("/{formId}/approve")

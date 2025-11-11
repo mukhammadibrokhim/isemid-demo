@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.report.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,7 @@ import uz.uzinfocom.isemid.features.report.service.MonitoringService;
 
 @RestController
 @RequestMapping(ApiPaths.Report.MONITORING)
+@Tag(name = "Report Forms")
 @RequiredArgsConstructor
 public class MonitoringController {
     private final MonitoringService monitoringService;

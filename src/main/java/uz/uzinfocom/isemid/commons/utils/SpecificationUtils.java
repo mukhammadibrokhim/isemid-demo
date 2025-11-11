@@ -68,18 +68,14 @@ public class SpecificationUtils {
             String orgCityCode,
             Long currentOrgId
     ) {
-        // 🔹 Join to createdOrg
         Join<T, ?> createdOrgJoin = root.join("createdOrg", JoinType.LEFT);
 
-        // 🔹 Build base predicate by level
         Predicate levelPredicate = buildLevelPredicateInternal(
                 createdOrgJoin, cb, levelType, orgStateCode, orgCityCode
         );
 
-        // 🔹 Add receiverOrganizationId = currentOrgId
         Predicate receiverPredicate = cb.equal(root.get("receiverOrganizationId"), currentOrgId);
 
-        // 🔹 Combine: createdOrg in scope OR received by me
         return cb.or(levelPredicate, receiverPredicate);
     }
 

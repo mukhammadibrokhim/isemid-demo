@@ -19,7 +19,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping(ApiPaths.Report.LOCATION)
-@Tag(name = "Location report")
+@Tag(name = "Report Forms")
 @RequiredArgsConstructor
 public class LocationReportController {
     private final LocationReportService locationReportService;
