@@ -49,5 +49,6 @@ public class Form058DetailsResponse {
     private String journalFormCode;
     private String comment;
     private String cardByFullName;
+    private String cancelReason;
     private String notifierFullName;
 }

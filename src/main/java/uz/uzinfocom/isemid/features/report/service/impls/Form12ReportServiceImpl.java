@@ -6,7 +6,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
-import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportRepository;
+import uz.uzinfocom.isemid.features.classifier.models.enums.ReportType;
+import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
@@ -26,34 +27,38 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class Form12ReportServiceImpl implements Form12ReportService {
     private final Form058Repository form058Repository;
-    private final ManualReportRepository manualReportRepository;
+    private final ManualReportService manualReportService;
 
     @Override
-    public Object getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
-        Specification<Form058> form058Specification = filterByCriteria(fromDate, toDate, birthDate, gender, currentUser);
-        List<Form058> form058s = form058Repository.findAll(form058Specification);
-        List<ManualReport> manualReports = manualReportRepository.findAll();
+    public List<Form12ReportDto> getReport(
+            LocalDate fromDate,
+            LocalDate toDate,
+            LocalDate birthDate,
+            String mkb10Code,
+            Gender gender,
+            User currentUser
+    ) {
+
+        List<Form058> form058List = form058Repository.findAll(
+                filterByCriteria(fromDate, toDate, birthDate, gender, currentUser)
+        );
+
+        List<ManualReport> manualReports = manualReportService.getManualReportsForForm(ReportType.FORM_12.name());
 
         List<Form12ReportDto> result = new ArrayList<>();
 
         for (ManualReport report : manualReports) {
-
-            if (!Boolean.TRUE.equals(report.getIncludeInTotal())) {
-                continue;
-            }
-
             Set<String> mkb10Codes = report.getMkb10Codes();
 
-            List<Form058> matched = form058s.stream()
-                    .filter(f -> mkb10Codes.contains(f.getMkb10Code()) || mkb10Codes.contains(f.getFinalMkb10Code()))
+            List<Form058> matched = form058List.stream()
+                    .filter(f -> mkb10Codes.contains(f.getFinalMkb10Code()))
                     .toList();
 
             long total = matched.size();
             long below18 = matched.stream()
-                    .filter(f -> {
-                        if (f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
-                        return Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears() < 18;
-                    }).count();
+                    .filter(f -> f.getPatient() != null && f.getPatient().getBirthDate() != null &&
+                            Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears() < 18)
+                    .count();
 
             Form12ReportDto dto = new Form12ReportDto();
             dto.setShortName(report.getShortName());
@@ -81,21 +86,17 @@ public class Form12ReportServiceImpl implements Form12ReportService {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            Organization userOrg = currentUser.getCurrentOrganization();
-
-            // ✅ Reuse date range filter
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
-            // 🎂 Birth date filter
             if (birthDate != null) {
                 predicates.add(cb.equal(root.get("patient").get("birthDate"), birthDate));
             }
 
-            // 👩 Gender filter
             if (gender != null) {
-                predicates.add(cb.equal(root.get("patient").get("gender").get("code"), gender.name()));
+                predicates.add(cb.equal(root.get("patient").get("genderCode"), gender.name()));
             }
 
+            Organization userOrg = currentUser != null ? currentUser.getCurrentOrganization() : null;
             if (userOrg != null && userOrg.getMedicalType() == MedicalType.SANEPID_SERVICE) {
                 SpecificationUtils.addSanepidAccessPredicate(root, cb, userOrg, predicates);
             }

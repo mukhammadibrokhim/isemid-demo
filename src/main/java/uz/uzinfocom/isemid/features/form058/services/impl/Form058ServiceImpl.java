@@ -63,8 +63,10 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     @Transactional
-    public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode, Boolean affiliation, User user, FilterType filterType) {
-        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, user, filterType);
+    public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode,
+                                String cityCode, Boolean affiliation, String mkb10Code, Long organizationId, User user,
+                                FilterType filterType) {
+        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, user, filterType);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
@@ -110,9 +112,10 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Form058 cancel(Long formId) {
+    public Form058 cancel(Long formId, String reason) {
         Form058 form058 = this.getById(formId);
         form058.setStatus(FormStatus.CANCELED);
+        form058.setCancelReason(reason);
         return form058Repository.save(form058);
     }
 

@@ -6,7 +6,6 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
-import java.util.List;
 import java.util.Set;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -27,6 +26,14 @@ import java.util.Set;
         @Index(name = "idx_name_kaa", columnList = "nameKaa"),
 },name = "cls_manual_report")
 public class ManualReport extends BaseEntity {
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "cls_manual_report_types", joinColumns = @JoinColumn(name = "manual_report_id"))
+    @Column(name = "report_type")
+    @Enumerated(EnumType.STRING)
+    private Set<String> reportTypes;
+
+
     private String code;
     private String shortName;
     private String nameUz;

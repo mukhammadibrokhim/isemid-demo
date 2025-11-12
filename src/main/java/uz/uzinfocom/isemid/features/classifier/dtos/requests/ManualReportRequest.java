@@ -15,6 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class ManualReportRequest {
+    private Set<String> reportTypes;
     private String code;
     @NotBlank(message = "Short name не может быть пустым")
     private String shortName;

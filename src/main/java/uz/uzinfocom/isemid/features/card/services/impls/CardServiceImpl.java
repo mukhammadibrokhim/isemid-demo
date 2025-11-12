@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.card.dtos.requests.CardAssignActRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRejectRequest;
 import uz.uzinfocom.isemid.features.card.dtos.requests.CardRequest;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
+import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.reposiotries.CardRepository;
 import uz.uzinfocom.isemid.features.card.services.CardService;
@@ -45,10 +46,10 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public Page<Card> filter(
-            int page, int size, String formTypeCode, String fromOrName,
-            String toOrgName, CardStatus cardStatus, Long formId, String mkb10Code, User user
+            int page, int size,
+            CardStatus cardStatus, String mkb10Code, User user
     ) {
-        Specification<Card> spec = CardSpecification.build(formTypeCode, fromOrName, toOrgName, cardStatus, null, false, formId, mkb10Code,user);
+        Specification<Card> spec = CardSpecification.build(cardStatus, mkb10Code, user);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
@@ -149,8 +150,10 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public Page<Card> getAssignedCards(int page, int size, User currentUser) {
-        Specification<Card> spec = CardSpecification.build(currentUser);
+    public Page<Card> getAssignedCards(int page, int size, LocalDate fromDate, LocalDate toDate, CardType cardType,
+                                       CardStatus cardStatus, String mkb10Code,
+                                       User currentUser) {
+        Specification<Card> spec = CardSpecification.build(fromDate, toDate, cardType, cardStatus, mkb10Code, currentUser);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 }
