@@ -68,6 +68,13 @@ public final class ApiPaths {
 
     public static final class Report {
         public static final String ROOT = BASE_PATH  + "/report";
+        public static final String FORM1 = ROOT + "/form1";
+        public static final String FORM12 = ROOT + "/form12";
+        public static final String FORM13 = ROOT + "/form-13";
+        public static final String FORM28_1 = ROOT  + "/form-28-1";
+        public static final String FORM28_2 = ROOT + "/form-28-2";
+        public static final String LOCATION = ROOT + "/by-location";
+        public static final String MONITORING = ROOT + "/monitoring";
     }
 
     public static final class AnalyticReport {
@@ -80,6 +87,7 @@ public final class ApiPaths {
 
     public static final class BaseDomain {
         public static final String ROOT = "https://ykem.sanepid.uz/api";
+        public static final String ROOT_DEV = "https://test-ykem.sanepid.uz/api";
         public static final String ROOT_LOCAL = "http://localhost:8081";
         private BaseDomain() {}
 

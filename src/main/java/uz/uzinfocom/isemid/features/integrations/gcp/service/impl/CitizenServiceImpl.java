@@ -16,6 +16,7 @@ import uz.uzinfocom.isemid.features.integrations.gcp.service.CitizenService;
 import java.time.LocalDate;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CHILD;
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CITIZEN;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
@@ -32,27 +33,70 @@ public class CitizenServiceImpl implements CitizenService {
 
     @Override
     public Object getCitizenByNnuzb(String nnuzb, LocalDate birthDate, String photo, String token) {
-        validateByNnuzb(nnuzb,messageUtil);
-        CitizenResponse response = makeRequest(String.format(GCP_CITIZEN, nnuzb, birthDate, photo), HttpMethod.GET, token, null, CitizenResponse.class, messageUtil);
-        if (response == null || response.getData() == null) {
-            throw new ApiException(NOT_FOUND, messageUtil.get("error.citizen.not_found_by_nnuzb", nnuzb));
-        }
-        CitizenResponse mappedResponse = citizenMapper.mapToResponse(response);
-        mappedResponse.getData().forEach(data -> citizenMapper.transformData(data, catalogService));
+        validateByNnuzb(nnuzb, messageUtil);
 
-        return mappedResponse;
+        try {
+            CitizenResponse response = makeRequest(
+                    String.format(GCP_CITIZEN, nnuzb, birthDate, photo),
+                    HttpMethod.GET,
+                    token,
+                    null,
+                    CitizenResponse.class,
+                    messageUtil
+            );
+
+            if (response == null || response.getData() == null) {
+                throw new ApiException(
+                        NOT_FOUND,
+                        messageUtil.get("error.citizen.not_found_by_nnuzb", nnuzb)
+                );
+            }
+
+            CitizenResponse mappedResponse = citizenMapper.mapToResponse(response);
+            mappedResponse.getData()
+                    .forEach(data -> citizenMapper.transformData(data, catalogService));
+
+            return mappedResponse;
+
+        } catch (Exception e) {
+            throw new ApiException(
+                    SERVICE_UNAVAILABLE,
+                    messageUtil.get("error.citizen.gcp_unavailable")
+            );
+        }
     }
 
     @Override
     public Object getCitizenByChild(String series, String number, String token) {
         validateChildCertificate(series, number, messageUtil);
-        ChildResponse response = makeRequest(String.format(GCP_CHILD, series, number), HttpMethod.GET, token, null, ChildResponse.class, messageUtil);
 
-        if (response == null || response.getItems() == null || response.getItems().isEmpty()) {
-            throw new ApiException(NOT_FOUND, messageUtil.get("error.citizen.not_found_by_document", series, number));
+        try {
+            ChildResponse response = makeRequest(
+                    String.format(GCP_CHILD, series, number),
+                    HttpMethod.GET,
+                    token,
+                    null,
+                    ChildResponse.class,
+                    messageUtil
+            );
+
+            if (response == null || response.getItems() == null || response.getItems().isEmpty()) {
+                throw new ApiException(
+                        NOT_FOUND,
+                        messageUtil.get("error.citizen.not_found_by_document", series, number)
+                );
+            }
+
+            return citizenMapper.mapToCitizenResponse(response);
+
+        } catch (Exception e) {
+            throw new ApiException(
+                    SERVICE_UNAVAILABLE,
+                    messageUtil.get("error.citizen.gcp_unavailable")
+            );
         }
-        return citizenMapper.mapToCitizenResponse(response);
     }
+
 
     @Override
     public ResponseEntity<?> getCitizenByNnuzbByToken(String nnuzb, LocalDate birthDate) {

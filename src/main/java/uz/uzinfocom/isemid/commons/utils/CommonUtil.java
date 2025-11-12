@@ -86,7 +86,8 @@ public class CommonUtil {
             "/v1/auth",
             "/qr",
             "/legal-entity",
-            "/info"
+            "/info",
+            "/monitoring"
     };
 
     private static final Map<Integer, String> uzMonthsCyrl = Map.ofEntries(

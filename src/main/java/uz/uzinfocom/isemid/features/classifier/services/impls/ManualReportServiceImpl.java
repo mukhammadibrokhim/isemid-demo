@@ -14,6 +14,8 @@ import uz.uzinfocom.isemid.features.classifier.repositories.ManualReportReposito
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.classifier.specifications.ManualReportSpecification;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableNotSorting;
 
@@ -58,5 +60,9 @@ public class ManualReportServiceImpl implements ManualReportService {
         ManualReport manualReport = repo.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         mapper.update(manualReport, request);
         return repo.save(manualReport);
+    }
+
+    public List<ManualReport> getManualReportsForForm(String type) {
+        return repo.findByTypeAndIncludeInTotal(type);
     }
 }

@@ -30,7 +30,8 @@ public class Form058Specification {
             String stateCode,
             String cityCode,
             Boolean affiliation,
-            User currentUser,
+            String mkb10Code,
+            Long organizationId, User currentUser,
             FilterType filterType
     ) {
         return (root, query, cb) -> {
@@ -45,6 +46,17 @@ public class Form058Specification {
             if (hasText(cityCode)) {
                 predicates.add(cb.equal(root.get("createdOrg").get("cityCode"), cityCode));
             }
+            if (hasText(mkb10Code)) {
+                predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
+            }
+
+            if (organizationId != null && filterType != null) {
+                switch (filterType) {
+                    case ALL -> predicates.add(cb.equal(root.get("senderOrganizationId"), organizationId));
+                    case RECEIVED -> predicates.add(cb.equal(root.get("receiverOrganizationId"), organizationId));
+                }
+            }
+
 
             var org = currentUser.getCurrentOrganization();
             if (org != null) {

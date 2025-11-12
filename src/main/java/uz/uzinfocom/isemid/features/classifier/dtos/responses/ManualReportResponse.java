@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -15,6 +16,7 @@ public class ManualReportResponse {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private String code;
+    private Set<String> reportTypes;
     private String shortName;
     private String nameUz;
     private String nameUzCyril;

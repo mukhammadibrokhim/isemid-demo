@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.ManualReportRequest;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 
+import java.util.List;
+
 public interface ManualReportService {
     Page<ManualReport> filter(
             int page,
@@ -25,4 +27,6 @@ public interface ManualReportService {
     void delete(long id);
 
     ManualReport update(long id, ManualReportRequest request);
+
+    List<ManualReport> getManualReportsForForm(String type);
 }
