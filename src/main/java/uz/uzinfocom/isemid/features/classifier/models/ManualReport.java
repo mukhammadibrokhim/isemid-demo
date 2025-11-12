@@ -33,7 +33,6 @@ public class ManualReport extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Set<String> reportTypes;
 
-
     private String code;
     private String shortName;
     private String nameUz;

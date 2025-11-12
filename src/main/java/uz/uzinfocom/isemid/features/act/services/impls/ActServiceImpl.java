@@ -50,5 +50,15 @@ public class ActServiceImpl implements ActService {
             throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), e);
         }
     }
+
+    @Override
+    public void sendToLis(Long id) {
+        
+    }
+
+    @Override
+    public void handleLisResponse(Long id, String body) {
+
+    }
 }
 
