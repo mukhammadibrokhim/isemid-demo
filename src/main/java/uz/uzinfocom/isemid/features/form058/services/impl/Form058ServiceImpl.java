@@ -14,8 +14,8 @@ import uz.uzinfocom.isemid.features.card.services.CardBuildService;
 import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
 import uz.uzinfocom.isemid.features.classifier.repositories.CatalogRepository;
 import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ApproveDiagnosisRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058ConfirmationStatsResponse;
@@ -26,6 +26,7 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.form058.specifications.Form058Specification;
+import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
@@ -52,6 +53,7 @@ public class Form058ServiceImpl implements Form058Service {
     private final Mkb10Service mkb10Service;
     private final CatalogRepository catalogRepository;
     private final MessageUtil messageUtil;
+    private final OrganizationService organizationService;
 
     @Override
     public Form058 create(Form058Request request) {
@@ -162,12 +164,20 @@ public class Form058ServiceImpl implements Form058Service {
 
     @Override
     @Transactional
-    public Form058 approveDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis) {
+    public Form058 approveDiagnosis(Long formId, Form058ApproveDiagnosisRequest changeDiagnosis, String token) {
         Form058 form058 = this.getById(formId);
         if (!form058.getStatus().equals(FormStatus.CARD_LINKED))
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.cannot_change_diagnosis"));
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());
+        form058.setApprovedFullName(changeDiagnosis.getApprovedFullName());
+
+        var approveOrg = organizationService.findById(changeDiagnosis.getApprovedOrgId())
+                .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(
+                        changeDiagnosis.getApprovedOrgId(), token
+                ));
+
+        form058.setApprovedOrgId(approveOrg.getId());
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);
         return form058Repository.save(form058);

@@ -50,5 +50,7 @@ public class Form058DetailsResponse {
     private String comment;
     private String cardByFullName;
     private String cancelReason;
+    private String approvedFullName;
+    private OrgMiniResponse approvedOrg;
     private String notifierFullName;
 }
