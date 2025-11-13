@@ -13,4 +13,8 @@ public interface ActService {
     Act update(long id, ActRequest reqAct);
 
     void deleteById(Long id);
+
+    void sendToLis(Long id);
+
+    void handleLisResponse(Long id, String body);
 }

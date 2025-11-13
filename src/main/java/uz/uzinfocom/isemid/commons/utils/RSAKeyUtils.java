@@ -71,7 +71,6 @@ public class RSAKeyUtils {
         return (RSAPublicKey) keyFactory.generatePublic(keySpec);
     }
 
-
     public static RSAPublicKey publicKey() {
         try {
             String publicKeyPEM = TEST_SSO_SECRET

@@ -60,5 +60,32 @@ public class ActController {
         actService.deleteById(id);
         return ApiResponse.deleteSuccess(messageUtil);
     }
+
+    // ===================================
+    // 📡 LIS Integration
+    // ===================================
+
+    @Operation(
+            summary = "Отправить акт в LIS",
+            description = "Отправляет акт (153–224) в LIS систему и возвращает статус отправки."
+    )
+    @PostMapping("/{id}/send-to-lis")
+    public ApiResponse<?> sendActToLis(@PathVariable Long id) {
+        actService.sendToLis(id);
+        return ApiResponse.success(messageUtil, "Акт успешно отправлен в LIS.");
+    }
+
+    @Operation(
+            summary = "Приём ответа от LIS",
+            description = "Callback endpoint, на который LIS отправляет ответ по акту."
+    )
+    @PostMapping("/lis/callback/{id}")
+    public ApiResponse<?> receiveLisResponse(
+            @PathVariable Long id,
+            @RequestBody String body
+    ) {
+        actService.handleLisResponse(id, body);
+        return ApiResponse.success(messageUtil, "Ответ от LIS успешно принят.");
+    }
 }
 

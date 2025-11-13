@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.springframework.http.HttpHeaders.ACCEPT_LANGUAGE;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -161,9 +162,10 @@ public class Form058Controller {
     @PutMapping("/{formId}/approve-diagnosis")
     public ApiResponse<Form058Response> approveDiagnosis(
             @PathVariable Long formId,
-            @Valid @RequestBody Form058ChangeDiagnosisRequest request
+            @Valid @RequestBody Form058ApproveDiagnosisRequest request,
+            @RequestHeader(name = AUTHORIZATION) String token
     ) {
-        Form058 form = form058Service.approveDiagnosis(formId, request);
+        Form058 form = form058Service.approveDiagnosis(formId, request, token);
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form));
     }
 
