@@ -40,6 +40,7 @@ public class OrganizationMapperHelper {
 
     @Named("toOrgMiniResponse")
     public OrgMiniResponse toOrgMiniResponse(UUID uuid) {
+        if (uuid == null) return null;
         Organization organization = organizationRepository.findByUuid(uuid).orElse(null);
         if (organization == null) {
             return null;
@@ -53,6 +54,8 @@ public class OrganizationMapperHelper {
 
     @Named("toOrgMiniResponse")
     public OrgMiniResponse toOrgMiniResponse(Long id) {
+        if (id == null) return null;
+
         Organization organization = organizationRepository.findById(id).orElse(null);
         if (organization == null) {
             return null;
