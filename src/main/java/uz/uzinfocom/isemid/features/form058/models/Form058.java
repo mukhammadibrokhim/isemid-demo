@@ -87,6 +87,9 @@ public class Form058 extends AbsEntity {
     private String cardByFullName;
     private String cancelReason;
 
+    private String approvedFullName;
+    private Long approvedOrgId;
+
     @Column(length = 1000)
     private String notApproveComment;
 }

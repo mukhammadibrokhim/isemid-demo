@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.form058.services;
 
 import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ChangeDiagnosisRequest;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ApproveDiagnosisRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058ConfirmationStatsResponse;
@@ -46,7 +46,7 @@ public interface Form058Service {
 
     void deleteById(Long formId);
 
-    Form058 approveDiagnosis(Long formId, Form058ChangeDiagnosisRequest changeDiagnosis);
+    Form058 approveDiagnosis(Long formId, Form058ApproveDiagnosisRequest changeDiagnosis, String token);
 
     List<Form058ConfirmationStatsResponse> getConfirmationStats(List<String> mkb10Codes, List<String> regionCodes,
                                                                 LocalDate fromDate, LocalDate toDate,

@@ -34,6 +34,7 @@ public interface Form058Mapper {
     @Mapping(target = "senderOrganization", source = "senderOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "approvedOrg", source = "approvedOrgId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "cards", source = "cards")
     Form058Response toResponse(Form058 form058);
 
@@ -47,6 +48,7 @@ public interface Form058Mapper {
     @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "cards", source = "cards")
+    @Mapping(target = "approvedOrg", source = "approvedOrgId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "affiliation", source = ".", qualifiedByName = "mapAffiliation")
     Form058Response toResponse(Form058 form058, @Context Long orgId);
 
@@ -64,6 +66,7 @@ public interface Form058Mapper {
     @Mapping(target = "senderOrganization", source = "senderOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "approvedOrg", source = "approvedOrgId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "cards", source = "cards")
     Form058DetailsResponse toDetailsResponse(Form058 form);
 }
