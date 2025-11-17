@@ -15,6 +15,7 @@ import uz.uzinfocom.isemid.features.report.dtos.Form13ReportDto;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class Form13ReportHelper {
@@ -29,9 +30,18 @@ public class Form13ReportHelper {
 
         List<Catalog> children = catalogService.findAllByParentCode(parentCode);
 
-        if (children == null || children.isEmpty()) {
+//        if (children == null || children.isEmpty()) {
+//            return buildOrganizations(parentCode, forms);
+//        }
+
+        boolean hasCityLevelChildren = children.stream()
+                .map(Catalog::getType)
+                .anyMatch(type -> type.equals(CatalogType.neighborhood.name()));
+
+        if (hasCityLevelChildren) {
             return buildOrganizations(parentCode, forms);
         }
+
 
         List<ManualReport> reports = getReports();
         List<Form13ReportDto> result = new ArrayList<>();
@@ -94,7 +104,6 @@ public class Form13ReportHelper {
                     })
                     .toList();
 
-            // 3️⃣ Guruh statistikalarini quramiz
             List<Form13ReportDto.DiseaseStatGroupDto> groups = buildGroups(reports, districtForms);
 
             result.add(new Form13ReportDto(
