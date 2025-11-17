@@ -1,9 +1,7 @@
 package uz.uzinfocom.isemid.features.report.utils;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
-import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
@@ -23,7 +21,6 @@ public class Form13ReportHelper {
 
     private final ManualReportService manualReportService;
     private final CatalogService catalogService;
-    private final MessageUtil messageUtil;
 
     // ================================
     // Public Entry Points
@@ -128,7 +125,7 @@ public class Form13ReportHelper {
             List<Form058> orgForms = filter(forms, orgCode);
             String orgName = orgForms.isEmpty()
                     ? orgCode
-                    : safe(orgForms.get(0).getCreatedOrg()).getName();
+                    : safe(orgForms.getFirst().getCreatedOrg()).getName();
 
             result.add(new Form13ReportDto(orgCode, orgName, buildGroups(reports, orgForms)));
         }
@@ -211,22 +208,28 @@ public class Form13ReportHelper {
     // ================================
     private List<Form058> filter(List<Form058> forms, String locCode) {
 
+        if (locCode == null || locCode.isBlank()) return List.of();
+
+        String normalized = safe(locCode);
+
         return forms.stream()
-                .filter(f -> f.getCreatedOrg() != null &&
-                        (locEquals(f, locCode) || locStarts(f, locCode)))
+                .filter(f -> f.getCreatedOrg() != null)
+                .filter(f -> isLocationMatch(f.getCreatedOrg(), normalized))
                 .toList();
     }
 
-    private boolean locEquals(Form058 f, String code) {
-        Organization org = f.getCreatedOrg();
-        return code.equals(org.getStateCode()) || code.equals(org.getCityCode());
+    private boolean isLocationMatch(Organization org, String code) {
+
+        String state = safe(org.getStateCode());
+        String city = safe(org.getCityCode());
+
+        if (code.equals(state)) return true;
+
+        if (code.equals(city)) return true;
+
+        return !city.isBlank() && city.startsWith(code);
     }
 
-    private boolean locStarts(Form058 f, String code) {
-        Organization org = f.getCreatedOrg();
-        return safe(org.getStateCode()).startsWith(code) ||
-                safe(org.getCityCode()).startsWith(code);
-    }
 
     private String getDisplay(Catalog c) {
         return Optional.ofNullable(c.getNameUz()).filter(s -> !s.isBlank()).orElse("-");
