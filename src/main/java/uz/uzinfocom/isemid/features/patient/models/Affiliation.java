@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -35,5 +36,6 @@ public class Affiliation extends BaseEntity {
     private String stateCode;
     private String cityCode;
     private Long organizationId;
+    private UUID organizationUuid;
     private String address;
 }
