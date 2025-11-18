@@ -31,7 +31,8 @@ public class Form058Specification {
             String cityCode,
             Boolean affiliation,
             String mkb10Code,
-            Long organizationId, User currentUser,
+            Long organizationId,
+            User currentUser,
             FilterType filterType
     ) {
         return (root, query, cb) -> {
@@ -57,12 +58,13 @@ public class Form058Specification {
                 }
             }
 
-
             var org = currentUser.getCurrentOrganization();
             if (org != null) {
+
                 if (isSuperAdmin(currentUser)) {
                     return cb.and(predicates.toArray(new Predicate[0]));
                 }
+
                 Long orgId = org.getId();
                 UUID orgUuid = org.getUuid();
                 LevelType levelType = org.getLevelType();
@@ -72,22 +74,31 @@ public class Form058Specification {
 
                 Predicate accessPredicate;
 
-                if (Boolean.TRUE.equals(affiliation)) {
+                if (Boolean.TRUE.equals(affiliation) && medicalType != MedicalType.SANEPID_SERVICE) {
+
                     Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
                     Join<Patient, Affiliation> affJoin = patientJoin.join("affiliations", JoinType.LEFT);
 
                     Predicate orgMatch = cb.equal(affJoin.get("organizationId"), orgId);
-                    Predicate typeMatch = affJoin.get("type").in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
+                    Predicate typeMatch = affJoin.get("type")
+                            .in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL);
 
                     accessPredicate = cb.and(orgMatch, typeMatch);
                 }
+
                 else if (medicalType == MedicalType.SANEPID_SERVICE) {
-                    accessPredicate = SpecificationUtils.buildLevelPredicate(root, cb, levelType, orgStateCode, orgCityCode, orgId);
+
+                    accessPredicate = SpecificationUtils.buildLevelPredicate(
+                            root, cb, levelType, orgStateCode, orgCityCode, orgId
+                    );
                 }
+
                 else {
-                    accessPredicate = (filterType == FilterType.RECEIVED)
-                            ? cb.equal(root.get("receiverOrganizationId"), orgId)
-                            : cb.equal(root.get("createdOrgUuid"), orgUuid);
+
+                    Predicate createdByOrg = cb.equal(root.get("createdOrgUuid"), orgUuid);
+                    Predicate receivedByOrg = cb.equal(root.get("receiverOrganizationId"), orgId);
+
+                    accessPredicate = cb.or(createdByOrg, receivedByOrg);
                 }
 
                 predicates.add(accessPredicate);
