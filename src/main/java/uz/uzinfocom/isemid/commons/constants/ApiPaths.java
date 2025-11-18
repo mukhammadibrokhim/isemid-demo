@@ -69,6 +69,7 @@ public final class ApiPaths {
     public static final class Report {
         public static final String ROOT = BASE_PATH  + "/report";
         public static final String FORM1 = ROOT + "/form1";
+        public static final String FORM6= ROOT + "/form-6";
         public static final String FORM12 = ROOT + "/form12";
         public static final String FORM13 = ROOT + "/form-13";
         public static final String FORM28_1 = ROOT  + "/form-28-1";
@@ -100,7 +101,7 @@ public final class ApiPaths {
     public static final class ExternalApi {
         public static final String BASE_API_URL = "https://test-api2.ssv.uz";
         public static final String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
-
+//
 //        public static final String BASE_API_URL = "https://api2.ssv.uz";
 //        public static final String SSO_TOKEN = "https://sso.ssv.uz/oauth/token";
 

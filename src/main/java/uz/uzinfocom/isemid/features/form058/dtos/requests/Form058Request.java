@@ -34,8 +34,6 @@ public class Form058Request {
     private Boolean labConfirmation;
     private UUID hospitalPlaceId;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    @NotNull(message = "Дата поступления обязательна.")
     private LocalDateTime admissionDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
