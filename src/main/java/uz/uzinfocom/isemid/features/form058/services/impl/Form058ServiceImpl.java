@@ -180,8 +180,7 @@ public class Form058ServiceImpl implements Form058Service {
                         changeDiagnosis.getApprovedOrgId(), token
                 ));
 
-        // ❗ MUHIM: UUID yozamiz, Long emas
-        form058.setApprovedOrgId(approveOrg.getUuid());
+        form058.setApprovedOrgUuid(approveOrg.getUuid());
 
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);

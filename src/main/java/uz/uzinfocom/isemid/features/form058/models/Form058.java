@@ -89,7 +89,7 @@ public class Form058 extends AbsEntity {
     private String cancelReason;
 
     private String approvedFullName;
-    private UUID approvedOrgId;
+    private UUID approvedOrgUuid;
 
     @Column(length = 1000)
     private String notApproveComment;
