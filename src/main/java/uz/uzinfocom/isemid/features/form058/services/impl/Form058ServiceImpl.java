@@ -166,8 +166,11 @@ public class Form058ServiceImpl implements Form058Service {
     @Transactional
     public Form058 approveDiagnosis(Long formId, Form058ApproveDiagnosisRequest changeDiagnosis, String token) {
         Form058 form058 = this.getById(formId);
-        if (!form058.getStatus().equals(FormStatus.CARD_LINKED))
+
+        if (!form058.getStatus().equals(FormStatus.CARD_LINKED)) {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.cannot_change_diagnosis"));
+        }
+
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());
         form058.setApprovedFullName(changeDiagnosis.getApprovedFullName());
@@ -177,11 +180,15 @@ public class Form058ServiceImpl implements Form058Service {
                         changeDiagnosis.getApprovedOrgId(), token
                 ));
 
-        form058.setApprovedOrgId(approveOrg.getId());
+        // ❗ MUHIM: UUID yozamiz, Long emas
+        form058.setApprovedOrgId(approveOrg.getUuid());
+
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);
+
         return form058Repository.save(form058);
     }
+
 
     @Override
     public List<Form058ConfirmationStatsResponse> getConfirmationStats(

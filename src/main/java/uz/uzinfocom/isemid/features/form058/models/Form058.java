@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.patient.models.Patient;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 @Getter
@@ -88,7 +89,7 @@ public class Form058 extends AbsEntity {
     private String cancelReason;
 
     private String approvedFullName;
-    private Long approvedOrgId;
+    private UUID approvedOrgId;
 
     @Column(length = 1000)
     private String notApproveComment;
