@@ -16,6 +16,7 @@ import java.util.List;
 public class Form058AssignCardRequest {
     @NotNull(message = "Form058 id is required.")
     private long form058Id;
+
     @NotNull(message = "Card type is required.")
     private List<CardType> cardType;
 
