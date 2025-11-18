@@ -34,7 +34,6 @@ public interface Form058Mapper {
     @Mapping(target = "senderOrganization", source = "senderOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
-    @Mapping(target = "approvedOrg", source = "approvedOrgId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "cards", source = "cards")
     Form058Response toResponse(Form058 form058);
 
