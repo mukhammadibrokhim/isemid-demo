@@ -73,7 +73,7 @@ public class RSAKeyUtils {
 
     public static RSAPublicKey publicKey() {
         try {
-            String publicKeyPEM = SSO_SECRET
+            String publicKeyPEM = TEST_SSO_SECRET
                     .replace("-----BEGIN PUBLIC KEY-----", "")
                     .replace("-----END PUBLIC KEY-----", "")
                     .replaceAll("\\s", "");

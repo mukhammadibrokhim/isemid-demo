@@ -8,4 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class Form6ReportDto {
+    private String id;
 }
