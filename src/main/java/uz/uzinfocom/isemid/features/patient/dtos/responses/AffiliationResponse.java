@@ -6,6 +6,7 @@ import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,5 +20,6 @@ public class AffiliationResponse {
     private CatalogMinResponse state;
     private CatalogMinResponse city;
     private OrgMiniResponse organization;
+    private UUID organizationUuid;
     private String address;
 }
