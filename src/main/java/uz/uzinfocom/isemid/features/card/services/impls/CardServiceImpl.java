@@ -47,9 +47,12 @@ public class CardServiceImpl implements CardService {
     @Override
     public Page<Card> filter(
             int page, int size,
-            CardStatus cardStatus, String mkb10Code, User user
+            CardStatus cardStatus,
+            String mkb10Code,
+            Long formId,
+            User user
     ) {
-        Specification<Card> spec = CardSpecification.build(cardStatus, mkb10Code, user);
+        Specification<Card> spec = CardSpecification.build(cardStatus, mkb10Code,formId, user);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
