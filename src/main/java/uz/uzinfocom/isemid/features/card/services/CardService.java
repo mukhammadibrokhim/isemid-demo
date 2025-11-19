@@ -35,5 +35,6 @@ public interface CardService {
 
     Card assignAct(CardAssignActRequest request, User user);
 
-    Page<Card> getAssignedCards(int page, int size, LocalDate fromDate, LocalDate toDate, CardType cardType, CardStatus cardStatus, String mkb10Code, User currentUser);
+    Page<Card> getAssignedCards(int page, int size, LocalDate fromDate, LocalDate toDate, CardType cardType, CardStatus cardStatus, String mkb10Code,
+                                String patientDocValue, User currentUser);
 }

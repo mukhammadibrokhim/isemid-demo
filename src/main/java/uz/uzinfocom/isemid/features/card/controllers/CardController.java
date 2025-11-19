@@ -66,10 +66,11 @@ public class CardController {
             @RequestParam(required = false) CardType cardType,
             @RequestParam(required = false) CardStatus cardStatus,
             @RequestParam(required = false) String mkb10Code,
+            @RequestParam(required = false) String patientDocValue,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<Card> cards = cardService.getAssignedCards(page, size, fromDate, toDate, cardType, cardStatus, mkb10Code, currentUser);
+        Page<Card> cards = cardService.getAssignedCards(page, size, fromDate, toDate, cardType, cardStatus, mkb10Code, patientDocValue, currentUser);
         return PagedResponse.build(page, cards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
