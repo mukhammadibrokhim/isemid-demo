@@ -105,6 +105,7 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setCardByFullName(user.getFullName());
         form058.getCards().addAll(cards);
         form058.setStatus(FormStatus.CARD_LINKED);
+
         return form058Repository.save(form058);
     }
 
