@@ -16,7 +16,7 @@ public interface CardService {
             int page,
             int size,
             CardStatus cardStatus,
-            String mkb10Code, User user
+            String mkb10Code, Long formId, User user
     );
 
     Card getById(long id);

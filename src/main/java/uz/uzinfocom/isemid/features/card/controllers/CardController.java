@@ -46,10 +46,11 @@ public class CardController {
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) CardStatus cardStatus,
             @RequestParam(required = false) String mkb10Code,
+            @RequestParam(required = false) Long formId,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Card> pagedCards = cardService.filter(page, size, cardStatus, mkb10Code, user);
+        Page<Card> pagedCards = cardService.filter(page, size, cardStatus, mkb10Code,formId, user);
         return PagedResponse.build(page, pagedCards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
