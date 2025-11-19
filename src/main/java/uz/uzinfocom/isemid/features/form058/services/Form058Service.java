@@ -26,7 +26,7 @@ public interface Form058Service {
             Boolean isAffiliation,
             String mkb10Code,
             Long organizationId,
-            User user,
+            String patientDocValue, User user,
             FilterType filterType
     );
 

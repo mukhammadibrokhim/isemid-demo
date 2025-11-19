@@ -67,9 +67,10 @@ public class Form058ServiceImpl implements Form058Service {
     @Override
     @Transactional
     public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode,
-                                String cityCode, Boolean affiliation, String mkb10Code, Long organizationId, User user,
+                                String cityCode, Boolean affiliation, String mkb10Code, Long organizationId,
+                                String patientDocValue, User user,
                                 FilterType filterType) {
-        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, user, filterType);
+        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, patientDocValue, user, filterType);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 

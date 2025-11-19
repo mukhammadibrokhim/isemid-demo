@@ -61,10 +61,11 @@ public class Form058Controller {
             @RequestParam(required = false) String cityCode,
             @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) Long organizationId,
+            @RequestParam(required = false) String patientDocValue,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, null, mkb10Code, organizationId, user, FilterType.ALL);
+        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, null, mkb10Code, organizationId,patientDocValue, user, FilterType.ALL);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return formAdapter.adapt(base, form, FilterType.ALL);
@@ -84,10 +85,11 @@ public class Form058Controller {
             @RequestParam(required = false) Boolean affiliation,
             @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) Long organizationId,
+            @RequestParam(required = false) String patientDocValue,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, user, FilterType.RECEIVED);
+        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, patientDocValue, user, FilterType.RECEIVED);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return formAdapter.adapt(base, form, FilterType.RECEIVED);
