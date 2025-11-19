@@ -3,12 +3,14 @@ package uz.uzinfocom.isemid.features.card.specifications;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import org.hibernate.boot.model.naming.Identifier;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
@@ -66,6 +68,7 @@ public class CardSpecification {
             CardType cardType,
             CardStatus cardStatus,
             String mkb10Code,
+            String patientDocVal,
             User currentUser
     ) {
         return (root, query, cb) -> {
@@ -97,6 +100,15 @@ public class CardSpecification {
 
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("form058").get("finalMkb10Code"), mkb10Code.trim()));
+            }
+
+            if (hasText(patientDocVal)) {
+
+                Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
+                Join<Form058, Patient> patientJoin = formJoin.join("patient", JoinType.LEFT);
+                Join<Patient, Identifier> idJoin = patientJoin.join("identifiers", JoinType.LEFT);
+
+                predicates.add(cb.equal(idJoin.get("value"), patientDocVal));
             }
 
             if (!isSuperAdmin(currentUser)) {
