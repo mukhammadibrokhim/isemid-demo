@@ -26,6 +26,7 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.form058.specifications.Form058Specification;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
@@ -175,12 +176,22 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());
         form058.setApprovedFullName(changeDiagnosis.getApprovedFullName());
 
-        var approveOrg = organizationService.findById(changeDiagnosis.getApprovedOrgId())
-                .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(
-                        changeDiagnosis.getApprovedOrgId(), token
-                ));
+        if (changeDiagnosis.getApprovedOrgId() != null) {
 
-        form058.setApprovedOrgUuid(approveOrg.getUuid());
+            Organization approveOrg = organizationService
+                    .findById(changeDiagnosis.getApprovedOrgId())
+                    .orElseGet(() ->
+                            organizationService.fetchOrganizationFromMisAndSave(
+                                    changeDiagnosis.getApprovedOrgId(),
+                                    token
+                            )
+                    );
+
+            form058.setApprovedOrgUuid(approveOrg.getUuid());
+        } else {
+            form058.setApprovedOrgUuid(null);
+        }
+
 
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);

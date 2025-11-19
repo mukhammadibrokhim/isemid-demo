@@ -70,13 +70,13 @@ public class SpecificationUtils {
     ) {
         Join<T, ?> createdOrgJoin = root.join("createdOrg", JoinType.LEFT);
 
-        Predicate levelPredicate = buildLevelPredicateInternal(
+        Predicate regionPredicate = buildLevelPredicateInternal(
                 createdOrgJoin, cb, levelType, orgStateCode, orgCityCode
         );
 
         Predicate receiverPredicate = cb.equal(root.get("receiverOrganizationId"), currentOrgId);
 
-        return cb.or(levelPredicate, receiverPredicate);
+        return cb.or(regionPredicate, receiverPredicate);
     }
 
     /**
@@ -104,42 +104,29 @@ public class SpecificationUtils {
             String orgStateCode,
             String orgCityCode
     ) {
-        Predicate regionFilter;
-        Predicate levelFilter;
+        Predicate predicate;
 
         switch (levelType) {
-            case REPUBLICAN -> {
-                regionFilter = cb.conjunction(); // sees all
-                levelFilter = cb.conjunction();
-            }
-            case REGIONAL -> {
-                regionFilter = cb.equal(orgPath.get("stateCode"), orgStateCode);
-                levelFilter = cb.notEqual(orgPath.get("levelType"), LevelType.REPUBLICAN.name());
-            }
+
+            case REPUBLICAN -> predicate = cb.conjunction();
+
+            case REGIONAL -> predicate = cb.equal(orgPath.get("stateCode"), orgStateCode);
+
             case URBAN -> {
-                regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
-                levelFilter = orgPath.get("levelType").in(
-                        LevelType.URBAN.name(),
-                        LevelType.DISTRICT.name(),
-                        LevelType.NOT_DEFINED.name()
-                );
+                if ("UZ-TK".equals(orgCityCode)) {
+                    predicate = cb.equal(orgPath.get("stateCode"), orgStateCode);
+                } else {
+                    predicate = cb.equal(orgPath.get("cityCode"), orgCityCode);
+                }
             }
-            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> {
-                regionFilter = cb.equal(orgPath.get("cityCode"), orgCityCode);
-                levelFilter = orgPath.get("levelType").in(
-                        LevelType.DISTRICT.name(),
-                        LevelType.NOT_DEFINED.name(),
-                        LevelType.AREA.name(),
-                        LevelType.INTERDISTRICT.name()
-                );
-            }
-            default -> {
-                regionFilter = cb.conjunction();
-                levelFilter = cb.conjunction();
-            }
+
+            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
+                    predicate = cb.equal(orgPath.get("cityCode"), orgCityCode);
+
+            default -> predicate = cb.conjunction();
         }
 
-        return cb.and(regionFilter, levelFilter);
+        return predicate;
     }
 
     /**
