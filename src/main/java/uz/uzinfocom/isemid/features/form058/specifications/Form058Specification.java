@@ -75,7 +75,9 @@ public class Form058Specification {
                 Predicate accessPredicate;
 
                 if (Boolean.TRUE.equals(affiliation)) {
+
                     if (medicalType == MedicalType.SANEPID_SERVICE) {
+
                         Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
                         Join<Patient, Affiliation> affJoin = patientJoin.join("affiliations", JoinType.LEFT);
 
@@ -85,7 +87,8 @@ public class Form058Specification {
 
                         accessPredicate = cb.and(orgMatch, typeMatch);
                     } else {
-                        accessPredicate = cb.disjunction(); // always false
+
+                        accessPredicate = cb.disjunction(); // NO ACCESS
                     }
                 }
 
@@ -101,7 +104,13 @@ public class Form058Specification {
                     Predicate createdByOrg = cb.equal(root.get("createdOrgUuid"), orgUuid);
                     Predicate receivedByOrg = cb.equal(root.get("receiverOrganizationId"), orgId);
 
-                    accessPredicate = cb.or(createdByOrg, receivedByOrg);
+                    if (filterType == FilterType.ALL) {
+                        accessPredicate = createdByOrg;
+                    } else if (filterType == FilterType.RECEIVED) {
+                        accessPredicate = receivedByOrg;
+                    } else {
+                        accessPredicate = cb.or(createdByOrg, receivedByOrg);
+                    }
                 }
 
                 predicates.add(accessPredicate);
@@ -111,11 +120,13 @@ public class Form058Specification {
         };
     }
 
-    public static Specification<Form058> buildStats(List<String> regionCodes,
-                                                    LocalDate fromDate,
-                                                    LocalDate toDate,
-                                                    List<String> mkb10Codes,
-                                                    boolean confirmed) {
+    public static Specification<Form058> buildStats(
+            List<String> regionCodes,
+            LocalDate fromDate,
+            LocalDate toDate,
+            List<String> mkb10Codes,
+            boolean confirmed
+    ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -137,6 +148,4 @@ public class Form058Specification {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
-
-
 }
