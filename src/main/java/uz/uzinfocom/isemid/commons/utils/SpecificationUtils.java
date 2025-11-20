@@ -108,12 +108,10 @@ public class SpecificationUtils {
 
         switch (levelType) {
 
-            case REPUBLICAN -> predicate = cb.conjunction();
-
             case REGIONAL -> predicate = cb.equal(orgPath.get("stateCode"), orgStateCode);
 
             case URBAN -> {
-                if ("UZ-TK".equals(orgCityCode)) {
+                if ("UZ-TK".equals(orgStateCode)) {
                     predicate = cb.equal(orgPath.get("stateCode"), orgStateCode);
                 } else {
                     predicate = cb.equal(orgPath.get("cityCode"), orgCityCode);
