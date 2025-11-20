@@ -3,19 +3,20 @@ package uz.uzinfocom.isemid.features.card.specifications;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import org.hibernate.boot.model.naming.Identifier;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isHead;
@@ -25,34 +26,50 @@ public class CardSpecification {
     public static Specification<Card> build(
             CardStatus cardStatus,
             String mkb10Code,
+            Long formId,
             User currentUser
     ) {
         return (root, query, cb) -> {
+
             Objects.requireNonNull(query).distinct(true);
+
             Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
 
-            List<Predicate> predicates = Stream.of(
-                    cardStatus != null ? cb.equal(root.get("status"), cardStatus) : null,
-                    hasText(mkb10Code) ? cb.like(cb.lower(formJoin.get("mkb10Code")), "%" + mkb10Code.toLowerCase() + "%") : null
-            ).filter(Objects::nonNull).toList();
+            List<Predicate> predicates = new ArrayList<>();
 
-            if (uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin(currentUser)) {
-                return cb.and(predicates.toArray(new Predicate[0]));
+            if (cardStatus != null) {
+                predicates.add(cb.equal(root.get("status"), cardStatus));
+            }
+
+            if (hasText(mkb10Code)) {
+                predicates.add(
+                        cb.like(
+                                cb.lower(formJoin.get("mkb10Code")),
+                                "%" + mkb10Code.toLowerCase() + "%"
+                        )
+                );
+            }
+
+            if (formId != null) {
+                predicates.add(cb.equal(formJoin.get("id"), formId));
             }
 
             if (currentUser != null && currentUser.getCurrentOrganization() != null) {
+
                 var org = currentUser.getCurrentOrganization();
 
-                Join<Form058, ?> createdOrgJoin = formJoin.join("createdOrg", JoinType.LEFT);
+                Join<Form058, ?> createdOrgJoin =
+                        formJoin.join("createdOrg", JoinType.LEFT);
 
-                Predicate levelPredicate = uz.uzinfocom.isemid.commons.utils.SpecificationUtils.buildLevelPredicate(
-                        createdOrgJoin, cb,
-                        org.getLevelType(),
-                        org.getStateCode(),
-                        org.getCityCode()
-                );
+                Predicate levelPredicate =
+                        SpecificationUtils.buildLevelPredicate(
+                                createdOrgJoin,
+                                cb,
+                                org.getLevelType(),
+                                org.getStateCode(),
+                                org.getCityCode()
+                        );
 
-                predicates = new java.util.ArrayList<>(predicates);
                 predicates.add(levelPredicate);
             }
 
@@ -66,6 +83,7 @@ public class CardSpecification {
             CardType cardType,
             CardStatus cardStatus,
             String mkb10Code,
+            String patientDocVal,
             User currentUser
     ) {
         return (root, query, cb) -> {
@@ -97,6 +115,15 @@ public class CardSpecification {
 
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("form058").get("finalMkb10Code"), mkb10Code.trim()));
+            }
+
+            if (hasText(patientDocVal)) {
+
+                Join<Card, Form058> formJoin = root.join("form058", JoinType.LEFT);
+                Join<Form058, Patient> patientJoin = formJoin.join("patient", JoinType.LEFT);
+                Join<Patient, Identifier> idJoin = patientJoin.join("identifiers", JoinType.LEFT);
+
+                predicates.add(cb.equal(idJoin.get("value"), patientDocVal));
             }
 
             if (!isSuperAdmin(currentUser)) {

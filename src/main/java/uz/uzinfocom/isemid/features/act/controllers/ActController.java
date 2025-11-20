@@ -16,6 +16,9 @@ import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.services.ActService;
 
+import java.util.UUID;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.security.web.util.UrlUtils.buildRequestUrl;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -69,9 +72,14 @@ public class ActController {
             summary = "Отправить акт в LIS",
             description = "Отправляет акт (153–224) в LIS систему и возвращает статус отправки."
     )
-    @PostMapping("/{id}/send-to-lis")
-    public ApiResponse<?> sendActToLis(@PathVariable Long id) {
-        actService.sendToLis(id);
+    @PostMapping("/{actId}/send-to-lis/{lisLabId}")
+    public ApiResponse<?> sendActToLis(
+            @PathVariable Long actId,
+            @PathVariable UUID lisLabId,
+            @RequestHeader("Organization-id") UUID organizationUuid,
+            @RequestHeader(AUTHORIZATION) String token
+    ) {
+        actService.sendToLis(actId, lisLabId, organizationUuid,token);
         return ApiResponse.success(messageUtil, "Акт успешно отправлен в LIS.");
     }
 
@@ -79,12 +87,12 @@ public class ActController {
             summary = "Приём ответа от LIS",
             description = "Callback endpoint, на который LIS отправляет ответ по акту."
     )
-    @PostMapping("/lis/callback/{id}")
+    @PostMapping("/lis/callback/{actId}")
     public ApiResponse<?> receiveLisResponse(
-            @PathVariable Long id,
+            @PathVariable Long actId,
             @RequestBody String body
     ) {
-        actService.handleLisResponse(id, body);
+        actService.handleLisResponse(actId, body);
         return ApiResponse.success(messageUtil, "Ответ от LIS успешно принят.");
     }
 }

@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.form058.specifications;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import org.hibernate.boot.model.naming.Identifier;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.form058.enums.FilterType;
@@ -32,7 +33,7 @@ public class Form058Specification {
             Boolean affiliation,
             String mkb10Code,
             Long organizationId,
-            User currentUser,
+            String patientDocValue, User currentUser,
             FilterType filterType
     ) {
         return (root, query, cb) -> {
@@ -49,6 +50,12 @@ public class Form058Specification {
             }
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
+            }
+            if (hasText(patientDocValue)) {
+                Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+                Join<Patient, Identifier> idJoin = patientJoin.join("identifiers", JoinType.LEFT);
+
+                predicates.add(cb.equal(idJoin.get("value"), patientDocValue));
             }
 
             if (organizationId != null && filterType != null) {
@@ -87,8 +94,7 @@ public class Form058Specification {
 
                         accessPredicate = cb.and(orgMatch, typeMatch);
                     } else {
-
-                        accessPredicate = cb.disjunction(); // NO ACCESS
+                        accessPredicate = cb.disjunction();
                     }
                 }
 
