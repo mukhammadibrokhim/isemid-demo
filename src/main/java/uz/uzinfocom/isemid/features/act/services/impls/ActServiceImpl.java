@@ -1,28 +1,44 @@
 package uz.uzinfocom.isemid.features.act.services.impls;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.RestClientUtil;
+import uz.uzinfocom.isemid.features.act.dtos.LisPushRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
+import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.services.ActService;
 import uz.uzinfocom.isemid.features.act.specifications.ActSpecification;
 import uz.uzinfocom.isemid.features.act.strategy.impls.UpdateActService;
 
+import java.util.UUID;
+
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.ISEMID_CALLBACK;
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_URL;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ActServiceImpl implements ActService {
     private final ActRepository actRepository;
     private final UpdateActService updateActService;
+    private final ActMapperFactory actMapperFactory;
     private final MessageUtil messageUtil;
 
     @Override
@@ -52,13 +68,68 @@ public class ActServiceImpl implements ActService {
     }
 
     @Override
-    public void sendToLis(Long id) {
-        
+    public void sendToLis(Long id, UUID lisLabId, UUID organizationUuid, String token) {
+        Act act = getById(id);
+
+        act.setLisAttempt(act.getLisAttempt() + 1);
+        act.setLisStatus("PENDING");
+        actRepository.save(act);
+
+        try {
+            ActResponse response = actMapperFactory.toResponse(act);
+            response.setUsers(null);
+
+            ObjectMapper mapper = new ObjectMapper();
+            String isemidDataJson = mapper.writeValueAsString(response);
+
+            String redirectUrl = ISEMID_CALLBACK + act.getId();
+
+            LisPushRequest body = new LisPushRequest();
+            body.setIsemidData(isemidDataJson);
+            body.setRedirectUrl(redirectUrl);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Organization-Id", organizationUuid.toString());
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<LisPushRequest> entity = new HttpEntity<>(body, headers);
+
+            String url = LIS_URL + lisLabId;
+
+            String lisResponse = RestClientUtil.makeRequest(
+                    url,
+                    HttpMethod.POST,
+                    token,
+                    entity,
+                    String.class,
+                    messageUtil
+            );
+
+            log.info("LIS response: {}", lisResponse);
+
+            act.setLisStatus("SUCCESS");
+            act.setLisResponse(lisResponse);
+            actRepository.save(act);
+
+        } catch (Exception e) {
+
+            act.setLisStatus("FAILED");
+            act.setLisResponse(e.getMessage());
+            actRepository.save(act);
+
+            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), e);
+        }
     }
+
 
     @Override
     public void handleLisResponse(Long id, String body) {
+        Act act = getById(id);
 
+        act.setLisResponse(body);
+        act.setLisStatus("SUCCESS");
+
+        actRepository.save(act);
     }
 }
 
