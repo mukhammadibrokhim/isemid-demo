@@ -108,20 +108,28 @@ public class SpecificationUtils {
 
         switch (levelType) {
 
-            case REPUBLICAN -> predicate = cb.conjunction();
-
             case REGIONAL -> predicate = cb.equal(orgPath.get("stateCode"), orgStateCode);
 
             case URBAN -> {
-                if ("UZ-TK".equals(orgCityCode)) {
+                if ("UZ-TK".equals(orgStateCode)) {
                     predicate = cb.equal(orgPath.get("stateCode"), orgStateCode);
                 } else {
-                    predicate = cb.equal(orgPath.get("cityCode"), orgCityCode);
+                    predicate = cb.and(
+                            cb.equal(orgPath.get("cityCode"), orgCityCode),
+                            cb.equal(orgPath.get("levelType"), LevelType.URBAN)
+                    );
                 }
             }
 
-            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
-                    predicate = cb.equal(orgPath.get("cityCode"), orgCityCode);
+            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> predicate = cb.and(
+                    cb.equal(orgPath.get("cityCode"), orgCityCode),
+                    orgPath.get("levelType").in(
+                            LevelType.DISTRICT,
+                            LevelType.AREA,
+                            LevelType.INTERDISTRICT,
+                            LevelType.NOT_DEFINED
+                    )
+            );
 
             default -> predicate = cb.conjunction();
         }

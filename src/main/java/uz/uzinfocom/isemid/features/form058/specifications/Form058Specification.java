@@ -94,8 +94,7 @@ public class Form058Specification {
 
                         accessPredicate = cb.and(orgMatch, typeMatch);
                     } else {
-
-                        accessPredicate = cb.disjunction(); // NO ACCESS
+                        accessPredicate = cb.disjunction();
                     }
                 }
 

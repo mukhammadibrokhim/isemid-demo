@@ -127,7 +127,6 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.changeReceivedOrd(formId, orgId)));
     }
 
-
     @Operation(summary = "Отмена формы 058", description = "Позволяет отменить (отклонить) форму 058 по её идентификатору с указанием причины.")
     @PatchMapping("/{formId}/cancel")
     public ApiResponse<?> cancel(
@@ -139,7 +138,6 @@ public class Form058Controller {
                 form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason()))
         );
     }
-
 
     @Operation(summary = "Подтверждение формы 058", description = "Позволяет утвердить форму 058.")
     @PatchMapping("/{formId}/approve")
