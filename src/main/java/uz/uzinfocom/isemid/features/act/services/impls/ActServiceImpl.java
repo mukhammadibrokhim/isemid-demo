@@ -107,7 +107,7 @@ public class ActServiceImpl implements ActService {
 
             log.info("LIS response: {}", lisResponse);
 
-            act.setLisStatus("SUCCESS");
+            act.setLisStatus("SENT");
             act.setLisResponse(lisResponse);
             actRepository.save(act);
 
@@ -127,7 +127,7 @@ public class ActServiceImpl implements ActService {
         Act act = getById(id);
 
         act.setLisResponse(body);
-        act.setLisStatus("SUCCESS");
+        act.setLisStatus("COMPLETED");
 
         actRepository.save(act);
     }
