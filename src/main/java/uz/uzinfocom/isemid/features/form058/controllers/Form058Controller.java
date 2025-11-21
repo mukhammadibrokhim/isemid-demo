@@ -131,11 +131,12 @@ public class Form058Controller {
     @PatchMapping("/{formId}/cancel")
     public ApiResponse<?> cancel(
             @PathVariable Long formId,
-            @RequestBody @Valid Form058CancelRequest request
+            @RequestBody @Valid Form058CancelRequest request,
+            @CurrentUser User currentUser
     ) {
         return ApiResponse.success(
                 messageUtil,
-                form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason()))
+                form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason(), currentUser))
         );
     }
 
