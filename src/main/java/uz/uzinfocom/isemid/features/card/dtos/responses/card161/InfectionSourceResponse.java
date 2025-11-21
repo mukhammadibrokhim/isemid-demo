@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class InfectionSourceResponse {
     private Long id;
     private String fullName;
-    private String diagnosisClinicalFormOrDonorStatus;
-    private String contactInfoAndDonorResidence;
-    private String testResult;}
+    private String contactTypeCode;
+    private String relationCode;
+    private String duration;
+}
