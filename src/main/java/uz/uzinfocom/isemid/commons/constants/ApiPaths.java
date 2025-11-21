@@ -101,9 +101,12 @@ public final class ApiPaths {
     public static final class ExternalApi {
         public static final String BASE_API_URL = "https://test-api2.ssv.uz";
         public static final String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
-//
+
 //        public static final String BASE_API_URL = "https://api2.ssv.uz";
 //        public static final String SSO_TOKEN = "https://sso.ssv.uz/oauth/token";
+
+        public static final String LIS_URL = "https://test-lis.sanepid.uz/api/v1/selection-act/";
+        public static final String ISEMID_CALLBACK = "https://test-ykem.sanepid.uz/api/v1/lis/callback/";
 
         public static final String PRACTITIONER = BASE_API_URL + "/v2/Practitioner/%s";
         public static final String ORGANIZATION = BASE_API_URL + "/v2/Organization/%s";

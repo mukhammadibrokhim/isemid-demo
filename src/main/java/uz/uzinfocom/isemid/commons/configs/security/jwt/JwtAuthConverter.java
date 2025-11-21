@@ -23,9 +23,16 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     @Override
     public AbstractAuthenticationToken convert(@Nonnull Jwt jwt) {
+
         HttpServletRequest request = jwtAuthHelper.getCurrentHttpRequest();
         String selectedOrgId = request.getHeader("Organization-id");
+
         boolean isReceiveFromLisRequest = request.getRequestURI().contains("receive-from-lis");
+        boolean isMonitoring = request.getRequestURI().contains("monitoring");
+
+        if (isMonitoring) {
+            return new AuthToken(jwt, null, Set.of());
+        }
 
         jwtAuthHelper.validateOrganizationHeader(selectedOrgId, request);
 
@@ -45,5 +52,4 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
         return new AuthToken(jwt, user, user.getRoles());
     }
-
 }

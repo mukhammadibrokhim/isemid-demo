@@ -46,10 +46,11 @@ public class CardController {
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
             @RequestParam(required = false) CardStatus cardStatus,
             @RequestParam(required = false) String mkb10Code,
+            @RequestParam(required = false) Long formId,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Card> pagedCards = cardService.filter(page, size, cardStatus, mkb10Code, user);
+        Page<Card> pagedCards = cardService.filter(page, size, cardStatus, mkb10Code,formId, user);
         return PagedResponse.build(page, pagedCards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
@@ -66,10 +67,11 @@ public class CardController {
             @RequestParam(required = false) CardType cardType,
             @RequestParam(required = false) CardStatus cardStatus,
             @RequestParam(required = false) String mkb10Code,
+            @RequestParam(required = false) String patientDocValue,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<Card> cards = cardService.getAssignedCards(page, size, fromDate, toDate, cardType, cardStatus, mkb10Code, currentUser);
+        Page<Card> cards = cardService.getAssignedCards(page, size, fromDate, toDate, cardType, cardStatus, mkb10Code, patientDocValue, currentUser);
         return PagedResponse.build(page, cards.map(mapper::toCardResponse), getRequestUrl(request), messageUtil);
     }
 
