@@ -12,6 +12,7 @@ public interface Form4_9ReportService {
             LocalDate birthDate,
             String mkb10Code,
             Gender gender,
-            User currentUser
+            User currentUser,
+            String parentCode
     );
 }

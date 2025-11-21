@@ -38,7 +38,7 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
     private final CatalogService catalogService;
 
     @Override
-    public Object getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser) {
+    public Object getReport(LocalDate fromDate, LocalDate toDate, LocalDate birthDate, String mkb10Code, Gender gender, User currentUser, String parentCode) {
         Specification<Form058> specification = filterByCriteria(fromDate, toDate, birthDate, mkb10Code, gender, currentUser);
         List<Form058> form058s = form058Repository.findAll(specification);
         Organization organization = currentUser.getCurrentOrganization();
