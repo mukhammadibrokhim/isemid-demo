@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.report.utils;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
@@ -13,15 +14,32 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class Form6ReportHelper {
     private final CatalogService catalogService;
+    private final MessageUtil messageUtil;
 
-    public Object buildByParentCode(String trim, List<Form058> forms) {
-        return null;
+    public Object buildByParentCode(String parentCode, List<Form058> forms) {
+
+        Catalog catalog = catalogService.findByCode(parentCode);
+
+        if (catalog == null) {
+            return buildRegionReports(forms);
+        }
+
+        CatalogType type = CatalogType.valueOf(catalog.getType());
+
+        return switch (type) {
+            case state -> buildDistrictReports(parentCode, forms);
+            case city -> buildOrganizations(parentCode, forms);
+            default -> buildRegionReports(forms);
+        };
     }
+
 
     public Object buildRegionReports(List<Form058> forms) {
         List<Catalog> regions = catalogService.findAllByType(CatalogType.state);
@@ -38,7 +56,7 @@ public class Form6ReportHelper {
                             && regionCode.equals(f.getCreatedOrg().getStateCode()))
                     .toList();
 
-            Form6ReportDto dto = buildSingleRegion(regionCode, regionName, regionForms);
+            Form6ReportDto dto = buildSingle(regionCode, regionName, regionForms);
 
             result.add(dto);
         }
@@ -47,48 +65,65 @@ public class Form6ReportHelper {
     }
 
     public Object buildDistrictReports(String stateCode, List<Form058> forms) {
-        return null;
+
+        List<Catalog> districts =
+                catalogService.findAllByParentCode(stateCode);
+
+        List<Form6ReportDto> result = new ArrayList<>();
+
+        for (Catalog district : districts) {
+
+            String districtCode = district.getCode();
+            String districtName = district.getNameUz();
+
+            List<Form058> districtForms = forms.stream()
+                    .filter(f ->
+                            f.getCreatedOrg() != null &&
+                                    districtCode.equals(f.getCreatedOrg().getCityCode())
+                    )
+                    .toList();
+
+            Form6ReportDto dto = buildSingle(districtCode, districtName, districtForms);
+
+            result.add(dto);
+        }
+
+        return result;
     }
 
     public Object buildOrganizations(String cityCode, List<Form058> forms) {
-        return null;
-    }
 
-    private Form6ReportDto buildSingleRegion(String locationCode,
-                                             String locationName,
-                                             List<Form058> forms) {
+        Set<String> orgCodes = forms.stream()
+                .filter(f -> f.getCreatedOrg() != null &&
+                        cityCode.equals(f.getCreatedOrg().getCityCode()))
+                .map(f -> f.getCreatedOrg().getCityCode())
+                .collect(Collectors.toSet());
 
-        int previousTotal = 0;
-        int currentTotal = 0;
+        List<Form6ReportDto> result = new ArrayList<>();
 
-        List<Form6ReportDto.AgeGroupRow> rows = new ArrayList<>();
+        for (String orgCode : orgCodes) {
 
-        rows.add(buildAgeRow("новорожденные (до 1 года)", forms, 0, 1));
-        rows.add(buildAgeRow("1–2 года", forms, 1, 2));
-        rows.add(buildAgeRow("3–5 лет", forms, 3, 5));
-        rows.add(buildAgeRow("6–14 лет", forms, 6, 14));
-        rows.add(buildAgeRow("15–17 лет", forms, 15, 17));
-        rows.add(buildAgeRow("дети до 18 лет", forms, 0, 17));
-        rows.add(buildAgeRow("19–25 лет", forms, 19, 25));
-        rows.add(buildAgeRow("26–40 лет", forms, 26, 40));
-        rows.add(buildAgeRow("41–55 лет", forms, 41, 55));
-        rows.add(buildAgeRow("56–70 лет", forms, 56, 70));
-        rows.add(buildAgeRow("Старше 70 лет", forms, 70, 200));
+            String orgName = forms.stream()
+                    .filter(f -> f.getCreatedOrg() != null &&
+                            orgCode.equals(f.getCreatedOrg().getCityCode()))
+                    .map(f -> f.getCreatedOrg().getName())
+                    .findFirst()
+                    .orElse("NOMA’LUM TASHKILOT");
 
-        for (var r : rows) {
-            previousTotal += r.getPreviousYear();
-            currentTotal += r.getCurrentYear();
+            List<Form058> orgForms = forms.stream()
+                    .filter(f -> f.getCreatedOrg() != null &&
+                            orgCode.equals(f.getCreatedOrg().getCityCode()))
+                    .toList();
+
+            // Form6 hisob
+            Form6ReportDto dto = buildSingle(orgCode, orgName, orgForms);
+
+            result.add(dto);
         }
 
-        return Form6ReportDto.builder()
-                .locationCode(locationCode)
-                .locationName(locationName)
-                .previousYearTotal(previousTotal)
-                .currentYearTotal(currentTotal)
-                .growthTotal(currentTotal - previousTotal)
-                .rows(rows)
-                .build();
+        return result;
     }
+
 
     private Form6ReportDto.AgeGroupRow buildAgeRow(
             String name,
@@ -106,7 +141,6 @@ public class Form6ReportHelper {
         for (Form058 f : forms) {
 
             if (f.getPatient() == null || f.getPatient().getBirthDate() == null) continue;
-            if (f.getDiseaseDate() == null) continue;
 
             int age = calculateAge(f.getPatient().getBirthDate(), f.getCreatedAt());
             if (age < 0) continue;
@@ -134,5 +168,43 @@ public class Form6ReportHelper {
 
         return Period.between(birthDate, date).getYears();
     }
+
+    private Form6ReportDto buildSingle(
+            String locationCode,
+            String locationName,
+            List<Form058> forms
+    ) {
+        int previousTotal = 0;
+        int currentTotal = 0;
+
+        List<Form6ReportDto.AgeGroupRow> rows = new ArrayList<>();
+
+        rows.add(buildAgeRow(messageUtil.get("form6.age.0_1"), forms, 0, 1));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.1_2"), forms, 1, 2));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.3_5"), forms, 3, 5));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.6_14"), forms, 6, 14));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.15_17"), forms, 15, 17));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.0_17"), forms, 0, 17));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.19_25"), forms, 19, 25));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.26_40"), forms, 26, 40));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.41_55"), forms, 41, 55));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.56_70"), forms, 56, 70));
+        rows.add(buildAgeRow(messageUtil.get("form6.age.70_200"), forms, 70, 200));
+
+        for (var r : rows) {
+            previousTotal += r.getPreviousYear();
+            currentTotal += r.getCurrentYear();
+        }
+
+        return Form6ReportDto.builder()
+                .locationCode(locationCode)
+                .locationName(locationName)
+                .previousYearTotal(previousTotal)
+                .currentYearTotal(currentTotal)
+                .growthTotal(currentTotal - previousTotal)
+                .rows(rows)
+                .build();
+    }
+
 
 }
