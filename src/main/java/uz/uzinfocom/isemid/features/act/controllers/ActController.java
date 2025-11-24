@@ -18,7 +18,6 @@ import uz.uzinfocom.isemid.features.act.services.ActService;
 
 import java.util.UUID;
 
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.security.web.util.UrlUtils.buildRequestUrl;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
@@ -76,9 +75,16 @@ public class ActController {
     public ApiResponse<?> sendActToLis(
             @PathVariable Long actId,
             @PathVariable UUID lisLabId,
-            @RequestHeader("Organization-id") UUID organizationUuid,
-            @RequestHeader(AUTHORIZATION) String token
+            HttpServletRequest request
     ) {
+        String orgHeader = request.getHeader("Organization-Id");
+        UUID organizationUuid = orgHeader != null ? UUID.fromString(orgHeader) : null;
+
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
         actService.sendToLis(actId, lisLabId, organizationUuid,token);
         return ApiResponse.success(messageUtil, "Акт успешно отправлен в LIS.");
     }
