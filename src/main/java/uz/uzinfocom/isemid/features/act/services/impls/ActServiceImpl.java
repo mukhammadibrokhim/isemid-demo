@@ -68,7 +68,7 @@ public class ActServiceImpl implements ActService {
     }
 
     @Override
-    public void sendToLis(Long id, UUID lisLabId, UUID organizationUuid, String token) {
+    public void sendToLis(Long id, Long lisLabId, UUID organizationUuid, String token) {
         Act act = getById(id);
 
         act.setLisAttempt(act.getLisAttempt() + 1);
