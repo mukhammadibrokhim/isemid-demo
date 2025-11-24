@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.act.services;
 
 
 import org.springframework.data.domain.Page;
+import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
@@ -16,7 +17,7 @@ public interface ActService {
 
     void deleteById(Long id);
 
-    void sendToLis(Long id, Long lisLabId, UUID organizationUuid, String token);
-
     void handleLisResponse(Long id, String body);
+
+    void sendToLis(LisRequest lisRequest, UUID organizationUuid, String token);
 }
