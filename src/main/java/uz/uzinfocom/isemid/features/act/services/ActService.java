@@ -16,7 +16,7 @@ public interface ActService {
 
     void deleteById(Long id);
 
-    void sendToLis(Long id, UUID lisLabId, UUID organizationUuid, String token);
+    void sendToLis(Long id, Long lisLabId, UUID organizationUuid, String token);
 
     void handleLisResponse(Long id, String body);
 }

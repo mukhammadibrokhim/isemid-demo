@@ -74,7 +74,7 @@ public class ActController {
     @PostMapping("/{actId}/send-to-lis/{lisLabId}")
     public ApiResponse<?> sendActToLis(
             @PathVariable Long actId,
-            @PathVariable UUID lisLabId,
+            @PathVariable Long lisLabId,
             HttpServletRequest request
     ) {
         String orgHeader = request.getHeader("Organization-Id");
