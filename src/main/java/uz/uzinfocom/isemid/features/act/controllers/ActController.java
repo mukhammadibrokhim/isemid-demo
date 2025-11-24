@@ -77,7 +77,7 @@ public class ActController {
             @RequestBody LisRequest lisRequest,
             HttpServletRequest request
     ) {
-        String orgHeader = request.getHeader("organization-id");
+        String orgHeader = request.getHeader("Organization-id");
         UUID organizationUuid = orgHeader != null ? UUID.fromString(orgHeader) : null;
 
         String token = request.getHeader("Authorization");
