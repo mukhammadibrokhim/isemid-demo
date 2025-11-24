@@ -10,6 +10,7 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
@@ -71,13 +72,12 @@ public class ActController {
             summary = "Отправить акт в LIS",
             description = "Отправляет акт (153–224) в LIS систему и возвращает статус отправки."
     )
-    @PostMapping("/{actId}/send-to-lis/{lisLabId}")
+    @PostMapping("/send-to-lis")
     public ApiResponse<?> sendActToLis(
-            @PathVariable Long actId,
-            @PathVariable Long lisLabId,
+            @RequestBody LisRequest lisRequest,
             HttpServletRequest request
     ) {
-        String orgHeader = request.getHeader("Organization-Id");
+        String orgHeader = request.getHeader("organization-id");
         UUID organizationUuid = orgHeader != null ? UUID.fromString(orgHeader) : null;
 
         String token = request.getHeader("Authorization");
@@ -85,7 +85,7 @@ public class ActController {
             token = token.substring(7);
         }
 
-        actService.sendToLis(actId, lisLabId, organizationUuid,token);
+        actService.sendToLis(lisRequest, organizationUuid, token);
         return ApiResponse.success(messageUtil, "Акт успешно отправлен в LIS.");
     }
 

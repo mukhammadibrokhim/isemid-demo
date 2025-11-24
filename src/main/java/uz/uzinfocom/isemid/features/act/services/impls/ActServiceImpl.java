@@ -15,8 +15,10 @@ import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.commons.utils.RestClientUtil;
 import uz.uzinfocom.isemid.features.act.dtos.LisPushRequest;
+import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
+import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
@@ -68,11 +70,11 @@ public class ActServiceImpl implements ActService {
     }
 
     @Override
-    public void sendToLis(Long id, Long lisLabId, UUID organizationUuid, String token) {
-        Act act = getById(id);
+    public void sendToLis(LisRequest lisRequest, UUID organizationUuid, String token) {
+        Act act = getById(lisRequest.getActId());
 
         act.setLisAttempt(act.getLisAttempt() + 1);
-        act.setLisStatus("PENDING");
+        act.setStatus(ActStatus.PENDING);
         actRepository.save(act);
 
         try {
@@ -94,26 +96,18 @@ public class ActServiceImpl implements ActService {
 
             HttpEntity<LisPushRequest> entity = new HttpEntity<>(body, headers);
 
-            String url = LIS_URL + lisLabId;
-
-            String lisResponse = RestClientUtil.makeRequest(
-                    url,
-                    HttpMethod.POST,
-                    token,
-                    entity,
-                    String.class,
-                    messageUtil
-            );
+            String url = LIS_URL + lisRequest.getLisLabId();
+            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, token, entity, String.class, messageUtil);
 
             log.info("LIS response: {}", lisResponse);
 
-            act.setLisStatus("SENT");
+            act.setStatus(ActStatus.SENT);
             act.setLisResponse(lisResponse);
             actRepository.save(act);
 
         } catch (Exception e) {
 
-            act.setLisStatus("FAILED");
+            act.setStatus(ActStatus.FAILED);
             act.setLisResponse(e.getMessage());
             actRepository.save(act);
 
@@ -127,7 +121,7 @@ public class ActServiceImpl implements ActService {
         Act act = getById(id);
 
         act.setLisResponse(body);
-        act.setLisStatus("COMPLETED");
+        act.setStatus(ActStatus.COMPLETED);
 
         actRepository.save(act);
     }
