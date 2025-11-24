@@ -61,9 +61,6 @@ public abstract class Act extends AbsEntity {
     @Column(name = "lis_attempt")
     private Integer lisAttempt = 0;
 
-    @Column(name = "lis_status")
-    private String lisStatus;
-
     @Column(columnDefinition = "TEXT")
     private String lisResponse;
 }

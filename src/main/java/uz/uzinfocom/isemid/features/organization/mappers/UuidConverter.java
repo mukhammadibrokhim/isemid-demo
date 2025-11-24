@@ -17,4 +17,5 @@ public class UuidConverter {
     public String toString(UUID uuid) {
         return uuid != null ? uuid.toString() : null;
     }
+
 }

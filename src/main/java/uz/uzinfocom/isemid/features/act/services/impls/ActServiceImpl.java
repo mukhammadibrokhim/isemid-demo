@@ -111,7 +111,7 @@ public class ActServiceImpl implements ActService {
             act.setLisResponse(e.getMessage());
             actRepository.save(act);
 
-            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"), e);
+            throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
