@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.commons.utils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uz.uzinfocom.isemid.commons.configs.UnsafeHttpClientFactory;
@@ -40,11 +41,28 @@ public class RestClientUtil {
                 return response.getBody();
             }
 
-            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.api.empty_response", url));
+            throw new ApiException(
+                    INTERNAL_SERVER_ERROR,
+                    messageUtil.get("error.api.empty_response", url)
+            );
 
+        } catch (HttpStatusCodeException e) {
+            int status = e.getStatusCode().value();
+            String responseBody = e.getResponseBodyAsString();
+
+            log.error("REST call error {} - body: {}", status, responseBody);
+
+            throw new ApiException(
+                    HttpStatus.resolve(status) != null ? HttpStatus.valueOf(status) : INTERNAL_SERVER_ERROR,
+                    messageUtil.get("error.api.failed_call_with_status", status, responseBody)
+            );
         } catch (RestClientException e) {
-            log.error("REST call to {} failed: {}", url, e.getMessage(), e);
-            throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.api.failed_call", e.getMessage()));
+            log.error("REST call to {} failed: {}", url, e.getMessage());
+
+            throw new ApiException(
+                    INTERNAL_SERVER_ERROR,
+                    messageUtil.get("error.api.failed_call", e.getMessage())
+            );
         }
     }
 }
