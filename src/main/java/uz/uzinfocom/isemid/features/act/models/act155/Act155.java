@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.models.act155;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
@@ -29,5 +30,6 @@ public class Act155 extends Act {
     private String additionalInfo;
 
     @OneToMany(mappedBy = "act155", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<Act155Detail> act155Details = new HashSet<>();
 }

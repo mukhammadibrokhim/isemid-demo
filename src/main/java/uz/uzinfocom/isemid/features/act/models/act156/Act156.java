@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.models.act156;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
@@ -33,6 +34,7 @@ public class Act156 extends Act {
     private String positionOfObjectRepresentative;
 
     @OneToMany(mappedBy = "act156", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<Act156KitchenUtensil> act156KitchenUtensils = new HashSet<>();
 
     @OneToMany(mappedBy = "act156", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

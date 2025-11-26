@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.models.act156;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -16,6 +17,7 @@ public class Act156KitchenUtensil extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "act156_id")  // Foreign key to Act154
+    @JsonBackReference
     private Act156 act156;
 
     private Boolean knifeForBread;
