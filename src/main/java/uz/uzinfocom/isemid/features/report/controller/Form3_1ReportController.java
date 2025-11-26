@@ -27,7 +27,7 @@ import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_
 
 @RestController
 @RequestMapping(ApiPaths.Report.FORM_3_1)
-@Tag(name = "Report Forms")
+@Tag(name = "Report Forms 3.1")
 @RequiredArgsConstructor
 public class Form3_1ReportController {
     private final Form3_1ReportService form3_1ReportService;
