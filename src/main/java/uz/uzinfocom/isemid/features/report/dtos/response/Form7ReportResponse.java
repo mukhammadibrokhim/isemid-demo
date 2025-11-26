@@ -11,7 +11,7 @@ import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 public class Form7ReportResponse {
     private Long id;
 
-    private OrgMiniResponse organization;
+    private OrgMiniResponse createdOrg;
 
     // 2. Кол-во заболеваний на начало периода
     private Integer startPeriodCases;

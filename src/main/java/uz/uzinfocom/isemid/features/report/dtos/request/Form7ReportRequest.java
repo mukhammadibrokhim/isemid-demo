@@ -2,8 +2,6 @@ package uz.uzinfocom.isemid.features.report.dtos.request;
 
 import lombok.*;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -11,8 +9,6 @@ import java.util.UUID;
 @Builder
 public class Form7ReportRequest {
     private Long id;
-
-    private UUID organizationId;
 
     // 2. Кол-во заболеваний на начало периода
     private Integer startPeriodCases;   // Davr boshida kasallanganlar soni

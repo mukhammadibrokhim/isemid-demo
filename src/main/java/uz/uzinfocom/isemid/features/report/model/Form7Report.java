@@ -12,8 +12,6 @@ import uz.uzinfocom.isemid.commons.models.AbsEntity;
 @Entity
 public class Form7Report extends AbsEntity {
 
-    private Long organizationId;
-
     // 2. Кол-во заболеваний на начало периода
     private Integer startPeriodCases;
 
