@@ -1,10 +1,12 @@
 package uz.uzinfocom.isemid.features.act.models.act155;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
-import uz.uzinfocom.isemid.features.organization.models.Organization;
 
 
 @Setter
@@ -24,13 +26,8 @@ public class Act155Detail extends BaseEntity {
     private String purposeOfTesting;
     private String purposeOfTestingLoinc;//loinc
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
-
-    @Column(name = "organization_id", insertable = false, updatable = false)
+    @Column(name = "organization_id")
     private Long organizationId;
-
     private String laboratoryAddress;
     private String sampleTakenLocation;
     private Long sampleQuantity;
