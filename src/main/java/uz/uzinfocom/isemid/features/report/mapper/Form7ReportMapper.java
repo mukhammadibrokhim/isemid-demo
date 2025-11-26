@@ -11,7 +11,7 @@ public interface Form7ReportMapper {
 
     Form7Report toEntity(Form7ReportRequest request);
 
-    @Mapping(target = "createdOrg", source = "createdOrgUuid", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "createdOrg", source = "createdOrg.uuid", qualifiedByName = "toOrgMiniResponse")
     Form7ReportResponse toResponse(Form7Report form7Report);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
