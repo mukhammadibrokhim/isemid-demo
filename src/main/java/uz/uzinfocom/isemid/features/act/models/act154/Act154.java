@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -31,5 +32,6 @@ public class Act154 extends Act {
    private String additionalInfo;
 
    @OneToMany(mappedBy = "act154", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+   @JsonManagedReference
    private List<Act154Detail> act154Details = new ArrayList<>();
 }

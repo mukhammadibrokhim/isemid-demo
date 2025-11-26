@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.models.act155;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class Act155Detail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "act155_id")  // Foreign key to Act154
+    @JsonBackReference
     private Act155 act155;
 
     private String productName;
