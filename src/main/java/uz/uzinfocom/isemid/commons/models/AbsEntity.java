@@ -52,12 +52,12 @@ public abstract class AbsEntity {
     @JoinColumn(name = "created_org_uuid", referencedColumnName = "uuid")
     private Organization createdOrg;
 
+    @Column(name = "created_org_uuid", insertable = false, updatable = false)
+    private UUID createdOrgUuid;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_org_uuid", referencedColumnName = "uuid")
     private Organization updatedOrg;
-
-    @Column(name = "created_org_uuid", insertable = false, updatable = false)
-    private UUID createdOrgUuid;
 
     @Column(name = "updated_org_uuid", insertable = false, updatable = false)
     private UUID updatedOrgUuid;
