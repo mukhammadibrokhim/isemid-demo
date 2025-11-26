@@ -23,10 +23,9 @@ public class Act156 extends Act {
     private String institutionAddress;
     private LocalDateTime sampleTakenTime;
 
-    @Column(name = "organization_id")
-    private Long organizationId;
-
+    private Long lisOrganizationId;
     private String laboratoryAddress;
+
     private LocalDateTime sampleDeliveryTime;
     private String fullNameofSampler;
     private String positionOfSampler;

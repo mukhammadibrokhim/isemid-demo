@@ -61,8 +61,7 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "special_sampling_conditions", columnDefinition = "TEXT")
     private String specialSamplingConditions;
 
-    @Column(name = "organization_id")
-    private Long organizationId;
+    private Long lisOrganizationId;
 
     @Column(name = "laboratory_address", columnDefinition = "TEXT")
     private String laboratoryAddress;

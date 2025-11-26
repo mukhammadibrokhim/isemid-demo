@@ -1,6 +1,9 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,8 +26,7 @@ public class Act154Detail extends BaseEntity {
     @JoinColumn(name = "act154_id")  // Foreign key to Act154
     private Act154 act154;
 
-    @Column(name = "organization_id")
-    private Long organizationId;
+    private Long lisOrganizationId;
     private String laboratoryAddress;
 
     private String shiftCode;
