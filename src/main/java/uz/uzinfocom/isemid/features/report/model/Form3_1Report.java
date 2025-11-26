@@ -11,4 +11,5 @@ import uz.uzinfocom.isemid.commons.models.AbsEntity;
 @Builder
 @Entity
 public class Form3_1Report extends AbsEntity {
+    private String name;
 }
