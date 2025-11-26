@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.report.model;
 
 import jakarta.persistence.Entity;
 import lombok.*;
-import uz.uzinfocom.isemid.commons.models.BaseEntity;
+import uz.uzinfocom.isemid.commons.models.AbsEntity;
 
 @Getter
 @Setter
@@ -10,7 +10,7 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
 @NoArgsConstructor
 @Builder
 @Entity
-public class Form7Report extends BaseEntity {
+public class Form7Report extends AbsEntity {
 
     private Long organizationId;
 

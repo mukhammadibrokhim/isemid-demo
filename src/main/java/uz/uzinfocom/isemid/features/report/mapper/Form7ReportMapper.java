@@ -6,16 +6,16 @@ import uz.uzinfocom.isemid.features.report.dtos.request.Form7ReportRequest;
 import uz.uzinfocom.isemid.features.report.dtos.response.Form7ReportResponse;
 import uz.uzinfocom.isemid.features.report.model.Form7Report;
 
-@Mapper(componentModel = "spring", uses = {OrganizationMapperHelper.class})
+@Mapper(componentModel = "spring", uses = OrganizationMapperHelper.class)
 public interface Form7ReportMapper {
 
-//    @Mapping(source = "organizationId", target = "organizationId", qualifiedByName = "uuidToLongId")
+    @Mapping(source = "organizationId", target = "organizationId", qualifiedByName = "uuidToLongId")
     Form7Report toEntity(Form7ReportRequest request);
 
     @Mapping(target = "organization", source = "organizationId", qualifiedByName = "toOrgMiniResponse")
     Form7ReportResponse toResponse(Form7Report form7Report);
 
-
+    @Mapping(source = "organizationId", target = "organizationId", qualifiedByName = "uuidToLongId")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void update(@MappingTarget Form7Report existingReport, Form7ReportRequest request);
 }

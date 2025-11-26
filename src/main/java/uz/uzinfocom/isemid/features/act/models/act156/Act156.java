@@ -3,7 +3,6 @@ package uz.uzinfocom.isemid.features.act.models.act156;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
-import uz.uzinfocom.isemid.features.organization.models.Organization;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,10 +22,6 @@ public class Act156 extends Act {
     private String institutionName;
     private String institutionAddress;
     private LocalDateTime sampleTakenTime;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false, insertable = false, updatable = false)
-    private Organization organization;
 
     @Column(name = "organization_id")
     private Long organizationId;

@@ -1,10 +1,12 @@
 package uz.uzinfocom.isemid.features.act.models.act153;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
-import uz.uzinfocom.isemid.features.organization.models.Organization;
 
 import java.time.LocalDateTime;
 
@@ -59,11 +61,7 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "special_sampling_conditions", columnDefinition = "TEXT")
     private String specialSamplingConditions;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
-
-    @Column(name = "organization_id", insertable = false, updatable = false)
+    @Column(name = "organization_id")
     private Long organizationId;
 
     @Column(name = "laboratory_address", columnDefinition = "TEXT")
