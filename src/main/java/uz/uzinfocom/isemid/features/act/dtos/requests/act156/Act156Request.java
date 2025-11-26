@@ -24,7 +24,7 @@ public class Act156Request extends ActRequest {
     private String institutionName;
     private String institutionAddress;
     private LocalDateTime sampleTakenTime;
-    private Long organizationId;
+    private Long lisOrganizationId;
     private String laboratoryAddress;
     private LocalDateTime sampleDeliveryTime;
     private String fullNameofSampler;

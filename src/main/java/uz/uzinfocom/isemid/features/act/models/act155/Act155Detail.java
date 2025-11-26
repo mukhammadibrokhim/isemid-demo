@@ -26,9 +26,9 @@ public class Act155Detail extends BaseEntity {
     private String purposeOfTesting;
     private String purposeOfTestingLoinc;//loinc
 
-    @Column(name = "organization_id")
-    private Long organizationId;
+    private Long lisOrganizationId;
     private String laboratoryAddress;
+
     private String sampleTakenLocation;
     private Long sampleQuantity;
     private Long productBatchQuantity;
