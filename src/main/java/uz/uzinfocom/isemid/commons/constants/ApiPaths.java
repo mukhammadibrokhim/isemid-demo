@@ -69,6 +69,8 @@ public final class ApiPaths {
     public static final class Report {
         public static final String ROOT = BASE_PATH  + "/report";
         public static final String FORM1 = ROOT + "/form1";
+        public static final String FORM_3_1 = ROOT + "/form-3-1";
+        public static final String FORM_3_2 = ROOT + "/form-3-2";
         public static final String FORM6= ROOT + "/form-6";
         public static final String FORM7= ROOT + "/form-7";
         public static final String FORM9 = ROOT + "form-9";

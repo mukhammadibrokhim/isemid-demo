@@ -1,10 +1,12 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
-import uz.uzinfocom.isemid.features.organization.models.Organization;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -21,12 +23,9 @@ public class Act154Detail extends BaseEntity {
     @JoinColumn(name = "act154_id")  // Foreign key to Act154
     private Act154 act154;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false, insertable = false, updatable = false)
-    private Organization organization;
-
     @Column(name = "organization_id")
     private Long organizationId;
+    private String laboratoryAddress;
 
     private String shiftCode;
     private String sampleName;
@@ -34,7 +33,6 @@ public class Act154Detail extends BaseEntity {
     private String purposeOfSampling;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
-    private String laboratoryAddress;
     private String deliveryTerm;
     private String storageCondition;
     private String manufacturingCompany;
