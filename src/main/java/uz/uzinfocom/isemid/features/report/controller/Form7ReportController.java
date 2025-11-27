@@ -49,9 +49,9 @@ public class Form7ReportController {
 
     @PostMapping
     public ApiResponse<Form7ReportResponse> createForm7Report(
-            @RequestBody Form7ReportRequest request
+            @CurrentUser User currentUser
     ) {
-        Form7Report form7Report = form7ReportService.create(request);
+        Form7Report form7Report = form7ReportService.create(currentUser);
         return ApiResponse.success(messageUtil, form7ReportMapper.toResponse(form7Report));
     }
 

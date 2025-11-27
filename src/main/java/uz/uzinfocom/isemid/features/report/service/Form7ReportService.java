@@ -14,7 +14,7 @@ public interface Form7ReportService {
             String cityCode, User currentUser
     );
 
-    Form7Report create(Form7ReportRequest request);
+    Form7Report create(User currentUser);
 
     Form7Report getById(Long id);
 

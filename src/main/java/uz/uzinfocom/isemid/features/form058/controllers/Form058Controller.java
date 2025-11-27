@@ -189,5 +189,11 @@ public class Form058Controller {
     ) {
         return ApiResponse.success(messageUtil, form058Service.getConfirmationStats(mkb10Codes, regionCodes, fromDate, toDate, locale, currentUser));
     }
+
+    @GetMapping("/by-card/{cardId}")
+    public ApiResponse<Form058Response> getByCardId(@PathVariable Long cardId) {
+        Form058 form058 = form058Service.getByCardId(cardId);
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058));
+    }
 }
 
