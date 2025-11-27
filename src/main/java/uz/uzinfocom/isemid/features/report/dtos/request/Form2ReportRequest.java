@@ -37,7 +37,4 @@ public class Form2ReportRequest {
 
     // 10. Prokuraturaga yuborilgan materiallar soni
     private Integer sentToProsecutorCount;
-
-    // 11. Qo‘shimcha izoh
-    private String comment;
 }

@@ -15,4 +15,23 @@ public class Form2ReportResponse {
     private LocalDate createAt;
     private LocalDate updatedAt;
     private OrgMiniResponse createdOrg;
+    private Integer registeredLastYear;
+
+    private Integer registeredThisYear;
+
+    private Integer casesInSchoolsAndDdu;
+
+    private Integer disinfectionEventsCount;
+
+    private Integer inspectedObjectsCount;
+
+    private Integer closedObjectsCount;
+
+    private Integer dduCount;
+
+    private Integer schoolCount;
+
+    private Integer finesCount;
+
+    private Integer sentToProsecutorCount;
 }
