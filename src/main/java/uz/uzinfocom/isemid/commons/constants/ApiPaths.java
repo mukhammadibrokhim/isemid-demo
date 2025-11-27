@@ -80,6 +80,7 @@ public final class ApiPaths {
         public static final String FORM4_9 = ROOT + "/form-14-9";
         public static final String FORM28_1 = ROOT  + "/form-28-1";
         public static final String FORM28_2 = ROOT + "/form-28-2";
+        public static final String FORM12_7 = ROOT + "/form-12-7";
         public static final String LOCATION = ROOT + "/by-location";
         public static final String MONITORING = ROOT + "/monitoring";
     }
