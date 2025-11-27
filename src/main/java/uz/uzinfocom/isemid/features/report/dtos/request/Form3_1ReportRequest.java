@@ -9,5 +9,4 @@ import lombok.*;
 @Builder
 public class Form3_1ReportRequest {
     private Long id;
-
 }

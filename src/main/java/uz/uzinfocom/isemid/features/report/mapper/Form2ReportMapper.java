@@ -10,7 +10,7 @@ import uz.uzinfocom.isemid.features.report.model.Form2Report;
 public interface Form2ReportMapper {
     Form2Report toEntity(Form2ReportRequest request);
 
-    @Mapping(target = "createdOrg", source = "createdOrgUuid", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "createdOrg", source = "createdOrg.uuid", qualifiedByName = "toOrgMiniResponse")
     Form2ReportResponse toResponse(Form2Report entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

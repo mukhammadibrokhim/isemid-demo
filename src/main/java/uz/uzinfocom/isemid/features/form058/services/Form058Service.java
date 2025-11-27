@@ -52,4 +52,6 @@ public interface Form058Service {
                                                                 LocalDate fromDate, LocalDate toDate,
                                                                 String locale, User currentUser);
 
+    Form058 getByCardId(Long cardId);
+
 }

@@ -43,9 +43,8 @@ public class Form7ReportServiceImpl implements Form7ReportService {
     }
 
     @Override
-    public Form7Report create(Form7ReportRequest request) {
-        Form7Report form7Report = form7ReportMapper.toEntity(request);
-        return reportRepository.save(form7Report);
+    public Form7Report create(User currentUser) {
+        return null;
     }
 
     @Override
