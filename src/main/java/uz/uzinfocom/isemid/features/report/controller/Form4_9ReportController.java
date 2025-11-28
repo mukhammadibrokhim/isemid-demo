@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
-import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.service.Form4_9ReportService;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -19,12 +18,11 @@ import uz.uzinfocom.isemid.features.user.models.User;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping(ApiPaths.Report.FORM4_9)
+@RequestMapping(ApiPaths.Report.FORM_4)
 @Tag(name = "Report Forms")
 @RequiredArgsConstructor
 public class Form4_9ReportController {
     private final Form4_9ReportService form4_9ReportService;
-    private final MessageUtil messageUtil;
 
 
     /**
