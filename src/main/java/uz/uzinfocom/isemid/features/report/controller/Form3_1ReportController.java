@@ -38,10 +38,10 @@ public class Form3_1ReportController {
     public PagedResponse<?> getAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-            @RequestParam LocalDate fromDate,
-            @RequestParam LocalDate toDate,
-            @RequestParam String stateCode,
-            @RequestParam String cityCode,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
