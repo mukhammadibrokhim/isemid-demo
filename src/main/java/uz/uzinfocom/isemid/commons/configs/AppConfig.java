@@ -1,8 +1,6 @@
 package uz.uzinfocom.isemid.commons.configs;
 
-import com.fasterxml.jackson.core.StreamWriteConstraints;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -75,20 +73,6 @@ public class AppConfig {
                 .expireAfterWrite(10, TimeUnit.HOURS)
                 .maximumSize(10000));
         return cacheManager;
-    }
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.setTimeZone(TimeZone.getTimeZone("Asia/Tashkent"));
-        mapper.getFactory().setStreamWriteConstraints(
-                StreamWriteConstraints.builder()
-                        .maxNestingDepth(20000)
-                        .build());
-        return mapper;
     }
 
     @Bean
