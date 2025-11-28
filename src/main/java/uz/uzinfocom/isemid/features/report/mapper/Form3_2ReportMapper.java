@@ -1,9 +1,6 @@
 package uz.uzinfocom.isemid.features.report.mapper;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.report.dtos.request.Form3_2ReportRequest;
 import uz.uzinfocom.isemid.features.report.dtos.response.Form3_2ReportResponse;
 import uz.uzinfocom.isemid.features.report.model.Form3_2Report;
@@ -12,6 +9,7 @@ import uz.uzinfocom.isemid.features.report.model.Form3_2Report;
 public interface Form3_2ReportMapper {
     Form3_2Report entity(Form3_2ReportRequest request);
 
+    @Mapping(target = "createdOrg", source = "createdOrg.uuid", qualifiedByName = "toOrgMiniResponse")
     Form3_2ReportResponse toResponse(Form3_2Report entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
