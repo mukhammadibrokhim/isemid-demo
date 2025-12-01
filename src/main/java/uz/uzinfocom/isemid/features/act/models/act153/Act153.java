@@ -25,6 +25,9 @@ public class Act153 extends Act {
     @Column(columnDefinition = "TEXT")
     private String samplingDocuments;
 
+    @Column(name = "delivered_date")
+    private LocalDate deliveredDate; // laboratoriyaga yetkazilgan sana
+
     private String samplerFullName;
     private String position;
     private String participantFullName;

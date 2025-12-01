@@ -3,7 +3,6 @@ package uz.uzinfocom.isemid.features.act.dtos.requests.act153;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 @Getter
 @Setter
@@ -25,7 +24,6 @@ public class Act153DetailRequest {
     private Double waterTemperature;
     private String sampleType;
     private LocalDateTime samplingDate;
-    private LocalDate deliveredDate;
     private String specialSamplingConditions;
     private Long lisOrganizationId;
     private String laboratoryAddress;
