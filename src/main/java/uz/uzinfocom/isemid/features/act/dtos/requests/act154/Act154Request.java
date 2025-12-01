@@ -6,7 +6,6 @@ import lombok.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -23,7 +22,6 @@ public class Act154Request extends ActRequest {
     private Integer tin;
     private String nameOfObject;
     private String objectAddress;
-    private LocalDateTime hospitalizationDate;
     private String samplerFullName;
     private String position;
     private String additionalInfo;

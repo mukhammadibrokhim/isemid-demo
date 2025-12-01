@@ -6,7 +6,6 @@ import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +25,6 @@ public class Act153 extends Act {
     @Column(columnDefinition = "TEXT")
     private String samplingDocuments;
 
-    private LocalDateTime hospitalizationDate;
     private String samplerFullName;
     private String position;
     private String participantFullName;

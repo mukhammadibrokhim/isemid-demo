@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -59,6 +60,9 @@ public class Act153Detail extends BaseEntity {
 
     @Column(name = "sampling_date")
     private LocalDateTime samplingDate; // datetime
+
+    @Column(name = "delivered_date")
+    private LocalDate deliveredDate; // laboratoriyaga yetkazilgan sana
 
     @Column(name = "special_sampling_conditions", columnDefinition = "TEXT")
     private String specialSamplingConditions;

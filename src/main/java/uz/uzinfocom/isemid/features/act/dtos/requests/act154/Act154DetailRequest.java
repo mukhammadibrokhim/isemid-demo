@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.act.dtos.requests.act154;
 
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -17,6 +18,7 @@ public class Act154DetailRequest {
     private String purposeOfSampling;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
+    private LocalDate deliveredDate;
     //Catalog
     private String shiftCode;
     private Long lisOrganizationId;
