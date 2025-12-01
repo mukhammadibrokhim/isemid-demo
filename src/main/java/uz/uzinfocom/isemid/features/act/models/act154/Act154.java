@@ -29,6 +29,8 @@ public class Act154 extends Act {
    private LocalDateTime hospitalizationDate;
    private String samplerFullName;
    private String position;
+   private String participantFullName;
+   private String participantPosition;
    private String additionalInfo;
 
    @OneToMany(mappedBy = "act154", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
