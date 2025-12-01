@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.act.dtos.responses.act153;
 
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -23,6 +24,7 @@ public class Act153DetailResponse {
     private Double waterTemperature;
     private String sampleType;
     private LocalDateTime samplingDate;
+    private LocalDate deliveredDate;
     private String specialSamplingConditions;
     private Long lisOrganizationId;
     private String laboratoryAddress;

@@ -27,7 +27,6 @@ import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 @Component
 @RequiredArgsConstructor
 public class ActMapperFactory {
-
     private final Act153Mapper act153Mapper;
     private final Act154Mapper act154Mapper;
     private final Act155Mapper act155Mapper;
