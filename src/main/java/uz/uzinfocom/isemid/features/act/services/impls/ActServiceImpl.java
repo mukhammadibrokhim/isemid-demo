@@ -97,7 +97,7 @@ public class ActServiceImpl implements ActService {
             HttpEntity<LisPushRequest> entity = new HttpEntity<>(body, headers);
 
             String url = LIS_URL + lisRequest.getLisLabId();
-            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.PUT, token, entity, String.class, messageUtil);
+            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, token, entity, String.class, messageUtil);
 
             log.info("LIS response: {}", lisResponse);
 
