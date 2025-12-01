@@ -29,6 +29,8 @@ public class Act154Response extends ActResponse {
     private String objectAddress;
     private String samplerFullName;
     private String position;
+    private String participantFullName;
+    private String participantPosition;
     private String additionalInfo;
     private Set<Act154DetailResponse> act154Details;
 }

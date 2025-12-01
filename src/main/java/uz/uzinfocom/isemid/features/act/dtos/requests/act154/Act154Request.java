@@ -24,6 +24,8 @@ public class Act154Request extends ActRequest {
     private String objectAddress;
     private String samplerFullName;
     private String position;
+    private String participantFullName;
+    private String participantPosition;
     private String additionalInfo;
     private Set<Act154DetailRequest> act154Details;
 }
