@@ -134,6 +134,8 @@ public class Form4_9ReportHelper {
                 .unEmployee(stats.getOrDefault("NOT_EMPLOYED", 0L))
                 .pensioners(stats.getOrDefault("PENSIONER", 0L))
                 .homelessPeople(stats.getOrDefault("UNSHELTRED", 0L))
+                .homelessPeople(stats.getOrDefault("TOTAL", 0L))
+                .homelessPeople(stats.getOrDefault("STAFF", 0L))
                 .build();
     }
 
