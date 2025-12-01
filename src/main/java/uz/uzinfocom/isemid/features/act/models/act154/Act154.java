@@ -1,15 +1,11 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +22,9 @@ public class Act154 extends Act {
    private Integer tin;
    private String nameOfObject;
    private String objectAddress;
-   private LocalDateTime hospitalizationDate;
+
+   @Column(name = "delivered_date")
+   private LocalDate deliveredDate; // laboratoriyaga yetkazilgan sana;
    private String samplerFullName;
    private String position;
    private String participantFullName;

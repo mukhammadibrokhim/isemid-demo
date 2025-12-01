@@ -1,7 +1,10 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +12,6 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -35,10 +37,6 @@ public class Act154Detail extends BaseEntity {
     private String purposeOfSampling;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
-
-    @Column(name = "delivered_date")
-    private LocalDate deliveredDate;
-
     private String deliveryTerm;
     private String storageCondition;
     private String manufacturingCompany;
