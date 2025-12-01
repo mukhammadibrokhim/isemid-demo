@@ -4,8 +4,9 @@ import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act224.Act224Request;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act224.Act224Response;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
+import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 
-@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR, uses = OrganizationMapperHelper.class)
 public interface Act224Mapper {
 
     @Mapping(target = "id", source = "act.id")
@@ -13,6 +14,7 @@ public interface Act224Mapper {
     @Mapping(target = "createdAt", source = "act.createdAt")
     @Mapping(target = "updatedAt", source = "act.updatedAt")
     @Mapping(target = "type", source = "act.type")
+    @Mapping(target = "createdOrg", source = "createdOrg.uuid", qualifiedByName = "toOrgMiniResponse")
     Act224Response toResponse(Act224 act);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
