@@ -77,12 +77,11 @@ public class AppConfig {
 
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
-        return builder -> {
-            builder.modules(new JavaTimeModule());
-            builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            builder.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            builder.timeZone(TimeZone.getTimeZone("Asia/Tashkent"));
-        };
+        return builder -> builder
+                .modules(new JavaTimeModule())   // LocalDate/LocalDateTime support
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .timeZone(TimeZone.getTimeZone("Asia/Tashkent"));
     }
 
     @Bean

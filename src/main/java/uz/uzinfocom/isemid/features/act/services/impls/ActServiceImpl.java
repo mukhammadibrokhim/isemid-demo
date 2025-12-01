@@ -42,6 +42,7 @@ public class ActServiceImpl implements ActService {
     private final UpdateActService updateActService;
     private final ActMapperFactory actMapperFactory;
     private final MessageUtil messageUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Page<Act> filter(int page, int size, Long cardId) {
@@ -81,8 +82,7 @@ public class ActServiceImpl implements ActService {
             ActResponse response = actMapperFactory.toResponse(act);
             response.setUsers(null);
 
-            ObjectMapper mapper = new ObjectMapper();
-            String isemidDataJson = mapper.writeValueAsString(response);
+            String isemidDataJson = objectMapper.writeValueAsString(response);
 
             String redirectUrl = ISEMID_CALLBACK + act.getId();
 
