@@ -179,7 +179,6 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setApprovedFullName(changeDiagnosis.getApprovedFullName());
 
         if (changeDiagnosis.getApprovedOrgId() != null) {
-
             Organization approveOrg = organizationService
                     .findById(changeDiagnosis.getApprovedOrgId())
                     .orElseGet(() ->
