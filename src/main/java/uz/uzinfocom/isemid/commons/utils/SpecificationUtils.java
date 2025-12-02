@@ -74,7 +74,12 @@ public class SpecificationUtils {
                 createdOrgJoin, cb, levelType, orgStateCode, orgCityCode
         );
 
-        Predicate receiverPredicate = cb.equal(root.get("receiverOrganizationId"), currentOrgId);
+        Predicate receiverPredicate = cb.and(
+                cb.equal(root.get("receiverOrganizationId"), currentOrgId),
+                buildLevelPredicateInternal(
+                        createdOrgJoin, cb, levelType, orgStateCode, orgCityCode
+                )
+        );
 
         return cb.or(regionPredicate, receiverPredicate);
     }
