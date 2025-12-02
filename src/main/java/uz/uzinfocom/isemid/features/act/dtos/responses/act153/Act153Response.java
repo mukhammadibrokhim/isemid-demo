@@ -25,6 +25,7 @@ public class Act153Response extends ActResponse {
     private String samplingDocuments;
     private String samplerFullName;
     private String position;
+    private LocalDate deliveredDate;
     private String participantFullName;
     private String participantPosition;
     private String additionalInfo;

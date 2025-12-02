@@ -28,6 +28,7 @@ public class Act154Response extends ActResponse {
     private String nameOfObject;
     private String objectAddress;
     private String samplerFullName;
+    private LocalDate deliveredDate;
     private String position;
     private String participantFullName;
     private String participantPosition;
