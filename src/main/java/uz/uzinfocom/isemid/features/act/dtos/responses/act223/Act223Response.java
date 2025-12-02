@@ -2,7 +2,10 @@ package uz.uzinfocom.isemid.features.act.dtos.responses.act223;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 
@@ -30,5 +33,6 @@ public class Act223Response extends ActResponse {
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
     private String reasonInspectoringLoinc;
+    private String additionalInfo;
     private Set<Act223DetailResponse> act223Details;
 }
