@@ -193,7 +193,6 @@ public class Form058ServiceImpl implements Form058Service {
             form058.setApprovedOrgUuid(null);
         }
 
-
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);
 
