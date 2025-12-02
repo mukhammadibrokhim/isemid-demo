@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
@@ -72,6 +70,7 @@ public class ActServiceImpl implements ActService {
 
     @Override
     public void sendToLis(LisRequest lisRequest, UUID organizationUuid, String token) {
+
         Act act = getById(lisRequest.getActId());
 
         act.setLisAttempt(act.getLisAttempt() + 1);
@@ -83,21 +82,19 @@ public class ActServiceImpl implements ActService {
             response.setUsers(null);
 
             String isemidDataJson = objectMapper.writeValueAsString(response);
-
             String redirectUrl = ISEMID_CALLBACK + act.getId();
 
             LisPushRequest body = new LisPushRequest();
             body.setIsemidData(isemidDataJson);
             body.setRedirectUrl(redirectUrl);
 
+            // headers
             HttpHeaders headers = new HttpHeaders();
             headers.set("Organization-Id", organizationUuid.toString());
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<LisPushRequest> entity = new HttpEntity<>(body, headers);
 
             String url = LIS_URL + lisRequest.getLisLabId();
-            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, token, entity, String.class, messageUtil);
+
+            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, token, body, headers, String.class, messageUtil);
 
             log.info("LIS response: {}", lisResponse);
 
@@ -106,9 +103,7 @@ public class ActServiceImpl implements ActService {
             actRepository.save(act);
 
         } catch (Exception e) {
-
             act.setStatus(ActStatus.FAILED);
-            act.setLisResponse(e.getMessage());
             actRepository.save(act);
 
             throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
