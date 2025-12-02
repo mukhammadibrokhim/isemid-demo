@@ -79,7 +79,7 @@ public class RestClientUtil {
         HttpHeaders headers = new HttpHeaders();
 
         if (token != null && !token.isBlank()) {
-            headers.set(HttpHeaders.AUTHORIZATION, token);
+            headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
 
         // Merge qilamiz
