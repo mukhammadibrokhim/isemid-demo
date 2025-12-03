@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
-import uz.uzinfocom.isemid.features.report.models.Report12;
+import uz.uzinfocom.isemid.features.report.model.Report12;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.ArrayList;

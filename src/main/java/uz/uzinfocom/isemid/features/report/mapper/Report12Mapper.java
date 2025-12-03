@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.report.mapper;
 
 import org.mapstruct.Mapper;
 import uz.uzinfocom.isemid.features.report.dtos.Report12Dto;
-import uz.uzinfocom.isemid.features.report.models.Report12;
+import uz.uzinfocom.isemid.features.report.model.Report12;
 
 @Mapper(componentModel = "spring")
 public interface Report12Mapper {
