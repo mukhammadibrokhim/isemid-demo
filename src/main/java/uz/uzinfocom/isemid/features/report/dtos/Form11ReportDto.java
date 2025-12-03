@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 public class Form11ReportDto {
     private String locationCode;   // Hudud kodi
-    private String locationName;   // Hudud nomi
+    private String locationName;   // 2 - Hudud nomi
 
     private Long absPrev;        // 3 - O‘tgan yil absolute
     private Long absCurr;        // 4 - Joriy yil absolute
