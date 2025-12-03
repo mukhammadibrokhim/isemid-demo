@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.features.report.models;
+package uz.uzinfocom.isemid.features.report.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

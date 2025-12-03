@@ -2,7 +2,7 @@ package uz.uzinfocom.isemid.features.report.service;
 
 import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.report.dtos.Report12Dto;
-import uz.uzinfocom.isemid.features.report.models.Report12;
+import uz.uzinfocom.isemid.features.report.model.Report12;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 public interface Report12Service {
