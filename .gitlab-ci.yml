@@ -5,7 +5,6 @@ variables:
   PROD_SERVER: '10.10.10.133'
   PRODUCTION_USER: 'runner'
 
-
 include:
   - project: 'core/templates/global-ci'
     ref: 'main'
