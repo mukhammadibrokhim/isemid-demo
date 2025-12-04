@@ -51,7 +51,6 @@ deploy_dev:
         sleep 10
         sudo systemctl status backend.service
       EOF
-
     - echo "Deploy finished"
 
 rollback_dev:
@@ -63,19 +62,21 @@ rollback_dev:
     - dev
   when: manual
   script:
-    - sudo rm -f /srv/project/backend/app.jar
-    - sudo mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
-    - echo "Rollback complete. Restarting service with previous version..."
-    - sudo systemctl restart backend.service
-    - sleep 30
+    - echo "Starting rollback on DEV server..."
     - |
-      if systemctl is-active --quiet backend.service; then
-        echo "Rollback successful: old version is running."
-      else
-        echo "Rollback failed: service still not running!"
-      fi
-    - sudo systemctl status backend.service
-
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+        rm -f /srv/project/backend/app.jar
+        mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
+        echo "Rollback complete. Restarting service with previous version..."
+        systemctl restart backend.service
+        sleep 30
+        if systemctl is-active --quiet backend.service; then
+          echo "Rollback successful: old version is running."
+        else
+          echo "Rollback failed: service still not running!"
+        fi
+        systemctl status backend.service
+      EOF
     - echo "Rollback finished"
 
 deploy_prod:
