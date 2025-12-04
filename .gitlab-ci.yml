@@ -64,9 +64,10 @@ rollback_dev:
     - echo "Starting rollback on DEV server..."
     - |
       ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER << 'EOF'
-        rm -f /srv/project/backend/app.jar
-        mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
+        sudo rm -f /srv/project/backend/app.jar
+        sudo mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
         echo "Rollback complete. Restarting service with previous version..."
+        sudo chown -R www-data:www-data /srv/project/backend
         systemctl restart backend.service
         sleep 30
         if systemctl is-active --quiet backend.service; then
