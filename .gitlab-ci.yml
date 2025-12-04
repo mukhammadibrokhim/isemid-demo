@@ -20,6 +20,7 @@ stages:
   - validate-and-check
   - build_and_push_dev
   - build_and_push_prod
+  - rollback_dev
 
 deploy_dev:
   needs:
@@ -35,51 +36,47 @@ deploy_dev:
     - | # Stoping service
       ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
         sudo systemctl stop backend.service
-
-
-        if [ -f /srv/project/backend/app.jar ]; then
-          sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
-        fi
+        sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
         sudo chown -R runner:runner /srv/project/backend
       EOF
+
     - | # Copying the built binary
       scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
         `pwd`/target/app*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
 
     - | # Start service and check health
       ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
-        set -e
-
         sudo chown -R www-data:www-data /srv/project/backend
         sudo systemctl restart backend.service
-
-        echo "Waiting 30 seconds to check if the service is healthy..."
-        sleep 30
-
-        # Check if running
-        if systemctl is-active --quiet backend.service; then
-          echo "Service is running successfully."
-        else
-          echo "Service failed to start. Rolling back..."
-
-          sudo rm -f /srv/project/backend/app.jar
-          sudo mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
-
-          echo "Rollback complete. Restarting service with previous version..."
-          sudo systemctl restart backend.service
-          sleep 10
-
-          if systemctl is-active --quiet backend.service; then
-            echo "Rollback successful: old version is running."
-          else
-            echo "Rollback failed: service still not running!"
-          fi
-        fi
-
+        sleep 10
         sudo systemctl status backend.service
       EOF
 
     - echo "Deploy finished"
+
+rollback_dev:
+  needs:
+    - check_gitlab_ci_yml
+    - deploy_dev
+  stage: rollback_dev
+  only:
+    - dev
+  when: manual
+  script:
+    - sudo rm -f /srv/project/backend/app.jar
+    - sudo mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
+    - echo "Rollback complete. Restarting service with previous version..."
+    - sudo systemctl restart backend.service
+    - sleep 30
+    - |
+      if systemctl is-active --quiet backend.service; then
+        echo "Rollback successful: old version is running."
+      else
+        echo "Rollback failed: service still not running!"
+      fi
+    - sudo systemctl status backend.service
+
+    - echo "Rollback finished"
 
 deploy_prod:
   needs:
