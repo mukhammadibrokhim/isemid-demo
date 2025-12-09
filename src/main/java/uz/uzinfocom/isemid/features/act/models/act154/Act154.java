@@ -18,10 +18,9 @@ import java.util.List;
 public class Act154 extends Act {
    private String title;
    private Long serialNumber;
-   private LocalDate documentSendDate;
    private Integer tin;
-   private String nameOfObject;
-   private String objectAddress;
+   private String institutionName;
+   private String institutionAddress;
 
    @Column(name = "delivered_date")
    private LocalDate deliveredDate; // laboratoriyaga yetkazilgan sana;

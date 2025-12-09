@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -19,7 +18,6 @@ import java.util.Set;
 public class Act156Request extends ActRequest {
     private Long id;
     private String title;
-    private LocalDate documentSendDate;
     private Integer tin;
     private String institutionName;
     private String institutionAddress;

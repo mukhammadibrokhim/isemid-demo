@@ -18,10 +18,9 @@ import java.util.Set;
 public class Act154Request extends ActRequest {
     private String title;
     private Long serialNumber;
-    private LocalDate documentSendDate;
     private Integer tin;
-    private String nameOfObject;
-    private String objectAddress;
+    private String institutionName;
+    private String institutionAddress;
     private String samplerFullName;
     private LocalDate deliveredDate;
     private String position;

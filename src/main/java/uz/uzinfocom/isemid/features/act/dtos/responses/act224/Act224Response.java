@@ -2,12 +2,14 @@ package uz.uzinfocom.isemid.features.act.dtos.responses.act224;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,8 +21,10 @@ import java.time.LocalDateTime;
 public class Act224Response extends ActResponse {
     private Long id;
     private String title;
-    private LocalDate documentSendDate;
-    private String regionCode;
+    private Integer tin;
+    private String institutionName;
+    private String institutionAddress;
+
     private String fullNameOfEpidStaff;
     private String positionOfEpidStaff;
     private String fullNameOfParticipantEpid;
@@ -31,6 +35,5 @@ public class Act224Response extends ActResponse {
     private String nameOfRegulatoryActs;
     private String checkingFulfillmentOfRequirements;
     private String fullNameOfParticipant;
-    private String recommendedActivities;
-    private LocalDateTime executionPeriod;
+    private List<Act224DetailResponse> details;
 }

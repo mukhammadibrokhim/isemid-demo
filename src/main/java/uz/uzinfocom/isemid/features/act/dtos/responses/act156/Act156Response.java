@@ -10,7 +10,6 @@ import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.models.act156.Act156GroupDetail;
 import uz.uzinfocom.isemid.features.act.models.act156.Act156KitchenUtensil;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -23,7 +22,6 @@ import java.util.Set;
 public class Act156Response extends ActResponse {
     private Long id;
     private String title;
-    private LocalDate documentSendDate;
     private Integer tin;
     private String institutionName;
     private String institutionAddress;

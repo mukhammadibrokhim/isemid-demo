@@ -19,6 +19,7 @@ import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,4 +48,6 @@ public abstract class ActResponse {
     private Long cardId;
     private List<UserMiniResponse> users;
     private String lisResponse;
+    private LocalDateTime lisSentDate;
+    private Integer lisAttempt;
 }
