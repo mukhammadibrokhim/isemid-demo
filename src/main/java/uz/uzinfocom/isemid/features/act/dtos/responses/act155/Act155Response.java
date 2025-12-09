@@ -25,6 +25,8 @@ public class Act155Response extends ActResponse {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
+
     private Date selectedDate;
     private String samplerFullName;
     private String samplerPosition;

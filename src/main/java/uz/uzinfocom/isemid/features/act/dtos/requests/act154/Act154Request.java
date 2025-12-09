@@ -21,6 +21,8 @@ public class Act154Request extends ActRequest {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
+
     private String samplerFullName;
     private LocalDate deliveredDate;
     private String position;

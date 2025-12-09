@@ -20,6 +20,7 @@ public class Act153Request extends ActRequest {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
     private String samplingDocuments;
     private LocalDate deliveredDate;
     private String samplerFullName;

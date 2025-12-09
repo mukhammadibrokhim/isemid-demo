@@ -19,7 +19,7 @@ public class Act153 extends Act {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
-
+    private String activityTypeCode;
     @Column(columnDefinition = "TEXT")
     private String samplingDocuments;
 

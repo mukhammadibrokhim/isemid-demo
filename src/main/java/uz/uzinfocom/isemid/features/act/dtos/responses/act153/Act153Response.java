@@ -22,6 +22,8 @@ public class Act153Response extends ActResponse {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
+
     private String samplingDocuments;
     private String samplerFullName;
     private String position;

@@ -19,6 +19,8 @@ public class Act224Request extends ActRequest {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
+
     private String fullNameOfEpidStaff;
     private String positionOfEpidStaff;
     private String fullNameOfParticipantEpid;
