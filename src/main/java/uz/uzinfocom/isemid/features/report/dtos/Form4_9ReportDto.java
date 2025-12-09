@@ -21,4 +21,6 @@ public class Form4_9ReportDto {
     private long unEmployee;
     private long pensioners;
     private long homelessPeople;
+    private long staff;
+    private long total;
 }
