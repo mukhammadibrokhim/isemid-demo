@@ -18,6 +18,8 @@ public class Act223 extends Act {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
+
     private String fullNameofSampler;
     private String positionOfSampler;
     private String fullNameOfParticipant;

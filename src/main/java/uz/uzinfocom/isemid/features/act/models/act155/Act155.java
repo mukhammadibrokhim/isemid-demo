@@ -23,6 +23,7 @@ public class Act155 extends Act {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
     private Date selectedDate;
     private String samplerFullName;
     private String samplerPosition;

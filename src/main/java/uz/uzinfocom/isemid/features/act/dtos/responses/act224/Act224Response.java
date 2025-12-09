@@ -24,6 +24,7 @@ public class Act224Response extends ActResponse {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
 
     private String fullNameOfEpidStaff;
     private String positionOfEpidStaff;

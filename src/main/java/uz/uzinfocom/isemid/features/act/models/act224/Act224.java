@@ -20,7 +20,8 @@ public class Act224 extends Act {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
-    private String regionCode;
+    private String activityTypeCode;
+
     private String fullNameOfEpidStaff;
     private String positionOfEpidStaff;
     private String fullNameOfParticipantEpid;

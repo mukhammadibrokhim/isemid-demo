@@ -21,6 +21,7 @@ public class Act154 extends Act {
    private Integer tin;
    private String institutionName;
    private String institutionAddress;
+   private String activityTypeCode;
 
    @Column(name = "delivered_date")
    private LocalDate deliveredDate; // laboratoriyaga yetkazilgan sana;

@@ -25,6 +25,8 @@ public class Act156Response extends ActResponse {
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
+
     private LocalDateTime sampleTakenTime;
     private Long lisOrganizationId;
     private String laboratoryAddress;
