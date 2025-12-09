@@ -6,7 +6,7 @@ import uz.uzinfocom.isemid.features.act.dtos.responses.act224.Act224Response;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 
-@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR, uses = OrganizationMapperHelper.class)
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR, uses = {OrganizationMapperHelper.class, Act224DetailMapper.class})
 public interface Act224Mapper {
 
     @Mapping(target = "id", source = "act.id")
