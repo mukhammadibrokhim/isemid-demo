@@ -78,8 +78,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User updateUserFromMis(UUID uuid, String token) {
+        User exustingUser = userRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
         MisUserResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, MisUserResponse.class, messageUtil);
-        return userRepository.saveAndFlush(userMapper.toUser(response));
+        userMapper.updateFromMis(exustingUser, response);
+        return userRepository.save(exustingUser);
     }
 
     @Override
