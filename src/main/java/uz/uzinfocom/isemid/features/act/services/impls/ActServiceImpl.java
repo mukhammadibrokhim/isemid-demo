@@ -24,6 +24,7 @@ import uz.uzinfocom.isemid.features.act.services.ActService;
 import uz.uzinfocom.isemid.features.act.specifications.ActSpecification;
 import uz.uzinfocom.isemid.features.act.strategy.impls.UpdateActService;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -99,7 +100,7 @@ public class ActServiceImpl implements ActService {
             log.info("LIS response: {}", lisResponse);
 
             act.setStatus(ActStatus.SENT);
-            act.setLisResponse(lisResponse);
+            act.setLisSentDate(LocalDateTime.now());
             actRepository.save(act);
 
         } catch (Exception e) {

@@ -23,10 +23,9 @@ public class Act154Response extends ActResponse {
     private Long id;
     private String title;
     private Long serialNumber;
-    private LocalDate documentSendDate;
     private Integer tin;
-    private String nameOfObject;
-    private String objectAddress;
+    private String institutionName;
+    private String institutionAddress;
     private String samplerFullName;
     private LocalDate deliveredDate;
     private String position;

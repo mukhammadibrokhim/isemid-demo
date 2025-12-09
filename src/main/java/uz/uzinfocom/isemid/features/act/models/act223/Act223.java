@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +15,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 public class Act223 extends Act {
-    private LocalDate documentSendDate;
     private Integer tin;
     private String institutionName;
     private String institutionAddress;

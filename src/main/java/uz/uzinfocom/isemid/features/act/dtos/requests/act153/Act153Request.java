@@ -17,9 +17,9 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153Request extends ActRequest {
     private Long id;
-    private LocalDate documentSendDate;
     private Integer tin;
-    private String sampleObjectName;
+    private String institutionName;
+    private String institutionAddress;
     private String samplingDocuments;
     private LocalDate deliveredDate;
     private String samplerFullName;

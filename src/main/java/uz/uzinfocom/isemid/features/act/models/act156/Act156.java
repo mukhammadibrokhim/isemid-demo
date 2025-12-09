@@ -1,11 +1,13 @@
 package uz.uzinfocom.isemid.features.act.models.act156;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,7 +20,6 @@ import java.util.Set;
 @Entity
 public class Act156 extends Act {
     private String title;
-    private LocalDate documentSendDate;
     private Integer tin;
     private String institutionName;
     private String institutionAddress;

@@ -19,9 +19,9 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153Response extends ActResponse {
     private Long id;
-    private LocalDate documentSendDate;
     private Integer tin;
-    private String sampleObjectName;
+    private String institutionName;
+    private String institutionAddress;
     private String samplingDocuments;
     private String samplerFullName;
     private String position;

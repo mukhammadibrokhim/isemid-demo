@@ -16,11 +16,9 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class Act153 extends Act {
-    private LocalDate documentSendDate;
     private Integer tin;
-
-    @Column(columnDefinition = "TEXT")
-    private String sampleObjectName;
+    private String institutionName;
+    private String institutionAddress;
 
     @Column(columnDefinition = "TEXT")
     private String samplingDocuments;

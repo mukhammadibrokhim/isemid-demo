@@ -5,8 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,8 +16,9 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act224Request extends ActRequest {
     private Long id;
-    private LocalDate documentSendDate;
-    private String regionCode;
+    private Integer tin;
+    private String institutionName;
+    private String institutionAddress;
     private String fullNameOfEpidStaff;
     private String positionOfEpidStaff;
     private String fullNameOfParticipantEpid;
@@ -29,6 +29,5 @@ public class Act224Request extends ActRequest {
     private String nameOfRegulatoryActs;
     private String checkingFulfillmentOfRequirements;
     private String fullNameOfParticipant;
-    private String recommendedActivities;
-    private LocalDateTime executionPeriod;
+    private List<Act224DetailRequest> details;
 }

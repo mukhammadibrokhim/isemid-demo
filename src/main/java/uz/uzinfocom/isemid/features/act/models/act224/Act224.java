@@ -1,11 +1,14 @@
 package uz.uzinfocom.isemid.features.act.models.act224;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,7 +17,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 public class Act224 extends Act {
-    private LocalDate documentSendDate;
+    private Integer tin;
+    private String institutionName;
+    private String institutionAddress;
     private String regionCode;
     private String fullNameOfEpidStaff;
     private String positionOfEpidStaff;
@@ -26,6 +31,8 @@ public class Act224 extends Act {
     private String nameOfRegulatoryActs;
     private String checkingFulfillmentOfRequirements;
     private String fullNameOfParticipant;
-    private String recommendedActivities;
-    private LocalDateTime executionPeriod;
+
+    @OneToMany(mappedBy = "act224", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Act224Detail> details = new ArrayList<>();
 }
