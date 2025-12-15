@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.features.report.service.impls;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,6 +13,7 @@ import uz.uzinfocom.isemid.features.classifier.models.enums.ReportType;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.Form28_1ReportDto;
 import uz.uzinfocom.isemid.features.report.service.Form28_1ReportService;
 
@@ -30,10 +33,11 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
     private final ManualReportService manualReportService;
 
     @Override
-    public List<Form28_1ReportDto> getReports(LocalDate fromDate, LocalDate toDate, String mkb10Code) {
+    public List<Form28_1ReportDto> getReports(LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode,
+                                              String mkb10Code) {
 
         List<Form058> form058List = form058Repository.findAll(
-                filterByCriteria(fromDate, toDate, mkb10Code)
+                filterByCriteria(fromDate, toDate, stateCode, cityCode, mkb10Code)
         );
 
         List<ManualReport> manualReports = manualReportService.getManualReportsForForm(ReportType.FORM_28_1.name());
@@ -80,15 +84,43 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
         return result;
     }
 
-    private static Specification<Form058> filterByCriteria(LocalDate fromDate, LocalDate toDate, String mkb10Code) {
+    private static Specification<Form058> filterByCriteria(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            String mkb10Code
+    ) {
         return (root, query, cb) -> {
+
             List<Predicate> predicates = new ArrayList<>();
 
-            SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+            SpecificationUtils.fromToDateFilter(
+                    fromDate, toDate, root, cb, predicates, "createdAt"
+            );
 
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
             }
+
+            if (hasText(stateCode) || hasText(cityCode)) {
+
+                Join<Form058, Organization> createdOrg =
+                        root.join("createdOrg", JoinType.LEFT);
+
+                if (hasText(stateCode)) {
+                    predicates.add(
+                            cb.equal(createdOrg.get("stateCode"), stateCode)
+                    );
+                }
+
+                if (hasText(cityCode)) {
+                    predicates.add(
+                            cb.equal(createdOrg.get("cityCode"), cityCode)
+                    );
+                }
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
