@@ -6,5 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface Form28_1ReportService {
-    List<Form28_1ReportDto> getReports(LocalDate fromDate, LocalDate toDate, String mkb10Code);
+    List<Form28_1ReportDto> getReports(LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode,
+                                       String mkb10Code);
 }
