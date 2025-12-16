@@ -19,7 +19,7 @@ public class Act155DetailRequest {
     private String laboratoryAddress;
     private String sampleTakenLocation;
     private Long sampleQuantity;
-    private Long organizationId;
+    private Long lisOrganizationId;
     private Long productBatchQuantity;
     private String appliedPesticides;
     private String manufacturer;

@@ -55,9 +55,17 @@ public class Form12ReportServiceImpl implements Form12ReportService {
                     .toList();
 
             long total = matched.size();
+
+            long below14 = matched.stream()
+                    .filter(f -> f.getPatient() != null &&
+                            f.getPatient().getBirthDate() != null &&
+                            Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears() < 14) // 14 yoshgacha
+                    .count();
+
             long below18 = matched.stream()
-                    .filter(f -> f.getPatient() != null && f.getPatient().getBirthDate() != null &&
-                            Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears() < 18)
+                    .filter(f -> f.getPatient() != null &&
+                            f.getPatient().getBirthDate() != null &&
+                            Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears() < 18) // 18 yoshgacha
                     .count();
 
             Form12ReportDto dto = new Form12ReportDto();
@@ -68,6 +76,7 @@ public class Form12ReportServiceImpl implements Form12ReportService {
             dto.setTitleKaa(report.getNameKaa());
             dto.setCode(report.getCode());
             dto.setTotalCount(total);
+            dto.setBelow14Count(below14);
             dto.setBelow18Count(below18);
 
             result.add(dto);

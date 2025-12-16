@@ -25,7 +25,7 @@ public class Act153DetailRequest {
     private String sampleType;
     private LocalDateTime samplingDate;
     private String specialSamplingConditions;
-    private Long organizationId;
+    private Long lisOrganizationId;
     private String laboratoryAddress;
     private String deliveryConditions;
     private String storageConditions;

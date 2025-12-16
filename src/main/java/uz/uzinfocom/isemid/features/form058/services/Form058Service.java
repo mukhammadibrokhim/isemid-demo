@@ -38,7 +38,7 @@ public interface Form058Service {
 
     Form058 changeReceivedOrd(Long formId, Long orgId);
 
-    Form058 cancel(Long formId, String reason);
+    Form058 cancel(Long formId, String reason, User currentUser);
 
     Form058 approveForm(Long formId);
 
@@ -51,5 +51,7 @@ public interface Form058Service {
     List<Form058ConfirmationStatsResponse> getConfirmationStats(List<String> mkb10Codes, List<String> regionCodes,
                                                                 LocalDate fromDate, LocalDate toDate,
                                                                 String locale, User currentUser);
+
+    Form058 getByCardId(Long cardId);
 
 }

@@ -6,7 +6,6 @@ import lombok.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -18,11 +17,12 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153Request extends ActRequest {
     private Long id;
-    private LocalDate documentSendDate;
     private Integer tin;
-    private String sampleObjectName;
+    private String institutionName;
+    private String institutionAddress;
+    private String activityTypeCode;
     private String samplingDocuments;
-    private LocalDateTime hospitalizationDate;
+    private LocalDate deliveredDate;
     private String samplerFullName;
     private String position;
     private String participantFullName;

@@ -27,8 +27,10 @@ public class Form28_1ReportController {
     public ApiResponse<List<Form28_1ReportDto>> getReport(
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
             @RequestParam(required = false) String mkb10Code
     ) {
-        return ApiResponse.success(messageUtil, service.getReports(fromDate, toDate, mkb10Code));
+        return ApiResponse.success(messageUtil, service.getReports(fromDate, toDate, stateCode, cityCode, mkb10Code));
     }
 }

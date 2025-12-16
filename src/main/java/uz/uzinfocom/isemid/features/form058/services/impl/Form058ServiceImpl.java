@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.form058.services.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
@@ -117,10 +118,11 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
-    public Form058 cancel(Long formId, String reason) {
+    public Form058 cancel(Long formId, String reason, User currentUser) {
         Form058 form058 = this.getById(formId);
         form058.setStatus(FormStatus.CANCELED);
         form058.setCancelReason(reason);
+        form058.setCanceledBy(currentUser.getId());
         return form058Repository.save(form058);
     }
 
@@ -252,4 +254,14 @@ public class Form058ServiceImpl implements Form058Service {
         return responses;
     }
 
+    @Override
+    public Form058 getByCardId(Long cardId) {
+        return cardRepository.findForm058ByCardId(cardId)
+                .orElseThrow(() ->
+                        new ApiException(
+                                HttpStatus.NOT_FOUND,
+                                messageUtil.get("form058.not_found_by_card_id")
+                        )
+                );
+    }
 }

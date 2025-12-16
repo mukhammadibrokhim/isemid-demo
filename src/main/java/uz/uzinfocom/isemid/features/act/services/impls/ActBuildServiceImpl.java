@@ -6,11 +6,8 @@ import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
 import uz.uzinfocom.isemid.features.act.factory.ActFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
-import uz.uzinfocom.isemid.features.act.models.act153.Act153;
-import uz.uzinfocom.isemid.features.act.models.act154.Act154;
 import uz.uzinfocom.isemid.features.act.services.ActBuildService;
 import uz.uzinfocom.isemid.features.card.models.Card;
-import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.HashSet;
@@ -43,18 +40,6 @@ public class ActBuildServiceImpl implements ActBuildService {
                     act.setCardId(card.getId());
                     act.setType(actType);
                     act.setStatus(ActStatus.NEW);
-
-                    if (actType == ActType.ACT153 || actType == ActType.ACT154) {
-                        Form058 form058 = card.getForm058();
-                        if (form058 != null && form058.getAdmissionDate() != null) {
-                            if (act instanceof Act153 act153) {
-                                act153.setHospitalizationDate(form058.getAdmissionDate());
-                            } else if (act instanceof Act154 act154) {
-                                act154.setHospitalizationDate(form058.getAdmissionDate());
-                            }
-                        }
-                    }
-
                     return act;
                 })
                 .collect(Collectors.toList());

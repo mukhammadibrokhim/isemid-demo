@@ -17,13 +17,7 @@ import java.util.Set;
 @Builder
 @Table(indexes = {
         @Index(name = "idx_id", columnList = "id"),
-        @Index(name = "idx_short_name", columnList = "shortName"),
         @Index(name = "idx_code", columnList = "code"),
-        @Index(name = "idx_include_total", columnList = "includeInTotal"),
-        @Index(name = "idx_name_ru", columnList = "nameRu"),
-        @Index(name = "idx_name_uz", columnList = "nameUz"),
-        @Index(name = "idx_name_uz_cyril", columnList = "nameUzCyril"),
-        @Index(name = "idx_name_kaa", columnList = "nameKaa"),
 },name = "cls_manual_report")
 public class ManualReport extends BaseEntity {
 

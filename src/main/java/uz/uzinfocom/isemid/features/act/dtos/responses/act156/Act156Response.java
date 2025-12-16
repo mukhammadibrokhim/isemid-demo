@@ -9,9 +9,7 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.models.act156.Act156GroupDetail;
 import uz.uzinfocom.isemid.features.act.models.act156.Act156KitchenUtensil;
-import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -24,12 +22,13 @@ import java.util.Set;
 public class Act156Response extends ActResponse {
     private Long id;
     private String title;
-    private LocalDate documentSendDate;
     private Integer tin;
     private String institutionName;
     private String institutionAddress;
+    private String activityTypeCode;
+
     private LocalDateTime sampleTakenTime;
-    private OrgMiniResponse organization;
+    private Long lisOrganizationId;
     private String laboratoryAddress;
     private LocalDateTime sampleDeliveryTime;
     private String fullNameofSampler;

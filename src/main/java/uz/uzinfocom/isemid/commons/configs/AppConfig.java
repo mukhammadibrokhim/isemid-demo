@@ -1,13 +1,12 @@
 package uz.uzinfocom.isemid.commons.configs;
 
-import com.fasterxml.jackson.core.StreamWriteConstraints;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.Nonnull;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.MessageSource;
@@ -77,17 +76,12 @@ public class AppConfig {
     }
 
     @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.setTimeZone(TimeZone.getTimeZone("Asia/Tashkent"));
-        mapper.getFactory().setStreamWriteConstraints(
-                StreamWriteConstraints.builder()
-                        .maxNestingDepth(20000)
-                        .build());
-        return mapper;
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+        return builder -> builder
+                .modules(new JavaTimeModule())   // LocalDate/LocalDateTime support
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .timeZone(TimeZone.getTimeZone("Asia/Tashkent"));
     }
 
     @Bean

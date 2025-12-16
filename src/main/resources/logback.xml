@@ -1,57 +1,55 @@
 <configuration>
-    <!-- 📁 Log fayllar joylashuvi -->
     <property name="LOGS_HOME" value="logs/" />
 
-    <!-- 🖥 Konsolga chiqarish -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</Pattern>
         </layout>
     </appender>
 
-    <!-- 📂 Asosiy log fayl (application loglari) -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGS_HOME}isemid_app.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOGS_HOME}isemid_app.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy
-                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+
+            <maxFileSize>100MB</maxFileSize>
+
+            <maxHistory>14</maxHistory>
+
+            <totalSizeCap>2GB</totalSizeCap>
         </rollingPolicy>
+
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</Pattern>
         </encoder>
     </appender>
 
-    <!-- 📂 Audit loglar -->
     <appender name="FILE-AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGS_HOME}isemid_audit.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOGS_HOME}isemid_audit.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy
-                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy">
-                <maxFileSize>50MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>14</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
+
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>%d{yyyy-MM-dd HH:mm:ss};%msg%n</Pattern>
         </encoder>
     </appender>
 
-    <!-- 🧩 Asosiy application logger -->
-    <logger name="uz.uzinfocom.isemid" level="DEBUG" additivity="false">
+    <logger name="uz.uzinfocom.isemid" level="INFO" additivity="false">
         <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <!-- 🧾 Audit logger -->
     <logger name="audit-log" level="INFO" additivity="false">
         <appender-ref ref="FILE-AUDIT" />
     </logger>
 
-    <!-- 🧱 Root logger -->
-    <root level="ERROR">
+    <root level="INFO">
         <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </root>

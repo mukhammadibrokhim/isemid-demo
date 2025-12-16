@@ -7,7 +7,6 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,13 +19,14 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153Response extends ActResponse {
     private Long id;
-    private LocalDate documentSendDate;
     private Integer tin;
-    private String sampleObjectName;
+    private String institutionName;
+    private String institutionAddress;
+    private String activityTypeCode;
     private String samplingDocuments;
-    private LocalDateTime hospitalizationDate;
     private String samplerFullName;
     private String position;
+    private LocalDate deliveredDate;
     private String participantFullName;
     private String participantPosition;
     private String additionalInfo;

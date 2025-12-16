@@ -6,6 +6,7 @@ import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.patient.dtos.responses.PatientResponse;
+import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -50,6 +51,7 @@ public class Form058DetailsResponse {
     private String comment;
     private String cardByFullName;
     private String cancelReason;
+    private UserMiniResponse canceledBy;
     private String approvedFullName;
     private OrgMiniResponse approvedOrg;
     private String notifierFullName;

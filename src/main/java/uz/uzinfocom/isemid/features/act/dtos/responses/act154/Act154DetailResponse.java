@@ -23,7 +23,7 @@ public class Act154DetailResponse {
     private LocalDateTime sampleTakenDate;
     //Catalog
     private String shiftCode;
-    private Long organizationId;
+    private Long lisOrganizationId;
     private String laboratoryAddress;
     private String deliveryTerm;
     private String storageCondition;

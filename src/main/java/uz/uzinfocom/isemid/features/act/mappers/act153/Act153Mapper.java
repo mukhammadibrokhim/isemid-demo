@@ -4,10 +4,11 @@ import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act153.Act153Request;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act153.Act153Response;
 import uz.uzinfocom.isemid.features.act.models.act153.Act153;
+import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 
 @Mapper(
         componentModel = "spring",
-        uses = {Act153DetailMapper.class}
+        uses = {Act153DetailMapper.class, OrganizationMapperHelper.class}
 )
 public interface Act153Mapper {
 
@@ -16,6 +17,7 @@ public interface Act153Mapper {
     @Mapping(target = "createdAt", source = "act.createdAt")
     @Mapping(target = "updatedAt", source = "act.updatedAt")
     @Mapping(target = "type", source = "act.type")
+    @Mapping(target = "createdOrg", source = "createdOrg.uuid", qualifiedByName = "toOrgMiniResponse")
     Act153Response toResponse(Act153 act);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

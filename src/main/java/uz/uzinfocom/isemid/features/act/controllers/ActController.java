@@ -10,11 +10,14 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.services.ActService;
+
+import java.util.UUID;
 
 import static org.springframework.security.web.util.UrlUtils.buildRequestUrl;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
@@ -69,9 +72,20 @@ public class ActController {
             summary = "Отправить акт в LIS",
             description = "Отправляет акт (153–224) в LIS систему и возвращает статус отправки."
     )
-    @PostMapping("/{id}/send-to-lis")
-    public ApiResponse<?> sendActToLis(@PathVariable Long id) {
-        actService.sendToLis(id);
+    @PostMapping("/send-to-lis")
+    public ApiResponse<?> sendActToLis(
+            @RequestBody LisRequest lisRequest,
+            HttpServletRequest request
+    ) {
+        String orgHeader = request.getHeader("Organization-id");
+        UUID organizationUuid = orgHeader != null ? UUID.fromString(orgHeader) : null;
+
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        actService.sendToLis(lisRequest, organizationUuid, token);
         return ApiResponse.success(messageUtil, "Акт успешно отправлен в LIS.");
     }
 
@@ -79,12 +93,12 @@ public class ActController {
             summary = "Приём ответа от LIS",
             description = "Callback endpoint, на который LIS отправляет ответ по акту."
     )
-    @PostMapping("/lis/callback/{id}")
+    @PostMapping("/lis/callback/{actId}")
     public ApiResponse<?> receiveLisResponse(
-            @PathVariable Long id,
+            @PathVariable Long actId,
             @RequestBody String body
     ) {
-        actService.handleLisResponse(id, body);
+        actService.handleLisResponse(actId, body);
         return ApiResponse.success(messageUtil, "Ответ от LIS успешно принят.");
     }
 }

@@ -15,5 +15,6 @@ public class Form12ReportDto {
     private String titleKaa;
     private String code;
     private Long totalCount;
+    private Long below14Count;
     private Long below18Count;
 }

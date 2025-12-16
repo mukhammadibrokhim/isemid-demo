@@ -131,11 +131,12 @@ public class Form058Controller {
     @PatchMapping("/{formId}/cancel")
     public ApiResponse<?> cancel(
             @PathVariable Long formId,
-            @RequestBody @Valid Form058CancelRequest request
+            @RequestBody @Valid Form058CancelRequest request,
+            @CurrentUser User currentUser
     ) {
         return ApiResponse.success(
                 messageUtil,
-                form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason()))
+                form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason(), currentUser))
         );
     }
 
@@ -187,6 +188,12 @@ public class Form058Controller {
             @CurrentUser User currentUser
     ) {
         return ApiResponse.success(messageUtil, form058Service.getConfirmationStats(mkb10Codes, regionCodes, fromDate, toDate, locale, currentUser));
+    }
+
+    @GetMapping("/by-card/{cardId}")
+    public ApiResponse<Form058Response> getByCardId(@PathVariable Long cardId) {
+        Form058 form058 = form058Service.getByCardId(cardId);
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058));
     }
 }
 
