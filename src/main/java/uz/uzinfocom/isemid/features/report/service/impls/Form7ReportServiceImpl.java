@@ -11,10 +11,10 @@ import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.commons.utils.PageableUtils;
 import uz.uzinfocom.isemid.features.report.dtos.request.Form7ReportRequest;
 import uz.uzinfocom.isemid.features.report.mapper.Form7ReportMapper;
-import uz.uzinfocom.isemid.features.report.model.Form7Report;
-import uz.uzinfocom.isemid.features.report.repository.Form7ReportRepository;
+import uz.uzinfocom.isemid.features.report.model.FormReport7;
+import uz.uzinfocom.isemid.features.report.repository.FormReport7Repository;
 import uz.uzinfocom.isemid.features.report.service.Form7ReportService;
-import uz.uzinfocom.isemid.features.report.specification.Form7ReportSpecification;
+import uz.uzinfocom.isemid.features.report.specification.FormReport7Specification;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
@@ -24,12 +24,12 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Service
 @RequiredArgsConstructor
 public class Form7ReportServiceImpl implements Form7ReportService {
-    private final Form7ReportRepository reportRepository;
+    private final FormReport7Repository reportRepository;
     private final Form7ReportMapper form7ReportMapper;
     private final MessageUtil messageUtil;
 
     @Override
-    public Page<Form7Report> getReport(
+    public Page<FormReport7> getReport(
             int page,
             int size,
             LocalDate fromDate,
@@ -38,30 +38,30 @@ public class Form7ReportServiceImpl implements Form7ReportService {
             String cityCode,
             User currentUser
     ) {
-        Specification<Form7Report> spec = Form7ReportSpecification.build(fromDate, toDate, stateCode, cityCode, currentUser);
+        Specification<FormReport7> spec = FormReport7Specification.build(fromDate, toDate, stateCode, cityCode, currentUser);
         return reportRepository.findAll(spec, PageableUtils.pageableSortByIdDesc(page, size));
     }
 
     @Override
-    public Form7Report create(User currentUser) {
+    public FormReport7 create(User currentUser) {
         return null;
     }
 
     @Override
-    public Form7Report getById(Long id) {
+    public FormReport7 getById(Long id) {
         return reportRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override
-    public Form7Report update(Long id, Form7ReportRequest request) {
-        Form7Report form7Report = getById(id);
-        form7ReportMapper.update(form7Report, request);
-        return reportRepository.save(form7Report);
+    public FormReport7 update(Long id, Form7ReportRequest request) {
+        FormReport7 formReport7 = getById(id);
+        form7ReportMapper.update(formReport7, request);
+        return reportRepository.save(formReport7);
     }
 
     @Override
     public void delete(Long id) {
-        Form7Report report = getById(id);
+        FormReport7 report = getById(id);
         try {
             reportRepository.delete(report);
         } catch (DataIntegrityViolationException e) {
