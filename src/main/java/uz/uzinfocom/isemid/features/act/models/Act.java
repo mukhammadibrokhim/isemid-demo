@@ -18,6 +18,7 @@ import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -57,4 +58,13 @@ public abstract class Act extends AbsEntity {
 
     @Column(name = "card_id")
     private Long cardId;
+
+    @Column(name = "lis_attempt")
+    private Integer lisAttempt = 0;
+
+    @Column(columnDefinition = "TEXT")
+    private String lisResponse;
+
+    @Column(name = "lis_sent_date")
+    private LocalDateTime lisSentDate;
 }

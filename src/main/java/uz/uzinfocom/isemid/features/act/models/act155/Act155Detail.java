@@ -1,10 +1,13 @@
 package uz.uzinfocom.isemid.features.act.models.act155;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
-import uz.uzinfocom.isemid.features.organization.models.Organization;
 
 
 @Setter
@@ -18,20 +21,16 @@ public class Act155Detail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "act155_id")  // Foreign key to Act154
+    @JsonBackReference
     private Act155 act155;
 
     private String productName;
     private String purposeOfTesting;
     private String purposeOfTestingLoinc;//loinc
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
-
-    @Column(name = "organization_id", insertable = false, updatable = false)
-    private Long organizationId;
-
+    private Long lisOrganizationId;
     private String laboratoryAddress;
+
     private String sampleTakenLocation;
     private Long sampleQuantity;
     private Long productBatchQuantity;

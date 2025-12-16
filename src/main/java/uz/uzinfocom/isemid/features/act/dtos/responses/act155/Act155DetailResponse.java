@@ -16,10 +16,10 @@ public class Act155DetailResponse {
     private String productName;
     private String purposeOfTesting;
     private String purposeOfTestingLoinc;//loinc
-    private String laboratoryAddress;
     private String sampleTakenLocation;
     private Long sampleQuantity;
-    private Long organizationId;
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
     private Long productBatchQuantity;
     private String appliedPesticides;
     private String manufacturer;

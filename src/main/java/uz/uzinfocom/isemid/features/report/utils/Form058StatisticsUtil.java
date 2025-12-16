@@ -17,11 +17,13 @@ public class Form058StatisticsUtil {
     public static Form1ReportDto calculate(List<Form058> forms, String name, Set<Form1ReportDto> children) {
         long confirmedTotal = 0;
         long confirmedAdults = 0;
+        long confirmedUnder14 = 0;
         long confirmedUnder18 = 0;
         long confirmedFemales = 0;
 
         long emergencyTotal = 0;
         long emergencyAdults = 0;
+        long emergencyUnder14 = 0;
         long emergencyUnder18 = 0;
         long emergencyFemales = 0;
 
@@ -32,21 +34,36 @@ public class Form058StatisticsUtil {
                 continue;
             }
 
-            boolean isAdult = Period.between(form.getPatient().getBirthDate(), today).getYears() >= 18;
+            LocalDate birth = form.getPatient().getBirthDate();
+            int age = Period.between(birth, today).getYears();
+
+            boolean isUnder14 = age < 14;  // 13y 12m 29d
+            boolean isUnder18 = age < 18;  // 17y 12m 29d
+            boolean isAdult = age >= 18;   // kattalar
+
             boolean isFemale = Gender.female.name().equalsIgnoreCase(form.getPatient().getGenderCode());
 
+            // ---- Emergency section ----
             emergencyTotal++;
-            if (isAdult) emergencyAdults++;
-            else emergencyUnder18++;
-            if (isAdult && isFemale) emergencyFemales++;
 
+            if (isAdult) emergencyAdults++;
+            if (isUnder14) emergencyUnder14++;
+            if (isUnder18) emergencyUnder18++;
+
+            if (isFemale) emergencyFemales++;
+
+            // ---- Confirmed section ----
             if (form.getStatus() == FormStatus.APPROVED) {
                 confirmedTotal++;
+
                 if (isAdult) confirmedAdults++;
-                else confirmedUnder18++;
-                if (isAdult && isFemale) confirmedFemales++;
+                if (isUnder14) confirmedUnder14++;
+                if (isUnder18) confirmedUnder18++;
+
+                if (isFemale) confirmedFemales++;
             }
         }
+
         double growthRate = 0.0;
         if (confirmedTotal > 0) {
             growthRate = ((double) emergencyTotal / confirmedTotal) * 100;
@@ -57,10 +74,12 @@ public class Form058StatisticsUtil {
                 .name(name)
                 .confirmedTotal(confirmedTotal)
                 .confirmedAdults(confirmedAdults)
+                .confirmedUnder14(confirmedUnder14)
                 .confirmedUnder18(confirmedUnder18)
                 .confirmedFemales(confirmedFemales)
                 .emergencyTotal(emergencyTotal)
                 .emergencyAdults(emergencyAdults)
+                .emergencyUnder14(emergencyUnder14)
                 .emergencyUnder18(emergencyUnder18)
                 .emergencyFemales(emergencyFemales)
                 .children(children)

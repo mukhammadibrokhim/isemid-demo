@@ -69,10 +69,8 @@ public class Form058Request {
     @NotNull(message = "Дата обязательна.")
     private LocalDateTime initialReportDateTime;
 
-    @NotBlank(message = "Причина заболевания обязательна и не может быть пустой.")
     private String diseaseCause;
 
-    @NotBlank(message = "Эпидемические меры обязательны и не могут быть пустыми.")
     private String epidemicMeasures;
 
     @NotBlank(message = "Ф.И.О. уведомляющего лица не может быть пустым.")

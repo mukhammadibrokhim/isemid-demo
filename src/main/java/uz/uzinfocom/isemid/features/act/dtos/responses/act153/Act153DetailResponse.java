@@ -1,15 +1,14 @@
 package uz.uzinfocom.isemid.features.act.dtos.responses.act153;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153DetailResponse {
     private Long id;
     private String objectCode;
@@ -25,7 +24,7 @@ public class Act153DetailResponse {
     private String sampleType;
     private LocalDateTime samplingDate;
     private String specialSamplingConditions;
-    private Long organizationId;
+    private Long lisOrganizationId;
     private String laboratoryAddress;
     private String deliveryConditions;
     private String storageConditions;

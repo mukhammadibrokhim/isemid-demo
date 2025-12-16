@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class AbsEntity {
 
     @Id
@@ -52,12 +54,12 @@ public abstract class AbsEntity {
     @JoinColumn(name = "created_org_uuid", referencedColumnName = "uuid")
     private Organization createdOrg;
 
+    @Column(name = "created_org_uuid", insertable = false, updatable = false)
+    private UUID createdOrgUuid;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_org_uuid", referencedColumnName = "uuid")
     private Organization updatedOrg;
-
-    @Column(name = "created_org_uuid", insertable = false, updatable = false)
-    private UUID createdOrgUuid;
 
     @Column(name = "updated_org_uuid", insertable = false, updatable = false)
     private UUID updatedOrgUuid;

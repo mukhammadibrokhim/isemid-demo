@@ -87,6 +87,7 @@ public class Form058 extends AbsEntity {
 
     private String cardByFullName;
     private String cancelReason;
+    private Long canceledBy;
 
     private String approvedFullName;
     private UUID approvedOrgUuid;

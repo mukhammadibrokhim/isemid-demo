@@ -10,7 +10,6 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -24,13 +23,16 @@ public class Act154Response extends ActResponse {
     private Long id;
     private String title;
     private Long serialNumber;
-    private LocalDate documentSendDate;
     private Integer tin;
-    private String nameOfObject;
-    private String objectAddress;
-    private LocalDateTime hospitalizationDate;
+    private String institutionName;
+    private String institutionAddress;
+    private String activityTypeCode;
+
     private String samplerFullName;
+    private LocalDate deliveredDate;
     private String position;
+    private String participantFullName;
+    private String participantPosition;
     private String additionalInfo;
     private Set<Act154DetailResponse> act154Details;
 }

@@ -65,7 +65,29 @@ public interface UserMapper {
     @Mapping(target = "genderCode", source = "gender.value", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void update(UserRequest dto, @MappingTarget User entity);
 
-
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "uuid", ignore = true)
+    @Mapping(source = "name.firstName", target = "firstName")
+    @Mapping(source = "name.lastName", target = "lastName")
+    @Mapping(source = "name.patronymic", target = "middleName")
+    @Mapping(source = "birthDate", target = "birthDate")
+    @Mapping(source = "active", target = "active", defaultValue = "false")
+    @Mapping(source = "gender", target = "genderCode")
+    @Mapping(target = "phoneNumber", expression = "java(response.getTelecom() != null && !response.getTelecom().isEmpty() ? response.getTelecom().get(0).getValue() : \"\")")
+    @Mapping(target = "countryCode", expression = "java(response.getAddress() != null && !response.getAddress().isEmpty() ? response.getAddress().get(0).getCountry() : \"\")")
+    @Mapping(target = "stateCode", expression = "java(response.getAddress() != null && !response.getAddress().isEmpty() ? response.getAddress().get(0).getState() : \"\")")
+    @Mapping(target = "cityCode", expression = "java(response.getAddress() != null && !response.getAddress().isEmpty() ? response.getAddress().get(0).getCity() : \"\")")
+    @Mapping(target = "district", expression = "java(response.getAddress() != null && !response.getAddress().isEmpty() ? response.getAddress().get(0).getDistrict() : \"\")")
+    @Mapping(target = "line", expression = "java(response.getAddress() != null && !response.getAddress().isEmpty() ? response.getAddress().get(0).getLine() : \"\")")
+    @Mapping(target = "nnuzb", expression = "java(extractIdentifierByType(response, \"NNUZB\"))")
+    @Mapping(target = "ppn", expression = "java(extractIdentifierByType(response, \"PPN\"))")
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "organizations", ignore = true)
+    @Mapping(target = "currentOrganization", ignore = true)
+    @Mapping(target = "positionCode", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateFromMis(@MappingTarget User user, MisUserResponse response);
 
     default String extractIdentifierByType(MisUserResponse response, String typeCode) {
         if (response == null || response.getIdentifier() == null || response.getIdentifier().isEmpty()) {
@@ -84,4 +106,5 @@ public interface UserMapper {
                 .findFirst()
                 .orElse(null);
     }
+
 }

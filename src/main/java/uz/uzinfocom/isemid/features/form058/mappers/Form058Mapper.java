@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 import uz.uzinfocom.isemid.features.patient.mappers.PatientMapper;
+import uz.uzinfocom.isemid.features.user.mappers.helper.UserMapperHelper;
 
 @Mapper(componentModel = "spring", uses = {
         Form058MapperHelper.class,
@@ -16,7 +17,8 @@ import uz.uzinfocom.isemid.features.patient.mappers.PatientMapper;
         PatientMapper.class,
         LocationMapper.class,
         OrganizationMapperHelper.class,
-        CardMapper.class
+        CardMapper.class,
+        UserMapperHelper.class
 })
 public interface Form058Mapper {
 
@@ -35,6 +37,7 @@ public interface Form058Mapper {
     @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "cards", source = "cards")
+    @Mapping(target = "canceledBy", source = "canceledBy", qualifiedByName = "toUserMiniResponse")
     Form058Response toResponse(Form058 form058);
 
     @Mapping(target = "id", source = "id")
@@ -48,6 +51,7 @@ public interface Form058Mapper {
     @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "cards", source = "cards")
     @Mapping(target = "affiliation", source = ".", qualifiedByName = "mapAffiliation")
+    @Mapping(target = "canceledBy", source = "canceledBy", qualifiedByName = "toUserMiniResponse")
     Form058Response toResponse(Form058 form058, @Context Long orgId);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -64,6 +68,7 @@ public interface Form058Mapper {
     @Mapping(target = "senderOrganization", source = "senderOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "receiverOrganization", source = "receiverOrganizationId", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "hospitalPlace", source = "hospitalPlaceId", qualifiedByName = "toOrgMiniResponse")
+    @Mapping(target = "canceledBy", source = "canceledBy", qualifiedByName = "toUserMiniResponse")
     @Mapping(target = "cards", source = "cards")
     Form058DetailsResponse toDetailsResponse(Form058 form);
 }
