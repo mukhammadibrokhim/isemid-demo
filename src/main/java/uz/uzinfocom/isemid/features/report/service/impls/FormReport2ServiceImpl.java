@@ -13,7 +13,7 @@ import uz.uzinfocom.isemid.features.report.dtos.request.Form2ReportRequest;
 import uz.uzinfocom.isemid.features.report.mapper.FormReport2Mapper;
 import uz.uzinfocom.isemid.features.report.model.FormReport2;
 import uz.uzinfocom.isemid.features.report.repository.FormReport2Repository;
-import uz.uzinfocom.isemid.features.report.service.Form2ReportService;
+import uz.uzinfocom.isemid.features.report.service.FormReport2Service;
 import uz.uzinfocom.isemid.features.report.specification.FormReport2Specification;
 import uz.uzinfocom.isemid.features.user.models.User;
 
@@ -23,7 +23,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
-public class Form2ReportServiceImpl implements Form2ReportService {
+public class FormReport2ServiceImpl implements FormReport2Service {
     private final FormReport2Repository reportRepository;
     private final FormReport2Mapper mapper;
     private final MessageUtil messageUtil;

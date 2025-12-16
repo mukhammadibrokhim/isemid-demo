@@ -7,7 +7,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
 
-public interface Form2ReportService {
+public interface FormReport2Service {
     Page<FormReport2> getReport(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode,
                                 String cityCode, User currentUser);
 

@@ -13,7 +13,7 @@ import uz.uzinfocom.isemid.features.report.dtos.request.Form7ReportRequest;
 import uz.uzinfocom.isemid.features.report.mapper.Form7ReportMapper;
 import uz.uzinfocom.isemid.features.report.model.FormReport7;
 import uz.uzinfocom.isemid.features.report.repository.FormReport7Repository;
-import uz.uzinfocom.isemid.features.report.service.Form7ReportService;
+import uz.uzinfocom.isemid.features.report.service.FormReport7Service;
 import uz.uzinfocom.isemid.features.report.specification.FormReport7Specification;
 import uz.uzinfocom.isemid.features.user.models.User;
 
@@ -23,7 +23,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
-public class Form7ReportServiceImpl implements Form7ReportService {
+public class FormReport7ServiceImpl implements FormReport7Service {
     private final FormReport7Repository reportRepository;
     private final Form7ReportMapper form7ReportMapper;
     private final MessageUtil messageUtil;

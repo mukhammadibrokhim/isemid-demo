@@ -14,7 +14,7 @@ import uz.uzinfocom.isemid.features.report.dtos.request.Form2ReportRequest;
 import uz.uzinfocom.isemid.features.report.dtos.response.FormReport2Response;
 import uz.uzinfocom.isemid.features.report.mapper.FormReport2Mapper;
 import uz.uzinfocom.isemid.features.report.model.FormReport2;
-import uz.uzinfocom.isemid.features.report.service.Form2ReportService;
+import uz.uzinfocom.isemid.features.report.service.FormReport2Service;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 
@@ -29,7 +29,7 @@ import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_
 @Tag(name = "Report Forms 2")
 @RequiredArgsConstructor
 public class FormReport2Controller {
-    private final Form2ReportService form2ReportService;
+    private final FormReport2Service formReport2Service;
     private final FormReport2Mapper mapper;
     private final MessageUtil messageUtil;
 
@@ -44,7 +44,7 @@ public class FormReport2Controller {
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<FormReport2> paged = form2ReportService.getReport(page, size, fromDate, toDate, stateCode, cityCode, currentUser);
+        Page<FormReport2> paged = formReport2Service.getReport(page, size, fromDate, toDate, stateCode, cityCode, currentUser);
         return PagedResponse.build(page, paged.map(mapper::toResponse), buildRequestUrl(request), messageUtil);
     }
 
@@ -52,13 +52,13 @@ public class FormReport2Controller {
     public ApiResponse<FormReport2Response> createForm7Report(
             @RequestBody Form2ReportRequest request
     ) {
-        FormReport2 report = form2ReportService.create(request);
+        FormReport2 report = formReport2Service.create(request);
         return ApiResponse.success(messageUtil, mapper.toResponse(report));
     }
 
     @GetMapping("/{id}")
     public ApiResponse<FormReport2Response> getForm7Report(@PathVariable Long id) {
-        return ApiResponse.success(messageUtil, mapper.toResponse(form2ReportService.getById(id)));
+        return ApiResponse.success(messageUtil, mapper.toResponse(formReport2Service.getById(id)));
     }
 
     @PutMapping("/{id}")
@@ -66,12 +66,12 @@ public class FormReport2Controller {
             @PathVariable Long id,
             @RequestBody Form2ReportRequest request
     ) {
-        return ApiResponse.success(messageUtil, mapper.toResponse(form2ReportService.update(id, request)));
+        return ApiResponse.success(messageUtil, mapper.toResponse(formReport2Service.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteForm7Report(@PathVariable Long id) {
-        form2ReportService.delete(id);
+        formReport2Service.delete(id);
         return ApiResponse.deleteSuccess(messageUtil);
     }
 }
