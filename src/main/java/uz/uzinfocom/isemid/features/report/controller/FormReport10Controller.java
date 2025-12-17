@@ -10,5 +10,5 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 @RequestMapping(ApiPaths.Report.FORM10)
 @Tag(name = "Report Forms")
 @RequiredArgsConstructor
-public class Form10ReportController {
+public class FormReport10Controller {
 }
