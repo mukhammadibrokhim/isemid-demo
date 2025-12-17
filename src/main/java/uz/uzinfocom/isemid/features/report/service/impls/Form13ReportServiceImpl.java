@@ -19,7 +19,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class Form13ReportServiceImpl implements Form13ReportService {
-
     private final Form058Repository form058Repository;
     private final Form13ReportHelper helper;
 

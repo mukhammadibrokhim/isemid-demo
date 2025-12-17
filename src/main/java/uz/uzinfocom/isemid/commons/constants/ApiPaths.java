@@ -76,7 +76,7 @@ public final class ApiPaths {
         public static final String FORM6= ROOT + "/form-6";
         public static final String FORM7= ROOT + "/form-7";
         public static final String FORM9 = ROOT + "/form-9";
-        public static final String FORM10 = ROOT + "form-10";
+        public static final String FORM10 = ROOT + "/form-10";
         public static final String FORM11 = ROOT + "/form-11";
         public static final String FORM12 = ROOT + "/form12";
         public static final String FORM13 = ROOT + "/form-13";
@@ -108,15 +108,15 @@ public final class ApiPaths {
     }
 
     public static final class ExternalApi {
-//        public static final String BASE_API_URL = "https://test-api2.ssv.uz";
-//        public static final String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
-//        public static final String LIS_URL = "https://test-lis.sanepid.uz/api/v1/act/integration/";
-//        public static final String ISEMID_CALLBACK = "https://test-ykem.sanepid.uz/api/v1/act/lis/callback/";
+        public static final String BASE_API_URL = "https://test-api2.ssv.uz";
+        public static final String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
+        public static final String LIS_URL = "https://test-lis.sanepid.uz/api/v1/act/integration/";
+        public static final String ISEMID_CALLBACK = "https://test-ykem.sanepid.uz/api/v1/act/lis/callback/";
 
-        public static final String BASE_API_URL = "https://api2.ssv.uz";
-        public static final String SSO_TOKEN = "https://sso.ssv.uz/oauth/token";
-        public static final String LIS_URL = "https://lis.sanepid.uz/api/v1/act/integration/";
-        public static final String ISEMID_CALLBACK = "https://ykem.sanepid.uz/api/v1/act/lis/callback/";
+//        public static final String BASE_API_URL = "https://api2.ssv.uz";
+//        public static final String SSO_TOKEN = "https://sso.ssv.uz/oauth/token";
+//        public static final String LIS_URL = "https://lis.sanepid.uz/api/v1/act/integration/";
+//        public static final String ISEMID_CALLBACK = "https://ykem.sanepid.uz/api/v1/act/lis/callback/";
 
         public static final String PRACTITIONER = BASE_API_URL + "/v2/Practitioner/%s";
         public static final String ORGANIZATION = BASE_API_URL + "/v2/Organization/%s";
