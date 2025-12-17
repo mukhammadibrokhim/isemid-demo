@@ -181,7 +181,6 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setApprovedFullName(changeDiagnosis.getApprovedFullName());
 
         if (changeDiagnosis.getApprovedOrgId() != null) {
-
             Organization approveOrg = organizationService
                     .findById(changeDiagnosis.getApprovedOrgId())
                     .orElseGet(() ->
@@ -195,7 +194,6 @@ public class Form058ServiceImpl implements Form058Service {
         } else {
             form058.setApprovedOrgUuid(null);
         }
-
 
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);

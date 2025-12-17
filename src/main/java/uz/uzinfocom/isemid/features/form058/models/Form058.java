@@ -86,10 +86,17 @@ public class Form058 extends AbsEntity {
     private List<Card> cards = new ArrayList<>();
 
     private String cardByFullName;
+
+    @Column(name = "cancel_reason")
     private String cancelReason;
+
+    @Column(name = "canceled_by")
     private Long canceledBy;
 
+    @Column(name = "approved_full_name")
     private String approvedFullName;
+
+    @Column(name = "approved_org_uuid")
     private UUID approvedOrgUuid;
 
     @Column(length = 1000)
