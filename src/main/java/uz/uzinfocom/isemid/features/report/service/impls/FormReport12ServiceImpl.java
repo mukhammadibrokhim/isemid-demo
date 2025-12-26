@@ -15,11 +15,9 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
-
 @Service
 @RequiredArgsConstructor
 public class FormReport12ServiceImpl implements FormReport12Service {
-
     private final FormReport12Repository report12Repository;
     private final FormReport12Mapper report12Mapper;
 

@@ -16,6 +16,7 @@ public class SecurityConstants {
             "/v1/catalog/gender/**",
             "/v1/catalog/neighborhood/**",
             "/v1/catalog/positions/**",
-            "/v1/catalog/levels/**"
+            "/v1/catalog/levels/**",
+            "/v1/report/monitoring/**"
     };
 }
