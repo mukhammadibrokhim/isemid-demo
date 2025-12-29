@@ -23,8 +23,11 @@ public class MonitoringController {
     @GetMapping
     public ApiResponse<MonitoringResponse> getMonitoring(
             @RequestParam String fromDate,
-            @RequestParam String toDate
+            @RequestParam String toDate,
+            @RequestParam(required = false) String regionCode,
+            @RequestParam(required = false) String districtCode,
+            @RequestParam(required = false) String mkb10Code
     ) {
-        return ApiResponse.success(messageUtil, monitoringService.getMonitoring(fromDate, toDate));
+        return ApiResponse.success(messageUtil, monitoringService.getMonitoring(fromDate, toDate, regionCode, districtCode, mkb10Code));
     }
 }
