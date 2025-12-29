@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.features.report.service.impls;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -10,29 +12,43 @@ import uz.uzinfocom.isemid.features.classifier.repositories.Mkb10Repository;
 import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.MonitoringResponse;
 import uz.uzinfocom.isemid.features.report.service.MonitoringService;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 @RequiredArgsConstructor
 public class MonitoringServiceImpl implements MonitoringService {
+
     private final Form058Repository form058Repository;
     private final Mkb10Repository mkb10Repository;
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
+    private static final DateTimeFormatter FORMATTER =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @Override
-    public MonitoringResponse getMonitoring(String fromDate, String toDate) {
+    public MonitoringResponse getMonitoring(
+            String fromDate,
+            String toDate,
+            String regionCode,
+            String districtCode,
+            String mkb10Code
+    ) {
+
         LocalDate from = parseDate(fromDate);
         LocalDate to = parseDate(toDate);
 
-        Specification<Form058> spec = filterByCreatedDate(from, to);
+        Specification<Form058> spec =
+                filterByCreatedDate(from, to, regionCode, districtCode, mkb10Code);
+
         List<Form058> forms = form058Repository.findAll(spec);
 
         MonitoringResponse result = new MonitoringResponse();
@@ -44,27 +60,30 @@ public class MonitoringServiceImpl implements MonitoringService {
         int male = 0;
         int female = 0;
 
-        MonitoringResponse.AgeGroupCount ageGroups = new MonitoringResponse.AgeGroupCount();
+        MonitoringResponse.AgeGroupCount ageGroups =
+                new MonitoringResponse.AgeGroupCount();
 
         for (Form058 f : forms) {
+
             // status
             if (f.getStatus() != null) {
-                if (f.getStatus() == FormStatus.APPROVED) {
-                    confirmed++;
-                } else {
-                    unconfirmed++;
-                }
+                if (f.getStatus() == FormStatus.APPROVED) confirmed++;
+                else unconfirmed++;
             }
 
             // gender
-            if (f.getPatient() != null && f.getPatient().getGenderCode() != null) {
-                if (f.getPatient().getGenderCode().equalsIgnoreCase("male")) male++;
+            if (f.getPatient() != null && hasText(f.getPatient().getGenderCode())) {
+                if ("male".equalsIgnoreCase(f.getPatient().getGenderCode())) male++;
                 else female++;
             }
 
             // age groups
             if (f.getPatient() != null && f.getPatient().getBirthDate() != null) {
-                int age = java.time.Period.between(f.getPatient().getBirthDate(), LocalDate.now()).getYears();
+                int age = Period.between(
+                        f.getPatient().getBirthDate(),
+                        LocalDate.now()
+                ).getYears();
+
                 if (age <= 3) ageGroups.setAge_0_3(ageGroups.getAge_0_3() + 1);
                 else if (age <= 6) ageGroups.setAge_3_6(ageGroups.getAge_3_6() + 1);
                 else if (age <= 10) ageGroups.setAge_6_10(ageGroups.getAge_6_10() + 1);
@@ -74,12 +93,7 @@ public class MonitoringServiceImpl implements MonitoringService {
                 else if (age <= 65) ageGroups.setAge_45_65(ageGroups.getAge_45_65() + 1);
                 else ageGroups.setAge_65_plus(ageGroups.getAge_65_plus() + 1);
             }
-            if (f.getFinalMkb10Code() != null) {
-                result.setDiseaseType(buildDiseaseType(f.getFinalMkb10Code()));
-            }
-
         }
-
 
         result.setStatus(MonitoringResponse.StatusCount.builder()
                 .confirmed(confirmed)
@@ -93,12 +107,20 @@ public class MonitoringServiceImpl implements MonitoringService {
 
         result.setAgeGroups(ageGroups);
 
+        // 🔹 DiseaseType — faqat mkb10Code bo‘lsa
+        if (hasText(mkb10Code)) {
+            result.setDiseaseType(buildDiseaseType(mkb10Code));
+        } else {
+            result.setDiseaseType(MonitoringResponse.DiseaseType.builder().build());
+        }
+
         return result;
     }
 
     private MonitoringResponse.DiseaseType buildDiseaseType(String mkb10Code) {
-        if (mkb10Code == null) {
-            return null;
+
+        if (!hasText(mkb10Code)) {
+            return MonitoringResponse.DiseaseType.builder().build();
         }
 
         var optionalMkb = mkb10Repository.findByCode(mkb10Code);
@@ -114,24 +136,23 @@ public class MonitoringServiceImpl implements MonitoringService {
         String disease = mkb.getNameUz();
         String block = null;
         String clazz = null;
-        AtomicReference<String> section = new AtomicReference<>();
+        String section = null;
 
-        // 🔹 parent 1 → blok
         if (mkb.getParentId() != null) {
             var parent = mkb10Repository.findById(mkb.getParentId());
             if (parent.isPresent()) {
                 block = parent.get().getNameUz();
 
-                // 🔹 parent 2 → klass
                 if (parent.get().getParentId() != null) {
                     var grand = mkb10Repository.findById(parent.get().getParentId());
                     if (grand.isPresent()) {
                         clazz = grand.get().getNameUz();
 
-                        // 🔹 parent 3 → bo‘lim
                         if (grand.get().getParentId() != null) {
                             var top = mkb10Repository.findById(grand.get().getParentId());
-                            top.ifPresent(t -> section.set(t.getNameUz()));
+                            if (top.isPresent()) {
+                                section = top.get().getNameUz();
+                            }
                         }
                     }
                 }
@@ -143,23 +164,57 @@ public class MonitoringServiceImpl implements MonitoringService {
                 .disease(disease)
                 .block(block)
                 .clazz(clazz)
-                .section(section.toString())
+                .section(section)
                 .build();
     }
 
-
-    public static Specification<Form058> filterByCreatedDate(LocalDate fromDate, LocalDate toDate) {
+    public static Specification<Form058> filterByCreatedDate(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String regionCode,
+            String districtCode,
+            String mkb10Code
+    ) {
         return (root, query, cb) -> {
+
             List<Predicate> predicates = new ArrayList<>();
 
-            SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+            // period → createdAt
+            SpecificationUtils.fromToDateFilter(
+                    fromDate, toDate, root, cb, predicates, "createdAt"
+            );
+
+            // region / district
+            if (hasText(regionCode) || hasText(districtCode)) {
+                Join<Form058, Organization> createdOrgJoin =
+                        root.join("createdOrg", JoinType.LEFT);
+
+                if (hasText(regionCode)) {
+                    predicates.add(
+                            cb.equal(createdOrgJoin.get("stateCode"), regionCode)
+                    );
+                }
+
+                if (hasText(districtCode)) {
+                    predicates.add(
+                            cb.equal(createdOrgJoin.get("cityCode"), districtCode)
+                    );
+                }
+            }
+
+            // mkb10
+            if (hasText(mkb10Code)) {
+                predicates.add(
+                        cb.equal(root.get("finalMkb10Code"), mkb10Code)
+                );
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     private LocalDate parseDate(String date) {
-        if (date == null || date.isBlank()) return null;
+        if (!hasText(date)) return null;
         return LocalDate.parse(date, FORMATTER);
     }
 }

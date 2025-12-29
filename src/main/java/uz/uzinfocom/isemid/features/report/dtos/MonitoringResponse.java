@@ -13,6 +13,7 @@ public class MonitoringResponse {
 
     private LocalDate diseaseDate; // Kasallik qayd etilgan sana
     private String regionCode; // Hudud kodi
+    private String districtCode; // Hudud kodi
 
     private Integer totalCases;
 
