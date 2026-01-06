@@ -54,6 +54,8 @@ public class MonitoringServiceImpl implements MonitoringService {
         MonitoringResponse result = new MonitoringResponse();
         result.setDiseaseDate(LocalDate.now());
         result.setTotalCases(forms.size());
+        result.setRegionCode(regionCode);
+        result.setDistrictCode(districtCode);
 
         int confirmed = 0;
         int unconfirmed = 0;
