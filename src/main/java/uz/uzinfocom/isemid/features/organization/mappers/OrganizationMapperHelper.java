@@ -29,6 +29,9 @@ public class OrganizationMapperHelper {
 
     @Named("uuidToLongId")
     public Long uuidToLongId(UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
         return organizationRepository.findByUuid(uuid)
                 .map(Organization::getId)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
