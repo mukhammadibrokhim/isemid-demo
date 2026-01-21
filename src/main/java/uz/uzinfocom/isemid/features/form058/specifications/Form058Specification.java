@@ -6,8 +6,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.hibernate.boot.model.naming.Identifier;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
-import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.models.Affiliation;
@@ -33,7 +33,8 @@ public class Form058Specification {
             Boolean affiliation,
             String mkb10Code,
             Long organizationId,
-            String patientDocValue, User currentUser,
+            String patientDocValue,
+            User currentUser,
             FilterType filterType
     ) {
         return (root, query, cb) -> {
@@ -120,6 +121,24 @@ public class Form058Specification {
                 }
 
                 predicates.add(accessPredicate);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Form058> build(
+            final String nnuzb
+    ) {
+        return (root, query, cb) -> {
+            Objects.requireNonNull(query).distinct(true);
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (hasText(nnuzb)) {
+                Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+                Join<Patient, Identifier> idJoin = patientJoin.join("identifiers", JoinType.LEFT);
+
+                predicates.add(cb.equal(idJoin.get("value"), nnuzb));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
