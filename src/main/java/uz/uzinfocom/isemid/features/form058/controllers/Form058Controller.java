@@ -102,6 +102,23 @@ public class Form058Controller {
         return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
     }
 
+    @GetMapping("/by-nnuzb")
+    public PagedResponse<?> getByNnuzb(
+            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam String nnuzb,
+            HttpServletRequest request
+    ) {
+        Page<Form058> form058Page = form058Service.getByPatientNnuzb(page, size, nnuzb);
+
+        Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
+            Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
+            return formAdapter.adapt(base, form, FilterType.ALL);
+        });
+
+        return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
+    }
+
     @Operation(summary = "Получение формы 058 по ID", description = "Возвращает данные конкретной формы 058 по заданному идентификатору.")
     @GetMapping("/{id}")
     public ApiResponse<Form058Response> get(@PathVariable long id, @CurrentUser User user) {

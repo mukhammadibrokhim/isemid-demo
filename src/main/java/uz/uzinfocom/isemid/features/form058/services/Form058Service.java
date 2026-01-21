@@ -30,6 +30,8 @@ public interface Form058Service {
             FilterType filterType
     );
 
+    Page<Form058> getByPatientNnuzb(int page, int size, String nnuzb);
+
     Form058 update(Form058Request request, Long id, User user);
 
     Form058 getById(long id);

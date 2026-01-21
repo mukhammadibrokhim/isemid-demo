@@ -78,6 +78,16 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    public Page<Form058> getByPatientNnuzb(
+            int page,
+            int size,
+            String nnuzb
+    ) {
+        Specification<Form058> spec = Form058Specification.build(nnuzb);
+        return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
+    }
+
+    @Override
     public Form058 update(Form058Request request, Long id, User user) {
         Form058 existedEntity = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
         form058Mapper.update(existedEntity, request);
