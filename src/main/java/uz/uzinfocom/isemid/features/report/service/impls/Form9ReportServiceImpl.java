@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
