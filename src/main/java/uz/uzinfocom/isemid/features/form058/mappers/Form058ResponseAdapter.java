@@ -7,8 +7,8 @@ import uz.uzinfocom.isemid.features.card.dtos.responses.CardSimpleResponse;
 import uz.uzinfocom.isemid.features.card.mappers.CardMapper;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
-import uz.uzinfocom.isemid.features.form058.enums.FilterType;
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.user.models.User;
 

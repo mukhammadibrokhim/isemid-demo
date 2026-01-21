@@ -7,7 +7,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.commons.models.AbsEntity;
 import uz.uzinfocom.isemid.features.card.models.Card;
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
 
 import java.time.LocalDateTime;
@@ -44,6 +44,9 @@ public class Form058 extends AbsEntity {
 
     @Enumerated(EnumType.STRING)
     private FormStatus status;
+
+    @Column(name = "source", length = 20)
+    private String source;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_id", nullable = false)
