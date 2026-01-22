@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.features.patient.dtos.requests;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import uz.uzinfocom.isemid.features.form058.enums.AddressType;
+import uz.uzinfocom.isemid.features.form058.models.enums.AddressType;
 
 @Getter
 @Setter

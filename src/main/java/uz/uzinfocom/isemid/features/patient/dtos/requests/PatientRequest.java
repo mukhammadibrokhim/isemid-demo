@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import uz.uzinfocom.isemid.features.form058.enums.AddressType;
+import uz.uzinfocom.isemid.features.form058.models.enums.AddressType;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.patient.enums.MaritalStatus;
 import uz.uzinfocom.isemid.features.patient.enums.PopulationType;

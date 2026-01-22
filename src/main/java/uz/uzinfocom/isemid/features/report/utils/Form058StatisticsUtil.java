@@ -1,6 +1,6 @@
 package uz.uzinfocom.isemid.features.report.utils;
 
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.dtos.Form1ReportDto;
