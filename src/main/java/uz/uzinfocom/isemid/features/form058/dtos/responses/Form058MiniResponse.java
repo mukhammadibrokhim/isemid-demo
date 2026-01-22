@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.patient.dtos.responses.PatientMiniResponse;
 
@@ -24,6 +24,7 @@ public class Form058MiniResponse {
     private String mkb10Name;
     private String finalMkb10Code;
     private String finalMkb10Name;
+    private String source;
     private PatientMiniResponse patient;
     private FormStatus status;
     private LocalDateTime admissionDate; // Yotqizilgan sana

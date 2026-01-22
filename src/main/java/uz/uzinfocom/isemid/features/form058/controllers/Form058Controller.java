@@ -12,13 +12,14 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.form058.constants.Form058Headers;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058DetailsResponse;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058Response;
-import uz.uzinfocom.isemid.features.form058.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058ResponseAdapter;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
@@ -46,8 +47,12 @@ public class Form058Controller {
     @Operation(summary = "Создание формы 058", description = "Создаёт новую форму 058 с данными пациента и другой необходимой информацией.")
     @PostMapping
     @ResponseStatus(CREATED)
-    public ApiResponse<Form058Response> create(@Valid @RequestBody Form058Request form058Request) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.create(form058Request)));
+    public ApiResponse<Form058Response> create(
+            @Valid @RequestBody Form058Request form058Request,
+            @RequestHeader(value = Form058Headers.X_SOURCE, required = false) String sourceHeader,
+            @CurrentUser User currentUser
+    ) {
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.create(form058Request, sourceHeader, currentUser)));
     }
 
     @Operation(summary = "Получение всех форм 058", description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате.")
@@ -94,6 +99,23 @@ public class Form058Controller {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
             return formAdapter.adapt(base, form, FilterType.RECEIVED);
         });
+        return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
+    }
+
+    @GetMapping("/by-nnuzb")
+    public PagedResponse<?> getByNnuzb(
+            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
+            @RequestParam String nnuzb,
+            HttpServletRequest request
+    ) {
+        Page<Form058> form058Page = form058Service.getByPatientNnuzb(page, size, nnuzb);
+
+        Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
+            Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
+            return formAdapter.adapt(base, form, FilterType.ALL);
+        });
+
         return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
     }
 

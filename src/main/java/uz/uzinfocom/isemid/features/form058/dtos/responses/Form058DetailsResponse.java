@@ -3,7 +3,7 @@ package uz.uzinfocom.isemid.features.form058.dtos.responses;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.dtos.responses.CardSimpleResponse;
 import uz.uzinfocom.isemid.features.classifier.dtos.responses.CatalogMinResponse;
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.OrgMiniResponse;
 import uz.uzinfocom.isemid.features.patient.dtos.responses.PatientResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
@@ -26,6 +26,7 @@ public class Form058DetailsResponse {
     private Boolean affiliation;
     private String mkb10Code;
     private String mkb10Name;
+    private String source;
     private String finalMkb10Code;
     private String finalMkb10Name;
     private Integer mkb10UsageLimit;

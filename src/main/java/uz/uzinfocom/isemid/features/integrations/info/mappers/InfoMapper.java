@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.integrations.info.mappers;
 
 import org.mapstruct.Mapper;
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.integrations.info.dtos.responses.InfoIcd10Response;
 import uz.uzinfocom.isemid.features.integrations.info.dtos.responses.InfoResponse;

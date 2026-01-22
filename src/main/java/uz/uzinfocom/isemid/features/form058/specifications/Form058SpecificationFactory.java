@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
-import uz.uzinfocom.isemid.features.form058.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;

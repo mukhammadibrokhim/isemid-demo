@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.features.form058.enums;
+package uz.uzinfocom.isemid.features.form058.models.enums;
 
 public enum FilterType {
     CREATED_BY_ME,  // Foydalanuvchi tashkiloti yaratgan

@@ -15,15 +15,16 @@ import uz.uzinfocom.isemid.features.card.services.CardBuildService;
 import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
 import uz.uzinfocom.isemid.features.classifier.repositories.CatalogRepository;
 import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
+import uz.uzinfocom.isemid.features.form058.constants.Form058Sources;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ApproveDiagnosisRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058ConfirmationStatsResponse;
-import uz.uzinfocom.isemid.features.form058.enums.FilterType;
-import uz.uzinfocom.isemid.features.form058.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.form058.specifications.Form058Specification;
@@ -58,9 +59,10 @@ public class Form058ServiceImpl implements Form058Service {
     private final OrganizationService organizationService;
 
     @Override
-    public Form058 create(Form058Request request) {
+    public Form058 create(Form058Request request, String sourceHeader, User currentUser) {
         Form058 form058 = form058Mapper.toEntity(request);
         form058.setStatus(FormStatus.SENT);
+        form058.setSource(resolveSource(currentUser, sourceHeader));
         bindChildEntity(form058);
         return form058Repository.save(form058);
     }
@@ -72,6 +74,16 @@ public class Form058ServiceImpl implements Form058Service {
                                 String patientDocValue, User user,
                                 FilterType filterType) {
         Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, patientDocValue, user, filterType);
+        return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
+    }
+
+    @Override
+    public Page<Form058> getByPatientNnuzb(
+            int page,
+            int size,
+            String nnuzb
+    ) {
+        Specification<Form058> spec = Form058Specification.build(nnuzb);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
@@ -264,4 +276,25 @@ public class Form058ServiceImpl implements Form058Service {
                         )
                 );
     }
+
+    private String resolveSource(User currentUser, String sourceHeader) {
+        if (currentUser.hasRole("isemid_qr_user")) {
+            return Form058Sources.QR;
+        }
+
+        if (sourceHeader != null && !sourceHeader.isBlank()) {
+            String normalized = sourceHeader.trim().toUpperCase();
+
+            if (Form058Sources.LOCAL.equals(normalized)) {
+                return Form058Sources.LOCAL;
+            }
+
+            if (Form058Sources.HEPATITIS.equals(normalized)) {
+                return Form058Sources.HEPATITIS;
+            }
+        }
+
+        return Form058Sources.DMED;
+    }
+
 }

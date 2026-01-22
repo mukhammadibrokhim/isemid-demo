@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
-import uz.uzinfocom.isemid.features.form058.enums.AddressType;
+import uz.uzinfocom.isemid.features.form058.models.enums.AddressType;
 
 @Getter
 @Setter
