@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.classifier.models.Mkb10;
 import uz.uzinfocom.isemid.features.classifier.repositories.Mkb10Repository;
-import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.MonitoringResponse;
@@ -19,8 +19,7 @@ import uz.uzinfocom.isemid.features.report.service.MonitoringService;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -42,7 +41,6 @@ public class MonitoringServiceImpl implements MonitoringService {
             String districtCode,
             String mkb10Code
     ) {
-
         LocalDate from = parseDate(fromDate);
         LocalDate to = parseDate(toDate);
 
@@ -51,123 +49,105 @@ public class MonitoringServiceImpl implements MonitoringService {
 
         List<Form058> forms = form058Repository.findAll(spec);
 
-        MonitoringResponse result = new MonitoringResponse();
-        result.setDiseaseDate(LocalDate.now());
-        result.setTotalCases(forms.size());
-        result.setRegionCode(regionCode);
-        result.setDistrictCode(districtCode);
+        MonitoringResponse response = new MonitoringResponse();
+        response.setRequestDate(LocalDate.now());
 
-        int confirmed = 0;
-        int unconfirmed = 0;
-        int male = 0;
-        int female = 0;
+        // districtCode -> Item
+        Map<String, MonitoringResponse.Item> byDistrict = new LinkedHashMap<>();
 
-        MonitoringResponse.AgeGroupCount ageGroups =
-                new MonitoringResponse.AgeGroupCount();
+        // mkb cache: finalMkb10Code -> blockCode ("A00-A09" ko'rinish)
+        Map<String, String> mkbToBlockCache = new HashMap<>();
+
+        LocalDate now = LocalDate.now();
 
         for (Form058 f : forms) {
+            String dCode = resolveDistrictCode(f); // createdOrg.cityCode
+            MonitoringResponse.Item item = byDistrict.computeIfAbsent(dCode, dc -> {
+                MonitoringResponse.Item it = new MonitoringResponse.Item();
+                it.setDistrictCode(dc);
+                it.setAgeGroups(new MonitoringResponse.AgeGroupCount());
+                it.setDiseaseType(new LinkedHashMap<>());
+                return it;
+            });
+
+            // total
+            item.setTotalCases(item.getTotalCases() + 1);
 
             // status
-            if (f.getStatus() != null) {
-                if (f.getStatus() == FormStatus.APPROVED) confirmed++;
-                else unconfirmed++;
-            }
+            if (f.getStatus() == FormStatus.APPROVED) item.setConfirmed(item.getConfirmed() + 1);
+            else item.setUnconfirmed(item.getUnconfirmed() + 1);
 
             // gender
             if (f.getPatient() != null && hasText(f.getPatient().getGenderCode())) {
-                if ("male".equalsIgnoreCase(f.getPatient().getGenderCode())) male++;
-                else female++;
+                if ("male".equalsIgnoreCase(f.getPatient().getGenderCode())) item.setMale(item.getMale() + 1);
+                else item.setFemale(item.getFemale() + 1);
             }
 
             // age groups
             if (f.getPatient() != null && f.getPatient().getBirthDate() != null) {
-                int age = Period.between(
-                        f.getPatient().getBirthDate(),
-                        LocalDate.now()
-                ).getYears();
+                int age = Period.between(f.getPatient().getBirthDate(), now).getYears();
+                MonitoringResponse.AgeGroupCount ag = item.getAgeGroups();
 
-                if (age <= 3) ageGroups.setAge_0_3(ageGroups.getAge_0_3() + 1);
-                else if (age <= 6) ageGroups.setAge_3_6(ageGroups.getAge_3_6() + 1);
-                else if (age <= 10) ageGroups.setAge_6_10(ageGroups.getAge_6_10() + 1);
-                else if (age <= 17) ageGroups.setAge_10_17(ageGroups.getAge_10_17() + 1);
-                else if (age <= 25) ageGroups.setAge_18_25(ageGroups.getAge_18_25() + 1);
-                else if (age <= 45) ageGroups.setAge_25_45(ageGroups.getAge_25_45() + 1);
-                else if (age <= 65) ageGroups.setAge_45_65(ageGroups.getAge_45_65() + 1);
-                else ageGroups.setAge_65_plus(ageGroups.getAge_65_plus() + 1);
+                if (age <= 3) ag.setAge_0_3(ag.getAge_0_3() + 1);
+                else if (age <= 6) ag.setAge_3_6(ag.getAge_3_6() + 1);
+                else if (age <= 10) ag.setAge_6_10(ag.getAge_6_10() + 1);
+                else if (age <= 17) ag.setAge_10_17(ag.getAge_10_17() + 1);
+                else if (age <= 25) ag.setAge_18_25(ag.getAge_18_25() + 1);
+                else if (age <= 45) ag.setAge_25_45(ag.getAge_25_45() + 1);
+                else if (age <= 65) ag.setAge_45_65(ag.getAge_45_65() + 1);
+                else ag.setAge_65_plus(ag.getAge_65_plus() + 1);
+            }
+
+            // diseaseType (block range bo‘yicha)
+            if (hasText(f.getFinalMkb10Code())) {
+                String mkbCode = f.getFinalMkb10Code();
+
+                // 1) Agar request mkb10Code bilan kelgan bo‘lsa, sizda spec allaqachon filter qiladi,
+                //    lekin rasmga mos bo‘lishi uchun baribir mapga qo‘yamiz.
+                // 2) Agar mkb10Code bo‘lmasa (ya’ni hamma kasalliklar), block bo‘yicha sanaymiz.
+                String blockCode = mkbToBlockCache.computeIfAbsent(mkbCode, this::resolveBlockCodeOrSelf);
+
+                item.getDiseaseType().merge(blockCode, 1, Integer::sum);
             }
         }
 
-        result.setStatus(MonitoringResponse.StatusCount.builder()
-                .confirmed(confirmed)
-                .unconfirmed(unconfirmed)
-                .build());
-
-        result.setGender(MonitoringResponse.GenderCount.builder()
-                .male(male)
-                .female(female)
-                .build());
-
-        result.setAgeGroups(ageGroups);
-
-        // 🔹 DiseaseType — faqat mkb10Code bo‘lsa
-        if (hasText(mkb10Code)) {
-            result.setDiseaseType(buildDiseaseType(mkb10Code));
-        } else {
-            result.setDiseaseType(MonitoringResponse.DiseaseType.builder().build());
-        }
-
-        return result;
+        response.setData(new ArrayList<>(byDistrict.values()));
+        return response;
     }
 
-    private MonitoringResponse.DiseaseType buildDiseaseType(String mkb10Code) {
+    private String resolveDistrictCode(Form058 f) {
+        if (f.getCreatedOrg() == null) return "-";
+        if (hasText(f.getCreatedOrg().getCityCode())) return f.getCreatedOrg().getCityCode();
+        return "-";
+    }
 
-        if (!hasText(mkb10Code)) {
-            return MonitoringResponse.DiseaseType.builder().build();
-        }
+    /**
+     * finalMkb10Code -> block range ("A00-A09") ni topadi.
+     * Topolmasa, o‘sha mkbCode’ni qaytaradi.
+     */
+    private String resolveBlockCodeOrSelf(String mkbCode) {
+        if (!hasText(mkbCode)) return "-";
 
-        var optionalMkb = mkb10Repository.findByCode(mkb10Code);
-        if (optionalMkb.isEmpty()) {
-            return MonitoringResponse.DiseaseType.builder()
-                    .code(mkb10Code)
-                    .disease("Noma’lum kasallik")
-                    .build();
-        }
+        Optional<Mkb10> opt = mkb10Repository.findByCode(mkbCode);
+        if (opt.isEmpty()) return mkbCode;
 
-        Mkb10 mkb = optionalMkb.get();
+        Mkb10 cur = opt.get();
+        int guard = 0;
 
-        String disease = mkb.getNameUz();
-        String block = null;
-        String clazz = null;
-        String section = null;
+        while (cur != null && cur.getParentId() != null && guard++ < 10) {
+            Optional<Mkb10> parentOpt = mkb10Repository.findById(cur.getParentId());
+            if (parentOpt.isEmpty()) break;
 
-        if (mkb.getParentId() != null) {
-            var parent = mkb10Repository.findById(mkb.getParentId());
-            if (parent.isPresent()) {
-                block = parent.get().getNameUz();
+            Mkb10 parent = parentOpt.get();
 
-                if (parent.get().getParentId() != null) {
-                    var grand = mkb10Repository.findById(parent.get().getParentId());
-                    if (grand.isPresent()) {
-                        clazz = grand.get().getNameUz();
-
-                        if (grand.get().getParentId() != null) {
-                            var top = mkb10Repository.findById(grand.get().getParentId());
-                            if (top.isPresent()) {
-                                section = top.get().getNameUz();
-                            }
-                        }
-                    }
-                }
+            // block code odatda "A00-A09" kabi range bo‘ladi
+            if (hasText(parent.getCode()) && parent.getCode().contains("-")) {
+                return parent.getCode();
             }
+            cur = parent;
         }
 
-        return MonitoringResponse.DiseaseType.builder()
-                .code(mkb.getCode())
-                .disease(disease)
-                .block(block)
-                .clazz(clazz)
-                .section(section)
-                .build();
+        return mkbCode;
     }
 
     public static Specification<Form058> filterByCreatedDate(
@@ -192,23 +172,16 @@ public class MonitoringServiceImpl implements MonitoringService {
                         root.join("createdOrg", JoinType.LEFT);
 
                 if (hasText(regionCode)) {
-                    predicates.add(
-                            cb.equal(createdOrgJoin.get("stateCode"), regionCode)
-                    );
+                    predicates.add(cb.equal(createdOrgJoin.get("stateCode"), regionCode));
                 }
-
                 if (hasText(districtCode)) {
-                    predicates.add(
-                            cb.equal(createdOrgJoin.get("cityCode"), districtCode)
-                    );
+                    predicates.add(cb.equal(createdOrgJoin.get("cityCode"), districtCode));
                 }
             }
 
-            // mkb10
+            // mkb10 (agar kelgan bo‘lsa, shu mkb10 bo‘yicha filtrlab beradi)
             if (hasText(mkb10Code)) {
-                predicates.add(
-                        cb.equal(root.get("finalMkb10Code"), mkb10Code)
-                );
+                predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
