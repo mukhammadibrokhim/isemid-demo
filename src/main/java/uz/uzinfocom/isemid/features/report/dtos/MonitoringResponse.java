@@ -3,51 +3,33 @@ package uz.uzinfocom.isemid.features.report.dtos;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
 public class MonitoringResponse {
+    private LocalDate requestDate;
+    private List<Item> data = new ArrayList<>();
 
-    private LocalDate diseaseDate; // Kasallik qayd etilgan sana
-    private String regionCode; // Hudud kodi
-    private String districtCode; // Hudud kodi
+    @Getter @Setter
+    public static class Item {
+        private String districtCode;
 
-    private Integer totalCases;
+        private int totalCases;
+        private int confirmed;
+        private int unconfirmed;
 
-    private StatusCount status;
-    private GenderCount gender;
-    private AgeGroupCount ageGroups;
+        private int male;
+        private int female;
 
-    private DiseaseType diseaseType;
+        private AgeGroupCount ageGroups = new AgeGroupCount();
 
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class StatusCount {
-        private Integer confirmed;
-        private Integer unconfirmed;
+        private Map<String, Integer> diseaseType = new LinkedHashMap<>();
     }
 
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class GenderCount {
-        private Integer male;
-        private Integer female;
-    }
-
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Getter @Setter
     public static class AgeGroupCount {
         private int age_0_3;
         private int age_3_6;
@@ -57,18 +39,5 @@ public class MonitoringResponse {
         private int age_25_45;
         private int age_45_65;
         private int age_65_plus;
-    }
-
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class DiseaseType {
-        private String code;     // MKB-10 kodi
-        private String clazz;    // MKB-10 klass
-        private String block;    // MKB-10 blok
-        private String section;  // MKB-10 bo‘lim
-        private String disease;  // Kasallik turi nomi
     }
 }
