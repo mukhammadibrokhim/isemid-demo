@@ -20,8 +20,8 @@ import uz.uzinfocom.isemid.features.card.services.CardService;
 import uz.uzinfocom.isemid.features.card.specifications.CardSpecification;
 import uz.uzinfocom.isemid.features.card.strategy.impls.UpdateCardService;
 import uz.uzinfocom.isemid.features.card.utils.CardValidationUtil;
-import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
@@ -52,7 +52,7 @@ public class CardServiceImpl implements CardService {
             Long formId,
             User user
     ) {
-        Specification<Card> spec = CardSpecification.build(cardStatus, mkb10Code,formId, user);
+        Specification<Card> spec = CardSpecification.build(cardStatus, mkb10Code, formId, user);
         return cardRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
