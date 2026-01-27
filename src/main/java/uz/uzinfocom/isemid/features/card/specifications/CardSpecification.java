@@ -52,6 +52,7 @@ public class CardSpecification {
 
             if (formId != null) {
                 predicates.add(cb.equal(formJoin.get("id"), formId));
+                return cb.and(predicates.toArray(new Predicate[0]));
             }
 
             if (currentUser != null && currentUser.getCurrentOrganization() != null) {
