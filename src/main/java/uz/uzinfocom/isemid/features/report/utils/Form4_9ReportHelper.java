@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.report.utils;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
@@ -178,7 +179,23 @@ public class Form4_9ReportHelper {
     }
 
     private String getDisplay(Catalog c) {
-        return Optional.ofNullable(c.getNameUz())
+        Locale locale = LocaleContextHolder.getLocale();
+        String lang = locale.getLanguage();
+        String script = locale.getScript(); // uz-Cyrl uchun
+
+        String value = null;
+
+        if ("uz".equals(lang) && "Cyrl".equalsIgnoreCase(script)) {
+            value = c.getNameUzCyril();
+        } else if ("uz".equals(lang)) {
+            value = c.getNameUz();
+        } else if ("ru".equals(lang)) {
+            value = c.getNameRu();
+        } else if ("kaa".equals(lang)) {
+            value = c.getNameKaa();
+        }
+
+        return Optional.ofNullable(value)
                 .filter(s -> !s.isBlank())
                 .orElse("-");
     }
