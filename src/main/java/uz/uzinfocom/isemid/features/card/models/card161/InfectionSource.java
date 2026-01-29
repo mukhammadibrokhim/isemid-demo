@@ -22,7 +22,7 @@ public class InfectionSource extends BaseEntity {
     private Card161 card161;
 
     private String fullName;
-    private String diagnosisClinicalFormOrDonorStatus;
-    private String contactInfoAndDonorResidence;
-    private String testResult;
+    private String contactTypeCode;
+    private String relationCode;
+    private String duration;
 }
