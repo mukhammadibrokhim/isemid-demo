@@ -27,6 +27,7 @@ public class PatientMiniResponse {
     private Integer ageYears;
     private Integer ageMonths;
     private CatalogMinResponse gender;
+    private String phoneNumber;
     @Builder.Default
     private List<AddressResponse> addresses = new ArrayList<>();
 }

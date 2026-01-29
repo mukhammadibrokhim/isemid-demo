@@ -61,7 +61,7 @@ public class MonitoringServiceImpl implements MonitoringService {
         LocalDate now = LocalDate.now();
 
         for (Form058 f : forms) {
-            String dCode = resolveDistrictCode(f); // createdOrg.cityCode
+            String dCode = resolveRegionCode(f); // createdOrg.cityCode
             MonitoringResponse.Item item = byDistrict.computeIfAbsent(dCode, dc -> {
                 MonitoringResponse.Item it = new MonitoringResponse.Item();
                 it.setDistrictCode(dc);
@@ -115,9 +115,9 @@ public class MonitoringServiceImpl implements MonitoringService {
         return response;
     }
 
-    private String resolveDistrictCode(Form058 f) {
+    private String resolveRegionCode(Form058 f) {
         if (f.getCreatedOrg() == null) return "-";
-        if (hasText(f.getCreatedOrg().getCityCode())) return f.getCreatedOrg().getCityCode();
+        if (hasText(f.getCreatedOrg().getStateCode())) return f.getCreatedOrg().getStateCode();
         return "-";
     }
 
