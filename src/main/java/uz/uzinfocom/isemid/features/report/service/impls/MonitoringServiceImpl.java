@@ -50,40 +50,34 @@ public class MonitoringServiceImpl implements MonitoringService {
         List<Form058> forms = form058Repository.findAll(spec);
 
         MonitoringResponse response = new MonitoringResponse();
-        response.setRequestDate(LocalDate.now());
+        response.setToDate(to != null ? to : LocalDate.now());
 
-        // districtCode -> Item
-        Map<String, MonitoringResponse.Item> byDistrict = new LinkedHashMap<>();
+        Map<String, MonitoringResponse.Item> byLocation = new LinkedHashMap<>();
 
-        // mkb cache: finalMkb10Code -> blockCode ("A00-A09" ko'rinish)
         Map<String, String> mkbToBlockCache = new HashMap<>();
-
         LocalDate now = LocalDate.now();
 
         for (Form058 f : forms) {
-            String dCode = resolveRegionCode(f); // createdOrg.cityCode
-            MonitoringResponse.Item item = byDistrict.computeIfAbsent(dCode, dc -> {
+            String locCode = resolveLocationCode(f, districtCode);
+
+            MonitoringResponse.Item item = byLocation.computeIfAbsent(locCode, code -> {
                 MonitoringResponse.Item it = new MonitoringResponse.Item();
-                it.setDistrictCode(dc);
+                it.setLocationCode(code);
                 it.setAgeGroups(new MonitoringResponse.AgeGroupCount());
                 it.setDiseaseType(new LinkedHashMap<>());
                 return it;
             });
 
-            // total
             item.setTotalCases(item.getTotalCases() + 1);
 
-            // status
             if (f.getStatus() == FormStatus.APPROVED) item.setConfirmed(item.getConfirmed() + 1);
             else item.setUnconfirmed(item.getUnconfirmed() + 1);
 
-            // gender
             if (f.getPatient() != null && hasText(f.getPatient().getGenderCode())) {
                 if ("male".equalsIgnoreCase(f.getPatient().getGenderCode())) item.setMale(item.getMale() + 1);
                 else item.setFemale(item.getFemale() + 1);
             }
 
-            // age groups
             if (f.getPatient() != null && f.getPatient().getBirthDate() != null) {
                 int age = Period.between(f.getPatient().getBirthDate(), now).getYears();
                 MonitoringResponse.AgeGroupCount ag = item.getAgeGroups();
@@ -98,33 +92,27 @@ public class MonitoringServiceImpl implements MonitoringService {
                 else ag.setAge_65_plus(ag.getAge_65_plus() + 1);
             }
 
-            // diseaseType (block range bo‘yicha)
             if (hasText(f.getFinalMkb10Code())) {
                 String mkbCode = f.getFinalMkb10Code();
-
-                // 1) Agar request mkb10Code bilan kelgan bo‘lsa, sizda spec allaqachon filter qiladi,
-                //    lekin rasmga mos bo‘lishi uchun baribir mapga qo‘yamiz.
-                // 2) Agar mkb10Code bo‘lmasa (ya’ni hamma kasalliklar), block bo‘yicha sanaymiz.
                 String blockCode = mkbToBlockCache.computeIfAbsent(mkbCode, this::resolveBlockCodeOrSelf);
-
                 item.getDiseaseType().merge(blockCode, 1, Integer::sum);
             }
         }
 
-        response.setData(new ArrayList<>(byDistrict.values()));
+        response.setData(new ArrayList<>(byLocation.values()));
         return response;
     }
 
-    private String resolveRegionCode(Form058 f) {
+    private String resolveLocationCode(Form058 f, String districtCode) {
         if (f.getCreatedOrg() == null) return "-";
-        if (hasText(f.getCreatedOrg().getStateCode())) return f.getCreatedOrg().getStateCode();
-        return "-";
+
+        if (hasText(districtCode)) {
+            return hasText(f.getCreatedOrg().getCityCode()) ? f.getCreatedOrg().getCityCode() : "-";
+        }
+
+        return hasText(f.getCreatedOrg().getStateCode()) ? f.getCreatedOrg().getStateCode() : "-";
     }
 
-    /**
-     * finalMkb10Code -> block range ("A00-A09") ni topadi.
-     * Topolmasa, o‘sha mkbCode’ni qaytaradi.
-     */
     private String resolveBlockCodeOrSelf(String mkbCode) {
         if (!hasText(mkbCode)) return "-";
 
@@ -140,7 +128,6 @@ public class MonitoringServiceImpl implements MonitoringService {
 
             Mkb10 parent = parentOpt.get();
 
-            // block code odatda "A00-A09" kabi range bo‘ladi
             if (hasText(parent.getCode()) && parent.getCode().contains("-")) {
                 return parent.getCode();
             }
@@ -161,12 +148,10 @@ public class MonitoringServiceImpl implements MonitoringService {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            // period → createdAt
             SpecificationUtils.fromToDateFilter(
                     fromDate, toDate, root, cb, predicates, "createdAt"
             );
 
-            // region / district
             if (hasText(regionCode) || hasText(districtCode)) {
                 Join<Form058, Organization> createdOrgJoin =
                         root.join("createdOrg", JoinType.LEFT);
@@ -179,7 +164,6 @@ public class MonitoringServiceImpl implements MonitoringService {
                 }
             }
 
-            // mkb10 (agar kelgan bo‘lsa, shu mkb10 bo‘yicha filtrlab beradi)
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));
             }

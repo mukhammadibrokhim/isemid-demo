@@ -23,7 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import uz.uzinfocom.isemid.commons.configs.security.filter.RevokedTokenFilter;
 import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtAuthConverter;
 import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtAuthHelper;
 import uz.uzinfocom.isemid.features.user.services.impl.UserServiceImpl;
@@ -45,6 +47,7 @@ public class SecurityConfig {
     private final JwtAuthHelper jwtAuthHelper;
     private final AccessDeniedEntryPoint accessDeniedEntryPoint;
     private final AuthEntryPoint authEntryPoint;
+    private final RevokedTokenFilter revokedTokenFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -69,6 +72,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authEntryPoint)
                         .accessDeniedHandler(accessDeniedEntryPoint)
                 )
+                .addFilterBefore(revokedTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer -> jwtConfigurer
                                         .jwtAuthenticationConverter(new JwtAuthConverter(jwtAuthHelper)))

@@ -10,12 +10,12 @@ import java.util.Map;
 
 @Getter @Setter
 public class MonitoringResponse {
-    private LocalDate requestDate;
+    private LocalDate toDate;
     private List<Item> data = new ArrayList<>();
 
     @Getter @Setter
     public static class Item {
-        private String districtCode;
+        private String locationCode;
 
         private int totalCases;
         private int confirmed;

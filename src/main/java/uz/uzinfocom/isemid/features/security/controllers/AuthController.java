@@ -8,10 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtUtil;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -20,6 +17,8 @@ import uz.uzinfocom.isemid.features.security.dtos.requests.AuthRequest;
 import uz.uzinfocom.isemid.features.security.dtos.requests.RegisterRequest;
 import uz.uzinfocom.isemid.features.security.dtos.responses.TokenResponse;
 import uz.uzinfocom.isemid.features.security.services.AuthService;
+import uz.uzinfocom.isemid.features.security.services.TokenRevocationService;
+import uz.uzinfocom.isemid.features.security.utils.BearerTokenExtractor;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 @RestController
@@ -54,5 +53,14 @@ public class AuthController {
     public ApiResponse<?> signUp(@Valid @RequestBody RegisterRequest request) {
         authService.signUp(request);
         return ApiResponse.success(messageUtil, null);
+    }
+
+    @PostMapping("/sso/logout")
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization
+    ) {
+        String token = BearerTokenExtractor.stripBearer(authorization);
+        authService.ssoLogout(token);
+        return ResponseEntity.ok().build();
     }
 }
