@@ -13,7 +13,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.server.i18n.AcceptHeaderLocaleContextResolver;
 import org.springframework.web.server.i18n.LocaleContextResolver;
 
@@ -24,6 +26,19 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class AppConfig {
+
+    @Bean
+    public RestClient restClient() {
+
+        SimpleClientHttpRequestFactory factory =
+                new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5_000);
+        factory.setReadTimeout(5_000);
+
+        return RestClient.builder()
+                .requestFactory(factory)
+                .build();
+    }
 
     @Bean
     public LocaleContextResolver localeContextResolver() {
