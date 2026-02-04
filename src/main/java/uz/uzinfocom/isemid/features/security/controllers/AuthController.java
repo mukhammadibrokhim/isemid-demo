@@ -17,7 +17,6 @@ import uz.uzinfocom.isemid.features.security.dtos.requests.AuthRequest;
 import uz.uzinfocom.isemid.features.security.dtos.requests.RegisterRequest;
 import uz.uzinfocom.isemid.features.security.dtos.responses.TokenResponse;
 import uz.uzinfocom.isemid.features.security.services.AuthService;
-import uz.uzinfocom.isemid.features.security.services.TokenRevocationService;
 import uz.uzinfocom.isemid.features.security.utils.BearerTokenExtractor;
 import uz.uzinfocom.isemid.features.user.models.User;
 
@@ -56,9 +55,7 @@ public class AuthController {
     }
 
     @PostMapping("/sso/logout")
-    public ResponseEntity<Void> logout(
-            @RequestHeader(value = "Authorization", required = false) String authorization
-    ) {
+    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
         String token = BearerTokenExtractor.stripBearer(authorization);
         authService.ssoLogout(token);
         return ResponseEntity.ok().build();

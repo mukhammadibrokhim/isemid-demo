@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.security.services.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,9 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 public class TokenRevocationServiceImpl implements TokenRevocationService {
-
     private final TokenRevocationRepository repository;
+
+    @Lazy
     private final JwtDecoder jwtDecoder;
 
     @Override
