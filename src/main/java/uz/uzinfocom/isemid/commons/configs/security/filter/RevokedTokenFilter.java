@@ -1,21 +1,27 @@
 package uz.uzinfocom.isemid.commons.configs.security.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uz.uzinfocom.isemid.commons.dtos.ApiErrorResponse;
 import uz.uzinfocom.isemid.features.security.services.TokenRevocationService;
 import uz.uzinfocom.isemid.features.security.utils.BearerTokenExtractor;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class RevokedTokenFilter extends OncePerRequestFilter {
+
     private final TokenRevocationService tokenRevocationService;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(
@@ -27,9 +33,23 @@ public class RevokedTokenFilter extends OncePerRequestFilter {
         String token = BearerTokenExtractor.extract(request);
 
         if (token != null && tokenRevocationService.isRevoked(token)) {
+
+            ApiErrorResponse body = ApiErrorResponse.builder()
+                    .success(false)
+                    .statusCode(HttpServletResponse.SC_UNAUTHORIZED)
+                    .message("token_revoked")
+                    .errors(List.of(
+                            ApiErrorResponse.ErrorDetail.builder()
+                                    .field("token")
+                                    .errorMessage("JWT token has been revoked")
+                                    .build()
+                    ))
+                    .build();
+
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"message\":\"token_revoked\"}");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(objectMapper.writeValueAsString(body));
             return;
         }
 
