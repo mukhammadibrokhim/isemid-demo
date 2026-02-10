@@ -28,6 +28,9 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <sonar.projectKey>moh-apdai-ses-emis-ykem-backend-dev</sonar.projectKey>
+        <sonar.projectName>moh-apdai-ses-emis-ykem-backend-dev</sonar.projectName>
+        <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
     </properties>
     <dependencies>
         <dependency>
