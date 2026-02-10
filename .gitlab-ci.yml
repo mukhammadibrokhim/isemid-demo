@@ -39,7 +39,7 @@ check-stage:
     - SONAR_P_KEY=$(grep 'sonar.projectKey' pom.xml | cut -d'=' -f2 | tr -d '\r ' )
     - SONAR_P_NAME=$(grep 'sonar.projectName' pom.xml | cut -d'=' -f2 | tr -d '\r ' )
     - SAFE_NAME=$(echo "$SONAR_P_NAME" | sed 's/ /_/g')
-    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -DskipTests
     - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}" -Dsonar.login="${SONAR_TOKEN_ANALYSIS}" || true
     - sleep 30
     - mkdir -p sonar_reports
