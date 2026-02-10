@@ -26,9 +26,6 @@ check-stage:
   stage: check-stage
   needs:
     - check_gitlab_ci_yml
-  image: 
-    name: maven:3.9.9-eclipse-temurin-17
-    entrypoint: [""]
   before_script: []
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
