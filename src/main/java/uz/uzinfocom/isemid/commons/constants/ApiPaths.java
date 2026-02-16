@@ -59,6 +59,10 @@ public final class ApiPaths {
         public static final String ROOT = BASE_PATH + "/vaccination";
     }
 
+    public static final class Forecast {
+        public static final String ROOT = BASE_PATH + "/forecast";
+    }
+
     public final static class Db {
         public static final String ROOT = BASE_PATH + "/db";
     }
