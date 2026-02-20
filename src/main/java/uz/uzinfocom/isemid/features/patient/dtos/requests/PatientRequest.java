@@ -36,6 +36,8 @@ public class PatientRequest {
     private String phoneNumber;
     private String kinshipDegree; // Example: "Father", "Mother", "Sibling", etc.
     private String kinshipFullName;
+
+    @NotNull
     private LocalDate birthDate;
     private Integer ageYears;
     private Integer ageMonths;

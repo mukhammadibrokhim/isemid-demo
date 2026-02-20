@@ -44,7 +44,7 @@ public class CitizenController {
             @RequestParam(required = false) String photo,
             @RequestParam(required = false) String series,
             @RequestParam(required = false) String number,
-            @RequestParam(required = false) LocalDate birthDate,
+            @RequestParam LocalDate birthDate,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
 
     ) {

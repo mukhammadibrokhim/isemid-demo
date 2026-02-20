@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.security.dtos.requests.RegisterRequest;
+import uz.uzinfocom.isemid.features.security.integrations.SsoLogoutClient;
 import uz.uzinfocom.isemid.features.security.services.AuthService;
+import uz.uzinfocom.isemid.features.security.services.TokenRevocationService;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.reposiotries.UserRepository;
 import uz.uzinfocom.isemid.features.user.services.RoleService;
@@ -20,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uz.uzinfocom.isemid.commons.utils.CommonUtil.checkNnuzb;
 
 @Service
@@ -29,6 +33,8 @@ public class AuthServiceImpl implements AuthService {
     private final OrganizationService organizationService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private final SsoLogoutClient ssoLogoutClient;
+    private final TokenRevocationService tokenRevocationService;
     private final MessageUtil messageUtil;
 
     @Override
@@ -80,5 +86,19 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    @Override
+    public void ssoLogout(String rwAccessToken) {
+        if (!StringUtils.hasText(rwAccessToken)) return;
+
+        try {
+            ssoLogoutClient.logout(rwAccessToken);
+        } catch (Exception ex) {
+            throw new ApiException(UNAUTHORIZED);
+        }
+
+        tokenRevocationService.revoke(rwAccessToken);
+
     }
 }
