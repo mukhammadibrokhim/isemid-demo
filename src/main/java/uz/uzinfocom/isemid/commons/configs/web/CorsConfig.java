@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons.configs.security;
+package uz.uzinfocom.isemid.commons.configs.web;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

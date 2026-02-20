@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons.configs;
+package uz.uzinfocom.isemid.commons.configs.http;
 
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
