@@ -1,8 +1,8 @@
 package uz.uzinfocom.isemid.features.form058.dtos.requests;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 
@@ -14,13 +14,14 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class Form058AssignCardRequest {
-    @NotNull(message = "Form058 id is required.")
-    private long form058Id;
 
-    @NotNull(message = "Card type is required.")
+    @NotNull(message = "Form058 id is required.")
+    @Positive(message = "Form058 id must be positive.")
+    private Long form058Id;
+
+    @NotEmpty(message = "Card type is required.")
     private List<CardType> cardType;
 
-    @Valid
-    @NotEmpty
+    @NotEmpty(message = "Assign user ids are required.")
     private List<Long> assignUserIds;
 }

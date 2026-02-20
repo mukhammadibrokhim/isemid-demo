@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.form058.services.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
 import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form058.policy.Form058Policy;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.form058.specifications.Form058Specification;
@@ -38,6 +40,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,9 +48,11 @@ import static org.springframework.http.HttpStatus.*;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 import static uz.uzinfocom.isemid.features.form058.util.Form058BindingUtil.bindChildEntity;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class Form058ServiceImpl implements Form058Service {
+
     private final Form058Repository form058Repository;
     private final CardBuildService cardBuildService;
     private final UserService userService;
@@ -57,136 +62,218 @@ public class Form058ServiceImpl implements Form058Service {
     private final CatalogRepository catalogRepository;
     private final MessageUtil messageUtil;
     private final OrganizationService organizationService;
+    private final Form058Policy policy;
 
-    @Override
-    public Form058 create(Form058Request request, String sourceHeader, User currentUser) {
-        Form058 form058 = form058Mapper.toEntity(request);
-        form058.setStatus(FormStatus.SENT);
-        form058.setSource(resolveSource(currentUser, sourceHeader));
-        bindChildEntity(form058);
-        return form058Repository.save(form058);
-    }
 
     @Override
     @Transactional
+    public Form058 create(Form058Request request, String sourceHeader, User currentUser) {
+        Form058 form058 = form058Mapper.toEntity(request);
+
+        form058.setStatus(FormStatus.SENT);
+        form058.setSource(resolveSource(currentUser, sourceHeader));
+
+        bindChildEntity(form058);
+
+        Form058 saved = form058Repository.save(form058);
+
+        log.info("form058.create.success formId={} actorUserId={} status={} source={}",
+                saved.getId(), currentUser.getId(), saved.getStatus(), saved.getSource());
+
+        return saved;
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode,
                                 String cityCode, Boolean affiliation, String mkb10Code, Long organizationId,
-                                String patientDocValue, User user,
-                                FilterType filterType) {
-        Specification<Form058> spec = Form058Specification.build(fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, patientDocValue, user, filterType);
+                                String patientDocValue, User user, FilterType filterType) {
+        Specification<Form058> spec = Form058Specification.build(
+                fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, patientDocValue, user, filterType);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
     @Override
-    public Page<Form058> getByPatientNnuzb(
-            int page,
-            int size,
-            String nnuzb
-    ) {
+    @Transactional(readOnly = true)
+    public Page<Form058> getByPatientNnuzb(int page, int size, String nnuzb) {
         Specification<Form058> spec = Form058Specification.build(nnuzb);
         return form058Repository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
     @Override
+    @Transactional
     public Form058 update(Form058Request request, Long id, User user) {
-        Form058 existedEntity = form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        Form058 existedEntity = form058Repository.findById(id)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+
+        policy.assertEditable(existedEntity);
+
+        FormStatus oldStatus = existedEntity.getStatus();
+
         form058Mapper.update(existedEntity, request);
-        return form058Repository.save(existedEntity);
+
+        Form058 saved = form058Repository.save(existedEntity);
+
+        log.info("form058.update.success formId={} actorUserId={} oldStatus={} newStatus={}",
+                saved.getId(), user.getId(), oldStatus, saved.getStatus());
+
+        return saved;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Form058 getById(long id) {
-        return form058Repository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
+        return form058Repository.findById(id)
+                .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 
     @Override
+    @Transactional
     public Form058 assignCard(Form058AssignCardRequest request, User user) {
-        if (request.getAssignUserIds() == null || request.getAssignUserIds().isEmpty()) {
-            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.assign_user_empty"));
-        }
+        Form058 form058 = getById(request.getForm058Id());
 
-        if (request.getCardType() == null || request.getCardType().isEmpty()) {
-            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.card_type_required"));
-        }
+        policy.assertCardAssignable(form058);
 
-        Form058 form058 = this.getById(request.getForm058Id());
+        List<Long> userIds = request.getAssignUserIds().stream().filter(Objects::nonNull).distinct().toList();
 
-        Map<Long, User> userMap = userService.getAllByIds(request.getAssignUserIds()).stream()
+        Map<Long, User> userMap = userService.getAllByIds(userIds).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
+        if (userMap.size() != userIds.size()) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.assign_user_not_found"));
+        }
+
+        FormStatus oldStatus = form058.getStatus();
+
         List<Card> cards = cardBuildService.buildCards(request.getCardType(), userMap, form058, user);
+
         form058.setCardByFullName(user.getFullName());
         form058.getCards().addAll(cards);
         form058.setStatus(FormStatus.CARD_LINKED);
 
-        return form058Repository.save(form058);
+        Form058 saved = form058Repository.save(form058);
+
+        log.info("form058.assignCard.success formId={} actorUserId={} oldStatus={} newStatus={} assigneesCount={} cardsCreated={}",
+                saved.getId(), user.getId(), oldStatus, saved.getStatus(), userIds.size(), cards.size());
+
+        return saved;
     }
 
     @Override
+    @Transactional
     public Form058 changeReceivedOrd(Long formId, Long orgId) {
-        Form058 form058 = this.getById(formId);
+        Form058 form058 = getById(formId);
+        Long receivedOrgId = form058.getReceiverOrganizationId();
         form058.setReceiverOrganizationId(orgId);
-        return form058Repository.save(form058);
+
+        Form058 saved = form058Repository.save(form058);
+
+        log.info("form058.changeReceiver.success formId={} oldReceiverOrganization{} new ReceiverOrganizationId={}",
+                saved.getId(), receivedOrgId, saved.getReceiverOrganizationId());
+
+        return saved;
     }
 
     @Override
+    @Transactional
     public Form058 cancel(Long formId, String reason, User currentUser) {
-        Form058 form058 = this.getById(formId);
+
+        Form058 form058 = getById(formId);
+
+        policy.assertCancelable(form058);
+
+        FormStatus oldStatus = form058.getStatus();
+
         form058.setStatus(FormStatus.CANCELED);
-        form058.setCancelReason(reason);
+        form058.setCancelReason(reason.trim());
         form058.setCanceledBy(currentUser.getId());
-        return form058Repository.save(form058);
+
+        Form058 saved = form058Repository.save(form058);
+
+        log.info("form058.cancel.success formId={} actorUserId={} oldStatus={} newStatus={}",
+                saved.getId(), currentUser.getId(), oldStatus, saved.getStatus());
+
+        return saved;
     }
 
     @Override
-    public Form058 approveForm(Long formId) {
-        Form058 form058 = this.getById(formId);
+    @Transactional
+    public Form058 approveForm(Long formId, User currentUser) {
+        Form058 form058 = getById(formId);
 
-        if (!form058.getStatus().equals(FormStatus.CARD_LINKED)) {
-            throw new ApiException(BAD_REQUEST, messageUtil.get("error.not_allowed_to_approve_form"));
-        }
+        policy.assertApprovable(form058);
+
+        FormStatus oldStatus = form058.getStatus();
+
         form058.setStatus(FormStatus.APPROVED);
-        return form058Repository.save(form058);
+
+        Form058 saved = form058Repository.save(form058);
+
+        log.info("form058.approveForm.success formId={} actorUserId={} oldStatus={} newStatus={}",
+                saved.getId(), currentUser.getId(), oldStatus, saved.getStatus());
+
+        return saved;
     }
 
     @Override
-    public Form058 notApprove(Long formId, Form058NotApproveRequest notApprove) {
-        Form058 form058 = this.getById(formId);
-        form058.setNotApproveComment(notApprove.getComment());
+    @Transactional
+    public Form058 notApprove(Long formId, User user, Form058NotApproveRequest notApprove) {
+        Form058 form058 = getById(formId);
+
+        policy.assertNotApprovable(form058);
+
+        FormStatus oldStatus = form058.getStatus();
+
+        form058.setNotApproveComment(notApprove.getComment().trim());
         form058.setStatus(FormStatus.NOT_APPROVED);
-        return form058Repository.save(form058);
+
+        Form058 saved = form058Repository.save(form058);
+
+        log.info("form058.notApprove.success formId={} actorUserId={} oldStatus={} newStatus={}",
+                saved.getId(), user.getId(), oldStatus, saved.getStatus());
+
+        return saved;
     }
 
     @Override
     @Transactional
     public void deleteById(Long formId) {
-        Form058 form058 = this.getById(formId);
+        Form058 form058 = getById(formId);
+
+        policy.assertDeletable(form058);
+
         List<Card> cards = form058.getCards();
 
         for (Card card : cards) {
             if (card instanceof Card161 card161) {
                 if (card161.getInfectionSourceDetail() != null) {
                     card161.setInfectionSourceDetail(null);
-                    cardRepository.save(card161);
                 }
             }
         }
-        cardRepository.flush();
+
         try {
             form058Repository.delete(form058);
+            form058Repository.flush();
+
+            log.info("form058.delete.success formId={} cardsCount={}", formId, cards.size());
+
         } catch (Exception e) {
+            log.error("form058.delete.fail formId={} reason={}", formId, e.getMessage(), e);
             throw new ApiException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
     @Override
     @Transactional
-    public Form058 approveDiagnosis(Long formId, Form058ApproveDiagnosisRequest changeDiagnosis, String token) {
-        Form058 form058 = this.getById(formId);
+    public Form058 approveDiagnosis(Long formId, Form058ApproveDiagnosisRequest changeDiagnosis, String token,
+                                    User currentUser) {
+        Form058 form058 = getById(formId);
 
-        if (!form058.getStatus().equals(FormStatus.CARD_LINKED)) {
-            throw new ApiException(BAD_REQUEST, messageUtil.get("error.form058.cannot_change_diagnosis"));
-        }
+        policy.assertDiagnosisApprovable(form058);
+
+        FormStatus oldStatus = form058.getStatus();
 
         form058.setFinalMkb10Code(changeDiagnosis.getFinalMkb10Code());
         form058.setFinalMkb10Name(changeDiagnosis.getFinalMkb10Name());
@@ -195,12 +282,9 @@ public class Form058ServiceImpl implements Form058Service {
         if (changeDiagnosis.getApprovedOrgId() != null) {
             Organization approveOrg = organizationService
                     .findById(changeDiagnosis.getApprovedOrgId())
-                    .orElseGet(() ->
-                            organizationService.fetchOrganizationFromMisAndSave(
-                                    changeDiagnosis.getApprovedOrgId(),
-                                    token
-                            )
-                    );
+                    .orElseGet(() -> organizationService.fetchOrganizationFromMisAndSave(
+                            changeDiagnosis.getApprovedOrgId(), token
+                    ));
 
             form058.setApprovedOrgUuid(approveOrg.getUuid());
         } else {
@@ -210,10 +294,16 @@ public class Form058ServiceImpl implements Form058Service {
         form058.setDiagnosisDate(LocalDateTime.now());
         form058.setStatus(FormStatus.APPROVED);
 
-        return form058Repository.save(form058);
+        Form058 saved = form058Repository.save(form058);
+
+        log.info("form058.approveDiagnosis.success formId={} actorUserId={} oldStatus={} newStatus={} finalMkb10Code={}",
+                saved.getId(), currentUser.getId(), oldStatus, saved.getStatus(), saved.getFinalMkb10Code());
+
+        return saved;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Form058ConfirmationStatsResponse> getConfirmationStats(
             List<String> mkb10Codes,
             List<String> regionCodes,
@@ -222,10 +312,10 @@ public class Form058ServiceImpl implements Form058Service {
             String locale,
             User currentUser
     ) {
+
         List<String> regions = (regionCodes == null || regionCodes.isEmpty())
                 ? List.of(currentUser.getCurrentOrganization().getStateCode())
                 : regionCodes;
-
 
         List<Mkb10Projection> mkb10List = mkb10Service.getNamesByCodesAndLocale(mkb10Codes, locale);
 
@@ -267,14 +357,10 @@ public class Form058ServiceImpl implements Form058Service {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Form058 getByCardId(Long cardId) {
         return cardRepository.findForm058ByCardId(cardId)
-                .orElseThrow(() ->
-                        new ApiException(
-                                HttpStatus.NOT_FOUND,
-                                messageUtil.get("form058.not_found_by_card_id")
-                        )
-                );
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, messageUtil.get("form058.not_found_by_card_id")));
     }
 
     private String resolveSource(User currentUser, String sourceHeader) {
@@ -288,12 +374,10 @@ public class Form058ServiceImpl implements Form058Service {
             if (Form058Sources.LOCAL.equals(normalized)) {
                 return Form058Sources.LOCAL;
             }
-
             if (Form058Sources.HEPATITIS.equals(normalized)) {
                 return Form058Sources.HEPATITIS;
             }
         }
-
         return Form058Sources.DMED;
     }
 
