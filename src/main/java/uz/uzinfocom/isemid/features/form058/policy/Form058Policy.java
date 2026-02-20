@@ -33,26 +33,26 @@ public class Form058Policy {
     }
 
     public void assertCardAssignable(Form058 form058) {
-
+        //TODO Should add status validation
     }
 
     public void assertCancelable(Form058 form058) {
-
+        //TODO Should add status validation
     }
 
     public void assertApprovable(Form058 form058) {
-
+        //TODO Should add status validation
     }
 
     public void assertNotApprovable(Form058 form058) {
-
+        //TODO Should add status validation
     }
 
     public void assertDeletable(Form058 form058) {
-
+        //TODO Should add status validation
     }
 
     public void assertDiagnosisApprovable(Form058 form058) {
-
+        //TODO Should add status validation
     }
 }
