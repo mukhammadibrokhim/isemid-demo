@@ -120,7 +120,7 @@ public final class ApiPaths {
 
         public static final String BASE_API_URL = "https://api2.ssv.uz";
         public static final String SSO_TOKEN = "https://sso.ssv.uz/oauth/token";
-        public static final String SSO_LOGOUT = "https://sso.ssv.uz/api/oauth/logout";
+        public static final String SSO_LOGOUT = "https://sso.ssv.uz/api/auth/logout";
         public static final String LIS_URL = "https://lis.sanepid.uz/api/v1/act/integration/";
         public static final String ISEMID_CALLBACK = "https://ykem.sanepid.uz/api/v1/act/lis/callback/";
 
