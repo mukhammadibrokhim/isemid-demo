@@ -30,8 +30,10 @@ public class ForecastController {
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam("alpha") double alpha,
-            @RequestParam("beta") double beta
+            @RequestParam("beta") double beta,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String mkb10C0de
     ) {
-        return ApiResponse.success(messageUtil, facade.holt(currentUser, startDate, endDate, alpha, beta));
+        return ApiResponse.success(messageUtil, facade.holt(currentUser, startDate, endDate, alpha, beta, stateCode, mkb10C0de));
     }
 }
