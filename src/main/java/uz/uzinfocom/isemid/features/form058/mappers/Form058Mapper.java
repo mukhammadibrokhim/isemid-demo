@@ -58,6 +58,9 @@ public interface Form058Mapper {
     @Mapping(source = "hospitalPlaceId", target = "hospitalPlaceId", qualifiedByName = "uuidToLongId")
     @Mapping(source = "senderOrganizationId", target = "senderOrganizationId", qualifiedByName = "uuidToLongId")
     @Mapping(source = "receiverOrganizationId", target = "receiverOrganizationId", qualifiedByName = "uuidToLongId")
+    @Mapping(target="status", ignore=true)
+    @Mapping(target="cards", ignore=true)
+    @Mapping(target="source", ignore=true)
     void update(@MappingTarget Form058 existedForm058, Form058Request request);
 
     @Mapping(target = "finalMkb10Code", source = "finalMkb10Code")

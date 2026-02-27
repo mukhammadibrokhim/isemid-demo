@@ -164,14 +164,18 @@ public class Form058Controller {
 
     @Operation(summary = "Подтверждение формы 058", description = "Позволяет утвердить форму 058.")
     @PatchMapping("/{formId}/approve")
-    public ApiResponse<?> approve(@PathVariable Long formId) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.approveForm(formId)));
+    public ApiResponse<?> approve(@PathVariable Long formId, @CurrentUser User user) {
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.approveForm(formId, user)));
     }
 
     @Operation(summary = "Отклонение формы 058", description = "Позволяет отклонить форму 058 с указанием причин.")
     @PutMapping("/{formId}/not-approve")
-    public ApiResponse<?> notApprove(@PathVariable Long formId, @RequestBody Form058NotApproveRequest notApprove) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.notApprove(formId, notApprove)));
+    public ApiResponse<?> notApprove(
+            @PathVariable Long formId,
+            @RequestBody Form058NotApproveRequest notApprove,
+            @CurrentUser User user
+    ) {
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.notApprove(formId, user, notApprove)));
     }
 
     @Operation(
@@ -186,9 +190,10 @@ public class Form058Controller {
     public ApiResponse<Form058Response> approveDiagnosis(
             @PathVariable Long formId,
             @Valid @RequestBody Form058ApproveDiagnosisRequest request,
-            @RequestHeader(name = AUTHORIZATION) String token
+            @RequestHeader(name = AUTHORIZATION) String token,
+            @CurrentUser User currentUser
     ) {
-        Form058 form = form058Service.approveDiagnosis(formId, request, token);
+        Form058 form = form058Service.approveDiagnosis(formId, request, token, currentUser);
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form));
     }
 
