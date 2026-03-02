@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.commons.utils.PageableUtils;
-import uz.uzinfocom.isemid.features.report.dtos.request.Form7ReportRequest;
+import uz.uzinfocom.isemid.features.report.dtos.request.FormReport7Request;
 import uz.uzinfocom.isemid.features.report.mapper.Form7ReportMapper;
 import uz.uzinfocom.isemid.features.report.model.FormReport7;
 import uz.uzinfocom.isemid.features.report.repository.FormReport7Repository;
@@ -43,8 +43,9 @@ public class FormReport7ServiceImpl implements FormReport7Service {
     }
 
     @Override
-    public FormReport7 create(User currentUser) {
-        return null;
+    public FormReport7 create(FormReport7Request request, User currentUser) {
+        FormReport7 formReport7 = form7ReportMapper.toEntity(request);
+        return reportRepository.save(formReport7);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class FormReport7ServiceImpl implements FormReport7Service {
     }
 
     @Override
-    public FormReport7 update(Long id, Form7ReportRequest request) {
+    public FormReport7 update(Long id, FormReport7Request request) {
         FormReport7 formReport7 = getById(id);
         form7ReportMapper.update(formReport7, request);
         return reportRepository.save(formReport7);

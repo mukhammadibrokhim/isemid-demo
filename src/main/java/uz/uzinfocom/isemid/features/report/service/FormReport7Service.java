@@ -1,7 +1,8 @@
 package uz.uzinfocom.isemid.features.report.service;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
-import uz.uzinfocom.isemid.features.report.dtos.request.Form7ReportRequest;
+import uz.uzinfocom.isemid.features.report.dtos.request.FormReport7Request;
 import uz.uzinfocom.isemid.features.report.model.FormReport7;
 import uz.uzinfocom.isemid.features.user.models.User;
 
@@ -14,11 +15,11 @@ public interface FormReport7Service {
             String cityCode, User currentUser
     );
 
-    FormReport7 create(User currentUser);
+    FormReport7 create(@Valid FormReport7Request request, User currentUser);
 
     FormReport7 getById(Long id);
 
-    FormReport7 update(Long id, Form7ReportRequest request);
+    FormReport7 update(Long id, FormReport7Request request);
 
     void delete(Long id);
 
