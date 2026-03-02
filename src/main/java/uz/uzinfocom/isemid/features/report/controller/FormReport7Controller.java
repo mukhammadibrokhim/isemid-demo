@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.report.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +10,7 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.report.dtos.request.Form7ReportRequest;
+import uz.uzinfocom.isemid.features.report.dtos.request.FormReport7Request;
 import uz.uzinfocom.isemid.features.report.dtos.response.FormReport7Response;
 import uz.uzinfocom.isemid.features.report.mapper.Form7ReportMapper;
 import uz.uzinfocom.isemid.features.report.model.FormReport7;
@@ -49,9 +50,10 @@ public class FormReport7Controller {
 
     @PostMapping
     public ApiResponse<FormReport7Response> createForm7Report(
+            @Valid @RequestBody FormReport7Request request,
             @CurrentUser User currentUser
     ) {
-        FormReport7 formReport7 = formReport7Service.create(currentUser);
+        FormReport7 formReport7 = formReport7Service.create(request, currentUser);
         return ApiResponse.success(messageUtil, form7ReportMapper.toResponse(formReport7));
     }
 
@@ -63,7 +65,7 @@ public class FormReport7Controller {
     @PutMapping("/{id}")
     public ApiResponse<FormReport7Response> updateForm7Report(
             @PathVariable Long id,
-            @RequestBody Form7ReportRequest request
+            @RequestBody FormReport7Request request
     ) {
         return ApiResponse.success(messageUtil, form7ReportMapper.toResponse(formReport7Service.update(id, request)));
     }
