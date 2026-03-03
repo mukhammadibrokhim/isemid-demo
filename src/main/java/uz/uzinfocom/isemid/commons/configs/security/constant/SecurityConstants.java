@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons.configs.security;
+package uz.uzinfocom.isemid.commons.configs.security.constant;
 
 public class SecurityConstants {
     public static final String[] WHITE_LIST = {
