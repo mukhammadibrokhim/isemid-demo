@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons.configs;
+package uz.uzinfocom.isemid.commons.configs.app;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;

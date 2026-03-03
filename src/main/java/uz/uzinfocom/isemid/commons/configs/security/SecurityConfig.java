@@ -14,12 +14,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import uz.uzinfocom.isemid.commons.configs.security.entrypoint.AccessDeniedEntryPoint;
+import uz.uzinfocom.isemid.commons.configs.security.entrypoint.AuthEntryPoint;
 import uz.uzinfocom.isemid.commons.configs.security.filter.RevokedTokenFilter;
 import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtAuthConverter;
 import uz.uzinfocom.isemid.commons.configs.security.jwt.JwtAuthHelper;
 import uz.uzinfocom.isemid.features.user.services.impl.UserServiceImpl;
 
-import static uz.uzinfocom.isemid.commons.configs.security.SecurityConstants.WHITE_LIST;
+import static uz.uzinfocom.isemid.commons.configs.security.constant.SecurityConstants.WHITE_LIST;
 
 @Configuration
 @EnableWebSecurity

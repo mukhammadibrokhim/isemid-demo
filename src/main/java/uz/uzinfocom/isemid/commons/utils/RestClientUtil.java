@@ -6,7 +6,7 @@ import org.springframework.http.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uz.uzinfocom.isemid.commons.configs.UnsafeHttpClientFactory;
+import uz.uzinfocom.isemid.commons.configs.http.UnsafeHttpClientFactory;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;

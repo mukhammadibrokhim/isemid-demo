@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons.configs.swagger;
+package uz.uzinfocom.isemid.commons.configs.openapi;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -14,7 +14,7 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import java.util.List;
 
 @Configuration
-public class SwaggerConfig {
+public class OpenApiConfig {
 
 
     @Bean
