@@ -1,4 +1,4 @@
-package uz.uzinfocom.isemid.commons.configs.openapi;
+package uz.uzinfocom.isemid.commons.configs.web;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
