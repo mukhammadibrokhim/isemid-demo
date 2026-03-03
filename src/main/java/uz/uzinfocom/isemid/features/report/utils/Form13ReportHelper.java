@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.models.enums.ReportType;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
+import uz.uzinfocom.isemid.features.classifier.utils.CatalogLocaleUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.Form13ReportDto;
@@ -241,7 +242,7 @@ public class Form13ReportHelper {
 
 
     private String getDisplay(Catalog c) {
-        return Optional.ofNullable(c.getNameUz()).filter(s -> !s.isBlank()).orElse("-");
+        return Optional.ofNullable(CatalogLocaleUtil.displayName(c)).filter(s -> !s.isBlank()).orElse("-");
     }
 
     private List<ManualReport> getReports() {

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
+import uz.uzinfocom.isemid.features.classifier.utils.CatalogLocaleUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.report.dtos.Form11ReportDto;
 
@@ -59,7 +60,7 @@ public class Form11ReportHelper {
         for (Catalog region : regions) {
 
             String regionCode = region.getCode();
-            String regionName = region.getNameUz();
+            String regionName = CatalogLocaleUtil.displayName(region);
 
             List<Form058> regionForms = forms.stream()
                     .filter(f -> f.getCreatedOrg() != null &&
@@ -86,7 +87,7 @@ public class Form11ReportHelper {
         for (Catalog district : districts) {
 
             String districtCode = district.getCode();
-            String districtName = district.getNameUz();
+            String districtName = CatalogLocaleUtil.displayName(district);
 
             List<Form058> districtForms = forms.stream()
                     .filter(f -> f.getCreatedOrg() != null &&
