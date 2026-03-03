@@ -6,6 +6,7 @@ import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
+import uz.uzinfocom.isemid.features.classifier.utils.CatalogLocaleUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.report.dtos.Form9ReportDto;
 
@@ -50,7 +51,7 @@ public class Form9ReportHelper {
         for (Catalog region : regions) {
 
             String code = region.getCode();
-            String name = region.getNameUz();
+            String name = CatalogLocaleUtil.displayName(region);
 
             List<Form058> regionForms = forms.stream()
                     .filter(f -> f.getCreatedOrg() != null &&
@@ -75,7 +76,7 @@ public class Form9ReportHelper {
         for (Catalog district : districts) {
 
             String code = district.getCode();
-            String name = district.getNameUz();
+            String name = CatalogLocaleUtil.displayName(district);
 
             List<Form058> districtForms = forms.stream()
                     .filter(f -> f.getCreatedOrg() != null &&

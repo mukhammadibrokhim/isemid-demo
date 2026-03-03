@@ -6,13 +6,16 @@ import uz.uzinfocom.isemid.commons.models.AbsEntity;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
+import uz.uzinfocom.isemid.features.classifier.utils.CatalogLocaleUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.FormReport10Dto;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -44,7 +47,7 @@ public class FormReport10Helper {
                     String code = region.getCode();
                     List<Form058> regionForms = filterByState(forms, code);
 
-                    return buildDto(code, region.getNameUz(), regionForms);
+                    return buildDto(code, CatalogLocaleUtil.displayName(region), regionForms);
                 })
                 .toList();
     }
@@ -59,7 +62,7 @@ public class FormReport10Helper {
                     String code = dist.getCode();
                     List<Form058> districtForms = filterByDistrict(forms, stateCode, code);
 
-                    return buildDto(code, dist.getNameUz(), districtForms);
+                    return buildDto(code, CatalogLocaleUtil.displayName(dist), districtForms);
                 })
                 .toList();
     }
