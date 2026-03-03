@@ -155,6 +155,14 @@ public class Form11ReportHelper {
                 .filter(f -> yearOf(f) == currentYear)
                 .count();
 
+        // intensity
+        double intPrev = intensity(absPrev, population, koef);
+        double intCurr = intensity(absCurr, population, koef);
+
+        // ✅ growth as percent
+        double absGrowth = growthPercent(absPrev, absCurr);
+        double intGrowth = growthPercent(intPrev, intCurr);
+
         long cityAbs = forms.stream().filter(this::isCity).count();
         long ruralAbs = forms.stream().filter(this::isRural).count();
         long childAbs = forms.stream().filter(this::isChild).count();
@@ -163,30 +171,29 @@ public class Form11ReportHelper {
                 .locationCode(locationCode)
                 .locationName(locationName)
 
-                // Абсолют пок
+                // ABS
                 .absPrev(absPrev)
                 .absCurr(absCurr)
+                .absGrowth(round2(absGrowth))
 
-                // Интенсив пок = count * koef / population
-                .intPrev(intensity(absPrev, population, koef))
-                .intCurr(intensity(absCurr, population, koef))
+                // INT
+                .intPrev(round2(intPrev))
+                .intCurr(round2(intCurr))
+                .intGrowth(round2(intGrowth))
 
-                // Рост/Снижение (+/-)
-                .growth((double) (absCurr - absPrev))
-
-                // Шахар ахолиси
+                // CITY
                 .cityAbs(cityAbs)
-                .cityInt(intensity(cityAbs, population, koef))
+                .cityInt(round2(intensity(cityAbs, population, koef)))
                 .cityPercent(percent(absCurr, cityAbs))
 
-                // Қишлоқ аҳолиси
+                // RURAL
                 .ruralAbs(ruralAbs)
-                .ruralInt(intensity(ruralAbs, population, koef))
+                .ruralInt(round2(intensity(ruralAbs, population, koef)))
                 .ruralPercent(percent(absCurr, ruralAbs))
 
-                // 18 ёшгача болалар
+                // CHILD (<18)
                 .childAbs(childAbs)
-                .childInt(intensity(childAbs, population, koef))
+                .childInt(round2(intensity(childAbs, population, koef)))
 
                 .build();
     }
@@ -212,6 +219,7 @@ public class Form11ReportHelper {
     }
 
     private int calculateAge(LocalDate birthDate, Timestamp atDate) {
+        if (birthDate == null || atDate == null) return -1;
         LocalDate date = atDate.toLocalDateTime().toLocalDate();
         return Period.between(birthDate, date).getYears();
     }
@@ -231,6 +239,23 @@ public class Form11ReportHelper {
         return (count * (double) koef) / population;
     }
 
+    /**
+     * growth% = ((curr - prev) / prev) * 100
+     * prev = 0 bo'lsa:
+     *   - curr = 0 => 0
+     *   - curr > 0 => 100
+     */
+    private double growthPercent(Number prev, Number curr) {
+        if (prev == null || curr == null) return 0d;
+
+        double p = prev.doubleValue();
+        double c = curr.doubleValue();
+
+        if (p == 0d) return c == 0d ? 0d : 100d;
+
+        return ((c - p) / p) * 100d;
+    }
+
     private double percent(long total, long part) {
         if (total == 0) return 0d;
 
@@ -241,4 +266,9 @@ public class Form11ReportHelper {
                 .doubleValue();
     }
 
+    private double round2(double v) {
+        return BigDecimal.valueOf(v)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
 }
