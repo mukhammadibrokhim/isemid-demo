@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.features.forecast.models.projection.DayCountProjection;
 import uz.uzinfocom.isemid.features.forecast.repositories.Form058ForecastRepository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
-import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
-import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
@@ -26,7 +24,13 @@ public class Form058WeeklyAggregationService {
     public record WeekSeriesPoint(int weekNo, LocalDate from, LocalDate to, long y) {
     }
 
-    public List<WeekSeriesPoint> weeklyCounts(User currentUser, LocalDate startDate, LocalDate endDate) {
+    public List<WeekSeriesPoint> weeklyCounts(
+            User currentUser,
+            LocalDate startDate,
+            LocalDate endDate,
+            String stateCode,      // optional override
+            String mkb10Code       // optional
+    ) {
         if (startDate == null) throw new IllegalArgumentException("startDate is required");
         if (endDate == null) endDate = bucketService.today();
         if (startDate.isAfter(endDate)) return List.of();
@@ -38,17 +42,24 @@ public class Form058WeeklyAggregationService {
         LocalDateTime fromTs = startDate.atStartOfDay();
         LocalDateTime toTs = endDate.plusDays(1).atStartOfDay();
 
-        // 3) scope
-        ScopeParams scope = resolveScope(currentUser);
+        // 3) effective filters (param overrides user org)
+        String effectiveStateCode = normalize(stateCode);
+        if (effectiveStateCode == null) {
+            effectiveStateCode = normalize(resolveUserStateCode(currentUser));
+        }
+        String effectiveMkb10 = normalize(mkb10Code);
 
         // 4) daily counts from DB
-        List<DayCountProjection> days = repo.countCreatedByDayScoped(
+        List<DayCountProjection> days = repo.countCreatedByDay(
                 fromTs, toTs,
-                scope.levelType, scope.stateCode, scope.cityCode
+                effectiveStateCode,
+                effectiveMkb10
         );
 
-        Map<LocalDate, Long> dayMap = new HashMap<>(days.size());
-        for (var p : days) dayMap.put(p.getDay(), p.getCnt());
+        Map<LocalDate, Long> dayMap = new HashMap<>(Math.max(16, days.size()));
+        for (var p : days) {
+            if (p.getDay() != null) dayMap.put(p.getDay(), p.getCnt());
+        }
 
         // 5) sum daily -> weekly
         List<WeekSeriesPoint> out = new ArrayList<>(buckets.size());
@@ -62,23 +73,16 @@ public class Form058WeeklyAggregationService {
         return out;
     }
 
-    private record ScopeParams(String levelType, String stateCode, String cityCode) {
+    private String resolveUserStateCode(User currentUser) {
+        if (currentUser == null) return null;
+        Organization org = currentUser.getCurrentOrganization();
+        if (org == null) return null;
+        return org.getStateCode();
     }
 
-    private ScopeParams resolveScope(User currentUser) {
-        Organization org = currentUser != null ? currentUser.getCurrentOrganization() : null;
-        if (org == null) return new ScopeParams("REPUBLICAN", null, null);
-        if (org.getMedicalType() != MedicalType.SANEPID_SERVICE) return new ScopeParams("REPUBLICAN", null, null);
-
-        LevelType levelType = org.getLevelType() != null ? org.getLevelType() : LevelType.NOT_DEFINED;
-
-        String stateCode = org.getStateCode();
-
-        String cityCode = org.getCityCode();
-        if (cityCode == null && org.getCity() != null) {
-            cityCode = org.getCity().getCode();
-        }
-
-        return new ScopeParams(levelType.name(), stateCode, cityCode);
+    private static String normalize(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
     }
 }
