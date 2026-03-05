@@ -19,13 +19,13 @@ public class Form058HoltWeeklyForecastFacade {
                                    LocalDate startDate,
                                    LocalDate endDate,
                                    double alpha,
-                                   double beta) {
+                                   double beta, String stateCode, String mkb10C0de) {
 
         if (startDate == null) throw new IllegalArgumentException("startDate is required");
         if (endDate == null) endDate = bucketService.today();
         if (startDate.isAfter(endDate)) throw new IllegalArgumentException("startDate > endDate");
 
-        var weekly = aggregationService.weeklyCounts(currentUser, startDate, endDate);
+        var weekly = aggregationService.weeklyCounts(currentUser, startDate, endDate, stateCode, mkb10C0de);
 
         return calculator.compute(weekly, alpha, beta);
     }
