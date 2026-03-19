@@ -12,7 +12,6 @@ import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.FormReport10Dto;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,36 +23,26 @@ public class FormReport10Helper {
 
     private final CatalogService catalogService;
 
-    /* =========================================================
-       ENTRY POINTS
-       ========================================================= */
-
-    public Object buildByParentCode(String parentCode, List<Form058> forms) {
-
+    public Object buildByParentCode(String parentCode, List<Form058> forms, LocalDate startDate, LocalDate endDate) {
         if (parentCode == null || parentCode.isBlank()) {
-            return buildRegionReports(forms);
+            return buildRegionReports(forms, startDate, endDate);
         }
-
-        // agar parentCode viloyat bo‘lsa → tumanlar
-        return buildDistrictReports(parentCode, forms);
+        return buildDistrictReports(parentCode, forms, startDate, endDate);
     }
 
-    public Object buildRegionReports(List<Form058> forms) {
-
+    public Object buildRegionReports(List<Form058> forms, LocalDate startDate, LocalDate endDate) {
         List<Catalog> regions = catalogService.findAllByType(CatalogType.state);
 
         return regions.stream()
                 .map(region -> {
                     String code = region.getCode();
                     List<Form058> regionForms = filterByState(forms, code);
-
-                    return buildDto(code, CatalogLocaleUtil.displayName(region), regionForms);
+                    return buildDto(code, CatalogLocaleUtil.displayName(region), regionForms, startDate, endDate);
                 })
                 .toList();
     }
 
-    public Object buildDistrictReports(String stateCode, List<Form058> forms) {
-
+    public Object buildDistrictReports(String stateCode, List<Form058> forms, LocalDate startDate, LocalDate endDate) {
         List<Catalog> districts = catalogService.findAllByParentCode(stateCode);
         if (districts.isEmpty()) return List.of();
 
@@ -61,14 +50,12 @@ public class FormReport10Helper {
                 .map(dist -> {
                     String code = dist.getCode();
                     List<Form058> districtForms = filterByDistrict(forms, stateCode, code);
-
-                    return buildDto(code, CatalogLocaleUtil.displayName(dist), districtForms);
+                    return buildDto(code, CatalogLocaleUtil.displayName(dist), districtForms, startDate, endDate);
                 })
                 .toList();
     }
 
-    public Object buildOrganizations(String cityCode, List<Form058> forms) {
-
+    public Object buildOrganizations(String cityCode, List<Form058> forms, LocalDate startDate, LocalDate endDate) {
         Map<String, List<Form058>> byOrg =
                 forms.stream()
                         .filter(f -> f.getCreatedOrg() != null)
@@ -89,42 +76,38 @@ public class FormReport10Helper {
                             .findFirst()
                             .orElse(orgCode);
 
-                    return buildDto(orgCode, orgName, orgForms);
+                    return buildDto(orgCode, orgName, orgForms, startDate, endDate);
                 })
                 .toList();
     }
 
-    /* =========================================================
-       CORE BUILDER
-       ========================================================= */
+    private FormReport10Dto buildDto(String code, String name, List<Form058> forms, LocalDate startDate, LocalDate endDate) {
 
-    private FormReport10Dto buildDto(String code, String name, List<Form058> forms) {
+        LocalDate prevStartDate = startDate.minusYears(1);
+        LocalDate prevEndDate = endDate.minusYears(1);
 
-        int currentYear = LocalDate.now().getYear();
-        int previousYear = currentYear - 1;
-        int month = LocalDate.now().getMonthValue();
+        // current month / selected period
+        Stat cmPrevTotal = calc(forms, prevStartDate, prevEndDate, false);
+        Stat cmCurrTotal = calc(forms, startDate, endDate, false);
 
-        // ===== CURRENT MONTH =====
-        Stat cmPrevTotal = calcMonth(forms, previousYear, month, false);
-        Stat cmCurrTotal = calcMonth(forms, currentYear, month, false);
+        Stat cmPrevChild = calc(forms, prevStartDate, prevEndDate, true);
+        Stat cmCurrChild = calc(forms, startDate, endDate, true);
 
-        Stat cmPrevChild = calcMonth(forms, previousYear, month, true);
-        Stat cmCurrChild = calcMonth(forms, currentYear, month, true);
+        // cumulative: year boshidan selected endDate gacha
+        LocalDate currYearStart = LocalDate.of(endDate.getYear(), 1, 1);
+        LocalDate prevYearStart = LocalDate.of(endDate.minusYears(1).getYear(), 1, 1);
 
-        // ===== CUMULATIVE =====
-        Stat cumPrevTotal = calcCumulative(forms, previousYear, month, false);
-        Stat cumCurrTotal = calcCumulative(forms, currentYear, month, false);
+        Stat cumPrevTotal = calc(forms, prevYearStart, prevEndDate, false);
+        Stat cumCurrTotal = calc(forms, currYearStart, endDate, false);
 
-        Stat cumPrevChild = calcCumulative(forms, previousYear, month, true);
-        Stat cumCurrChild = calcCumulative(forms, currentYear, month, true);
+        Stat cumPrevChild = calc(forms, prevYearStart, prevEndDate, true);
+        Stat cumCurrChild = calc(forms, currYearStart, endDate, true);
 
         return FormReport10Dto.builder()
                 .locationCode(code)
                 .locationName(name)
-
                 .currentMonth(buildPeriod(cmPrevTotal, cmCurrTotal, cmPrevChild, cmCurrChild))
                 .cumulative(buildPeriod(cumPrevTotal, cumCurrTotal, cumPrevChild, cumCurrChild))
-
                 .build();
     }
 
@@ -132,7 +115,6 @@ public class FormReport10Helper {
             Stat prevTotal, Stat currTotal,
             Stat prevChild, Stat currChild
     ) {
-
         return FormReport10Dto.PeriodStat.builder()
                 .total(buildMetric(prevTotal, currTotal))
                 .childrenUnder14(buildMetric(prevChild, currChild))
@@ -140,7 +122,6 @@ public class FormReport10Helper {
     }
 
     private FormReport10Dto.Metric buildMetric(Stat prev, Stat curr) {
-
         return FormReport10Dto.Metric.builder()
                 .absolute(buildCompare(prev.abs, curr.abs))
                 .intensive(buildCompare(prev.intensive, curr.intensive))
@@ -148,7 +129,6 @@ public class FormReport10Helper {
     }
 
     private <T extends Number> FormReport10Dto.YearCompare<T> buildCompare(T prev, T curr) {
-
         return FormReport10Dto.YearCompare.<T>builder()
                 .previousYear(prev)
                 .currentYear(curr)
@@ -156,29 +136,7 @@ public class FormReport10Helper {
                 .build();
     }
 
-    /* =========================================================
-       CALCULATION
-       ========================================================= */
-
-    private Stat calcMonth(List<Form058> forms, int year, int month, boolean children) {
-
-        YearMonth ym = YearMonth.of(year, month);
-        LocalDate from = ym.atDay(1);
-        LocalDate to = ym.atEndOfMonth();
-
-        return calc(forms, from, to, children);
-    }
-
-    private Stat calcCumulative(List<Form058> forms, int year, int month, boolean children) {
-
-        LocalDate from = LocalDate.of(year, 1, 1);
-        LocalDate to = YearMonth.of(year, month).atEndOfMonth();
-
-        return calc(forms, from, to, children);
-    }
-
     private Stat calc(List<Form058> forms, LocalDate from, LocalDate to, boolean children) {
-
         long abs = forms.stream()
                 .filter(f -> f.getCreatedAt() != null)
                 .filter(f -> {
@@ -188,18 +146,12 @@ public class FormReport10Helper {
                 .filter(f -> isChildren(f, children))
                 .count();
 
-        // TODO: population servisidan haqiqiy intensiv hisoblash
         double intensive = abs == 0 ? 0d : abs * 100_000d;
 
         return new Stat((int) abs, intensive);
     }
 
-    /* =========================================================
-       FILTERS
-       ========================================================= */
-
     private List<Form058> filterByState(List<Form058> forms, String stateCode) {
-
         return forms.stream()
                 .filter(f -> f.getCreatedOrg() != null)
                 .filter(f -> stateCode.equals(f.getCreatedOrg().getStateCode()))
@@ -207,7 +159,6 @@ public class FormReport10Helper {
     }
 
     private List<Form058> filterByDistrict(List<Form058> forms, String stateCode, String cityCode) {
-
         return forms.stream()
                 .filter(f -> f.getCreatedOrg() != null)
                 .filter(f -> stateCode.equals(f.getCreatedOrg().getStateCode()))
@@ -215,12 +166,7 @@ public class FormReport10Helper {
                 .toList();
     }
 
-    /* =========================================================
-       HELPERS
-       ========================================================= */
-
     private boolean isChildren(Form058 f, boolean children) {
-
         if (!children) return true;
 
         if (f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
@@ -232,19 +178,13 @@ public class FormReport10Helper {
     }
 
     private Double calcGrowth(Number curr, Number prev) {
-
         if (prev == null || prev.doubleValue() == 0d) return null;
-
         return ((curr.doubleValue() - prev.doubleValue()) * 100d) / prev.doubleValue();
     }
 
     private String safe(String v) {
         return v == null ? "" : v.trim();
     }
-
-    /* =========================================================
-       INTERNAL HOLDER
-       ========================================================= */
 
     private record Stat(Integer abs, double intensive) {}
 }
