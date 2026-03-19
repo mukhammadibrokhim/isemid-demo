@@ -7,7 +7,6 @@ public interface MonitoringService {
             String fromDate,
             String toDate,
             String regionCode,
-            String districtCode,
             String mkb10Code
     );
 }
