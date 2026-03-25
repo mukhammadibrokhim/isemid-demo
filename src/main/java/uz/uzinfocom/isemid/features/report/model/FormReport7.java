@@ -20,6 +20,9 @@ public class FormReport7 extends AbsEntity {
     // 3. Зарегистрировано за отчётный период — Всего
     private Integer registeredTotal;
 
+    // 4. Дети до 14 лет
+    private Integer registeredUnder14;
+
     // 4. Дети до 18 лет
     private Integer registeredUnder18;
 

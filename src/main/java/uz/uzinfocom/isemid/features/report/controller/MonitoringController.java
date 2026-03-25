@@ -25,9 +25,8 @@ public class MonitoringController {
             @RequestParam String fromDate,
             @RequestParam String toDate,
             @RequestParam(required = false) String regionCode,
-            @RequestParam(required = false) String districtCode,
             @RequestParam(required = false) String mkb10Code
     ) {
-        return ApiResponse.success(messageUtil, monitoringService.getMonitoring(fromDate, toDate, regionCode, districtCode, mkb10Code));
+        return ApiResponse.success(messageUtil, monitoringService.getMonitoring(fromDate, toDate, regionCode, mkb10Code));
     }
 }

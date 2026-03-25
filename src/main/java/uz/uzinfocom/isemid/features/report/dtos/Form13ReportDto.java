@@ -27,10 +27,12 @@ public class Form13ReportDto {
     @NoArgsConstructor
     public static class Form13DiseaseStatDto {
         private long prevYearAdults;
+        private long prevYearUnder14;
         private long prevYearChildren;
         private long prevYearTotal;
 
         private long currYearAdults;
+        private long currYearUnder14;
         private long currYearChildren;
         private long currYearTotal;
     }

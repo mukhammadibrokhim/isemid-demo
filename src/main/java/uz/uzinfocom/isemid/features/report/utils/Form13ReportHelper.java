@@ -8,6 +8,7 @@ import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.models.enums.ReportType;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
+import uz.uzinfocom.isemid.features.classifier.utils.CatalogLocaleUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.Form13ReportDto;
@@ -41,7 +42,6 @@ public class Form13ReportHelper {
         if (hasCityLevelChildren) {
             return buildOrganizations(parentCode, forms);
         }
-
 
         List<ManualReport> reports = getReports();
         List<Form13ReportDto> result = new ArrayList<>();
@@ -98,9 +98,9 @@ public class Form13ReportHelper {
                         String state = safe(f.getCreatedOrg().getStateCode()); // UZ-AN
 
                         return
-                                districtCode.equals(city) ||             // exact match
-                                        city.startsWith(districtCode) ||         // child organizations
-                                        (city.isBlank() && state.equals(stateCode)); // fallback only if org doesn't have cityCode
+                                districtCode.equals(city) ||                        // exact match
+                                        city.startsWith(districtCode) ||                    // child organizations
+                                        (city.isBlank() && state.equals(stateCode));        // fallback only if org doesn't have cityCode
                     })
                     .toList();
 
@@ -115,7 +115,6 @@ public class Form13ReportHelper {
 
         return result;
     }
-
 
     public Object buildOrganizations(String districtCode, List<Form058> forms) {
 
@@ -154,27 +153,47 @@ public class Form13ReportHelper {
                 .toList();
     }
 
+    /**
+     * NEW:
+     * - prevYearUnder14
+     * - currYearUnder14
+     */
     private Form13ReportDto.Form13DiseaseStatDto buildDiseaseStats(Set<String> mkb10Codes, List<Form058> forms) {
 
-        if (mkb10Codes == null || mkb10Codes.isEmpty() || forms.isEmpty())
+        if (mkb10Codes == null || mkb10Codes.isEmpty() || forms == null || forms.isEmpty())
             return emptyStat();
 
         int currentYear = LocalDate.now().getYear();
         int prevYear = currentYear - 1;
 
-        long prevAdults = count(forms, mkb10Codes, prevYear, true);
-        long prevChildren = count(forms, mkb10Codes, prevYear, false);
+        long prevAdults = count(forms, mkb10Codes, prevYear, AgeBucket.ADULTS_18_PLUS);
+        long prevChildren = count(forms, mkb10Codes, prevYear, AgeBucket.UNDER_18);
+        long prevUnder14 = count(forms, mkb10Codes, prevYear, AgeBucket.UNDER_14);
 
-        long currAdults = count(forms, mkb10Codes, currentYear, true);
-        long currChildren = count(forms, mkb10Codes, currentYear, false);
+        long currAdults = count(forms, mkb10Codes, currentYear, AgeBucket.ADULTS_18_PLUS);
+        long currChildren = count(forms, mkb10Codes, currentYear, AgeBucket.UNDER_18);
+        long currUnder14 = count(forms, mkb10Codes, currentYear, AgeBucket.UNDER_14);
 
         return new Form13ReportDto.Form13DiseaseStatDto(
-                prevAdults, prevChildren, prevAdults + prevChildren,
-                currAdults, currChildren, currAdults + currChildren
+                prevAdults,
+                prevChildren,
+                prevUnder14,
+                prevAdults + prevChildren,
+
+                currAdults,
+                currChildren,
+                currUnder14,
+                currAdults + currChildren
         );
     }
 
-    private long count(List<Form058> forms, Set<String> mkb10Codes, int year, boolean adults) {
+    private enum AgeBucket {
+        ADULTS_18_PLUS,
+        UNDER_18,
+        UNDER_14
+    }
+
+    private long count(List<Form058> forms, Set<String> mkb10Codes, int year, AgeBucket bucket) {
 
         if (forms == null || forms.isEmpty() || mkb10Codes == null || mkb10Codes.isEmpty()) {
             return 0;
@@ -186,7 +205,10 @@ public class Form13ReportHelper {
                 .toList();
 
         return forms.stream()
-                .filter(f -> f != null && f.getCreatedAt() != null && f.getPatient() != null && f.getPatient().getBirthDate() != null)
+                .filter(f -> f != null
+                        && f.getCreatedAt() != null
+                        && f.getPatient() != null
+                        && f.getPatient().getBirthDate() != null)
                 .filter(f -> {
                     try {
                         int createdYear = f.getCreatedAt().toLocalDateTime().getYear();
@@ -199,18 +221,25 @@ public class Form13ReportHelper {
                     String mkb = safeCode(f.getFinalMkb10Code());
                     return normalizedCodes.stream().anyMatch(mkb::startsWith);
                 })
-                .filter(f -> isAgeGroup(f.getPatient().getBirthDate(), f.getCreatedAt().toLocalDateTime().toLocalDate(), adults))
+                .filter(f -> isAgeBucket(
+                        f.getPatient().getBirthDate(),
+                        f.getCreatedAt().toLocalDateTime().toLocalDate(),
+                        bucket
+                ))
                 .count();
     }
 
-    private boolean isAgeGroup(LocalDate birthDate, LocalDate createdDate, boolean adults) {
+    private boolean isAgeBucket(LocalDate birthDate, LocalDate createdDate, AgeBucket bucket) {
         if (birthDate == null || createdDate == null) return false;
 
         int ageYears = java.time.Period.between(birthDate, createdDate).getYears();
 
-        return adults == (ageYears >= 18);
+        return switch (bucket) {
+            case ADULTS_18_PLUS -> ageYears >= 18;
+            case UNDER_18 -> ageYears < 18;
+            case UNDER_14 -> ageYears < 14;
+        };
     }
-
 
     // ================================
     // Filter
@@ -239,9 +268,8 @@ public class Form13ReportHelper {
         return !city.isBlank() && city.startsWith(code);
     }
 
-
     private String getDisplay(Catalog c) {
-        return Optional.ofNullable(c.getNameUz()).filter(s -> !s.isBlank()).orElse("-");
+        return Optional.ofNullable(CatalogLocaleUtil.displayName(c)).filter(s -> !s.isBlank()).orElse("-");
     }
 
     private List<ManualReport> getReports() {
@@ -253,6 +281,6 @@ public class Form13ReportHelper {
     private <T> T safe(T v) { return Objects.requireNonNullElse(v, null); }
 
     private Form13ReportDto.Form13DiseaseStatDto emptyStat() {
-        return new Form13ReportDto.Form13DiseaseStatDto(0,0,0,0,0,0);
+        return new Form13ReportDto.Form13DiseaseStatDto(0, 0, 0, 0, 0, 0, 0, 0);
     }
 }

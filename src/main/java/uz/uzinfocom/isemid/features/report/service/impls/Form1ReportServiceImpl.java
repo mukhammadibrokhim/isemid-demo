@@ -11,6 +11,7 @@ import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
+import uz.uzinfocom.isemid.features.classifier.utils.CatalogLocaleUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
@@ -62,7 +63,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
 
     private Object creteRegionReport(List<Form058> form058s, Organization organization) {
         String regionCode = organization.getState().getCode();
-        String regionName = organization.getState().getNameRu();
+        String regionName = CatalogLocaleUtil.displayName(organization.getState());
 
         List<Form058> regionForms = form058s.stream()
                 .filter(f -> f.getCreatedOrg() != null &&
@@ -87,7 +88,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
                 .filter(f -> f.getCreatedOrg().getCity().getCode().equals(organization.getCity().getCode()))
                 .toList();
 
-        String districtName = organization.getCity().getNameUz();
+        String districtName = CatalogLocaleUtil.displayName(organization.getCity());
 
         Set<Form1ReportDto> organizationReports = Form058StatisticsUtil.groupAndCalculate(
                 districtForms,
@@ -132,7 +133,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
                 }
             }
 
-            return Form058StatisticsUtil.calculate(stateForms, state.getNameRu(), districtChildren);
+            return Form058StatisticsUtil.calculate(stateForms, CatalogLocaleUtil.displayName(state), districtChildren);
         }).collect(Collectors.toSet());
 
         reportList.add(Form058StatisticsUtil.calculate(
