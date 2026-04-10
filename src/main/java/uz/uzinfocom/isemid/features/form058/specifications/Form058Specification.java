@@ -178,7 +178,7 @@ public class Form058Specification {
      * Builds Form058 filter specification from request fields.
      *
      * <p>This method applies only request-level filters and must remain independent
-     * from organization access scope resolution.
+     * of organization access scope resolution.
      */
     public static Specification<Form058> build(Form058FilterRequest filterRequest) {
         if (filterRequest == null) {
@@ -188,22 +188,8 @@ public class Form058Specification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            /**
-             * Date range filter on record creation time.
-             */
-            SpecificationUtils.fromToDateFilter(
-                    filterRequest.fromDate(),
-                    filterRequest.toDate(),
-                    root,
-                    cb,
-                    predicates,
-                    "createdAt"
-            );
+            SpecificationUtils.fromToDateFilter(filterRequest.fromDate(), filterRequest.toDate(), root, cb, predicates, "createdAt");
 
-            /**
-             * Join createdOrg only when state or city filter is actually requested.
-             * This avoids unnecessary joins on every query execution.
-             */
             if (hasText(filterRequest.stateCode()) || hasText(filterRequest.cityCode())) {
                 Join<Form058, Organization> createdOrgJoin = root.join("createdOrg", JoinType.INNER);
 
@@ -222,23 +208,12 @@ public class Form058Specification {
                 }
             }
 
-            /**
-             * Final diagnosis code filter.
-             */
             if (hasText(filterRequest.mkb10Code())) {
-                predicates.add(cb.equal(
-                        root.get("finalMkb10Code"),
-                        filterRequest.mkb10Code()
-                ));
+                predicates.add(cb.equal(root.get("finalMkb10Code"), filterRequest.mkb10Code()));
             }
 
-            /**
-             * Patient document filter.
-             *
-             * <p>Do not join patient.identifiers in the main query because it may duplicate rows
-             * and force DISTINCT. EXISTS subquery is usually more stable and cheaper here.
-             */
             if (hasText(filterRequest.patientDocValue())) {
+                assert query != null;
                 Subquery<Long> identifierExistsSubquery = query.subquery(Long.class);
                 Root<Identifier> identifierRoot = identifierExistsSubquery.from(Identifier.class);
 
@@ -256,35 +231,6 @@ public class Form058Specification {
 
                 predicates.add(cb.exists(identifierExistsSubquery));
             }
-
-//            /**
-//             * Organization filter by selected side.
-//             *
-//             * <p>Form058 stores raw sender/receiver organization IDs, so no organization join
-//             * is needed here.
-//             */
-//            if (filterRequest.organizationId() != null) {
-//                FilterType effectiveFilterType = filterRequest.filterType() == null
-//                        ? FilterType.SENDER
-//                        : filterRequest.filterType();
-//
-//                switch (effectiveFilterType) {
-//                    case SENDER -> predicates.add(cb.equal(
-//                            root.get("senderOrganizationId"),
-//                            filterRequest.organizationId()
-//                    ));
-//
-//                    case RECEIVER -> predicates.add(cb.equal(
-//                            root.get("receiverOrganizationId"),
-//                            filterRequest.organizationId()
-//                    ));
-//
-//                    case ALL -> predicates.add(cb.or(
-//                            cb.equal(root.get("senderOrganizationId"), filterRequest.organizationId()),
-//                            cb.equal(root.get("receiverOrganizationId"), filterRequest.organizationId())
-//                    ));
-//                }
-//            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
