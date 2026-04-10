@@ -99,6 +99,7 @@ public class Form058ServiceImpl implements Form058Service {
                 .and(form058AccessSpecification.byScope(
                         effectiveFilterType,
                         scope,
+                        currentOrganization == null ? null : currentOrganization.getId(),
                         filterRequest == null ? null : filterRequest.affiliation()
                 ));
 
