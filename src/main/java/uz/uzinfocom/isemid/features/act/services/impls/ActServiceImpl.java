@@ -30,7 +30,7 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.ISEMID_CALLBACK;
-import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_URL;
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_ACT_API;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 @Slf4j
@@ -93,9 +93,9 @@ public class ActServiceImpl implements ActService {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Organization-Id", organizationUuid.toString());
 
-            String url = LIS_URL + lisRequest.getLisLabId();
+            String url = LIS_ACT_API.formatted(lisRequest.getLisLabId(), act.getUuid());
 
-            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, token, body, headers, String.class, messageUtil);
+            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, "", body, headers, String.class, messageUtil);
 
             log.info("LIS response: {}", lisResponse);
 
