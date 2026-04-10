@@ -11,30 +11,25 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.patient.models.Affiliation;
+import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 
 /**
  * Builds Form058-specific access filtering rules.
  *
- * <p>This class is intentionally responsible only for applying already resolved organization access
- * scope to Form058 fields.
+ * <p>This class applies already resolved organization access scope to Form058 sender/receiver
+ * organization IDs and optionally applies patient affiliation filtering.
  *
- * <p>Important design note:
- * Form058 does not have JPA relations like {@code senderOrganization} or {@code receiverOrganization}.
- * Instead, it stores only raw database IDs:
+ * <p>Important:
+ * Form058 does not store direct Organization relations for sender/receiver.
+ * It stores only raw IDs:
  * <ul>
- *     <li>{@code senderOrganizationId}</li>
- *     <li>{@code receiverOrganizationId}</li>
+ *     <li>senderOrganizationId</li>
+ *     <li>receiverOrganizationId</li>
  * </ul>
  *
- * <p>Because of that, join-path based filtering cannot be used here.
- * Instead, this class applies access using ID-based subqueries against the Organization table.
- *
- * <p>This allows us to:
- * <ul>
- *     <li>keep the current entity model unchanged</li>
- *     <li>apply correct hierarchical access control</li>
- *     <li>avoid leaking data between unrelated organizations</li>
- * </ul>
+ * <p>Also, affiliation does not belong to Form058 itself.
+ * It belongs to Form058 -> patient -> affiliations.
  */
 @Component
 public class Form058AccessSpecification {
@@ -42,23 +37,16 @@ public class Form058AccessSpecification {
     /**
      * Builds the final Form058 access specification.
      *
-     * <p>The resolved scope can be applied to:
-     * <ul>
-     *     <li>sender organization only</li>
-     *     <li>receiver organization only</li>
-     *     <li>both sender and receiver using OR semantics</li>
-     * </ul>
-     *
-     * <p>If affiliation is provided, it is appended as an additional business filter.
-     *
      * @param filterType determines which organization side should be checked
      * @param scope resolved access scope for the current user organization
-     * @param affiliation optional additional business filter
-     * @return final specification ready to be combined with other Form058 filters
+     * @param currentOrganizationId current user's organization database ID
+     * @param affiliation optional affiliation filter flag
+     * @return final specification ready to be combined with other filters
      */
     public Specification<Form058> byScope(
             FilterType filterType,
             ResolvedAccessScope scope,
+            Long currentOrganizationId,
             Boolean affiliation
     ) {
         FilterType effectiveType = filterType == null ? FilterType.SENDER : filterType;
@@ -70,42 +58,62 @@ public class Form058AccessSpecification {
                     .or(organizationIdInScope("receiverOrganizationId", scope));
         };
 
-        if (affiliation != null) {
-            accessSpec = accessSpec.and(hasAffiliation(affiliation));
+        if (Boolean.TRUE.equals(affiliation)) {
+            accessSpec = accessSpec.and(hasAffiliation(currentOrganizationId));
         }
 
         return accessSpec;
     }
 
     /**
-     * Applies optional affiliation filter.
+     * Applies affiliation filter through Form058 -> patient -> affiliations.
+     *
+     * <p>Business rule preserved from the old implementation:
+     * patient must have affiliation for the current organization and
+     * affiliation type must be WORKPLACE or EDUCATIONAL.
      */
-    private Specification<Form058> hasAffiliation(Boolean affiliation) {
-        return (root, query, cb) -> cb.equal(root.get("affiliation"), affiliation);
+    private Specification<Form058> hasAffiliation(Long currentOrganizationId) {
+        return (root, query, cb) -> {
+            if (currentOrganizationId == null) {
+                return cb.disjunction();
+            }
+
+            assert query != null;
+            Subquery<Long> affiliationExistsSubquery = query.subquery(Long.class);
+            Root<Affiliation> affiliationRoot = affiliationExistsSubquery.from(Affiliation.class);
+
+            affiliationExistsSubquery.select(cb.literal(1L));
+            affiliationExistsSubquery.where(
+                    cb.equal(
+                            affiliationRoot.get("patient").get("id"),
+                            root.get("patient").get("id")
+                    ),
+                    cb.equal(
+                            affiliationRoot.get("organizationId"),
+                            currentOrganizationId
+                    ),
+                    affiliationRoot.get("type").in(
+                            AffiliationType.WORKPLACE,
+                            AffiliationType.EDUCATIONAL
+                    )
+            );
+
+            return cb.exists(affiliationExistsSubquery);
+        };
     }
 
     /**
      * Builds an ID-based access predicate for a raw organization ID field of Form058.
      *
      * <p>Generated SQL is conceptually similar to:
-     * <pre>
-     *     form058.sender_organization_id in (
-     *         select o.id
-     *         from organization o
-     *         where [resolved scope predicate]
-     *     )
-     * </pre>
-     *
-     * <p>This is a good fit for the current model because Form058 stores only raw foreign-key-like
-     * IDs and not Organization relations.
-     *
-     * @param formOrganizationIdField field name inside Form058
-     * @param scope resolved access scope
-     * @return specification for sender or receiver visibility
+     * form058.sender_organization_id in (
+     *     select o.id
+     *     from organization o
+     *     where [resolved scope predicate]
+     * )
      */
     private Specification<Form058> organizationIdInScope(String formOrganizationIdField, ResolvedAccessScope scope) {
         return (root, query, cb) -> {
-
             if (scope == null || scope.isEmpty()) {
                 return cb.disjunction();
             }
@@ -131,17 +139,6 @@ public class Form058AccessSpecification {
 
     /**
      * Converts resolved scope into a predicate over Organization table.
-     *
-     * <p>This method intentionally duplicates only the minimum scope logic needed for Form058
-     * and keeps this class self-sufficient, so no other classes need to be changed.
-     *
-     * <p>Expected Organization fields:
-     * <ul>
-     *     <li>{@code id}</li>
-     *     <li>{@code uuid}</li>
-     *     <li>{@code stateCode}</li>
-     *     <li>{@code levelType}</li>
-     * </ul>
      */
     private Predicate buildScopePredicate(
             Root<Organization> organizationRoot,
