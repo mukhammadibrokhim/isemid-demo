@@ -1,14 +1,13 @@
 package uz.uzinfocom.isemid.features.form058.specifications;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import org.hibernate.boot.model.naming.Identifier;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058FilterRequest;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.models.Affiliation;
@@ -175,7 +174,119 @@ public class Form058Specification {
         };
     }
 
+    /**
+     * Builds Form058 filter specification from request fields.
+     *
+     * <p>This method applies only request-level filters and must remain independent
+     * from organization access scope resolution.
+     */
     public static Specification<Form058> build(Form058FilterRequest filterRequest) {
-        return null;
+        if (filterRequest == null) {
+            return Specification.where(null);
+        }
+
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            /**
+             * Date range filter on record creation time.
+             */
+            SpecificationUtils.fromToDateFilter(
+                    filterRequest.fromDate(),
+                    filterRequest.toDate(),
+                    root,
+                    cb,
+                    predicates,
+                    "createdAt"
+            );
+
+            /**
+             * Join createdOrg only when state or city filter is actually requested.
+             * This avoids unnecessary joins on every query execution.
+             */
+            if (hasText(filterRequest.stateCode()) || hasText(filterRequest.cityCode())) {
+                Join<Form058, Organization> createdOrgJoin = root.join("createdOrg", JoinType.INNER);
+
+                if (hasText(filterRequest.stateCode())) {
+                    predicates.add(cb.equal(
+                            createdOrgJoin.get("stateCode"),
+                            filterRequest.stateCode()
+                    ));
+                }
+
+                if (hasText(filterRequest.cityCode())) {
+                    predicates.add(cb.equal(
+                            createdOrgJoin.get("cityCode"),
+                            filterRequest.cityCode()
+                    ));
+                }
+            }
+
+            /**
+             * Final diagnosis code filter.
+             */
+            if (hasText(filterRequest.mkb10Code())) {
+                predicates.add(cb.equal(
+                        root.get("finalMkb10Code"),
+                        filterRequest.mkb10Code()
+                ));
+            }
+
+            /**
+             * Patient document filter.
+             *
+             * <p>Do not join patient.identifiers in the main query because it may duplicate rows
+             * and force DISTINCT. EXISTS subquery is usually more stable and cheaper here.
+             */
+            if (hasText(filterRequest.patientDocValue())) {
+                Subquery<Long> identifierExistsSubquery = query.subquery(Long.class);
+                Root<Identifier> identifierRoot = identifierExistsSubquery.from(Identifier.class);
+
+                identifierExistsSubquery.select(cb.literal(1L));
+                identifierExistsSubquery.where(
+                        cb.equal(
+                                identifierRoot.get("patient").get("id"),
+                                root.get("patient").get("id")
+                        ),
+                        cb.equal(
+                                identifierRoot.get("value"),
+                                filterRequest.patientDocValue()
+                        )
+                );
+
+                predicates.add(cb.exists(identifierExistsSubquery));
+            }
+
+//            /**
+//             * Organization filter by selected side.
+//             *
+//             * <p>Form058 stores raw sender/receiver organization IDs, so no organization join
+//             * is needed here.
+//             */
+//            if (filterRequest.organizationId() != null) {
+//                FilterType effectiveFilterType = filterRequest.filterType() == null
+//                        ? FilterType.SENDER
+//                        : filterRequest.filterType();
+//
+//                switch (effectiveFilterType) {
+//                    case SENDER -> predicates.add(cb.equal(
+//                            root.get("senderOrganizationId"),
+//                            filterRequest.organizationId()
+//                    ));
+//
+//                    case RECEIVER -> predicates.add(cb.equal(
+//                            root.get("receiverOrganizationId"),
+//                            filterRequest.organizationId()
+//                    ));
+//
+//                    case ALL -> predicates.add(cb.or(
+//                            cb.equal(root.get("senderOrganizationId"), filterRequest.organizationId()),
+//                            cb.equal(root.get("receiverOrganizationId"), filterRequest.organizationId())
+//                    ));
+//                }
+//            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }
