@@ -1,10 +1,7 @@
 package uz.uzinfocom.isemid.features.form058.services;
 
 import org.springframework.data.domain.Page;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ApproveDiagnosisRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058ConfirmationStatsResponse;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
@@ -16,6 +13,9 @@ import java.util.List;
 public interface Form058Service {
     Form058 create(Form058Request form058Request, String sourceHeader, User currentUser);
 
+    Page<Form058> getAll(Form058FilterRequest filterRequest, User user, FilterType filterType);
+
+    @Deprecated
     Page<Form058> filter(
             int page,
             int size,

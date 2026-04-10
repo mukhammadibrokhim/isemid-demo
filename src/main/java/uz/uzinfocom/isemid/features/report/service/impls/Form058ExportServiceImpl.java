@@ -36,7 +36,7 @@ public class Form058ExportServiceImpl implements Form058ExportService {
     @Override
     public ResponseEntity<?> receivedExport(LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode,
                                             User user) {
-        return buildExportResponse(fromDate, toDate, stateCode, cityCode, user, FilterType.RECEIVED);
+        return buildExportResponse(fromDate, toDate, stateCode, cityCode, user, FilterType.RECEIVER);
     }
 
     private ResponseEntity<?> buildExportResponse(LocalDate fromDate, LocalDate toDate, String stateCode,

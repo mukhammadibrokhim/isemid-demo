@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.hibernate.boot.model.naming.Identifier;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058FilterRequest;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
@@ -62,7 +63,7 @@ public class Form058Specification {
             if (organizationId != null && filterType != null) {
                 switch (filterType) {
                     case ALL -> predicates.add(cb.equal(root.get("senderOrganizationId"), organizationId));
-                    case RECEIVED -> predicates.add(cb.equal(root.get("receiverOrganizationId"), organizationId));
+                    case RECEIVER -> predicates.add(cb.equal(root.get("receiverOrganizationId"), organizationId));
                 }
             }
 
@@ -113,7 +114,7 @@ public class Form058Specification {
 
                     if (filterType == FilterType.ALL) {
                         accessPredicate = createdByOrg;
-                    } else if (filterType == FilterType.RECEIVED) {
+                    } else if (filterType == FilterType.RECEIVER) {
                         accessPredicate = receivedByOrg;
                     } else {
                         accessPredicate = cb.or(createdByOrg, receivedByOrg);
@@ -172,5 +173,9 @@ public class Form058Specification {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    public static Specification<Form058> build(Form058FilterRequest filterRequest) {
+        return null;
     }
 }

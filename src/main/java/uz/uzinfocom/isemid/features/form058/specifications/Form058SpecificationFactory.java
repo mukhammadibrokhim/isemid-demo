@@ -62,7 +62,7 @@ public class Form058SpecificationFactory {
 
                     accessPredicate = cb.or(receiverMatch, levelPredicate);
                 } else {
-                    accessPredicate = (filterType == FilterType.RECEIVED)
+                    accessPredicate = (filterType == FilterType.RECEIVER)
                             ? cb.equal(root.get("receiverOrganizationId"), orgId)
                             : cb.equal(root.get("createdOrgUuid"), orgUuid);
                 }
