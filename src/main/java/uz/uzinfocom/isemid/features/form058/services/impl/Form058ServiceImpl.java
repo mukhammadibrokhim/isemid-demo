@@ -105,11 +105,7 @@ public class Form058ServiceImpl implements Form058Service {
         assert filterRequest != null;
         return form058Repository.findAll(
                 specification,
-                PageRequest.of(
-                        filterRequest.page() - 1,
-                        filterRequest.size(),
-                        Sort.by(Sort.Direction.DESC, "id")
-                )
+                PageRequest.of(filterRequest.page() - 1, filterRequest.size(), Sort.by(Sort.Direction.DESC, "id"))
         );
     }
 
