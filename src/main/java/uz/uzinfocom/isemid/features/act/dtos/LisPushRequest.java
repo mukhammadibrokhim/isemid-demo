@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class LisPushRequest {
+    private Long actTemplateId;
     private String isemidData;
     private String redirectUrl;
 }
