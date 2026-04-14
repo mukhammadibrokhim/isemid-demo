@@ -119,7 +119,11 @@ public final class ApiPaths {
         public static final String BASE_API_URL = "https://test-api2.ssv.uz";
         public static final String SSO_TOKEN = "https://test-sso.ssv.uz/oauth/token";
         public static final String SSO_LOGOUT = "https://test-sso.ssv.uz/api/auth/logout";
-        public static final String LIS_URL = "https://test-lis.sanepid.uz/api/v1/act/integration/";
+
+        public static final String LIS_URL_KEY = "LIS_PUBLIC_2025_Q9xR4k2MZ7Nw8DFA6cTUpJY";
+        public static final String LIS_ACT_API_BASE_PATH = "https://test-lis.sanepid.uz/api/v1/publicapi/create-act";
+        public static final String LIS_ACT_API = LIS_ACT_API_BASE_PATH +"/%s?"+"key="+LIS_URL_KEY+"&senderActNumber=%s";
+
         public static final String ISEMID_CALLBACK = "https://test-ykem.sanepid.uz/api/v1/act/lis/callback/";
 
 //        public static final String BASE_API_URL = "https://api2.ssv.uz";
@@ -134,6 +138,8 @@ public final class ApiPaths {
         public static final String GCP_CHILD = BASE_API_URL + "/v3/Child?series=%s&number=%s";
         public static final String LEGAL_ENTITY_API = BASE_API_URL + "/v3/LegalEntity?tin=%s";
         public static final String VACCINATION_NNUZB = "https://api2.ssv.uz/Vaccination/%s";
+
+
 
         private ExternalApi() {
         }
