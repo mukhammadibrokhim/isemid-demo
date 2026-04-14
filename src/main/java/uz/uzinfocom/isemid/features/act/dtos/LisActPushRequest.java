@@ -4,57 +4,91 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
+import lombok.With;
 
+
+/**
+ *
+ * @param actTemplateId
+ * @param priority
+ * @param tin
+ * @param organizationName
+ * @param organizationAddress
+ * @param organizationLegalAddress
+ * @param purpose
+ * @param sampleTakenDate
+ * @param deliveryDateToLaboratory
+ * @param conditions
+ * @param additionalInformation
+ * @param involvedPersonName
+ * @param involvedProfessionId
+ * @param packageType
+ * @param document
+ * @param goal
+ * @param noteConditions
+ * @param fullNameOfDoctor
+ * @param collectorProfessionId
+ * @param manufacturer
+ * @param manufactureDate
+ * @param docNumber
+ * @param preservationMethod
+ * @param redirectUrl
+ * @param paid
+ * @param selectionActItems
+ * @param locationOwnership
+ *
+ * only @param fullNameOfDoctor and
+ * redirectUrl is taken from isemis
+ */
 @Builder
+@With
 public record LisActPushRequest(
     Integer actTemplateId, // @NotNull(message = "act template id must not be null")
     Priority priority, //   @NotNull(message = "priority must not be null")
-    String tin,
-    String organizationName,
-    String organizationAddress,
-    String organizationLegalAddress,
-    Purpose purpose,  // @NotNull(message = "purpose must not be null")
-    LocalDateTime sampleTakenDate,
-    String deliveryDateToLaboratory,
-    Conditions conditions, // @NotNull(message = "conditions must not be null")
-    String additionalInformation,
-    String involvedPersonName,
-    Integer involvedProfessionId,
-    PackageType packageType,
-    String document,
-    String goal,
-    NoteConditions noteConditions,
-    String fullNameOfDoctor,
-    Integer collectorProfessionId,
-    String manufacturer,
-    LocalDate manufactureDate,
-    String docNumber,
-    PreservationMethod preservationMethod,
-    String redirectUrl,
-    Boolean paid,
-    Boolean qualityControl,
+    String tin, //front
+    String organizationName, //front
+    String organizationAddress, //front
+    String organizationLegalAddress, //front
+    Purpose purpose,  // @NotNull(message = "purpose must not be null") //front
+    LocalDateTime sampleTakenDate, // front
+    LocalDate deliveryDateToLaboratory,  // front
+    Conditions conditions, // @NotNull(message = "conditions must not be null")  //front
+    String additionalInformation,  // front
+    String involvedPersonName, // front
+    Integer involvedProfessionId, // front
+    PackageType packageType, // front
+    String document, // front
+    String goal, //  front
+    NoteConditions noteConditions, //front
+    String fullNameOfDoctor, // isemisda current userdan ///////////////////////////////
+    Integer collectorProfessionId, // front
+    String manufacturer, // front
+    LocalDate manufactureDate, // front
+    String docNumber, // front
+    PreservationMethod preservationMethod, //front
+    String redirectUrl, // isemis berishi kk
+    Boolean paid, // front (dropdown)
     List<SelectionActItem> selectionActItems, // @NotEmpty(message = "selection act items must not be null")
-
-    String locationOwnership
+    String locationOwnership // front
     ) {
 
 
   public record SelectionActItem(
-      Integer itemTypeId,
-      String groupSize,
-      String sampleWeight,
-      String samplingAddress,
-      String samplingDepth,
-      LengthUnit depthUnit,
-      String distanceFromShore,
-      LengthUnit distanceFromShoreUnit,
-      String weatherConditions,
-      String waterTemperature,
-      String samplingPoint,
-      SampleType sampleType,
-      SampleQtUnit sampleQtUnit,
-      List<String> coordinates,
-      String sampleQt
+      Integer itemTypeId, // front
+      String groupSize, // front
+      String sampleWeight, // front
+      String samplingAddress, // front
+      String samplingDepth, // front
+      LengthUnit depthUnit, // front
+      String distanceFromShore, // front
+      LengthUnit distanceFromShoreUnit, //front
+      String weatherConditions,  // front
+      String waterTemperature, // front
+      String samplingPoint, // front
+      SampleType sampleType, // front
+      SampleQtUnit sampleQtUnit, // front
+      String sampleQt, // front
+      List<String> coordinates // front
   ) {}
 
   public record Conditions(Integer id, String name) {}
