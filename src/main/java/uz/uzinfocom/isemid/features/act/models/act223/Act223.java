@@ -21,8 +21,11 @@ public class Act223 extends Act {
     private String activityTypeCode;
 
     private String fullNameofSampler;
+    private Integer positionId;
     private String positionOfSampler;
     private String fullNameOfParticipant;
+
+    private Integer participantPositionId;
     private String positionOfParticipant;
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
