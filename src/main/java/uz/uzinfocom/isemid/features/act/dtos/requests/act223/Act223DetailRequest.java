@@ -16,5 +16,9 @@ public class Act223DetailRequest {
     private String exactLocationPointSampling;
     private Double amount;
     private Double depthOfObtainedArea;
+    private Integer deliveryConditionId;
+    private String deliveryConditions;
+    private Integer storageConditionId;
+    private String storageConditions;
     private String supportingDocumentsForSampling;
 }
