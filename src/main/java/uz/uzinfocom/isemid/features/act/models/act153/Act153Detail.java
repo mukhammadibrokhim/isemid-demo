@@ -25,7 +25,14 @@ public class Act153Detail extends BaseEntity {
     @JsonBackReference
     private Act153 act153;
 
+    @Column(name = "object_type_id")
+    private Integer objectTypeId;
+
+    @Column(name = "object_code")
     private String objectCode;
+
+    @Column(name = "purpose_id")
+    private Integer purposeId;
 
     @Column(columnDefinition = "TEXT")
     private String samplingPurpose;
@@ -54,11 +61,17 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "water_temperature")
     private Double waterTemperature; // number (Celsius)
 
+    @Column(name = "sample_type_id")
+    private Integer sampleTypeId;
+
     @Column(name = "sample_type", columnDefinition = "TEXT")
     private String sampleType;
 
     @Column(name = "sampling_date")
     private LocalDateTime samplingDate; // datetime
+
+    @Column(name = "special_condition_id")
+    private Integer specialConditionId;
 
     @Column(name = "special_sampling_conditions", columnDefinition = "TEXT")
     private String specialSamplingConditions;
@@ -71,8 +84,14 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "delivery_conditions", columnDefinition = "TEXT")
     private String deliveryConditions;
 
+    @Column(name = "storage_condition_id")
+    private Integer storageConditionId;
+
     @Column(name = "storage_conditions", columnDefinition = "TEXT")
     private String storageConditions;
+
+    @Column(name = "conservation_method_id")
+    private Integer conservationMethodId;
 
     @Column(name = "conservation_methods", columnDefinition = "TEXT")
     private String conservationMethods;
