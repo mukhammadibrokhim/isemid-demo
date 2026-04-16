@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -37,7 +38,9 @@ public class Act154Detail extends BaseEntity {
     private String purposeOfSampling;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
+    private Integer deliveryConditionId;
     private String deliveryTerm;
+    private Integer storageConditionId;
     private String storageCondition;
     private String manufacturingCompany;
     private Date manufactureDate;
