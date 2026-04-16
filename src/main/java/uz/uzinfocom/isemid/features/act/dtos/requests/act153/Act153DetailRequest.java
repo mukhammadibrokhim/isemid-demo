@@ -12,7 +12,9 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153DetailRequest {
     private Long id;
+    private Integer objectTypeId;
     private String objectCode;
+    private Integer purposeId;
     private String samplingPurpose;
     private String samplingPurposeLoinc;
     private String address;
@@ -22,13 +24,18 @@ public class Act153DetailRequest {
     private String sampleLocation;
     private Double weatherAtSampling;
     private Double waterTemperature;
+    private Integer sampleTypeId;
     private String sampleType;
     private LocalDateTime samplingDate;
+    private Integer specialConditionId;
     private String specialSamplingConditions;
     private Long lisOrganizationId;
     private String laboratoryAddress;
+    private Integer deliveryConditionId;
     private String deliveryConditions;
+    private Integer storageConditionId;
     private String storageConditions;
+    private Integer conservationMethodId;
     private String conservationMethods;
     private String additionalInfo;
 }
