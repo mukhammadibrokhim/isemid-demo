@@ -46,6 +46,7 @@ public class Act154Detail extends BaseEntity {
     private Double sampleWeight;
     private Double sampleVolume;
     private Long docNumberOfTakenObject;
+    private Integer packageTypeId;
     private String packageType;
     private String documentConfirmSampling;
     private String purposeOfChecking;
