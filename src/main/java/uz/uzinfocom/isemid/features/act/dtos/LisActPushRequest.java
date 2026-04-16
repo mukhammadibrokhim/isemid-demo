@@ -43,80 +43,54 @@ import lombok.With;
 @Builder
 @With
 public record LisActPushRequest(
-    Integer actTemplateId, // @NotNull(message = "act template id must not be null")
-    Priority priority, //   @NotNull(message = "priority must not be null")
-    String tin, //front
-    String organizationName, //front
-    String organizationAddress, //front
-    String organizationLegalAddress, //front
-    Purpose purpose,  // @NotNull(message = "purpose must not be null") //front
-    LocalDateTime sampleTakenDate, // front
-    LocalDate deliveryDateToLaboratory,  // front
-    Conditions conditions, // @NotNull(message = "conditions must not be null")  //front
-    String additionalInformation,  // front
-    String involvedPersonName, // front
-    Integer involvedProfessionId, // front
-    PackageType packageType, // front
-    String document, // front
-    String goal, //  front
-    NoteConditions noteConditions, //front
+    Integer actTemplateId, // @NotNull(message = "act template id must not be null") // get from lis and map to local enum
+    Priority priority, //   @NotNull(message = "priority must not be null") // from send pop up
+    String tin, // from backend act.tin
+    String organizationName, //from backend act.institutionName
+    String organizationAddress, //from backend act.institutionAddress
+    String organizationLegalAddress, //from backend act.institutionAddress
+    LisDataDictionary purpose,  // @NotNull(message = "purpose must not be null") // act.details.purposeId ; act.details.samplingPurpose
+    LocalDateTime sampleTakenDate, // act.details.samplingDate
+    LocalDate deliveryDateToLaboratory,  // act.deliveredDate
+    LisDataDictionary conditions, // @NotNull(message = "conditions must not be null")  // act.details.deliveryConditions+act.details.storageConditions
+    String additionalInformation,  // act.additionalInfo
+    String involvedPersonName, // act153.participantFullName || act154.participantFullName || act223.fullNameOfParticipant
+    Integer involvedProfessionId, // act153.participantPosition || act154.participantPositionId || act223.participantPositionId
+    LisDataDictionary packageType, // act154.packageTypeId; act154.packageType
+    String document, // act153.samplingDocuments
+    String goal, //  act154.details.purposeOfSampling
+    LisDataDictionary noteConditions, //act153.details
     String fullNameOfDoctor, // isemisda current userdan ///////////////////////////////
-    Integer collectorProfessionId, // front
-    String manufacturer, // front
-    LocalDate manufactureDate, // front
-    String docNumber, // front
-    PreservationMethod preservationMethod, //front
+    Integer collectorProfessionId, // act.positionId
+    String manufacturer, // act154.detail.manufacturingCompany
+    LocalDate manufactureDate, // act154.detail.manufactureDate
+    String docNumber, // act.docNumberOfTakenObject
+    LisDataDictionary preservationMethod, // act153.details.conservationMethodId; act153.details.conservationMethods
     String redirectUrl, // isemis berishi kk
-    Boolean paid, // front (dropdown)
+    Boolean paid, // from send pop up
     List<SelectionActItem> selectionActItems, // @NotEmpty(message = "selection act items must not be null")
-    String locationOwnership // front
+    String locationOwnership
     ) {
 
 
   public record SelectionActItem(
-      Integer itemTypeId, // front
-      String groupSize, // front
-      String sampleWeight, // front
-      String samplingAddress, // front
-      String samplingDepth, // front
-      LengthUnit depthUnit, // front
-      String distanceFromShore, // front
-      LengthUnit distanceFromShoreUnit, //front
-      String weatherConditions,  // front
-      String waterTemperature, // front
-      String samplingPoint, // front
-      SampleType sampleType, // front
-      SampleQtUnit sampleQtUnit, // front
-      String sampleQt, // front
-      List<String> coordinates // front
+      Integer itemTypeId, // act153.details.objectTypeId
+      String groupSize, // act154.details.groupSize
+      String sampleWeight, // act154.details.sampleWeight ||
+      String samplingAddress, // act153.details.address
+      String samplingDepth, // act153.details.depth
+      LengthUnit depthUnit,
+      String distanceFromShore, // act153.details.distanceFromShore
+      LengthUnit distanceFromShoreUnit, //enum front
+      String weatherConditions,  // act153.details.weatherAtSampling
+      String waterTemperature, // act153.details.waterTemperature
+      String samplingPoint, // ??????????????????????????
+      LisDataDictionary sampleType, // act153.details.sampleTypeId and act153.details.sampleType
+      SampleQtUnit sampleQtUnit,
+      String sampleQt, // act223.details.amount
+      List<String> coordinates
   ) {}
 
-  public record Conditions(Integer id, String name) {}
-
-  public record PreservationMethod(Integer id, String name) {}
-
-  public record Purpose(Integer id, String name) {}
-
-  public record PackageType(Integer id, String name) {}
-
-  public record NoteConditions(Integer id, String name) {}
-
-  public record SampleType(Integer id, String name) {}
-
-  public enum Priority {
-    IMMEDIATE,
-    URGENT,
-    SCHEDULED
-  }
-
-  public enum LengthUnit {
-    CENTIMETER,
-    METER,
-    KILOMETER
-  }
-
-  public enum SampleQtUnit {
-    MILLIGRAM, GRAM, KILOGRAM
-  }
+  public record LisDataDictionary(Integer id, String name){}
 
 }
