@@ -33,4 +33,37 @@
         </addColumn>
     </changeSet>
 
+    <changeSet author="uzinfocom (generated)" id="1776354114650-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="item_type_id" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="item_type_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776354170336-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sampling_purpose_id" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="sampling_purpose_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776354185959-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sample_weight_unit" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="sample_weight_unit" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

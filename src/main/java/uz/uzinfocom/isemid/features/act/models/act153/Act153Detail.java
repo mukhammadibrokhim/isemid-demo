@@ -10,6 +10,8 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 import java.time.LocalDateTime;
+import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
+import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 
 
 @Getter
@@ -24,6 +26,9 @@ public class Act153Detail extends BaseEntity {
     @JoinColumn(name = "act153_id")
     @JsonBackReference
     private Act153 act153;
+
+    @Column(name = "item_type_id")
+    private Integer itemTypeId;
 
     @Column(name = "object_type_id")
     private Integer objectTypeId;
@@ -46,11 +51,20 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "sampling_depth")
     private Double samplingDepth; // number
 
+    @Enumerated(EnumType.STRING)
+    private LengthUnit depthUnit;
+
     @Column(name = "distance_from_shore")
     private Double distanceFromShore; // number
 
+    @Enumerated(EnumType.STRING)
+    private LengthUnit distanceFromShoreUnit;
+
     @Column(name = "sample_volume")
     private Double sampleVolume; // number
+
+    @Enumerated(EnumType.STRING)
+    private SampleQtUnit sampleQtUnit;
 
     @Column(name = "sample_location", columnDefinition = "TEXT")
     private String sampleLocation;

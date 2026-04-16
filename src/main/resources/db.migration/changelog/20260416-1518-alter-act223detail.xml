@@ -44,4 +44,48 @@
         </addColumn>
     </changeSet>
 
+    <changeSet author="uzinfocom (generated)" id="1776354283593-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="item_type_id" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="item_type_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776354343262-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="depth_unit" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="depth_unit" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776354388105-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sample_type_id" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="sample_type_id" type="integer"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776354502546-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sample_type" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="sample_type" type="text"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

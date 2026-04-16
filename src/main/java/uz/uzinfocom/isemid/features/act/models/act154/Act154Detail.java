@@ -3,6 +3,8 @@ package uz.uzinfocom.isemid.features.act.models.act154;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -15,6 +17,7 @@ import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 
 @Getter
 @Setter
@@ -29,12 +32,17 @@ public class Act154Detail extends BaseEntity {
     @JsonBackReference
     private Act154 act154;
 
+
+    @Column(name = "item_type_id")
+    private Integer itemTypeId;
+
     private Long lisOrganizationId;
     private String laboratoryAddress;
 
     private String shiftCode;
     private String sampleName;
     private String sampleType;
+    private Integer samplingPurposeId;
     private String purposeOfSampling;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
@@ -47,6 +55,8 @@ public class Act154Detail extends BaseEntity {
     private Long groupSize;
     private Long serialNumberOfGroup;
     private Double sampleWeight;
+    @Enumerated(EnumType.STRING)
+    private SampleQtUnit sampleWeightUnit;
     private Double sampleVolume;
     private Long docNumberOfTakenObject;
     private Integer packageTypeId;

@@ -78,6 +78,50 @@
         </addColumn>
     </changeSet>
 
+    <changeSet author="uzinfocom (generated)" id="1776353912969-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="item_type_id" tableName="act153_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153_detail">
+            <column name="item_type_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776353961892-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="depth_unit" tableName="act153_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153_detail">
+            <column name="depth_unit" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776354007490-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="distance_from_shore_unit" tableName="act153_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153_detail">
+            <column name="distance_from_shore_unit" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776354058823-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sample_qt_unit" tableName="act153_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153_detail">
+            <column name="sample_qt_unit" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
 
 
 </databaseChangeLog>
