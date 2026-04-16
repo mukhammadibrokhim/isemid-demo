@@ -67,6 +67,17 @@
         </addColumn>
     </changeSet>
 
+    <changeSet author="uzinfocom (generated)" id="1776334008235-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="delivery_condition_id" tableName="act153_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153_detail">
+            <column name="delivery_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
 
 
 </databaseChangeLog>

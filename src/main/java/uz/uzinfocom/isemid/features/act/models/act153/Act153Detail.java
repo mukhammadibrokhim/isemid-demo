@@ -81,6 +81,9 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "laboratory_address", columnDefinition = "TEXT")
     private String laboratoryAddress;
 
+    @Column(name = "delivery_condition_id")
+    private Integer deliveryConditionId;
+
     @Column(name = "delivery_conditions", columnDefinition = "TEXT")
     private String deliveryConditions;
 
