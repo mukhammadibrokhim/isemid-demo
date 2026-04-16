@@ -21,7 +21,9 @@ public class Act154DetailRequest {
     private String shiftCode;
     private Long lisOrganizationId;
     private String laboratoryAddress;
+    private Integer deliveryConditionId;
     private String deliveryTerm;
+    private Integer storageConditionId;
     private String storageCondition;
     private String manufacturingCompany;
     private Date manufactureDate;
@@ -30,6 +32,7 @@ public class Act154DetailRequest {
     private Double sampleWeight;
     private Double sampleVolume;
     private Long docNumberOfTakenObject;
+    private Integer packageTypeId;
     private String packageType;
     private String documentConfirmSampling;
     private String purposeOfChecking;
