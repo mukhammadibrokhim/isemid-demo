@@ -24,6 +24,17 @@ public class Act223Detail extends BaseEntity {
     private String exactLocationPointSampling;
     private Double amount;
     private Double depthOfObtainedArea;
+    @Column(name = "delivery_condition_id")
+    private Integer deliveryConditionId;
+
+    @Column(name = "delivery_conditions", columnDefinition = "TEXT")
+    private String deliveryConditions;
+
+    @Column(name = "storage_condition_id")
+    private Integer storageConditionId;
+
+    @Column(name = "storage_conditions", columnDefinition = "TEXT")
+    private String storageConditions;
     private String supportingDocumentsForSampling;
 
 }

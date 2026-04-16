@@ -1,0 +1,47 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="uzinfocom (generated)" id="1776334450182-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="delivery_condition_id" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="delivery_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776334502493-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="delivery_conditions" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="delivery_conditions" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776334521356-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_condition_id" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="storage_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776334549204-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_conditions" tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223_detail">
+            <column name="storage_conditions" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
