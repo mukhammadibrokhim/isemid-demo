@@ -25,9 +25,11 @@ public class Act153Response extends ActResponse {
     private String activityTypeCode;
     private String samplingDocuments;
     private String samplerFullName;
+    private Integer positionId;
     private String position;
     private LocalDate deliveredDate;
     private String participantFullName;
+    private Integer participantPositionId;
     private String participantPosition;
     private String additionalInfo;
     @Builder.Default

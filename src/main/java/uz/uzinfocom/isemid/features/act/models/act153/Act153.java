@@ -6,8 +6,8 @@ import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -39,5 +39,5 @@ public class Act153 extends Act {
     @OneToMany(mappedBy = "act153", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("id DESC")
     @JsonManagedReference
-    private List<Act153Detail> act153Details = new ArrayList<>();
+    private Set<Act153Detail> act153Details = new HashSet<>();
 }
