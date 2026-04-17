@@ -5,6 +5,7 @@ import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_RES
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.commons.utils.RestClientUtil;
@@ -39,8 +40,8 @@ public class ActToLisDtoConverter {
     // -------------------------------------------------------------------------
 
     private ActLisDto fromAct153(Act153 act) {
-        List<Act153Detail> details = act.getAct153Details();
-        Act153Detail first = details.isEmpty() ? null : details.getFirst();
+        Set<Act153Detail> details = act.getAct153Details();
+        Act153Detail first = details.stream().findFirst().orElse(null);
 
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
         String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
@@ -98,8 +99,8 @@ public class ActToLisDtoConverter {
     // -------------------------------------------------------------------------
 
     private ActLisDto fromAct154(Act154 act) {
-        List<Act154Detail> details = act.getAct154Details();
-        Act154Detail first = details.isEmpty() ? null : details.getFirst();
+        Set<Act154Detail> details = act.getAct154Details();
+        Act154Detail first = details.stream().findFirst().orElse(null);
 
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
         String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
