@@ -30,8 +30,10 @@ public class Act154Response extends ActResponse {
 
     private String samplerFullName;
     private LocalDate deliveredDate;
+    private Integer positionId;
     private String position;
     private String participantFullName;
+    private Integer participantPositionId;
     private String participantPosition;
     private String additionalInfo;
     private Set<Act154DetailResponse> act154Details;

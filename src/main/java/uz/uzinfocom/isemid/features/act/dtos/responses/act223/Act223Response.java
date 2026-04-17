@@ -27,8 +27,10 @@ public class Act223Response extends ActResponse {
     private String activityTypeCode;
 
     private String fullNameofSampler;
+    private Integer positionId;
     private String positionOfSampler;
     private String fullNameOfParticipant;
+    private Integer participantPositionId;
     private String positionOfParticipant;
     private LocalDateTime sampleTakenDate;
     private String reasonOfInspectoring;
