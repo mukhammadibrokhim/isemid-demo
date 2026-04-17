@@ -1,12 +1,18 @@
 package uz.uzinfocom.isemid.features.act.mappers;
 
+import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_RESEARCH_TYPE_API;
+
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.commons.utils.RestClientUtil;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto.SelectionActItemDto;
 import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.LisDataDictionary;
+import uz.uzinfocom.isemid.features.act.enums.ActType;
+import uz.uzinfocom.isemid.features.act.enums.LisResearchCode;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.act153.Act153;
 import uz.uzinfocom.isemid.features.act.models.act153.Act153Detail;
@@ -36,8 +42,13 @@ public class ActToLisDtoConverter {
         List<Act153Detail> details = act.getAct153Details();
         Act153Detail first = details.isEmpty() ? null : details.getFirst();
 
+        LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
+        String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
+
+        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, null);
+
         return new ActLisDto(
-            153,
+            actTemplateId,
             act.getTin() != null ? act.getTin().toString() : null,
             act.getInstitutionName(),
             act.getInstitutionAddress(),
@@ -90,8 +101,13 @@ public class ActToLisDtoConverter {
         List<Act154Detail> details = act.getAct154Details();
         Act154Detail first = details.isEmpty() ? null : details.getFirst();
 
+        LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
+        String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
+
+        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, null);
+
         return new ActLisDto(
-            154,
+            actTemplateId,
             act.getTin() != null ? act.getTin().toString() : null,
             act.getInstitutionName(),
             act.getInstitutionAddress(),
@@ -146,8 +162,13 @@ public class ActToLisDtoConverter {
         List<Act223Detail> details = new ArrayList<>(act.getAct223Details());
         Act223Detail first = details.isEmpty() ? null : details.getFirst();
 
+        LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
+        String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
+
+        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, null);
+
         return new ActLisDto(
-            223,
+            actTemplateId,
             act.getTin() != null ? act.getTin().toString() : null,
             act.getInstitutionName(),
             act.getInstitutionAddress(),
