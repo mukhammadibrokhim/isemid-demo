@@ -24,8 +24,10 @@ public class Act153Request extends ActRequest {
     private String samplingDocuments;
     private LocalDate deliveredDate;
     private String samplerFullName;
+    private Integer positionId;
     private String position;
     private String participantFullName;
+    private Integer participantPositionId;
     private String participantPosition;
     private String additionalInfo;
     private Set<Act153DetailRequest> act153Details;

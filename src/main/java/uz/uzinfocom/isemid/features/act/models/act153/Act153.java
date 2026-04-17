@@ -27,8 +27,10 @@ public class Act153 extends Act {
     private LocalDate deliveredDate; // laboratoriyaga yetkazilgan sana
 
     private String samplerFullName;
+    private Integer positionId;
     private String position;
     private String participantFullName;
+    private Integer participantPositionId;
     private String participantPosition;
 
     @Column(columnDefinition = "TEXT")

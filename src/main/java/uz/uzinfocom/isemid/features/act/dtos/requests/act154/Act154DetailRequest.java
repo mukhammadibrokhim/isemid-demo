@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 
 @Getter
 @Setter
@@ -12,8 +13,10 @@ import java.util.Date;
 @Builder
 public class Act154DetailRequest {
     private Long id;
+    private Integer itemTypeId;
     private String sampleName;
     private String sampleType;
+    private Integer samplingPurposeId;
     private String purposeOfSampling;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDate;
@@ -21,15 +24,19 @@ public class Act154DetailRequest {
     private String shiftCode;
     private Long lisOrganizationId;
     private String laboratoryAddress;
+    private Integer deliveryConditionId;
     private String deliveryTerm;
+    private Integer storageConditionId;
     private String storageCondition;
     private String manufacturingCompany;
     private Date manufactureDate;
     private Long groupSize;
     private Long serialNumberOfGroup;
     private Double sampleWeight;
+    private SampleQtUnit sampleWeightUnit;
     private Double sampleVolume;
     private Long docNumberOfTakenObject;
+    private Integer packageTypeId;
     private String packageType;
     private String documentConfirmSampling;
     private String purposeOfChecking;

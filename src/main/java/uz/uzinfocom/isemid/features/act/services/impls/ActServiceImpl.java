@@ -20,10 +20,12 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.commons.utils.RestClientUtil;
+import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest;
 import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
+import uz.uzinfocom.isemid.features.act.mappers.ActToLisDtoConverter;
 import uz.uzinfocom.isemid.features.act.mappers.EMisToLisRequestMapper;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
@@ -38,6 +40,7 @@ import uz.uzinfocom.isemid.features.user.models.User;
 public class ActServiceImpl implements ActService {
     private final ActRepository actRepository;
     private final UpdateActService updateActService;
+    private final ActToLisDtoConverter actToLisDtoConverter;
     private final EMisToLisRequestMapper emisToLisRequestMapper;
     private final MessageUtil messageUtil;
 
@@ -72,7 +75,10 @@ public class ActServiceImpl implements ActService {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication()
             .getPrincipal();
-        Act act = getById(lisRequest.actId());
+
+        Act act = actRepository.findWithDetailsForLisById(lisRequest.actId())
+            .orElseThrow(() -> new ApiException(NOT_FOUND,
+                messageUtil.get("error.not_found_by_id", lisRequest.actId())));
 
         act.setLisAttempt(act.getLisAttempt() + 1);
         act.setStatus(ActStatus.PENDING);
@@ -81,12 +87,13 @@ public class ActServiceImpl implements ActService {
         try {
             String redirectUrl = ISEMID_CALLBACK + act.getId();
 
+            ActLisDto actLisDto = actToLisDtoConverter.convert(act);
+
             LisActPushRequest body = emisToLisRequestMapper
-                .map(lisRequest)
+                .map(lisRequest, actLisDto)
                 .withFullNameOfDoctor(user.getFullName())
                 .withRedirectUrl(redirectUrl);
 
-            // headers
             HttpHeaders headers = new HttpHeaders();
             headers.set("Organization-Id", organizationUuid.toString());
 

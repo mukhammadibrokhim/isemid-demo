@@ -10,6 +10,8 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 
 import java.time.LocalDateTime;
+import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
+import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 
 
 @Getter
@@ -25,7 +27,17 @@ public class Act153Detail extends BaseEntity {
     @JsonBackReference
     private Act153 act153;
 
+    @Column(name = "item_type_id")
+    private Integer itemTypeId;
+
+    @Column(name = "object_type_id")
+    private Integer objectTypeId;
+
+    @Column(name = "object_code")
     private String objectCode;
+
+    @Column(name = "purpose_id")
+    private Integer purposeId;
 
     @Column(columnDefinition = "TEXT")
     private String samplingPurpose;
@@ -39,11 +51,20 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "sampling_depth")
     private Double samplingDepth; // number
 
+    @Enumerated(EnumType.STRING)
+    private LengthUnit depthUnit;
+
     @Column(name = "distance_from_shore")
     private Double distanceFromShore; // number
 
+    @Enumerated(EnumType.STRING)
+    private LengthUnit distanceFromShoreUnit;
+
     @Column(name = "sample_volume")
     private Double sampleVolume; // number
+
+    @Enumerated(EnumType.STRING)
+    private SampleQtUnit sampleQtUnit;
 
     @Column(name = "sample_location", columnDefinition = "TEXT")
     private String sampleLocation;
@@ -54,11 +75,17 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "water_temperature")
     private Double waterTemperature; // number (Celsius)
 
+    @Column(name = "sample_type_id")
+    private Integer sampleTypeId;
+
     @Column(name = "sample_type", columnDefinition = "TEXT")
     private String sampleType;
 
     @Column(name = "sampling_date")
     private LocalDateTime samplingDate; // datetime
+
+    @Column(name = "special_condition_id")
+    private Integer specialConditionId;
 
     @Column(name = "special_sampling_conditions", columnDefinition = "TEXT")
     private String specialSamplingConditions;
@@ -68,11 +95,20 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "laboratory_address", columnDefinition = "TEXT")
     private String laboratoryAddress;
 
+    @Column(name = "delivery_condition_id")
+    private Integer deliveryConditionId;
+
     @Column(name = "delivery_conditions", columnDefinition = "TEXT")
     private String deliveryConditions;
 
+    @Column(name = "storage_condition_id")
+    private Integer storageConditionId;
+
     @Column(name = "storage_conditions", columnDefinition = "TEXT")
     private String storageConditions;
+
+    @Column(name = "conservation_method_id")
+    private Integer conservationMethodId;
 
     @Column(name = "conservation_methods", columnDefinition = "TEXT")
     private String conservationMethods;
