@@ -16,10 +16,15 @@ import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 @Builder
 public class Act153DetailResponse {
     private Long id;
+    private Integer researchTypeId;
+    private Integer categoryId;
     private Integer itemTypeId;
+    private Integer itemTypeNameUz;
+    private Integer itemTypeNameRu;
     private String objectCode;
     private Integer purposeId;
-    private String samplingPurpose;
+    private String samplingPurposeUz;
+    private String samplingPurposeRu;
     private String samplingPurposeLoinc;
     private String address;
     private Double samplingDepth;
@@ -32,16 +37,22 @@ public class Act153DetailResponse {
     private Double weatherAtSampling;
     private Double waterTemperature;
     private Integer sampleTypeId;
-    private String sampleType;
+    private String sampleTypeUz;
+    private String sampleTypeRu;
     private LocalDateTime samplingDate;
     private Integer specialConditionId;
-    private String specialSamplingConditions;
+    private String specialSamplingConditionsUz;
+    private String specialSamplingConditionsRu;
     private Long lisOrganizationId;
     private String laboratoryAddress;
-    private String deliveryConditions;
+    private Integer deliveryConditionId;
+    private String deliveryConditionsUz;
+    private String deliveryConditionsRu;
     private Integer storageConditionId;
-    private String storageConditions;
+    private String storageConditionsUz;
+    private String storageConditionsRu;
     private Integer conservationMethodId;
-    private String conservationMethods;
+    private String conservationMethodsUz;
+    private String conservationMethodsRu;
     private String additionalInfo;
 }

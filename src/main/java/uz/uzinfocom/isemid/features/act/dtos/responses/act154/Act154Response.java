@@ -2,15 +2,14 @@ package uz.uzinfocom.isemid.features.act.dtos.responses.act154;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
-
-import java.time.LocalDate;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -29,12 +28,15 @@ public class Act154Response extends ActResponse {
     private String activityTypeCode;
 
     private String samplerFullName;
-    private LocalDate deliveredDate;
-    private Integer positionId;
-    private String position;
+    private LocalDateTime sampleTakenDateTime;
+    private LocalDateTime deliveredDateTime;
+    private Integer samplerPositionId;
+    private String samplerPositionUz;
+    private String samplerPositionRu;
     private String participantFullName;
     private Integer participantPositionId;
-    private String participantPosition;
+    private String participantPositionUz;
+    private String participantPositionRu;
     private String additionalInfo;
     private Set<Act154DetailResponse> act154Details;
 }

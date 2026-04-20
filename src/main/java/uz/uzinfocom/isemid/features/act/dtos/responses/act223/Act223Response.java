@@ -26,13 +26,16 @@ public class Act223Response extends ActResponse {
     private String institutionAddress;
     private String activityTypeCode;
 
-    private String fullNameofSampler;
+    private String samplerFullName;
     private Integer positionId;
-    private String positionOfSampler;
-    private String fullNameOfParticipant;
+    private String samplerPositionUz;
+    private String samplerPositionRu;
+    private String participantFullName;
     private Integer participantPositionId;
-    private String positionOfParticipant;
-    private LocalDateTime sampleTakenDate;
+    private String participantPositionUz;
+    private String participantPositionRu;
+    private LocalDateTime sampleTakenDateTime;
+    private LocalDateTime deliveredDateTime;
     private String reasonOfInspectoring;
     private String reasonInspectoringLoinc;
     private String additionalInfo;

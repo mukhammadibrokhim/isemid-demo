@@ -91,6 +91,6 @@ public record LisActPushRequest(
       List<String> coordinates
   ) {}
 
-  public record LisDataDictionary(Integer id, String name){}
+  public record LisDataDictionary(Integer id, String nameUz, String nameRu){}
 
 }

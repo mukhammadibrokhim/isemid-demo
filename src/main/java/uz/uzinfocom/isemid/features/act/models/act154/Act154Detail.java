@@ -32,9 +32,14 @@ public class Act154Detail extends BaseEntity {
     @JsonBackReference
     private Act154 act154;
 
+    private Integer researchTypeId;
+    private Integer categoryId;
 
     @Column(name = "item_type_id")
     private Integer itemTypeId;
+
+    private String itemTypeNameUz;
+    private String itemTypeNameRu;
 
     private Long lisOrganizationId;
     private String laboratoryAddress;
@@ -42,15 +47,19 @@ public class Act154Detail extends BaseEntity {
     private String shiftCode;
     private String sampleName;
     private Integer sampleTypeId;
-    private String sampleType;
+    private String sampleTypeUz;
+    private String sampleTypeRu;
     private Integer samplingPurposeId;
-    private String purposeOfSampling;
+    private String purposeOfSamplingUz;
+    private String purposeOfSamplingRu;
     private String samplingPurposeLoinc;
-    private LocalDateTime sampleTakenDate;
+    private LocalDateTime sampleTakenDateTime;
     private Integer deliveryConditionId;
-    private String deliveryTerm;
+    private String deliveryConditionUz;
+    private String deliveryConditionRu;
     private Integer storageConditionId;
-    private String storageCondition;
+    private String storageConditionUz;
+    private String storageConditionRu;
     private String manufacturingCompany;
     private Date manufactureDate;
     private Long groupSize;
@@ -61,7 +70,8 @@ public class Act154Detail extends BaseEntity {
     private Double sampleVolume;
     private Long docNumberOfTakenObject;
     private Integer packageTypeId;
-    private String packageType;
+    private String packageTypeUz;
+    private String packageTypeRu;
     private String documentConfirmSampling;
     private String purposeOfChecking;
     private String note;
