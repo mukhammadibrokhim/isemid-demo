@@ -41,6 +41,7 @@ public class Act154Detail extends BaseEntity {
 
     private String shiftCode;
     private String sampleName;
+    private Integer sampleTypeId;
     private String sampleType;
     private Integer samplingPurposeId;
     private String purposeOfSampling;
