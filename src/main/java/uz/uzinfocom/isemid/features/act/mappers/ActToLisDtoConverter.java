@@ -6,8 +6,10 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.commons.utils.RestClientUtil;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto.SelectionActItemDto;
@@ -23,7 +25,10 @@ import uz.uzinfocom.isemid.features.act.models.act223.Act223;
 import uz.uzinfocom.isemid.features.act.models.act223.Act223Detail;
 
 @Component
+@RequiredArgsConstructor
 public class ActToLisDtoConverter {
+
+    private final MessageUtil messageUtil;
 
     public ActLisDto convert(Act act) {
         return switch (act.getType()) {
@@ -46,7 +51,7 @@ public class ActToLisDtoConverter {
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
         String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
 
-        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, null);
+        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, messageUtil);
 
         return new ActLisDto(
             actTemplateId,
@@ -105,7 +110,7 @@ public class ActToLisDtoConverter {
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
         String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
 
-        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, null);
+        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, messageUtil);
 
         return new ActLisDto(
             actTemplateId,
@@ -166,7 +171,7 @@ public class ActToLisDtoConverter {
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
         String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
 
-        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, null);
+        Integer actTemplateId = RestClientUtil.makeRequest(url, HttpMethod.GET, "", null, null, Integer.class, messageUtil);
 
         return new ActLisDto(
             actTemplateId,

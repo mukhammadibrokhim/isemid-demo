@@ -19,6 +19,7 @@ public class Act154DetailResponse {
     private Long id;
     private Integer itemTypeId;
     private String sampleName;
+    private Integer sampleTypeId;
     private String sampleType;
     private Integer samplingPurposeId;
     private String purposeOfSampling;
