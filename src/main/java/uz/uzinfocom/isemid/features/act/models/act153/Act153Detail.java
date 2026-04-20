@@ -27,8 +27,13 @@ public class Act153Detail extends BaseEntity {
     @JsonBackReference
     private Act153 act153;
 
+    private Integer researchTypeId;
+    private Integer categoryId;
+
     @Column(name = "item_type_id")
     private Integer itemTypeId;
+    private String itemTypeNameUz;
+    private String itemTypeNameRu;
 
     @Column(name = "object_type_id")
     private Integer objectTypeId;
@@ -39,8 +44,11 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "purpose_id")
     private Integer purposeId;
 
-    @Column(columnDefinition = "TEXT")
-    private String samplingPurpose;
+    @Column(name = "sampling_purpose_uz", columnDefinition = "TEXT")
+    private String samplingPurposeUz;
+
+    @Column(name = "sampling_purpose_ru", columnDefinition = "TEXT")
+    private String samplingPurposeRu;
 
     @Column(name = "sampling_purpose_loinc")
     private String samplingPurposeLoinc; // loinc
@@ -78,17 +86,23 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "sample_type_id")
     private Integer sampleTypeId;
 
-    @Column(name = "sample_type", columnDefinition = "TEXT")
-    private String sampleType;
+    @Column(name = "sample_type_uz", columnDefinition = "TEXT")
+    private String sampleTypeUz;
 
-    @Column(name = "sampling_date")
-    private LocalDateTime samplingDate; // datetime
+    @Column(name = "sample_type_ru", columnDefinition = "TEXT")
+    private String sampleTypeRu;
+
+    @Column(name = "sampling_date_time")
+    private LocalDateTime samplingDateTime; // datetime
 
     @Column(name = "special_condition_id")
     private Integer specialConditionId;
 
-    @Column(name = "special_sampling_conditions", columnDefinition = "TEXT")
-    private String specialSamplingConditions;
+    @Column(name = "special_sampling_conditions_uz", columnDefinition = "TEXT")
+    private String specialSamplingConditionsUz;
+
+    @Column(name = "special_sampling_conditions_ru", columnDefinition = "TEXT")
+    private String specialSamplingConditionsRu;
 
     private Long lisOrganizationId;
 
@@ -98,20 +112,29 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "delivery_condition_id")
     private Integer deliveryConditionId;
 
-    @Column(name = "delivery_conditions", columnDefinition = "TEXT")
-    private String deliveryConditions;
+    @Column(name = "delivery_conditions_uz", columnDefinition = "TEXT")
+    private String deliveryConditionsUz;
+
+    @Column(name = "delivery_conditions_ru", columnDefinition = "TEXT")
+    private String deliveryConditionsRu;
 
     @Column(name = "storage_condition_id")
     private Integer storageConditionId;
 
-    @Column(name = "storage_conditions", columnDefinition = "TEXT")
-    private String storageConditions;
+    @Column(name = "storage_conditions_uz", columnDefinition = "TEXT")
+    private String storageConditionsUz;
+
+    @Column(name = "storage_conditions_ru", columnDefinition = "TEXT")
+    private String storageConditionsRu;
 
     @Column(name = "conservation_method_id")
     private Integer conservationMethodId;
 
-    @Column(name = "conservation_methods", columnDefinition = "TEXT")
-    private String conservationMethods;
+    @Column(name = "conservation_methods_uz", columnDefinition = "TEXT")
+    private String conservationMethodsUz;
+
+    @Column(name = "conservation_methods_ru", columnDefinition = "TEXT")
+    private String conservationMethodsRu;
 
     @Column(name = "additional_info", columnDefinition = "TEXT")
     private String additionalInfo;

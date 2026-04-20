@@ -29,29 +29,34 @@ public class Act223Detail extends BaseEntity {
     @JoinColumn(name = "act223_id")
     private Act223 act223;
 
+    private Integer researchTypeId;
+    private Integer categoryId;
+
     private Integer itemTypeId;
+    private String itemTypeNameUz;
+    private String itemTypeNameRu;
     // example in wkt format POINT(69.2797 41.3111)
     private String exactLocationPointSampling;
     private Double amount;
     private Double depthOfObtainedArea;
     @Enumerated(EnumType.STRING)
     private LengthUnit depthUnit;
-    @Column(name = "delivery_condition_id")
+
     private Integer deliveryConditionId;
+    @Column(columnDefinition = "TEXT")
+    private String deliveryConditionsUz;
+    private String deliveryConditionsRu;
 
-    @Column(name = "delivery_conditions", columnDefinition = "TEXT")
-    private String deliveryConditions;
-
-    @Column(name = "storage_condition_id")
     private Integer storageConditionId;
+    @Column(columnDefinition = "TEXT")
+    private String storageConditionsUz;
+    private String storageConditionsRu;
 
-    @Column(name = "storage_conditions", columnDefinition = "TEXT")
-    private String storageConditions;
-    @Column(name = "sample_type_id")
     private Integer sampleTypeId;
+    @Column(columnDefinition = "TEXT")
+    private String sampleTypeUz;
+    private String sampleTypeRu;
 
-    @Column(name = "sample_type", columnDefinition = "TEXT")
-    private String sampleType;
     private String supportingDocumentsForSampling;
 
 }

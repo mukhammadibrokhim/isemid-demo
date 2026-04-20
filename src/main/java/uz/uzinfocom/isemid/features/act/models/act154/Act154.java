@@ -2,10 +2,10 @@ package uz.uzinfocom.isemid.features.act.models.act154;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import uz.uzinfocom.isemid.features.act.models.Act;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,21 +16,26 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 public class Act154 extends Act {
-   private String title;
-   private Long serialNumber;
    private Integer tin;
    private String institutionName;
    private String institutionAddress;
    private String activityTypeCode;
 
-   @Column(name = "delivered_date")
-   private LocalDate deliveredDate; // laboratoriyaga yetkazilgan sana;
+   private String title;
+   private Long serialNumber;
+   private LocalDateTime sampleTakenDateTime;
+   private LocalDateTime deliveredDateTime;
+
    private String samplerFullName;
-   private Integer positionId;
-   private String position;
+   private Integer samplerPositionId;
+   private String samplerPositionUz;
+   private String samplerPositionRu;
    private String participantFullName;
    private Integer participantPositionId;
-   private String participantPosition;
+   private String participantPositionUz;
+   private String participantPositionRu;
+
+   @Column(columnDefinition = "TEXT")
    private String additionalInfo;
 
    @OneToMany(mappedBy = "act154", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)

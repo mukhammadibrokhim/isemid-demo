@@ -14,16 +14,23 @@ import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act223DetailResponse {
     private Long id;
+    private Integer researchTypeId;
+    private Integer categoryId;
     private Integer itemTypeId;
+    private Integer itemTypeNameUz;
+    private Integer itemTypeNameRu;
     private String exactLocationPointSampling;
     private Double amount;
     private Double depthOfObtainedArea;
     private LengthUnit depthUnit;
     private Integer deliveryConditionId;
-    private String deliveryConditions;
+    private String deliveryConditionsUz;
+    private String deliveryConditionsRu;
     private Integer storageConditionId;
-    private String storageConditions;
+    private String storageConditionsUz;
+    private String storageConditionsRu;
     private Integer sampleTypeId;
-    private String sampleType;
+    private String sampleTypeUz;
+    private String sampleTypeRu;
     private String supportingDocumentsForSampling;
 }
