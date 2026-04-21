@@ -2,11 +2,19 @@ package uz.uzinfocom.isemid.features.act.dtos.requests.act154;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
-
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
+import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
 @Getter
 @Setter
@@ -18,18 +26,23 @@ import java.util.Set;
 public class Act154Request extends ActRequest {
     private String title;
     private Long serialNumber;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Institution institution;
+
     private String activityTypeCode;
 
-    private String samplerFullName;
-    private LocalDate deliveredDate;
-    private Integer positionId;
-    private String position;
-    private String participantFullName;
-    private Integer participantPositionId;
-    private String participantPosition;
+    private LocalDateTime sampleTakenDateTime;
+    private LocalDateTime deliveredDateTime;
+
+    private Purpose purpose;
+    private EmployeeInfo sampler;
+    private EmployeeInfo participant;
+
+    private ConditionInfo specialCondition;
+    private ConditionInfo deliveryCondition;
+    private ConditionInfo storageCondition;
+
+    private PackageTypeInfo packageTypeInfo;
+
     private String additionalInfo;
     private Set<Act154DetailRequest> act154Details;
 }

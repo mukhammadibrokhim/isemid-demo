@@ -17,6 +17,7 @@ public record ActLisDto(
     String tin,
     String organizationName,
     String organizationAddress,
+    String organizationLegalAddress,
     LisDataDictionary purpose,
     LocalDateTime sampleTakenDateTime,
     LocalDateTime deliveryDateTime,

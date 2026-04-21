@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
 import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
+import uz.uzinfocom.isemid.features.act.models.common.ConservationTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 
 @Getter
 @Setter
@@ -16,15 +19,16 @@ import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 @Builder
 public class Act153DetailResponse {
     private Long id;
-    private Integer researchTypeId;
-    private Integer categoryId;
-    private Integer itemTypeId;
-    private Integer itemTypeNameUz;
-    private Integer itemTypeNameRu;
+//    private Integer researchTypeId;
+//    private Integer categoryId;
+//    private Integer itemTypeId;
+//    private Integer itemTypeNameUz;
+//    private Integer itemTypeNameRu;
+    private ResearchItemTypeInfo researchItemTypeInfo;
     private String objectCode;
-    private Integer purposeId;
-    private String samplingPurposeUz;
-    private String samplingPurposeRu;
+//    private Integer purposeId;
+//    private String samplingPurposeUz;
+//    private String samplingPurposeRu;
     private String samplingPurposeLoinc;
     private String address;
     private Double samplingDepth;
@@ -36,23 +40,25 @@ public class Act153DetailResponse {
     private String sampleLocation;
     private Double weatherAtSampling;
     private Double waterTemperature;
-    private Integer sampleTypeId;
-    private String sampleTypeUz;
-    private String sampleTypeRu;
-    private LocalDateTime samplingDate;
-    private Integer specialConditionId;
-    private String specialSamplingConditionsUz;
-    private String specialSamplingConditionsRu;
+//    private Integer sampleTypeId;
+//    private String sampleTypeUz;
+//    private String sampleTypeRu;
+    private SampleTypeInfo sampleTypeInfo;
+    private LocalDateTime samplingDateTime;
+//    private Integer specialConditionId;
+//    private String specialSamplingConditionsUz;
+//    private String specialSamplingConditionsRu;
     private Long lisOrganizationId;
     private String laboratoryAddress;
-    private Integer deliveryConditionId;
-    private String deliveryConditionsUz;
-    private String deliveryConditionsRu;
-    private Integer storageConditionId;
-    private String storageConditionsUz;
-    private String storageConditionsRu;
-    private Integer conservationMethodId;
-    private String conservationMethodsUz;
-    private String conservationMethodsRu;
+//    private Integer deliveryConditionId;
+//    private String deliveryConditionsUz;
+//    private String deliveryConditionsRu;
+//    private Integer storageConditionId;
+//    private String storageConditionsUz;
+//    private String storageConditionsRu;
+//    private Integer conservationMethodId;
+//    private String conservationMethodsUz;
+//    private String conservationMethodsRu;
+    private ConservationTypeInfo conservationTypeInfo;
     private String additionalInfo;
 }

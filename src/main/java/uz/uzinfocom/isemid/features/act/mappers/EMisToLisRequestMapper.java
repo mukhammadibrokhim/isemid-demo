@@ -25,7 +25,7 @@ public class EMisToLisRequestMapper {
             .tin(actLisDto.tin())
             .organizationName(actLisDto.organizationName())
             .organizationAddress(actLisDto.organizationAddress())
-            .organizationLegalAddress(actLisDto.organizationAddress())
+            .organizationLegalAddress(actLisDto.organizationLegalAddress())
             .purpose(actLisDto.purpose())
             .sampleTakenDate(actLisDto.sampleTakenDateTime())
             .deliveryDateToLaboratory(actLisDto.deliveryDateTime().toLocalDate())

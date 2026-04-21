@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
+import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
+import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
 @Getter
 @Setter
@@ -22,21 +27,22 @@ public class Act154Response extends ActResponse {
     private Long id;
     private String title;
     private Long serialNumber;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Institution institution;
     private String activityTypeCode;
 
-    private String samplerFullName;
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
-    private Integer samplerPositionId;
-    private String samplerPositionUz;
-    private String samplerPositionRu;
-    private String participantFullName;
-    private Integer participantPositionId;
-    private String participantPositionUz;
-    private String participantPositionRu;
+
+    private Purpose purpose;
+    private EmployeeInfo sampler;
+    private EmployeeInfo participant;
+
+    private ConditionInfo specialCondition;
+    private ConditionInfo deliveryCondition;
+    private ConditionInfo storageCondition;
+
+    private PackageTypeInfo packageTypeInfo;
+
     private String additionalInfo;
     private Set<Act154DetailResponse> act154Details;
 }

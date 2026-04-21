@@ -12,6 +12,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
+import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
+import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
 @Getter
 @Setter
@@ -22,23 +27,24 @@ import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153Response extends ActResponse {
     private Long id;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+
+    private Institution institution;
     private String activityTypeCode;
 
     private String samplingDocuments;
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
 
-    private String samplerFullName;
-    private Integer samplerPositionId;
-    private String samplerPositionUz;
-    private String samplerPositionRu;
-    private String participantFullName;
-    private Integer participantPositionId;
-    private String participantPositionUz;
-    private String participantPositionRu;
+    private Purpose purpose;
+    private EmployeeInfo sampler;
+    private EmployeeInfo participant;
+
+    private ConditionInfo specialCondition;
+    private ConditionInfo deliveryCondition;
+    private ConditionInfo storageCondition;
+
+    private PackageTypeInfo packageTypeInfo;
+
     private String additionalInfo;
     @Builder.Default
     private Set<Act153DetailResponse> act153Details = new HashSet<>();
