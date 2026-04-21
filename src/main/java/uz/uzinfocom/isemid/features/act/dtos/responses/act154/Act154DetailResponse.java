@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Date;
 import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
+import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 
 @Data
 @AllArgsConstructor
@@ -17,31 +19,32 @@ import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act154DetailResponse {
     private Long id;
-    private Integer researchTypeId;
-    private Integer categoryId;
-    private Integer itemTypeId;
-
-    private Integer itemTypeNameUz;
-    private Integer itemTypeNameRu;
+//    private Integer researchTypeId;
+//    private Integer categoryId;
+//    private Integer itemTypeId;
+//    private Integer itemTypeNameUz;
+//    private Integer itemTypeNameRu;
+    private ResearchItemTypeInfo researchItemTypeInfo;
     private String sampleName;
-    private Integer sampleTypeId;
-    private String sampleTypeUz;
-    private String sampleTypeRu;
-    private Integer samplingPurposeId;
-    private String purposeOfSamplingUz;
-    private String purposeOfSamplingRu;
+//    private Integer sampleTypeId;
+//    private String sampleTypeUz;
+//    private String sampleTypeRu;
+private SampleTypeInfo sampleTypeInfo;
+//    private Integer samplingPurposeId;
+//    private String purposeOfSamplingUz;
+//    private String purposeOfSamplingRu;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDateTime;
     //Catalog
     private String shiftCode;
     private Long lisOrganizationId;
     private String laboratoryAddress;
-    private Integer deliveryConditionId;
-    private String deliveryConditionUz;
-    private String deliveryConditionRu;
-    private Integer storageConditionId;
-    private String storageConditionUz;
-    private String storageConditionRu;
+//    private Integer deliveryConditionId;
+//    private String deliveryConditionUz;
+//    private String deliveryConditionRu;
+//    private Integer storageConditionId;
+//    private String storageConditionUz;
+//    private String storageConditionRu;
     private String manufacturingCompany;
     private Date manufactureDate;
     private Long groupSize;
@@ -50,9 +53,9 @@ public class Act154DetailResponse {
     private SampleQtUnit sampleWeightUnit;
     private Double sampleVolume;
     private Long docNumberOfTakenObject;
-    private Integer packageTypeId;
-    private String packageTypeUz;
-    private String packageTypeRu;
+//    private Integer packageTypeId;
+//    private String packageTypeUz;
+//    private String packageTypeRu;
     private String documentConfirmSampling;
     private String purposeOfChecking;
     private String note;

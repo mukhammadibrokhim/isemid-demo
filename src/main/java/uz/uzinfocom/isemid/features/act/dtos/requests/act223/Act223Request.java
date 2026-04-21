@@ -7,6 +7,10 @@ import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
+import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
 @Getter
 @Setter
@@ -17,20 +21,21 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act223Request extends ActRequest {
     private Long id;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Institution institution;
     private String activityTypeCode;
 
-    private String fullNameofSampler;
-    private Integer positionId;
-    private String positionOfSampler;
-    private String fullNameOfParticipant;
-    private Integer participantPositionId;
-    private String positionOfParticipant;
-    private LocalDateTime sampleTakenDate;
-    private String reasonOfInspectoring;
-    private String reasonInspectoringLoinc;
+    private Purpose purpose;
+    private EmployeeInfo sampler;
+    private EmployeeInfo participant;
+
+    private ConditionInfo specialCondition;
+    private ConditionInfo deliveryCondition;
+    private ConditionInfo storageCondition;
+
+    private LocalDateTime sampleTakenDateTime;
+    private LocalDateTime deliveredDateTime;
+//    private String reasonOfInspectoring;
+//    private String reasonInspectoringLoinc;
     private String additionalInfo;
     private Set<Act223DetailRequest> act223Details;
 }
