@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.report.dtos.MonitoringResponse;
+import uz.uzinfocom.isemid.features.report.dtos.response.MonitoringDynamicsResponse;
 import uz.uzinfocom.isemid.features.report.service.MonitoringService;
 import uz.uzinfocom.isemid.features.report.service.RegionalDiseaseDashboardService;
 
@@ -35,7 +36,7 @@ public class MonitoringController {
     }
 
     @GetMapping("/dynamics")
-    public ApiResponse<MonitoringResponse> getDynamics(
+    public ApiResponse<MonitoringDynamicsResponse> getDynamics(
         @RequestParam @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate fromDate,
         @RequestParam @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate toDate,
         @RequestParam(required = false) String regionCode,

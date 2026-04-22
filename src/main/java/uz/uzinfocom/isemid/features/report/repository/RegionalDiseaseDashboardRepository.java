@@ -31,15 +31,73 @@ public class RegionalDiseaseDashboardRepository {
     var format = getFormat(granularity);
     var queryTemplate = """
         WITH periods AS (
-                  SELECT TO_CHAR(DATE_TRUNC('{{granularity}}', gs), '{{format}}') AS period
-                                      FROM generate_series(
-                                          DATE_TRUNC('{{granularity}}', :dat1::TIMESTAMP),
-                                          {{series_end}},
-                                          INTERVAL '1 {{granularity}}'
-                                      ) AS gs
-            ),
-            
-            
+            SELECT TO_CHAR(DATE_TRUNC('{{granularity}}', gs), '{{format}}') AS period
+            FROM generate_series(
+                DATE_TRUNC('{{granularity}}', :dat1::TIMESTAMP),
+                {{series_end}},
+                INTERVAL '1 {{granularity}}'
+            ) AS gs
+        ),
+        raw_data AS (
+            SELECT
+                TO_CHAR(DATE_TRUNC('{{granularity}}', f.created_at), '{{format}}') AS period,
+                f.status,
+                p.gender_code,
+                o.state_code,
+                CASE
+                    WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 3  THEN 'age_0_3'
+                    WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 6  THEN 'age_3_6'
+                    WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 10 THEN 'age_6_10'
+                    WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 17 THEN 'age_10_17'
+                    WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 25 THEN 'age_18_25'
+                    WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 45 THEN 'age_25_45'
+                    WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 65 THEN 'age_45_65'
+                    ELSE 'age_65_plus'
+                END AS age_group
+            FROM form058 f
+            LEFT JOIN organization o ON f.created_org_uuid = o.uuid
+            LEFT JOIN patient p ON f.patient_id = p.id
+            WHERE f.created_at >= :dat1 AND f.created_at < :dat2
+            AND (:regionCode::VARCHAR IS NULL OR o.state_code = :regionCode::VARCHAR)
+            AND (:mkb10Code::VARCHAR  IS NULL OR f.final_mkb10code = :mkb10Code::VARCHAR)
+        ),
+        aggregated AS (
+            SELECT
+                period,
+                state_code,
+                COUNT(*) FILTER (WHERE status = 'CONFIRMED')    AS confirmed,
+                COUNT(*) FILTER (WHERE status != 'CONFIRMED')   AS unconfirmed,
+                COUNT(*) FILTER (WHERE UPPER(gender_code) = 'MALE')    AS male,
+                COUNT(*) FILTER (WHERE UPPER(gender_code) = 'FEMALE')  AS female,
+                COUNT(*) FILTER (WHERE age_group = 'age_0_3')   AS age_0_3,
+                COUNT(*) FILTER (WHERE age_group = 'age_3_6')   AS age_3_6,
+                COUNT(*) FILTER (WHERE age_group = 'age_6_10')  AS age_6_10,
+                COUNT(*) FILTER (WHERE age_group = 'age_10_17') AS age_10_17,
+                COUNT(*) FILTER (WHERE age_group = 'age_18_25') AS age_18_25,
+                COUNT(*) FILTER (WHERE age_group = 'age_25_45') AS age_25_45,
+                COUNT(*) FILTER (WHERE age_group = 'age_45_65') AS age_45_65,
+                COUNT(*) FILTER (WHERE age_group = 'age_65_plus') AS age_65_plus
+            FROM raw_data
+            GROUP BY period, state_code
+        )
+        SELECT
+            p.period,
+            COALESCE(a.state_code, :regionCode::VARCHAR) AS location_code,
+            COALESCE(a.confirmed, 0)              AS confirmed,
+            COALESCE(a.unconfirmed, 0)            AS unconfirmed,
+            COALESCE(a.male, 0)                   AS male,
+            COALESCE(a.female, 0)                 AS female,
+            COALESCE(a.age_0_3, 0)                AS age_0_3,
+            COALESCE(a.age_3_6, 0)                AS age_3_6,
+            COALESCE(a.age_6_10, 0)               AS age_6_10,
+            COALESCE(a.age_10_17, 0)              AS age_10_17,
+            COALESCE(a.age_18_25, 0)              AS age_18_25,
+            COALESCE(a.age_25_45, 0)              AS age_25_45,
+            COALESCE(a.age_45_65, 0)              AS age_45_65,
+            COALESCE(a.age_65_plus, 0)            AS age_65_plus
+        FROM periods p
+        LEFT JOIN aggregated a ON p.period = a.period
+        ORDER BY p.period
         """;
     var seriesEnd = getSeriesEnd(granularity, filterRequest);
 
@@ -48,12 +106,27 @@ public class RegionalDiseaseDashboardRepository {
             .replace("{{series_end}}", seriesEnd)
             .replace("{{granularity}}", granularity)
             .replace("{{format}}", format);
+
+    System.out.println(query);
     try {
       return template.query(
           query,
           params,
-          (rs, raw) ->
-              new CaseCountDynamicsData(null,null,0,0,0,0));
+          (rs, raw) -> new CaseCountDynamicsData(
+              rs.getString("period"),
+              rs.getString("location_code"),
+              rs.getInt("confirmed"),
+              rs.getInt("unconfirmed"),
+              rs.getInt("male"),
+              rs.getInt("female"),
+              rs.getInt("age_0_3"),
+              rs.getInt("age_3_6"),
+              rs.getInt("age_6_10"),
+              rs.getInt("age_10_17"),
+              rs.getInt("age_18_25"),
+              rs.getInt("age_25_45"),
+              rs.getInt("age_45_65"),
+              rs.getInt("age_65_plus")));
     } catch (DataAccessException e) {
       throw new RuntimeException("invalid db command", e);
     }
