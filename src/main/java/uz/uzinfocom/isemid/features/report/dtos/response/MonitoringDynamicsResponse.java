@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter @Setter
 public class MonitoringDynamicsResponse {
     private LocalDate toDate;
-    private List<Item> data = new ArrayList<>();
+    private List<Item> report = new ArrayList<>();
 
     @Getter @Setter
     public static class Item {
