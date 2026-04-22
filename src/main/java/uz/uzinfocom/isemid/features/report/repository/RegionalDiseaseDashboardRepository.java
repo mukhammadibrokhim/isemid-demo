@@ -29,18 +29,30 @@ public class RegionalDiseaseDashboardRepository {
     params.addValue("mkb10Code", filterRequest.mkb10Code());
     var granularity = getGranularity(filterRequest.fromDate(), filterRequest.toDate());
     var format = getFormat(granularity);
+
+    boolean isWeek = granularity.equals("week");
+    var seriesStart = isWeek
+        ? ":dat1::TIMESTAMP"
+        : "DATE_TRUNC('{{granularity}}', :dat1::TIMESTAMP)";
+    var periodLabelInSeries = isWeek
+        ? "TO_CHAR(gs, '{{format}}')"
+        : "TO_CHAR(DATE_TRUNC('{{granularity}}', gs), '{{format}}')";
+    var rawPeriodLabel = isWeek
+        ? "TO_CHAR(:dat1::DATE + (((f.created_at::DATE - :dat1::DATE) / 7) * 7), '{{format}}')"
+        : "TO_CHAR(DATE_TRUNC('{{granularity}}', f.created_at), '{{format}}')";
+
     var queryTemplate = """
         WITH periods AS (
-            SELECT TO_CHAR(DATE_TRUNC('{{granularity}}', gs), '{{format}}') AS period
+            SELECT {{period_label_in_series}} AS period
             FROM generate_series(
-                DATE_TRUNC('{{granularity}}', :dat1::TIMESTAMP),
+                {{series_start}},
                 {{series_end}},
                 INTERVAL '1 {{granularity}}'
             ) AS gs
         ),
         raw_data AS (
             SELECT
-                TO_CHAR(DATE_TRUNC('{{granularity}}', f.created_at), '{{format}}') AS period,
+                {{raw_period_label}} AS period,
                 f.status,
                 p.gender_code,
                 o.state_code,
@@ -103,11 +115,13 @@ public class RegionalDiseaseDashboardRepository {
 
     var query =
         queryTemplate
+            .replace("{{series_start}}", seriesStart)
             .replace("{{series_end}}", seriesEnd)
+            .replace("{{period_label_in_series}}", periodLabelInSeries)
+            .replace("{{raw_period_label}}", rawPeriodLabel)
             .replace("{{granularity}}", granularity)
             .replace("{{format}}", format);
 
-    System.out.println(query);
     try {
       return template.query(
           query,
@@ -154,15 +168,15 @@ public class RegionalDiseaseDashboardRepository {
 
   private static Range getDateTimeRange(LocalDate from, LocalDate to) {
     if (to.isAfter(from)) {
-      var startDate = LocalDateTime.of(from, LocalTime.of(0, 0, 0));
-      var endDate = LocalDateTime.of(to.plusDays(1), LocalTime.of(0, 0, 0));
+      var startDate = from.atStartOfDay();
+      var endDate = to.plusDays(1).atTime(LocalTime.MIN);
       return new Range(startDate, endDate);
     } else if (to.isEqual(from) && from.isBefore(LocalDate.now())) {
-      var startDate = LocalDateTime.of(from, LocalTime.of(0, 0, 0));
-      var endDate = startDate.plusDays(1);
+      var startDate = from.atStartOfDay();
+      var endDate = to.plusDays(1).atTime(LocalTime.MIN);
       return new Range(startDate, endDate);
     } else if (to.isEqual(from) && from.isEqual(LocalDate.now())) {
-      var startDate = LocalDateTime.of(from, LocalTime.of(0, 0, 0));
+      var startDate = from.atStartOfDay();
       var endDate = LocalDateTime.of(to, LocalTime.now());
       return new Range(startDate, endDate);
     } else {

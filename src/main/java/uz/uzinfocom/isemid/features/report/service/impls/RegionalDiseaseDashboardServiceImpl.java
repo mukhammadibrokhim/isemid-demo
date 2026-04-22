@@ -28,7 +28,7 @@ public class RegionalDiseaseDashboardServiceImpl implements RegionalDiseaseDashb
 
     MonitoringDynamicsResponse response = new MonitoringDynamicsResponse();
     response.setToDate(toDate);
-    response.setData(rows.stream().map(r -> {
+    response.setReport(rows.stream().map(r -> {
       MonitoringDynamicsResponse.AgeGroupCount ageGroups = new MonitoringDynamicsResponse.AgeGroupCount();
       ageGroups.setAge_0_3(r.age_0_3());
       ageGroups.setAge_3_6(r.age_3_6());
