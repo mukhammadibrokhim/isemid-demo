@@ -45,7 +45,6 @@ public class ActToLisDtoConverter {
 
     private ActLisDto fromAct153(Act153 act) {
         Set<Act153Detail> details = act.getAct153Details();
-        Act153Detail first = details.stream().findFirst().orElse(null);
 
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
         String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
@@ -105,7 +104,6 @@ public class ActToLisDtoConverter {
 
     private ActLisDto fromAct154(Act154 act) {
         Set<Act154Detail> details = act.getAct154Details();
-        Act154Detail first = details.stream().findFirst().orElse(null);
 
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(act.getType());
         String url = LIS_RESEARCH_TYPE_API.formatted(lisResearchCode);
