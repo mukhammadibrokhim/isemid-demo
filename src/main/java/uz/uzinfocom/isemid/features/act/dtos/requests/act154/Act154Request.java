@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.act.dtos.requests.act154;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,9 +26,10 @@ import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act154Request extends ActRequest {
     private String title;
-    private Long serialNumber;
+    private Long actNumber;
     private Institution institution;
 
+    // field persistence issue
     private String activityTypeCode;
 
     private LocalDateTime sampleTakenDateTime;
@@ -38,8 +40,13 @@ public class Act154Request extends ActRequest {
     private EmployeeInfo participant;
 
     private ConditionInfo specialCondition;
-    private ConditionInfo deliveryCondition;
-    private ConditionInfo storageCondition;
+
+    private ConditionInfo deliveryAndStorageCondition;
+    private String manufacturingCompany;
+    private Date manufactureDate;
+
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
 
     private PackageTypeInfo packageTypeInfo;
 
