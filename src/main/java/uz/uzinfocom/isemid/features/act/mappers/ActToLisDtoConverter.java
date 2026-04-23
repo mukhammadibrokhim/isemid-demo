@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.features.act.mappers;
 
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_RESEARCH_TYPE_API;
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -59,22 +58,22 @@ public class ActToLisDtoConverter {
             act.getInstitution().getInstitutionName(),
             act.getInstitution().getInstitutionAddress(),
             act.getInstitution().getInstitutionLegalAddress(),
-            new LisDataDictionary(act.getPurpose().getPurposeId(),act.getPurpose().getSamplingPurposeUz(),act.getPurpose().getSamplingPurposeRu()),
+            new LisDataDictionary(act.getPurpose().getPurposeId(),act.getPurpose().getSamplingPurposeUz()),
             act.getSampleTakenDateTime(),
             act.getDeliveredDateTime(),
-            new LisDataDictionary(act.getSpecialCondition().getConditionId(), act.getSpecialCondition().getDescription().getUz(),act.getSpecialCondition().getDescription().getUz()),
+            new LisDataDictionary(act.getSpecialCondition().getConditionId(), act.getSpecialCondition().getDescription().getUz()),
             act.getAdditionalInfo(),
             act.getParticipant().getFullName(),
             act.getParticipant().getPositionId(),
-            new LisDataDictionary(act.getPackageTypeInfo().getPackageTypeId(),act.getPackageTypeInfo().getPackageTypeUz(),act.getPackageTypeInfo().getPackageTypeRu()),
+            new LisDataDictionary(act.getPackageTypeInfo().getPackageTypeId(),act.getPackageTypeInfo().getPackageTypeUz()),
             act.getSamplingDocuments(),
-            null,
-            new LisDataDictionary(act.getSpecialCondition().getConditionId(),act.getSpecialCondition().getDescription().getUz(),act.getSpecialCondition().getDescription().getRu()),
+            act.getGoal(),
+            new LisDataDictionary(act.getSpecialCondition().getConditionId(),act.getSpecialCondition().getDescription().getUz()),
             act.getSampler().getPositionId(),
             null,
             null,
             null,
-            first != null ? new LisDataDictionary(first.getConservationTypeInfo().getConservationMethodId(), first.getConservationTypeInfo().getConservationMethodsUz(),first.getConservationTypeInfo().getConservationMethodsRu()) : null,
+            new LisDataDictionary(act.getConservationTypeInfo().getConservationMethodId(),act.getConservationTypeInfo().getConservationMethodsUz()),
             details.stream().map(this::toSelectionItemFromAct153).toList()
         );
     }
@@ -94,8 +93,7 @@ public class ActToLisDtoConverter {
             d.getWaterTemperature() != null ? d.getWaterTemperature().toString() : null,
             null,
             d.getSampleTypeInfo().getSampleTypeId() != null || d.getSampleTypeInfo().getSampleTypeUz() != null || d.getSampleTypeInfo().getSampleTypeRu() != null
-                ? new LisDataDictionary(d.getSampleTypeInfo().getSampleTypeId(), d.getSampleTypeInfo().getSampleTypeUz(),
-                d.getSampleTypeInfo().getSampleTypeRu()) : null,
+                ? new LisDataDictionary(d.getSampleTypeInfo().getSampleTypeId(), d.getSampleTypeInfo().getSampleTypeUz()) : null,
             null,
             null
         );
@@ -120,23 +118,21 @@ public class ActToLisDtoConverter {
             act.getInstitution().getInstitutionName(),
             act.getInstitution().getInstitutionAddress(),
             act.getInstitution().getInstitutionLegalAddress(),
-            new LisDataDictionary(act.getPurpose().getPurposeId(),act.getPurpose().getSamplingPurposeUz(),act.getPurpose().getSamplingPurposeRu()),
+            new LisDataDictionary(act.getPurpose().getPurposeId(),act.getPurpose().getSamplingPurposeUz()),
             act.getSampleTakenDateTime(),
             act.getDeliveredDateTime(),
-            new LisDataDictionary(act.getSpecialCondition().getConditionId(), act.getSpecialCondition().getDescription().getUz(),act.getSpecialCondition().getDescription().getUz()),
+            new LisDataDictionary(act.getSpecialCondition().getConditionId(), act.getSpecialCondition().getDescription().getUz()),
             act.getAdditionalInfo(),
             act.getParticipant().getFullName(),
             act.getParticipant().getPositionId(),
-            new LisDataDictionary(act.getPackageTypeInfo().getPackageTypeId(),act.getPackageTypeInfo().getPackageTypeUz(),act.getPackageTypeInfo().getPackageTypeRu()),
-            null,
-            null,
-            new LisDataDictionary(act.getSpecialCondition().getConditionId(),act.getSpecialCondition().getDescription().getUz(),act.getSpecialCondition().getDescription().getRu()),
+            new LisDataDictionary(act.getPackageTypeInfo().getPackageTypeId(),act.getPackageTypeInfo().getPackageTypeUz()),
+            act.getDocumentConfirmSampling(),
+            act.getGoal(),
+            new LisDataDictionary(act.getSpecialCondition().getConditionId(),act.getSpecialCondition().getDescription().getUz()),
             act.getSampler().getPositionId(),
-            first != null ? first.getManufacturingCompany() : null,
-            first != null && first.getManufactureDate() != null
-                ? first.getManufactureDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null,
-            first != null && first.getDocNumberOfTakenObject() != null
-                ? first.getDocNumberOfTakenObject().toString() : null,
+            act.getManufacturingCompany(),
+             act.getManufactureDate(),
+            act.getDocNumberOfTakenObject().toString(),
             null,
             details.stream().map(this::toSelectionItemFromAct154).toList()
         );
@@ -148,7 +144,6 @@ public class ActToLisDtoConverter {
             null,
             d.getGroupSize() != null ? d.getGroupSize().toString() : null,
             d.getSampleWeight() != null ? d.getSampleWeight().toString() : null,
-            d.getLaboratoryAddress(),
             null,
             null,
             null,
@@ -156,9 +151,8 @@ public class ActToLisDtoConverter {
             null,
             null,
             null,
-            d.getSampleTypeInfo().getSampleTypeId() != null || d.getSampleTypeInfo().getSampleTypeUz() != null || d.getSampleTypeInfo().getSampleTypeRu() != null
-                ? new LisDataDictionary(d.getSampleTypeInfo().getSampleTypeId(), d.getSampleTypeInfo().getSampleTypeUz(),
-                d.getSampleTypeInfo().getSampleTypeRu()) : null,
+            null,
+            null,
             null,
             null
 
@@ -183,17 +177,17 @@ public class ActToLisDtoConverter {
             act.getInstitution().getInstitutionName(),
             act.getInstitution().getInstitutionAddress(),
             act.getInstitution().getInstitutionLegalAddress(),
-            new LisDataDictionary(act.getPurpose().getPurposeId(),act.getPurpose().getSamplingPurposeUz(),act.getPurpose().getSamplingPurposeRu()),
+            new LisDataDictionary(act.getPurpose().getPurposeId(),act.getPurpose().getSamplingPurposeUz()),
             act.getSampleTakenDateTime(),
             act.getDeliveredDateTime(),
-            new LisDataDictionary(act.getSpecialCondition().getConditionId(), act.getSpecialCondition().getDescription().getUz(),act.getSpecialCondition().getDescription().getUz()),
+            new LisDataDictionary(act.getSpecialCondition().getConditionId(), act.getSpecialCondition().getDescription().getUz()),
             act.getAdditionalInfo(),
             act.getParticipant().getFullName(),
             act.getParticipant().getPositionId(),
-            new LisDataDictionary(act.getPackageTypeInfo().getPackageTypeId(),act.getPackageTypeInfo().getPackageTypeUz(),act.getPackageTypeInfo().getPackageTypeRu()),
-            null,
-            null,
-            new LisDataDictionary(act.getSpecialCondition().getConditionId(),act.getSpecialCondition().getDescription().getUz(),act.getSpecialCondition().getDescription().getRu()),
+            new LisDataDictionary(act.getPackageTypeInfo().getPackageTypeId(),act.getPackageTypeInfo().getPackageTypeUz()),
+            act.getSupportingDocumentsForSampling(),
+            act.getGoal(),
+            new LisDataDictionary(act.getSpecialCondition().getConditionId(),act.getSpecialCondition().getDescription().getUz()),
             act.getSampler().getPositionId(),
             null,
             null,
@@ -217,9 +211,7 @@ public class ActToLisDtoConverter {
             null,
             null,
             null,
-            d.getSampleTypeInfo().getSampleTypeId() != null || d.getSampleTypeInfo().getSampleTypeUz() != null || d.getSampleTypeInfo().getSampleTypeRu() != null
-                ? new LisDataDictionary(d.getSampleTypeInfo().getSampleTypeId(), d.getSampleTypeInfo().getSampleTypeUz(),
-                d.getSampleTypeInfo().getSampleTypeRu()) : null,
+            null,
             d.getAmount() != null ? d.getAmount().toString() : null,
             null
         );
