@@ -13,6 +13,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.ConservationTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.Institution;
 import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
@@ -29,6 +30,7 @@ public class Act153Response extends ActResponse {
     private Long id;
 
     private Institution institution;
+    private Long actNumber;
     private String activityTypeCode;
 
     private String samplingDocuments;
@@ -40,10 +42,14 @@ public class Act153Response extends ActResponse {
     private EmployeeInfo participant;
 
     private ConditionInfo specialCondition;
-    private ConditionInfo deliveryCondition;
-    private ConditionInfo storageCondition;
+    private ConditionInfo storageAndDeliveryCondition;
+
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
 
     private PackageTypeInfo packageTypeInfo;
+
+    private ConservationTypeInfo conservationTypeInfo;
 
     private String additionalInfo;
     @Builder.Default

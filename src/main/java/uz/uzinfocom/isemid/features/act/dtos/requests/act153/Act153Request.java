@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.ConservationTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.Institution;
 import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
@@ -24,7 +25,7 @@ import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 @Schema(description = "Request object for ACT153 type Act")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153Request extends ActRequest {
-    private Long id;
+    private Long actNumber;
     private Institution institution;
     private String activityTypeCode;
     private String samplingDocuments;
@@ -36,10 +37,13 @@ public class Act153Request extends ActRequest {
     private EmployeeInfo participant;
 
     private ConditionInfo specialCondition;
-    private ConditionInfo deliveryCondition;
-    private ConditionInfo storageCondition;
+    private ConditionInfo deliveryAndStorageCondition;
 
     private PackageTypeInfo packageTypeInfo;
+    private ConservationTypeInfo conservationTypeInfo;
+
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
 
     private String additionalInfo;
     private Set<Act153DetailRequest> act153Details;
