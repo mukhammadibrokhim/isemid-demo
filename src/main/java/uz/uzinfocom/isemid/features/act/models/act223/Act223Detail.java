@@ -16,7 +16,6 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
 import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
-import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 
 @Setter
 @Getter
@@ -61,9 +60,8 @@ public class Act223Detail extends BaseEntity {
 //    @Column(columnDefinition = "TEXT")
 //    private String sampleTypeUz;
 //    private String sampleTypeRu;
-    @Embedded
-    private SampleTypeInfo sampleTypeInfo;
+//    @Embedded
+//    private SampleTypeInfo sampleTypeInfo;
 
-    private String supportingDocumentsForSampling;
 
 }

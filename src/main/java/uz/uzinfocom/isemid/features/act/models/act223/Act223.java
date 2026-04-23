@@ -33,6 +33,9 @@ public class Act223 extends Act {
 
     @Embedded
     Institution institution;
+    private Long actNumber;
+    private String supportingDocumentsForSampling;
+    private String goal;
 
     private String activityTypeCode;
 
@@ -61,8 +64,6 @@ public class Act223 extends Act {
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
 
-//    private String reasonOfInspectoring;
-//    private String reasonInspectoringLoinc;
 
 
 
@@ -76,19 +77,14 @@ public class Act223 extends Act {
 
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name = "conditionId", column = @Column(name = "delivery_condition_id")),
-        @AttributeOverride(name = "description.uz", column = @Column(name = "delivery_conditions_uz", columnDefinition = "TEXT")),
-        @AttributeOverride(name = "description.ru", column = @Column(name = "delivery_conditions_ru", columnDefinition = "TEXT"))
+        @AttributeOverride(name = "conditionId", column = @Column(name = "storage_delivery_condition_id")),
+        @AttributeOverride(name = "description.uz", column = @Column(name = "storage_delivery_conditions_uz", columnDefinition = "TEXT")),
+        @AttributeOverride(name = "description.ru", column = @Column(name = "storage_delivery_conditions_ru", columnDefinition = "TEXT"))
     })
-    private ConditionInfo deliveryCondition;
+    private ConditionInfo storageAndDeliveryCondition;
 
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "conditionId", column = @Column(name = "storage_condition_id")),
-        @AttributeOverride(name = "description.uz", column = @Column(name = "storage_conditions_uz", columnDefinition = "TEXT")),
-        @AttributeOverride(name = "description.ru", column = @Column(name = "storage_conditions_ru", columnDefinition = "TEXT"))
-    })
-    private ConditionInfo storageCondition;
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
 
     @Embedded
     private PackageTypeInfo packageTypeInfo;
