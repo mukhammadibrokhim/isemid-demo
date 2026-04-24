@@ -24,7 +24,6 @@ public class Act154DetailRequest {
     private Long serialNumberOfGroup;
     private Double sampleWeight;
     private Double sampleVolume;
-    private Long docNumberOfTakenObject;
     private String documentConfirmSampling;
     private String note;
 }
