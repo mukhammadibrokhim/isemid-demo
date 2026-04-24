@@ -31,7 +31,7 @@ public class Act154Request extends ActRequest {
 
     private String activityTypeCode;
     private String documentConfirmSampling;
-    private Long docNumberOfTakenObject;
+    private String docNumberOfTakenObject;
     private String goal;
 
     private LocalDateTime sampleTakenDateTime;
