@@ -45,6 +45,7 @@ public class Act154Response extends ActResponse {
     private Date manufactureDate;
     private Long docNumberOfTakenObject;
 
+    private ConditionInfo specialCondition;
     private ConditionInfo storageAndDeliveryCondition;
 
     private PackageTypeInfo packageTypeInfo;

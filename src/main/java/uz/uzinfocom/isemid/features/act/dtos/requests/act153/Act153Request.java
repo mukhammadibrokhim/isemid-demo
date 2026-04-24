@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.act.dtos.requests.act153;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -28,6 +29,8 @@ public class Act153Request extends ActRequest {
     private Long actNumber;
     private Institution institution;
     private String activityTypeCode;
+
+    @JsonProperty("documentConfirmSampling")
     private String samplingDocuments;
     private String goal;
     private LocalDateTime sampleTakenDateTime;
