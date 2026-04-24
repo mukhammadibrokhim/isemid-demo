@@ -28,6 +28,9 @@ public class Act223Request extends ActRequest {
     private Institution institution;
     private String activityTypeCode;
 
+    private String supportingDocumentsForSampling;
+    private String goal;
+
     private Purpose purpose;
     private EmployeeInfo sampler;
     private EmployeeInfo participant;

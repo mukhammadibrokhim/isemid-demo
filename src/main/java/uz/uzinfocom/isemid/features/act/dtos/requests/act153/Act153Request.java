@@ -29,6 +29,7 @@ public class Act153Request extends ActRequest {
     private Institution institution;
     private String activityTypeCode;
     private String samplingDocuments;
+    private String goal;
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
 
@@ -37,7 +38,7 @@ public class Act153Request extends ActRequest {
     private EmployeeInfo participant;
 
     private ConditionInfo specialCondition;
-    private ConditionInfo deliveryAndStorageCondition;
+    private ConditionInfo storageAndDeliveryCondition;
 
     private PackageTypeInfo packageTypeInfo;
     private ConservationTypeInfo conservationTypeInfo;

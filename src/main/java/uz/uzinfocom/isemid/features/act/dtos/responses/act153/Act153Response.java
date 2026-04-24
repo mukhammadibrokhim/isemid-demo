@@ -34,6 +34,7 @@ public class Act153Response extends ActResponse {
     private String activityTypeCode;
 
     private String samplingDocuments;
+    private String goal;
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
 

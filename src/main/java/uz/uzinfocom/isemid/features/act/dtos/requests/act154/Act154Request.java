@@ -29,8 +29,9 @@ public class Act154Request extends ActRequest {
     private Long actNumber;
     private Institution institution;
 
-    // field persistence issue
     private String activityTypeCode;
+    private String documentConfirmSampling;
+    private String goal;
 
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
@@ -41,7 +42,7 @@ public class Act154Request extends ActRequest {
 
     private ConditionInfo specialCondition;
 
-    private ConditionInfo deliveryAndStorageCondition;
+    private ConditionInfo storageAndDeliveryCondition;
     private String manufacturingCompany;
     private Date manufactureDate;
 
