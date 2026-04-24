@@ -21,7 +21,6 @@ public class Act223DetailRequest {
     private Double amount;
     private Double depthOfObtainedArea;
     private LengthUnit depthUnit;
-    // remove below
     private SampleTypeInfo sampleTypeInfo;
     private String supportingDocumentsForSampling;
 }

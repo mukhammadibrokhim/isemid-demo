@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
-import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 
@@ -29,7 +28,6 @@ public class Act153DetailRequest {
     private Double distanceFromShore;
     private LengthUnit distanceFromShoreUnit;
     private Double sampleVolume;
-    private SampleQtUnit sampleQtUnit;
     private String sampleLocation;
     private Double weatherAtSampling;
     private Double waterTemperature;
