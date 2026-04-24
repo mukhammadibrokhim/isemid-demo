@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.ConservationTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.Institution;
 import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
@@ -35,10 +36,12 @@ public class Act153 extends Act {
 
     @Embedded
     Institution institution;
+    private Long actNumber;
     private String activityTypeCode;
 
     @Column(columnDefinition = "TEXT")
     private String samplingDocuments;
+    private String goal;
 
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
@@ -73,24 +76,23 @@ public class Act153 extends Act {
     })
     private ConditionInfo specialCondition;
 
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "conditionId", column = @Column(name = "delivery_condition_id")),
-        @AttributeOverride(name = "description.uz", column = @Column(name = "delivery_conditions_uz", columnDefinition = "TEXT")),
-        @AttributeOverride(name = "description.ru", column = @Column(name = "delivery_conditions_ru", columnDefinition = "TEXT"))
-    })
-    private ConditionInfo deliveryCondition;
 
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name = "conditionId", column = @Column(name = "storage_condition_id")),
-        @AttributeOverride(name = "description.uz", column = @Column(name = "storage_conditions_uz", columnDefinition = "TEXT")),
-        @AttributeOverride(name = "description.ru", column = @Column(name = "storage_conditions_ru", columnDefinition = "TEXT"))
+        @AttributeOverride(name = "conditionId", column = @Column(name = "storage_delivery_condition_id")),
+        @AttributeOverride(name = "description.uz", column = @Column(name = "storage_delivery_conditions_uz", columnDefinition = "TEXT")),
+        @AttributeOverride(name = "description.ru", column = @Column(name = "storage_delivery_conditions_ru", columnDefinition = "TEXT"))
     })
-    private ConditionInfo storageCondition;
+    private ConditionInfo storageAndDeliveryCondition;
+
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
 
     @Embedded
     private PackageTypeInfo packageTypeInfo;
+
+    @Embedded
+    private ConservationTypeInfo conservationTypeInfo;
 
     @Column(columnDefinition = "TEXT")
     private String additionalInfo;

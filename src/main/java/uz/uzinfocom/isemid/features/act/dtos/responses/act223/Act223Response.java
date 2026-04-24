@@ -26,19 +26,20 @@ import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 public class Act223Response extends ActResponse {
     private Long id;
     private Institution institution;
-
+    private Long actNumber;
+    private String supportingDocumentsForSampling;
+    private String goal;
     private String activityTypeCode;
 
+    private EmployeeInfo sampler;
+    private EmployeeInfo participant;
+    private Purpose purpose;
     private LocalDateTime sampleTakenDateTime;
     private LocalDateTime deliveredDateTime;
 
-    private Purpose purpose;
-    private EmployeeInfo sampler;
-    private EmployeeInfo participant;
-
-    private ConditionInfo specialCondition;
-    private ConditionInfo deliveryCondition;
-    private ConditionInfo storageCondition;
+    private ConditionInfo storageAndDeliveryCondition;
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
 
     private PackageTypeInfo packageTypeInfo;
 

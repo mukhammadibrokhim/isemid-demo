@@ -1,13 +1,24 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import lombok.*;
-import uz.uzinfocom.isemid.features.act.models.Act;
-
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.Institution;
@@ -22,13 +33,17 @@ import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 @Entity
 public class Act154 extends Act {
 
+   private String title;
+   private Long actNumber;
    @Embedded
    private Institution institution;
+   private String activityTypeCode;
 
-   private String title;
-   private Long serialNumber;
    private LocalDateTime sampleTakenDateTime;
    private LocalDateTime deliveredDateTime;
+
+   private String documentConfirmSampling;
+   private String goal;
 
    @Embedded
    private Purpose purpose;
@@ -51,6 +66,9 @@ public class Act154 extends Act {
    })
    private EmployeeInfo participant;
 
+   private String manufacturingCompany;
+   private LocalDate manufactureDate;
+   private Long docNumberOfTakenObject;
 
    @Embedded
    @AttributeOverrides({
@@ -60,21 +78,17 @@ public class Act154 extends Act {
    })
    private ConditionInfo specialCondition;
 
-   @Embedded
-   @AttributeOverrides({
-       @AttributeOverride(name = "conditionId", column = @Column(name = "delivery_condition_id")),
-       @AttributeOverride(name = "description.uz", column = @Column(name = "delivery_conditions_uz", columnDefinition = "TEXT")),
-       @AttributeOverride(name = "description.ru", column = @Column(name = "delivery_conditions_ru", columnDefinition = "TEXT"))
-   })
-   private ConditionInfo deliveryCondition;
 
    @Embedded
    @AttributeOverrides({
-       @AttributeOverride(name = "conditionId", column = @Column(name = "storage_condition_id")),
-       @AttributeOverride(name = "description.uz", column = @Column(name = "storage_conditions_uz", columnDefinition = "TEXT")),
-       @AttributeOverride(name = "description.ru", column = @Column(name = "storage_conditions_ru", columnDefinition = "TEXT"))
+       @AttributeOverride(name = "conditionId", column = @Column(name = "storage_delivery_condition_id")),
+       @AttributeOverride(name = "description.uz", column = @Column(name = "storage_delivery_conditions_uz", columnDefinition = "TEXT")),
+       @AttributeOverride(name = "description.ru", column = @Column(name = "storage_delivery_conditions_ru", columnDefinition = "TEXT"))
    })
-   private ConditionInfo storageCondition;
+   private ConditionInfo storageAndDeliveryCondition;
+
+   private Long lisOrganizationId;
+   private String laboratoryAddress;
 
    @Embedded
    private PackageTypeInfo packageTypeInfo;

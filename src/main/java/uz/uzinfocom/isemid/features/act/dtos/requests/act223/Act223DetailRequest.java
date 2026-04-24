@@ -16,28 +16,12 @@ import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act223DetailRequest {
     private Long id;
-//    private Integer researchTypeId;
-//    private Integer categoryId;
-//    private Integer itemTypeId;
-//    private Integer itemTypeNameUz;
-//    private Integer itemTypeNameRu;
     private ResearchItemTypeInfo researchItemTypeInfo;
     private String exactLocationPointSampling;
     private Double amount;
     private Double depthOfObtainedArea;
     private LengthUnit depthUnit;
-
-//    private Integer deliveryConditionId;
-//    private String deliveryConditionsUz;
-//    private String deliveryConditionsRu;
-//
-//    private Integer storageConditionId;
-//    private String storageConditionsUz;
-//    private String storageConditionsRu;
-
-//    private Integer sampleTypeId;
-//    private String sampleTypeUz;
-//    private String sampleTypeRu;
+    // remove below
     private SampleTypeInfo sampleTypeInfo;
     private String supportingDocumentsForSampling;
 }
