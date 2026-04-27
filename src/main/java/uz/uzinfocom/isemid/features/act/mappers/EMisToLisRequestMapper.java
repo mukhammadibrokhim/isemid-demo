@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.mappers;
 
+import java.time.ZoneId;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
@@ -27,8 +28,8 @@ public class EMisToLisRequestMapper {
             .organizationAddress(actLisDto.organizationAddress())
             .organizationLegalAddress(actLisDto.organizationLegalAddress())
             .purpose(actLisDto.purpose())
-            .sampleTakenDate(actLisDto.sampleTakenDateTime())
-            .deliveryDateToLaboratory(actLisDto.deliveryDateTime())
+            .sampleTakenDate(actLisDto.sampleTakenDateTime().atZone(ZoneId.of("Asia/Tashkent")))
+            .deliveryDateToLaboratory(actLisDto.deliveryDateTime().atZone(ZoneId.of("Asia/Tashkent")))
             .conditions(actLisDto.conditions())
             .additionalInformation(actLisDto.additionalInformation())
             .involvedPersonName(actLisDto.involvedPersonName())

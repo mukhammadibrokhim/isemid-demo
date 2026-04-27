@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.act.dtos;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.Builder;
 import lombok.With;
@@ -44,27 +45,27 @@ import lombok.With;
 @Builder
 @With
 public record LisActPushRequest(
-    Integer actTemplateId, // @NotNull(message = "act template id must not be null") // get from lis and map to local enum
+    Integer actTemplateId,// @NotNull(message = "act template id must not be null") // get from lis and map to local enum
     Priority priority, //   @NotNull(message = "priority must not be null") // from send pop up
     String tin, // from backend act.tin
     String organizationName, //from backend act.institutionName
     String organizationAddress, //from backend act.institutionAddress
     String organizationLegalAddress, //from backend act.institutionAddress
-    LisDataDictionary purpose,  // @NotNull(message = "purpose must not be null") // act.details.purposeId ; act.details.samplingPurpose
+    LisDataDictionary purpose,// @NotNull(message = "purpose must not be null") // act.details.purposeId ; act.details.samplingPurpose
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd'T'HH:mm:ss"
     )
-    LocalDateTime sampleTakenDate, // act.details.samplingDate
+    ZonedDateTime sampleTakenDate, // act.details.samplingDate
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd'T'HH:mm:ss"
     )
-    LocalDateTime deliveryDateToLaboratory,  // act.deliveredDate
-    LisDataDictionary conditions, // @NotNull(message = "conditions must not be null")  // act.details.deliveryConditions+act.details.storageConditions
+    ZonedDateTime deliveryDateToLaboratory,  // act.deliveredDate
+    LisDataDictionary conditions,// @NotNull(message = "conditions must not be null")  // act.details.deliveryConditions+act.details.storageConditions
     String additionalInformation,  // act.additionalInfo
-    String involvedPersonName, // act153.participantFullName || act154.participantFullName || act223.fullNameOfParticipant
-    Integer involvedProfessionId, // act153.participantPosition || act154.participantPositionId || act223.participantPositionId
+    String involvedPersonName,// act153.participantFullName || act154.participantFullName || act223.fullNameOfParticipant
+    Integer involvedProfessionId,// act153.participantPosition || act154.participantPositionId || act223.participantPositionId
     LisDataDictionary packageType, // act154.packageTypeId; act154.packageType
     String document, // act153.samplingDocuments
     String goal, //  act154.details.purposeOfSampling
@@ -74,10 +75,10 @@ public record LisActPushRequest(
     String manufacturer, // act154.detail.manufacturingCompany
     LocalDate manufactureDate, // act154.detail.manufactureDate
     String docNumber, // act.docNumberOfTakenObject
-    LisDataDictionary preservationMethod, // act153.details.conservationMethodId; act153.details.conservationMethods
+    LisDataDictionary preservationMethod,// act153.details.conservationMethodId; act153.details.conservationMethods
     String redirectUrl, // isemis berishi kk
     Boolean paid, // from send pop up
-    List<SelectionActItem> selectionActItems, // @NotEmpty(message = "selection act items must not be null")
+    List<SelectionActItem> selectionActItems,// @NotEmpty(message = "selection act items must not be null")
     String locationOwnership
     ) {
 
