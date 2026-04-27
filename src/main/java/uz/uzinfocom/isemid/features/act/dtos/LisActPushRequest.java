@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,8 +51,16 @@ public record LisActPushRequest(
     String organizationAddress, //from backend act.institutionAddress
     String organizationLegalAddress, //from backend act.institutionAddress
     LisDataDictionary purpose,  // @NotNull(message = "purpose must not be null") // act.details.purposeId ; act.details.samplingPurpose
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd'T'HH:mm:ss"
+    )
     LocalDateTime sampleTakenDate, // act.details.samplingDate
-    LocalDate deliveryDateToLaboratory,  // act.deliveredDate
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd'T'HH:mm:ss"
+    )
+    LocalDateTime deliveryDateToLaboratory,  // act.deliveredDate
     LisDataDictionary conditions, // @NotNull(message = "conditions must not be null")  // act.details.deliveryConditions+act.details.storageConditions
     String additionalInformation,  // act.additionalInfo
     String involvedPersonName, // act153.participantFullName || act154.participantFullName || act223.fullNameOfParticipant
