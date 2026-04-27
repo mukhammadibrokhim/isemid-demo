@@ -100,6 +100,10 @@ public class RestClientUtil {
 
             log.info("⬅️ Response {}: status={}, body={}", url, response.getStatusCode(), response.getBody());
 
+            if (responseType == Void.class) {
+                return null;
+            }
+
             if (response.hasBody()) {
                 return response.getBody();
             }

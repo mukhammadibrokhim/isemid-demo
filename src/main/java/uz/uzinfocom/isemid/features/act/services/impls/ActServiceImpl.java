@@ -99,7 +99,8 @@ public class ActServiceImpl implements ActService {
 
             String url = LIS_ACT_API.formatted(lisRequest.lisLabId(), act.getId());
 
-            String lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, "", body, headers, String.class, messageUtil);
+            Void lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, "", body, headers, Void.class, messageUtil);
+
 
             log.info("LIS response: {}", lisResponse);
 
