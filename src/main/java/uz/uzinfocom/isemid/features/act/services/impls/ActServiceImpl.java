@@ -117,7 +117,9 @@ public class ActServiceImpl implements ActService {
             act.setStatus(ActStatus.FAILED);
             actRepository.save(act);
 
-            throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            log.error("sendToLis failed for actId={}", act.getId(), e);
+            String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            throw new ApiException(INTERNAL_SERVER_ERROR, msg);
         }
     }
 

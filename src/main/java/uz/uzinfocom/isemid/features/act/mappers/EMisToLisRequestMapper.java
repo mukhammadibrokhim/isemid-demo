@@ -74,7 +74,7 @@ public class EMisToLisRequestMapper {
             dto.sampleType(),
             dto.sampleQtUnit(),
             dto.sampleQt(),
-            List.of(dto.location())
+            dto.location() != null ? List.of(dto.location()) : List.of()
         );
     }
 }
