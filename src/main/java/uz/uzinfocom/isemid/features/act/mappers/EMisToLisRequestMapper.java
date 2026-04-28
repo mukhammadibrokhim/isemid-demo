@@ -5,6 +5,7 @@ import static java.time.ZoneOffset.UTC;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto.SelectionActItemDto;
@@ -31,10 +32,12 @@ public class EMisToLisRequestMapper {
             .organizationAddress(actLisDto.organizationAddress())
             .organizationLegalAddress(actLisDto.organizationLegalAddress())
             .purpose(actLisDto.purpose())
-            .sampleTakenDate(actLisDto.sampleTakenDateTime().atZone(ZoneId.of("Asia/Tashkent")).withZoneSameInstant(UTC).format(
-                DateTimeFormatter.ISO_INSTANT))
-            .deliveryDateToLaboratory(actLisDto.deliveryDateTime().atZone(ZoneId.of("Asia/Tashkent")).withZoneSameInstant(UTC).format(
-                DateTimeFormatter.ISO_INSTANT))
+            .sampleTakenDate(actLisDto.sampleTakenDateTime()
+                .atZone(ZoneId.of("Asia/Tashkent"))
+                .withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_INSTANT))
+            .deliveryDateToLaboratory(actLisDto.deliveryDateTime()
+                .atZone(ZoneId.of("Asia/Tashkent"))
+                .withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_INSTANT))
             .conditions(actLisDto.conditions())
             .additionalInformation(actLisDto.additionalInformation())
             .involvedPersonName(actLisDto.involvedPersonName())
@@ -45,7 +48,11 @@ public class EMisToLisRequestMapper {
             .noteConditions(actLisDto.noteConditions())
             .collectorProfessionId(actLisDto.collectorProfessionId())
             .manufacturer(actLisDto.manufacturer())
-            .manufactureDate(actLisDto.manufactureDate().atStartOfDay().atZone(ZoneId.of("Asia/Tashkent")).withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_INSTANT))
+            .manufactureDate(Objects.isNull(actLisDto.manufactureDate())?
+                null:
+                actLisDto.manufactureDate().atStartOfDay()
+                    .atZone(ZoneId.of("Asia/Tashkent"))
+                    .withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_INSTANT))
             .docNumber(actLisDto.docNumber())
             .preservationMethod(actLisDto.preservationMethod())
             .paid(lisRequest.paid())
