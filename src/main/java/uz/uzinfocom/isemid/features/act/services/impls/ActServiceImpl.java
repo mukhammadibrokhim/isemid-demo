@@ -6,7 +6,6 @@ import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.ISEMID_
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_ACT_API;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -117,7 +116,9 @@ public class ActServiceImpl implements ActService {
             act.setStatus(ActStatus.FAILED);
             actRepository.save(act);
 
-            throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            log.error("sendToLis failed for actId={}", act.getId(), e);
+            String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            throw new ApiException(INTERNAL_SERVER_ERROR, msg);
         }
     }
 
