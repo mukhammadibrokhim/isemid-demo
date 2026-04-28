@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uz.uzinfocom.isemid.commons.models.AbsEntity;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
@@ -61,9 +64,6 @@ public abstract class Act extends AbsEntity {
 
     @Column(name = "lis_attempt")
     private Integer lisAttempt = 0;
-
-    @Column(columnDefinition = "TEXT")
-    private String lisResponse;
 
     @Column(name = "lis_sent_date")
     private LocalDateTime lisSentDate;

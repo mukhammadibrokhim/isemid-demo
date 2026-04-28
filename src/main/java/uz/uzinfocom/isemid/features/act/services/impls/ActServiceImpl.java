@@ -6,8 +6,10 @@ import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.ISEMID_
 import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.LIS_ACT_API;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,9 @@ import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.mappers.ActToLisDtoConverter;
 import uz.uzinfocom.isemid.features.act.mappers.EMisToLisRequestMapper;
 import uz.uzinfocom.isemid.features.act.models.Act;
+import uz.uzinfocom.isemid.features.act.models.act153.Act153;
+import uz.uzinfocom.isemid.features.act.models.act154.Act154;
+import uz.uzinfocom.isemid.features.act.models.act223.Act223;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.services.ActService;
 import uz.uzinfocom.isemid.features.act.specifications.ActSpecification;
@@ -117,14 +122,33 @@ public class ActServiceImpl implements ActService {
     }
 
 
+
+
     @Override
-    public void handleLisResponse(Long id, String body) {
+    public void handleLisResponse(Long id, Map<String,Object> body) {
         Act act = getById(id);
-
-        act.setLisResponse(body);
-        act.setStatus(ActStatus.COMPLETED);
-
-        actRepository.save(act);
+        Long lisActId = (Long)body.getOrDefault("id", null);
+        switch(act){
+            case Act153 act153->{
+                act153.setLisActId(lisActId);
+                act153.setLisResponse(body);
+                act.setStatus(ActStatus.COMPLETED);
+                actRepository.save(act153);
+            }
+            case Act154 act154->{
+                act154.setLisActId(lisActId);
+                act154.setLisResponse(body);
+                act154.setStatus(ActStatus.COMPLETED);
+                actRepository.save(act154);
+            }
+            case Act223 act223->{
+                act223.setLisActId(lisActId);
+                act223.setLisResponse(body);
+                act223.setStatus(ActStatus.COMPLETED);
+                actRepository.save(act223);
+            }
+            default -> throw new ApiException(INTERNAL_SERVER_ERROR, messageUtil.get("error.internal_server"));
+        }
     }
 }
 

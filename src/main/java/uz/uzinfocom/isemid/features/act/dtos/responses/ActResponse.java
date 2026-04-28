@@ -47,7 +47,6 @@ public abstract class ActResponse {
     private ActType type;
     private Long cardId;
     private List<UserMiniResponse> users;
-    private String lisResponse;
     private LocalDateTime lisSentDate;
     private Integer lisAttempt;
 }
