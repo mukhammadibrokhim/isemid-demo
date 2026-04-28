@@ -71,7 +71,7 @@ public class Act154 extends Act {
 
    private String manufacturingCompany;
    private LocalDate manufactureDate;
-   private Long docNumberOfTakenObject;
+   private String docNumberOfTakenObject;
 
    @Embedded
    @AttributeOverrides({

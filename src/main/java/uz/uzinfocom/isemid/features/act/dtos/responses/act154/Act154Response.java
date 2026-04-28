@@ -43,7 +43,7 @@ public class Act154Response extends ActResponse {
 
     private String manufacturingCompany;
     private Date manufactureDate;
-    private Long docNumberOfTakenObject;
+    private String docNumberOfTakenObject;
 
     private ConditionInfo specialCondition;
     private ConditionInfo storageAndDeliveryCondition;
