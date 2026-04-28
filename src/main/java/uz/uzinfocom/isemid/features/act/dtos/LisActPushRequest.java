@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.act.dtos;
 
-import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
 import lombok.With;
@@ -62,7 +61,7 @@ public record LisActPushRequest(
     String fullNameOfDoctor, // isemisda current userdan ///////////////////////////////
     Integer collectorProfessionId, // act.positionId
     String manufacturer, // act154.detail.manufacturingCompany
-    LocalDate manufactureDate, // act154.detail.manufactureDate
+    String manufactureDate, // act154.detail.manufactureDate
     String docNumber, // act.docNumberOfTakenObject
     LisDataDictionary preservationMethod,// act153.details.conservationMethodId; act153.details.conservationMethods
     String redirectUrl, // isemis berishi kk

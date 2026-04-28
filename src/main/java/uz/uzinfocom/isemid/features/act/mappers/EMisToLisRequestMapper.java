@@ -45,7 +45,7 @@ public class EMisToLisRequestMapper {
             .noteConditions(actLisDto.noteConditions())
             .collectorProfessionId(actLisDto.collectorProfessionId())
             .manufacturer(actLisDto.manufacturer())
-            .manufactureDate(actLisDto.manufactureDate())
+            .manufactureDate(actLisDto.manufactureDate().atStartOfDay().atZone(ZoneId.of("Asia/Tashkent")).withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_INSTANT))
             .docNumber(actLisDto.docNumber())
             .preservationMethod(actLisDto.preservationMethod())
             .paid(lisRequest.paid())
