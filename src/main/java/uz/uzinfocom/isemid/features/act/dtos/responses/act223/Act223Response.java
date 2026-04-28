@@ -48,4 +48,6 @@ public class Act223Response extends ActResponse {
 
     private String additionalInfo;
     private Set<Act223DetailResponse> act223Details;
+
+    private Long lisActId;
 }

@@ -10,12 +10,15 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
@@ -94,4 +97,10 @@ public class Act223 extends Act {
 
     @OneToMany(mappedBy = "act223", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Act223Detail> act223Details = new HashSet<>();
+
+    private Long lisActId;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Object> lisResponse;
 }

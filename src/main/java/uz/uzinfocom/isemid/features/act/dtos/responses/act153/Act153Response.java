@@ -57,4 +57,6 @@ public class Act153Response extends ActResponse {
     private String additionalInfo;
     @Builder.Default
     private Set<Act153DetailResponse> act153Details = new HashSet<>();
+
+    private Long lisActId;
 }

@@ -1,8 +1,10 @@
 package uz.uzinfocom.isemid.features.act.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -96,7 +98,7 @@ public class ActController {
     @PostMapping("/lis/callback/{actId}")
     public ApiResponse<?> receiveLisResponse(
             @PathVariable Long actId,
-            @RequestBody String body
+            @RequestBody Map<String,Object> body
     ) {
         actService.handleLisResponse(actId, body);
         return ApiResponse.success(messageUtil, "Ответ от LIS успешно принят.");

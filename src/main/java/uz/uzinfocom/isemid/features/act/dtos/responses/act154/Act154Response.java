@@ -55,4 +55,6 @@ public class Act154Response extends ActResponse {
 
     private String additionalInfo;
     private Set<Act154DetailResponse> act154Details;
+
+    private Long lisActId;
 }
