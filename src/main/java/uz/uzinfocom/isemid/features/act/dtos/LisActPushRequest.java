@@ -68,9 +68,7 @@ public record LisActPushRequest(
     String redirectUrl, // isemis berishi kk
     Boolean paid, // from send pop up
     List<SelectionActItem> selectionActItems,// @NotEmpty(message = "selection act items must not be null")
-    String locationOwnership,
-    @JsonProperty("force")
-    Boolean isAllowedDuplicate
+    String locationOwnership
     ) {
 
 

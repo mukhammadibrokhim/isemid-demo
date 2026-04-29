@@ -57,7 +57,6 @@ public class EMisToLisRequestMapper {
             .preservationMethod(actLisDto.preservationMethod())
             .paid(lisRequest.paid())
             .selectionActItems(toSelectionActItems(actLisDto.selectionActItems()))
-            .isAllowedDuplicate(lisRequest.isAllowedDuplicate())
             .build();
     }
 
