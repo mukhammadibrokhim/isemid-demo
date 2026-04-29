@@ -67,4 +67,6 @@ public abstract class Act extends AbsEntity {
 
     @Column(name = "lis_sent_date")
     private LocalDateTime lisSentDate;
+
+    private Long lisActId;
 }

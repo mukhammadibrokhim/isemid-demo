@@ -1,12 +1,13 @@
 package uz.uzinfocom.isemid.features.act.dtos;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Builder
 public record LisRequest(
     Long actId,
     Long lisLabId,
     Priority priority,
-    Boolean paid
+    Boolean paid,
+    @JsonProperty("force")
+    Boolean isAllowedDuplicate
 ) {
 }

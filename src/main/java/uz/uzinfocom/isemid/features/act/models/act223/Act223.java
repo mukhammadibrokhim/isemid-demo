@@ -98,8 +98,6 @@ public class Act223 extends Act {
     @OneToMany(mappedBy = "act223", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Act223Detail> act223Details = new HashSet<>();
 
-    private Long lisActId;
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> lisResponse;

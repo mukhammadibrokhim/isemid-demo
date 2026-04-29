@@ -105,8 +105,6 @@ public class Act153 extends Act {
     @JsonManagedReference
     private Set<Act153Detail> act153Details = new HashSet<>();
 
-    private Long lisActId;
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> lisResponse;
