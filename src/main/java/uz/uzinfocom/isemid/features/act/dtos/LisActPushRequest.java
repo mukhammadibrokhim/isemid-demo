@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Builder;
 import lombok.With;
@@ -68,6 +69,7 @@ public record LisActPushRequest(
     Boolean paid, // from send pop up
     List<SelectionActItem> selectionActItems,// @NotEmpty(message = "selection act items must not be null")
     String locationOwnership,
+    @JsonProperty("force")
     Boolean isAllowedDuplicate
     ) {
 
