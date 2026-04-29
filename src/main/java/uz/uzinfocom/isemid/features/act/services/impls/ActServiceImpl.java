@@ -101,7 +101,7 @@ public class ActServiceImpl implements ActService {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Organization-Id", organizationUuid.toString());
 
-            String url = LIS_ACT_API.formatted(lisRequest.lisLabId(), act.getId(), body.isAllowedDuplicate());
+            String url = LIS_ACT_API.formatted(lisRequest.lisLabId(), act.getId(), lisRequest.isAllowedDuplicate());
 
             Long lisActId = RestClientUtil.makeRequest(url, HttpMethod.POST, "", body, headers, Long.class, messageUtil);
 
