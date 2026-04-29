@@ -123,7 +123,7 @@ public final class ApiPaths {
         public static final String LIS_API_KEY = "LIS_PUBLIC_2025_Q9xR4k2MZ7Nw8DFA6cTUpJY";
         public static final String LIS_PUBLIC_API_BASE_PATH = "https://test-lis.sanepid.uz/api/v1/publicapi";
         public static final String LIS_ACT_API_BASE_PATH = LIS_PUBLIC_API_BASE_PATH+"/create-act";
-        public static final String LIS_ACT_API = LIS_ACT_API_BASE_PATH +"/%s?"+"key="+ LIS_API_KEY +"&senderActNumber=%s";
+        public static final String LIS_ACT_API = LIS_ACT_API_BASE_PATH +"/%s?"+"key="+ LIS_API_KEY +"&senderActNumber=%s"+"&force=%s";
         public static final String LIS_RESEARCH_TYPE_API = LIS_PUBLIC_API_BASE_PATH+"/act-code" +"?key="+ LIS_API_KEY+"&researchCode=%s";
 
         public static final String ISEMID_CALLBACK = "https://test-ykem.sanepid.uz/api/v1/act/lis/callback/";

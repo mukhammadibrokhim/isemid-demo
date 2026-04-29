@@ -101,13 +101,14 @@ public class ActServiceImpl implements ActService {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Organization-Id", organizationUuid.toString());
 
-            String url = LIS_ACT_API.formatted(lisRequest.lisLabId(), act.getId());
+            String url = LIS_ACT_API.formatted(lisRequest.lisLabId(), act.getId(), body.isAllowedDuplicate());
 
-            Void lisResponse = RestClientUtil.makeRequest(url, HttpMethod.POST, "", body, headers, Void.class, messageUtil);
+            Long lisActId = RestClientUtil.makeRequest(url, HttpMethod.POST, "", body, headers, Long.class, messageUtil);
 
 
-            log.info("LIS response: {}", lisResponse);
+            log.info("LIS response: {}", lisActId);
 
+            act.setLisActId(lisActId);
             act.setStatus(ActStatus.SENT);
             act.setLisSentDate(LocalDateTime.now());
             actRepository.save(act);
