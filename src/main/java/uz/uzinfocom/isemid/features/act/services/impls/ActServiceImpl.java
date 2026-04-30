@@ -9,6 +9,7 @@ import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDe
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -129,7 +130,11 @@ public class ActServiceImpl implements ActService {
     @Override
     public void handleLisResponse(Long id, Map<String,Object> body) {
         Act act = getById(id);
-        Long lisActId = (Long)body.getOrDefault("id", null);
+        Long lisActId = Optional.ofNullable(body.get("id"))
+            .map(Number.class::cast)
+            .map(Number::longValue)
+            .orElse(null);
+
         switch(act){
             case Act153 act153->{
                 act153.setLisActId(lisActId);
