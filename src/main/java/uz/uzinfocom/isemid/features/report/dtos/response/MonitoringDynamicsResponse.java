@@ -2,7 +2,9 @@ package uz.uzinfocom.isemid.features.report.dtos.response;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +26,9 @@ public class MonitoringDynamicsResponse {
         private int female;
 
         private AgeGroupCount ageGroups = new AgeGroupCount();
+
+        private Map<String, Integer> diseaseType = new LinkedHashMap<>();
+
     }
 
     @Getter @Setter
