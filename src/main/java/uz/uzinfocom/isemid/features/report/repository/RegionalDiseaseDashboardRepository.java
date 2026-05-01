@@ -56,6 +56,7 @@ public class RegionalDiseaseDashboardRepository {
                 f.status,
                 p.gender_code,
                 o.state_code,
+                f.final_mkb10code,
                 CASE
                     WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 3  THEN 'age_0_3'
                     WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 6  THEN 'age_3_6'
@@ -77,6 +78,7 @@ public class RegionalDiseaseDashboardRepository {
             SELECT
                 period,
                 state_code,
+                final_mkb10code,
                 COUNT(*) FILTER (WHERE status = 'CONFIRMED')    AS confirmed,
                 COUNT(*) FILTER (WHERE status != 'CONFIRMED')   AS unconfirmed,
                 COUNT(*) FILTER (WHERE UPPER(gender_code) = 'MALE')    AS male,
@@ -90,11 +92,12 @@ public class RegionalDiseaseDashboardRepository {
                 COUNT(*) FILTER (WHERE age_group = 'age_45_65') AS age_45_65,
                 COUNT(*) FILTER (WHERE age_group = 'age_65_plus') AS age_65_plus
             FROM raw_data
-            GROUP BY period, state_code
+            GROUP BY period, state_code, final_mkb10code
         )
         SELECT
             p.period,
             COALESCE(a.state_code, :regionCode::VARCHAR) AS location_code,
+            a.final_mkb10code,
             COALESCE(a.confirmed, 0)              AS confirmed,
             COALESCE(a.unconfirmed, 0)            AS unconfirmed,
             COALESCE(a.male, 0)                   AS male,
@@ -129,6 +132,7 @@ public class RegionalDiseaseDashboardRepository {
           (rs, raw) -> new CaseCountDynamicsData(
               rs.getString("period"),
               rs.getString("location_code"),
+              rs.getString("final_mkb10code"),
               rs.getInt("confirmed"),
               rs.getInt("unconfirmed"),
               rs.getInt("male"),
