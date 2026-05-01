@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.report.dtos;
 public record CaseCountDynamicsData(
     String period,
     String locationCode,
+    String finalMkb10Code,
     int confirmed,
     int unconfirmed,
     int male,
