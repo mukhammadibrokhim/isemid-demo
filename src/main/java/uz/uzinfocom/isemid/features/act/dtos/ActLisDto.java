@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.act.dtos;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -57,12 +58,10 @@ public record ActLisDto(
         SampleQtUnit sampleQtUnit
     ) {}
 
-    public static List<String> mapToLocation(List<Double> location) {
+    public static List<String> mapToLocation(String location) {
         return Optional.ofNullable(location)
-            .filter(list -> !list.isEmpty())
-            .map(list -> list.stream()
-                .map(String::valueOf)
-                .collect(Collectors.toList()))
+            .filter(s -> !s.isBlank())
+            .map(s -> Arrays.asList(s.trim().split("\\s+")))
             .orElse(List.of());
     }
 }
