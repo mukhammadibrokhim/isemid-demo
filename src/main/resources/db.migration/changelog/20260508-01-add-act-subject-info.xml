@@ -6,105 +6,52 @@
             http://www.liquibase.org/xml/ns/dbchangelog
             https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <!-- If old column subject_inn exists, rename it to subject_tin -->
-    <changeSet id="2026-05-08-02-rename-subject-inn-to-subject-tin" author="muhammadibrohim">
+    <changeSet id="2026-05-08-10-rename-subject-type-code-to-subject-type" author="muhammadibrohim">
         <preConditions onFail="MARK_RAN">
             <and>
-                <columnExists tableName="act" columnName="subject_inn"/>
+                <columnExists tableName="act" columnName="subject_type_code"/>
                 <not>
-                    <columnExists tableName="act" columnName="subject_tin"/>
+                    <columnExists tableName="act" columnName="subject_type"/>
                 </not>
             </and>
         </preConditions>
 
         <renameColumn
                 tableName="act"
-                oldColumnName="subject_inn"
-                newColumnName="subject_tin"
-                columnDataType="varchar(20)"/>
+                oldColumnName="subject_type_code"
+                newColumnName="subject_type"
+                columnDataType="varchar(50)"/>
     </changeSet>
 
-    <changeSet id="2026-05-08-03-add-act-subject-type-code" author="muhammadibrohim">
+    <changeSet id="2026-05-08-11-add-subject-type-if-missing" author="muhammadibrohim">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="act" columnName="subject_type_code"/>
+                <columnExists tableName="act" columnName="subject_type"/>
             </not>
         </preConditions>
 
         <addColumn tableName="act">
-            <column name="subject_type_code" type="varchar(50)"/>
+            <column name="subject_type" type="varchar(50)"/>
         </addColumn>
     </changeSet>
 
-    <changeSet id="2026-05-08-04-add-act-subject-tin" author="muhammadibrohim">
+    <changeSet id="2026-05-08-12-drop-old-subject-type-code-index" author="muhammadibrohim">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="act" columnName="subject_tin"/>
-            </not>
+            <indexExists tableName="act" indexName="idx_act_subject_type_code"/>
         </preConditions>
 
-        <addColumn tableName="act">
-            <column name="subject_tin" type="varchar(20)"/>
-        </addColumn>
+        <dropIndex tableName="act" indexName="idx_act_subject_type_code"/>
     </changeSet>
 
-    <changeSet id="2026-05-08-05-add-act-subject-legal-name" author="muhammadibrohim">
+    <changeSet id="2026-05-08-13-add-subject-type-index" author="muhammadibrohim">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="act" columnName="subject_legal_name"/>
+                <indexExists tableName="act" indexName="idx_act_subject_type"/>
             </not>
         </preConditions>
 
-        <addColumn tableName="act">
-            <column name="subject_legal_name" type="varchar(500)"/>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="2026-05-08-06-add-act-subject-legal-address" author="muhammadibrohim">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="act" columnName="subject_legal_address"/>
-            </not>
-        </preConditions>
-
-        <addColumn tableName="act">
-            <column name="subject_legal_address" type="varchar(1000)"/>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="2026-05-08-07-add-act-subject-actual-address" author="muhammadibrohim">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="act" columnName="subject_actual_address"/>
-            </not>
-        </preConditions>
-
-        <addColumn tableName="act">
-            <column name="subject_actual_address" type="varchar(1000)"/>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="2026-05-08-08-add-act-subject-type-code-index" author="muhammadibrohim">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists tableName="act" indexName="idx_act_subject_type_code"/>
-            </not>
-        </preConditions>
-
-        <createIndex tableName="act" indexName="idx_act_subject_type_code">
-            <column name="subject_type_code"/>
-        </createIndex>
-    </changeSet>
-
-    <changeSet id="2026-05-08-09-add-act-subject-tin-index" author="muhammadibrohim">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists tableName="act" indexName="idx_act_subject_tin"/>
-            </not>
-        </preConditions>
-
-        <createIndex tableName="act" indexName="idx_act_subject_tin">
-            <column name="subject_tin"/>
+        <createIndex tableName="act" indexName="idx_act_subject_type">
+            <column name="subject_type"/>
         </createIndex>
     </changeSet>
 

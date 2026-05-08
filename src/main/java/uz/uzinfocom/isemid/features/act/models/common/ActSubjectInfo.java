@@ -2,8 +2,11 @@ package uz.uzinfocom.isemid.features.act.models.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
+import uz.uzinfocom.isemid.features.act.enums.ActSubjectType;
 
 @Getter
 @Setter
@@ -14,8 +17,9 @@ public class ActSubjectInfo {
      * Reference/catalog code:
      * LEGAL_ENTITY / GEOGRAPHIC_POINT / PHYSICAL_PERSON
      */
-    @Column(name = "subject_type_code", length = 50)
-    private String subjectTypeCode;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "subject_type", length = 50)
+    private ActSubjectType subjectType;
 
     /**
      * Only for LEGAL_ENTITY.
