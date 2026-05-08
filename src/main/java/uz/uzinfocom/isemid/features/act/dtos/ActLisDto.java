@@ -2,9 +2,9 @@ package uz.uzinfocom.isemid.features.act.dtos;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.LisDataDictionary;
 
 /**
@@ -57,11 +57,12 @@ public record ActLisDto(
         SampleQtUnit sampleQtUnit
     ) {}
 
-    public static List<String> mapToLocation(String location) {
+    public static List<String> mapToLocation(List<Double> location) {
         return Optional.ofNullable(location)
-            .filter(s -> !s.isEmpty())
-            .map(s -> Arrays.asList(s.split(" ")))
+            .filter(list -> !list.isEmpty())
+            .map(list -> list.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList()))
             .orElse(List.of());
-
     }
 }
