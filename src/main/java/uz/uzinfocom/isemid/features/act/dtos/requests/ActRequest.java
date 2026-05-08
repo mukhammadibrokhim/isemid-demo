@@ -27,4 +27,6 @@ import uz.uzinfocom.isemid.features.act.enums.ActType;
 public abstract class ActRequest {
     @NotNull(message = "act type is required.")
     private ActType type;
+
+    ActSubjectInfoRequest subjectInfo;
 }

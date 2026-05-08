@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-05-08-01-add-act-subject-info" author="muhammadibrohim">
+
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act" columnName="subject_type_code"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act">
+            <column name="subject_type_code" type="varchar(50)"/>
+            <column name="subject_inn" type="varchar(20)"/>
+            <column name="subject_legal_name" type="varchar(500)"/>
+            <column name="subject_legal_address" type="varchar(1000)"/>
+            <column name="subject_actual_address" type="varchar(1000)"/>
+        </addColumn>
+
+        <createIndex tableName="act" indexName="idx_act_subject_type_code">
+            <column name="subject_type_code"/>
+        </createIndex>
+
+        <createIndex tableName="act" indexName="idx_act_subject_inn">
+            <column name="subject_inn"/>
+        </createIndex>
+
+    </changeSet>
+
+</databaseChangeLog>
