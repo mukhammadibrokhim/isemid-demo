@@ -17,6 +17,7 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
 import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
 import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
+import uz.uzinfocom.isemid.features.act.dtos.SampleVolumeUnit;
 import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 
@@ -60,6 +61,8 @@ public class Act153Detail extends BaseEntity {
 
     @Column(name = "sample_volume")
     private Double sampleVolume; // number
+
+    private SampleVolumeUnit sampleVolumeUnit;
 
     @Enumerated(EnumType.STRING)
     private SampleQtUnit sampleQtUnit;
