@@ -8,6 +8,8 @@ public class SecurityConstants {
             "/api/actuator/**",
             "/v1/auth/**",
             "/v1/db/**",
+            "/api-docs/**",
+            "/swagger-ui/**",
             "/v1/legal-entity/**",
             "/v1/citizen/qr**",
             "/v1/catalog/country/**",
