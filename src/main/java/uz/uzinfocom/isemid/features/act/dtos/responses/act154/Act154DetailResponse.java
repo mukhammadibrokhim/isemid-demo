@@ -18,7 +18,7 @@ public class Act154DetailResponse {
     private Long id;
     private ResearchItemTypeInfo researchItemTypeInfo;
     private String sampleName;
-private SampleTypeInfo sampleTypeInfo;
+    private SampleTypeInfo sampleTypeInfo;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDateTime;
     private String shiftCode;
