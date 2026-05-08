@@ -62,6 +62,7 @@ public class Act153Detail extends BaseEntity {
     @Column(name = "sample_volume")
     private Double sampleVolume; // number
 
+    @Enumerated(EnumType.STRING)
     private SampleVolumeUnit sampleVolumeUnit;
 
     @Enumerated(EnumType.STRING)
