@@ -99,6 +99,8 @@ public class ActServiceImpl implements ActService {
                 .withFullNameOfDoctor(user.getFullName())
                 .withRedirectUrl(redirectUrl);
 
+            log.info("Sending LisActPushRequest: {}", body);
+
             HttpHeaders headers = new HttpHeaders();
             headers.set("Organization-Id", organizationUuid.toString());
 

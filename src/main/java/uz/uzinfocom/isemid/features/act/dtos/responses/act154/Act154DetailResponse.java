@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
+import uz.uzinfocom.isemid.features.act.dtos.SampleVolumeUnit;
 import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 
@@ -18,7 +20,7 @@ public class Act154DetailResponse {
     private Long id;
     private ResearchItemTypeInfo researchItemTypeInfo;
     private String sampleName;
-private SampleTypeInfo sampleTypeInfo;
+    private SampleTypeInfo sampleTypeInfo;
     private String samplingPurposeLoinc;
     private LocalDateTime sampleTakenDateTime;
     private String shiftCode;
@@ -26,6 +28,8 @@ private SampleTypeInfo sampleTypeInfo;
     private Long groupSize;
     private Long serialNumberOfGroup;
     private Double sampleWeight;
+    private SampleQtUnit sampleQtUnit;
     private Double sampleVolume;
+    private SampleVolumeUnit sampleVolumeUnit;
     private String note;
 }

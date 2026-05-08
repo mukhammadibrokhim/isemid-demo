@@ -30,12 +30,6 @@ public class Act223Detail extends BaseEntity {
     @JoinColumn(name = "act223_id")
     private Act223 act223;
 
-//    private Integer researchTypeId;
-//    private Integer categoryId;
-
-//    private Integer itemTypeId;
-//    private String itemTypeNameUz;
-//    private String itemTypeNameRu;
     @Embedded
     private ResearchItemTypeInfo researchItemTypeInfo;
 
@@ -45,23 +39,6 @@ public class Act223Detail extends BaseEntity {
     private Double depthOfObtainedArea;
     @Enumerated(EnumType.STRING)
     private LengthUnit depthUnit;
-
-//    private Integer deliveryConditionId;
-//    @Column(columnDefinition = "TEXT")
-//    private String deliveryConditionsUz;
-//    private String deliveryConditionsRu;
-//
-//    private Integer storageConditionId;
-//    @Column(columnDefinition = "TEXT")
-//    private String storageConditionsUz;
-//    private String storageConditionsRu;
-
-//    private Integer sampleTypeId;
-//    @Column(columnDefinition = "TEXT")
-//    private String sampleTypeUz;
-//    private String sampleTypeRu;
-//    @Embedded
-//    private SampleTypeInfo sampleTypeInfo;
 
 
 }
