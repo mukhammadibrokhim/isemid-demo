@@ -1,5 +1,5 @@
 package uz.uzinfocom.isemid.features.act.dtos;
 
 public enum SampleQtUnit {
-  MILLIGRAM, GRAM, KILOGRAM
+  MILLIGRAM, GRAM, KILOGRAM, CENTNER, TONN
 }
