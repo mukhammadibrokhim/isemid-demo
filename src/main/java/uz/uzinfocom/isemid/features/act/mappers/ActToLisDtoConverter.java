@@ -80,7 +80,7 @@ public class ActToLisDtoConverter {
     private SelectionActItemDto toSelectionItemFromAct153(Act153Detail d) {
         return new SelectionActItemDto(
             d.getResearchItemTypeInfo().getItemTypeId(),
-            null,
+            d.getSampleLocation(),
             null,
             null,
             d.getAddress(),
@@ -130,7 +130,7 @@ public class ActToLisDtoConverter {
             act.getSampler().getPositionId(),
             act.getManufacturingCompany(),
              act.getManufactureDate(),
-            act.getDocNumberOfTakenObject().toString(),
+            act.getDocNumberOfTakenObject(),
             null,
             details.stream().map(this::toSelectionItemFromAct154).toList()
         );
