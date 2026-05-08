@@ -60,7 +60,7 @@ public record ActLisDto(
     public static List<String> mapToLocation(String location) {
         return Optional.ofNullable(location)
             .filter(s -> !s.isEmpty())
-            .map(s -> Arrays.stream(s.split(" ")).toList())
+            .map(s -> Arrays.asList(s.split(" ")))
             .orElse(List.of());
 
     }
