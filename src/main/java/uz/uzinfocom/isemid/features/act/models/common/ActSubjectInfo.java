@@ -14,7 +14,6 @@ import uz.uzinfocom.isemid.features.act.enums.ActSubjectType;
 public class ActSubjectInfo {
 
     /**
-     * Reference/catalog code:
      * LEGAL_ENTITY / GEOGRAPHIC_POINT / PHYSICAL_PERSON
      */
     @Enumerated(EnumType.STRING)
