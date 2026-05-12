@@ -12,9 +12,4 @@
           newColumnName="sample_qt_unit"
           columnDataType="varchar"/>
     </changeSet>
-
-
-
-
-
 </databaseChangeLog>

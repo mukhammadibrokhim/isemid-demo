@@ -18,6 +18,6 @@ public class OrgMiniResponse {
     private String name;
     private CatalogMinResponse levelType;
     private Long parentId;
-    @Builder.Default
-    private List<OrgChildResponse> children = new ArrayList<>();
+//    @Builder.Default
+//    private List<OrgChildResponse> children = new ArrayList<>();
 }

@@ -80,6 +80,4 @@ public class Act153Detail extends BaseEntity {
     @Embedded
     private SampleTypeInfo sampleTypeInfo;
 
-
-
 }
