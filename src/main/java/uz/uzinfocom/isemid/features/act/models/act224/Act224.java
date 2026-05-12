@@ -32,6 +32,7 @@ public class Act224 extends Act {
     private String nameOfRegulatoryActs;
     private String checkingFulfillmentOfRequirements;
     private String fullNameOfParticipant;
+    private String additionalInfo;
 
     @OneToMany(mappedBy = "act224", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

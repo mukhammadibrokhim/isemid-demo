@@ -7,6 +7,7 @@ import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 
 import java.util.Date;
 import java.util.Set;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
 
 @Getter
 @Setter
@@ -18,9 +19,7 @@ import java.util.Set;
 public class Act155Request extends ActRequest {
     private Long id;
     private String title;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Institution institution;
     private String activityTypeCode;
 
     private Date selectedDate;

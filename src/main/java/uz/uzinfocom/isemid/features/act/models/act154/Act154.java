@@ -38,8 +38,6 @@ public class Act154 extends Act {
 
    private String title;
    private Long actNumber;
-   @Embedded
-   private Institution institution;
    private String activityTypeCode;
 
    private LocalDateTime sampleTakenDateTime;

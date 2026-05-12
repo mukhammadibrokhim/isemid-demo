@@ -22,7 +22,6 @@ import org.hibernate.type.SqlTypes;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
-import uz.uzinfocom.isemid.features.act.models.common.Institution;
 import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
@@ -34,8 +33,6 @@ import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 @Entity
 public class Act223 extends Act {
 
-    @Embedded
-    Institution institution;
     private Long actNumber;
     private String supportingDocumentsForSampling;
     private String goal;
