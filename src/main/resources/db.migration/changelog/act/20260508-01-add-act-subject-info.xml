@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260508-01-add-act-subject-info.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-05-08-10-rename-subject-type-code-to-subject-type" author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists tableName="act" columnName="subject_type_code"/>
+                <not>
+                    <columnExists tableName="act" columnName="subject_type"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <renameColumn
+                tableName="act"
+                oldColumnName="subject_type_code"
+                newColumnName="subject_type"
+                columnDataType="varchar(50)"/>
+    </changeSet>
+
+    <changeSet id="2026-05-08-11-add-subject-type-if-missing" author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act" columnName="subject_type"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act">
+            <column name="subject_type" type="varchar(50)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-05-08-12-drop-old-subject-type-code-index" author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="act" indexName="idx_act_subject_type_code"/>
+        </preConditions>
+
+        <dropIndex tableName="act" indexName="idx_act_subject_type_code"/>
+    </changeSet>
+
+    <changeSet id="2026-05-08-13-add-subject-type-index" author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="act" indexName="idx_act_subject_type"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="act" indexName="idx_act_subject_type">
+            <column name="subject_type"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
