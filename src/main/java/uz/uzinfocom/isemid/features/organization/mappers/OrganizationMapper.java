@@ -49,7 +49,7 @@ public interface OrganizationMapper {
     @Mapping(target = "uuid", source = "uuid")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "parentId", source = "parentId")
-    @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
+//    @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
     @Mapping(target = "levelType", source = "levelType", qualifiedByName = "toCatalog")
     OrgMiniResponse toOrgMiniResponse(Organization organization);
 

@@ -11,6 +11,7 @@ import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 
 import java.util.Date;
 import java.util.Set;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
 
 @Getter
 @Setter
@@ -22,9 +23,7 @@ import java.util.Set;
 public class Act155Response extends ActResponse {
     private Long id;
     private String title;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Institution institution;
     private String activityTypeCode;
 
     private Date selectedDate;

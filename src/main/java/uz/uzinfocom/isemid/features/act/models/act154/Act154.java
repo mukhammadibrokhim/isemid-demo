@@ -24,7 +24,6 @@ import org.hibernate.type.SqlTypes;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
-import uz.uzinfocom.isemid.features.act.models.common.Institution;
 import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
@@ -38,8 +37,6 @@ public class Act154 extends Act {
 
    private String title;
    private Long actNumber;
-   @Embedded
-   private Institution institution;
    private String activityTypeCode;
 
    private LocalDateTime sampleTakenDateTime;

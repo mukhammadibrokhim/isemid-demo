@@ -62,7 +62,7 @@ public abstract class Card extends AbsEntity {
     private CardStatus status = CardStatus.NEW;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "form058_id")  // Adjust the column name if needed
+    @JoinColumn(name = "form058_id")
     @JsonBackReference
     private Form058 form058;
 

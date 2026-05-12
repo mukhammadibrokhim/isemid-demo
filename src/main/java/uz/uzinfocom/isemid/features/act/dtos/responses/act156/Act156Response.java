@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.features.act.models.act156.Act156KitchenUtensil;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
 
 @Getter
 @Setter
@@ -22,9 +23,7 @@ import java.util.Set;
 public class Act156Response extends ActResponse {
     private Long id;
     private String title;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Institution institution;
     private String activityTypeCode;
 
     private LocalDateTime sampleTakenTime;

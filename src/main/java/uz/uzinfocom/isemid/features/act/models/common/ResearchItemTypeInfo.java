@@ -13,7 +13,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ResearchItemTypeInfo {
   private Integer researchTypeId;
+  private String researchTypeNameUz;
+  private String researchTypeNameRu;
+
   private Integer categoryId;
+  private String categoryNameUz;
+  private String categoryNameRu;
+
   private Integer itemTypeId;
   private String itemTypeNameUz;
   private String itemTypeNameRu;
