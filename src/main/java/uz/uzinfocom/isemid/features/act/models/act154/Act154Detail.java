@@ -41,7 +41,7 @@ public class Act154Detail extends BaseEntity {
     private Long serialNumberOfGroup;
     private Double sampleWeight;
     @Enumerated(EnumType.STRING)
-    private SampleQtUnit sampleWeightUnit;
+    private SampleQtUnit sampleQtUnit;
     private Double sampleVolume;
     @Enumerated(EnumType.STRING)
     private SampleVolumeUnit sampleVolumeUnit;
