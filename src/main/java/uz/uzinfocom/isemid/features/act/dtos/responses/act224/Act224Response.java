@@ -29,12 +29,9 @@ public class Act224Response extends ActResponse {
     private String positionOfEpidStaff;
     private String fullNameOfParticipantEpid;
     private String positionOfParticipantEpid;
-
-    private String nameOfInstitution;
-    private String addressOfInstitution;
     private String nameOfRegulatoryActs;
     private String checkingFulfillmentOfRequirements;
     private String fullNameOfParticipant;
     private String additionalInfo;
-    private List<Act224DetailResponse> details;
+    private List<Act224DetailResponse> act224Details;
 }

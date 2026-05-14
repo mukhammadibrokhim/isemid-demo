@@ -24,12 +24,9 @@ public class Act224Request extends ActRequest {
     private String positionOfEpidStaff;
     private String fullNameOfParticipantEpid;
     private String positionOfParticipantEpid;
-
-    private String nameOfInstitution;
-    private String addressOfInstitution;
     private String nameOfRegulatoryActs;
     private String checkingFulfillmentOfRequirements;
     private String fullNameOfParticipant;
     private String additionalInfo;
-    private List<Act224DetailRequest> details;
+    private List<Act224DetailRequest> act224Details;
 }

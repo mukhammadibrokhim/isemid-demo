@@ -36,5 +36,5 @@ public class Act224 extends Act {
 
     @OneToMany(mappedBy = "act224", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Act224Detail> details = new ArrayList<>();
+    private List<Act224Detail> act224Details = new ArrayList<>();
 }
