@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "act224_detail")
 public class Act224Detail extends BaseEntity {
 
+    @Column(columnDefinition = "TEXT")
     private String recommendedActivities;
 
     private LocalDateTime executionPeriod;
