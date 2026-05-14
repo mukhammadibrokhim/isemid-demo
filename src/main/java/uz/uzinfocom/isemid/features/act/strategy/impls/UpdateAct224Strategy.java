@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.features.act.models.act224.Act224;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.strategy.UpdateActStrategy;
 
+import static uz.uzinfocom.isemid.features.act.utils.ActBindingUtil.bindChildEntities;
 import static uz.uzinfocom.isemid.features.act.utils.ActUtil.validateAct;
 
 @Service
@@ -29,6 +30,7 @@ public class UpdateAct224Strategy implements UpdateActStrategy {
         Act224Request reqAct224 = (Act224Request) reqAct;
 
         mapper.update(existingAct, reqAct224);
+        bindChildEntities(existingAct);
         return actRepository.save(act);
     }
 }

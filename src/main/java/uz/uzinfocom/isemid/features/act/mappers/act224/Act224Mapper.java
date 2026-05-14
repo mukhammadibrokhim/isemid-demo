@@ -15,10 +15,8 @@ public interface Act224Mapper {
     @Mapping(target = "updatedAt", source = "act.updatedAt")
     @Mapping(target = "type", source = "act.type")
     @Mapping(target = "createdOrg", source = "createdOrg.uuid", qualifiedByName = "toOrgMiniResponse")
-    @Mapping(target = "act224Details",source = "act224Details")
     Act224Response toResponse(Act224 act);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "act224Details",source = "act224Details")
     void update(@MappingTarget Act224 entity, Act224Request dto);
 }
