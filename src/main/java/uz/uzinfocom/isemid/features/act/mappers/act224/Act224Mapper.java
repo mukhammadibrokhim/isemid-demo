@@ -19,5 +19,6 @@ public interface Act224Mapper {
     Act224Response toResponse(Act224 act);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "act224Details",source = "act224Details")
     void update(@MappingTarget Act224 entity, Act224Request dto);
 }
