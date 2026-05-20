@@ -1,7 +1,10 @@
 package uz.uzinfocom.isemid.features.act.models.act154;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -11,9 +14,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
-
-import java.time.LocalDateTime;
-import java.util.Date;
+import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
+import uz.uzinfocom.isemid.features.act.dtos.SampleVolumeUnit;
+import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
 
 @Getter
 @Setter
@@ -28,26 +31,19 @@ public class Act154Detail extends BaseEntity {
     @JsonBackReference
     private Act154 act154;
 
-    private Long lisOrganizationId;
-    private String laboratoryAddress;
+    @Embedded
+    private ResearchItemTypeInfo researchItemTypeInfo;
 
     private String shiftCode;
     private String sampleName;
-    private String sampleType;
-    private String purposeOfSampling;
-    private String samplingPurposeLoinc;
-    private LocalDateTime sampleTakenDate;
-    private String deliveryTerm;
-    private String storageCondition;
-    private String manufacturingCompany;
-    private Date manufactureDate;
+
     private Long groupSize;
     private Long serialNumberOfGroup;
     private Double sampleWeight;
+    @Enumerated(EnumType.STRING)
+    private SampleQtUnit sampleQtUnit;
     private Double sampleVolume;
-    private Long docNumberOfTakenObject;
-    private String packageType;
-    private String documentConfirmSampling;
-    private String purposeOfChecking;
+    @Enumerated(EnumType.STRING)
+    private SampleVolumeUnit sampleVolumeUnit;
     private String note;
 }

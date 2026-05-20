@@ -11,6 +11,6 @@ import java.time.LocalDateTime;
 @Builder
 public class Act224DetailResponse {
     private Long id;
-    private String recommendedActivity;
+    private String recommendedActivities;
     private LocalDateTime executionPeriod;
 }

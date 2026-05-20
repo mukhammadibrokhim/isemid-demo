@@ -22,14 +22,14 @@ public class Form058ResponseAdapter {
     private final CardMapper cardMapper;
 
     public Form058Response adapt(Form058Response response, Form058 form, FilterType filterType) {
-        if (filterType == FilterType.RECEIVED && form.getStatus() == FormStatus.SENT) {
+        if (filterType == FilterType.RECEIVER && form.getStatus() == FormStatus.SENT) {
             response.setStatus(FormStatus.NEW);
         }
         return response;
     }
 
     public Form058DetailsResponse adapt(Form058DetailsResponse response, Form058 form, FilterType filterType) {
-        if (filterType == FilterType.RECEIVED && form.getStatus() == FormStatus.SENT) {
+        if (filterType == FilterType.RECEIVER && form.getStatus() == FormStatus.SENT) {
             response.setStatus(FormStatus.NEW);
         }
 
@@ -49,7 +49,4 @@ public class Form058ResponseAdapter {
 
         return response;
     }
-
-
-
 }

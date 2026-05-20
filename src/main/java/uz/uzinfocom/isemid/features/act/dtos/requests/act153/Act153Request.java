@@ -1,12 +1,22 @@
 package uz.uzinfocom.isemid.features.act.dtos.requests.act153;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
-
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.ConservationTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
+import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
 @Getter
 @Setter
@@ -16,17 +26,29 @@ import java.util.Set;
 @Schema(description = "Request object for ACT153 type Act")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Act153Request extends ActRequest {
-    private Long id;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Long actNumber;
+    private Institution institution;
     private String activityTypeCode;
+
+    @JsonProperty("documentConfirmSampling")
     private String samplingDocuments;
-    private LocalDate deliveredDate;
-    private String samplerFullName;
-    private String position;
-    private String participantFullName;
-    private String participantPosition;
+    private String goal;
+    private LocalDateTime sampleTakenDateTime;
+    private LocalDateTime deliveredDateTime;
+
+    private Purpose purpose;
+    private EmployeeInfo sampler;
+    private EmployeeInfo participant;
+
+    private ConditionInfo specialCondition;
+    private ConditionInfo storageAndDeliveryCondition;
+
+    private PackageTypeInfo packageTypeInfo;
+    private ConservationTypeInfo conservationTypeInfo;
+
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
+
     private String additionalInfo;
     private Set<Act153DetailRequest> act153Details;
 }

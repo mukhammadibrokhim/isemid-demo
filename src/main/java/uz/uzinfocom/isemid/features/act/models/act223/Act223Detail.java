@@ -1,12 +1,21 @@
 package uz.uzinfocom.isemid.features.act.models.act223;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.commons.models.BaseEntity;
+import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
+import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
 
 @Setter
 @Getter
@@ -21,9 +30,15 @@ public class Act223Detail extends BaseEntity {
     @JoinColumn(name = "act223_id")
     private Act223 act223;
 
+    @Embedded
+    private ResearchItemTypeInfo researchItemTypeInfo;
+
+    // example in wkt format POINT(69.2797 41.3111)
     private String exactLocationPointSampling;
     private Double amount;
     private Double depthOfObtainedArea;
-    private String supportingDocumentsForSampling;
+    @Enumerated(EnumType.STRING)
+    private LengthUnit depthUnit;
+
 
 }

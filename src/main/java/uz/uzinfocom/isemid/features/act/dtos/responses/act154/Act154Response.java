@@ -2,15 +2,20 @@ package uz.uzinfocom.isemid.features.act.dtos.responses.act154;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
-
-import java.time.LocalDate;
-import java.util.Set;
+import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
+import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
 @Getter
 @Setter
@@ -22,17 +27,34 @@ import java.util.Set;
 public class Act154Response extends ActResponse {
     private Long id;
     private String title;
-    private Long serialNumber;
-    private Integer tin;
-    private String institutionName;
-    private String institutionAddress;
+    private Long actNumber;
+    private Institution institution;
     private String activityTypeCode;
 
-    private String samplerFullName;
-    private LocalDate deliveredDate;
-    private String position;
-    private String participantFullName;
-    private String participantPosition;
+    private LocalDateTime sampleTakenDateTime;
+    private LocalDateTime deliveredDateTime;
+
+    private String documentConfirmSampling;
+    private String goal;
+
+    private Purpose purpose;
+    private EmployeeInfo sampler;
+    private EmployeeInfo participant;
+
+    private String manufacturingCompany;
+    private Date manufactureDate;
+    private String docNumberOfTakenObject;
+
+    private ConditionInfo specialCondition;
+    private ConditionInfo storageAndDeliveryCondition;
+
+    private PackageTypeInfo packageTypeInfo;
+
+    private Long lisOrganizationId;
+    private String laboratoryAddress;
+
     private String additionalInfo;
     private Set<Act154DetailResponse> act154Details;
+
+    private Long lisActId;
 }
