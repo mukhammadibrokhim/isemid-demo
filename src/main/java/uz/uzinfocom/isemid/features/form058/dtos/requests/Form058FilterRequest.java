@@ -14,7 +14,8 @@ public record Form058FilterRequest(
         Boolean affiliation,
         String mkb10Code,
         Long organizationId,
-        String patientDocValue
+        String patientDocValue,
+        String source
 ) {
 
     public Form058FilterRequest {
