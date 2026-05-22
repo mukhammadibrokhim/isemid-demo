@@ -30,9 +30,9 @@ public class RegionalDiseaseDashboardServiceImpl implements RegionalDiseaseDashb
 
   @Override
   public MonitoringDynamicsResponse getMonitoring(LocalDate fromDate, LocalDate toDate,
-      String regionCode, String mkb10Code) {
+      String regionCode, String districtCode, String mkb10Code) {
     List<CaseCountDynamicsData> rows = regionalDiseaseDashboardRepository.filterDiseaseAggregatingData(
-        new DiseaseFilterRequest(fromDate, toDate, regionCode, mkb10Code));
+        new DiseaseFilterRequest(fromDate, toDate, regionCode, districtCode,mkb10Code));
 
     Map<String, MonitoringDynamicsResponse.Item> itemByKey = new LinkedHashMap<>();
     Map<String, String> mkbToBlockCache = new HashMap<>();
