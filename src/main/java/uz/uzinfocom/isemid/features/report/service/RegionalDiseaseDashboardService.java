@@ -11,6 +11,7 @@ public interface RegionalDiseaseDashboardService {
         LocalDate fromDate,
         LocalDate toDate,
         String regionCode,
+        String districtCode,
         String mkb10Code
     );
 }

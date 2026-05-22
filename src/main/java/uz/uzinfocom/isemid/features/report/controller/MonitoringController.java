@@ -40,8 +40,9 @@ public class MonitoringController {
         @RequestParam @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate fromDate,
         @RequestParam @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate toDate,
         @RequestParam(required = false) String regionCode,
+        @RequestParam(required = false) String districtCode,
         @RequestParam(required = false) String mkb10Code
     ) {
-        return ApiResponse.success(messageUtil, regionalDiseaseDashboardService.getMonitoring(fromDate, toDate, regionCode, mkb10Code));
+        return ApiResponse.success(messageUtil, regionalDiseaseDashboardService.getMonitoring(fromDate, toDate, regionCode, districtCode, mkb10Code));
     }
 }

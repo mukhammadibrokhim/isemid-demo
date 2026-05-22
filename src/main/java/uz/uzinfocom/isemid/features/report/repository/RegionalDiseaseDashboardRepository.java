@@ -26,6 +26,7 @@ public class RegionalDiseaseDashboardRepository {
     params.addValue("dat1", dateTimeRange.from());
     params.addValue("dat2", dateTimeRange.to());
     params.addValue("regionCode", filterRequest.regionCode());
+    params.addValue("districtCode", filterRequest.districtCode());
     params.addValue("mkb10Code", filterRequest.mkb10Code());
     var granularity = getGranularity(filterRequest.fromDate(), filterRequest.toDate());
     var format = getFormat(granularity);
@@ -72,6 +73,7 @@ public class RegionalDiseaseDashboardRepository {
             LEFT JOIN patient p ON f.patient_id = p.id
             WHERE f.created_at >= :dat1 AND f.created_at < :dat2
             AND (:regionCode::VARCHAR IS NULL OR o.state_code = :regionCode::VARCHAR)
+            AND (:districtCode::VARCHAR IS NULL OR o.city_code = :districtCode::VARCHAR)
             AND (:mkb10Code::VARCHAR  IS NULL OR f.final_mkb10code = :mkb10Code::VARCHAR)
         ),
         aggregated AS (
