@@ -15,6 +15,19 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776690393547-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+              <columnExists
+                tableName="act153"
+                columnName="delivered_date"/>
+              <not>
+                  <columnExists
+                    tableName="act153"
+                    columnName="delivered_date_time"/>
+              </not>
+            </and>
+        </preConditions>
+
         <sql>
             ALTER TABLE act153
                 RENAME COLUMN delivered_date TO delivered_date_time;
@@ -26,6 +39,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776693433121-1">
+      <preConditions onFail="MARK_RAN">
+        <and>
+          <columnExists
+            tableName="act153"
+            columnName="position_id"/>
+          <not>
+            <columnExists
+              tableName="act153"
+              columnName="sampler_position_id"/>
+          </not>
+        </and>
+      </preConditions>
         <sql>
             ALTER TABLE act153
                 RENAME COLUMN position_id TO sampler_position_id;
@@ -33,6 +58,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776693520611-1">
+      <preConditions onFail="MARK_RAN">
+        <and>
+          <columnExists
+            tableName="act153"
+            columnName="position"/>
+          <not>
+            <columnExists
+              tableName="act153"
+              columnName="sampler_position_uz"/>
+          </not>
+        </and>
+      </preConditions>
         <sql>
             ALTER TABLE act153
                 RENAME COLUMN position TO sampler_position_uz;
@@ -51,6 +88,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776693655229-1">
+      <preConditions onFail="MARK_RAN">
+        <and>
+          <columnExists
+            tableName="act153"
+            columnName="participant_position"/>
+          <not>
+            <columnExists
+              tableName="act153"
+              columnName="participant_position_uz"/>
+          </not>
+        </and>
+      </preConditions>
         <sql>
             ALTER TABLE act153
                 RENAME COLUMN participant_position TO participant_position_uz;

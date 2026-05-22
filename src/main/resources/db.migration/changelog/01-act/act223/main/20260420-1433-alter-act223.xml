@@ -25,6 +25,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776693433121-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act223"
+                  columnName="full_nameof_sampler"/>
+                <not>
+                    <columnExists
+                      tableName="act223"
+                      columnName="sampler_full_name"/>
+                </not>
+            </and>
+        </preConditions>
         <sql>
             ALTER TABLE act223
                 RENAME COLUMN full_nameof_sampler TO sampler_full_name;
@@ -32,6 +44,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776694543207-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act223"
+                  columnName="position_id"/>
+                <not>
+                    <columnExists
+                      tableName="act223"
+                      columnName="sampler_position_id"/>
+                </not>
+            </and>
+        </preConditions>
         <sql>
             ALTER TABLE act223
                 RENAME COLUMN position_id TO sampler_position_id;
@@ -39,6 +63,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776694584807-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act223"
+                  columnName="position_of_sampler"/>
+                <not>
+                    <columnExists
+                      tableName="act223"
+                      columnName="sampler_position_uz"/>
+                </not>
+            </and>
+        </preConditions>
         <sql>
             ALTER TABLE act223
                 RENAME COLUMN position_of_sampler TO sampler_position_uz;
@@ -57,6 +93,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776694673238-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act223"
+                  columnName="full_name_of_participant"/>
+                <not>
+                    <columnExists
+                      tableName="act223"
+                      columnName="participant_full_name"/>
+                </not>
+            </and>
+        </preConditions>
         <sql>
             ALTER TABLE act223
                 RENAME COLUMN full_name_of_participant TO participant_full_name;
@@ -64,6 +112,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776694801007-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act223"
+                  columnName="sample_taken_date"/>
+                <not>
+                    <columnExists
+                      tableName="act223"
+                      columnName="sample_taken_date_time"/>
+                </not>
+            </and>
+        </preConditions>
         <sql>
             ALTER TABLE act223
                 RENAME COLUMN sample_taken_date TO sample_taken_date_time;
@@ -82,6 +142,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776695008772-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act223"
+                  columnName="position_of_participant"/>
+                <not>
+                    <columnExists
+                      tableName="act223"
+                      columnName="participant_position_uz"/>
+                </not>
+            </and>
+        </preConditions>
         <sql>
             ALTER TABLE act223
                 RENAME COLUMN position_of_participant TO participant_position_uz;

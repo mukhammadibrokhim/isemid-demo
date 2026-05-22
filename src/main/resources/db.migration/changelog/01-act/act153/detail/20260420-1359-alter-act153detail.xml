@@ -48,6 +48,20 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776675712227-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+
+            <columnExists
+              tableName="act153_detail"
+              columnName="sampling_purpose"/>
+            <not>
+                <columnExists
+                  tableName="act153_detail"
+                  columnName="sampling_purpose_uz"/>
+            </not>
+
+            </and>
+        </preConditions>
         <sql>
             ALTER TABLE act153_detail
                 RENAME COLUMN sampling_purpose TO sampling_purpose_uz;
@@ -66,6 +80,20 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776697383498-1">
+        <preConditions onFail="MARK_RAN">
+          <and>
+
+            <columnExists
+              tableName="act153_detail"
+              columnName="sample_type"/>
+            <not>
+                <columnExists
+                  tableName="act153_detail"
+                  columnName="sample_type_uz"/>
+            </not>
+          </and>
+
+        </preConditions>
         <sql>
             ALTER TABLE act153_detail
                 RENAME COLUMN sample_type TO sample_type_uz;
@@ -84,6 +112,19 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776697485023-1">
+        <preConditions onFail="MARK_RAN">
+          <and>
+
+            <columnExists
+              tableName="act153_detail"
+              columnName="sampling_date"/>
+            <not>
+                <columnExists
+                  tableName="act153_detail"
+                  columnName="sampling_date_time"/>
+            </not>
+          </and>
+        </preConditions>
         <sql>
             ALTER TABLE act153_detail
                 RENAME COLUMN sampling_date TO sampling_date_time;
@@ -91,6 +132,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776697520974-1">
+        <preConditions onFail="MARK_RAN">
+          <and>
+            <columnExists
+              tableName="act153_detail"
+              columnName="special_sampling_conditions"/>
+            <not>
+                <columnExists
+                  tableName="act153_detail"
+                  columnName="special_sampling_conditions_uz"/>
+            </not>
+          </and>
+        </preConditions>
         <sql>
             ALTER TABLE act153_detail
                 RENAME COLUMN special_sampling_conditions TO special_sampling_conditions_uz;
@@ -109,6 +162,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776697574960-1">
+        <preConditions onFail="MARK_RAN">
+          <and>
+            <columnExists
+              tableName="act153_detail"
+              columnName="delivery_conditions"/>
+            <not>
+                <columnExists
+                  tableName="act153_detail"
+                  columnName="delivery_conditions_uz"/>
+            </not>
+          </and>
+        </preConditions>
         <sql>
             ALTER TABLE act153_detail
                 RENAME COLUMN delivery_conditions TO delivery_conditions_uz;
@@ -127,6 +192,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776697638594-1">
+        <preConditions onFail="MARK_RAN">
+          <and>
+            <columnExists
+              tableName="act153_detail"
+              columnName="storage_conditions"/>
+            <not>
+                <columnExists
+                  tableName="act153_detail"
+                  columnName="storage_conditions_uz"/>
+            </not>
+          </and>
+        </preConditions>
         <sql>
             ALTER TABLE act153_detail
                 RENAME COLUMN storage_conditions TO storage_conditions_uz;
@@ -145,6 +222,18 @@
     </changeSet>
 
     <changeSet author="uzinfocom (generated)" id="1776697692741-1">
+        <preConditions onFail="MARK_RAN">
+          <and>
+            <columnExists
+              tableName="act153_detail"
+              columnName="conservation_methods"/>
+            <not>
+                <columnExists
+                  tableName="act153_detail"
+                  columnName="conservation_methods_uz"/>
+            </not>
+          </and>
+        </preConditions>
         <sql>
             ALTER TABLE act153_detail
                 RENAME COLUMN conservation_methods TO conservation_methods_uz;
