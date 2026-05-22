@@ -7,7 +7,16 @@
 
     <changeSet author="uzinfocom (generated)" id="1778238878316-1">
         <preConditions onFail="MARK_RAN">
-            <columnExists columnName="sample_weight_unit" tableName="act154_detail"/>
+            <and>
+                <columnExists
+                  tableName="act154_detail"
+                  columnName="sample_weight_unit"/>
+                <not>
+                    <columnExists
+                      tableName="act154_detail"
+                      columnName="sample_qt_unit"/>
+                </not>
+            </and>
         </preConditions>
         <renameColumn tableName="act154_detail"
           oldColumnName="sample_weight_unit"
