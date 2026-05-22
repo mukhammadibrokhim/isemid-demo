@@ -212,6 +212,10 @@ public class Form058Specification {
                 predicates.add(cb.equal(root.get("finalMkb10Code"), filterRequest.mkb10Code()));
             }
 
+            if (hasText(filterRequest.source())) {
+                predicates.add(cb.equal(root.get("source"), filterRequest.source().trim()));
+            }
+
             if (hasText(filterRequest.patientDocValue())) {
                 assert query != null;
                 Subquery<Long> identifierExistsSubquery = query.subquery(Long.class);
