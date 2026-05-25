@@ -19,4 +19,12 @@ public interface Act223Mapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void update(@MappingTarget Act223 entity, Act223Request dto);
+
+    @AfterMapping
+    default void normalize(
+        @MappingTarget Act223 entity) {
+        if (entity.getInstitution() != null) {
+            entity.getInstitution().normalize();
+        }
+    }
 }
