@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.act.mappers.act153;
 import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act153.Act153Request;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act153.Act153Response;
+import uz.uzinfocom.isemid.features.act.mappers.GenericActMapper;
 import uz.uzinfocom.isemid.features.act.models.act153.Act153;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 
@@ -10,7 +11,7 @@ import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelpe
         componentModel = "spring",
         uses = {Act153DetailMapper.class, OrganizationMapperHelper.class}
 )
-public interface Act153Mapper {
+public interface Act153Mapper extends GenericActMapper {
 
     @Mapping(target = "id", source = "act.id")
     @Mapping(target = "uuid", source = "act.uuid")

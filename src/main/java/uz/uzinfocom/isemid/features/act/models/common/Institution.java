@@ -31,4 +31,19 @@ public class Institution {
   private String institutionAddress;
 
   private String institutionLegalAddress;
+
+  /**
+   *  Removes Institution fields that are not applicable
+   *  for the current SubjectType.
+   */
+  public void normalize() {
+    if (subjectType == null) {
+      return;
+    }
+    if(subjectType!=SubjectType.LEGAL_ENTITY){
+      tin = null;
+      institutionName = null;
+      institutionLegalAddress = null;
+    }
+  }
 }
