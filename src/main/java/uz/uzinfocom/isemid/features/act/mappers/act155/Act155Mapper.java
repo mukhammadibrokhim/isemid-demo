@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.act.mappers.act155;
 import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act155.Act155Request;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act155.Act155Response;
+import uz.uzinfocom.isemid.features.act.mappers.GenericActMapper;
 import uz.uzinfocom.isemid.features.act.models.act155.Act155;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 
@@ -11,7 +12,7 @@ import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelpe
         componentModel = "spring",
         uses = {Act155DetailMapper.class, OrganizationMapperHelper.class}
 )
-public interface Act155Mapper {
+public interface Act155Mapper extends GenericActMapper {
 
     Act155 toEntity(Act155Request request);
 
