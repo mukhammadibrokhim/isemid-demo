@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -56,7 +55,6 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.create(form058Request, sourceHeader, currentUser)));
     }
 
-    @Transactional(readOnly = true)
     @GetMapping("/all")
     public PagedResponse<?> getAll(
             @ModelAttribute Form058FilterRequest filterRequest,
@@ -71,7 +69,6 @@ public class Form058Controller {
         return PagedResponse.build(filterRequest.page(), adapted, getRequestUrl(request), messageUtil);
     }
 
-    @Transactional(readOnly = true)
     @GetMapping("/received/all")
     public PagedResponse<?> getReceivedAll(
             @ModelAttribute Form058FilterRequest filterRequest,

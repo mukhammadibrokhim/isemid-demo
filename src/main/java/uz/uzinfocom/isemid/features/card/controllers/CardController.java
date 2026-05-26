@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -42,7 +41,6 @@ public class CardController {
 
     @Operation(summary = "Получить все карты с фильтрами", description = "Возвращает постраничный список карт с учетом необязательных фильтров, таких как код типа формы, названия организаций (отправителя и получателя) и статус карты.")
     @GetMapping("/all")
-    @Transactional(readOnly = true)
     public PagedResponse<CardResponse> allByFilter(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
@@ -61,7 +59,6 @@ public class CardController {
             description = "Если пользователь имеет роль isemid_epidim_head — возвращаются все карты, назначенные на его организацию. "
                     + "Если роль отсутствует — возвращаются только карты, назначенные текущему пользователю.")
     @GetMapping("/assigned")
-    @Transactional(readOnly = true)
     public PagedResponse<?> getAssignedCards(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,
