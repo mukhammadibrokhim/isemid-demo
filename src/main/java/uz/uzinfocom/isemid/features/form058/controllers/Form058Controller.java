@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -32,7 +33,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.Form058.ROOT)
@@ -55,6 +56,7 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.create(form058Request, sourceHeader, currentUser)));
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/all")
     public PagedResponse<?> getAll(
             @ModelAttribute Form058FilterRequest filterRequest,
@@ -69,6 +71,7 @@ public class Form058Controller {
         return PagedResponse.build(filterRequest.page(), adapted, getRequestUrl(request), messageUtil);
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/received/all")
     public PagedResponse<?> getReceivedAll(
             @ModelAttribute Form058FilterRequest filterRequest,
@@ -82,53 +85,6 @@ public class Form058Controller {
         });
         return PagedResponse.build(filterRequest.page(), adapted, getRequestUrl(request), messageUtil);
     }
-
-//    @Operation(summary = "Получение всех форм 058", description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате.")
-//    @GetMapping("/all")
-//    public PagedResponse<?> getAll(
-//            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
-//            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-//            @RequestParam(required = false) LocalDate fromDate,
-//            @RequestParam(required = false) LocalDate toDate,
-//            @RequestParam(required = false) String stateCode,
-//            @RequestParam(required = false) String cityCode,
-//            @RequestParam(required = false) String mkb10Code,
-//            @RequestParam(required = false) Long organizationId,
-//            @RequestParam(required = false) String patientDocValue,
-//            @CurrentUser User user,
-//            HttpServletRequest request
-//    ) {
-//        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, null, mkb10Code, organizationId,patientDocValue, user, FilterType.ALL);
-//        Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
-//            Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
-//            return formAdapter.adapt(base, form, FilterType.ALL);
-//        });
-//        return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
-//    }
-//
-//    @Operation(summary = "Получение всех полученных форм 058", description = "Возвращает постраничный список всех форм 058, которые были получены, с возможностью фильтрации по дате.")
-//    @GetMapping("/received/all")
-//    public PagedResponse<?> getReceivedAll(
-//            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
-//            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-//            @RequestParam(required = false) LocalDate fromDate,
-//            @RequestParam(required = false) LocalDate toDate,
-//            @RequestParam(required = false) String stateCode,
-//            @RequestParam(required = false) String cityCode,
-//            @RequestParam(required = false) Boolean affiliation,
-//            @RequestParam(required = false) String mkb10Code,
-//            @RequestParam(required = false) Long organizationId,
-//            @RequestParam(required = false) String patientDocValue,
-//            @CurrentUser User user,
-//            HttpServletRequest request
-//    ) {
-//        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, patientDocValue, user, FilterType.RECEIVER);
-//        Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
-//            Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
-//            return formAdapter.adapt(base, form, FilterType.RECEIVER);
-//        });
-//        return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
-//    }
 
     @GetMapping("/by-nnuzb")
     public PagedResponse<?> getByNnuzb(

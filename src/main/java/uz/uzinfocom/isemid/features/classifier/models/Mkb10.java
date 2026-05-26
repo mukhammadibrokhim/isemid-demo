@@ -2,7 +2,6 @@ package uz.uzinfocom.isemid.features.classifier.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -70,12 +69,6 @@ public class Mkb10 {
     @OneToMany(mappedBy = "parentId")
     @JsonIgnore
     private List<Mkb10> children = new ArrayList<>();
-
-    @Transient
-    @JsonProperty("childrenValue")
-    public int getChildrenValue() {
-        return (children != null) ? children.size() : 0;
-    }
 
     @PrePersist
     @JsonIgnore

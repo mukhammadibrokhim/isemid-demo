@@ -13,12 +13,12 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
 import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
 import uz.uzinfocom.isemid.features.user.models.User;
+import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.util.UUID;
@@ -26,7 +26,7 @@ import java.util.UUID;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.User.ROOT)
