@@ -51,7 +51,7 @@
          Application File Appender
          ========================================================= -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOGS_HOME}/${APP_NAME}-app.log</file>
+        <file>${LOGS_HOME}/${APP_NAME}_app.log</file>
         <append>true</append>
         <prudent>false</prudent>
 
@@ -87,7 +87,7 @@
          Audit events are stored separately from application logs.
          ========================================================= -->
     <appender name="FILE_AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOGS_HOME}/${APP_NAME}-audit.log</file>
+        <file>${LOGS_HOME}/${APP_NAME}_audit.log</file>
         <append>true</append>
         <prudent>false</prudent>
 
