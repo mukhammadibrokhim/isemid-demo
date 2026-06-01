@@ -10,196 +10,290 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.Form4_9ReportDto;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class Form4_9ReportHelper {
 
+    private static final String UNKNOWN_ORGANIZATION_NAME = "NOMA’LUM TASHKILOT";
+
     private final CatalogService catalogService;
 
-    // ===============================
-    // GENERAL ENTRY POINTS
-    // ===============================
     public Object buildByParentCode(String parentCode, List<Form058> forms) {
+        Catalog parent = catalogService.findByCode(parentCode);
 
-        List<Catalog> children = catalogService.findAllByParentCode(parentCode);
-
-        boolean hasCityLevelChildren = children.stream()
-                .map(Catalog::getType)
-                .anyMatch(t -> t.equals(CatalogType.neighborhood.name()));
-
-        if (hasCityLevelChildren) {
-            return buildOrganizations(parentCode, forms);
+        if (parent == null || !hasText(parent.getType())) {
+            return buildRegionReports(forms);
         }
 
-        List<Form4_9ReportDto> result = new ArrayList<>();
+        CatalogType type = resolveCatalogType(parent.getType());
 
-        for (Catalog child : children) {
-            String code = safe(child.getCode());
-            String name = getDisplay(child);
-            List<Form058> filtered = filter(forms, code);
-
-            result.add(buildReport(name, filtered));
+        if (type == null) {
+            return buildRegionReports(forms);
         }
 
-        return result;
+        return switch (type) {
+            case state -> buildDistrictReports(parentCode, forms);
+            case city -> buildOrganizations(parentCode, forms);
+            default -> buildRegionReports(forms);
+        };
     }
-
 
     public Object buildRegionReports(List<Form058> forms) {
-
         List<Catalog> regions = catalogService.findAllByType(CatalogType.state);
+        List<Catalog> categories = loadCategories();
 
-        return regions.stream()
-                .map(region -> {
-                    String code = region.getCode();
-                    List<Form058> regionForms = filter(forms, code);
+        List<Form4_9ReportDto> result = new ArrayList<>();
 
-                    return buildReport(getDisplay(region), regionForms);
-                })
-                .toList();
+        for (Catalog region : regions) {
+            String regionCode = normalizeCode(region.getCode());
+            String regionName = getDisplay(region);
+
+            List<Form058> regionForms = filterByLocation(forms, regionCode);
+
+            result.add(buildReport(regionName, regionForms, categories));
+        }
+
+        return result;
     }
-
 
     public Object buildDistrictReports(String stateCode, List<Form058> forms) {
-
         List<Catalog> districts = catalogService.findAllByParentCode(stateCode);
+        List<Catalog> categories = loadCategories();
+
         List<Form4_9ReportDto> result = new ArrayList<>();
 
-        for (Catalog dist : districts) {
+        for (Catalog district : districts) {
+            String districtCode = normalizeCode(district.getCode());
+            String districtName = getDisplay(district);
 
-            String code = safe(dist.getCode());
-            String name = getDisplay(dist);
+            List<Form058> districtForms = filterByLocation(forms, districtCode);
 
-            List<Form058> districtForms = forms.stream()
-                    .filter(f -> f.getCreatedOrg() != null)
-                    .filter(f -> {
-                        String city = safe(f.getCreatedOrg().getCityCode());
-                        String state = safe(f.getCreatedOrg().getStateCode());
-
-                        return
-                                code.equals(city) ||
-                                city.startsWith(code) ||
-                                (city.isBlank() && state.equals(stateCode));
-                    })
-                    .toList();
-
-            result.add(buildReport(name, districtForms));
+            result.add(buildReport(districtName, districtForms, categories));
         }
 
         return result;
     }
 
+    public Object buildOrganizations(String cityCode, List<Form058> forms) {
+        List<Catalog> categories = loadCategories();
 
-    public Object buildOrganizations(String districtCode, List<Form058> forms) {
+        List<Form058> cityForms = filterByLocation(forms, cityCode);
 
-        Set<String> orgCodes = forms.stream()
-                .map(f -> safe(f.getCreatedOrg()).getCityCode())
-                .filter(Objects::nonNull)
-                .filter(c -> c.startsWith(districtCode))
-                .collect(Collectors.toSet());
-
-        List<Form4_9ReportDto> result = new ArrayList<>();
-
-        for (String code : orgCodes) {
-            List<Form058> orgForms = filter(forms, code);
-
-            String name = orgForms.isEmpty()
-                    ? code
-                    : safe(orgForms.getFirst().getCreatedOrg()).getName();
-
-            result.add(buildReport(name, orgForms));
-        }
-
-        return result;
-    }
-
-    // ===============================
-    // REPORT BUILDER FOR FORM 4_9
-    // ===============================
-    private Form4_9ReportDto buildReport(String name, List<Form058> forms) {
-
-        Map<String, Long> stats = countByCategory(forms);
-
-        return Form4_9ReportDto.builder()
-                .name(name)
-                .unorganized(stats.getOrDefault("NO_ORGANIZED", 0L))
-                .organized(stats.getOrDefault("ORGANIZED", 0L))
-                .pupils(stats.getOrDefault("STUDENT_SCHOOL", 0L))
-                .secondaryInstitutions(stats.getOrDefault("MIDDLE_STUDENT", 0L))
-                .institutions(stats.getOrDefault("STUDENT", 0L))
-                .employee(stats.getOrDefault("WORKER", 0L))
-                .medEmployee(stats.getOrDefault("MEDICAL_WORKER", 0L))
-                .unEmployee(stats.getOrDefault("NOT_EMPLOYED", 0L))
-                .pensioners(stats.getOrDefault("PENSIONER", 0L))
-                .homelessPeople(stats.getOrDefault("UNSHELTRED", 0L))
-                .total(stats.getOrDefault("TOTAL", 0L))
-                .staff(stats.getOrDefault("STAFF", 0L))
-                .build();
-    }
-
-    private Map<String, Long> countByCategory(List<Form058> forms) {
-        return forms.stream()
-                .filter(f -> f.getPatient() != null)
+        Map<String, List<Form058>> formsByOrganization = cityForms.stream()
+                .filter(form -> form.getCreatedOrg() != null)
                 .collect(Collectors.groupingBy(
-                        f -> f.getPatient().getCategoryCode(),
-                        Collectors.counting()
+                        form -> resolveOrganizationKey(form.getCreatedOrg()),
+                        LinkedHashMap::new,
+                        Collectors.toList()
                 ));
-    }
 
+        return formsByOrganization.values()
+                .stream()
+                .map(organizationForms -> {
 
+                    String organizationName = organizationForms.stream()
+                            .map(Form058::getCreatedOrg)
+                            .filter(Objects::nonNull)
+                            .map(Organization::getName)
+                            .filter(this::hasText)
+                            .findFirst()
+                            .orElse(UNKNOWN_ORGANIZATION_NAME);
 
-
-    // ===============================
-    // FILTERS (COPY FROM FORM-13)
-    // ===============================
-    private List<Form058> filter(List<Form058> forms, String locationCode) {
-
-        if (locationCode == null || locationCode.isBlank()) return List.of();
-
-        String normalized = safe(locationCode);
-
-        return forms.stream()
-                .filter(f -> f.getCreatedOrg() != null)
-                .filter(f -> isLocationMatch(f.getCreatedOrg(), normalized))
+                    return buildReport(
+                            organizationName,
+                            organizationForms,
+                            categories
+                    );
+                })
+                .sorted(Comparator.comparing(Form4_9ReportDto::getName))
                 .toList();
     }
 
-    private boolean isLocationMatch(Organization org, String code) {
+    private Form4_9ReportDto buildReport(
+            String name,
+            List<Form058> forms,
+            List<Catalog> categories
+    ) {
+        Map<String, Long> stats = forms.stream()
+                .filter(form -> form.getPatient() != null)
+                .map(form -> form.getPatient().getCategoryCode())
+                .filter(this::hasText)
+                .map(this::normalizeCode)
+                .collect(Collectors.groupingBy(
+                        code -> code,
+                        Collectors.counting()
+                ));
 
-        String state = safe(org.getStateCode());
-        String city = safe(org.getCityCode());
+        Form4_9ReportDto dto = Form4_9ReportDto.builder()
+                .name(name)
+                .build();
 
-        if (code.equals(state)) return true;
-        if (code.equals(city)) return true;
+        /*
+         * Category code faqat catalogdan olinadi.
+         * Bu yerda Java ichida "PENSIONER", "WORKER" deb count qilinmaydi.
+         */
+        for (Catalog category : categories) {
+            String categoryCode = normalizeCode(category.getCode());
 
-        return !city.isBlank() && city.startsWith(code);
+            if (!hasText(categoryCode)) {
+                continue;
+            }
+
+            long count = stats.getOrDefault(categoryCode, 0L);
+
+            applyCategoryToDto(dto, categoryCode, count);
+        }
+
+        dto.setTotal(
+                dto.getUnorganized()
+                        + dto.getOrganized()
+                        + dto.getPupils()
+                        + dto.getSecondaryInstitutions()
+                        + dto.getInstitutions()
+                        + dto.getEmployee()
+                        + dto.getMedEmployee()
+                        + dto.getUnEmployee()
+                        + dto.getPensioners()
+                        + dto.getHomelessPeople()
+                        + dto.getStaff()
+        );
+
+        return dto;
     }
 
-    private String getDisplay(Catalog c) {
+    private List<Catalog> loadCategories() {
+        return catalogService.findAllByType(CatalogType.category)
+                .stream()
+                .filter(category -> hasText(category.getCode()))
+                .toList();
+    }
+
+    private void applyCategoryToDto(
+            Form4_9ReportDto dto,
+            String categoryCode,
+            long count
+    ) {
+        switch (categoryCode) {
+            case "NO_ORGANIZED" -> dto.setUnorganized(dto.getUnorganized() + count);
+            case "ORGANIZED" -> dto.setOrganized(dto.getOrganized() + count);
+            case "STUDENT_SCHOOL" -> dto.setPupils(dto.getPupils() + count);
+            case "MIDDLE_STUDENT" -> dto.setSecondaryInstitutions(dto.getSecondaryInstitutions() + count);
+            case "STUDENT" -> dto.setInstitutions(dto.getInstitutions() + count);
+            case "WORKER" -> dto.setEmployee(dto.getEmployee() + count);
+            case "MEDICAL_WORKER" -> dto.setMedEmployee(dto.getMedEmployee() + count);
+            case "NOT_EMPLOYED" -> dto.setUnEmployee(dto.getUnEmployee() + count);
+            case "PENSIONER" -> dto.setPensioners(dto.getPensioners() + count);
+            case "UNSHELTRED" -> dto.setHomelessPeople(dto.getHomelessPeople() + count);
+
+            /*
+             * DTO da SEREVANTS va TEACHER uchun alohida field yo‘q.
+             * Shuning uchun ikkalasi staff ga qo‘shiladi.
+             */
+            case "SEREVANTS", "TEACHER" -> dto.setStaff(dto.getStaff() + count);
+
+            default -> {
+                // DTO da bu category uchun alohida field yo‘q.
+            }
+        }
+    }
+
+    private List<Form058> filterByLocation(List<Form058> forms, String locationCode) {
+        if (!hasText(locationCode)) {
+            return List.of();
+        }
+
+        String code = normalizeCode(locationCode);
+
+        return forms.stream()
+                .filter(form -> form.getCreatedOrg() != null)
+                .filter(form -> isLocationMatch(form.getCreatedOrg(), code))
+                .toList();
+    }
+
+    private boolean isLocationMatch(Organization organization, String code) {
+        if (organization == null || !hasText(code)) {
+            return false;
+        }
+
+        String stateCode = normalizeCode(organization.getStateCode());
+        String cityCode = normalizeCode(organization.getCityCode());
+
+        if (code.equals(stateCode)) {
+            return true;
+        }
+
+        if (code.equals(cityCode)) {
+            return true;
+        }
+
+        return hasText(cityCode) && cityCode.startsWith(code);
+    }
+
+    private String resolveOrganizationKey(Organization organization) {
+        if (organization == null) {
+            return UNKNOWN_ORGANIZATION_NAME;
+        }
+
+        if (organization.getId() != null) {
+            return String.valueOf(organization.getId());
+        }
+
+        if (hasText(organization.getName())) {
+            return organization.getName().trim();
+        }
+
+        return UNKNOWN_ORGANIZATION_NAME;
+    }
+
+    private CatalogType resolveCatalogType(String type) {
+        try {
+            return CatalogType.valueOf(type.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String getDisplay(Catalog catalog) {
+        if (catalog == null) {
+            return "-";
+        }
+
         Locale locale = LocaleContextHolder.getLocale();
         String lang = locale.getLanguage();
-        String script = locale.getScript(); // uz-Cyrl uchun
+        String script = locale.getScript();
 
         String value = null;
 
         if ("uz".equals(lang) && "Cyrl".equalsIgnoreCase(script)) {
-            value = c.getNameUzCyril();
+            value = catalog.getNameUzCyril();
         } else if ("uz".equals(lang)) {
-            value = c.getNameUz();
+            value = catalog.getNameUz();
         } else if ("ru".equals(lang)) {
-            value = c.getNameRu();
+            value = catalog.getNameRu();
         } else if ("kaa".equals(lang)) {
-            value = c.getNameKaa();
+            value = catalog.getNameKaa();
         }
 
         return Optional.ofNullable(value)
-                .filter(s -> !s.isBlank())
+                .filter(this::hasText)
                 .orElse("-");
     }
 
-    private String safe(String v) { return v == null ? "" : v.trim(); }
-    private <T> T safe(T v) { return Objects.requireNonNullElse(v, null); }
+    private String normalizeCode(String code) {
+        return code == null ? "" : code.trim().toUpperCase();
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
 }
