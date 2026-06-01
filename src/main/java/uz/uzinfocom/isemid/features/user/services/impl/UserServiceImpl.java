@@ -8,8 +8,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
+import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
@@ -22,6 +22,7 @@ import uz.uzinfocom.isemid.features.user.services.RoleService;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 import uz.uzinfocom.isemid.features.user.specifications.UserSpecification;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -40,6 +41,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserMapper userMapper;
     private final MessageUtil messageUtil;
     private final RoleService roleService;
+    private final IntegrationUrlFactory integrationUrlFactory;
 
     @Override
     public UserDetails loadUserByUsername(String nnuzb) throws UsernameNotFoundException {
@@ -59,7 +61,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User fetchUserFromMisAndSave(UUID uuid, String token, List<Organization> organizations, Set<Role> roles) {
-        MisUserResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, MisUserResponse.class, messageUtil);
+        URI uri = integrationUrlFactory.practitionerUrl(uuid.toString());
+        MisUserResponse response = makeRequest(String.valueOf(uri), GET, token, null, MisUserResponse.class, messageUtil);
         User user = convertToUser(response, organizations, roles);
         return userRepository.saveAndFlush(user);
     }
@@ -79,7 +82,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User updateUserFromMis(UUID uuid, String token) {
         User exustingUser = userRepository.findByUuid(uuid).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
-        MisUserResponse response = makeRequest(String.format(ApiPaths.ExternalApi.PRACTITIONER, uuid), GET, token, null, MisUserResponse.class, messageUtil);
+        URI uri = integrationUrlFactory.practitionerUrl(uuid.toString());
+        MisUserResponse response = makeRequest(String.valueOf(uri), GET, token, null, MisUserResponse.class, messageUtil);
         userMapper.updateFromMis(exustingUser, response);
         return userRepository.save(exustingUser);
     }

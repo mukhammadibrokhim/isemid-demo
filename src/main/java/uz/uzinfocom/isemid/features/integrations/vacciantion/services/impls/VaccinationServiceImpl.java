@@ -7,12 +7,13 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.constants.ApiPaths;
+import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.dtos.response.VaccinationApiResponse;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.dtos.response.VaccinationResponse;
 import uz.uzinfocom.isemid.features.integrations.vacciantion.services.VaccinationService;
 
+import java.net.URI;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -26,6 +27,7 @@ import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.
 @RequiredArgsConstructor
 public class VaccinationServiceImpl implements VaccinationService {
     private final MessageUtil messageUtil;
+    private final IntegrationUrlFactory integrationUrlFactory;
 
     @Override
     public Object getVaccinationByNnuzbLast(String nnuzb) {
@@ -33,8 +35,8 @@ public class VaccinationServiceImpl implements VaccinationService {
         log.info("Fetching latest vaccination data for NNUZB: {}", masked);
 
         validateByNnuzb(nnuzb,messageUtil);
-
-        String resp = makeRequest(String.format(ApiPaths.ExternalApi.VACCINATION_NNUZB, nnuzb), HttpMethod.GET, null, null, String.class, messageUtil);
+        URI uri = integrationUrlFactory.vaccinationUrl(nnuzb);
+        String resp = makeRequest(String.valueOf(uri), HttpMethod.GET, null, null, String.class, messageUtil);
         log.debug("Raw response received for {}: {}", masked, resp);
 
         List<VaccinationResponse> mapped = mapping(resp);

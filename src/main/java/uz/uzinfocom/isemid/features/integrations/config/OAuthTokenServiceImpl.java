@@ -8,22 +8,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.features.security.dtos.responses.TokenResponse;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
-import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.SSO_TOKEN;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class OAuthTokenServiceImpl implements OAuthTokenService {
-    private static final String TOKEN_URL = SSO_TOKEN;
     private static final String CLIENT_ID = "94f83670-f841-4ec5-a593-72d2873f054b";
     private static final String CLIENT_SECRET = "IAIkBdrmSVPWPH5vtvihY4vOfLW3V19oDEC9wHIs";
     private static final String USERNAME = "test-odiljon";
     private static final String PASSWORD = "test-odiljon";
+    private final IntegrationUrlFactory integrationUrlFactory;
 
     private static String accessToken;
     private static long tokenExpiryTime = 0;
@@ -41,6 +41,7 @@ public class OAuthTokenServiceImpl implements OAuthTokenService {
 
     private synchronized void refreshToken() {
         try {
+            URI uri = integrationUrlFactory.ssoTokenUrl();
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -57,7 +58,7 @@ public class OAuthTokenServiceImpl implements OAuthTokenService {
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
             ResponseEntity<TokenResponse> response = restTemplate.exchange(
-                    TOKEN_URL, HttpMethod.POST, request, TokenResponse.class
+                    uri, HttpMethod.POST, request, TokenResponse.class
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {

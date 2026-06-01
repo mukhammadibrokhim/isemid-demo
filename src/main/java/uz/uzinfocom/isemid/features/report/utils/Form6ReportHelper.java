@@ -14,18 +14,22 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class Form6ReportHelper {
+
+    private static final String UNKNOWN_ORGANIZATION_NAME = "NOMA’LUM TASHKILOT";
+
     private final CatalogService catalogService;
     private final MessageUtil messageUtil;
 
     public Object buildByParentCode(String parentCode, List<Form058> forms) {
-
         Catalog catalog = catalogService.findByCode(parentCode);
 
         if (catalog == null) {
@@ -41,133 +45,75 @@ public class Form6ReportHelper {
         };
     }
 
-
     public Object buildRegionReports(List<Form058> forms) {
         List<Catalog> regions = catalogService.findAllByType(CatalogType.state);
-
         List<Form6ReportDto> result = new ArrayList<>();
 
         for (Catalog region : regions) {
-
             String regionCode = region.getCode();
             String regionName = CatalogLocaleUtil.displayName(region);
 
             List<Form058> regionForms = forms.stream()
-                    .filter(f -> f.getCreatedOrg() != null
-                            && regionCode.equals(f.getCreatedOrg().getStateCode()))
+                    .filter(f -> f.getCreatedOrg() != null)
+                    .filter(f -> regionCode.equals(f.getCreatedOrg().getStateCode()))
                     .toList();
 
-            Form6ReportDto dto = buildSingle(regionCode, regionName, regionForms);
-
-            result.add(dto);
+            result.add(buildSingle(regionCode, regionName, regionForms));
         }
 
         return result;
     }
 
     public Object buildDistrictReports(String stateCode, List<Form058> forms) {
-
-        List<Catalog> districts =
-                catalogService.findAllByParentCode(stateCode);
-
+        List<Catalog> districts = catalogService.findAllByParentCode(stateCode);
         List<Form6ReportDto> result = new ArrayList<>();
 
         for (Catalog district : districts) {
-
             String districtCode = district.getCode();
             String districtName = CatalogLocaleUtil.displayName(district);
 
             List<Form058> districtForms = forms.stream()
-                    .filter(f ->
-                            f.getCreatedOrg() != null &&
-                                    districtCode.equals(f.getCreatedOrg().getCityCode())
-                    )
+                    .filter(f -> f.getCreatedOrg() != null)
+                    .filter(f -> districtCode.equals(f.getCreatedOrg().getCityCode()))
                     .toList();
 
-            Form6ReportDto dto = buildSingle(districtCode, districtName, districtForms);
-
-            result.add(dto);
+            result.add(buildSingle(districtCode, districtName, districtForms));
         }
 
         return result;
     }
 
     public Object buildOrganizations(String cityCode, List<Form058> forms) {
+        List<Form058> cityForms = forms.stream()
+                .filter(f -> f.getCreatedOrg() != null)
+                .filter(f -> cityCode.equals(f.getCreatedOrg().getCityCode()))
+                .toList();
 
-        Set<String> orgCodes = forms.stream()
-                .filter(f -> f.getCreatedOrg() != null &&
-                        cityCode.equals(f.getCreatedOrg().getCityCode()))
-                .map(f -> f.getCreatedOrg().getCityCode())
-                .collect(Collectors.toSet());
+        Map<Long, List<Form058>> formsByOrganization = cityForms.stream()
+                .filter(f -> f.getCreatedOrg().getId() != null)
+                .collect(Collectors.groupingBy(f -> f.getCreatedOrg().getId()));
 
-        List<Form6ReportDto> result = new ArrayList<>();
+        return formsByOrganization.entrySet()
+                .stream()
+                .map(entry -> {
+                    Long organizationId = entry.getKey();
+                    List<Form058> organizationForms = entry.getValue();
 
-        for (String orgCode : orgCodes) {
+                    String organizationName = organizationForms.stream()
+                            .map(Form058::getCreatedOrg)
+                            .filter(Objects::nonNull)
+                            .map(org -> org.getName() != null ? org.getName() : UNKNOWN_ORGANIZATION_NAME)
+                            .findFirst()
+                            .orElse(UNKNOWN_ORGANIZATION_NAME);
 
-            String orgName = forms.stream()
-                    .filter(f -> f.getCreatedOrg() != null &&
-                            orgCode.equals(f.getCreatedOrg().getCityCode()))
-                    .map(f -> f.getCreatedOrg().getName())
-                    .findFirst()
-                    .orElse("NOMA’LUM TASHKILOT");
-
-            List<Form058> orgForms = forms.stream()
-                    .filter(f -> f.getCreatedOrg() != null &&
-                            orgCode.equals(f.getCreatedOrg().getCityCode()))
-                    .toList();
-
-            // Form6 hisob
-            Form6ReportDto dto = buildSingle(orgCode, orgName, orgForms);
-
-            result.add(dto);
-        }
-
-        return result;
-    }
-
-
-    private Form6ReportDto.AgeGroupRow buildAgeRow(
-            String name,
-            List<Form058> forms,
-            int minAge,
-            int maxAge
-    ) {
-
-        int prev = 0;
-        int curr = 0;
-
-        int prevYear = LocalDate.now().minusYears(1).getYear();
-        int currYear = LocalDate.now().getYear();
-
-        for (Form058 f : forms) {
-
-            if (f.getPatient() == null || f.getPatient().getBirthDate() == null) continue;
-
-            int age = calculateAge(f.getPatient().getBirthDate(), f.getCreatedAt());
-            if (age < 0) continue;
-
-            if (age < minAge || age > maxAge) continue;
-
-            int year = f.getDiseaseDate().getYear();
-
-            if (year == prevYear) prev++;
-            if (year == currYear) curr++;
-        }
-
-        return Form6ReportDto.AgeGroupRow.builder()
-                .ageGroupName(name)
-                .previousYear(prev)
-                .currentYear(curr)
-                .growth(curr - prev)
-                .build();
-    }
-
-    private int calculateAge(LocalDate birthDate, Timestamp atDate) {
-        if (birthDate == null || atDate == null) return -1;
-
-        LocalDate date = atDate.toLocalDateTime().toLocalDate();
-
-        return Period.between(birthDate, date).getYears();
+                    return buildSingle(
+                            String.valueOf(organizationId),
+                            organizationName,
+                            organizationForms
+                    );
+                })
+                .sorted(Comparator.comparing(Form6ReportDto::getLocationName))
+                .toList();
     }
 
     private Form6ReportDto buildSingle(
@@ -180,21 +126,37 @@ public class Form6ReportHelper {
 
         List<Form6ReportDto.AgeGroupRow> rows = new ArrayList<>();
 
-        rows.add(buildAgeRow(messageUtil.get("form6.age.0_1"), forms, 0, 1));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.1_2"), forms, 1, 2));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.3_5"), forms, 3, 5));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.6_14"), forms, 6, 14));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.15_17"), forms, 15, 17));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.0_17"), forms, 0, 17));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.19_25"), forms, 19, 25));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.26_40"), forms, 26, 40));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.41_55"), forms, 41, 55));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.56_70"), forms, 56, 70));
-        rows.add(buildAgeRow(messageUtil.get("form6.age.70_200"), forms, 70, 200));
+        List<AgeGroupSpec> ageGroups = List.of(
+                new AgeGroupSpec(messageUtil.get("form6.age.0_1"), 0, 0, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.1_2"), 1, 2, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.3_5"), 3, 5, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.6_14"), 6, 14, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.15_17"), 15, 17, true),
 
-        for (var r : rows) {
-            previousTotal += r.getPreviousYear();
-            currentTotal += r.getCurrentYear();
+                // Subtotal row. It must not be included in total again.
+                new AgeGroupSpec(messageUtil.get("form6.age.0_17"), 0, 17, false),
+
+                new AgeGroupSpec(messageUtil.get("form6.age.19_25"), 19, 25, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.26_40"), 26, 40, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.41_55"), 41, 55, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.56_70"), 56, 70, true),
+                new AgeGroupSpec(messageUtil.get("form6.age.70_200"), 71, 200, true)
+        );
+
+        for (AgeGroupSpec ageGroup : ageGroups) {
+            Form6ReportDto.AgeGroupRow row = buildAgeRow(
+                    ageGroup.name(),
+                    forms,
+                    ageGroup.minAge(),
+                    ageGroup.maxAge()
+            );
+
+            rows.add(row);
+
+            if (ageGroup.includeInTotal()) {
+                previousTotal += row.getPreviousYear();
+                currentTotal += row.getCurrentYear();
+            }
         }
 
         return Form6ReportDto.builder()
@@ -207,5 +169,82 @@ public class Form6ReportHelper {
                 .build();
     }
 
+    private Form6ReportDto.AgeGroupRow buildAgeRow(
+            String name,
+            List<Form058> forms,
+            int minAge,
+            int maxAge
+    ) {
+        int previousYearCount = 0;
+        int currentYearCount = 0;
 
+        int previousYear = LocalDate.now().minusYears(1).getYear();
+        int currentYear = LocalDate.now().getYear();
+
+        for (Form058 form : forms) {
+            if (form == null) {
+                continue;
+            }
+
+            if (form.getPatient() == null || form.getPatient().getBirthDate() == null) {
+                continue;
+            }
+
+            if (form.getCreatedAt() == null) {
+                continue;
+            }
+
+            LocalDate createdDate = toLocalDate(form.getCreatedAt());
+
+            int age = calculateAge(
+                    form.getPatient().getBirthDate(),
+                    createdDate
+            );
+
+            if (age < minAge || age > maxAge) {
+                continue;
+            }
+
+            int reportYear = createdDate.getYear();
+
+            if (reportYear == previousYear) {
+                previousYearCount++;
+            }
+
+            if (reportYear == currentYear) {
+                currentYearCount++;
+            }
+        }
+
+        return Form6ReportDto.AgeGroupRow.builder()
+                .ageGroupName(name)
+                .previousYear(previousYearCount)
+                .currentYear(currentYearCount)
+                .growth(currentYearCount - previousYearCount)
+                .build();
+    }
+
+    private int calculateAge(LocalDate birthDate, LocalDate reportDate) {
+        if (birthDate == null || reportDate == null) {
+            return -1;
+        }
+
+        if (birthDate.isAfter(reportDate)) {
+            return -1;
+        }
+
+        return Period.between(birthDate, reportDate).getYears();
+    }
+
+    private LocalDate toLocalDate(Timestamp timestamp) {
+        return timestamp.toLocalDateTime().toLocalDate();
+    }
+
+    private record AgeGroupSpec(
+            String name,
+            int minAge,
+            int maxAge,
+            boolean includeInTotal
+    ) {
+    }
 }

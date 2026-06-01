@@ -1,10 +1,10 @@
 package uz.uzinfocom.isemid.features.card.services.impls;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.models.Act;
@@ -45,6 +45,7 @@ public class CardServiceImpl implements CardService {
     private final CardValidationUtil cardValidationUtil;
 
     @Override
+    @Transactional(readOnly = true)
     public Page<Card> filter(
             int page, int size,
             CardStatus cardStatus,
@@ -152,6 +153,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<Card> getAssignedCards(int page, int size, LocalDate fromDate, LocalDate toDate, CardType cardType,
                                        CardStatus cardStatus, String mkb10Code,
                                        String patientDocValue, User currentUser) {
