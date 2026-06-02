@@ -1,0 +1,112 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260421-1533-alter-act154detail.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="uzinfocom (rollback)" id="1776854300000-rollback-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="sampling_purpose_id"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="sampling_purpose_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300000-rollback-2">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="purpose_of_sampling_uz"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="purpose_of_sampling_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300000-rollback-3">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="purpose_of_sampling_ru"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="purpose_of_sampling_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300000-rollback-4">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="sampling_purpose_loinc"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="sampling_purpose_loinc"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300000-rollback-5">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="sample_taken_date_time"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="sample_taken_date_time"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300001-rollback-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="delivery_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="delivery_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300001-rollback-2">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="delivery_condition_uz"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="delivery_condition_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300001-rollback-3">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="delivery_condition_ru"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="delivery_condition_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300002-rollback-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="storage_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="storage_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300002-rollback-2">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="storage_condition_uz"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="storage_condition_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300002-rollback-3">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="storage_condition_ru"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="storage_condition_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300003-rollback-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="package_type_id"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="package_type_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300003-rollback-2">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="package_type_uz"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="package_type_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300003-rollback-3">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="package_type_ru"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="package_type_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300004-rollback-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154_detail" columnName="purpose_of_checking"/>
+        </preConditions>
+        <dropColumn tableName="act154_detail" columnName="purpose_of_checking"/>
+    </changeSet>
+
+
+
+</databaseChangeLog>

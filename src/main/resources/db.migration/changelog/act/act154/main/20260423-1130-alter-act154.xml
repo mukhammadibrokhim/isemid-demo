@@ -1,0 +1,178 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260423-1130-alter-act154.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="uzinfocom (rollback)" id="1776919931247-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="delivery_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="delivery_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776919978157-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="delivery_conditions_uz"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="delivery_conditions_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776919992376-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="delivery_conditions_ru"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="delivery_conditions_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776920021522-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="storage_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="storage_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776920024957-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="storage_conditions_uz"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="storage_conditions_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776920028670-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="storage_conditions_ru"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="storage_conditions_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100003-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_delivery_condition_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="storage_delivery_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920273233-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_delivery_conditions_uz" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="storage_delivery_conditions_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920307803-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_delivery_conditions_ru" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="storage_delivery_conditions_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920391663-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="lis_organization_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="lis_organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920417459-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="laboratory_address" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="laboratory_address" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776929683468-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="document_confirm_sampling" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="document_confirm_sampling" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776938627422-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="goal" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="goal" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776942232171-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="act_number" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="act_number" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776942373900-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="serial_number"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="serial_number"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776944627261-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="manufacturing_company" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="manufacturing_company" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776944683092-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="manufacture_date" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="manufacture_date" type="DATE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776944712386-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="doc_number_of_taken_object" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="doc_number_of_taken_object" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

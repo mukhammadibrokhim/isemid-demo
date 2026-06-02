@@ -1,0 +1,37 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260428-0937-alter-act154.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="uzinfocom (generated)" id="1777351127644-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="lis_act_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="lis_act_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1777352826925-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act154" columnName="lis_response"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="lis_response"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1777352830887-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="lis_response" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="lis_response" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,221 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260420-1423-alter-act154detail.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="uzinfocom (generated)" id="1776698526252-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="research_type_id" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="research_type_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698521386-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="category_id" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="category_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698610909-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="item_type_name_uz" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="item_type_name_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698615889-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="item_type_name_ru" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="item_type_name_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698422936-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act154_detail"
+                  columnName="sample_type"/>
+                <not>
+                    <columnExists
+                      tableName="act154_detail"
+                      columnName="sample_type_uz"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE act154_detail
+                RENAME COLUMN sample_type TO sample_type_uz;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776677089713-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sample_type_ru" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="sample_type_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698399334-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act154_detail"
+                  columnName="purpose_of_sampling"/>
+                <not>
+                    <columnExists
+                      tableName="act154_detail"
+                      columnName="purpose_of_sampling_uz"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE act154_detail
+                RENAME COLUMN purpose_of_sampling TO purpose_of_sampling_uz;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776677145918-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="purpose_of_sampling_ru" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="purpose_of_sampling_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698332430-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act154_detail"
+                  columnName="sample_taken_date"/>
+                <not>
+                    <columnExists
+                      tableName="act154_detail"
+                      columnName="sample_taken_date_time"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE act154_detail
+                RENAME COLUMN sample_taken_date TO sample_taken_date_time;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698249013-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act154_detail"
+                  columnName="delivery_term"/>
+                <not>
+                    <columnExists
+                      tableName="act154_detail"
+                      columnName="delivery_condition_uz"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE act154_detail
+                RENAME COLUMN delivery_term TO delivery_condition_uz;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776677221623-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="delivery_condition_ru" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="delivery_condition_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698133974-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act154_detail"
+                  columnName="storage_condition"/>
+                <not>
+                    <columnExists
+                      tableName="act154_detail"
+                      columnName="storage_condition_uz"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE act154_detail
+                RENAME COLUMN storage_condition TO storage_condition_uz;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776677243250-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_condition_ru" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="storage_condition_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776698636327-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists
+                  tableName="act154_detail"
+                  columnName="package_type"/>
+                <not>
+                    <columnExists
+                      tableName="act154_detail"
+                      columnName="package_type_uz"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE act154_detail
+                RENAME COLUMN package_type TO package_type_uz;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776677277468-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="package_type_ru" tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154_detail">
+            <column name="package_type_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+
+
+</databaseChangeLog>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260602-1251-add-audit-columns-to-role-permissions" author="muhammadibrohim">
+
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="role_permissions"/>
+        </preConditions>
+
+        <addColumn tableName="role_permissions">
+            <column name="created_at" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="created_by_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="updated_at" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="updated_by_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="version" type="bigint" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <createIndex tableName="role_permissions" indexName="idx_role_permissions_created_by_id">
+            <column name="created_by_id"/>
+        </createIndex>
+
+        <createIndex tableName="role_permissions" indexName="idx_role_permissions_updated_by_id">
+            <column name="updated_by_id"/>
+        </createIndex>
+
+    </changeSet>
+
+</databaseChangeLog>

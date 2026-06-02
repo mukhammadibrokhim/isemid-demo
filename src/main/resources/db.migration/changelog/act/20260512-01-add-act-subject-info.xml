@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- act table amendments -->
+    <changeSet author="muhammadibrohim" id="2026-05-08-10-add-subject-type" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act" columnName="subject_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act">
+            <column name="subject_type" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778581823699-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act" columnName="tin"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act">
+            <column name="tin" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778582759997-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act" columnName="institution_name"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act">
+            <column name="institution_name" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778582815540-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act" columnName="institution_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act">
+            <column name="institution_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778582838332-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act" columnName="institution_legal_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act">
+            <column name="institution_legal_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- act153 table amendments -->
+    <changeSet author="uzinfocom" id="1778582983625-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act153" columnName="subject_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="subject_type" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- act154 table amendments -->
+    <changeSet author="uzinfocom" id="1778583007271-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act154" columnName="subject_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="subject_type" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- act155 table amendments -->
+    <changeSet author="uzinfocom" id="1778583204254-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act155" columnName="subject_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act155">
+            <column name="subject_type" type="varchar"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="uzinfocom" id="1778583238948-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act155" columnName="institution_name"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act155">
+            <column name="institution_name" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778583377116-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act155" columnName="institution_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act155">
+            <column name="institution_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778583389973-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act155" columnName="institution_legal_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act155">
+            <column name="institution_legal_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- act156 table amendments -->
+    <changeSet author="uzinfocom" id="1778583484759-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act156" columnName="subject_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act156">
+            <column name="subject_type" type="varchar"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="uzinfocom" id="1778583492645-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act156" columnName="institution_name"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act156">
+            <column name="institution_name" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778583496956-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act156" columnName="institution_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act156">
+            <column name="institution_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778583501606-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act156" columnName="institution_legal_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act156">
+            <column name="institution_legal_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- act223 table amendments -->
+    <changeSet author="uzinfocom" id="1778583568000-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act223" columnName="subject_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223">
+            <column name="subject_type" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- act224 table amendments -->
+    <changeSet author="uzinfocom" id="1778583661462-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act224" columnName="subject_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act224">
+            <column name="subject_type" type="varchar"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="uzinfocom" id="1778583665878-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act224" columnName="institution_name"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act224">
+            <column name="institution_name" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778583672176-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act224" columnName="institution_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act224">
+            <column name="institution_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="1778583677071-1" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act224" columnName="institution_legal_address"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act224">
+            <column name="institution_legal_address" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

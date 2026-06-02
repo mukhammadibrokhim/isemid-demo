@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260512-1253-add-research-category-name-fields-to-act153-detail.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260512-1253-01-add-research-type-name-uz-to-act153-detail"
+               author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act153_detail" columnName="research_type_name_uz"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act153_detail">
+            <column name="research_type_name_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260512-1253-02-add-research-type-name-ru-to-act153-detail"
+               author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act153_detail" columnName="research_type_name_ru"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act153_detail">
+            <column name="research_type_name_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260512-1253-03-add-category-name-uz-to-act153-detail"
+               author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act153_detail" columnName="category_name_uz"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act153_detail">
+            <column name="category_name_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260512-1253-04-add-category-name-ru-to-act153-detail"
+               author="muhammadibrohim">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="act153_detail" columnName="category_name_ru"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="act153_detail">
+            <column name="category_name_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

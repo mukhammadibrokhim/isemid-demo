@@ -1,0 +1,164 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260423-0950-alter-act153.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="uzinfocom (rollback)" id="1776919931247-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153" columnName="delivery_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act153" columnName="delivery_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776919978157-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153" columnName="delivery_conditions_uz"/>
+        </preConditions>
+        <dropColumn tableName="act153" columnName="delivery_conditions_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776919992376-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153" columnName="delivery_conditions_ru"/>
+        </preConditions>
+        <dropColumn tableName="act153" columnName="delivery_conditions_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776920021522-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153" columnName="storage_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act153" columnName="storage_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776920024957-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153" columnName="storage_conditions_uz"/>
+        </preConditions>
+        <dropColumn tableName="act153" columnName="storage_conditions_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776920028670-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153" columnName="storage_conditions_ru"/>
+        </preConditions>
+        <dropColumn tableName="act153" columnName="storage_conditions_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100003-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_delivery_condition_id" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="storage_delivery_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920273233-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_delivery_conditions_uz" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="storage_delivery_conditions_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920307803-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_delivery_conditions_ru" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="storage_delivery_conditions_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920391663-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="lis_organization_id" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="lis_organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776920417459-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="laboratory_address" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="laboratory_address" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776938588620-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="goal" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="goal" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776939837665-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="conservation_method_id" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="conservation_method_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776939914983-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="conservation_methods_uz" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="conservation_methods_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776939931511-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="conservation_methods_ru" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="conservation_methods_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776942499139-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="act_number" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="act_number" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+
+
+
+
+</databaseChangeLog>

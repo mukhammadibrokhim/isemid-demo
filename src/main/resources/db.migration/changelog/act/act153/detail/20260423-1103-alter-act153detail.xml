@@ -1,0 +1,57 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260423-1103-alter-act153detail.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="uzinfocom (rollback)" id="1776924284255-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153_detail" columnName="additional_info"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail" columnName="additional_info"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776924583347-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153_detail" columnName="sampling_date_time"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail" columnName="sampling_date_time"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776925371060-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153_detail" columnName="laboratory_address"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail" columnName="laboratory_address"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776925466952-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153_detail" columnName="lis_organization_id"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail" columnName="lis_organization_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776941602736-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153_detail" columnName="conservation_method_id"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail" columnName="conservation_method_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776941668055-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153_detail" columnName="conservation_methods_uz"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail" columnName="conservation_methods_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776941711504-1-rollback">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act153_detail" columnName="conservation_methods_ru"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail" columnName="conservation_methods_ru"/>
+    </changeSet>
+
+</databaseChangeLog>

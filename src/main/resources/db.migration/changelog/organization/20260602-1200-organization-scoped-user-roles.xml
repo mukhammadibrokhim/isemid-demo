@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260602-1200-01-align-role-permission-user-org-role-schema" author="codex">
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE role
+                ADD COLUMN IF NOT EXISTS active BOOLEAN;
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_name = 'role'
+                      AND column_name = 'is_active'
+                ) THEN
+                    UPDATE role
+                    SET active = COALESCE(active, is_active, true)
+                    WHERE active IS NULL;
+                ELSE
+                    UPDATE role
+                    SET active = COALESCE(active, true)
+                    WHERE active IS NULL;
+                END IF;
+            END $$;
+            ALTER TABLE role
+                ALTER COLUMN active SET DEFAULT true,
+                ALTER COLUMN active SET NOT NULL;
+            ALTER TABLE role
+                ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT false;
+            UPDATE role
+            SET deleted = false
+            WHERE deleted IS NULL;
+            ALTER TABLE role
+                ALTER COLUMN deleted SET NOT NULL;
+            ALTER TABLE role
+                ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITHOUT TIME ZONE;
+            ALTER TABLE role
+                ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 0;
+
+            ALTER TABLE permission
+                ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT false;
+            UPDATE permission
+            SET deleted = false
+            WHERE deleted IS NULL;
+            ALTER TABLE permission
+                ALTER COLUMN deleted SET NOT NULL;
+            ALTER TABLE permission
+                ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITHOUT TIME ZONE;
+            ALTER TABLE permission
+                ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 0;
+
+            CREATE TABLE IF NOT EXISTS role_permissions (
+                role_id BIGINT NOT NULL,
+                permission_id BIGINT NOT NULL
+            );
+
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS id BIGSERIAL;
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 0;
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now();
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now();
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS created_by_id BIGINT;
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS updated_by_id BIGINT;
+
+            ALTER TABLE role_permissions
+                ALTER COLUMN created_at SET NOT NULL;
+            ALTER TABLE role_permissions
+                ALTER COLUMN updated_at SET NOT NULL;
+
+            DO $$
+            DECLARE
+                pk_is_id BOOLEAN;
+            BEGIN
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint c
+                    JOIN pg_attribute a
+                      ON a.attrelid = c.conrelid
+                     AND a.attnum = ANY(c.conkey)
+                    WHERE c.conrelid = 'role_permissions'::regclass
+                      AND c.contype = 'p'
+                      AND a.attname = 'id'
+                      AND array_length(c.conkey, 1) = 1
+                )
+                INTO pk_is_id;
+
+                IF NOT pk_is_id THEN
+                    ALTER TABLE role_permissions
+                        DROP CONSTRAINT IF EXISTS role_permissions_pkey;
+
+                    ALTER TABLE role_permissions
+                        ADD CONSTRAINT role_permissions_pkey PRIMARY KEY (id);
+                END IF;
+            END $$;
+
+            CREATE UNIQUE INDEX IF NOT EXISTS uk_role_permissions_role_permission
+                ON role_permissions (role_id, permission_id);
+            CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id
+                ON role_permissions (role_id);
+            CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id
+                ON role_permissions (permission_id);
+
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_role_permissions_role'
+                ) THEN
+                    ALTER TABLE role_permissions
+                        ADD CONSTRAINT fk_role_permissions_role
+                        FOREIGN KEY (role_id)
+                        REFERENCES role (id);
+                END IF;
+
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_role_permissions_permission'
+                ) THEN
+                    ALTER TABLE role_permissions
+                        ADD CONSTRAINT fk_role_permissions_permission
+                        FOREIGN KEY (permission_id)
+                        REFERENCES permission (id);
+                END IF;
+            END $$;
+
+            CREATE TABLE IF NOT EXISTS role_permission_actions (
+                role_permission_id BIGINT NOT NULL,
+                action VARCHAR(50) NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS uk_role_permission_actions_role_permission_action
+                ON role_permission_actions (role_permission_id, action);
+            CREATE INDEX IF NOT EXISTS idx_role_permission_actions_role_permission_id
+                ON role_permission_actions (role_permission_id);
+
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_role_permission_actions_role_permission'
+                ) THEN
+                    ALTER TABLE role_permission_actions
+                        ADD CONSTRAINT fk_role_permission_actions_role_permission
+                        FOREIGN KEY (role_permission_id)
+                        REFERENCES role_permissions (id);
+                END IF;
+            END $$;
+
+            DO $$
+            BEGIN
+                IF to_regclass('permission_actions') IS NOT NULL THEN
+                    INSERT INTO role_permission_actions (role_permission_id, action)
+                    SELECT rp.id, pa.action
+                    FROM role_permissions rp
+                    JOIN permission_actions pa ON pa.permission_id = rp.permission_id
+                    WHERE pa.action IS NOT NULL
+                    ON CONFLICT DO NOTHING;
+                END IF;
+            END $$;
+
+            CREATE TABLE IF NOT EXISTS users_organizations (
+                user_id BIGINT NOT NULL,
+                organization_id BIGINT NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS uk_users_organizations_user_organization
+                ON users_organizations (user_id, organization_id);
+            CREATE INDEX IF NOT EXISTS idx_users_organizations_user_id
+                ON users_organizations (user_id);
+            CREATE INDEX IF NOT EXISTS idx_users_organizations_organization_id
+                ON users_organizations (organization_id);
+
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_users_organizations_user'
+                ) THEN
+                    ALTER TABLE users_organizations
+                        ADD CONSTRAINT fk_users_organizations_user
+                        FOREIGN KEY (user_id)
+                        REFERENCES users (id);
+                END IF;
+
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_users_organizations_organization'
+                ) THEN
+                    ALTER TABLE users_organizations
+                        ADD CONSTRAINT fk_users_organizations_organization
+                        FOREIGN KEY (organization_id)
+                        REFERENCES organization (id);
+                END IF;
+            END $$;
+
+            CREATE TABLE IF NOT EXISTS user_organization_roles (
+                id BIGSERIAL PRIMARY KEY,
+                version BIGINT DEFAULT 0,
+                created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+                updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+                created_by_id BIGINT,
+                updated_by_id BIGINT,
+                user_id BIGINT NOT NULL,
+                organization_id BIGINT NOT NULL,
+                role_id BIGINT NOT NULL,
+                active BOOLEAN NOT NULL DEFAULT true,
+                deleted_at TIMESTAMP WITHOUT TIME ZONE
+            );
+
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_user_organization_roles_user'
+                ) THEN
+                    ALTER TABLE user_organization_roles
+                        ADD CONSTRAINT fk_user_organization_roles_user
+                        FOREIGN KEY (user_id)
+                        REFERENCES users (id);
+                END IF;
+
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_user_organization_roles_organization'
+                ) THEN
+                    ALTER TABLE user_organization_roles
+                        ADD CONSTRAINT fk_user_organization_roles_organization
+                        FOREIGN KEY (organization_id)
+                        REFERENCES organization (id);
+                END IF;
+
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'fk_user_organization_roles_role'
+                ) THEN
+                    ALTER TABLE user_organization_roles
+                        ADD CONSTRAINT fk_user_organization_roles_role
+                        FOREIGN KEY (role_id)
+                        REFERENCES role (id);
+                END IF;
+            END $$;
+
+            CREATE UNIQUE INDEX IF NOT EXISTS uk_user_organization_roles_active
+                ON user_organization_roles (user_id, organization_id, role_id)
+                WHERE active = true AND deleted_at IS NULL;
+            CREATE INDEX IF NOT EXISTS idx_user_org_role_user_id
+                ON user_organization_roles (user_id);
+            CREATE INDEX IF NOT EXISTS idx_user_org_role_org_id
+                ON user_organization_roles (organization_id);
+            CREATE INDEX IF NOT EXISTS idx_user_org_role_role_id
+                ON user_organization_roles (role_id);
+            CREATE INDEX IF NOT EXISTS idx_user_org_role_active_deleted
+                ON user_organization_roles (active, deleted_at);
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>

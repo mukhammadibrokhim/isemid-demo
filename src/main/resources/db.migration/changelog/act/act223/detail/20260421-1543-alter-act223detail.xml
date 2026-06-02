@@ -1,0 +1,50 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260421-1543-alter-act223detail.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300001-rollback-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act223_detail" columnName="delivery_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act223_detail" columnName="delivery_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300001-rollback-2">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act223_detail" columnName="delivery_condition_uz"/>
+        </preConditions>
+        <dropColumn tableName="act223_detail" columnName="delivery_condition_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300001-rollback-3">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act223_detail" columnName="delivery_condition_ru"/>
+        </preConditions>
+        <dropColumn tableName="act223_detail" columnName="delivery_condition_ru"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300002-rollback-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act223_detail" columnName="storage_condition_id"/>
+        </preConditions>
+        <dropColumn tableName="act223_detail" columnName="storage_condition_id"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300002-rollback-2">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act223_detail" columnName="storage_condition_uz"/>
+        </preConditions>
+        <dropColumn tableName="act223_detail" columnName="storage_condition_uz"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom (rollback)" id="1776854300002-rollback-3">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="act223_detail" columnName="storage_condition_ru"/>
+        </preConditions>
+        <dropColumn tableName="act223_detail" columnName="storage_condition_ru"/>
+    </changeSet>
+
+
+
+</databaseChangeLog>

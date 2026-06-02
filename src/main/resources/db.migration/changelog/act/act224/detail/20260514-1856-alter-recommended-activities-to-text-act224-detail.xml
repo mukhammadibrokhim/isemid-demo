@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet
+            id="20260514-1856-alter-recommended-activities-to-text-act224-detail"
+            author="muhammadibrohim">
+
+        <preConditions onFail="MARK_RAN">
+            <columnExists
+                    tableName="act224_detail"
+                    columnName="recommended_activities"/>
+        </preConditions>
+
+        <modifyDataType
+                tableName="act224_detail"
+                columnName="recommended_activities"
+                newDataType="TEXT"/>
+    </changeSet>
+
+</databaseChangeLog>
