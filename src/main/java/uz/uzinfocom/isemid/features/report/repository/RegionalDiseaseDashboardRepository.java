@@ -57,6 +57,7 @@ public class RegionalDiseaseDashboardRepository {
                 f.status,
                 p.gender_code,
                 o.state_code,
+                o.city_code,
                 f.final_mkb10code,
                 CASE
                     WHEN EXTRACT(YEAR FROM AGE(p.birth_date)) < 3  THEN 'age_0_3'
@@ -80,6 +81,7 @@ public class RegionalDiseaseDashboardRepository {
             SELECT
                 period,
                 state_code,
+                city_code,
                 final_mkb10code,
                 COUNT(*) FILTER (WHERE status = 'CONFIRMED')    AS confirmed,
                 COUNT(*) FILTER (WHERE status != 'CONFIRMED')   AS unconfirmed,
@@ -94,11 +96,16 @@ public class RegionalDiseaseDashboardRepository {
                 COUNT(*) FILTER (WHERE age_group = 'age_45_65') AS age_45_65,
                 COUNT(*) FILTER (WHERE age_group = 'age_65_plus') AS age_65_plus
             FROM raw_data
-            GROUP BY period, state_code, final_mkb10code
+            GROUP BY period, state_code, city_code, final_mkb10code
         )
         SELECT
             p.period,
-            COALESCE(a.state_code, :regionCode::VARCHAR) AS location_code,
+            CASE
+                    WHEN :districtCode IS NOT NULL
+                        THEN COALESCE(a.city_code, :districtCode::VARCHAR)
+                    ELSE
+                        COALESCE(a.state_code, :regionCode::VARCHAR)
+            END AS location_code,
             a.final_mkb10code,
             COALESCE(a.confirmed, 0)              AS confirmed,
             COALESCE(a.unconfirmed, 0)            AS unconfirmed,
