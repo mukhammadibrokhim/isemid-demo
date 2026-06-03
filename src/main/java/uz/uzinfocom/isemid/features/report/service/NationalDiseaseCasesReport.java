@@ -31,15 +31,12 @@ public class NationalDiseaseCasesReport implements LocationReportService {
   @Override
   public LocationReportDto getByLocation(String mkb10Code, LocalDate fromDate, LocalDate toDate,
       LevelType level, String parentCode, User currentUser) {
-    Organization currentOrganization = currentUser.getCurrentOrganization();
-    if (level == null) {
-      level = currentOrganization.getLevelType();
-    }
+    Organization organization = currentUser.getCurrentOrganization();
     // 1. All catalog entries — guarantees zero-count rows appear
     List<Catalog> catalogs = resolveCatalogs(level, parentCode);
     // 2.
     List<LocationReportRawData> rawData = nationalDiseaseReportRepository.getLocationReport(mkb10Code,
-        fromDate, toDate, parentCode, level, currentOrganization.getStateCode(),currentOrganization.getCityCode());
+        fromDate, toDate, parentCode, organization);
 
     Map<String, LocationReportRawData> locationCodeRawDataMap = rawData.stream()
         .collect(Collectors.toMap(
