@@ -17,6 +17,7 @@ public abstract class BaseEntity {
     private Long id;
 
     @Version
+    @Builder.Default
     @Column(name = "version")
-    private Long version;
+    private Long version = 0L;
 }

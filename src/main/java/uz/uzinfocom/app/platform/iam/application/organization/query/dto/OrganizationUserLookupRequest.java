@@ -3,7 +3,7 @@ package uz.uzinfocom.app.platform.iam.application.organization.query.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import uz.uzinfocom.app.platform.web.pagination.PageableRequest;
+import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 @Schema(description = "Параметры поиска пользователей внутри организации.")
 public record OrganizationUserLookupRequest(

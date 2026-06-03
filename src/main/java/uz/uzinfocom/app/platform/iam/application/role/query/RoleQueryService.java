@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.exception.NotFoundException;
+import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.platform.iam.application.permission.query.dto.PermissionDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleFilterRequest;
@@ -15,7 +15,7 @@ import uz.uzinfocom.app.platform.iam.application.role.query.projection.RoleTable
 import uz.uzinfocom.app.platform.iam.application.role.query.specification.RoleSpecification;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
-import uz.uzinfocom.app.platform.web.pagination.PageableUtils;
+import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
 
@@ -46,7 +46,7 @@ public class RoleQueryService {
 
     public RoleDetailResponse findDetail(Long id) {
         Role role = roleRepo.findWithPermissionsById(id)
-                .orElseThrow(() -> new NotFoundException("role.not.found", id));
+                .orElseThrow(() -> new NotFoundException("role.not_found", id));
         return roleQueryMapper.toDetailResponse(role);
     }
 

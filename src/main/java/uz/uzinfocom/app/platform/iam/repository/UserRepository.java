@@ -7,22 +7,40 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse;
-import uz.uzinfocom.app.platform.iam.application.user.query.projection.UserMeProjection;
 import uz.uzinfocom.app.platform.iam.domain.User;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
-    @EntityGraph(attributePaths = {"organizations", "organizationRoles", "organizationRoles.organization", "organizationRoles.role"})
+    @EntityGraph(attributePaths = {"organizations", "roles"})
     Optional<User> findByUuid(UUID uuid);
 
-    @EntityGraph(attributePaths = {"organizations", "organizationRoles", "organizationRoles.organization", "organizationRoles.role"})
+    @EntityGraph(attributePaths = {"organizations", "roles"})
     Optional<User> findWithOrganizationsById(Long id);
 
-    boolean existsByIdAndOrganizations_Id(Long id, Long organizationId);
+    @EntityGraph(attributePaths = {
+            "roles",
+            "roles.rolePermissions",
+            "roles.rolePermissions.permission",
+            "roles.rolePermissions.actions"
+    })
+    @Query("""
+        select distinct u
+        from User u
+        where u.id = :id
+    """)
+    Optional<User> findForAuthorizationById(@Param("id") Long id);
+
+    @Query("""
+        select o.id
+        from User u
+        join u.organizations o
+        where u.id = :userId
+    """)
+    Set<Long> findOrganizationIdsByUserId(@Param("userId") Long userId);
 
     @Query("""
         select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse(
@@ -49,22 +67,10 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
                 or lower(coalesce(u.phoneNumber, '')) like concat('%', :search, '%')
           )
         """)
-    List<OrganizationUserLookupResponse> findUserLookupsByOrganizationId(
+    org.springframework.data.domain.Page<OrganizationUserLookupResponse> findUserLookupsByOrganizationId(
             @Param("organizationId") Long organizationId,
             @Param("search") String search,
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {
-            "roles",
-            "roles.rolePermissions",
-            "roles.rolePermissions.permission",
-            "roles.rolePermissions.actions"
-    })
-    @Query("""
-        select u
-        from User u
-        where u.id = :id
-    """)
-    Optional<UserMeProjection> findMeProjectionById(@Param("id") Long id);
 }

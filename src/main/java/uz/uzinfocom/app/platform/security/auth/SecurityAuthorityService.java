@@ -1,18 +1,27 @@
 package uz.uzinfocom.app.platform.security.auth;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.Role;
+import uz.uzinfocom.app.platform.iam.domain.User;
+import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
+import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.security.authorization.AuthorityNames;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,8 +30,47 @@ import java.util.stream.Collectors;
 public class SecurityAuthorityService {
 
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
+    private final CacheManager securityCacheManager;
+    private final UserOrganizationSecurityCacheService userOrganizationSecurityCacheService;
 
     @Transactional(readOnly = true)
+    @Cacheable(
+            cacheManager = "securityCacheManager",
+            cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID,
+            key = "#userId",
+            condition = "#userId != null"
+    )
+    public Collection<? extends GrantedAuthority> loadAuthoritiesByUserId(Long userId) {
+        return userRepository.findForAuthorizationById(userId)
+                .map(User::getRoles)
+                .map(this::loadAuthoritiesByRoles)
+                .orElseGet(Set::of);
+    }
+
+    public boolean userBelongsToOrganization(Long userId, Long organizationId) {
+        if (userId == null || organizationId == null) {
+            return false;
+        }
+
+        return userOrganizationSecurityCacheService
+                .loadOrganizationIdsByUserId(userId)
+                .contains(organizationId);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(
+            cacheManager = "securityCacheManager",
+            cacheNames = SecurityCacheNames.ORGANIZATION_BY_UUID,
+            key = "#uuid",
+            condition = "#uuid != null",
+            unless = "#result == null"
+    )
+    public Optional<Organization> findOrganizationByUuid(java.util.UUID uuid) {
+        return organizationRepository.findByUuid(uuid);
+    }
+
     public Collection<? extends GrantedAuthority> loadAuthoritiesByRoles(Collection<Role> roles) {
         if (roles == null || roles.isEmpty()) {
             return Set.of();
@@ -50,12 +98,41 @@ public class SecurityAuthorityService {
                 .map(Role::getId)
                 .collect(Collectors.toSet());
 
-        roleRepository.findPermissionAuthorityNamesByRoleIds(roleIds)
-                .stream()
+        loadPermissionAuthorityNamesByRoleIds(roleIds).stream()
                 .filter(name -> name != null && !name.isBlank())
                 .forEach(authorityNames::add);
 
         return toGrantedAuthorities(authorityNames);
+    }
+
+    private Set<String> loadPermissionAuthorityNamesByRoleIds(Set<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Set.of();
+        }
+
+        Cache cache = securityCacheManager.getCache(SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS);
+
+        if (cache == null) {
+            return Set.copyOf(roleRepository.findPermissionAuthorityNamesByRoleIds(roleIds));
+        }
+
+        String cacheKey = roleIds.stream()
+                .filter(Objects::nonNull)
+                .sorted()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        @SuppressWarnings("unchecked")
+        Set<String> cached = cache.get(cacheKey, Set.class);
+
+        if (cached != null) {
+            return cached;
+        }
+
+        Set<String> authorityNames = Set.copyOf(roleRepository.findPermissionAuthorityNamesByRoleIds(roleIds));
+        cache.put(cacheKey, authorityNames);
+
+        return authorityNames;
     }
 
     private Collection<? extends GrantedAuthority> toGrantedAuthorities(Set<String> authorityNames) {

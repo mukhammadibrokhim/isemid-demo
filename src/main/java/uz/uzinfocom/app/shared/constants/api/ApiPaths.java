@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.platform.web.api;
+package uz.uzinfocom.app.shared.constants.api;
 
 public final class ApiPaths {
 
@@ -16,7 +16,7 @@ public final class ApiPaths {
 
         public static final String LOOKUP = "/lookup";
         public static final String BY_ID = "/{id}";
-        public static final String USERS_LOOKUP_BY_ORGANIZATION_ID = "/{id}/users/lookup";
+        public static final String USERS_BY_ORGANIZATION_ID = "/{id}/users";
 
         public static final String ID = "id";
 
@@ -33,14 +33,8 @@ public final class ApiPaths {
         public static final String BY_ID = "/{id}";
         public static final String BY_UUID = "/by-uuid/{uuid}";
         public static final String ORGANIZATIONS = "/{id}/organizations";
-        public static final String ORGANIZATION = "/{id}/organizations/{organizationId}";
-        public static final String ORGANIZATION_ROLES = "/{id}/organizations/{organizationId}/roles";
-        public static final String ORGANIZATION_ROLE = "/{id}/organizations/{organizationId}/roles/{roleId}";
-        public static final String ALL_ORGANIZATION_ROLES = "/{id}/organization-roles";
 
         public static final String ID = "id";
-        public static final String ORGANIZATION_ID = "organizationId";
-        public static final String ROLE_ID = "roleId";
     }
 
     public static final class Role {

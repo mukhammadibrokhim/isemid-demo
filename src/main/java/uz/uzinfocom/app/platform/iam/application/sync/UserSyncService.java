@@ -1,17 +1,18 @@
 package uz.uzinfocom.app.platform.iam.application.sync;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.domain.UserOrganizationRole;
 import uz.uzinfocom.app.platform.iam.application.sync.mapper.UserRemoteMapper;
 import uz.uzinfocom.app.platform.iam.infrastructure.remote.ProviderIamRemoteClient;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.iam.repository.UserOrganizationRoleRepository;
 import uz.uzinfocom.app.platform.security.claims.ExternalIdentityPayload;
 
 import java.util.LinkedHashSet;
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,25 +27,31 @@ import java.util.stream.Collectors;
 public class UserSyncService {
 
     private final UserRepository userRepository;
-    private final UserOrganizationRoleRepository userOrganizationRoleRepository;
     private final ProviderIamRemoteClient remoteClient;
     private final UserRemoteMapper mapper;
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(
+                    cacheManager = "securityCacheManager",
+                    cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID,
+                    key = "#result.id"
+            ),
+            @CacheEvict(
+                    cacheManager = "securityCacheManager",
+                    cacheNames = SecurityCacheNames.USER_ORGANIZATION_IDS_BY_USER_ID,
+                    key = "#result.id"
+            )
+    })
     public User resolve(
             ExternalIdentityPayload payload,
             String rawToken,
             List<Organization> organizations,
-            Set<Role> roles,
-            Map<UUID, Set<Role>> organizationRoles
+            Set<Role> roles
     ) {
-        User user = userRepository.findByUuid(payload.practitionerUuid())
+        return userRepository.findByUuid(payload.practitionerUuid())
                 .map(existing -> syncExisting(existing, organizations, roles))
                 .orElseGet(() -> provision(payload, rawToken, organizations, roles));
-
-        syncScopedRoles(user, organizationRoles);
-
-        return user;
     }
 
     private User syncExisting(User user, List<Organization> organizations, Set<Role> roles) {
@@ -109,60 +115,6 @@ public class UserSyncService {
         } catch (DataIntegrityViolationException concurrentInsert) {
             return userRepository.findByUuid(payload.practitionerUuid())
                     .orElseThrow(() -> concurrentInsert);
-        }
-    }
-
-    private void syncScopedRoles(User user, Map<UUID, Set<Role>> organizationRoles) {
-        if (organizationRoles == null || organizationRoles.isEmpty()) {
-            return;
-        }
-
-        if (user.getOrganizations() == null || user.getOrganizations().isEmpty()) {
-            return;
-        }
-
-        Map<UUID, Organization> organizationsByUuid = user.getOrganizations().stream()
-                .filter(Objects::nonNull)
-                .filter(organization -> organization.getUuid() != null)
-                .collect(Collectors.toMap(
-                        Organization::getUuid,
-                        organization -> organization
-                ));
-
-        for (Map.Entry<UUID, Set<Role>> entry : organizationRoles.entrySet()) {
-            Organization organization = organizationsByUuid.get(entry.getKey());
-
-            if (organization == null || entry.getValue() == null || entry.getValue().isEmpty()) {
-                continue;
-            }
-
-            for (Role role : entry.getValue()) {
-                if (role == null || !role.isAvailableForAuthorization()) {
-                    continue;
-                }
-
-                userOrganizationRoleRepository
-                        .findTopByUserIdAndOrganizationIdAndRoleIdOrderByIdDesc(
-                                user.getId(),
-                                organization.getId(),
-                                role.getId()
-                        )
-                        .ifPresentOrElse(
-                                assignment -> {
-                                    if (!assignment.isActiveAssignment()) {
-                                        assignment.restore();
-                                    }
-                                },
-                                () -> userOrganizationRoleRepository.save(
-                                        UserOrganizationRole.builder()
-                                                .user(user)
-                                                .organization(organization)
-                                                .role(role)
-                                                .active(true)
-                                                .build()
-                                )
-                        );
-            }
         }
     }
 }

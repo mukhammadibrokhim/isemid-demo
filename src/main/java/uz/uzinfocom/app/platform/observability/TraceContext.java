@@ -13,5 +13,5 @@ public final class TraceContext {
     /**
      * Do not use "traceId" as custom MDC key if Micrometer/OpenTelemetry is enabled.
      */
-    public static final String MDC_KEY = "correlationId";
+    public static final String MDC_KEY = "traceId";
 }

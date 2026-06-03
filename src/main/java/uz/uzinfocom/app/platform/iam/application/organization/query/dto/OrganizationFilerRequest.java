@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
-import uz.uzinfocom.app.platform.web.pagination.PageableRequest;
+import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 @Schema(description = "Параметры фильтрации и пагинации списка организаций.")
 public record OrganizationFilerRequest(

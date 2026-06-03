@@ -38,7 +38,7 @@ public class RoleSyncService {
         this.securityCacheManager = securityCacheManager;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Set<Role> resolve(Set<String> roleNames) {
         if (roleNames == null || roleNames.isEmpty()) {
             return Set.of();
@@ -60,7 +60,7 @@ public class RoleSyncService {
         return Collections.unmodifiableSet(roles);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<Role> resolveOne(String roleName) {
         String normalizedRoleName = normalizeRoleName(roleName);
 

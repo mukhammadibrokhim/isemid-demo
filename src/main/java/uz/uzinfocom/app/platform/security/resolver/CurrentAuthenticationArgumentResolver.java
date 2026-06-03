@@ -10,7 +10,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import uz.uzinfocom.app.platform.exception.SecurityException;
+import uz.uzinfocom.app.shared.exception.SecurityException;
 import uz.uzinfocom.app.platform.security.annotation.CurrentAuthentication;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 
@@ -34,7 +34,7 @@ public class CurrentAuthenticationArgumentResolver implements HandlerMethodArgum
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (!(authentication instanceof FederatedAuthenticationToken token)) {
-            throw new SecurityException("error.unauthorized");
+            throw new SecurityException("auth.unauthorized");
         }
 
         return token;

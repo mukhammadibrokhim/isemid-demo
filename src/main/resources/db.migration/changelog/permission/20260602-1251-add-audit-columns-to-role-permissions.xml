@@ -12,35 +12,27 @@
             <tableExists tableName="role_permissions"/>
         </preConditions>
 
-        <addColumn tableName="role_permissions">
-            <column name="created_at" type="timestamp">
-                <constraints nullable="true"/>
-            </column>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITHOUT TIME ZONE;
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS created_by_id BIGINT;
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE;
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS updated_by_id BIGINT;
+            ALTER TABLE role_permissions
+                ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 0;
 
-            <column name="created_by_id" type="bigint">
-                <constraints nullable="true"/>
-            </column>
+            UPDATE role_permissions
+            SET version = 0
+            WHERE version IS NULL;
 
-            <column name="updated_at" type="timestamp">
-                <constraints nullable="true"/>
-            </column>
-
-            <column name="updated_by_id" type="bigint">
-                <constraints nullable="true"/>
-            </column>
-
-            <column name="version" type="bigint" defaultValueNumeric="0">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-
-        <createIndex tableName="role_permissions" indexName="idx_role_permissions_created_by_id">
-            <column name="created_by_id"/>
-        </createIndex>
-
-        <createIndex tableName="role_permissions" indexName="idx_role_permissions_updated_by_id">
-            <column name="updated_by_id"/>
-        </createIndex>
+            CREATE INDEX IF NOT EXISTS idx_role_permissions_created_by_id
+                ON role_permissions (created_by_id);
+            CREATE INDEX IF NOT EXISTS idx_role_permissions_updated_by_id
+                ON role_permissions (updated_by_id);
+        ]]></sql>
 
     </changeSet>
 

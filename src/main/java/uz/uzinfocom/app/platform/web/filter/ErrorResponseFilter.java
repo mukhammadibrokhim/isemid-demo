@@ -14,7 +14,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import uz.uzinfocom.app.platform.exception.ErrorCode;
+import uz.uzinfocom.app.shared.exception.ErrorCode;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
 import uz.uzinfocom.app.platform.web.response.ErrorResponseWriter;
 
@@ -93,6 +93,17 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
                 exception.getMessage()
         );
 
+        if (isMessageCode(exception.getMessage())) {
+            errorResponseWriter.write(
+                    request,
+                    response,
+                    HttpStatus.FORBIDDEN,
+                    ErrorCode.FORBIDDEN,
+                    exception.getMessage()
+            );
+            return;
+        }
+
         errorResponseWriter.write(request, response, HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
     }
 
@@ -133,5 +144,9 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
         }
 
         throw new ServletException(exception);
+    }
+
+    private boolean isMessageCode(String message) {
+        return message != null && message.matches("[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+");
     }
 }

@@ -14,24 +14,14 @@ import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.scope.dto.CurrentScopeResponse;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
-import uz.uzinfocom.app.platform.web.api.ApiPaths;
-import uz.uzinfocom.app.platform.web.response.ApiResponse;
-import uz.uzinfocom.app.platform.web.response.ErrorResponse;
+import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.response.ErrorResponse;
 
 @Tag(
-        name = "Организационный контекст",
+        name = "Organization Scope",
         description = "API для получения текущей области доступа пользователя в выбранной организации."
 )
-@ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Некорректный запрос.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Пользователь не авторизован.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Доступ запрещён.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(ApiPaths.Scope.BASE)
@@ -49,7 +39,7 @@ public class OrganizationScopeController {
     public ApiResponse<CurrentScopeResponse> current() {
         ResolvedOrganizationScope scope = resolver.resolve(CurrentOrganizationContext.require());
         return ApiResponse.success(
-                messages.resolve("scope.current"),
+                messages.resolve("organization.scope.loaded"),
                 new CurrentScopeResponse(scope.mode(), scope.organizationUuid(), scope.stateCode(), scope.cityCode())
         );
     }

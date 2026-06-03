@@ -58,7 +58,7 @@ public class FederatedJwtAuthenticationConverter
                 .toList();
 
         Collection<? extends GrantedAuthority> authorities =
-                securityAuthorityService.loadAuthoritiesByRoles(syncResult.roles());
+                securityAuthorityService.loadAuthoritiesByUserId(user.getId());
 
         return new FederatedAuthenticationToken(
                 jwt,

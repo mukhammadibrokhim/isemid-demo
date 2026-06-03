@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260603-1500-seed-default-roles-if-empty" author="uzinfocom">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM roles
+            </sqlCheck>
+        </preConditions>
+
+        <sql splitStatements="true" stripComments="true">
+            <![CDATA[
+            INSERT INTO roles (
+                uuid,
+                created_at,
+                updated_at,
+                name,
+                active,
+                description_uz,
+                description_uz_cyril,
+                description_ru,
+                description_kaa,
+                version
+            ) VALUES
+                  (
+                      '3ac215ef-fe07-4828-b171-430d30d34fcd'::uuid,
+                      now(),
+                      now(),
+                      'isemid_epidemiologist',
+                      true,
+                      'Epidemiolog',
+                      'Эпидемиолог',
+                      'Эпидемиолог',
+                      'Эпидемиолог',
+                      0
+                  ),
+                  (
+                      '373c61dd-fe01-4b88-b416-72ca00896dbf'::uuid,
+                      now(),
+                      now(),
+                      'isemid_labarant',
+                      true,
+                      'Laborant',
+                      'Лаборант',
+                      'Лаборант',
+                      'Лаборант',
+                      0
+                  ),
+                  (
+                      '8aa4e033-aae9-4806-aa0f-686d6ad16033'::uuid,
+                      now(),
+                      now(),
+                      'isemid_head_doctor',
+                      true,
+                      'Bosh shifokor',
+                      'Бош шифокор',
+                      'Главный врач',
+                      'Башкы врач',
+                      0
+                  ),
+                  (
+                      'b8afe41d-2e08-450c-bcfe-d1ae437c74fc'::uuid,
+                      now(),
+                      now(),
+                      'isemid_qr_user',
+                      true,
+                      'QR foydalanuvchi',
+                      'QR фойдаланувчи',
+                      'Пользователь QR',
+                      'QR колдонучусу',
+                      0
+                  ),
+                  (
+                      '0377c763-f29b-4e97-af32-1dce40735b9c'::uuid,
+                      now(),
+                      now(),
+                      'isemid_general_practitioner',
+                      true,
+                      'Umumiy amaliyot shifokori',
+                      'Умумий амалийот шифокори',
+                      'Врач общей практики',
+                      'Жалпы практика дарыгери',
+                      0
+                  ),
+                  (
+                      '5c48a127-f37e-43c0-83a3-544458546785'::uuid,
+                      now(),
+                      now(),
+                      'isemid_epidim_head',
+                      true,
+                      'Epidemiologiya va immunoprofilaktika bo‘limi mudiri',
+                      'Эпидемиология ва иммунопрофилактика бўлими мудири',
+                      'Заведующий отделом эпидемиологии и иммунопрофилактики',
+                      'Эпидемиология жана иммунопрофилактика бөлүмүнүн мудири',
+                      0
+                  ),
+                  (
+                      'aae85420-8698-4cb3-8456-80c174901cf1'::uuid,
+                      now(),
+                      now(),
+                      'isemid_admin',
+                      true,
+                      'Admin',
+                      'Админ',
+                      'Администратор',
+                      'Администратор',
+                      0
+                  ),
+                  (
+                      '9d634609-b8a4-4d35-bdfe-8b8dc40ab799'::uuid,
+                      now(),
+                      now(),
+                      'isemid_assistant_epidemiologist',
+                      true,
+                      'Epidemiolog yordamchisi',
+                      'Эпидемиолог ёрдамчиси',
+                      'Помощник эпидемиолога',
+                      'Эпидемиолог жардамчысы',
+                      0
+                  ),
+                  (
+                      'fee06f19-dde7-4457-a9f0-70f7496242d7'::uuid,
+                      now(),
+                      now(),
+                      'isemid_super_admin',
+                      true,
+                      'Super admin',
+                      'Супер админ',
+                      'Супер администратор',
+                      'Супер администратор',
+                      0
+                  );
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

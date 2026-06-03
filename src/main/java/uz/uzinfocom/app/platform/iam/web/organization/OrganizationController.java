@@ -10,71 +10,56 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.iam.application.organization.query.OrganizationQueryService;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.*;
-import uz.uzinfocom.app.platform.web.api.ApiPaths;
-import uz.uzinfocom.app.platform.web.response.ApiResponse;
-import uz.uzinfocom.app.platform.web.response.ErrorResponse;
-import uz.uzinfocom.app.platform.web.response.PagedResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationDetailResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationFilerRequest;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationLookupRequest;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationLookupResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationTableResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupRequest;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse;
+import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.response.ErrorResponse;
+import uz.uzinfocom.app.shared.response.PagedResponse;
 
 import java.util.List;
 
-@Tag(
-        name = "Организации",
-        description = "API для управления медицинскими организациями и организационной структурой."
-)
-@ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Некорректный запрос.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Пользователь не авторизован.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Доступ запрещён.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Запись не найдена.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-})
+@Tag(name = "Organizations", description = "Organization lookup and membership APIs.")
 @RestController
 @RequestMapping(ApiPaths.Organization.BASE)
 @RequiredArgsConstructor
 public class OrganizationController {
+
     private final OrganizationQueryService queryService;
     private final MessageResolver messageResolver;
 
-    @Operation(
-            summary = "Получить список организаций",
-            description = "Возвращает постраничный список организаций с фильтрацией по названию, ИНН, региону, району, уровню и типу медицинской организации."
-    )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @Operation(summary = "Find organizations")
     @GetMapping
     public PagedResponse<OrganizationTableResponse> getAll(
-            @ParameterObject @Valid @ModelAttribute OrganizationFilerRequest request) {
+            @ParameterObject @Valid @ModelAttribute OrganizationFilerRequest request
+    ) {
         Page<OrganizationTableResponse> page = queryService.findTable(request);
         return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
     }
 
-    @Operation(
-            summary = "Получить организацию по идентификатору",
-            description = "Возвращает детальную информацию о медицинской организации."
-    )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @Operation(summary = "Get organization by id")
     @GetMapping(ApiPaths.Organization.BY_ID)
     public ApiResponse<OrganizationDetailResponse> get(
-            @Parameter(description = "Уникальный идентификатор организации.", required = true)
-            @PathVariable Long id
+            @Parameter(description = "Organization id.", required = true)
+            @PathVariable(ApiPaths.Organization.ID) Long id
     ) {
         OrganizationDetailResponse response = queryService.findDetail(id);
         return ApiResponse.success(messageResolver.resolve("common.success"), response);
     }
 
-    @Operation(
-            summary = "Найти организации для выбора",
-            description = "Возвращает краткий список организаций для выпадающих списков и справочного поиска."
-    )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @Operation(summary = "Find organizations for lookup")
     @GetMapping(ApiPaths.Organization.LOOKUP)
     public ApiResponse<List<OrganizationLookupResponse>> lookup(
             @ParameterObject @Valid @ModelAttribute OrganizationLookupRequest request
@@ -83,20 +68,16 @@ public class OrganizationController {
         return ApiResponse.success(messageResolver.resolve("common.success"), response);
     }
 
-    @Operation(
-            summary = "Найти пользователей организации",
-            description = "Возвращает краткий список пользователей выбранной организации для справочного поиска."
-    )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
-    @GetMapping(ApiPaths.Organization.USERS_LOOKUP_BY_ORGANIZATION_ID)
-    public ApiResponse<List<OrganizationUserLookupResponse>> getUserLookupsByOrganization(
-            @Parameter(description = "Уникальный идентификатор организации.", required = true)
+    @Operation(summary = "Find organization users")
+    @GetMapping(ApiPaths.Organization.USERS_BY_ORGANIZATION_ID)
+    public PagedResponse<OrganizationUserLookupResponse> getUsersByOrganization(
+            @Parameter(description = "Organization id.", required = true)
             @PathVariable(ApiPaths.Organization.ID) Long organizationId,
             @ParameterObject @Valid @ModelAttribute OrganizationUserLookupRequest request
     ) {
-        List<OrganizationUserLookupResponse> response =
+        Page<OrganizationUserLookupResponse> response =
                 queryService.findUserLookupsByOrganizationId(organizationId, request);
 
-        return ApiResponse.success(messageResolver.resolve("common.success"), response);
+        return PagedResponse.fromPage(response, messageResolver.resolve("common.success"));
     }
 }

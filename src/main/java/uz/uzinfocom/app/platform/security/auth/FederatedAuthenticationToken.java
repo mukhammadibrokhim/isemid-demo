@@ -52,19 +52,4 @@ public final class FederatedAuthenticationToken extends AbstractAuthenticationTo
     public UUID getSelectedOrganizationUuid() {
         return principal.selectedOrganizationUuid();
     }
-
-    public FederatedAuthenticationToken withScopedAuthorities(
-            Collection<? extends GrantedAuthority> scopedAuthorities,
-            UUID selectedOrganizationUuid
-    ) {
-        FederatedAuthenticationToken scopedToken = new FederatedAuthenticationToken(
-                jwt,
-                principal.withSelectedOrganizationUuid(selectedOrganizationUuid),
-                scopedAuthorities,
-                tokenOrganizations
-        );
-
-        scopedToken.setDetails(getDetails());
-        return scopedToken;
-    }
 }

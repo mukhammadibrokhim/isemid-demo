@@ -1,10 +1,14 @@
 package uz.uzinfocom.app.platform.iam.application.permission.command;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.exception.ConflictException;
-import uz.uzinfocom.app.platform.exception.NotFoundException;
+import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
+import uz.uzinfocom.app.shared.exception.ConflictException;
+import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.platform.iam.application.permission.command.dto.PermissionCreateRequest;
 import uz.uzinfocom.app.platform.iam.application.permission.command.dto.PermissionUpdateRequest;
 import uz.uzinfocom.app.platform.iam.application.permission.query.dto.PermissionTableResponse;
@@ -15,6 +19,7 @@ import uz.uzinfocom.app.platform.iam.repository.PermissionRepository;
 import java.time.LocalDateTime;
 
 @Service
+@CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class PermissionCommandService {
 
@@ -26,7 +31,7 @@ public class PermissionCommandService {
         String subject = normalizeSubject(request.subject());
 
         if (permissionRepository.existsBySubjectIgnoreCase(subject)) {
-            throw new ConflictException("permission.subject.already.exists", subject);
+            throw new ConflictException("permission.subject.already_exists", subject);
         }
 
         Permission permission = Permission.builder()
@@ -44,18 +49,22 @@ public class PermissionCommandService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public PermissionTableResponse update(Long id, PermissionUpdateRequest request) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("permission.not.found", id));
+                .orElseThrow(() -> new NotFoundException("permission.not_found_by_id", id));
 
         if (Boolean.TRUE.equals(permission.getDeleted())) {
-            throw new ConflictException("permission.update.deleted.conflict", id);
+            throw new ConflictException("permission.update.deleted_conflict", id);
         }
 
         String subject = normalizeSubject(request.subject());
 
         if (permissionRepository.existsBySubjectIgnoreCaseAndIdNot(subject, id)) {
-            throw new ConflictException("permission.subject.already.exists", subject);
+            throw new ConflictException("permission.subject.already_exists", subject);
         }
 
         permission.setSubject(subject);
@@ -71,9 +80,13 @@ public class PermissionCommandService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public void delete(Long id) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("permission.not.found", id));
+                .orElseThrow(() -> new NotFoundException("permission.not_found_by_id", id));
 
         if (Boolean.TRUE.equals(permission.getDeleted())) {
             return;
@@ -87,9 +100,13 @@ public class PermissionCommandService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public void restore(Long id) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("permission.not.found", id));
+                .orElseThrow(() -> new NotFoundException("permission.not_found_by_id", id));
 
         if (Boolean.FALSE.equals(permission.getDeleted())) {
             return;

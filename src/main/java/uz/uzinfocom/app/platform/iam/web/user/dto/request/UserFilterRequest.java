@@ -3,7 +3,7 @@ package uz.uzinfocom.app.platform.iam.web.user.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import uz.uzinfocom.app.platform.web.pagination.PageableRequest;
+import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 @Schema(description = "Параметры фильтрации и пагинации списка пользователей.")
 public record UserFilterRequest(

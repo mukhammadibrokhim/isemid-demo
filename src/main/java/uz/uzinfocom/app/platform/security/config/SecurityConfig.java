@@ -19,7 +19,6 @@ import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
 import uz.uzinfocom.app.platform.security.handler.JsonAuthenticationEntryPoint;
 import uz.uzinfocom.app.platform.security.jwt.ProviderAuthenticationManagerRegistry;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
-import uz.uzinfocom.app.platform.security.properties.AuthorizationProperties;
 import uz.uzinfocom.app.platform.security.whitelist.SecurityRouteCatalog;
 
 @Configuration
@@ -27,7 +26,6 @@ import uz.uzinfocom.app.platform.security.whitelist.SecurityRouteCatalog;
 @RequiredArgsConstructor
 @EnableConfigurationProperties({
         AuthProvidersProperties.class,
-        AuthorizationProperties.class,
         RoleSyncProperties.class
 })
 public class SecurityConfig {

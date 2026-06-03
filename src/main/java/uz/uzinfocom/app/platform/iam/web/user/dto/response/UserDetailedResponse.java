@@ -3,46 +3,44 @@ package uz.uzinfocom.app.platform.iam.web.user.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationShortResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleShortResponse;
-import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserOrganizationRolesResponse;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-@Schema(description = "Детальная информация о пользователе.")
+@Schema(description = "Detailed user information.")
 public record UserDetailedResponse(
-        @Schema(description = "Уникальный идентификатор записи.", example = "1")
+        @Schema(description = "User database identifier.", example = "1")
         Long id,
-        @Schema(description = "Уникальный UUID записи.")
+        @Schema(description = "User UUID.")
         UUID uuid,
-        @Schema(description = "Признак активности пользователя.", example = "true")
+        @Schema(description = "Username or login.")
+        String username,
+        @Schema(description = "Whether the user is active.", example = "true")
         Boolean active,
-        @Schema(description = "Имя пользователя.")
+        @Schema(description = "First name.")
         String firstName,
-        @Schema(description = "Фамилия пользователя.")
+        @Schema(description = "Last name.")
         String lastName,
-        @Schema(description = "Отчество пользователя.")
+        @Schema(description = "Middle name.")
         String middleName,
-        @Schema(description = "ННУЗБ пользователя.")
+        @Schema(description = "NNUZB identifier.")
         String nnuzb,
-        @Schema(description = "Дата рождения пользователя.", example = "1990-01-01")
+        @Schema(description = "Birth date.", example = "1990-01-01")
         LocalDate birthDate,
-        @Schema(description = "Номер телефона пользователя.")
+        @Schema(description = "Phone number.")
         String phoneNumber,
-        @Schema(description = "Код региона пользователя.")
+        @Schema(description = "State code.")
         String stateCode,
-        @Schema(description = "Код района или города пользователя.")
+        @Schema(description = "City or district code.")
         String cityCode,
-        @Schema(description = "Адрес пользователя.")
+        @Schema(description = "Address line.")
         String line,
-        @Schema(description = "Код пола пользователя.")
+        @Schema(description = "Gender code.")
         String genderCode,
-        @Schema(description = "Организации пользователя.")
+        @Schema(description = "Organizations the user belongs to.")
         Set<OrganizationShortResponse> organizations,
-        @Schema(description = "Глобальные роли пользователя, если поддерживаются для обратной совместимости.")
-        Set<RoleShortResponse> roles,
-        @Schema(description = "Роли и права пользователя в разрезе организаций.")
-        List<UserOrganizationRolesResponse> organizationRoles
+        @Schema(description = "Global roles assigned to the user.")
+        Set<RoleShortResponse> roles
 ) {
 }

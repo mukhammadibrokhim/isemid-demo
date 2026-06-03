@@ -6,8 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.exception.NotFoundException;
-import uz.uzinfocom.app.platform.i18n.MessageResolver;
+import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.*;
 import uz.uzinfocom.app.platform.iam.application.organization.query.mapper.OrganizationQueryMapper;
 import uz.uzinfocom.app.platform.iam.application.organization.query.projection.OrganizationTableProjection;
@@ -15,7 +14,7 @@ import uz.uzinfocom.app.platform.iam.application.organization.query.specificatio
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.web.pagination.PageableUtils;
+import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
 
@@ -24,12 +23,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class OrganizationQueryService {
 
-    private static final String ERROR_NOT_FOUND = "error.not_found";
-
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final OrganizationQueryMapper organizationQueryMapper;
-    private final MessageResolver messageResolver;
 
     @Transactional(readOnly = true)
     public Page<OrganizationTableResponse> findTable(OrganizationFilerRequest request) {
@@ -51,18 +47,18 @@ public class OrganizationQueryService {
     @Transactional(readOnly = true)
     public OrganizationDetailResponse findDetail(Long id) {
         Organization organization = organizationRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(messageResolver.resolve(ERROR_NOT_FOUND)));
+                .orElseThrow(() -> new NotFoundException("organization.not_found"));
 
         return organizationQueryMapper.toDetailedResponse(organization);
     }
 
     @Transactional(readOnly = true)
-    public List<OrganizationUserLookupResponse> findUserLookupsByOrganizationId(
+    public Page<OrganizationUserLookupResponse> findUserLookupsByOrganizationId(
             Long organizationId,
             OrganizationUserLookupRequest request
     ) {
         if (!organizationRepository.existsById(organizationId)) {
-            throw new NotFoundException(messageResolver.resolve(ERROR_NOT_FOUND));
+            throw new NotFoundException("organization.not_found");
         }
 
         Pageable pageable = PageableUtils.of(

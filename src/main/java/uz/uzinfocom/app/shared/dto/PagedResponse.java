@@ -1,4 +1,0 @@
-package uz.uzinfocom.app.shared.dto;
-
-public class PagedResponse {
-}

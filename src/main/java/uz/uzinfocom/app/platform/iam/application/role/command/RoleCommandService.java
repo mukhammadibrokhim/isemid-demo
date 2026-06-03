@@ -1,10 +1,14 @@
 package uz.uzinfocom.app.platform.iam.application.role.command;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.exception.ConflictException;
-import uz.uzinfocom.app.platform.exception.NotFoundException;
+import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
+import uz.uzinfocom.app.shared.exception.ConflictException;
+import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RoleCreateRequest;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RolePermissionItemRequest;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RolePermissionUpdateRequest;
@@ -22,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class RoleCommandService {
 
@@ -30,11 +35,16 @@ public class RoleCommandService {
     private final RoleQueryService roleQueryService;
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_BY_NAME, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public RoleDetailResponse create(RoleCreateRequest request) {
         String name = normalizeName(request.name());
 
         if (roleRepository.existsByNameIgnoreCase(name)) {
-            throw new ConflictException("role.name.already.exists", name);
+            throw new ConflictException("role.name.already_exists", name);
         }
 
         Role role = Role.builder()
@@ -52,18 +62,23 @@ public class RoleCommandService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_BY_NAME, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public RoleDetailResponse update(Long id, RoleUpdateRequest request) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("role.not.found", id));
+                .orElseThrow(() -> new NotFoundException("role.not_found", id));
 
         if (Boolean.TRUE.equals(role.getDeleted())) {
-            throw new ConflictException("role.update.deleted.conflict", id);
+            throw new ConflictException("role.update.deleted_conflict", id);
         }
 
         String name = normalizeName(request.name());
 
         if (roleRepository.existsByNameIgnoreCaseAndIdNot(name, id)) {
-            throw new ConflictException("role.name.already.exists", name);
+            throw new ConflictException("role.name.already_exists", name);
         }
 
         role.setName(name);
@@ -78,9 +93,14 @@ public class RoleCommandService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_BY_NAME, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public void delete(Long id) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("role.not.found", id));
+                .orElseThrow(() -> new NotFoundException("role.not_found", id));
 
         if (Boolean.TRUE.equals(role.getDeleted())) {
             return;
@@ -94,9 +114,14 @@ public class RoleCommandService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_BY_NAME, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public void restore(Long id) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("role.not.found", id));
+                .orElseThrow(() -> new NotFoundException("role.not_found", id));
 
         if (Boolean.FALSE.equals(role.getDeleted())) {
             return;
@@ -118,6 +143,10 @@ public class RoleCommandService {
      * Result  : PATIENT -> READ, UPDATE
      */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public RoleDetailResponse addPermissions(Long roleId, RolePermissionUpdateRequest request) {
         Role role = getAvailableRole(roleId);
 
@@ -158,12 +187,16 @@ public class RoleCommandService {
 
     /**
      * Fully replaces role permissions.
-     *
+     * <p>
      * This is the best endpoint for admin panel "Save permissions" button.
-     *
+     * <p>
      * Existing permissions are removed and replaced with request permissions.
      */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public RoleDetailResponse replacePermissions(Long roleId, RolePermissionUpdateRequest request) {
         Role role = getAvailableRole(roleId);
 
@@ -206,6 +239,10 @@ public class RoleCommandService {
      * If no actions remain, RolePermission row is removed.
      */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, allEntries = true)
+    })
     public RoleDetailResponse removePermissions(Long roleId, RolePermissionUpdateRequest request) {
         Role role = getAvailableRole(roleId);
 
@@ -232,7 +269,7 @@ public class RoleCommandService {
                 }
 
                 if (rolePermission.getActions().contains(PermissionAction.MANAGE)) {
-                    throw new ConflictException("role.permission.manage.remove.conflict", permissionId);
+                    throw new ConflictException("role.permission.manage_remove_conflict", permissionId);
                 }
 
                 rolePermission.getActions().removeAll(actionsToRemove);
@@ -252,10 +289,10 @@ public class RoleCommandService {
 
     private Role getAvailableRole(Long roleId) {
         Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new NotFoundException("role.not.found", roleId));
+                .orElseThrow(() -> new NotFoundException("role.not_found", roleId));
 
         if (!role.isAvailableForAuthorization()) {
-            throw new ConflictException("role.not.available", roleId);
+            throw new ConflictException("role.not_available", roleId);
         }
 
         return role;
@@ -270,10 +307,10 @@ public class RoleCommandService {
 
     private Permission getAvailablePermission(Long permissionId) {
         Permission permission = permissionRepository.findById(permissionId)
-                .orElseThrow(() -> new NotFoundException("permission.not.found", permissionId));
+                .orElseThrow(() -> new NotFoundException("permission.not_found_by_id", permissionId));
 
         if (!permission.isAvailableForAuthorization()) {
-            throw new ConflictException("permission.not.available", permissionId);
+            throw new ConflictException("permission.not_available", permissionId);
         }
 
         return permission;
@@ -281,7 +318,7 @@ public class RoleCommandService {
 
     private void validatePermissionExists(Long permissionId) {
         if (!permissionRepository.existsById(permissionId)) {
-            throw new NotFoundException("permission.not.found", permissionId);
+            throw new NotFoundException("permission.not_found_by_id", permissionId);
         }
     }
 

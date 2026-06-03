@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260603-1510-add-unique-permission-subject" author="uzinfocom">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists
+                        tableName="permissions"
+                        constraintName="uk_permissions_subject"/>
+            </not>
+        </preConditions>
+
+        <addUniqueConstraint
+                tableName="permissions"
+                columnNames="subject"
+                constraintName="uk_permissions_subject"/>
+    </changeSet>
+
+    <changeSet id="20260603-1511-seed-default-permissions" author="uzinfocom">
+        <sql splitStatements="true" stripComments="true">
+            <![CDATA[
+            INSERT INTO permissions (
+                subject,
+                active,
+                description_uz,
+                description_ru,
+                description_uz_cyril,
+                description_kaa,
+                version
+            ) VALUES
+                  ('ALL', true, 'Barcha ruxsatlar', 'Все разрешения', 'Барча рухсатлар', 'Bardıq ruqsatlar', 0),
+                  ('EMPLOYEES', true, 'Xodimlar', 'Сотрудники', 'Ходимлар', 'Qızmetkerler', 0),
+                  ('ORGANIZATIONS', true, 'Tashkilotlar', 'Организации', 'Ташкилотлар', 'Uyımlar', 0),
+                  ('ROLES', true, 'Rollar', 'Роли', 'Роллар', 'Rollar', 0),
+                  ('PERMISSIONS', true, 'Ruxsatlar', 'Разрешения', 'Рухсатлар', 'Ruqsatlar', 0),
+                  ('FORM058', true, 'Ekstren xabarnoma', 'Экстренное извещение', 'Экстрен хабарнома', 'Täsirli xabarnama', 0),
+                  ('FORM058_ATTACHED_CARDS', true, 'Form058ga biriktirilgan kartalar', 'Карты, прикрепленные к Form058', 'Форм058га бириктирилган карталар', 'Form058-ge baylanısqan kartalar', 0),
+                  ('FORM058_CHANGE_ORGANIZATION', true, 'Form058 organizatsiyasini o‘zgartirish', 'Изменение организации Form058', 'Форм058 ташкилотини ўзгартириш', 'Form058 uyımın özgertiw', 0),
+                  ('RECEIVED', true, 'Qabul qilingan formalar', 'Полученные формы', 'Қабул қилинган формалар', 'Qabıl etilgen formalár', 0),
+                  ('FORM058_COMPLETE_BY_SUPERVISOR', true, 'Form058ni rahbar tomonidan tasdiqlash', 'Подтверждение Form058 руководителем', 'Форм058ни раҳбар томонидан тасдиқлаш', 'Form058 baslıq tastıyıqlawı arqalı', 0),
+                  ('USER_INCOMINGS', true, 'Menga biriktirilgan kartalar', 'Карты, прикрепленные ко мне', 'Менга бириктирилган карталар', 'Maǵan baylanısqan kartalar', 0),
+                  ('CARD_FULL_INFO', true, 'Kartaning to‘liq ma’lumoti', 'Дополнительная информация о карте', 'Картанинг тўлиқ маълумоти', 'Kartanın tolıq malıumatı', 0),
+                  ('MKB_LIST', true, 'MKBlаr ro‘yxati', 'Список МКБ', 'МКБлар рўйхати', 'MKB-lar tizimi', 0),
+                  ('COUNTRIES', true, 'Davlatlar', 'Страны', 'Давлатлар', 'Memleketler', 0),
+                  ('STATES', true, 'Viloyatlar', 'Области', 'Вилоятлар', 'Oblıstar', 0),
+                  ('CITIES', true, 'Shaharlar', 'Города', 'Шаҳарлар', 'Qalalar', 0),
+                  ('NEIGHBORHOODS', true, 'Tumanlar', 'Районы', 'Туманлар', 'Awdanlar', 0),
+                  ('STREETS', true, 'Ko‘chalar', 'Улицы', 'Кўчалар', 'Kósheler', 0),
+                  ('RESIDENCES', true, 'Yashash joyi', 'Место жительства', 'Яшаш жойи', 'Turaq jayi', 0),
+                  ('FORM_CATEGORIES', true, 'Yagona forma', 'Единая форма', 'Ягона форма', 'Birgeshe forma', 0),
+                  ('SICK_PATIENT_CATEGORIES', true, 'Kasallangan bemor toifasi', 'Категория больного пациента', 'Касалланган бемор тоифаси', 'Aǵırǵan naǵras toifası', 0),
+                  ('DISEASE_PLACES', true, 'Kasallik joylari', 'Места расположения больного', 'Касаллик жойлари', 'Aǵırǵan orınlar', 0),
+                  ('POPULATION_TYPES', true, 'Aholi turlari', 'Тип населения', 'Аҳоли турлари', 'Xalıqtıń túrleri', 0),
+                  ('GRAPH1', true, '1-Grafik', 'Первый график', '1-График', '1-Grafik', 0),
+                  ('MANUAL_REPORT', true, 'Qo‘llanma hisoboti', 'Отчет по руководствам', 'Қўлланма ҳисоботи', 'Qollanba esabatı', 0),
+                  ('FORM1', true, '1-shakl', 'Форма №1', '1-шакл', '1-shakil', 0),
+                  ('FORM12', true, '12-shakl', 'Форма №12', '12-шакл', '12-shakil', 0),
+                  ('MAP_GRAPHIC', true, 'Xarita grafikasi', 'Тематический график', 'Харита графикаси', 'Harita grafikası', 0),
+                  ('REPORTS', false, 'Hisobotlar', 'Отчеты', 'Hisobotlar', 'Hisobotlar', 0),
+                  ('ANALYTICAL_REPORT', false, 'Analitik hisobot', 'Аналитический отчет', 'Analitik hisobot', 'Аналитический отчет', 0)
+                ON CONFLICT (subject) DO UPDATE SET
+                active = EXCLUDED.active,
+                                             description_uz = EXCLUDED.description_uz,
+                                             description_ru = EXCLUDED.description_ru,
+                                             description_uz_cyril = EXCLUDED.description_uz_cyril,
+                                             description_kaa = EXCLUDED.description_kaa,
+                                             updated_at = now();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -75,15 +75,4 @@ public class User extends AuditableEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new LinkedHashSet<>();
-
-    @Builder.Default
-    @OneToMany(
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private Set<UserOrganizationRole> organizationRoles = new LinkedHashSet<>();
-
-    @Transient
-    private Organization currentOrganization;
 }

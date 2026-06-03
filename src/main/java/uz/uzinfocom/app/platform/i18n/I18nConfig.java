@@ -30,6 +30,8 @@ public class I18nConfig {
         resolver.setDefaultLocale(Locale.forLanguageTag("uz"));
         resolver.setSupportedLocales(List.of(
                 Locale.forLanguageTag("uz"),
+                Locale.forLanguageTag("uz-Cyrl"),
+                Locale.forLanguageTag("kaa"),
                 Locale.forLanguageTag("ru"),
                 Locale.ENGLISH
         ));

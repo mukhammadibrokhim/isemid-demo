@@ -1,6 +1,6 @@
 package uz.uzinfocom.app.platform.iam.infrastructure.remote.payload;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
@@ -107,17 +107,13 @@ public final class RemotePayloadSupport {
             ));
         }
 
-        node.fields().forEachRemaining(entry -> {
-            String fieldName = entry.getKey();
-
+        node.forEachEntry((fieldName, child) -> {
             if ("coding".equals(fieldName)
                     || "code".equals(fieldName)
                     || "system".equals(fieldName)
                     || "display".equals(fieldName)) {
                 return;
             }
-
-            JsonNode child = entry.getValue();
 
             if (child != null && (child.isObject() || child.isArray())) {
                 walkCodings(child, result);

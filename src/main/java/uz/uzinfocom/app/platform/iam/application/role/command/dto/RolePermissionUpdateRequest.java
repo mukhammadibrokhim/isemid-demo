@@ -11,7 +11,7 @@ public record RolePermissionUpdateRequest(
 
         @Schema(description = "Список прав доступа и действий, назначаемых роли.")
         @Valid
-        @NotEmpty(message = "permissions must not be empty")
+        @NotEmpty(message = "{permission.ids.required}")
         List<RolePermissionItemRequest> permissions
 ) {
 }

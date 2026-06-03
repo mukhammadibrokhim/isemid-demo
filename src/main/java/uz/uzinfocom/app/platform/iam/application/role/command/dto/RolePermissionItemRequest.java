@@ -12,12 +12,12 @@ import java.util.Set;
 public record RolePermissionItemRequest(
 
         @Schema(description = "Идентификатор права доступа.", example = "1")
-        @NotNull(message = "permissionId is required")
-        @Positive(message = "permissionId must be positive")
+        @NotNull(message = "{permission.id.required}")
+        @Positive(message = "{permission.id.must_be_positive}")
         Long permissionId,
 
         @Schema(description = "Список разрешенных действий для права доступа.", example = "[\"VIEW\", \"CREATE\"]")
-        @NotEmpty(message = "actions must not be empty")
+        @NotEmpty(message = "{permission.actions.required}")
         Set<PermissionAction> actions
 ) {
 }

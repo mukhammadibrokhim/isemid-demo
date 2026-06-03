@@ -9,16 +9,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import uz.uzinfocom.app.platform.iam.application.user.query.UserOrganizationRoleQueryService;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.domain.Role;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.SecurityAuthorityService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
@@ -27,8 +22,6 @@ import uz.uzinfocom.app.platform.security.route.RequestPolicy;
 import uz.uzinfocom.app.platform.security.route.RequestPolicyResolver;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -37,9 +30,6 @@ import java.util.UUID;
 public class OrganizationContextFilter extends OncePerRequestFilter {
 
     private final RequestPolicyResolver requestPolicyResolver;
-    private final OrganizationRepository organizationRepository;
-    private final UserRepository userRepository;
-    private final UserOrganizationRoleQueryService userOrganizationRoleQueryService;
     private final SecurityAuthorityService securityAuthorityService;
 
     @Override
@@ -65,7 +55,7 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
         String selectedOrganizationHeader = resolveOrganizationHeader(request);
         if (!StringUtils.hasText(selectedOrganizationHeader)) {
             if (policy.organizationHeaderRequired()) {
-                throw new AccessDeniedException(SecurityHeaders.ORGANIZATION_ID + " header is required");
+                throw new AccessDeniedException("organization.required");
             }
 
             filterChain.doFilter(request, response);
@@ -74,44 +64,24 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
 
         UUID selectedOrganizationUuid = parseUuid(selectedOrganizationHeader);
 
-        Organization selectedOrganization = organizationRepository.findByUuid(selectedOrganizationUuid)
-                .orElseThrow(() -> new AccessDeniedException("Selected organization does not exist"));
+        Organization selectedOrganization = securityAuthorityService.findOrganizationByUuid(selectedOrganizationUuid)
+                .orElseThrow(() -> new AccessDeniedException("organization.invalid"));
 
         Long userId = federatedToken.getUserId();
 
-        boolean userBelongsToOrganization = userRepository.existsByIdAndOrganizations_Id(
+        boolean userBelongsToOrganization = securityAuthorityService.userBelongsToOrganization(
                 userId,
                 selectedOrganization.getId()
         );
 
         if (!userBelongsToOrganization) {
-            throw new AccessDeniedException("Selected organization is not assigned to the authenticated user");
+            throw new AccessDeniedException("organization.not_allowed");
         }
-
-        List<Role> scopedRoles = userOrganizationRoleQueryService.activeRoles(
-                userId,
-                selectedOrganization.getId()
-        );
-
-        if (policy.roleValidationRequired() && scopedRoles.isEmpty()) {
-            throw new AccessDeniedException("No active role is assigned to the user in the selected organization");
-        }
-
-        Collection<? extends GrantedAuthority> scopedAuthorities =
-                securityAuthorityService.loadAuthoritiesByRoles(scopedRoles);
-
-        FederatedAuthenticationToken scopedToken = federatedToken.withScopedAuthorities(
-                scopedAuthorities,
-                selectedOrganizationUuid
-        );
 
         try {
             CurrentOrganizationContext.set(selectedOrganization);
-            SecurityContextHolder.getContext().setAuthentication(scopedToken);
-
             filterChain.doFilter(request, response);
         } finally {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
             CurrentOrganizationContext.clear();
         }
     }
@@ -140,7 +110,7 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
         try {
             return UUID.fromString(raw.trim());
         } catch (IllegalArgumentException invalidUuid) {
-            throw new AccessDeniedException("Invalid organization UUID in request header");
+            throw new AccessDeniedException("organization.invalid");
         }
     }
 }

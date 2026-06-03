@@ -23,29 +23,15 @@ import uz.uzinfocom.app.platform.iam.application.role.query.RoleQueryService;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleFilterRequest;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleTableResponse;
-import uz.uzinfocom.app.platform.web.api.ApiPaths;
-import uz.uzinfocom.app.platform.web.response.ApiResponse;
-import uz.uzinfocom.app.platform.web.response.ErrorResponse;
-import uz.uzinfocom.app.platform.web.response.PagedResponse;
+import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.response.ErrorResponse;
+import uz.uzinfocom.app.shared.response.PagedResponse;
 
 @Tag(
-        name = "Роли",
+        name = "Role",
         description = "API для управления ролями пользователей и их правами доступа."
 )
-@ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Некорректный запрос.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Пользователь не авторизован.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Доступ запрещён.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Запись не найдена.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Конфликт данных.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера.",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-})
 @Validated
 @RestController
 @RequestMapping(ApiPaths.Role.BASE)
