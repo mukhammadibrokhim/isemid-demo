@@ -1,7 +1,7 @@
 package uz.uzinfocom.isemid.features.report.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,12 +20,17 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping(ApiPaths.Report.LOCATION)
 @Tag(name = "Report Forms")
-@RequiredArgsConstructor
 public class LocationReportController {
     private final LocationReportService locationReportService;
     private final MessageUtil messageUtil;
 
-    @GetMapping
+  public LocationReportController(@Qualifier("locationReportServiceImpl") LocationReportService locationReportService,
+      MessageUtil messageUtil) {
+    this.locationReportService = locationReportService;
+    this.messageUtil = messageUtil;
+  }
+
+  @GetMapping
     public ApiResponse<?> reportByLocation(
             @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,

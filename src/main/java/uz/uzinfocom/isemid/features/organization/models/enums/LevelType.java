@@ -26,4 +26,20 @@ public enum LevelType {
         }
         throw new IllegalArgumentException("Unknown code: " + code);
     }
+
+    /**
+     * The code level returning in the method below does not correspond
+     * to the ones specified via constructor above.
+     * Business requirement is unclear
+     *
+     * @return numeric representation of this LevelType
+     */
+    public int numericForm() {
+        return switch (this) {
+            case REPUBLICAN -> 1;
+            case REGIONAL, URBAN -> 2;
+            case AREA, DISTRICT, INTERDISTRICT, NOT_DEFINED -> 3;
+        };
+    }
+
 }
