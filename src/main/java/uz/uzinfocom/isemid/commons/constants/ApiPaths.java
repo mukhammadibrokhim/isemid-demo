@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.commons.constants;
 
 public final class ApiPaths {
     public static final String BASE_PATH = "/v1";
+    public static final String BASE_PATH_V2 = "/v2";
 
     public static final class Act {
         public static final String ROOT = BASE_PATH + "/act";
@@ -76,6 +77,7 @@ public final class ApiPaths {
 
     public static final class Report {
         public static final String ROOT = BASE_PATH  + "/report";
+        public static final String ROOT_V2 = BASE_PATH_V2 + "/report";
         public static final String FORM1 = ROOT + "/form1";
         public static final String FORM_2 = ROOT + "/form-2";
         public static final String FORM_3_1 = ROOT + "/form-3-1";
@@ -92,6 +94,7 @@ public final class ApiPaths {
         public static final String FORM28_2 = ROOT + "/form-28-2";
         public static final String FORM12_7 = ROOT + "/form-12-7";
         public static final String LOCATION = ROOT + "/by-location";
+        public static final String LOCATION_V2 = ROOT_V2 + "/by-location";
         public static final String MONITORING = ROOT + "/monitoring";
     }
 
