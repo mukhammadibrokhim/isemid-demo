@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.Role;
-import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.application.sync.dto.IamSyncResult;
+import uz.uzinfocom.app.platform.iam.application.sync.dto.UserSyncResult;
 import uz.uzinfocom.app.platform.security.claims.ExternalIdentityPayload;
 
 import java.util.List;
@@ -26,8 +26,16 @@ public class IamSyncService {
 
         Set<Role> roles = roleSyncService.resolve(payload.roleNames());
 
-        User user = userSyncService.resolve(payload, rawToken, organizations, roles);
+        UserSyncResult userSyncResult = userSyncService.resolve(payload, rawToken, organizations, roles);
 
-        return new IamSyncResult(user, roles, organizations);
+        return new IamSyncResult(
+                userSyncResult.user(),
+                roles,
+                organizations,
+                userSyncResult.created(),
+                userSyncResult.userDataChanged(),
+                userSyncResult.organizationsChanged(),
+                userSyncResult.rolesChanged()
+        );
     }
 }

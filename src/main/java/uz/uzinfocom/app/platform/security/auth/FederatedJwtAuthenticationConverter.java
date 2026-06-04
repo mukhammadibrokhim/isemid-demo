@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.platform.iam.application.sync.IamSyncService;
 import uz.uzinfocom.app.platform.iam.application.sync.dto.IamSyncResult;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.security.claims.ExternalIdentityPayload;
 import uz.uzinfocom.app.platform.security.claims.IdentityClaimExtractorRegistry;
@@ -29,6 +28,7 @@ public class FederatedJwtAuthenticationConverter
     private final IdentityClaimExtractorRegistry extractorRegistry;
     private final IamSyncService iamSyncService;
     private final SecurityAuthorityService securityAuthorityService;
+    private final SecurityUserCacheService securityUserCacheService;
 
     @Override
     public AbstractAuthenticationToken convert(@NonNull Jwt jwt) {
@@ -42,23 +42,24 @@ public class FederatedJwtAuthenticationConverter
         );
 
         User user = syncResult.user();
+        CachedSecurityUser cachedUser = securityUserCacheService.cacheUser(user);
 
         PrincipalUser principal = new PrincipalUser(
-                user.getId(),
-                user.getUuid(),
-                user.getUsername(),
-                user.getNnuzb(),
-                user.getActive(),
+                cachedUser.userId(),
+                cachedUser.uuid(),
+                cachedUser.username(),
+                cachedUser.nnuzb(),
+                cachedUser.active(),
                 null
         );
 
-        List<PrincipalOrganization> tokenOrganizations = syncResult.organizations()
+        List<PrincipalOrganization> tokenOrganizations = cachedUser.organizations()
                 .stream()
                 .map(this::toPrincipalOrganization)
                 .toList();
 
         Collection<? extends GrantedAuthority> authorities =
-                securityAuthorityService.loadAuthoritiesByUserId(user.getId());
+                securityAuthorityService.loadAuthoritiesByUserId(cachedUser.userId());
 
         return new FederatedAuthenticationToken(
                 jwt,
@@ -68,11 +69,11 @@ public class FederatedJwtAuthenticationConverter
         );
     }
 
-    private PrincipalOrganization toPrincipalOrganization(Organization organization) {
+    private PrincipalOrganization toPrincipalOrganization(CachedSecurityOrganization organization) {
         return new PrincipalOrganization(
-                organization.getId(),
-                organization.getUuid(),
-                organization.getName()
+                organization.id(),
+                organization.uuid(),
+                organization.name()
         );
     }
 }

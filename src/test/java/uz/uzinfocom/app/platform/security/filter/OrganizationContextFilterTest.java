@@ -10,9 +10,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
-import uz.uzinfocom.app.platform.security.auth.SecurityAuthorityService;
+import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCacheService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
 import uz.uzinfocom.app.platform.security.principal.PrincipalOrganization;
@@ -33,10 +35,11 @@ import static org.mockito.Mockito.when;
 class OrganizationContextFilterTest {
 
     private final RequestPolicyResolver requestPolicyResolver = mock(RequestPolicyResolver.class);
-    private final SecurityAuthorityService securityAuthorityService = mock(SecurityAuthorityService.class);
+    private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService =
+            mock(SelectedOrganizationSecurityCacheService.class);
     private final OrganizationContextFilter filter = new OrganizationContextFilter(
             requestPolicyResolver,
-            securityAuthorityService
+            selectedOrganizationSecurityCacheService
     );
 
     @AfterEach
@@ -48,15 +51,15 @@ class OrganizationContextFilterTest {
     @Test
     void validatesMembershipAndKeepsOriginalAuthorities() throws Exception {
         UUID organizationUuid = UUID.randomUUID();
-        Organization organization = organization(20L, organizationUuid);
+        CachedSecurityOrganization organization = organization(20L, organizationUuid);
         FederatedAuthenticationToken authentication = authentication();
 
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/v1/patients");
         request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
 
         when(requestPolicyResolver.resolve(request)).thenReturn(new RequestPolicy(false, true, true, "test"));
-        when(securityAuthorityService.findOrganizationByUuid(organizationUuid)).thenReturn(Optional.of(organization));
-        when(securityAuthorityService.userBelongsToOrganization(1L, 20L)).thenReturn(true);
+        when(selectedOrganizationSecurityCacheService.resolveSelectedOrganization(1L, organizationUuid))
+                .thenReturn(Optional.of(organization));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -79,13 +82,12 @@ class OrganizationContextFilterTest {
     @Test
     void rejectsSelectedOrganizationWhenUserIsNotAMember() {
         UUID organizationUuid = UUID.randomUUID();
-        Organization organization = organization(20L, organizationUuid);
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/v1/patients");
         request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
 
         when(requestPolicyResolver.resolve(request)).thenReturn(new RequestPolicy(false, true, true, "test"));
-        when(securityAuthorityService.findOrganizationByUuid(organizationUuid)).thenReturn(Optional.of(organization));
-        when(securityAuthorityService.userBelongsToOrganization(1L, 20L)).thenReturn(false);
+        when(selectedOrganizationSecurityCacheService.resolveSelectedOrganization(1L, organizationUuid))
+                .thenReturn(Optional.empty());
 
         SecurityContextHolder.getContext().setAuthentication(authentication());
 
@@ -93,15 +95,20 @@ class OrganizationContextFilterTest {
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("organization.not_allowed");
 
-        verify(securityAuthorityService).userBelongsToOrganization(1L, 20L);
+        verify(selectedOrganizationSecurityCacheService).resolveSelectedOrganization(1L, organizationUuid);
     }
 
-    private Organization organization(Long id, UUID uuid) {
-        Organization organization = new Organization();
-        organization.setId(id);
-        organization.setUuid(uuid);
-        organization.setName("Central Clinic");
-        return organization;
+    private CachedSecurityOrganization organization(Long id, UUID uuid) {
+        return new CachedSecurityOrganization(
+                id,
+                uuid,
+                "Central Clinic",
+                true,
+                OrganizationLevel.REPUBLICAN,
+                MedicalType.SANEPID_SERVICE,
+                "17",
+                "1701"
+        );
     }
 
     private FederatedAuthenticationToken authentication() {

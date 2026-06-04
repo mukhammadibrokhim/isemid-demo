@@ -21,6 +21,14 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @EntityGraph(attributePaths = {"organizations", "roles"})
     Optional<User> findWithOrganizationsById(Long id);
 
+    @EntityGraph(attributePaths = {"organizations"})
+    @Query("""
+        select distinct u
+        from User u
+        where u.id = :id
+    """)
+    Optional<User> findSecurityUserWithOrganizationsById(@Param("id") Long id);
+
     @EntityGraph(attributePaths = {
             "roles",
             "roles.rolePermissions",
@@ -33,14 +41,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
         where u.id = :id
     """)
     Optional<User> findForAuthorizationById(@Param("id") Long id);
-
-    @Query("""
-        select o.id
-        from User u
-        join u.organizations o
-        where u.id = :userId
-    """)
-    Set<Long> findOrganizationIdsByUserId(@Param("userId") Long userId);
 
     @Query("""
         select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse(

@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
+import uz.uzinfocom.app.platform.iam.application.sync.dto.RoleSyncSnapshot;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
 
@@ -17,6 +19,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,22 +43,24 @@ public class RoleSyncService {
 
     @Transactional
     public Set<Role> resolve(Set<String> roleNames) {
-        if (roleNames == null || roleNames.isEmpty()) {
-            return Set.of();
+        Set<String> appRoleNames = normalizeAndValidateApplicationRoles(roleNames);
+
+        LinkedHashSet<Role> roles = appRoleNames.stream()
+                .map(this::resolveRoleSnapshotCached)
+                .flatMap(Optional::stream)
+                .filter(RoleSyncSnapshot::availableForAuthorization)
+                .map(RoleSyncSnapshot::id)
+                .map(roleRepository::getReferenceById)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (roles.isEmpty()) {
+            log.warn("Access denied: token contains ISEMID roles, but no active local role was resolved. tokenRoles={}",
+                    appRoleNames);
+
+            throw new AccessDeniedException(
+                    "Access denied: no active ISEMID role is assigned to this user."
+            );
         }
-
-        LinkedHashSet<Role> roles = new LinkedHashSet<>();
-
-        roleNames.stream()
-                .map(this::normalizeRoleName)
-                .filter(Objects::nonNull)
-                .filter(this::isIsemidRole)
-                .map(this::resolveRoleIdCached)
-                .flatMap(Optional::stream)
-                .map(roleRepository::findWithPermissionsById)
-                .flatMap(Optional::stream)
-                .filter(Role::isAvailableForAuthorization)
-                .forEach(roles::add);
 
         return Collections.unmodifiableSet(roles);
     }
@@ -65,12 +70,41 @@ public class RoleSyncService {
         String normalizedRoleName = normalizeRoleName(roleName);
 
         if (!isIsemidRole(normalizedRoleName)) {
-            return Optional.empty();
+            throw new AccessDeniedException(
+                    "Access denied: token does not contain required ISEMID role."
+            );
         }
 
-        return resolveRoleIdCached(normalizedRoleName)
-                .flatMap(roleRepository::findWithPermissionsById)
-                .filter(Role::isAvailableForAuthorization);
+        return resolveRoleSnapshotCached(normalizedRoleName)
+                .filter(RoleSyncSnapshot::availableForAuthorization)
+                .map(RoleSyncSnapshot::id)
+                .map(roleRepository::getReferenceById);
+    }
+
+    private Set<String> normalizeAndValidateApplicationRoles(Set<String> roleNames) {
+        if (roleNames == null || roleNames.isEmpty()) {
+            log.warn("Access denied: token roles are empty.");
+            throw new AccessDeniedException(
+                    "Access denied: token does not contain required ISEMID role."
+            );
+        }
+
+        Set<String> appRoleNames = roleNames.stream()
+                .map(this::normalizeRoleName)
+                .filter(Objects::nonNull)
+                .filter(this::isIsemidRole)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (appRoleNames.isEmpty()) {
+            log.warn("Access denied: token does not contain any role with required prefix. requiredPrefix={}, tokenRoles={}",
+                    APP_ROLE_PREFIX, roleNames);
+
+            throw new AccessDeniedException(
+                    "Access denied: token does not contain required ISEMID role."
+            );
+        }
+
+        return Collections.unmodifiableSet(appRoleNames);
     }
 
     private String normalizeRoleName(String roleName) {
@@ -87,32 +121,28 @@ public class RoleSyncService {
                 && normalizedRoleName.startsWith(APP_ROLE_PREFIX);
     }
 
-    private Optional<Long> resolveRoleIdCached(String normalizedRoleName) {
+    private Optional<RoleSyncSnapshot> resolveRoleSnapshotCached(String normalizedRoleName) {
         Cache cache = requireCache();
 
-        Optional<Long> cachedRoleId = cache.get(normalizedRoleName, Optional.class);
+        RoleSyncSnapshot cachedRole = cache.get(normalizedRoleName, RoleSyncSnapshot.class);
 
-        if (cachedRoleId != null) {
-            return cachedRoleId;
+        if (cachedRole != null) {
+            return Optional.of(cachedRole);
         }
 
-        Optional<Long> roleId = resolveLocalRoleId(normalizedRoleName);
+        Optional<RoleSyncSnapshot> role = resolveLocalRoleSnapshot(normalizedRoleName);
 
-        /*
-         * Do not cache Optional.empty().
-         * A role may be created or activated later, and caching an empty result
-         * would keep authorization resolution stale until the cache expires.
-         */
-        roleId.ifPresent(id -> cache.put(normalizedRoleName, roleId));
+        // Do not cache empty result. Role may be created or activated later.
+        role.ifPresent(snapshot -> cache.put(normalizedRoleName, snapshot));
 
-        return roleId;
+        return role;
     }
 
-    private Optional<Long> resolveLocalRoleId(String normalizedRoleName) {
-        Optional<Long> existingRoleId = roleRepository.findIdByNormalizedName(normalizedRoleName);
+    private Optional<RoleSyncSnapshot> resolveLocalRoleSnapshot(String normalizedRoleName) {
+        Optional<Role> existingRole = roleRepository.findByNormalizedName(normalizedRoleName);
 
-        if (existingRoleId.isPresent()) {
-            return existingRoleId;
+        if (existingRole.isPresent()) {
+            return existingRole.map(RoleSyncSnapshot::from);
         }
 
         if (!properties.isCreateMissingRoles()) {
@@ -121,7 +151,7 @@ public class RoleSyncService {
         }
 
         return createInactivePlaceholderSafely(normalizedRoleName)
-                .map(Role::getId);
+                .map(RoleSyncSnapshot::from);
     }
 
     private Optional<Role> createInactivePlaceholderSafely(String normalizedRoleName) {
@@ -129,11 +159,6 @@ public class RoleSyncService {
             Role placeholder = Role.builder()
                     .name(normalizedRoleName)
                     .active(false)
-                    /*
-                     * Do not set deleted=false here.
-                     * The database does not have a deleted column.
-                     * Soft delete is handled through the deleted_at column.
-                     */
                     .build();
 
             Role savedRole = roleRepository.saveAndFlush(placeholder);
@@ -144,10 +169,6 @@ public class RoleSyncService {
             return Optional.of(savedRole);
 
         } catch (DataIntegrityViolationException ex) {
-            /*
-             * Multiple concurrent login requests may try to create the same role.
-             * If a unique constraint violation occurs, reload the role from the database.
-             */
             log.warn("Role was created concurrently. Trying to reload. roleName={}", normalizedRoleName);
 
             return roleRepository.findByNormalizedName(normalizedRoleName);

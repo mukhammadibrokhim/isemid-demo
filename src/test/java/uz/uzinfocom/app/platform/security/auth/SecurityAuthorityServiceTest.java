@@ -6,7 +6,6 @@ import org.springframework.security.core.GrantedAuthority;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 
@@ -25,24 +24,16 @@ class SecurityAuthorityServiceTest {
 
     private final RoleRepository roleRepository = mock(RoleRepository.class);
     private final UserRepository userRepository = mock(UserRepository.class);
-    private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
 
     private final ConcurrentMapCacheManager securityCacheManager = new ConcurrentMapCacheManager(
             SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS,
-            SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID,
-            SecurityCacheNames.USER_ORGANIZATION_IDS_BY_USER_ID,
-            SecurityCacheNames.ORGANIZATION_BY_UUID
+            SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID
     );
-
-    private final UserOrganizationSecurityCacheService userOrganizationSecurityCacheService =
-            new UserOrganizationSecurityCacheService(userRepository);
 
     private final SecurityAuthorityService service = new SecurityAuthorityService(
             roleRepository,
             userRepository,
-            organizationRepository,
-            securityCacheManager,
-            userOrganizationSecurityCacheService
+            securityCacheManager
     );
 
     @Test
@@ -81,22 +72,6 @@ class SecurityAuthorityServiceTest {
 
         verify(roleRepository, times(1))
                 .findPermissionAuthorityNamesByRoleIds(Set.of(10L));
-    }
-
-    @Test
-    void validatesOrganizationMembershipByUsersOrganizationsIds() {
-        when(userRepository.findOrganizationIdsByUserId(1L))
-                .thenReturn(Set.of(20L, 30L));
-
-        assertThat(service.userBelongsToOrganization(1L, 20L)).isTrue();
-        assertThat(service.userBelongsToOrganization(1L, 99L)).isFalse();
-    }
-
-    @Test
-    void returnsFalseWhenUserIdOrOrganizationIdIsNull() {
-        assertThat(service.userBelongsToOrganization(null, 20L)).isFalse();
-        assertThat(service.userBelongsToOrganization(1L, null)).isFalse();
-        assertThat(service.userBelongsToOrganization(null, null)).isFalse();
     }
 
     private Role availableRole() {

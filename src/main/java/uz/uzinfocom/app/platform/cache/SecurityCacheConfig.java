@@ -27,11 +27,12 @@ public class SecurityCacheConfig {
                 // 23h is safer than 24h because it leaves a small rotation buffer.
                 cache(SecurityCacheNames.PUBLIC_KEY_DECODER_BY_PROVIDER, 32, Duration.ofHours(23)),
 
-                cache(SecurityCacheNames.ORGANIZATION_BY_UUID, 20_000, Duration.ofMinutes(30)),
+                cache(SecurityCacheNames.ORGANIZATION_SYNC_BY_PROVIDER_AND_UUID, 20_000, Duration.ofMinutes(30)),
                 cache(SecurityCacheNames.ROLE_BY_NAME, 1_000, Duration.ofHours(2)),
+                cache(SecurityCacheNames.SECURITY_USER_BY_ID, 20_000, Duration.ofMinutes(15)),
+                cache(SecurityCacheNames.SELECTED_ORGANIZATION_BY_USER_ID_AND_UUID, 50_000, Duration.ofMinutes(15)),
                 cache(SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, 20_000, Duration.ofMinutes(15)),
-                cache(SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, 5_000, Duration.ofMinutes(30)),
-                cache(SecurityCacheNames.USER_ORGANIZATION_IDS_BY_USER_ID, 20_000, Duration.ofMinutes(15))
+                cache(SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, 5_000, Duration.ofMinutes(30))
         ));
 
         return manager;

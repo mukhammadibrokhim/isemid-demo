@@ -24,7 +24,7 @@ public class OrganizationSyncService {
     @Transactional
     @Cacheable(
             cacheManager = "securityCacheManager",
-            cacheNames = SecurityCacheNames.IAM_ORGANIZATION_BY_UUID,
+            cacheNames = SecurityCacheNames.ORGANIZATION_SYNC_BY_PROVIDER_AND_UUID,
             key = "#providerKey + ':' + #organizationUuid"
     )
     public Organization resolve(String providerKey, UUID organizationUuid, String rawToken) {

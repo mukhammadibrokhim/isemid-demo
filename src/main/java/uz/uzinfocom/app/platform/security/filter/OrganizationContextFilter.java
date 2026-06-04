@@ -13,9 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
-import uz.uzinfocom.app.platform.security.auth.SecurityAuthorityService;
+import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
+import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCacheService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
 import uz.uzinfocom.app.platform.security.route.RequestPolicy;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public class OrganizationContextFilter extends OncePerRequestFilter {
 
     private final RequestPolicyResolver requestPolicyResolver;
-    private final SecurityAuthorityService securityAuthorityService;
+    private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService;
 
     @Override
     protected void doFilterInternal(
@@ -64,22 +64,12 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
 
         UUID selectedOrganizationUuid = parseUuid(selectedOrganizationHeader);
 
-        Organization selectedOrganization = securityAuthorityService.findOrganizationByUuid(selectedOrganizationUuid)
-                .orElseThrow(() -> new AccessDeniedException("organization.invalid"));
-
-        Long userId = federatedToken.getUserId();
-
-        boolean userBelongsToOrganization = securityAuthorityService.userBelongsToOrganization(
-                userId,
-                selectedOrganization.getId()
-        );
-
-        if (!userBelongsToOrganization) {
-            throw new AccessDeniedException("organization.not_allowed");
-        }
+        CachedSecurityOrganization selectedOrganization = selectedOrganizationSecurityCacheService
+                .resolveSelectedOrganization(federatedToken.getUserId(), selectedOrganizationUuid)
+                .orElseThrow(() -> new AccessDeniedException("organization.not_allowed"));
 
         try {
-            CurrentOrganizationContext.set(selectedOrganization);
+            CurrentOrganizationContext.set(selectedOrganization.toDetachedOrganization());
             filterChain.doFilter(request, response);
         } finally {
             CurrentOrganizationContext.clear();

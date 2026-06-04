@@ -9,10 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.security.authorization.AuthorityNames;
@@ -31,9 +29,7 @@ public class SecurityAuthorityService {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
-    private final OrganizationRepository organizationRepository;
     private final CacheManager securityCacheManager;
-    private final UserOrganizationSecurityCacheService userOrganizationSecurityCacheService;
 
     @Transactional(readOnly = true)
     @Cacheable(
@@ -47,28 +43,6 @@ public class SecurityAuthorityService {
                 .map(User::getRoles)
                 .map(this::loadAuthoritiesByRoles)
                 .orElseGet(Set::of);
-    }
-
-    public boolean userBelongsToOrganization(Long userId, Long organizationId) {
-        if (userId == null || organizationId == null) {
-            return false;
-        }
-
-        return userOrganizationSecurityCacheService
-                .loadOrganizationIdsByUserId(userId)
-                .contains(organizationId);
-    }
-
-    @Transactional(readOnly = true)
-    @Cacheable(
-            cacheManager = "securityCacheManager",
-            cacheNames = SecurityCacheNames.ORGANIZATION_BY_UUID,
-            key = "#uuid",
-            condition = "#uuid != null",
-            unless = "#result == null"
-    )
-    public Optional<Organization> findOrganizationByUuid(java.util.UUID uuid) {
-        return organizationRepository.findByUuid(uuid);
     }
 
     public Collection<? extends GrantedAuthority> loadAuthoritiesByRoles(Collection<Role> roles) {
