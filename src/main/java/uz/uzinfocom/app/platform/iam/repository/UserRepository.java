@@ -10,7 +10,6 @@ import uz.uzinfocom.app.platform.iam.application.organization.query.dto.Organiza
 import uz.uzinfocom.app.platform.iam.domain.User;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {

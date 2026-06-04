@@ -10,12 +10,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uz.uzinfocom.app.shared.exception.AppException;
@@ -42,6 +45,18 @@ public class GlobalExceptionHandler {
     ) {
         ErrorCode code = exception.getErrorCode();
         String message = messages.resolve(exception.getMessageCode(), exception.getArgs());
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Application exception handled. traceId={}, exception={}, errorCode={}, messageCode={}, method={}, path={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                code.getCode(),
+                exception.getMessageCode(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage()
+        );
 
         return ResponseEntity
                 .status(code.getStatus())
@@ -61,6 +76,85 @@ public class GlobalExceptionHandler {
                         fieldError.getDefaultMessage()
                 ))
                 .toList();
+
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Method argument validation failed. traceId={}, exception={}, method={}, path={}, fields={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                violations.stream().map(FieldViolationResponse::field).toList()
+        );
+
+        String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
+
+        return ResponseEntity
+                .badRequest()
+                .body(error(ErrorCode.VALIDATION_FAILED.getCode(), message, request, violations));
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<ErrorResponse> handleBindException(
+            BindException exception,
+            HttpServletRequest request
+    ) {
+        List<FieldViolationResponse> violations = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> new FieldViolationResponse(
+                        fieldError.getField(),
+                        fieldError.getDefaultMessage()
+                ))
+                .toList();
+
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Request binding validation failed. traceId={}, exception={}, method={}, path={}, fields={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                violations.stream().map(FieldViolationResponse::field).toList()
+        );
+
+        String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
+
+        return ResponseEntity
+                .badRequest()
+                .body(error(ErrorCode.VALIDATION_FAILED.getCode(), message, request, violations));
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleHandlerMethodValidation(
+            HandlerMethodValidationException exception,
+            HttpServletRequest request
+    ) {
+        List<String> fieldNames = exception.getParameterValidationResults()
+                .stream()
+                .map(result -> result.getMethodParameter().getParameterName())
+                .toList();
+        String fieldName = fieldNames.isEmpty() ? "methodValidation" : String.join(",", fieldNames);
+        List<FieldViolationResponse> violations = exception.getAllErrors()
+                .stream()
+                .map(error -> new FieldViolationResponse(
+                        fieldName,
+                        error.getDefaultMessage()
+                ))
+                .toList();
+
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Handler method validation failed. traceId={}, exception={}, method={}, path={}, fields={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                fieldNames
+        );
 
         String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
 
@@ -82,6 +176,17 @@ public class GlobalExceptionHandler {
                 ))
                 .toList();
 
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Constraint validation failed. traceId={}, exception={}, method={}, path={}, fields={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                violations.stream().map(FieldViolationResponse::field).toList()
+        );
+
         String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
 
         return ResponseEntity
@@ -94,6 +199,17 @@ public class GlobalExceptionHandler {
             AccessDeniedException exception,
             HttpServletRequest request
     ) {
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Access denied. traceId={}, exception={}, method={}, path={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+
         String message = messages.resolve(ErrorCode.FORBIDDEN.getDefaultMessageCode());
 
         return ResponseEntity
@@ -110,6 +226,17 @@ public class GlobalExceptionHandler {
             AuthenticationException exception,
             HttpServletRequest request
     ) {
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Authentication failed in MVC layer. traceId={}, exception={}, method={}, path={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+
         String message = messages.resolve(ErrorCode.UNAUTHORIZED.getDefaultMessageCode());
 
         return ResponseEntity
@@ -127,6 +254,17 @@ public class GlobalExceptionHandler {
                 exception.getParameterName(),
                 exception.getMessage()
         ));
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Required request parameter is missing. traceId={}, exception={}, method={}, path={}, parameter={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getParameterName(),
+                exception.getMessage()
+        );
 
         return ResponseEntity
                 .badRequest()
@@ -143,6 +281,17 @@ public class GlobalExceptionHandler {
                 exception.getHeaderName(),
                 exception.getMessage()
         ));
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Required request header is missing. traceId={}, exception={}, method={}, path={}, header={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getHeaderName(),
+                exception.getMessage()
+        );
 
         return ResponseEntity
                 .badRequest()
@@ -159,6 +308,17 @@ public class GlobalExceptionHandler {
                 exception.getName(),
                 exception.getMessage()
         ));
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "Request argument type mismatch. traceId={}, exception={}, method={}, path={}, argument={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getName(),
+                exception.getMessage()
+        );
 
         return ResponseEntity
                 .badRequest()
@@ -173,8 +333,9 @@ public class GlobalExceptionHandler {
         String traceId = traceIdProvider.getTraceId(request);
 
         log.warn(
-                "No resource found. traceId={}, method={}, path={}",
+                "No resource found. traceId={}, exception={}, method={}, path={}",
                 traceId,
+                exception.getClass().getSimpleName(),
                 request.getMethod(),
                 request.getRequestURI()
         );
@@ -199,8 +360,9 @@ public class GlobalExceptionHandler {
         String traceId = traceIdProvider.getTraceId(request);
 
         log.warn(
-                "HTTP method not supported. traceId={}, method={}, path={}, supportedMethods={}",
+                "HTTP method not supported. traceId={}, exception={}, method={}, path={}, supportedMethods={}",
                 traceId,
+                exception.getClass().getSimpleName(),
                 request.getMethod(),
                 request.getRequestURI(),
                 exception.getSupportedHttpMethods()
@@ -218,6 +380,35 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(
+            HttpMediaTypeNotSupportedException exception,
+            HttpServletRequest request
+    ) {
+        String traceId = traceIdProvider.getTraceId(request);
+
+        log.warn(
+                "HTTP media type not supported. traceId={}, exception={}, method={}, path={}, contentType={}, supportedMediaTypes={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getContentType(),
+                exception.getSupportedMediaTypes()
+        );
+
+        String message = messages.resolve(ErrorCode.UNSUPPORTED_MEDIA_TYPE.getDefaultMessageCode());
+
+        return ResponseEntity
+                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(error(
+                        ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode(),
+                        message,
+                        request,
+                        List.of()
+                ));
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
             HttpMessageNotReadableException exception,
@@ -225,9 +416,11 @@ public class GlobalExceptionHandler {
     ) {
         String traceId = traceIdProvider.getTraceId(request);
 
+        // Keep request bodies and headers out of logs; malformed payloads can contain sensitive values.
         log.warn(
-                "HTTP request body is missing or malformed. traceId={}, method={}, path={}, message={}",
+                "HTTP request body is missing or malformed. traceId={}, exception={}, method={}, path={}, message={}",
                 traceId,
+                exception.getClass().getSimpleName(),
                 request.getMethod(),
                 request.getRequestURI(),
                 exception.getMessage()
@@ -252,8 +445,9 @@ public class GlobalExceptionHandler {
         String traceId = traceIdProvider.getTraceId(request);
 
         log.warn(
-                "Illegal argument. traceId={}, method={}, path={}, message={}",
+                "Illegal argument. traceId={}, exception={}, method={}, path={}, message={}",
                 traceId,
+                exception.getClass().getSimpleName(),
                 request.getMethod(),
                 request.getRequestURI(),
                 exception.getMessage()
@@ -274,7 +468,15 @@ public class GlobalExceptionHandler {
     ) {
         String traceId = traceIdProvider.getTraceId(request);
 
-        log.error("Database integrity violation. traceId={}", traceId, exception);
+        log.error(
+                "Database integrity violation. traceId={}, exception={}, method={}, path={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage(),
+                exception
+        );
 
         String message = messages.resolve(ErrorCode.DATA_INTEGRITY.getDefaultMessageCode());
 
@@ -290,7 +492,16 @@ public class GlobalExceptionHandler {
     ) {
         String traceId = traceIdProvider.getTraceId(request);
 
-        log.error("Unhandled application exception. traceId={}", traceId, exception);
+        // Fallback response stays generic; stack trace is logged for diagnosis without exposing details to clients.
+        log.error(
+                "Unhandled application exception. traceId={}, exception={}, method={}, path={}, message={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage(),
+                exception
+        );
 
         String message = messages.resolve(ErrorCode.INTERNAL_ERROR.getDefaultMessageCode());
 

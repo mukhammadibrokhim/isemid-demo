@@ -200,9 +200,11 @@ public class OpenApiConfig {
         registerSchema(components, FieldViolationResponse.class);
     }
 
+    @SuppressWarnings("unchecked")
     private void registerSchema(Components components, Class<?> schemaClass) {
-        Map<String, Schema> schemas = ModelConverters.getInstance()
-                .readAll(schemaClass);
+        Map<String, Schema<?>> schemas =
+                (Map<String, Schema<?>>) (Map<?, ?>) ModelConverters.getInstance()
+                        .readAll(schemaClass);
 
         schemas.forEach((schemaName, schema) -> {
             if (!components.getSchemas().containsKey(schemaName)) {

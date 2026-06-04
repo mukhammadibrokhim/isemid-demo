@@ -18,6 +18,7 @@ public enum ErrorCode {
     DATA_INTEGRITY("DATA_INTEGRITY", HttpStatus.INTERNAL_SERVER_ERROR, "error.data_integrity"),
     RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, "error.endpoint_not_found"),
     METHOD_NOT_ALLOWED("METHOD_NOT_ALLOWED", HttpStatus.METHOD_NOT_ALLOWED, "error.method_not_supported"),
+    UNSUPPORTED_MEDIA_TYPE("UNSUPPORTED_MEDIA_TYPE", HttpStatus.UNSUPPORTED_MEDIA_TYPE, "error.unsupported_media_type"),
 
     BAD_REQUEST("BAD_REQUEST", HttpStatus.BAD_REQUEST, "error.bad_request"),
     REQUEST_BODY_MISSING("REQUEST_BODY_MISSING", HttpStatus.BAD_REQUEST, "error.request_body_missing"),

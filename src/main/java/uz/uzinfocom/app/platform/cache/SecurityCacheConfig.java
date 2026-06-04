@@ -8,6 +8,7 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 
 import java.time.Duration;
 import java.util.List;
@@ -34,17 +35,17 @@ public class SecurityCacheConfig {
                 cache(SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, 20_000, Duration.ofMinutes(15)),
                 cache(SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, 5_000, Duration.ofMinutes(30)),
 
-                cache(ReferenceCacheNames.REF_COUNTRIES, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_COUNTRY_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_REGIONS, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_REGION_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_REGIONS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_DISTRICTS, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_DISTRICT_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_DISTRICTS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_MAHALLAS, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_MAHALLA_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheNames.REF_MAHALLAS_BY_PARENT_CODE, 50_000, Duration.ofHours(1))
+                cache(ReferenceCacheConfig.REF_COUNTRIES, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_COUNTRY_BY_CODE, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_REGIONS, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_REGION_BY_CODE, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_REGIONS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_DISTRICTS, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_DISTRICT_BY_CODE, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_NEIGHBORHOODS, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE, 50_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, 50_000, Duration.ofHours(1))
         ));
 
         return manager;

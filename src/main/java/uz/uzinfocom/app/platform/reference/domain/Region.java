@@ -1,15 +1,7 @@
 package uz.uzinfocom.app.platform.reference.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -37,16 +29,16 @@ public class Region extends ReferenceDictionaryEntity {
     @Column(name = "parent_code", nullable = false, length = 50)
     private String parentCode;
 
-    @Column(name = "name_uz", length = 255)
+    @Column(name = "name_uz")
     private String nameUz;
 
-    @Column(name = "name_uz_cyril", length = 255)
+    @Column(name = "name_uz_cyril")
     private String nameUzCyril;
 
-    @Column(name = "name_ru", length = 255)
+    @Column(name = "name_ru")
     private String nameRu;
 
-    @Column(name = "name_kaa", length = 255)
+    @Column(name = "name_kaa")
     private String nameKaa;
 
     @Builder.Default
