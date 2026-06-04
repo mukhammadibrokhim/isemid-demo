@@ -73,6 +73,8 @@ public class Form058ServiceImpl implements Form058Service {
     public Form058 create(Form058Request request, String sourceHeader, User currentUser) {
         Form058 form058 = form058Mapper.toEntity(request);
 
+        Organization currentOrganization = currentUser.getCurrentOrganization();
+        policy.validateCreatPermission(currentOrganization);
         form058.setStatus(FormStatus.SENT);
         form058.setSource(resolveSource(currentUser, sourceHeader));
 
