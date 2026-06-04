@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.report.repository;
 
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,10 @@ public class NationalDiseaseReportRepository {
                 LEFT JOIN patient p    ON f.patient_id = p.id
                 LEFT JOIN pt_address a ON p.id = a.patient_id
             WHERE a.type = 'TEMPORARY'
-              AND (:fromDate   IS NULL OR f.created_at >= :fromDate)
-              AND (:toDate     IS NULL OR f.created_at <  :toDate)
-              AND (:mkb10Code  IS NULL OR f.final_mkb10_code = :mkb10Code)
-              AND (:parentCode IS NULL OR %s = :parentCode)
+              AND (:fromDate::date   IS NULL OR f.created_at >= :fromDate)
+              AND (:toDate::date     IS NULL OR f.created_at <  :toDate)
+              AND (:mkb10Code::varchar  IS NULL OR f.final_mkb10code = :mkb10Code)
+              AND (:parentCode::varchar IS NULL OR %s = :parentCode)
               %s
             GROUP BY %s
             ORDER BY %s
@@ -52,13 +53,13 @@ public class NationalDiseaseReportRepository {
     String col      = resolveColumn(level);
     String parentCol = resolveParentColumn(level);
     String where    = resolveAccessWhere(level);
-    String sql      = QUERY.formatted(col, parentCol, where, col, col);
+    String sql      = QUERY.formatted(col, parentCol, where, col, col).strip();
 
     MapSqlParameterSource params = resolveAccessParams(organization);
-    params.addValue("mkb10Code",  mkb10Code);
-    params.addValue("fromDate",   fromDate);
-    params.addValue("toDate",     toDate);
-    params.addValue("parentCode", parentCode);
+    params.addValue("fromDate",  fromDate,  Types.TIMESTAMP);
+    params.addValue("toDate",    toDate,    Types.TIMESTAMP);
+    params.addValue("mkb10Code",  mkb10Code,  Types.VARCHAR);
+    params.addValue("parentCode",  parentCode,  Types.VARCHAR);
 
     return template.query(sql, params, (rs,row) ->
       new LocationReportRawData(rs.getString("code"),
@@ -88,9 +89,9 @@ public class NationalDiseaseReportRepository {
   private String resolveAccessWhere(LevelType level) {
     return switch (level) {
       case REPUBLICAN                         -> "";
-      case REGIONAL, URBAN                    -> "AND a.state_code = :stateCode";
+      case REGIONAL, URBAN                    -> "AND a.state_code = :stateCode::varchar";
       case AREA, DISTRICT,
-           INTERDISTRICT, NOT_DEFINED         -> "AND a.state_code = :stateCode AND a.city_code = :cityCode";
+           INTERDISTRICT, NOT_DEFINED         -> "AND a.state_code = :stateCode::varchar AND a.city_code = :cityCode::varchar";
     };
   }
 
