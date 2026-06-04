@@ -58,8 +58,6 @@ public class NationalDiseaseReportRepository {
     resolveScopeParams(params, level, orgStateCode, orgCityCode);
 
 
-    log.info("SQL:\n{}", sql);
-    log.info("Params: {}", params.getValues());
     return template.query(sql, params, (rs,row) ->
       new LocationReportRawData(rs.getString("code"),
           rs.getInt("confirmed"),
