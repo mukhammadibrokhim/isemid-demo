@@ -103,6 +103,7 @@ public class OpenApiConfig {
                         "/v1/regions/**",
                         "/v1/district/**",
                         "/v1/districts/**",
+                        "/api/v1/references/**",
                         "/v1/organizations/lookup"
                 )
                 .build();
@@ -135,6 +136,7 @@ public class OpenApiConfig {
                         "/v1/regions/**",
                         "/v1/district/**",
                         "/v1/districts/**",
+                        "/api/v1/references/**",
                         "/v1/organizations/lookup"
                 )
                 .build();

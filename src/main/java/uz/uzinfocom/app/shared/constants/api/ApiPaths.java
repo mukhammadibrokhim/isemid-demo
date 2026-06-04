@@ -68,4 +68,20 @@ public final class ApiPaths {
         public static final String CURRENT = "/current";
     }
 
+    public static final class Reference {
+        private Reference() {
+        }
+
+        public static final String BASE = "/api/v1/references";
+
+        public static final String COUNTRIES = BASE + "/countries";
+        public static final String REGIONS = BASE + "/regions";
+        public static final String DISTRICTS = BASE + "/districts";
+        public static final String MAHALLAS = BASE + "/mahallas";
+
+        public static final String BY_ID = "/{id}";
+        public static final String BY_CODE = "/code/{code}";
+        public static final String BY_PARENT_CODE = "/by-parent-code/{parentCode}";
+    }
+
 }
