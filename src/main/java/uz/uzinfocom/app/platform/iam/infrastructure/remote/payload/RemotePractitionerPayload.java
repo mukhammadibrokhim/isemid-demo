@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record RemotePractitionerPayload(
@@ -98,12 +99,11 @@ public record RemotePractitionerPayload(
     }
 
     public String fullName() {
-        return List.of(
+        return Stream.of(
                         nullToBlank(lastName()),
                         nullToBlank(firstName()),
                         nullToBlank(middleName())
                 )
-                .stream()
                 .filter(StringUtils::hasText)
                 .collect(Collectors.joining(" "));
     }
