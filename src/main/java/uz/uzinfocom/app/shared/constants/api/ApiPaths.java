@@ -77,7 +77,7 @@ public final class ApiPaths {
         public static final String COUNTRIES = BASE + "/countries";
         public static final String REGIONS = BASE + "/regions";
         public static final String DISTRICTS = BASE + "/districts";
-        public static final String NEIGHBORHOODS = BASE + "/mahallas";
+        public static final String NEIGHBORHOODS = BASE + "/neighborhood";
 
         public static final String BY_ID = "/{id}";
         public static final String BY_CODE = "/code/{code}";
