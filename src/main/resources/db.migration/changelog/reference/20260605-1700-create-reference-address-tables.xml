@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260605-1700-01-create-ref-country" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_country"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="ref_country">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(3)">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_ref_country_code"/>
+            </column>
+            <column name="alpha2_code" type="VARCHAR(2)"/>
+            <column name="iso_3166_2_code" type="VARCHAR(32)"/>
+            <column name="citizenship_code" type="VARCHAR(32)"/>
+            <column name="name_uz" type="VARCHAR(255)"/>
+            <column name="name_uz_cyril" type="VARCHAR(255)"/>
+            <column name="name_ru" type="VARCHAR(255)"/>
+            <column name="name_kaa" type="VARCHAR(255)"/>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260605-1700-02-create-ref-region" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_region"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="ref_region">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_ref_region_code"/>
+            </column>
+            <column name="parent_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="legacy_soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_uz" type="VARCHAR(255)"/>
+            <column name="name_uz_cyril" type="VARCHAR(255)"/>
+            <column name="name_ru" type="VARCHAR(255)"/>
+            <column name="name_kaa" type="VARCHAR(255)"/>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260605-1700-03-create-ref-district" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_district"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="ref_district">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_ref_district_code"/>
+            </column>
+            <column name="parent_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="legacy_soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_legacy_soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_uz" type="VARCHAR(255)"/>
+            <column name="name_uz_cyril" type="VARCHAR(255)"/>
+            <column name="name_ru" type="VARCHAR(255)"/>
+            <column name="name_kaa" type="VARCHAR(255)"/>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260605-1700-04-create-ref-neighborhood" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_neighborhood"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="ref_neighborhood">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false"
+                             unique="true"
+                             uniqueConstraintName="uk_ref_neighborhood_code"/>
+            </column>
+            <column name="parent_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_uz" type="VARCHAR(255)"/>
+            <column name="name_uz_cyril" type="VARCHAR(255)"/>
+            <column name="name_ru" type="VARCHAR(255)"/>
+            <column name="name_kaa" type="VARCHAR(255)"/>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260605-1700-05-create-idx-ref-country-code" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_country"/>
+            <not>
+                <indexExists tableName="ref_country" indexName="idx_ref_country_code"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_country" indexName="idx_ref_country_code">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-06-create-idx-ref-country-deleted" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_country"/>
+            <not>
+                <indexExists tableName="ref_country" indexName="idx_ref_country_deleted"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_country" indexName="idx_ref_country_deleted">
+            <column name="deleted"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-07-create-idx-ref-region-code" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_region"/>
+            <not>
+                <indexExists tableName="ref_region" indexName="idx_ref_region_code"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_region" indexName="idx_ref_region_code">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-08-create-idx-ref-region-parent-code" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_region"/>
+            <not>
+                <indexExists tableName="ref_region" indexName="idx_ref_region_parent_code"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_region" indexName="idx_ref_region_parent_code">
+            <column name="parent_code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-09-create-idx-ref-region-deleted" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_region"/>
+            <not>
+                <indexExists tableName="ref_region" indexName="idx_ref_region_deleted"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_region" indexName="idx_ref_region_deleted">
+            <column name="deleted"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-10-create-idx-ref-district-code" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_district"/>
+            <not>
+                <indexExists tableName="ref_district" indexName="idx_ref_district_code"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_district" indexName="idx_ref_district_code">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-11-create-idx-ref-district-parent-code" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_district"/>
+            <not>
+                <indexExists tableName="ref_district" indexName="idx_ref_district_parent_code"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_district" indexName="idx_ref_district_parent_code">
+            <column name="parent_code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-12-create-idx-ref-district-deleted" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_district"/>
+            <not>
+                <indexExists tableName="ref_district" indexName="idx_ref_district_deleted"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_district" indexName="idx_ref_district_deleted">
+            <column name="deleted"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-13-create-idx-ref-neighborhood-code" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_neighborhood"/>
+            <not>
+                <indexExists tableName="ref_neighborhood" indexName="idx_ref_neighborhood_code"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_neighborhood" indexName="idx_ref_neighborhood_code">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-14-create-idx-ref-neighborhood-parent-code" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_neighborhood"/>
+            <not>
+                <indexExists tableName="ref_neighborhood" indexName="idx_ref_neighborhood_parent_code"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_neighborhood" indexName="idx_ref_neighborhood_parent_code">
+            <column name="parent_code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260605-1700-15-create-idx-ref-neighborhood-deleted" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_neighborhood"/>
+            <not>
+                <indexExists tableName="ref_neighborhood" indexName="idx_ref_neighborhood_deleted"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="ref_neighborhood" indexName="idx_ref_neighborhood_deleted">
+            <column name="deleted"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

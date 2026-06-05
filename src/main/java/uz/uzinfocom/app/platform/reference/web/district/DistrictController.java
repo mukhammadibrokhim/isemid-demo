@@ -5,10 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,12 +20,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.district.dto.DistrictCreateRequest;
+import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictResponse;
+import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictTableResponse;
 import uz.uzinfocom.app.platform.reference.application.district.dto.DistrictUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.district.command.DistrictCommandService;
 import uz.uzinfocom.app.platform.reference.application.district.query.DistrictQueryService;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.response.PagedResponse;
 
 import java.util.List;
 
@@ -41,8 +47,11 @@ public class DistrictController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<DistrictResponse>> getAll() {
-        return ApiResponse.success(messageResolver.resolve("common.success"), districtQueryService.getAll());
+    public PagedResponse<DistrictTableResponse> getAll(
+            @ParameterObject @Valid @ModelAttribute DistrictFilterRequest request
+    ) {
+        Page<DistrictTableResponse> page = districtQueryService.findTable(request);
+        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
     }
 
     @GetMapping(ApiPaths.Reference.BY_ID)

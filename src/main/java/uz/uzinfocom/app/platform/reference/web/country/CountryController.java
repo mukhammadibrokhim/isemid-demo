@@ -5,10 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,14 +20,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryCreateRequest;
+import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryResponse;
+import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryTableResponse;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.country.command.CountryCommandService;
 import uz.uzinfocom.app.platform.reference.application.country.query.CountryQueryService;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
-
-import java.util.List;
+import uz.uzinfocom.app.shared.response.PagedResponse;
 
 @Validated
 @RestController
@@ -41,8 +45,11 @@ public class CountryController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<CountryResponse>> getAll() {
-        return ApiResponse.success(messageResolver.resolve("common.success"), countryQueryService.getAll());
+    public PagedResponse<CountryTableResponse> getAll(
+            @ParameterObject @Valid @ModelAttribute CountryFilterRequest request
+    ) {
+        Page<CountryTableResponse> page = countryQueryService.findTable(request);
+        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
     }
 
     @GetMapping(ApiPaths.Reference.BY_ID)

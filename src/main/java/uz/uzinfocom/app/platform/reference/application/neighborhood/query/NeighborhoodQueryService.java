@@ -3,14 +3,21 @@ package uz.uzinfocom.app.platform.reference.application.neighborhood.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodResponse;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodTableResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.mapper.NeighborhoodMapper;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.projection.NeighborhoodTableProjection;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.specification.NeighborhoodSpecification;
 import uz.uzinfocom.app.platform.reference.repository.NeighborhoodRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
+import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
 
@@ -21,6 +28,23 @@ public class NeighborhoodQueryService {
 
     private final NeighborhoodRepository neighborhoodRepository;
     private final NeighborhoodMapper neighborhoodMapper;
+
+    @Transactional(readOnly = true)
+    public Page<NeighborhoodTableResponse> findTable(NeighborhoodFilterRequest request) {
+        NeighborhoodFilterRequest filter = request == null
+                ? new NeighborhoodFilterRequest(null, null, null, null, null, null, null)
+                : request;
+        Pageable pageable = PageableUtils.of(filter, NeighborhoodSortFields.ALLOWED_SORT_FIELDS);
+
+        Page<NeighborhoodTableProjection> page = neighborhoodRepository.findBy(
+                NeighborhoodSpecification.byFilter(filter),
+                query -> query
+                        .as(NeighborhoodTableProjection.class)
+                        .page(pageable)
+        );
+
+        return page.map(neighborhoodMapper::toTableResponse);
+    }
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS, key = "'all'")

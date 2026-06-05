@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.reference.domain.base.ReferenceDictionaryEntity;
+import uz.uzinfocom.app.platform.reference.domain.enums.AdministrativeType;
 
 @Getter
 @Setter
@@ -41,6 +42,10 @@ public class District extends ReferenceDictionaryEntity {
 
     @Column(name = "parent_legacy_soato_id", nullable = false)
     private Integer parentLegacySoatoId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private AdministrativeType administrativeType;
 
     @Column(name = "name_uz")
     private String nameUz;

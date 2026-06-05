@@ -5,10 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,12 +20,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.dto.NeighborhoodCreateRequest;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodResponse;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodTableResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.dto.NeighborhoodUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.command.NeighborhoodCommandService;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.NeighborhoodQueryService;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.response.PagedResponse;
 
 import java.util.List;
 
@@ -41,8 +47,11 @@ public class NeighborhoodController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<NeighborhoodResponse>> getAll() {
-        return ApiResponse.success(messageResolver.resolve("common.success"), neighborhoodQueryService.getAll());
+    public PagedResponse<NeighborhoodTableResponse> getAll(
+            @ParameterObject @Valid @ModelAttribute NeighborhoodFilterRequest request
+    ) {
+        Page<NeighborhoodTableResponse> page = neighborhoodQueryService.findTable(request);
+        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
     }
 
     @GetMapping(ApiPaths.Reference.BY_ID)

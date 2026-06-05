@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.platform.reference.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import uz.uzinfocom.app.platform.reference.application.lookup.projection.ReferenceItemProjection;
 import uz.uzinfocom.app.platform.reference.domain.Region;
@@ -8,7 +9,7 @@ import uz.uzinfocom.app.platform.reference.domain.Region;
 import java.util.List;
 import java.util.Optional;
 
-public interface RegionRepository extends JpaRepository<Region, Long> {
+public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecificationExecutor<Region> {
 
     Optional<Region> findByIdAndDeletedFalse(Long id);
 

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Destination jadvallar oldindan yaratilgan.
+        CSV fayllarda mavjud bo'lmagan NOT NULL audit ustunlari uchun
+        PostgreSQL default qiymatlari o'rnatiladi.
+
+        id ustuni GenerationType.IDENTITY orqali avtomatik yaratiladi.
+        created_by_id va updated_by_id nullable bo'lgani uchun bu yerda to'ldirilmaydi.
+    -->
+    <changeSet
+            id="20260605-1800-00-reference-default-values"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+
+            <tableExists tableName="ref_country"/>
+            <tableExists tableName="ref_region"/>
+            <tableExists tableName="ref_district"/>
+            <tableExists tableName="ref_neighborhood"/>
+
+            <columnExists tableName="ref_country" columnName="version"/>
+            <columnExists tableName="ref_country" columnName="created_at"/>
+            <columnExists tableName="ref_country" columnName="updated_at"/>
+            <columnExists tableName="ref_country" columnName="deleted"/>
+            <columnExists tableName="ref_country" columnName="sort_order"/>
+
+            <columnExists tableName="ref_region" columnName="version"/>
+            <columnExists tableName="ref_region" columnName="created_at"/>
+            <columnExists tableName="ref_region" columnName="updated_at"/>
+            <columnExists tableName="ref_region" columnName="deleted"/>
+            <columnExists tableName="ref_region" columnName="sort_order"/>
+
+            <columnExists tableName="ref_district" columnName="version"/>
+            <columnExists tableName="ref_district" columnName="created_at"/>
+            <columnExists tableName="ref_district" columnName="updated_at"/>
+            <columnExists tableName="ref_district" columnName="deleted"/>
+            <columnExists tableName="ref_district" columnName="sort_order"/>
+
+            <columnExists tableName="ref_neighborhood" columnName="version"/>
+            <columnExists tableName="ref_neighborhood" columnName="created_at"/>
+            <columnExists tableName="ref_neighborhood" columnName="updated_at"/>
+            <columnExists tableName="ref_neighborhood" columnName="deleted"/>
+            <columnExists tableName="ref_neighborhood" columnName="sort_order"/>
+        </preConditions>
+
+        <sql
+                dbms="postgresql"
+                splitStatements="true"
+                stripComments="true"><![CDATA[
+            ALTER TABLE ref_country
+                ALTER COLUMN version SET DEFAULT 0,
+            ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN deleted SET DEFAULT FALSE,
+                ALTER COLUMN sort_order SET DEFAULT 0;
+
+            ALTER TABLE ref_region
+                ALTER COLUMN version SET DEFAULT 0,
+            ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN deleted SET DEFAULT FALSE,
+                ALTER COLUMN sort_order SET DEFAULT 0;
+
+            ALTER TABLE ref_district
+                ALTER COLUMN version SET DEFAULT 0,
+            ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN deleted SET DEFAULT FALSE,
+                ALTER COLUMN sort_order SET DEFAULT 0;
+
+            ALTER TABLE ref_neighborhood
+                ALTER COLUMN version SET DEFAULT 0,
+            ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN deleted SET DEFAULT FALSE,
+                ALTER COLUMN sort_order SET DEFAULT 0;
+            ]]></sql>
+
+    </changeSet>
+
+    <!-- Country: jadval bo'sh bo'lsa CSV yuklanadi -->
+    <changeSet
+            id="20260605-1800-01-seed-country"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_country"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_country
+            </sqlCheck>
+        </preConditions>
+
+        <loadData
+                file="base/country_reference.csv"
+                relativeToChangelogFile="false"
+                tableName="ref_country"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="code" name="code" type="STRING"/>
+            <column header="alpha2_code" name="alpha2_code" type="STRING"/>
+            <column header="iso_3166_2_code" name="iso_3166_2_code" type="STRING"/>
+            <column header="citizenship_code" name="citizenship_code" type="STRING"/>
+            <column header="name_uz" name="name_uz" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+            <column header="name_kaa" name="name_kaa" type="STRING"/>
+
+        </loadData>
+
+    </changeSet>
+
+    <!-- Region: jadval bo'sh bo'lsa CSV yuklanadi -->
+    <changeSet
+            id="20260605-1800-02-seed-region"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_region"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_region
+            </sqlCheck>
+        </preConditions>
+
+        <loadData
+                file="base/region_reference.csv"
+                relativeToChangelogFile="false"
+                tableName="ref_region"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="code" name="code" type="STRING"/>
+            <column header="parent_code" name="parent_code" type="STRING"/>
+            <column header="soato_id" name="soato_id" type="NUMERIC"/>
+            <column header="living_region_id" name="living_region_id" type="NUMERIC"/>
+            <column header="name_uz" name="name_uz" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+            <column header="name_kaa" name="name_kaa" type="STRING"/>
+            <column header="deleted" name="deleted" type="BOOLEAN"/>
+            <column header="sort_order" name="sort_order" type="NUMERIC"/>
+
+        </loadData>
+
+    </changeSet>
+
+    <!-- District: jadval bo'sh bo'lsa CSV yuklanadi -->
+    <changeSet
+            id="20260605-1800-03-seed-district"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_district"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_district
+            </sqlCheck>
+        </preConditions>
+
+        <loadData
+                file="base/district_reference.csv"
+                relativeToChangelogFile="false"
+                tableName="ref_district"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="code" name="code" type="STRING"/>
+            <column header="parent_code" name="parent_code" type="STRING"/>
+            <column header="parent_soato_id" name="parent_soato_id" type="NUMERIC"/>
+            <column header="parent_legacy_soato_id" name="parent_legacy_soato_id" type="NUMERIC"/>
+            <column header="soato_id" name="soato_id" type="NUMERIC"/>
+            <column header="legacy_soato_id" name="legacy_soato_id" type="NUMERIC"/>
+            <column header="administrative_type" name="administrative_type" type="STRING"/>
+            <column header="name_uz" name="name_uz" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+            <column header="name_kaa" name="name_kaa" type="STRING"/>
+            <column header="deleted" name="deleted" type="BOOLEAN"/>
+            <column header="sort_order" name="sort_order" type="NUMERIC"/>
+
+        </loadData>
+
+    </changeSet>
+
+    <!-- Neighborhood: jadval bo'sh bo'lsa CSV yuklanadi -->
+    <changeSet
+            id="20260605-1800-04-seed-neighborhood"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_neighborhood
+            </sqlCheck>
+        </preConditions>
+
+        <loadData
+                file="base/neighborhood_reference.csv"
+                relativeToChangelogFile="false"
+                tableName="ref_neighborhood"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="code" name="code" type="STRING"/>
+            <column header="parent_code" name="parent_code" type="STRING"/>
+            <column header="parent_soato_id" name="parent_soato_id" type="NUMERIC"/>
+            <column header="soato_id" name="soato_id" type="NUMERIC"/>
+            <column header="name_uz" name="name_uz" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+            <column header="name_kaa" name="name_kaa" type="STRING"/>
+            <column header="deleted" name="deleted" type="BOOLEAN"/>
+            <column header="sort_order" name="sort_order" type="NUMERIC"/>
+
+        </loadData>
+
+    </changeSet>
+
+</databaseChangeLog>

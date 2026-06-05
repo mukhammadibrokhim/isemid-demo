@@ -3,14 +3,21 @@ package uz.uzinfocom.app.platform.reference.application.region.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.reference.application.region.query.dto.RegionFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.region.query.dto.RegionResponse;
+import uz.uzinfocom.app.platform.reference.application.region.query.dto.RegionTableResponse;
 import uz.uzinfocom.app.platform.reference.application.region.query.mapper.RegionMapper;
+import uz.uzinfocom.app.platform.reference.application.region.query.projection.RegionTableProjection;
+import uz.uzinfocom.app.platform.reference.application.region.query.specification.RegionSpecification;
 import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
+import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
 
@@ -21,6 +28,23 @@ public class RegionQueryService {
 
     private final RegionRepository regionRepository;
     private final RegionMapper regionMapper;
+
+    @Transactional(readOnly = true)
+    public Page<RegionTableResponse> findTable(RegionFilterRequest request) {
+        RegionFilterRequest filter = request == null
+                ? new RegionFilterRequest(null, null, null, null, null, null, null)
+                : request;
+        Pageable pageable = PageableUtils.of(filter, RegionSortFields.ALLOWED_SORT_FIELDS);
+
+        Page<RegionTableProjection> page = regionRepository.findBy(
+                RegionSpecification.byFilter(filter),
+                query -> query
+                        .as(RegionTableProjection.class)
+                        .page(pageable)
+        );
+
+        return page.map(regionMapper::toTableResponse);
+    }
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = ReferenceCacheConfig.REF_REGIONS, key = "'all'")

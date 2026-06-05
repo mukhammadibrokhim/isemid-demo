@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.platform.reference.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import uz.uzinfocom.app.platform.reference.application.lookup.projection.ReferenceItemProjection;
 import uz.uzinfocom.app.platform.reference.domain.Neighborhood;
@@ -8,7 +9,7 @@ import uz.uzinfocom.app.platform.reference.domain.Neighborhood;
 import java.util.List;
 import java.util.Optional;
 
-public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long> {
+public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long>, JpaSpecificationExecutor<Neighborhood> {
 
     Optional<Neighborhood> findByIdAndDeletedFalse(Long id);
 
