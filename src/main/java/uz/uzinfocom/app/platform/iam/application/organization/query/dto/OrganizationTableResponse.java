@@ -9,8 +9,8 @@ public record OrganizationTableResponse(
         @Schema(description = "Наименование организации.")
         String name,
         @Schema(description = "Код региона организации.")
-        String stateCode,
+        String regionCode,
         @Schema(description = "Код района или города организации.")
-        String cityCode
+        String districtCode
 ) {
 }

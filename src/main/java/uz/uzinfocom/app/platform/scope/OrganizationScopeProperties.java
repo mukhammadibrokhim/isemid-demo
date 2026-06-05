@@ -11,5 +11,5 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.scope")
 public class OrganizationScopeProperties {
 
-    private String tashkentStateCode = "UZ-TK";
+    private String tashkentRegionCode = "UZ-TK";
 }

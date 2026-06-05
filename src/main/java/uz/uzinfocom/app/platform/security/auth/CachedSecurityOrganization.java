@@ -13,8 +13,8 @@ public record CachedSecurityOrganization(
         Boolean active,
         OrganizationLevel levelType,
         MedicalType medicalType,
-        String stateCode,
-        String cityCode
+        String regionCode,
+        String districtCode
 ) {
 
     public Organization toDetachedOrganization() {
@@ -25,8 +25,8 @@ public record CachedSecurityOrganization(
         organization.setActive(active);
         organization.setLevelType(levelType);
         organization.setMedicalType(medicalType);
-        organization.setStateCode(stateCode);
-        organization.setCityCode(cityCode);
+        organization.setRegionCode(regionCode);
+        organization.setDistrictCode(districtCode);
         return organization;
     }
 }

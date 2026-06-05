@@ -30,9 +30,9 @@ public class OrganizationScopeResolver {
 
         return switch (level) {
             case REPUBLICAN -> new ResolvedOrganizationScope(OrganizationScopeMode.ALL, organization.getUuid(), null, null);
-            case REGIONAL -> stateScope(organization);
-            case URBAN -> isTashkentUrban(organization) ? stateScope(organization) : cityScope(organization);
-            case DISTRICT, AREA, INTERDISTRICT -> cityScope(organization);
+            case REGIONAL -> regionScope(organization);
+            case URBAN -> isTashkentUrban(organization) ? regionScope(organization) : districtScope(organization);
+            case DISTRICT, AREA, INTERDISTRICT -> districtScope(organization);
             case NOT_DEFINED -> ownOrganization(organization);
         };
     }
@@ -41,37 +41,37 @@ public class OrganizationScopeResolver {
         return new ResolvedOrganizationScope(
                 OrganizationScopeMode.ORGANIZATION,
                 organization.getUuid(),
-                organization.getStateCode(),
-                organization.getCityCode()
+                organization.getRegionCode(),
+                organization.getDistrictCode()
         );
     }
 
-    private ResolvedOrganizationScope stateScope(Organization organization) {
-        if (!StringUtils.hasText(organization.getStateCode())) {
+    private ResolvedOrganizationScope regionScope(Organization organization) {
+        if (!StringUtils.hasText(organization.getRegionCode())) {
             throw new ScopeViolationException("organization.scope_violation");
         }
         return new ResolvedOrganizationScope(
-                OrganizationScopeMode.STATE,
+                OrganizationScopeMode.REGION,
                 organization.getUuid(),
-                organization.getStateCode(),
+                organization.getRegionCode(),
                 null
         );
     }
 
-    private ResolvedOrganizationScope cityScope(Organization organization) {
-        if (!StringUtils.hasText(organization.getCityCode())) {
+    private ResolvedOrganizationScope districtScope(Organization organization) {
+        if (!StringUtils.hasText(organization.getDistrictCode())) {
             return ownOrganization(organization);
         }
         return new ResolvedOrganizationScope(
-                OrganizationScopeMode.CITY,
+                OrganizationScopeMode.DISTRICT,
                 organization.getUuid(),
-                organization.getStateCode(),
-                organization.getCityCode()
+                organization.getRegionCode(),
+                organization.getDistrictCode()
         );
     }
 
     private boolean isTashkentUrban(Organization organization) {
-        return StringUtils.hasText(organization.getStateCode())
-                && organization.getStateCode().equalsIgnoreCase(properties.getTashkentStateCode());
+        return StringUtils.hasText(organization.getRegionCode())
+                && organization.getRegionCode().equalsIgnoreCase(properties.getTashkentRegionCode());
     }
 }

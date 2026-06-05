@@ -349,8 +349,8 @@ class IamSyncServiceTest {
                 .active(true)
                 .levelType(OrganizationLevel.REPUBLICAN)
                 .medicalType(MedicalType.SANEPID_SERVICE)
-                .stateCode("17")
-                .cityCode("1701")
+                .regionCode("17")
+                .districtCode("1701")
                 .build();
         organization.setId(id);
         return organization;

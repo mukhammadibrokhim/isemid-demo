@@ -97,7 +97,7 @@ public record RemoteOrganizationPayload(
                 .orElse(null);
     }
 
-    public String stateCode() {
+    public String regionCode() {
         RemoteAddressPayload primaryAddress = primaryAddress();
 
         if (primaryAddress != null && StringUtils.hasText(primaryAddress.state())) {
@@ -119,14 +119,9 @@ public record RemoteOrganizationPayload(
         return administrativeTerritoryCode();
     }
 
-    public String cityCode() {
-        RemoteAddressPayload primaryAddress = primaryAddress();
-        return primaryAddress == null ? null : primaryAddress.city();
-    }
-
     public String districtCode() {
         RemoteAddressPayload primaryAddress = primaryAddress();
-        return primaryAddress == null ? null : primaryAddress.district();
+        return primaryAddress == null ? null : primaryAddress.city();
     }
 
     public String addressLine() {

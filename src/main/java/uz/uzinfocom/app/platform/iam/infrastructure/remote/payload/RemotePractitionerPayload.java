@@ -136,19 +136,14 @@ public record RemotePractitionerPayload(
                 .orElse(address.getFirst());
     }
 
-    public String stateCode() {
+    public String regionCode() {
         RemoteAddressPayload primaryAddress = primaryAddress();
         return primaryAddress == null ? null : primaryAddress.state();
     }
 
-    public String cityCode() {
-        RemoteAddressPayload primaryAddress = primaryAddress();
-        return primaryAddress == null ? null : primaryAddress.city();
-    }
-
     public String districtCode() {
         RemoteAddressPayload primaryAddress = primaryAddress();
-        return primaryAddress == null ? null : primaryAddress.district();
+        return primaryAddress == null ? null : primaryAddress.city();
     }
 
     private JsonNode primaryNameNode() {

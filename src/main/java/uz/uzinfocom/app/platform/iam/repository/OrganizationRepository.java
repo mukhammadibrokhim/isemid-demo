@@ -26,8 +26,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
             o.tin,
             o.phone,
             o.active,
-            o.stateCode,
-            o.cityCode,
+            o.regionCode,
+            o.districtCode,
             o.levelType,
             o.medicalType
         )
@@ -37,8 +37,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
               or lower(coalesce(o.name, '')) like concat('%', :search, '%')
               or lower(coalesce(o.tin, '')) like concat('%', :search, '%')
               or lower(coalesce(o.phone, '')) like concat('%', :search, '%')
-              or lower(coalesce(o.stateCode, '')) like concat('%', :search, '%')
-              or lower(coalesce(o.cityCode, '')) like concat('%', :search, '%')
+              or lower(coalesce(o.regionCode, '')) like concat('%', :search, '%')
+              or lower(coalesce(o.districtCode, '')) like concat('%', :search, '%')
         )
           and (:levelType is null or o.levelType = :levelType)
           and (:medicalType is null or o.medicalType = :medicalType)

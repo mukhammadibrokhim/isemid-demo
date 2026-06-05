@@ -2,7 +2,7 @@ package uz.uzinfocom.app.platform.scope;
 
 public enum OrganizationScopeMode {
     ALL,
-    STATE,
-    CITY,
+    REGION,
+    DISTRICT,
     ORGANIZATION
 }

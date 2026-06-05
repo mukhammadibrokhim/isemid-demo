@@ -40,7 +40,7 @@ public class OrganizationScopeController {
         ResolvedOrganizationScope scope = resolver.resolve(CurrentOrganizationContext.require());
         return ApiResponse.success(
                 messages.resolve("organization.scope.loaded"),
-                new CurrentScopeResponse(scope.mode(), scope.organizationUuid(), scope.stateCode(), scope.cityCode())
+                new CurrentScopeResponse(scope.mode(), scope.organizationUuid(), scope.regionCode(), scope.districtCode())
         );
     }
 }

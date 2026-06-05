@@ -21,9 +21,9 @@ public record OrganizationLookupResponse(
         @Schema(description = "Признак активности записи.", example = "true")
         Boolean active,
         @Schema(description = "Код региона организации.")
-        String stateCode,
+        String regionCode,
         @Schema(description = "Код района или города организации.")
-        String cityCode,
+        String districtCode,
         @Schema(description = "Уровень организации.")
         OrganizationLevel levelType,
         @Schema(description = "Тип медицинской организации.")

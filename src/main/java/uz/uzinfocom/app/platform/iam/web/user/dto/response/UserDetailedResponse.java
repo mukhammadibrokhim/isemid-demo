@@ -30,10 +30,10 @@ public record UserDetailedResponse(
         LocalDate birthDate,
         @Schema(description = "Phone number.")
         String phoneNumber,
-        @Schema(description = "State code.")
-        String stateCode,
-        @Schema(description = "City or district code.")
-        String cityCode,
+        @Schema(description = "Region code.")
+        String regionCode,
+        @Schema(description = "District code.")
+        String districtCode,
         @Schema(description = "Address line.")
         String line,
         @Schema(description = "Gender code.")

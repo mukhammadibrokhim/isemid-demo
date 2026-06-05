@@ -12,8 +12,8 @@ public record CurrentScopeResponse(
         @Schema(description = "UUID выбранной организации.")
         UUID organizationUuid,
         @Schema(description = "Код региона, доступного пользователю.")
-        String stateCode,
+        String regionCode,
         @Schema(description = "Код района или города, доступного пользователю.")
-        String cityCode
+        String districtCode
 ) {
 }

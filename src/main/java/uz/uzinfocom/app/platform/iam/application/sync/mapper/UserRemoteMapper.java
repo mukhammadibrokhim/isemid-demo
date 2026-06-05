@@ -23,6 +23,8 @@ public class UserRemoteMapper {
                 .firstName(payload.firstName())
                 .lastName(payload.lastName())
                 .middleName(payload.middleName())
+                .regionCode(payload.regionCode())
+                .districtCode(payload.districtCode())
                 .active(payload.active() == null || payload.active())
                 .organizations(new LinkedHashSet<>(organizations))
                 .roles(new LinkedHashSet<>(roles))

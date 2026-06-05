@@ -74,8 +74,8 @@ public class SecurityUserCacheService {
                 organization.getActive(),
                 organization.getLevelType(),
                 organization.getMedicalType(),
-                organization.getStateCode(),
-                organization.getCityCode()
+                organization.getRegionCode(),
+                organization.getDistrictCode()
         );
     }
 }

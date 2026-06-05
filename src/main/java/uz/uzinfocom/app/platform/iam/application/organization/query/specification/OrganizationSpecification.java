@@ -34,11 +34,11 @@ public final class OrganizationSpecification {
             }
 
             if (StringUtils.hasText(request.regionCode())) {
-                predicates.add(cb.equal(root.get("stateCode"), request.regionCode().trim()));
+                predicates.add(cb.equal(root.get("regionCode"), request.regionCode().trim()));
             }
 
             if (StringUtils.hasText(request.districtCode())) {
-                predicates.add(cb.equal(root.get("cityCode"), request.districtCode().trim()));
+                predicates.add(cb.equal(root.get("districtCode"), request.districtCode().trim()));
             }
 
             if (request.active() != null) {

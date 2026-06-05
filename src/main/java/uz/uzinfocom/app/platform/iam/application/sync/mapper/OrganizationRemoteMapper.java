@@ -18,8 +18,8 @@ public class OrganizationRemoteMapper {
                 .active(payload.active() == null || payload.active())
                 .levelType(parseLevel(payload.levelCode()))
                 .medicalType(parseMedicalType(payload.medicalTypeCode()))
-                .stateCode(payload.stateCode())
-                .cityCode(payload.cityCode())
+                .regionCode(payload.regionCode())
+                .districtCode(payload.districtCode())
                 .build();
     }
 
