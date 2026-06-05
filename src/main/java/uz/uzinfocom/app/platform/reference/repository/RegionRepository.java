@@ -1,6 +1,8 @@
 package uz.uzinfocom.app.platform.reference.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import uz.uzinfocom.app.platform.reference.application.lookup.projection.ReferenceItemProjection;
 import uz.uzinfocom.app.platform.reference.domain.Region;
 
 import java.util.List;
@@ -19,4 +21,18 @@ public interface RegionRepository extends JpaRepository<Region, Long> {
     List<Region> findAllByDeletedFalseOrderBySortOrderAscNameUzAsc();
 
     List<Region> findAllByParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(String parentCode);
+
+    @Query("""
+        select
+            r.code as code,
+            r.parentCode as parentCode,
+            r.nameUz as nameUz,
+            r.nameUzCyril as nameUzCyril,
+            r.nameRu as nameRu,
+            r.nameKaa as nameKaa
+        from Region r
+        where r.deleted = false
+        order by r.sortOrder asc, r.nameUz asc
+    """)
+    List<ReferenceItemProjection> findAllReferenceItems();
 }

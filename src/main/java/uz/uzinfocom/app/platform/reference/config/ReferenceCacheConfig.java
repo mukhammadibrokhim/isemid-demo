@@ -17,6 +17,12 @@ public final class ReferenceCacheConfig {
     public static final String REF_NEIGHBORHOOD_BY_CODE = "ref-neighborhood-by-code";
     public static final String REF_NEIGHBORHOODS_BY_PARENT_CODE = "ref-neighborhoods-by-parent-code";
 
+    public static final String REF_LOOKUP_COUNTRIES = "reference-countries";
+    public static final String REF_LOOKUP_REGIONS = "reference-regions";
+    public static final String REF_LOOKUP_DISTRICTS = "reference-districts";
+    public static final String REF_LOOKUP_NEIGHBORHOODS = "reference-neighborhoods";
+    public static final String REF_CATALOG_BY_TYPE = "reference-catalog-by-type";
+
     private ReferenceCacheConfig() {
     }
 }

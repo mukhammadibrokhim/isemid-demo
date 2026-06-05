@@ -2,13 +2,11 @@ package uz.uzinfocom.app.platform.reference.application.neighborhood.command;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.reference.application.common.event.NeighborhoodChangedEvent;
 import uz.uzinfocom.app.platform.reference.domain.Neighborhood;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.dto.NeighborhoodCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodResponse;
@@ -23,26 +21,21 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-@CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class NeighborhoodCommandService {
 
     private final NeighborhoodRepository neighborhoodRepository;
     private final DistrictRepository districtRepository;
     private final NeighborhoodMapper neighborhoodMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, allEntries = true)
-    })
     public NeighborhoodResponse create(NeighborhoodCreateRequest request) {
         String code = ReferenceCodeNormalizer.normalizeCode(request.code());
         String parentCode = ReferenceCodeNormalizer.normalizeParentCode(request.parentCode());
 
         if (neighborhoodRepository.existsByCode(code)) {
-            throw new ConflictException("reference.mahalla.code.already_exists", code);
+            throw new ConflictException("reference.neighborhood.code.already_exists", code);
         }
 
         validateDistrictParent(parentCode);
@@ -59,6 +52,7 @@ public class NeighborhoodCommandService {
                 .build();
 
         Neighborhood saved = neighborhoodRepository.save(neighborhood);
+        eventPublisher.publishEvent(new NeighborhoodChangedEvent());
         log.debug("Reference neighborhood created. id={}, code={}, parentCode={}",
                 saved.getId(), saved.getCode(), saved.getParentCode());
 
@@ -66,24 +60,19 @@ public class NeighborhoodCommandService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, allEntries = true)
-    })
     public NeighborhoodResponse update(Long id, NeighborhoodUpdateRequest request) {
         Neighborhood neighborhood = neighborhoodRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("reference.mahalla.not_found_by_id", id));
+                .orElseThrow(() -> new NotFoundException("reference.neighborhood.not_found_by_id", id));
 
         if (neighborhood.isDeleted()) {
-            throw new ConflictException("reference.mahalla.update.deleted_conflict", id);
+            throw new ConflictException("reference.neighborhood.update.deleted_conflict", id);
         }
 
         String code = ReferenceCodeNormalizer.normalizeCode(request.code());
         String parentCode = ReferenceCodeNormalizer.normalizeParentCode(request.parentCode());
 
         if (!Objects.equals(neighborhood.getCode(), code) && neighborhoodRepository.existsByCode(code)) {
-            throw new ConflictException("reference.mahalla.code.already_exists", code);
+            throw new ConflictException("reference.neighborhood.code.already_exists", code);
         }
 
         validateDistrictParent(parentCode);
@@ -97,6 +86,7 @@ public class NeighborhoodCommandService {
         neighborhood.setSortOrder(sortOrder(request.sortOrder()));
 
         Neighborhood saved = neighborhoodRepository.save(neighborhood);
+        eventPublisher.publishEvent(new NeighborhoodChangedEvent());
         log.debug("Reference neighborhood updated. id={}, code={}, parentCode={}",
                 saved.getId(), saved.getCode(), saved.getParentCode());
 
@@ -104,14 +94,9 @@ public class NeighborhoodCommandService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, allEntries = true)
-    })
     public void delete(Long id) {
         Neighborhood neighborhood = neighborhoodRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("reference.mahalla.not_found_by_id", id));
+                .orElseThrow(() -> new NotFoundException("reference.neighborhood.not_found_by_id", id));
 
         if (neighborhood.isDeleted()) {
             return;
@@ -119,6 +104,7 @@ public class NeighborhoodCommandService {
 
         neighborhood.setDeleted(true);
         neighborhoodRepository.save(neighborhood);
+        eventPublisher.publishEvent(new NeighborhoodChangedEvent());
         log.debug("Reference neighborhood soft-deleted. id={}, code={}, parentCode={}",
                 neighborhood.getId(), neighborhood.getCode(), neighborhood.getParentCode());
     }

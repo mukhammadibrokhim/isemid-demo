@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.reference.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import uz.uzinfocom.app.platform.reference.domain.base.ReferenceDictionaryEntity;
 
 @Getter
 @Setter
@@ -28,6 +29,12 @@ public class Region extends ReferenceDictionaryEntity {
 
     @Column(name = "parent_code", nullable = false, length = 50)
     private String parentCode;
+
+    @Column(name = "soato_id", nullable = false)
+    private Integer soatoId;
+
+    @Column(name = "legacy_soato_id", nullable = false)
+    private Integer legacySoatoId;
 
     @Column(name = "name_uz")
     private String nameUz;

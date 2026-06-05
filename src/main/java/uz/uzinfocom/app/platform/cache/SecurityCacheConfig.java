@@ -45,7 +45,13 @@ public class SecurityCacheConfig {
                 cache(ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_NEIGHBORHOODS, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, 50_000, Duration.ofHours(1))
+                cache(ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
+
+                cache(ReferenceCacheConfig.REF_LOOKUP_COUNTRIES, 10, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_LOOKUP_REGIONS, 10, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_LOOKUP_DISTRICTS, 10, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_LOOKUP_NEIGHBORHOODS, 10, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_CATALOG_BY_TYPE, 1_000, Duration.ofHours(1))
         ));
 
         return manager;

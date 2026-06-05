@@ -35,7 +35,7 @@ public class NeighborhoodQueryService {
     public NeighborhoodResponse getById(Long id) {
         return neighborhoodRepository.findByIdAndDeletedFalse(id)
                 .map(neighborhoodMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("reference.mahalla.not_found_by_id", id));
+                .orElseThrow(() -> new NotFoundException("reference.neighborhood.not_found_by_id", id));
     }
 
     @Transactional(readOnly = true)
@@ -49,7 +49,7 @@ public class NeighborhoodQueryService {
 
         return neighborhoodRepository.findByCodeAndDeletedFalse(normalizedCode)
                 .map(neighborhoodMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("reference.mahalla.not_found_by_code", normalizedCode));
+                .orElseThrow(() -> new NotFoundException("reference.neighborhood.not_found_by_code", normalizedCode));
     }
 
     @Transactional(readOnly = true)

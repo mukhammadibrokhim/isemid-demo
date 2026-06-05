@@ -1,16 +1,9 @@
 package uz.uzinfocom.app.platform.reference.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+import uz.uzinfocom.app.platform.reference.domain.base.ReferenceDictionaryEntity;
 
 @Getter
 @Setter
@@ -36,6 +29,18 @@ public class District extends ReferenceDictionaryEntity {
 
     @Column(name = "parent_code", nullable = false, length = 50)
     private String parentCode;
+
+    @Column(name = "soato_id", nullable = false)
+    private Integer soatoId;
+
+    @Column(name = "parent_soato_id", nullable = false)
+    private Integer parentSoatoId;
+
+    @Column(name = "legacy_soato_id", nullable = false)
+    private Integer legacySoatoId;
+
+    @Column(name = "parent_legacy_soato_id", nullable = false)
+    private Integer parentLegacySoatoId;
 
     @Column(name = "name_uz")
     private String nameUz;

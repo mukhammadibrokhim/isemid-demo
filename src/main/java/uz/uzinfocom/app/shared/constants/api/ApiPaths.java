@@ -78,10 +78,14 @@ public final class ApiPaths {
         public static final String REGIONS = BASE + "/regions";
         public static final String DISTRICTS = BASE + "/districts";
         public static final String NEIGHBORHOODS = BASE + "/neighborhood";
+        public static final String CATALOGS = BASE + "/catalogs";
 
         public static final String BY_ID = "/{id}";
         public static final String BY_CODE = "/code/{code}";
         public static final String BY_PARENT_CODE = "/by-parent-code/{parentCode}";
+        public static final String BY_TYPE = "/types/{type}";
+        public static final String BY_TYPE_AND_CODE = "/types/{type}/codes/{code}";
+        public static final String BY_TYPE_AND_PARENT_CODE = "/types/{type}/parents/{parentCode}";
     }
 
 }

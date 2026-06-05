@@ -1,13 +1,20 @@
 package uz.uzinfocom.app.platform.iam.application.organization.query.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationTableResponse;
 import uz.uzinfocom.app.platform.iam.application.organization.query.projection.OrganizationTableProjection;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.reference.application.lookup.mapper.ReferenceMappingHelper;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+        componentModel = "spring",
+        uses = ReferenceMappingHelper.class
+)
 public interface OrganizationQueryMapper {
+    @Mapping(target = "regionName", source = "regionCode", qualifiedByName = "regionName")
+    @Mapping(target = "districtName", source = "districtCode", qualifiedByName = "districtName")
     OrganizationTableResponse toTableResponse(OrganizationTableProjection organizationTableProjection);
 
     OrganizationDetailResponse toDetailedResponse(Organization organization);

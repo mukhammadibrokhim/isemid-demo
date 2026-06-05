@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.platform.reference.domain;
+package uz.uzinfocom.app.platform.reference.domain.base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

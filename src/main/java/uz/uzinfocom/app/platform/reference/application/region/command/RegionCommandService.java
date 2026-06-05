@@ -2,13 +2,11 @@ package uz.uzinfocom.app.platform.reference.application.region.command;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.reference.application.common.event.RegionChangedEvent;
 import uz.uzinfocom.app.platform.reference.domain.Region;
 import uz.uzinfocom.app.platform.reference.application.region.dto.RegionCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.region.query.dto.RegionResponse;
@@ -23,20 +21,15 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-@CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class RegionCommandService {
 
     private final RegionRepository regionRepository;
     private final CountryRepository countryRepository;
     private final RegionMapper regionMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGIONS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGION_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGIONS_BY_PARENT_CODE, allEntries = true)
-    })
     public RegionResponse create(RegionCreateRequest request) {
         String code = ReferenceCodeNormalizer.normalizeCode(request.code());
         String parentCode = ReferenceCodeNormalizer.normalizeParentCode(request.parentCode());
@@ -59,6 +52,7 @@ public class RegionCommandService {
                 .build();
 
         Region saved = regionRepository.save(region);
+        eventPublisher.publishEvent(new RegionChangedEvent());
         log.debug("Reference region created. id={}, code={}, parentCode={}",
                 saved.getId(), saved.getCode(), saved.getParentCode());
 
@@ -66,11 +60,6 @@ public class RegionCommandService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGIONS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGION_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGIONS_BY_PARENT_CODE, allEntries = true)
-    })
     public RegionResponse update(Long id, RegionUpdateRequest request) {
         Region region = regionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("reference.region.not_found_by_id", id));
@@ -97,6 +86,7 @@ public class RegionCommandService {
         region.setSortOrder(sortOrder(request.sortOrder()));
 
         Region saved = regionRepository.save(region);
+        eventPublisher.publishEvent(new RegionChangedEvent());
         log.debug("Reference region updated. id={}, code={}, parentCode={}",
                 saved.getId(), saved.getCode(), saved.getParentCode());
 
@@ -104,11 +94,6 @@ public class RegionCommandService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGIONS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGION_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_REGIONS_BY_PARENT_CODE, allEntries = true)
-    })
     public void delete(Long id) {
         Region region = regionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("reference.region.not_found_by_id", id));
@@ -119,6 +104,7 @@ public class RegionCommandService {
 
         region.setDeleted(true);
         regionRepository.save(region);
+        eventPublisher.publishEvent(new RegionChangedEvent());
         log.debug("Reference region soft-deleted. id={}, code={}, parentCode={}",
                 region.getId(), region.getCode(), region.getParentCode());
     }

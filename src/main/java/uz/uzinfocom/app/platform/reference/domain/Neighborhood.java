@@ -11,19 +11,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import uz.uzinfocom.app.platform.reference.domain.base.ReferenceDictionaryEntity;
 
 @Getter
 @Setter
 @Entity
 @Table(
-        name = "ref_mahalla",
+        name = "ref_neighborhood",
         indexes = {
-                @Index(name = "idx_ref_mahalla_code", columnList = "code"),
-                @Index(name = "idx_ref_mahalla_parent_code", columnList = "parent_code"),
-                @Index(name = "idx_ref_mahalla_deleted", columnList = "deleted")
+                @Index(name = "idx_ref_neighborhood_code", columnList = "code"),
+                @Index(name = "idx_ref_neighborhood_parent_code", columnList = "parent_code"),
+                @Index(name = "idx_ref_neighborhood_deleted", columnList = "deleted")
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_ref_mahalla_code", columnNames = "code")
+                @UniqueConstraint(name = "uk_ref_neighborhood_code", columnNames = "code")
         }
 )
 @SuperBuilder(toBuilder = true)
@@ -36,6 +37,12 @@ public class Neighborhood extends ReferenceDictionaryEntity {
 
     @Column(name = "parent_code", nullable = false, length = 50)
     private String parentCode;
+
+    @Column(name = "soato_id", nullable = false)
+    private Integer soatoId;
+
+    @Column(name = "parent_soato_id", nullable = false)
+    private Integer parentSoatoId;
 
     @Column(name = "name_uz")
     private String nameUz;

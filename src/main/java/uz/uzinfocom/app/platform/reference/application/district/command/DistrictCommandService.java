@@ -2,13 +2,11 @@ package uz.uzinfocom.app.platform.reference.application.district.command;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.reference.application.common.event.DistrictChangedEvent;
 import uz.uzinfocom.app.platform.reference.domain.District;
 import uz.uzinfocom.app.platform.reference.application.district.dto.DistrictCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictResponse;
@@ -23,20 +21,15 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-@CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class DistrictCommandService {
 
     private final DistrictRepository districtRepository;
     private final RegionRepository regionRepository;
     private final DistrictMapper districtMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICTS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICT_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE, allEntries = true)
-    })
     public DistrictResponse create(DistrictCreateRequest request) {
         String code = ReferenceCodeNormalizer.normalizeCode(request.code());
         String parentCode = ReferenceCodeNormalizer.normalizeParentCode(request.parentCode());
@@ -59,6 +52,7 @@ public class DistrictCommandService {
                 .build();
 
         District saved = districtRepository.save(district);
+        eventPublisher.publishEvent(new DistrictChangedEvent());
         log.debug("Reference district created. id={}, code={}, parentCode={}",
                 saved.getId(), saved.getCode(), saved.getParentCode());
 
@@ -66,11 +60,6 @@ public class DistrictCommandService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICTS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICT_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE, allEntries = true)
-    })
     public DistrictResponse update(Long id, DistrictUpdateRequest request) {
         District district = districtRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("reference.district.not_found_by_id", id));
@@ -97,6 +86,7 @@ public class DistrictCommandService {
         district.setSortOrder(sortOrder(request.sortOrder()));
 
         District saved = districtRepository.save(district);
+        eventPublisher.publishEvent(new DistrictChangedEvent());
         log.debug("Reference district updated. id={}, code={}, parentCode={}",
                 saved.getId(), saved.getCode(), saved.getParentCode());
 
@@ -104,11 +94,6 @@ public class DistrictCommandService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICTS, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICT_BY_CODE, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE, allEntries = true)
-    })
     public void delete(Long id) {
         District district = districtRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("reference.district.not_found_by_id", id));
@@ -119,6 +104,7 @@ public class DistrictCommandService {
 
         district.setDeleted(true);
         districtRepository.save(district);
+        eventPublisher.publishEvent(new DistrictChangedEvent());
         log.debug("Reference district soft-deleted. id={}, code={}, parentCode={}",
                 district.getId(), district.getCode(), district.getParentCode());
     }

@@ -2,13 +2,11 @@ package uz.uzinfocom.app.platform.reference.application.country.command;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.reference.application.common.event.CountryChangedEvent;
 import uz.uzinfocom.app.platform.reference.domain.Country;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryResponse;
@@ -22,18 +20,14 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-@CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class CountryCommandService {
 
     private final CountryRepository countryRepository;
     private final CountryMapper countryMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_COUNTRIES, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_COUNTRY_BY_CODE, allEntries = true)
-    })
     public CountryResponse create(CountryCreateRequest request) {
         String code = ReferenceCodeNormalizer.normalizeCode(request.code());
 
@@ -52,16 +46,13 @@ public class CountryCommandService {
                 .build();
 
         Country saved = countryRepository.save(country);
+        eventPublisher.publishEvent(new CountryChangedEvent());
         log.debug("Reference country created. id={}, code={}", saved.getId(), saved.getCode());
 
         return countryMapper.toResponse(saved);
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_COUNTRIES, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_COUNTRY_BY_CODE, allEntries = true)
-    })
     public CountryResponse update(Long id, CountryUpdateRequest request) {
         Country country = countryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("reference.country.not_found_by_id", id));
@@ -84,16 +75,13 @@ public class CountryCommandService {
         country.setSortOrder(sortOrder(request.sortOrder()));
 
         Country saved = countryRepository.save(country);
+        eventPublisher.publishEvent(new CountryChangedEvent());
         log.debug("Reference country updated. id={}, code={}", saved.getId(), saved.getCode());
 
         return countryMapper.toResponse(saved);
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_COUNTRIES, allEntries = true),
-            @CacheEvict(cacheNames = ReferenceCacheConfig.REF_COUNTRY_BY_CODE, allEntries = true)
-    })
     public void delete(Long id) {
         Country country = countryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("reference.country.not_found_by_id", id));
@@ -104,6 +92,7 @@ public class CountryCommandService {
 
         country.setDeleted(true);
         countryRepository.save(country);
+        eventPublisher.publishEvent(new CountryChangedEvent());
         log.debug("Reference country soft-deleted. id={}, code={}", country.getId(), country.getCode());
     }
 
