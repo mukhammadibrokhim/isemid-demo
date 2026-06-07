@@ -1,5 +1,8 @@
 package uz.uzinfocom.app.platform.reference.web.country;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -30,6 +33,10 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
 
+@Tag(
+        name = "Reference - Countries",
+        description = "Country reference dictionary management APIs."
+)
 @Validated
 @RestController
 @RequestMapping(ApiPaths.Reference.COUNTRIES)
@@ -43,6 +50,20 @@ public class CountryController {
     private final CountryCommandService countryCommandService;
     private final MessageResolver messageResolver;
 
+    @Operation(
+            summary = "Get paginated country reference data",
+            description = """
+                    Returns active Country reference records as a paginated table.
+
+                    Supported filters: code, name.
+                    Pagination is 1-based.
+                    Supported sort fields: id, code, nameUz, nameUzCyril, nameRu, nameKaa, sortOrder, createdAt, updatedAt.
+                    """
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Countries successfully retrieved."
+    )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<CountryTableResponse> getAll(
@@ -52,38 +73,96 @@ public class CountryController {
         return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
     }
 
+    @Operation(
+            summary = "Get country by id",
+            description = "Returns a single active Country reference record by its internal identifier."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Country successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<CountryResponse> getById(@PathVariable @Positive Long id) {
+    public ApiResponse<CountryResponse> getById(
+            @Parameter(description = "Country internal identifier.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), countryQueryService.getById(id));
     }
 
+    @Operation(
+            summary = "Get country by code",
+            description = "Returns a single active Country reference record by the normalized country code."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Country successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<CountryResponse> getByCode(
+            @Parameter(description = "Country code.", required = true, example = "UZB")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), countryQueryService.getByCode(code));
     }
 
+    @Operation(
+            summary = "Create country",
+            description = "Creates a new Country reference record. Codes are normalized before persistence."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "201",
+            description = "Country successfully created."
+    )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<CountryResponse> create(@Valid @RequestBody CountryCreateRequest request) {
+    public ApiResponse<CountryResponse> create(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Country reference data to create.",
+                    required = true
+            )
+            @Valid @RequestBody CountryCreateRequest request
+    ) {
         return ApiResponse.success(messageResolver.resolve("common.created"), countryCommandService.create(request));
     }
 
+    @Operation(
+            summary = "Update country",
+            description = "Updates an existing active Country reference record by internal identifier."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Country successfully updated."
+    )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<CountryResponse> update(
+            @Parameter(description = "Country internal identifier.", required = true, example = "1")
             @PathVariable @Positive Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "New Country reference data.",
+                    required = true
+            )
             @Valid @RequestBody CountryUpdateRequest request
     ) {
         return ApiResponse.success(messageResolver.resolve("common.updated"), countryCommandService.update(id, request));
     }
 
+    @Operation(
+            summary = "Delete country",
+            description = "Soft-deletes a Country reference record. Deleted records are excluded from read endpoints."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Country successfully deleted."
+    )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<Void> delete(@PathVariable @Positive Long id) {
+    public ApiResponse<Void> delete(
+            @Parameter(description = "Country internal identifier.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
         countryCommandService.delete(id);
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
     }

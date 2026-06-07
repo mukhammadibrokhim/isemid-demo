@@ -9,24 +9,49 @@ import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 @Schema(description = "Region table filter and pagination parameters.")
 public record RegionFilterRequest(
+        @Schema(description = "Page number, starting from 1.", example = "1")
         @Min(1)
         Integer page,
 
+        @Schema(description = "Number of records per page. Maximum value is 200.", example = "20")
         @Min(1)
         @Max(200)
         Integer size,
 
+        @Schema(
+                description = "Sort field. Unsupported values fall back to the default sort.",
+                example = "sortOrder",
+                allowableValues = {
+                        "id",
+                        "code",
+                        "parentCode",
+                        "soatoId",
+                        "nameUz",
+                        "nameUzCyril",
+                        "nameRu",
+                        "nameKaa",
+                        "sortOrder",
+                        "createdAt",
+                        "updatedAt"
+                }
+        )
         String sortBy,
 
-        @Schema(allowableValues = {"asc", "desc"})
+        @Schema(description = "Sort direction.", example = "asc", allowableValues = {"asc", "desc"})
         String sortDir,
 
+        @Schema(
+                description = "Search text matched against Region names in supported languages.",
+                example = "Andijon"
+        )
         @Size(max = 255, message = "{reference.name.max_length}")
         String name,
 
+        @Schema(description = "Exact Region code filter.", example = "UZ-AN")
         @Size(max = 50, message = "{reference.code.max_length}")
         String code,
 
+        @Schema(description = "Exact Region SOATO identifier filter.", example = "1703")
         @Positive(message = "{validation.must_be_positive}")
         Integer soatoId
 ) implements PageableRequest {

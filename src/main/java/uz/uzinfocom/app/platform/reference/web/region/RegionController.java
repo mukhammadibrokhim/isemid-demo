@@ -1,5 +1,8 @@
 package uz.uzinfocom.app.platform.reference.web.region;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -32,6 +35,10 @@ import uz.uzinfocom.app.shared.response.PagedResponse;
 
 import java.util.List;
 
+@Tag(
+        name = "Reference - Regions",
+        description = "Region reference dictionary management APIs."
+)
 @Validated
 @RestController
 @RequestMapping(ApiPaths.Reference.REGIONS)
@@ -45,6 +52,21 @@ public class RegionController {
     private final RegionCommandService regionCommandService;
     private final MessageResolver messageResolver;
 
+    @Operation(
+            summary = "Get paginated region reference data",
+            description = """
+                    Returns active Region reference records as a paginated table.
+
+                    Supported filters: code, name, soatoId.
+                    Region.parentCode identifies the parent Country code.
+                    Pagination is 1-based.
+                    Supported sort fields: id, code, parentCode, soatoId, nameUz, nameUzCyril, nameRu, nameKaa, sortOrder, createdAt, updatedAt.
+                    """
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Regions successfully retrieved."
+    )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<RegionTableResponse> getAll(
@@ -54,23 +76,52 @@ public class RegionController {
         return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
     }
 
+    @Operation(
+            summary = "Get region by id",
+            description = "Returns a single active Region reference record by its internal identifier."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Region successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<RegionResponse> getById(@PathVariable @Positive Long id) {
+    public ApiResponse<RegionResponse> getById(
+            @Parameter(description = "Region internal identifier.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), regionQueryService.getById(id));
     }
 
+    @Operation(
+            summary = "Get region by code",
+            description = "Returns a single active Region reference record by the normalized region code."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Region successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<RegionResponse> getByCode(
+            @Parameter(description = "Region code.", required = true, example = "UZ-AN")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), regionQueryService.getByCode(code));
     }
 
+    @Operation(
+            summary = "Get regions by country code",
+            description = "Returns active Region reference records whose parentCode matches the supplied Country code."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Regions successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<RegionResponse>> getByParentCode(
+            @Parameter(description = "Country code stored in Region.parentCode.", required = true, example = "UZ")
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {
         return ApiResponse.success(
@@ -79,24 +130,62 @@ public class RegionController {
         );
     }
 
+    @Operation(
+            summary = "Create region",
+            description = "Creates a new Region reference record under an existing Country parent."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "201",
+            description = "Region successfully created."
+    )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<RegionResponse> create(@Valid @RequestBody RegionCreateRequest request) {
+    public ApiResponse<RegionResponse> create(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Region reference data to create.",
+                    required = true
+            )
+            @Valid @RequestBody RegionCreateRequest request
+    ) {
         return ApiResponse.success(messageResolver.resolve("common.created"), regionCommandService.create(request));
     }
 
+    @Operation(
+            summary = "Update region",
+            description = "Updates an existing active Region reference record by internal identifier."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Region successfully updated."
+    )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<RegionResponse> update(
+            @Parameter(description = "Region internal identifier.", required = true, example = "1")
             @PathVariable @Positive Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "New Region reference data.",
+                    required = true
+            )
             @Valid @RequestBody RegionUpdateRequest request
     ) {
         return ApiResponse.success(messageResolver.resolve("common.updated"), regionCommandService.update(id, request));
     }
 
+    @Operation(
+            summary = "Delete region",
+            description = "Soft-deletes a Region reference record. Deleted records are excluded from read endpoints."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Region successfully deleted."
+    )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<Void> delete(@PathVariable @Positive Long id) {
+    public ApiResponse<Void> delete(
+            @Parameter(description = "Region internal identifier.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
         regionCommandService.delete(id);
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
     }

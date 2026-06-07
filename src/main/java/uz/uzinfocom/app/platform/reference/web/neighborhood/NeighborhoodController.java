@@ -1,5 +1,8 @@
 package uz.uzinfocom.app.platform.reference.web.neighborhood;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -32,6 +35,10 @@ import uz.uzinfocom.app.shared.response.PagedResponse;
 
 import java.util.List;
 
+@Tag(
+        name = "Reference - Neighborhoods",
+        description = "Neighborhood reference dictionary management APIs."
+)
 @Validated
 @RestController
 @RequestMapping(ApiPaths.Reference.NEIGHBORHOODS)
@@ -45,6 +52,21 @@ public class NeighborhoodController {
     private final NeighborhoodCommandService neighborhoodCommandService;
     private final MessageResolver messageResolver;
 
+    @Operation(
+            summary = "Get paginated neighborhood reference data",
+            description = """
+                    Returns active Neighborhood reference records as a paginated table.
+
+                    Supported filters: code, name, soatoId.
+                    Neighborhood.parentCode identifies the parent District code.
+                    Pagination is 1-based.
+                    Supported sort fields: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, sortOrder, createdAt, updatedAt.
+                    """
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Neighborhoods successfully retrieved."
+    )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<NeighborhoodTableResponse> getAll(
@@ -54,23 +76,52 @@ public class NeighborhoodController {
         return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
     }
 
+    @Operation(
+            summary = "Get neighborhood by id",
+            description = "Returns a single active Neighborhood reference record by its internal identifier."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Neighborhood successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<NeighborhoodResponse> getById(@PathVariable @Positive Long id) {
+    public ApiResponse<NeighborhoodResponse> getById(
+            @Parameter(description = "Neighborhood internal identifier.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), neighborhoodQueryService.getById(id));
     }
 
+    @Operation(
+            summary = "Get neighborhood by code",
+            description = "Returns a single active Neighborhood reference record by the normalized neighborhood code."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Neighborhood successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<NeighborhoodResponse> getByCode(
+            @Parameter(description = "Neighborhood code.", required = true, example = "AN-202001")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), neighborhoodQueryService.getByCode(code));
     }
 
+    @Operation(
+            summary = "Get neighborhoods by district code",
+            description = "Returns active Neighborhood reference records whose parentCode matches the supplied District code."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Neighborhoods successfully retrieved."
+    )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<NeighborhoodResponse>> getByParentCode(
+            @Parameter(description = "District code stored in Neighborhood.parentCode.", required = true, example = "AN-202")
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {
         return ApiResponse.success(
@@ -79,24 +130,62 @@ public class NeighborhoodController {
         );
     }
 
+    @Operation(
+            summary = "Create neighborhood",
+            description = "Creates a new Neighborhood reference record under an existing District parent."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "201",
+            description = "Neighborhood successfully created."
+    )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<NeighborhoodResponse> create(@Valid @RequestBody NeighborhoodCreateRequest request) {
+    public ApiResponse<NeighborhoodResponse> create(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Neighborhood reference data to create.",
+                    required = true
+            )
+            @Valid @RequestBody NeighborhoodCreateRequest request
+    ) {
         return ApiResponse.success(messageResolver.resolve("common.created"), neighborhoodCommandService.create(request));
     }
 
+    @Operation(
+            summary = "Update neighborhood",
+            description = "Updates an existing active Neighborhood reference record by internal identifier."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Neighborhood successfully updated."
+    )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<NeighborhoodResponse> update(
+            @Parameter(description = "Neighborhood internal identifier.", required = true, example = "1")
             @PathVariable @Positive Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "New Neighborhood reference data.",
+                    required = true
+            )
             @Valid @RequestBody NeighborhoodUpdateRequest request
     ) {
         return ApiResponse.success(messageResolver.resolve("common.updated"), neighborhoodCommandService.update(id, request));
     }
 
+    @Operation(
+            summary = "Delete neighborhood",
+            description = "Soft-deletes a Neighborhood reference record. Deleted records are excluded from read endpoints."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Neighborhood successfully deleted."
+    )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<Void> delete(@PathVariable @Positive Long id) {
+    public ApiResponse<Void> delete(
+            @Parameter(description = "Neighborhood internal identifier.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
         neighborhoodCommandService.delete(id);
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
     }
