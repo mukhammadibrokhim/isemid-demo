@@ -8,7 +8,6 @@ import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
 import uz.uzinfocom.isemid.features.classifier.models.Catalog;
-import uz.uzinfocom.isemid.features.classifier.repositories.CatalogRepository;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
@@ -33,13 +32,10 @@ public class ReportScopeResolver {
 
     private final CatalogService catalogService;
     private final MessageUtil messageUtil;
-    private final CatalogRepository catalogRepository;
 
-    public ReportScopeResolver(CatalogService catalogService, MessageUtil messageUtil,
-        CatalogRepository catalogRepository) {
+    public ReportScopeResolver(CatalogService catalogService, MessageUtil messageUtil) {
         this.catalogService = catalogService;
         this.messageUtil = messageUtil;
-      this.catalogRepository = catalogRepository;
     }
 
     public ReportScope resolve(Organization org, String parentCode) {
