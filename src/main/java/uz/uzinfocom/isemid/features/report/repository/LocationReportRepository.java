@@ -3,6 +3,7 @@ package uz.uzinfocom.isemid.features.report.repository;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -23,6 +24,7 @@ import uz.uzinfocom.isemid.features.report.service.scope.ReportScope;
  * no injection surface. All value inputs are named bind parameters.</p>
  */
 @Repository
+@Slf4j
 public class LocationReportRepository {
 
     private static final String SQL = """
@@ -88,6 +90,10 @@ public class LocationReportRepository {
         String sql = SQL.formatted(
                 scope.dimension().addressColumn(),
                 scope.visibilityLevelSql());
+
+        log.info("report scope {}", scope);
+
+        log.info("query: {}", sql);
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("locale", locale, Types.VARCHAR)
