@@ -35,10 +35,9 @@ public class LocationReportController {
             @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-            @RequestParam(required = false) LevelType level,
             @RequestParam(required = false) String parentCode,
             @CurrentUser User currentUser
     ) {
-        return ApiResponse.success(messageUtil, locationReportService.getByLocation(mkb10Code, fromDate, toDate, level, parentCode, currentUser));
+        return ApiResponse.success(messageUtil, locationReportService.getByLocation(mkb10Code, fromDate, toDate, parentCode, currentUser));
     }
 }

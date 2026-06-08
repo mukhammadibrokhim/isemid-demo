@@ -120,6 +120,11 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
+    public List<Catalog> findByTypeAndCodeLike(CatalogType catalogType, String code) {
+        return catalogRepository.findByTypeAndCodeLike(catalogType.name(),code);
+    }
+
+    @Override
     @Cacheable(value = "catalogType", key = "catalogType")
     public List<Catalog> finAllByType(CatalogType catalogType) {
         return catalogRepository.findAllByType(catalogType.name());
