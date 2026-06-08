@@ -33,13 +33,10 @@ public class ReportScopeResolver {
 
     private final CatalogService catalogService;
     private final MessageUtil messageUtil;
-    private final CatalogRepository catalogRepository;
 
-    public ReportScopeResolver(CatalogService catalogService, MessageUtil messageUtil,
-        CatalogRepository catalogRepository) {
+    public ReportScopeResolver(CatalogService catalogService, MessageUtil messageUtil) {
         this.catalogService = catalogService;
         this.messageUtil = messageUtil;
-      this.catalogRepository = catalogRepository;
     }
 
     public ReportScope resolve(Organization org, String parentCode) {
