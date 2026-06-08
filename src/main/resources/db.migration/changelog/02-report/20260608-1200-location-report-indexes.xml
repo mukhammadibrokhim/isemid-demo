@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Indexes supporting the set-based LocationReportRepository query.
+        Partial indexes on pt_address keep only TEMPORARY rows hot, since the report
+        always restricts to a.type = 'TEMPORARY'. Statements are idempotent
+        (CREATE INDEX IF NOT EXISTS) so they are safe to re-run.
+
+        On a large existing form058/pt_address, consider replacing CREATE INDEX with
+        CREATE INDEX CONCURRENTLY in a changeSet annotated runInTransaction="false".
+    -->
+
+    <changeSet author="uzinfocom" id="20260608-1200-1">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_form058_report
+                ON form058 (final_mkb10code, created_at)
+                INCLUDE (patient_id, status, created_org_uuid, receiver_organization_id)
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_form058_report</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260608-1200-2">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_pt_address_temp_state
+                ON pt_address (state_code, patient_id) WHERE type = 'TEMPORARY'
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_pt_address_temp_state</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260608-1200-3">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_pt_address_temp_city
+                ON pt_address (city_code, patient_id) WHERE type = 'TEMPORARY'
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_pt_address_temp_city</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260608-1200-4">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_pt_address_temp_neigh
+                ON pt_address (neighborhood_code, patient_id) WHERE type = 'TEMPORARY'
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_pt_address_temp_neigh</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260608-1200-5">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_pt_address_patient_temp
+                ON pt_address (patient_id) WHERE type = 'TEMPORARY'
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_pt_address_patient_temp</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260608-1200-6">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_organization_scope
+                ON organization (state_code, city_code, level_type)
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_organization_scope</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260608-1200-7">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_cls_catalog_type_parent
+                ON cls_catalog (type, parent_code, code)
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_cls_catalog_type_parent</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
