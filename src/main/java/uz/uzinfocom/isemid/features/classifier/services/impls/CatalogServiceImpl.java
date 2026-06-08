@@ -30,98 +30,35 @@ import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDe
 @Service
 @RequiredArgsConstructor
 public class CatalogServiceImpl implements CatalogService {
-
     private final CatalogRepository catalogRepository;
     private final MessageUtil messageUtil;
     private final CatalogMapper catalogMapper;
 
     @Override
-    public Page<Catalog> filter(
-            int page,
-            int size,
-            String type,
-            String code,
-            String parentCode,
-            String nameRu,
-            String nameUz,
-            String nameUzCyril,
-            String nameKaa
-    ) {
-        Specification<Catalog> spec = CatalogSpecification.build(
-                type,
-                code,
-                parentCode,
-                nameRu,
-                nameUz,
-                nameUzCyril,
-                nameKaa
-        );
-
+    public Page<Catalog> filter(int page, int size, String type, String code, String parentCode, String nameRu, String nameUz, String nameUzCyril, String nameKaa) {
+        Specification<Catalog> spec = CatalogSpecification.build(type, code, parentCode, nameRu, nameUz, nameUzCyril, nameKaa);
         return catalogRepository.findAll(spec, pageableSortByIdDesc(page, size));
     }
 
     @Override
-    @CacheEvict(
-            value = {
-                    "catalogCache",
-                    "catalogAllType",
-                    "catalogAllTypeSt",
-                    "catalogAllTypeByParentCode",
-                    "findByTypeAndParentCode",
-                    "byParentCode",
-                    "catalogType"
-            },
-            allEntries = true
-    )
     public Catalog create(CatalogRequest request) {
         Catalog catalog = catalogMapper.toEntity(request);
         return catalogRepository.save(catalog);
     }
 
+    @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     @Override
-    @CacheEvict(
-            value = {
-                    "catalogCache",
-                    "catalogAllType",
-                    "catalogAllTypeSt",
-                    "catalogAllTypeByParentCode",
-                    "findByTypeAndParentCode",
-                    "byParentCode",
-                    "catalogType"
-            },
-            allEntries = true
-    )
     public Catalog update(long id, CatalogRequest request) {
-        Catalog catalog = catalogRepository.findById(id)
-                .orElseThrow(() -> new ApiException(
-                        BAD_REQUEST,
-                        messageUtil.get("error.not_found_by_id", id)
-                ));
-
+        Catalog catalog = catalogRepository.findById(id).orElseThrow(() -> new ApiException(BAD_REQUEST, messageUtil.get("error.not_found_by_id", id)));
         catalogMapper.update(catalog, request);
         return catalogRepository.save(catalog);
     }
 
     @Override
-    @CacheEvict(
-            value = {
-                    "catalogCache",
-                    "catalogAllType",
-                    "catalogAllTypeSt",
-                    "catalogAllTypeByParentCode",
-                    "findByTypeAndParentCode",
-                    "byParentCode",
-                    "catalogType"
-            },
-            allEntries = true
-    )
+    @CacheEvict(value = {"catalogAllType", "catalogAllTypeByParentCode", "findByTypeAndParentCode"}, allEntries = true)
     public void delete(long id) {
         Catalog catalog = catalogRepository.findById(id)
-                .orElseThrow(() -> new ApiException(
-                        BAD_REQUEST,
-                        messageUtil.get("error.not_found_by_id", id)
-                ));
-
+                .orElseThrow(() -> new ApiException(BAD_REQUEST, messageUtil.get("error.not_found_by_id", id)));
         try {
             catalogRepository.delete(catalog);
         } catch (DataIntegrityViolationException e) {
@@ -131,40 +68,31 @@ public class CatalogServiceImpl implements CatalogService {
         }
     }
 
+    @Cacheable(value = "catalogCache", key = "#code")
     @Override
-    @Cacheable(value = "catalogCache", key = "#code", unless = "#result == null")
     public Catalog findByCode(String code) {
         return catalogRepository.findByCode(code).orElse(null);
     }
 
-    @Override
     @Cacheable(value = "catalogAllType", key = "#catalogType.name()", unless = "#result == null")
+    @Override
     public List<Catalog> findAllByType(CatalogType catalogType) {
         return catalogRepository.findAllByType(catalogType.name());
     }
 
+    @Cacheable(value = "catalogAllTypeSt", key = "#catalogType", unless = "#result == null")
     @Override
-    @Cacheable(
-            value = "catalogAllTypeSt",
-            key = "T(String).format('%s:%s', #catalogType, #search)",
-            unless = "#result == null"
-    )
     public List<Catalog> findAllByTypeString(String catalogType, String search) {
-        return catalogRepository.searchByTypeAndName(catalogType, search);
+        return catalogRepository.searchByTypeAndName(catalogType,search);
     }
 
+    @Cacheable(value = "catalogAllTypeByParentCode", key = "T(String).format('%s-%s', #catalogType.name(), #parentCode)", unless = "#result == null")
     @Override
-    @Cacheable(
-            value = "catalogAllTypeByParentCode",
-            key = "T(String).format('%s:%s', #catalogType.name(), #parentCode)",
-            unless = "#result == null"
-    )
     public List<Catalog> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode) {
         return catalogRepository.findAllByTypeAndParentCode(catalogType.name(), parentCode);
     }
-
+    @Cacheable(value = "byParentCode", key = "parentCode")
     @Override
-    @Cacheable(value = "byParentCode", key = "#parentCode", unless = "#result == null")
     public List<Catalog> findAllByParentCode(String parentCode) {
         return catalogRepository.findAllByParentCode(parentCode);
     }
@@ -180,33 +108,30 @@ public class CatalogServiceImpl implements CatalogService {
         return catalogRepository.findAllWithParent(type.name(), pageable);
     }
 
+    @Cacheable(value = "findByTypeAndParentCode", key = "T(String).format('%s-%s',#catalogType.name(), #parentCode)", unless = "#result == null")
     @Override
-    @Cacheable(
-            value = "findByTypeAndParentCode",
-            key = "T(String).format('%s:%s', #catalogType.name(), #parentCode)",
-            unless = "#result == null || #result.isEmpty()"
-    )
     public Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String parentCode) {
         return catalogRepository.findByTypeAndParentCode(catalogType.name(), parentCode);
     }
 
     @Override
     public Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code) {
-        return catalogRepository.findByTypeAndCode(catalogType.name(), code);
+        return catalogRepository.findByTypeAndCode(catalogType.name(),code);
     }
 
     @Override
-    @Cacheable(value = "catalogType", key = "#catalogType.name()", unless = "#result == null")
+    public List<Catalog> findByTypeAndCodeLike(CatalogType catalogType, String code) {
+        return catalogRepository.findByTypeAndCodeLike(catalogType.name(),code);
+    }
+
+    @Override
+    @Cacheable(value = "catalogType", key = "catalogType")
     public List<Catalog> finAllByType(CatalogType catalogType) {
         return catalogRepository.findAllByType(catalogType.name());
     }
 
     @Override
     public Catalog getById(long id) {
-        return catalogRepository.findById(id)
-                .orElseThrow(() -> new ApiException(
-                        NOT_FOUND,
-                        messageUtil.get("error.not_found_by_id", id)
-                ));
+        return catalogRepository.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", id)));
     }
 }

@@ -37,16 +37,13 @@ public class LocationReportServiceImpl implements LocationReportService {
             String mkb10Code,
             LocalDate fromDate,
             LocalDate toDate,
-            LevelType level,
             String parentCode,
             User currentUser
     ) {
         Specification<Form058> spec = this.build(mkb10Code, fromDate, toDate, currentUser);
         List<Form058> forms = form058Repository.findAll(spec);
 
-        if (level == null) {
-            level = currentUser.getCurrentOrganization().getLevelType();
-        }
+        LevelType level = currentUser.getCurrentOrganization().getLevelType();
 
         if (parentCode != null && !parentCode.isBlank()) {
             return helper.buildByParentCode(parentCode, forms);

@@ -39,6 +39,6 @@ public class LocationReportControllerV2 {
             @RequestParam(required = false) String parentCode,
             @CurrentUser User currentUser
     ) {
-        return ApiResponse.success(messageUtil, locationReportService.getByLocation(mkb10Code, fromDate, toDate, level, parentCode, currentUser));
+        return ApiResponse.success(messageUtil, locationReportService.getByLocation(mkb10Code, fromDate, toDate, parentCode, currentUser));
     }
 }

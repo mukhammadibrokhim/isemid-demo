@@ -15,6 +15,7 @@ import uz.uzinfocom.isemid.features.patient.models.Address;
 import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto;
 
 import java.util.List;
+import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto.ReportDto;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -172,9 +173,47 @@ public class LocationReportHelper {
         var catalogType = distinctTypes.getFirst();
 
         return switch (catalogType) {
-            case "city" -> buildDistrictReports(parentCode, forms);
-            case "neighborhood" -> buildNeighborhoodReports(parentCode, forms);
-            default -> buildRegionReports(forms);
+            case "city" -> {
+                var districts = catalogService.findAllByTypeAndParentCode(CatalogType.city,
+                        parentCode).stream()
+                        .map(district -> ReportDto.builder()
+                                .code(district.getCode())
+                                .name(getLocalizedName(district))
+                                .confirmed((int) countByStatus(forms, FormStatus.APPROVED, district.getCode(), "city"))
+                                .unconfirmed((int) countByStatus(forms, null, district.getCode(), "city"))
+                                .build()
+                        )
+                        .toList();
+
+                yield getLocationReportDto(forms, districts, "state", parentCode, 3);
+            }
+            case "neighborhood" -> {
+                var neighborhoods = catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood,
+                        parentCode).stream()
+                        .map(nbh -> ReportDto.builder()
+                                .code(nbh.getCode())
+                                .name(getLocalizedName(nbh))
+                                .confirmed((int) countByStatus(forms, FormStatus.APPROVED, nbh.getCode(), "neighborhood"))
+                                .unconfirmed((int) countByStatus(forms, null, nbh.getCode(), "neighborhood"))
+                                .build()
+                        )
+                        .toList();
+
+                yield getLocationReportDto(forms, neighborhoods, "city", parentCode, 4);
+            }
+            default -> {
+                var regions = catalogService.finAllByType(CatalogType.state).stream()
+                        .map(region -> ReportDto.builder()
+                                .code(region.getCode())
+                                .name(getLocalizedName(region))
+                                .confirmed((int) countByStatus(forms, FormStatus.APPROVED, region.getCode(), "state"))
+                                .unconfirmed((int) countByStatus(forms, null, region.getCode(), "state"))
+                                .build()
+                        )
+                        .toList();
+
+                yield getLocationReportDto(forms, regions, "state", null, 2);
+            }
         };
     }
 }
