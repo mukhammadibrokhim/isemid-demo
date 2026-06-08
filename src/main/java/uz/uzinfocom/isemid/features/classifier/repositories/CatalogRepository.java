@@ -74,6 +74,7 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     Optional<Catalog> findByTypeAndParentCode(String catalogType, String parentCode);
 
     Optional<Catalog> findByTypeAndCode(String name, String code);
+    List<Catalog> findByTypeAndCodeLike(String name, String code);
 
     @Query("""
                 SELECT\s

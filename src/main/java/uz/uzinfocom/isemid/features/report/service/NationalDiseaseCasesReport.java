@@ -2,100 +2,71 @@ package uz.uzinfocom.isemid.features.report.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
-import uz.uzinfocom.isemid.features.classifier.models.Catalog;
-import uz.uzinfocom.isemid.features.classifier.services.impls.CatalogServiceImpl;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
-import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto;
 import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto.ReportDto;
-import uz.uzinfocom.isemid.features.report.dtos.response.LocationReportRawData;
-import uz.uzinfocom.isemid.features.report.repository.NationalDiseaseReportRepository;
+import uz.uzinfocom.isemid.features.report.dtos.response.LocationReportRow;
+import uz.uzinfocom.isemid.features.report.repository.LocationReportRepository;
+import uz.uzinfocom.isemid.features.report.service.scope.ReportScope;
+import uz.uzinfocom.isemid.features.report.service.scope.ReportScopeResolver;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+/**
+ * Location disease-cases report. Orchestration only: resolve the report scope from the
+ * requesting organization, issue one set-based query, and map the projected rows into the
+ * response DTO. All filtering, hierarchy resolution, visibility rules, and aggregation are
+ * performed in PostgreSQL.
+ */
 @Slf4j
-@Service
-@RequiredArgsConstructor
+@Service("nationalDiseaseCasesReport")
 public class NationalDiseaseCasesReport implements LocationReportService {
 
-  private final NationalDiseaseReportRepository nationalDiseaseReportRepository;
-  private final CatalogServiceImpl catalogService;
+    private final LocationReportRepository repository;
+    private final ReportScopeResolver scopeResolver;
 
-  @Override
-  public LocationReportDto getByLocation(String mkb10Code, LocalDate fromDate, LocalDate toDate,
-      LevelType level, String parentCode, User currentUser) {
-    Organization currentOrganization = currentUser.getCurrentOrganization();
-    if (level == null) {
-      level = currentOrganization.getLevelType();
+    public NationalDiseaseCasesReport(LocationReportRepository repository,
+                                      ReportScopeResolver scopeResolver) {
+        this.repository = repository;
+        this.scopeResolver = scopeResolver;
     }
-    // 1. All catalog entries — guarantees zero-count rows appear
-    List<Catalog> catalogs = resolveCatalogs(level, parentCode);
-    // 2.
-    List<LocationReportRawData> rawData = nationalDiseaseReportRepository.getLocationReport(mkb10Code,
-        fromDate, toDate, parentCode, level, currentOrganization.getStateCode(),currentOrganization.getCityCode());
 
-    Map<String, LocationReportRawData> locationCodeRawDataMap = rawData.stream()
-        .collect(Collectors.toMap(
-            LocationReportRawData::code,
-            Function.identity()
-        ));
+    @Override
+    public LocationReportDto getByLocation(String mkb10Code, LocalDate fromDate, LocalDate toDate,
+                                           String parentCode, User currentUser) {
 
-    // 3. Merge — every catalog entry gets a row, zero if no matching forms
-    List<LocationReportDto.ReportDto> reports =
-        catalogs.stream()
-            .map(catalog -> {
-              LocationReportRawData data = locationCodeRawDataMap.get(catalog.getCode());
+        Organization org = currentUser.getCurrentOrganization();
+        ReportScope scope = scopeResolver.resolve(org, parentCode);
+        String locale = LocaleContextHolder.getLocale().getLanguage();
 
-              return LocationReportDto.ReportDto.builder()
-                  .code(catalog.getCode())
-                  .name(getLocalizedName(catalog))
-                  .confirmed(data == null ? 0 : data.confirmed())
-                  .unconfirmed(data == null ? 0 : data.unconfirmed())
-                  .build();
-            })
-            .toList();
+        // toDate is an exclusive upper bound: the query filters created_at < :toDate,
+        // so a record stamped exactly on toDate is not counted (half-open interval).
+        List<LocationReportRow> rows =
+                repository.fetch(mkb10Code, fromDate, toDate, scope, locale);
 
-    int totalConfirmed = reports.stream()
-        .mapToInt(ReportDto::getConfirmed)
-        .sum();
+        List<ReportDto> reports = rows.stream()
+                .filter(row -> !row.total())
+                .map(row -> ReportDto.builder()
+                        .code(row.code())
+                        .name(row.name())
+                        .confirmed(row.confirmed())
+                        .unconfirmed(row.unconfirmed())
+                        .build())
+                .toList();
 
-    int totalUnconfirmed = reports.stream()
-        .mapToInt(ReportDto::getUnconfirmed)
-        .sum();
+        LocationReportRow total = rows.stream()
+                .filter(LocationReportRow::total)
+                .findFirst()
+                .orElse(new LocationReportRow(null, null, 0, 0, true));
 
-
-    return LocationReportDto.builder()
-        .reports(reports)
-        .totalConfirmed(totalConfirmed)
-        .totalUnconfirmed(totalUnconfirmed)
-        .totalDocuments(totalConfirmed + totalUnconfirmed)
-        .level(level.numericForm())
-        .build();
-  }
-
-  private List<Catalog> resolveCatalogs(LevelType level, String parentCode) {
-    return switch (level) {
-      case REPUBLICAN                         -> catalogService.findAllByType(CatalogType.state);
-      case REGIONAL, URBAN                    -> catalogService.findAllByTypeAndParentCode(CatalogType.city, parentCode);
-      case AREA, DISTRICT,
-           INTERDISTRICT, NOT_DEFINED         -> catalogService.findAllByTypeAndParentCode(CatalogType.neighborhood, parentCode);
-    };
-  }
-
-  private String getLocalizedName(Catalog catalog) {
-    String locale = LocaleContextHolder.getLocale().getLanguage();
-    return switch (locale) {
-      case "uz-Cyrl" -> catalog.getNameUzCyril();
-      case "ru"      -> catalog.getNameRu();
-      case "kaa"     -> catalog.getNameKaa();
-      default        -> catalog.getNameUz();
-    };
-  }
+        return LocationReportDto.builder()
+                .reports(reports)
+                .totalConfirmed(total.confirmed())
+                .totalUnconfirmed(total.unconfirmed())
+                .totalDocuments(total.confirmed() + total.unconfirmed())
+                .level(scope.dimension().level())
+                .build();
+    }
 }

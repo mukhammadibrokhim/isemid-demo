@@ -35,6 +35,7 @@ public interface CatalogService {
     Optional<Catalog> findByTypeAndParentCode(CatalogType catalogType, String code);
 
     Optional<Catalog> findByTypeAndCode(CatalogType catalogType, String code);
+    List<Catalog> findByTypeAndCodeLike(CatalogType catalogType, String code);
 
     List<Catalog> finAllByType(CatalogType catalogType);
 
