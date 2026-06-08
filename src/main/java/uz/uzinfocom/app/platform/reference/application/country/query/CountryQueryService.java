@@ -9,17 +9,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryFilterRequest;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryTableResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.mapper.CountryMapper;
 import uz.uzinfocom.app.platform.reference.application.country.query.projection.CountryTableProjection;
 import uz.uzinfocom.app.platform.reference.application.country.query.specification.CountrySpecification;
+import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.reference.repository.CountryRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @CacheConfig(cacheManager = "securityCacheManager")
@@ -36,11 +37,12 @@ public class CountryQueryService {
                 : request;
         Pageable pageable = PageableUtils.of(filter, CountrySortFields.ALLOWED_SORT_FIELDS);
 
-        Page<CountryTableProjection> page = countryRepository.findBy(
+        Page<CountryTableProjection> page = Objects.requireNonNull(countryRepository.findBy(
                 CountrySpecification.byFilter(filter),
                 query -> query
                         .as(CountryTableProjection.class)
                         .page(pageable)
+                ), "Country Table page is returned null"
         );
 
         return page.map(countryMapper::toTableResponse);

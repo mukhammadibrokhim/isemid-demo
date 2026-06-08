@@ -8,18 +8,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.reference.application.region.query.dto.RegionFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.region.query.dto.RegionResponse;
 import uz.uzinfocom.app.platform.reference.application.region.query.dto.RegionTableResponse;
 import uz.uzinfocom.app.platform.reference.application.region.query.mapper.RegionMapper;
 import uz.uzinfocom.app.platform.reference.application.region.query.projection.RegionTableProjection;
 import uz.uzinfocom.app.platform.reference.application.region.query.specification.RegionSpecification;
+import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @CacheConfig(cacheManager = "securityCacheManager")
@@ -36,11 +37,11 @@ public class RegionQueryService {
                 : request;
         Pageable pageable = PageableUtils.of(filter, RegionSortFields.ALLOWED_SORT_FIELDS);
 
-        Page<RegionTableProjection> page = regionRepository.findBy(
+        Page<RegionTableProjection> page = Objects.requireNonNull(regionRepository.findBy(
                 RegionSpecification.byFilter(filter),
                 query -> query
                         .as(RegionTableProjection.class)
-                        .page(pageable)
+                        .page(pageable)), "Region Table page is returned null"
         );
 
         return page.map(regionMapper::toTableResponse);

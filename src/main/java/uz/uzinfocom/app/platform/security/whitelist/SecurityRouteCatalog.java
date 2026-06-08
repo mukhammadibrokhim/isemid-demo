@@ -35,7 +35,9 @@ public final class SecurityRouteCatalog {
             "/v1/user/me/**",
             "/v1/users/me",
             "/v1/users/me/**",
-            "/api/v1/references/**"
+            "/v1/references/**",
+            "/v1/citizen/**",
+            "/v1/legal-entity/**"
     );
 
     /**
@@ -52,7 +54,9 @@ public final class SecurityRouteCatalog {
         rules.put("/v1/user/me/**", new RoutePolicyRule(false, false));
         rules.put("/v1/users/me", new RoutePolicyRule(false, false));
         rules.put("/v1/users/me/**", new RoutePolicyRule(false, false));
-        rules.put("/api/v1/references/**", new RoutePolicyRule(false, true));
+        rules.put("/v1/references/**", new RoutePolicyRule(false, true));
+        rules.put("/v1/citizen/**", new RoutePolicyRule(false, true));
+        rules.put("/v1/legal-entity/**", new RoutePolicyRule(false, true));
 
         POLICY_RULES = Collections.unmodifiableMap(rules);
     }

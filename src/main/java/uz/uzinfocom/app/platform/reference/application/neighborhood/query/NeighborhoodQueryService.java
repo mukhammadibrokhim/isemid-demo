@@ -8,18 +8,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodTableResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.mapper.NeighborhoodMapper;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.projection.NeighborhoodTableProjection;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.specification.NeighborhoodSpecification;
+import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.reference.repository.NeighborhoodRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @CacheConfig(cacheManager = "securityCacheManager")
@@ -36,11 +37,11 @@ public class NeighborhoodQueryService {
                 : request;
         Pageable pageable = PageableUtils.of(filter, NeighborhoodSortFields.ALLOWED_SORT_FIELDS);
 
-        Page<NeighborhoodTableProjection> page = neighborhoodRepository.findBy(
+        Page<NeighborhoodTableProjection> page = Objects.requireNonNull(neighborhoodRepository.findBy(
                 NeighborhoodSpecification.byFilter(filter),
                 query -> query
                         .as(NeighborhoodTableProjection.class)
-                        .page(pageable)
+                        .page(pageable)), "Neighbourhood table page is returned null"
         );
 
         return page.map(neighborhoodMapper::toTableResponse);

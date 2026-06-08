@@ -87,24 +87,16 @@ public class OpenApiConfig {
                 .displayName("Справочники")
                 .addOpenApiCustomizer(openApi -> openApi.info(new Info()
                         .title("Справочники")
-                        .description("API для работы со справочниками, классификаторами и нормативно-справочной информацией.")
+                        .description(
+                                "API для работы со справочниками, классификаторами " +
+                                        "и нормативно-справочной информацией."
+                        )
                         .version("1.0.0")))
                 .addOpenApiCustomizer(commonOpenApiCustomizer)
                 .addOperationCustomizer(securityAndOrganizationHeaderCustomizer)
                 .pathsToMatch(
-                        "/v1/catalog/**",
-                        "/v1/catalogs/**",
-                        "/v1/value-set/**",
-                        "/v1/valueset/**",
-                        "/v1/mkb10/**",
-                        "/v1/country/**",
-                        "/v1/countries/**",
-                        "/v1/region/**",
-                        "/v1/regions/**",
-                        "/v1/district/**",
-                        "/v1/districts/**",
-                        "/api/v1/references/**",
-                        "/v1/organizations/lookup"
+                        "/v1/references",
+                        "/v1/references/**"
                 )
                 .build();
     }
@@ -125,19 +117,8 @@ public class OpenApiConfig {
                 .addOperationCustomizer(securityAndOrganizationHeaderCustomizer)
                 .pathsToMatch("/v1/**")
                 .pathsToExclude(
-                        "/v1/catalog/**",
-                        "/v1/catalogs/**",
-                        "/v1/value-set/**",
-                        "/v1/valueset/**",
-                        "/v1/mkb10/**",
-                        "/v1/country/**",
-                        "/v1/countries/**",
-                        "/v1/region/**",
-                        "/v1/regions/**",
-                        "/v1/district/**",
-                        "/v1/districts/**",
-                        "/api/v1/references/**",
-                        "/v1/organizations/lookup"
+                        "/v1/references",
+                        "/v1/references/**"
                 )
                 .build();
     }
