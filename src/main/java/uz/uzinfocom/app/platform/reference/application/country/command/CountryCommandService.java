@@ -42,7 +42,6 @@ public class CountryCommandService {
                 .nameRu(request.nameRu())
                 .nameKaa(request.nameKaa())
                 .deleted(false)
-                .sortOrder(sortOrder(request.sortOrder()))
                 .build();
 
         Country saved = countryRepository.save(country);
@@ -72,7 +71,6 @@ public class CountryCommandService {
         country.setNameUzCyril(request.nameUzCyril());
         country.setNameRu(request.nameRu());
         country.setNameKaa(request.nameKaa());
-        country.setSortOrder(sortOrder(request.sortOrder()));
 
         Country saved = countryRepository.save(country);
         eventPublisher.publishEvent(new CountryChangedEvent());
@@ -96,7 +94,4 @@ public class CountryCommandService {
         log.debug("Reference country soft-deleted. id={}, code={}", country.getId(), country.getCode());
     }
 
-    private int sortOrder(Integer sortOrder) {
-        return sortOrder == null ? 0 : sortOrder;
-    }
 }

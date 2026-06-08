@@ -20,7 +20,7 @@ public record RegionFilterRequest(
 
         @Schema(
                 description = "Sort field. Unsupported values fall back to the default sort.",
-                example = "sortOrder",
+                example = "nameUz",
                 allowableValues = {
                         "id",
                         "code",
@@ -30,7 +30,6 @@ public record RegionFilterRequest(
                         "nameUzCyril",
                         "nameRu",
                         "nameKaa",
-                        "sortOrder",
                         "createdAt",
                         "updatedAt"
                 }

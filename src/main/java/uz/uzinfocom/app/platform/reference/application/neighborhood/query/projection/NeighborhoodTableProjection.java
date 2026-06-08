@@ -21,6 +21,4 @@ public interface NeighborhoodTableProjection {
     String getNameKaa();
 
     Boolean getDeleted();
-
-    Integer getSortOrder();
 }

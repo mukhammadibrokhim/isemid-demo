@@ -5,7 +5,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogFilterRequest;
 import uz.uzinfocom.app.platform.reference.domain.Catalog;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,7 @@ public final class CatalogSpecification {
 
             predicates.add(cb.equal(root.get("deleted"), false));
 
-            CatalogType type = request.type();
+            String type = request.type();
             if (type != null) {
                 predicates.add(cb.equal(root.get("type"), type));
             }

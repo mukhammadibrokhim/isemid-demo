@@ -48,7 +48,6 @@ public class RegionCommandService {
                 .nameRu(request.nameRu())
                 .nameKaa(request.nameKaa())
                 .deleted(false)
-                .sortOrder(sortOrder(request.sortOrder()))
                 .build();
 
         Region saved = regionRepository.save(region);
@@ -83,7 +82,6 @@ public class RegionCommandService {
         region.setNameUzCyril(request.nameUzCyril());
         region.setNameRu(request.nameRu());
         region.setNameKaa(request.nameKaa());
-        region.setSortOrder(sortOrder(request.sortOrder()));
 
         Region saved = regionRepository.save(region);
         eventPublisher.publishEvent(new RegionChangedEvent());
@@ -115,7 +113,4 @@ public class RegionCommandService {
         }
     }
 
-    private int sortOrder(Integer sortOrder) {
-        return sortOrder == null ? 0 : sortOrder;
-    }
 }

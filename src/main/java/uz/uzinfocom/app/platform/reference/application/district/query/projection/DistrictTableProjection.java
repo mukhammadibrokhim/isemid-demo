@@ -21,6 +21,4 @@ public interface DistrictTableProjection {
     String getNameKaa();
 
     Boolean getDeleted();
-
-    Integer getSortOrder();
 }

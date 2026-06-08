@@ -19,8 +19,6 @@ public record NeighborhoodResponse(
         @Schema(description = "Neighborhood name in Karakalpak.", example = "Dalvarzin")
         String nameKaa,
         @Schema(description = "Soft-delete flag.", example = "false")
-        Boolean deleted,
-        @Schema(description = "Display order for Neighborhood records.", example = "10")
-        Integer sortOrder
+        Boolean deleted
 ) {
 }

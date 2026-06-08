@@ -10,8 +10,7 @@ public final class CatalogSortFields {
             "code", "code",
             "parentCode", "parentCode",
             "nameUz", "nameUz",
-            "nameRu", "nameRu",
-            "sortOrder", "sortOrder"
+            "nameRu", "nameRu"
     );
 
     private CatalogSortFields() {

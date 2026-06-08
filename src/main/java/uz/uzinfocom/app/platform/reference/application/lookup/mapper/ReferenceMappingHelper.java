@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 
 @Component
 @RequiredArgsConstructor
@@ -34,51 +33,51 @@ public class ReferenceMappingHelper {
 
     @Named("genderName")
     public String genderName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.GENDER, code);
+        return referenceLookupService.getCatalogName("GENDER", code);
     }
 
     @Named("citizenshipName")
     public String citizenshipName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.CITIZENSHIP, code);
+        return referenceLookupService.getCatalogName("CITIZENSHIP", code);
     }
 
     @Named("residenceTypeName")
     public String residenceTypeName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.RESIDENCE_TYPE, code);
+        return referenceLookupService.getCatalogName("RESIDENCE_TYPE", code);
     }
 
     @Named("populationTypeName")
     public String populationTypeName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.POPULATION_TYPE, code);
+        return referenceLookupService.getCatalogName("POPULATION_TYPE", code);
     }
 
     @Named("diseasePlaceName")
     public String diseasePlaceName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.DISEASE_PLACE, code);
+        return referenceLookupService.getCatalogName("DISEASE_PLACE", code);
     }
 
     @Named("formCategoryName")
     public String formCategoryName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.FORM_CATEGORY, code);
+        return referenceLookupService.getCatalogName("FORM_CATEGORY", code);
     }
 
     @Named("sickPatientCategoryName")
     public String sickPatientCategoryName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.SICK_PATIENT_CATEGORY, code);
+        return referenceLookupService.getCatalogName("SICK_PATIENT_CATEGORY", code);
     }
 
     @Named("hospitalPlaceName")
     public String hospitalPlaceName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.HOSPITAL_PLACE, code);
+        return referenceLookupService.getCatalogName("HOSPITAL_PLACE", code);
     }
 
     @Named("deliveryMethodName")
     public String deliveryMethodName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.DELIVERY_METHOD, code);
+        return referenceLookupService.getCatalogName("DELIVERY_METHOD", code);
     }
 
     @Named("isolationStatusName")
     public String isolationStatusName(String code) {
-        return referenceLookupService.getCatalogName(CatalogType.ISOLATION_STATUS, code);
+        return referenceLookupService.getCatalogName("ISOLATION_STATUS", code);
     }
 }

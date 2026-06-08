@@ -19,9 +19,9 @@ public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecif
 
     boolean existsByCode(String code);
 
-    List<Region> findAllByDeletedFalseOrderBySortOrderAscNameUzAsc();
+    List<Region> findAllByDeletedFalseOrderByNameUzAsc();
 
-    List<Region> findAllByParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(String parentCode);
+    List<Region> findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(String parentCode);
 
     @Query("""
         select
@@ -33,7 +33,7 @@ public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecif
             r.nameKaa as nameKaa
         from Region r
         where r.deleted = false
-        order by r.sortOrder asc, r.nameUz asc
+        order by r.nameUz asc
     """)
     List<ReferenceItemProjection> findAllReferenceItems();
 }

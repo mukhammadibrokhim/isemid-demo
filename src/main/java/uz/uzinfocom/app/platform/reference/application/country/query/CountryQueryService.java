@@ -49,7 +49,7 @@ public class CountryQueryService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = ReferenceCacheConfig.REF_COUNTRIES, key = "'all'")
     public List<CountryResponse> getAll() {
-        return countryRepository.findAllByDeletedFalseOrderBySortOrderAscNameUzAsc()
+        return countryRepository.findAllByDeletedFalseOrderByNameUzAsc()
                 .stream()
                 .map(countryMapper::toResponse)
                 .toList();

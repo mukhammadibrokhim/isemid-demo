@@ -19,7 +19,7 @@ public interface CountryRepository extends JpaRepository<Country, Long>, JpaSpec
 
     boolean existsByCode(String code);
 
-    List<Country> findAllByDeletedFalseOrderBySortOrderAscNameUzAsc();
+    List<Country> findAllByDeletedFalseOrderByNameUzAsc();
 
     @Query("""
         select
@@ -30,7 +30,7 @@ public interface CountryRepository extends JpaRepository<Country, Long>, JpaSpec
             c.nameKaa as nameKaa
         from Country c
         where c.deleted = false
-        order by c.sortOrder asc, c.nameUz asc
+        order by c.nameUz asc
     """)
     List<ReferenceItemProjection> findAllReferenceItems();
 }

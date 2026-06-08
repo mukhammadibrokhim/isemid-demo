@@ -1,15 +1,15 @@
-﻿code,parent_code,soato_id,legacy_soato_id,name_uz,name_uz_cyril,name_ru,name_kaa,deleted,sort_order
-UZ-AN,UZ,1703,17,Andijon viloyati,Андижон вилояти,Андижанская область,Andijan wálayatı,false,10
-UZ-BU,UZ,1706,20,Buxoro viloyati,Бухоро вилояти,Бухарская область,Buxara wálayatı,false,20
-UZ-FA,UZ,1730,15,Farg'ona viloyati,Фарғона вилояти,Ферганская область,Ferǵana wálayatı,false,30
-UZ-JI,UZ,1708,13,Jizzax viloyati,Жиззах вилояти,Джизакская область,Jizzax wálayatı,false,40
-UZ-NG,UZ,1714,16,Namangan viloyati,Наманган вилояти,Наманганская область,Namangan wálayatı,false,50
-UZ-NW,UZ,1712,21,Navoiy viloyati,Навоий вилояти,Навоийская область,Nawayı wálayatı,false,60
-UZ-QA,UZ,1710,18,Qashqadaryo viloyati,Қашқадарё вилояти,Кашкадарьинская область,Qashqadárya wálayatı,false,70
-UZ-QR,UZ,1735,23,Qoraqalpog'iston Respublikasi,Қорақалпоғистон Республикаси,Республика Каракалпакстан,Qaraqalpaqstan Respublikası,false,80
-UZ-SA,UZ,1718,14,Samarqand viloyati,Самарқанд вилояти,Самаркандская область,Samarqand wálayatı,false,90
-UZ-SI,UZ,1724,12,Sirdaryo viloyati,Сирдарё вилояти,Сырдарьинская область,Sırdárya wálayatı,false,100
-UZ-SU,UZ,1722,19,Surxondaryo viloyati,Сурхондарё вилояти,Сурхандарьинская область,Surxandárya wálayatı,false,110
-UZ-TK,UZ,1726,10,Toshkent shahri,Тошкент шаҳри,Город Ташкент,Tashkent qalası,false,120
-UZ-TO,UZ,1727,11,Toshkent viloyati,Тошкент вилояти,Ташкентская область,Tashkent wálayatı,false,130
-UZ-XO,UZ,1733,22,Xorazm viloyati,Хоразм вилояти,Хорезмская область,Xorezm wálayatı,false,140
+﻿code,parent_code,soato_id,legacy_soato_id,name_uz,name_uz_cyril,name_ru,name_kaa,deleted
+UZ-AN,UZ,1703,17,Andijon viloyati,Андижон вилояти,Андижанская область,Andijan wálayatı,false
+UZ-BU,UZ,1706,20,Buxoro viloyati,Бухоро вилояти,Бухарская область,Buxara wálayatı,false
+UZ-FA,UZ,1730,15,Farg'ona viloyati,Фарғона вилояти,Ферганская область,Ferǵana wálayatı,false
+UZ-JI,UZ,1708,13,Jizzax viloyati,Жиззах вилояти,Джизакская область,Jizzax wálayatı,false
+UZ-NG,UZ,1714,16,Namangan viloyati,Наманган вилояти,Наманганская область,Namangan wálayatı,false
+UZ-NW,UZ,1712,21,Navoiy viloyati,Навоий вилояти,Навоийская область,Nawayı wálayatı,false
+UZ-QA,UZ,1710,18,Qashqadaryo viloyati,Қашқадарё вилояти,Кашкадарьинская область,Qashqadárya wálayatı,false
+UZ-QR,UZ,1735,23,Qoraqalpog'iston Respublikasi,Қорақалпоғистон Республикаси,Республика Каракалпакстан,Qaraqalpaqstan Respublikası,false
+UZ-SA,UZ,1718,14,Samarqand viloyati,Самарқанд вилояти,Самаркандская область,Samarqand wálayatı,false
+UZ-SI,UZ,1724,12,Sirdaryo viloyati,Сирдарё вилояти,Сырдарьинская область,Sırdárya wálayatı,false
+UZ-SU,UZ,1722,19,Surxondaryo viloyati,Сурхондарё вилояти,Сурхандарьинская область,Surxandárya wálayatı,false
+UZ-TK,UZ,1726,10,Toshkent shahri,Тошкент шаҳри,Город Ташкент,Tashkent qalası,false
+UZ-TO,UZ,1727,11,Toshkent viloyati,Тошкент вилояти,Ташкентская область,Tashkent wálayatı,false
+UZ-XO,UZ,1733,22,Xorazm viloyati,Хоразм вилояти,Хорезмская область,Xorezm wálayatı,false

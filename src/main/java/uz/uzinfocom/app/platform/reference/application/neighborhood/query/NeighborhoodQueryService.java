@@ -49,7 +49,7 @@ public class NeighborhoodQueryService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS, key = "'all'")
     public List<NeighborhoodResponse> getAll() {
-        return neighborhoodRepository.findAllByDeletedFalseOrderBySortOrderAscNameUzAsc()
+        return neighborhoodRepository.findAllByDeletedFalseOrderByNameUzAsc()
                 .stream()
                 .map(neighborhoodMapper::toResponse)
                 .toList();
@@ -86,7 +86,7 @@ public class NeighborhoodQueryService {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
         return neighborhoodRepository
-                .findAllByParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(normalizedParentCode)
+                .findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(normalizedParentCode)
                 .stream()
                 .map(neighborhoodMapper::toResponse)
                 .toList();

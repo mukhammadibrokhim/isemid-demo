@@ -56,7 +56,7 @@ public class ReferenceCacheInvalidationListener {
     public void on(CatalogChangedEvent event) {
         Cache cache = cacheManager.getCache(ReferenceCacheConfig.REF_CATALOG_BY_TYPE);
         if (cache != null && event.type() != null) {
-            cache.evict(event.type().name());
+            cache.evict(event.type());
         }
     }
 

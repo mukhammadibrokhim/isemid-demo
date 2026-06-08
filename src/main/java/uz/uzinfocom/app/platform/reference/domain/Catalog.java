@@ -1,20 +1,9 @@
 package uz.uzinfocom.app.platform.reference.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.reference.domain.base.ReferenceDictionaryEntity;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 
 @Getter
 @Setter
@@ -34,9 +23,8 @@ import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 @AllArgsConstructor
 public class Catalog extends ReferenceDictionaryEntity {
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 100)
-    private CatalogType type;
+    private String type;
 
     @Column(nullable = false, length = 50)
     private String code;
@@ -59,10 +47,6 @@ public class Catalog extends ReferenceDictionaryEntity {
     @Builder.Default
     @Column(nullable = false)
     private Boolean deleted = false;
-
-    @Builder.Default
-    @Column(name = "sort_order", nullable = false)
-    private Integer sortOrder = 0;
 
     public boolean isDeleted() {
         return Boolean.TRUE.equals(deleted);

@@ -63,7 +63,7 @@ public class RegionController {
                     Supported filters: code, name, soatoId.
                     Region.parentCode identifies the parent Country code.
                     Pagination is 1-based.
-                    Supported sort fields: id, code, parentCode, soatoId, nameUz, nameUzCyril, nameRu, nameKaa, sortOrder, createdAt, updatedAt.
+                    Supported sort fields: id, code, parentCode, soatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(

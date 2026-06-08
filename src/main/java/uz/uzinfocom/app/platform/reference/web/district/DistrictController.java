@@ -63,7 +63,7 @@ public class DistrictController {
                     Supported filters: code, name, soatoId.
                     District.parentCode identifies the parent Region code.
                     Pagination is 1-based.
-                    Supported sort fields: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, sortOrder, createdAt, updatedAt.
+                    Supported sort fields: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(

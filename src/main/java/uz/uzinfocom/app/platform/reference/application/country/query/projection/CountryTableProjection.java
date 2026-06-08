@@ -15,6 +15,4 @@ public interface CountryTableProjection {
     String getNameKaa();
 
     Boolean getDeleted();
-
-    Integer getSortOrder();
 }

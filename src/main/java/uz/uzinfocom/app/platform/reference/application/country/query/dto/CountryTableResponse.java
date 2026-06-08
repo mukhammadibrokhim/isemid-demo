@@ -17,8 +17,6 @@ public record CountryTableResponse(
         @Schema(description = "Country name in Karakalpak.", example = "Ózbekstan")
         String nameKaa,
         @Schema(description = "Soft-delete flag.", example = "false")
-        Boolean deleted,
-        @Schema(description = "Display order for Country records.", example = "0")
-        Integer sortOrder
+        Boolean deleted
 ) {
 }

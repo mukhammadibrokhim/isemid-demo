@@ -19,9 +19,9 @@ public interface DistrictRepository extends JpaRepository<District, Long>, JpaSp
 
     boolean existsByCode(String code);
 
-    List<District> findAllByDeletedFalseOrderBySortOrderAscNameUzAsc();
+    List<District> findAllByDeletedFalseOrderByNameUzAsc();
 
-    List<District> findAllByParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(String parentCode);
+    List<District> findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(String parentCode);
 
     @Query("""
         select
@@ -33,7 +33,7 @@ public interface DistrictRepository extends JpaRepository<District, Long>, JpaSp
             d.nameKaa as nameKaa
         from District d
         where d.deleted = false
-        order by d.sortOrder asc, d.nameUz asc
+        order by d.nameUz asc
     """)
     List<ReferenceItemProjection> findAllReferenceItems();
 }

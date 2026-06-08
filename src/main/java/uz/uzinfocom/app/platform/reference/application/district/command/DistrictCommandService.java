@@ -48,7 +48,6 @@ public class DistrictCommandService {
                 .nameRu(request.nameRu())
                 .nameKaa(request.nameKaa())
                 .deleted(false)
-                .sortOrder(sortOrder(request.sortOrder()))
                 .build();
 
         District saved = districtRepository.save(district);
@@ -83,7 +82,6 @@ public class DistrictCommandService {
         district.setNameUzCyril(request.nameUzCyril());
         district.setNameRu(request.nameRu());
         district.setNameKaa(request.nameKaa());
-        district.setSortOrder(sortOrder(request.sortOrder()));
 
         District saved = districtRepository.save(district);
         eventPublisher.publishEvent(new DistrictChangedEvent());
@@ -115,7 +113,4 @@ public class DistrictCommandService {
         }
     }
 
-    private int sortOrder(Integer sortOrder) {
-        return sortOrder == null ? 0 : sortOrder;
-    }
 }

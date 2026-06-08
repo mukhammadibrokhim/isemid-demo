@@ -22,7 +22,7 @@ public final class ReferenceCodeNormalizer {
             throw new ConflictException(requiredMessageCode);
         }
 
-        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        String normalized = value.trim();
 
         if (normalized.isBlank()) {
             throw new ConflictException(requiredMessageCode);

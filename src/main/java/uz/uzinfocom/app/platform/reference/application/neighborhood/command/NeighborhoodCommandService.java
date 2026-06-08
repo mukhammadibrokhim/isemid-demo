@@ -48,7 +48,6 @@ public class NeighborhoodCommandService {
                 .nameRu(request.nameRu())
                 .nameKaa(request.nameKaa())
                 .deleted(false)
-                .sortOrder(sortOrder(request.sortOrder()))
                 .build();
 
         Neighborhood saved = neighborhoodRepository.save(neighborhood);
@@ -83,7 +82,6 @@ public class NeighborhoodCommandService {
         neighborhood.setNameUzCyril(request.nameUzCyril());
         neighborhood.setNameRu(request.nameRu());
         neighborhood.setNameKaa(request.nameKaa());
-        neighborhood.setSortOrder(sortOrder(request.sortOrder()));
 
         Neighborhood saved = neighborhoodRepository.save(neighborhood);
         eventPublisher.publishEvent(new NeighborhoodChangedEvent());
@@ -115,7 +113,4 @@ public class NeighborhoodCommandService {
         }
     }
 
-    private int sortOrder(Integer sortOrder) {
-        return sortOrder == null ? 0 : sortOrder;
-    }
 }

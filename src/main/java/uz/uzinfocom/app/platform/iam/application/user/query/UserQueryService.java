@@ -37,11 +37,14 @@ public class UserQueryService {
                 UserSortFields.ALLOWED
         );
 
-        Page<UserTableProjection> page = userRepo.findBy(
-                UserSpecification.byFilter(request),
-                query -> query
-                        .as(UserTableProjection.class)
-                        .page(pageable)
+        Page<UserTableProjection> page = Objects.requireNonNull(
+                userRepo.findBy(
+                        UserSpecification.byFilter(request),
+                        query -> query
+                                .as(UserTableProjection.class)
+                                .page(pageable)
+                ),
+                "User repository returned null Page"
         );
 
         return page.map(userQueryMapper::toTableResponse);

@@ -19,9 +19,9 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
 
     boolean existsByCode(String code);
 
-    List<Neighborhood> findAllByDeletedFalseOrderBySortOrderAscNameUzAsc();
+    List<Neighborhood> findAllByDeletedFalseOrderByNameUzAsc();
 
-    List<Neighborhood> findAllByParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(String parentCode);
+    List<Neighborhood> findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(String parentCode);
 
     @Query("""
         select
@@ -33,7 +33,7 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
             n.nameKaa as nameKaa
         from Neighborhood n
         where n.deleted = false
-        order by n.sortOrder asc, n.nameUz asc
+        order by n.nameUz asc
     """)
     List<ReferenceItemProjection> findAllReferenceItems();
 }

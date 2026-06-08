@@ -49,7 +49,7 @@ public class RegionQueryService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = ReferenceCacheConfig.REF_REGIONS, key = "'all'")
     public List<RegionResponse> getAll() {
-        return regionRepository.findAllByDeletedFalseOrderBySortOrderAscNameUzAsc()
+        return regionRepository.findAllByDeletedFalseOrderByNameUzAsc()
                 .stream()
                 .map(regionMapper::toResponse)
                 .toList();
@@ -86,7 +86,7 @@ public class RegionQueryService {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
         return regionRepository
-                .findAllByParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(normalizedParentCode)
+                .findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(normalizedParentCode)
                 .stream()
                 .map(regionMapper::toResponse)
                 .toList();

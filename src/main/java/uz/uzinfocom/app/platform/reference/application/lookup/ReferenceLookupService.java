@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.reference.application.lookup.dto.ReferenceItem;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 
 import java.util.Locale;
 import java.util.Map;
@@ -32,7 +31,7 @@ public class ReferenceLookupService {
         return find(cacheLoader.loadNeighborhoods(), code);
     }
 
-    public ReferenceItem findCatalog(CatalogType type, String code) {
+    public ReferenceItem findCatalog(String type, String code) {
         if (type == null) {
             return null;
         }
@@ -55,7 +54,7 @@ public class ReferenceLookupService {
         return nameOrCode(code, findNeighborhood(code));
     }
 
-    public String getCatalogName(CatalogType type, String code) {
+    public String getCatalogName(String type, String code) {
         return nameOrCode(code, findCatalog(type, code));
     }
 

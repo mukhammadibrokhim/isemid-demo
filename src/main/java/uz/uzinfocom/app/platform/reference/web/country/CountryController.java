@@ -60,7 +60,7 @@ public class CountryController {
 
                     Supported filters: code, name.
                     Pagination is 1-based.
-                    Supported sort fields: id, code, nameUz, nameUzCyril, nameRu, nameKaa, sortOrder, createdAt, updatedAt.
+                    Supported sort fields: id, code, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(

@@ -10,7 +10,7 @@
     <!--
         Destination jadvallar oldindan yaratilgan.
         CSV fayllarda mavjud bo'lmagan NOT NULL audit ustunlari uchun
-        PostgreSQL default qiymatlari o'rnatiladi.
+        PostgreSQL audit default qiymatlari o'rnatiladi.
 
         id ustuni GenerationType.IDENTITY orqali avtomatik yaratiladi.
         created_by_id va updated_by_id nullable bo'lgani uchun bu yerda to'ldirilmaydi.
@@ -32,25 +32,21 @@
             <columnExists tableName="ref_country" columnName="created_at"/>
             <columnExists tableName="ref_country" columnName="updated_at"/>
             <columnExists tableName="ref_country" columnName="deleted"/>
-            <columnExists tableName="ref_country" columnName="sort_order"/>
 
             <columnExists tableName="ref_region" columnName="version"/>
             <columnExists tableName="ref_region" columnName="created_at"/>
             <columnExists tableName="ref_region" columnName="updated_at"/>
             <columnExists tableName="ref_region" columnName="deleted"/>
-            <columnExists tableName="ref_region" columnName="sort_order"/>
 
             <columnExists tableName="ref_district" columnName="version"/>
             <columnExists tableName="ref_district" columnName="created_at"/>
             <columnExists tableName="ref_district" columnName="updated_at"/>
             <columnExists tableName="ref_district" columnName="deleted"/>
-            <columnExists tableName="ref_district" columnName="sort_order"/>
 
             <columnExists tableName="ref_neighborhood" columnName="version"/>
             <columnExists tableName="ref_neighborhood" columnName="created_at"/>
             <columnExists tableName="ref_neighborhood" columnName="updated_at"/>
             <columnExists tableName="ref_neighborhood" columnName="deleted"/>
-            <columnExists tableName="ref_neighborhood" columnName="sort_order"/>
         </preConditions>
 
         <sql
@@ -61,29 +57,25 @@
                 ALTER COLUMN version SET DEFAULT 0,
             ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
                 ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
-                ALTER COLUMN deleted SET DEFAULT FALSE,
-                ALTER COLUMN sort_order SET DEFAULT 0;
+                ALTER COLUMN deleted SET DEFAULT FALSE;
 
             ALTER TABLE ref_region
                 ALTER COLUMN version SET DEFAULT 0,
             ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
                 ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
-                ALTER COLUMN deleted SET DEFAULT FALSE,
-                ALTER COLUMN sort_order SET DEFAULT 0;
+                ALTER COLUMN deleted SET DEFAULT FALSE;
 
             ALTER TABLE ref_district
                 ALTER COLUMN version SET DEFAULT 0,
             ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
                 ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
-                ALTER COLUMN deleted SET DEFAULT FALSE,
-                ALTER COLUMN sort_order SET DEFAULT 0;
+                ALTER COLUMN deleted SET DEFAULT FALSE;
 
             ALTER TABLE ref_neighborhood
                 ALTER COLUMN version SET DEFAULT 0,
             ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
                 ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
-                ALTER COLUMN deleted SET DEFAULT FALSE,
-                ALTER COLUMN sort_order SET DEFAULT 0;
+                ALTER COLUMN deleted SET DEFAULT FALSE;
             ]]></sql>
 
     </changeSet>
@@ -156,7 +148,6 @@
             <column header="name_ru" name="name_ru" type="STRING"/>
             <column header="name_kaa" name="name_kaa" type="STRING"/>
             <column header="deleted" name="deleted" type="BOOLEAN"/>
-            <column header="sort_order" name="sort_order" type="NUMERIC"/>
 
         </loadData>
 
@@ -197,7 +188,6 @@
             <column header="name_ru" name="name_ru" type="STRING"/>
             <column header="name_kaa" name="name_kaa" type="STRING"/>
             <column header="deleted" name="deleted" type="BOOLEAN"/>
-            <column header="sort_order" name="sort_order" type="NUMERIC"/>
 
         </loadData>
 
@@ -235,7 +225,71 @@
             <column header="name_ru" name="name_ru" type="STRING"/>
             <column header="name_kaa" name="name_kaa" type="STRING"/>
             <column header="deleted" name="deleted" type="BOOLEAN"/>
-            <column header="sort_order" name="sort_order" type="NUMERIC"/>
+
+        </loadData>
+
+    </changeSet>
+
+
+    <!-- Catalog: audit defaultlari -->
+    <changeSet
+            id="20260608-1500-05-catalog-default-values"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_catalog"/>
+            <columnExists tableName="ref_catalog" columnName="version"/>
+            <columnExists tableName="ref_catalog" columnName="created_at"/>
+            <columnExists tableName="ref_catalog" columnName="updated_at"/>
+            <columnExists tableName="ref_catalog" columnName="deleted"/>
+        </preConditions>
+
+        <sql
+                dbms="postgresql"
+                splitStatements="true"
+                stripComments="true"><![CDATA[
+            ALTER TABLE ref_catalog
+                ALTER COLUMN version SET DEFAULT 0,
+            ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN deleted SET DEFAULT FALSE;
+            ]]></sql>
+
+    </changeSet>
+
+    <!-- Catalog: jadval bo'sh bo'lsa CSV yuklanadi -->
+    <changeSet
+            id="20260608-1500-06-seed-catalog"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_catalog"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_catalog
+            </sqlCheck>
+        </preConditions>
+
+        <loadData
+                file="base/catalog_reference.csv"
+                relativeToChangelogFile="false"
+                tableName="ref_catalog"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="type" name="type" type="STRING"/>
+            <column header="code" name="code" type="STRING"/>
+            <column header="parent_code" name="parent_code" type="STRING"/>
+            <column header="name_uz" name="name_uz" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+            <column header="name_kaa" name="name_kaa" type="STRING"/>
+            <column header="deleted" name="deleted" type="BOOLEAN"/>
 
         </loadData>
 

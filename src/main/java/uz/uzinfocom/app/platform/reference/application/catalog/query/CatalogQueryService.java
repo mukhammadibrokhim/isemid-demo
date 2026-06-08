@@ -12,14 +12,12 @@ import uz.uzinfocom.app.platform.reference.application.catalog.query.mapper.Cata
 import uz.uzinfocom.app.platform.reference.application.catalog.query.projection.CatalogTableProjection;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.specification.CatalogSpecification;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
-import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceNameResolver;
-import uz.uzinfocom.app.platform.reference.domain.Catalog;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 import uz.uzinfocom.app.platform.reference.repository.CatalogRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,20 +25,22 @@ public class CatalogQueryService {
 
     private final CatalogRepository catalogRepository;
     private final CatalogMapper catalogMapper;
-    private final ReferenceNameResolver referenceNameResolver;
 
     @Transactional(readOnly = true)
     public Page<CatalogTableResponse> findTable(CatalogFilterRequest request) {
         Pageable pageable = PageableUtils.of(request, CatalogSortFields.ALLOWED_SORT_FIELDS);
 
-        Page<CatalogTableProjection> page = catalogRepository.findBy(
-                CatalogSpecification.byFilter(request),
-                query -> query
-                        .as(CatalogTableProjection.class)
-                        .page(pageable)
+        Page<CatalogTableProjection> page = Objects.requireNonNull(
+                catalogRepository.findBy(
+                        CatalogSpecification.byFilter(request),
+                        query -> query
+                                .as(CatalogTableProjection.class)
+                                .page(pageable)
+                ),
+                "Catalog page return null!"
         );
 
-        return page.map(projection -> catalogMapper.toTableResponse(projection, referenceNameResolver));
+        return page.map(catalogMapper::toTableResponse);
     }
 
     @Transactional(readOnly = true)
@@ -51,32 +51,29 @@ public class CatalogQueryService {
     }
 
     @Transactional(readOnly = true)
-    public CatalogResponse getByTypeAndCode(CatalogType type, String code) {
+    public CatalogResponse getByTypeAndCode(String  type, String code) {
         String normalizedCode = ReferenceCodeNormalizer.normalizeCode(code);
 
         return catalogRepository.findByTypeAndCodeAndDeletedFalse(type, normalizedCode)
                 .map(catalogMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException(
-                        "reference.catalog.not_found_by_type_code",
-                        type,
-                        normalizedCode
-                ));
+                .orElseThrow(() ->
+                        new NotFoundException("reference.catalog.not_found_by_type_code", type, normalizedCode));
     }
 
     @Transactional(readOnly = true)
-    public List<CatalogResponse> getByType(CatalogType type) {
-        return catalogRepository.findAllByTypeAndDeletedFalseOrderBySortOrderAscNameUzAsc(type)
+    public List<CatalogResponse> getByType(String type) {
+        return catalogRepository.findAllByTypeAndDeletedFalseOrderByNameUzAsc(type)
                 .stream()
                 .map(catalogMapper::toResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<CatalogResponse> getByTypeAndParentCode(CatalogType type, String parentCode) {
+    public List<CatalogResponse> getByTypeAndParentCode(String type, String parentCode) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
         return catalogRepository
-                .findAllByTypeAndParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(type, normalizedParentCode)
+                .findAllByTypeAndParentCodeAndDeletedFalseOrderByNameUzAsc(type, normalizedParentCode)
                 .stream()
                 .map(catalogMapper::toResponse)
                 .toList();

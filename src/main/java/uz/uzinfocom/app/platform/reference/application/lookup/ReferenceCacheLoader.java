@@ -8,12 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.lookup.dto.ReferenceItem;
 import uz.uzinfocom.app.platform.reference.application.lookup.projection.ReferenceItemProjection;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
-import uz.uzinfocom.app.platform.reference.repository.CatalogRepository;
-import uz.uzinfocom.app.platform.reference.repository.CountryRepository;
-import uz.uzinfocom.app.platform.reference.repository.DistrictRepository;
-import uz.uzinfocom.app.platform.reference.repository.NeighborhoodRepository;
-import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
+import uz.uzinfocom.app.platform.reference.repository.*;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,9 +50,9 @@ public class ReferenceCacheLoader {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = ReferenceCacheConfig.REF_CATALOG_BY_TYPE, key = "#type.name()", sync = true)
-    public Map<String, ReferenceItem> loadCatalog(CatalogType type) {
-        return toMap(catalogRepository.findAllProjectedByTypeAndDeletedFalseOrderBySortOrderAscNameUzAsc(type));
+    @Cacheable(cacheNames = ReferenceCacheConfig.REF_CATALOG_BY_TYPE, key = "#type", sync = true)
+    public Map<String, ReferenceItem> loadCatalog(String type) {
+        return toMap(catalogRepository.findAllProjectedByTypeAndDeletedFalseOrderByNameUzAsc(type));
     }
 
     private Map<String, ReferenceItem> toMap(List<ReferenceItemProjection> projections) {

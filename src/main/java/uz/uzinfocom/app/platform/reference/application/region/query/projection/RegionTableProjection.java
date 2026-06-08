@@ -19,6 +19,4 @@ public interface RegionTableProjection {
     String getNameKaa();
 
     Boolean getDeleted();
-
-    Integer getSortOrder();
 }

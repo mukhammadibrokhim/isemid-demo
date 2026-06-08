@@ -13,7 +13,6 @@ public final class RegionSortFields {
             Map.entry("nameUzCyril", "nameUzCyril"),
             Map.entry("nameRu", "nameRu"),
             Map.entry("nameKaa", "nameKaa"),
-            Map.entry("sortOrder", "sortOrder"),
             Map.entry("createdAt", "createdAt"),
             Map.entry("updatedAt", "updatedAt")
     );

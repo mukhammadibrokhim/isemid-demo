@@ -63,10 +63,6 @@ public class District extends ReferenceDictionaryEntity {
     @Column(nullable = false)
     private Boolean deleted = false;
 
-    @Builder.Default
-    @Column(name = "sort_order", nullable = false)
-    private Integer sortOrder = 0;
-
     public boolean isDeleted() {
         return Boolean.TRUE.equals(deleted);
     }

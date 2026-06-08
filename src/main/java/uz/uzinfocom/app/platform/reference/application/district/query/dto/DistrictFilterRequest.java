@@ -20,7 +20,7 @@ public record DistrictFilterRequest(
 
         @Schema(
                 description = "Sort field. Unsupported values fall back to the default sort.",
-                example = "sortOrder",
+                example = "nameUz",
                 allowableValues = {
                         "id",
                         "code",
@@ -31,7 +31,6 @@ public record DistrictFilterRequest(
                         "nameUzCyril",
                         "nameRu",
                         "nameKaa",
-                        "sortOrder",
                         "createdAt",
                         "updatedAt"
                 }

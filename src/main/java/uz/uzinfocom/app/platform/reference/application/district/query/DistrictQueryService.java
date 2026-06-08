@@ -49,7 +49,7 @@ public class DistrictQueryService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = ReferenceCacheConfig.REF_DISTRICTS, key = "'all'")
     public List<DistrictResponse> getAll() {
-        return districtRepository.findAllByDeletedFalseOrderBySortOrderAscNameUzAsc()
+        return districtRepository.findAllByDeletedFalseOrderByNameUzAsc()
                 .stream()
                 .map(districtMapper::toResponse)
                 .toList();
@@ -86,7 +86,7 @@ public class DistrictQueryService {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
         return districtRepository
-                .findAllByParentCodeAndDeletedFalseOrderBySortOrderAscNameUzAsc(normalizedParentCode)
+                .findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(normalizedParentCode)
                 .stream()
                 .map(districtMapper::toResponse)
                 .toList();

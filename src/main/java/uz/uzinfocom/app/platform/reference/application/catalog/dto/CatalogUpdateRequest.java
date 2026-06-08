@@ -3,9 +3,7 @@ package uz.uzinfocom.app.platform.reference.application.catalog.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 
 @Schema(description = "Request payload for updating a Catalog reference record.")
 public record CatalogUpdateRequest(
@@ -15,7 +13,7 @@ public record CatalogUpdateRequest(
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         @NotNull(message = "{reference.catalog.type.required}")
-        CatalogType type,
+        String type,
 
         @Schema(
                 description = "Unique item code inside the selected catalog type.",
@@ -43,10 +41,6 @@ public record CatalogUpdateRequest(
 
         @Schema(description = "Catalog item name in Karakalpak.")
         @Size(max = 255, message = "{reference.name.max_length}")
-        String nameKaa,
-
-        @Schema(description = "Display order for Catalog records.", example = "10")
-        @PositiveOrZero(message = "{validation.must_be_positive}")
-        Integer sortOrder
+        String nameKaa
 ) {
 }

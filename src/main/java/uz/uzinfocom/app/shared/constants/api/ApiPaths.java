@@ -72,7 +72,7 @@ public final class ApiPaths {
         private Reference() {
         }
 
-        public static final String BASE = "/api/v1/references";
+        public static final String BASE = API_V1 + "/references";
 
         public static final String COUNTRIES = BASE + "/countries";
         public static final String REGIONS = BASE + "/regions";

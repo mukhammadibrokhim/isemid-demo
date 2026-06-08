@@ -27,7 +27,6 @@ public record CountryFilterRequest(
                         "nameUzCyril",
                         "nameRu",
                         "nameKaa",
-                        "sortOrder",
                         "createdAt",
                         "updatedAt"
                 }

@@ -2,7 +2,6 @@ package uz.uzinfocom.app.platform.reference.application.neighborhood.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Request payload for updating a Neighborhood reference record.")
@@ -39,10 +38,6 @@ public record NeighborhoodUpdateRequest(
 
         @Schema(description = "Neighborhood name in Karakalpak.", example = "Dalvarzin")
         @Size(max = 255, message = "{reference.name.max_length}")
-        String nameKaa,
-
-        @Schema(description = "Display order for Neighborhood records.", example = "10")
-        @PositiveOrZero(message = "{validation.must_be_positive}")
-        Integer sortOrder
+        String nameKaa
 ) {
 }

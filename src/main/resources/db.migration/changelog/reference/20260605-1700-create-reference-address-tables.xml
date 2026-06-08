@@ -17,29 +17,43 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
-            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="version"
+                    type="BIGINT"
+                    defaultValueNumeric="0"/>
+
+            <column name="created_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="updated_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
+
             <column name="code" type="VARCHAR(3)">
-                <constraints nullable="false"
-                             unique="true"
-                             uniqueConstraintName="uk_ref_country_code"/>
+                <constraints
+                        primaryKey="false"
+                        nullable="false"
+                        unique="true"
+                        uniqueConstraintName="uk_ref_country_code"/>
             </column>
+
             <column name="alpha2_code" type="VARCHAR(2)"/>
             <column name="iso_3166_2_code" type="VARCHAR(32)"/>
             <column name="citizenship_code" type="VARCHAR(32)"/>
+
             <column name="name_uz" type="VARCHAR(255)"/>
             <column name="name_uz_cyril" type="VARCHAR(255)"/>
             <column name="name_ru" type="VARCHAR(255)"/>
             <column name="name_kaa" type="VARCHAR(255)"/>
-            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+
+            <column name="deleted"
+                    type="BOOLEAN"
+                    defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -56,35 +70,50 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
-            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="version"
+                    type="BIGINT"
+                    defaultValueNumeric="0"/>
+
+            <column name="created_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="updated_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
+
             <column name="code" type="VARCHAR(50)">
-                <constraints nullable="false"
-                             unique="true"
-                             uniqueConstraintName="uk_ref_region_code"/>
+                <constraints
+                        nullable="false"
+                        unique="true"
+                        uniqueConstraintName="uk_ref_region_code"/>
             </column>
+
             <column name="parent_code" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
+
             <column name="soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="legacy_soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="name_uz" type="VARCHAR(255)"/>
             <column name="name_uz_cyril" type="VARCHAR(255)"/>
             <column name="name_ru" type="VARCHAR(255)"/>
             <column name="name_kaa" type="VARCHAR(255)"/>
-            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+
+            <column name="deleted"
+                    type="BOOLEAN"
+                    defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -101,41 +130,58 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
-            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="version"
+                    type="BIGINT"
+                    defaultValueNumeric="0"/>
+
+            <column name="created_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="updated_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
+
             <column name="code" type="VARCHAR(50)">
-                <constraints nullable="false"
-                             unique="true"
-                             uniqueConstraintName="uk_ref_district_code"/>
+                <constraints
+                        nullable="false"
+                        unique="true"
+                        uniqueConstraintName="uk_ref_district_code"/>
             </column>
+
             <column name="parent_code" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
+
             <column name="soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="parent_soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="legacy_soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="parent_legacy_soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="name_uz" type="VARCHAR(255)"/>
             <column name="name_uz_cyril" type="VARCHAR(255)"/>
             <column name="name_ru" type="VARCHAR(255)"/>
             <column name="name_kaa" type="VARCHAR(255)"/>
-            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+
+            <column name="deleted"
+                    type="BOOLEAN"
+                    defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -152,35 +198,50 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
-            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="version"
+                    type="BIGINT"
+                    defaultValueNumeric="0"/>
+
+            <column name="created_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+
+            <column name="updated_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
+
             <column name="code" type="VARCHAR(50)">
-                <constraints nullable="false"
-                             unique="true"
-                             uniqueConstraintName="uk_ref_neighborhood_code"/>
+                <constraints
+                        nullable="false"
+                        unique="true"
+                        uniqueConstraintName="uk_ref_neighborhood_code"/>
             </column>
+
             <column name="parent_code" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
+
             <column name="soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="parent_soato_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
+
             <column name="name_uz" type="VARCHAR(255)"/>
             <column name="name_uz_cyril" type="VARCHAR(255)"/>
             <column name="name_ru" type="VARCHAR(255)"/>
             <column name="name_kaa" type="VARCHAR(255)"/>
-            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+
+            <column name="deleted"
+                    type="BOOLEAN"
+                    defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -190,11 +251,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_country"/>
             <not>
-                <indexExists tableName="ref_country" indexName="idx_ref_country_code"/>
+                <indexExists
+                        tableName="ref_country"
+                        indexName="idx_ref_country_code"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_country" indexName="idx_ref_country_code">
+        <createIndex
+                tableName="ref_country"
+                indexName="idx_ref_country_code">
             <column name="code"/>
         </createIndex>
     </changeSet>
@@ -203,11 +268,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_country"/>
             <not>
-                <indexExists tableName="ref_country" indexName="idx_ref_country_deleted"/>
+                <indexExists
+                        tableName="ref_country"
+                        indexName="idx_ref_country_deleted"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_country" indexName="idx_ref_country_deleted">
+        <createIndex
+                tableName="ref_country"
+                indexName="idx_ref_country_deleted">
             <column name="deleted"/>
         </createIndex>
     </changeSet>
@@ -216,11 +285,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_region"/>
             <not>
-                <indexExists tableName="ref_region" indexName="idx_ref_region_code"/>
+                <indexExists
+                        tableName="ref_region"
+                        indexName="idx_ref_region_code"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_region" indexName="idx_ref_region_code">
+        <createIndex
+                tableName="ref_region"
+                indexName="idx_ref_region_code">
             <column name="code"/>
         </createIndex>
     </changeSet>
@@ -229,11 +302,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_region"/>
             <not>
-                <indexExists tableName="ref_region" indexName="idx_ref_region_parent_code"/>
+                <indexExists
+                        tableName="ref_region"
+                        indexName="idx_ref_region_parent_code"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_region" indexName="idx_ref_region_parent_code">
+        <createIndex
+                tableName="ref_region"
+                indexName="idx_ref_region_parent_code">
             <column name="parent_code"/>
         </createIndex>
     </changeSet>
@@ -242,11 +319,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_region"/>
             <not>
-                <indexExists tableName="ref_region" indexName="idx_ref_region_deleted"/>
+                <indexExists
+                        tableName="ref_region"
+                        indexName="idx_ref_region_deleted"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_region" indexName="idx_ref_region_deleted">
+        <createIndex
+                tableName="ref_region"
+                indexName="idx_ref_region_deleted">
             <column name="deleted"/>
         </createIndex>
     </changeSet>
@@ -255,11 +336,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_district"/>
             <not>
-                <indexExists tableName="ref_district" indexName="idx_ref_district_code"/>
+                <indexExists
+                        tableName="ref_district"
+                        indexName="idx_ref_district_code"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_district" indexName="idx_ref_district_code">
+        <createIndex
+                tableName="ref_district"
+                indexName="idx_ref_district_code">
             <column name="code"/>
         </createIndex>
     </changeSet>
@@ -268,11 +353,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_district"/>
             <not>
-                <indexExists tableName="ref_district" indexName="idx_ref_district_parent_code"/>
+                <indexExists
+                        tableName="ref_district"
+                        indexName="idx_ref_district_parent_code"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_district" indexName="idx_ref_district_parent_code">
+        <createIndex
+                tableName="ref_district"
+                indexName="idx_ref_district_parent_code">
             <column name="parent_code"/>
         </createIndex>
     </changeSet>
@@ -281,11 +370,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_district"/>
             <not>
-                <indexExists tableName="ref_district" indexName="idx_ref_district_deleted"/>
+                <indexExists
+                        tableName="ref_district"
+                        indexName="idx_ref_district_deleted"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_district" indexName="idx_ref_district_deleted">
+        <createIndex
+                tableName="ref_district"
+                indexName="idx_ref_district_deleted">
             <column name="deleted"/>
         </createIndex>
     </changeSet>
@@ -294,11 +387,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_neighborhood"/>
             <not>
-                <indexExists tableName="ref_neighborhood" indexName="idx_ref_neighborhood_code"/>
+                <indexExists
+                        tableName="ref_neighborhood"
+                        indexName="idx_ref_neighborhood_code"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_neighborhood" indexName="idx_ref_neighborhood_code">
+        <createIndex
+                tableName="ref_neighborhood"
+                indexName="idx_ref_neighborhood_code">
             <column name="code"/>
         </createIndex>
     </changeSet>
@@ -307,11 +404,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_neighborhood"/>
             <not>
-                <indexExists tableName="ref_neighborhood" indexName="idx_ref_neighborhood_parent_code"/>
+                <indexExists
+                        tableName="ref_neighborhood"
+                        indexName="idx_ref_neighborhood_parent_code"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_neighborhood" indexName="idx_ref_neighborhood_parent_code">
+        <createIndex
+                tableName="ref_neighborhood"
+                indexName="idx_ref_neighborhood_parent_code">
             <column name="parent_code"/>
         </createIndex>
     </changeSet>
@@ -320,11 +421,15 @@
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="ref_neighborhood"/>
             <not>
-                <indexExists tableName="ref_neighborhood" indexName="idx_ref_neighborhood_deleted"/>
+                <indexExists
+                        tableName="ref_neighborhood"
+                        indexName="idx_ref_neighborhood_deleted"/>
             </not>
         </preConditions>
 
-        <createIndex tableName="ref_neighborhood" indexName="idx_ref_neighborhood_deleted">
+        <createIndex
+                tableName="ref_neighborhood"
+                indexName="idx_ref_neighborhood_deleted">
             <column name="deleted"/>
         </createIndex>
     </changeSet>

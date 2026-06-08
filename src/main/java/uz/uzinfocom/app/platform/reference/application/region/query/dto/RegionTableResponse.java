@@ -21,8 +21,6 @@ public record RegionTableResponse(
         @Schema(description = "Region name in Karakalpak.", example = "Andijan wálayatı")
         String nameKaa,
         @Schema(description = "Soft-delete flag.", example = "false")
-        Boolean deleted,
-        @Schema(description = "Display order for Region records.", example = "10")
-        Integer sortOrder
+        Boolean deleted
 ) {
 }

@@ -3,9 +3,7 @@ package uz.uzinfocom.app.platform.reference.application.catalog.query.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 @Schema(description = "Catalog table filter and pagination parameters.")
@@ -21,15 +19,14 @@ public record CatalogFilterRequest(
 
         @Schema(
                 description = "Sort field. Unsupported values fall back to the default sort.",
-                example = "sortOrder",
+                example = "nameUz",
                 allowableValues = {
                         "id",
                         "type",
                         "code",
                         "parentCode",
                         "nameUz",
-                        "nameRu",
-                        "sortOrder"
+                        "nameRu"
                 }
         )
         String sortBy,
@@ -39,11 +36,9 @@ public record CatalogFilterRequest(
 
         @Schema(
                 description = "Catalog type.",
-                example = "GENDER",
-                requiredMode = Schema.RequiredMode.REQUIRED
+                example = "GENDER"
         )
-        @NotNull(message = "{reference.catalog.type.required}")
-        CatalogType type,
+        String type,
 
         @Schema(description = "Exact Catalog item code filter.")
         @Size(max = 50, message = "{reference.code.max_length}")

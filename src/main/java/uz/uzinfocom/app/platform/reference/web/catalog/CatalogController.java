@@ -14,15 +14,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.catalog.command.CatalogCommandService;
 import uz.uzinfocom.app.platform.reference.application.catalog.dto.CatalogCreateRequest;
@@ -31,7 +23,6 @@ import uz.uzinfocom.app.platform.reference.application.catalog.query.CatalogQuer
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogResponse;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogTableResponse;
-import uz.uzinfocom.app.platform.reference.domain.enums.CatalogType;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
@@ -65,7 +56,7 @@ public class CatalogController {
                     Supported filters: type, code, parentCode, search.
                     Catalog parentCode points to another item in the same catalog type.
                     Pagination is 1-based.
-                    Supported sort fields: id, type, code, parentCode, nameUz, nameRu, sortOrder.
+                    Supported sort fields: id, type, code, parentCode, nameUz, nameRu.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -111,7 +102,7 @@ public class CatalogController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<CatalogResponse> getByTypeAndCode(
             @Parameter(description = "Catalog type.", required = true, example = "GENDER")
-            @PathVariable @NotNull CatalogType type,
+            @PathVariable @NotNull String type,
             @Parameter(description = "Catalog item code.", required = true)
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
@@ -133,7 +124,7 @@ public class CatalogController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<CatalogResponse>> getByType(
             @Parameter(description = "Catalog type.", required = true, example = "GENDER")
-            @PathVariable @NotNull CatalogType type
+            @PathVariable @NotNull String type
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), catalogQueryService.getByType(type));
     }
@@ -150,7 +141,7 @@ public class CatalogController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<CatalogResponse>> getByTypeAndParentCode(
             @Parameter(description = "Catalog type.", required = true, example = "GENDER")
-            @PathVariable @NotNull CatalogType type,
+            @PathVariable @NotNull String type,
             @Parameter(description = "Parent catalog item code in the same catalog type.", required = true)
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {
