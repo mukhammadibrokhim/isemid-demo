@@ -46,6 +46,8 @@ public class NationalDiseaseCasesReport implements LocationReportService {
         List<LocationReportRow> rows =
                 repository.fetch(mkb10Code, fromDate, toDate, scope, locale);
 
+
+
         List<ReportDto> reports = rows.stream()
                 .filter(row -> !row.total())
                 .map(row -> ReportDto.builder()

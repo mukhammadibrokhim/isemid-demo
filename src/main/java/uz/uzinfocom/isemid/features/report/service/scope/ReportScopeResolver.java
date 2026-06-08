@@ -98,16 +98,16 @@ public class ReportScopeResolver {
     }
 
     /**
-     * Classifies {@code parentCode} via the cached catalog. This reads a handful of cached
-     * rows for labelling only — it does not load report data.
+     * Classifies {@code parentCode} itself (the catalog row whose {@code code = parentCode}),
+     * so the drill-down switch can pick the next granularity down. This is a single cached
+     * lookup for labelling only — it does not load report data.
      */
     private CatalogType lookupType(String parentCode) {
-        return catalogService.findAllByParentCode(parentCode).stream()
-                .findFirst()
-                .map(Catalog::getType)
-                .map(CatalogType::valueOf)
-                .orElseThrow(() -> new ApiException(NOT_FOUND,
-                        messageUtil.get("error.catalog.notfound", parentCode)));
+        Catalog catalog = catalogService.findByCode(parentCode);
+        if (catalog == null) {
+            throw new ApiException(NOT_FOUND, messageUtil.get("error.catalog.notfound", parentCode));
+        }
+        return CatalogType.valueOf(catalog.getType());
     }
 
     /**
