@@ -54,7 +54,18 @@ public class LocationReportRepository {
                     OR :isSanepid = FALSE
                     OR f.receiver_organization_id = :currentOrgId
                     OR (%s) )
-            GROUP BY GROUPING SETS ((c.code, name), ())
+        GROUP BY GROUPING SETS (
+           (
+               c.code,
+               CASE
+                   WHEN :lang = 'uz-Cyrl' THEN c.name_uz_cyril
+                   WHEN :lang = 'ru'      THEN c.name_ru
+                   WHEN :lang = 'kaa'     THEN c.name_kaa
+                   ELSE                        c.name_uz
+               END
+           ),
+           ()
+                                 )
             ORDER BY is_total, c.code
             """;
 
