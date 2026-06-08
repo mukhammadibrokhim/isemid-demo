@@ -26,36 +26,47 @@ import uz.uzinfocom.isemid.features.report.service.scope.ReportScope;
 public class LocationReportRepository {
 
     private static final String SQL = """
-            SELECT
-                c.code AS code,
-                CASE :locale
-                    WHEN 'uz-Cyrl' THEN c.name_uz_cyril
-                    WHEN 'ru'      THEN c.name_ru
-                    WHEN 'kaa'     THEN c.name_kaa
-                    ELSE                c.name_uz
-                END AS name,
-                COUNT(*) FILTER (WHERE f.id IS NOT NULL AND f.status = 'APPROVED')                AS confirmed,
-                COUNT(*) FILTER (WHERE f.id IS NOT NULL AND f.status IS DISTINCT FROM 'APPROVED') AS unconfirmed,
-                GROUPING(c.code) AS is_total
-            FROM cls_catalog c
-            LEFT JOIN pt_address a
-                   ON a.%s = c.code
-                  AND a.type = 'TEMPORARY'
-            LEFT JOIN form058 f
-                   ON f.patient_id = a.patient_id
-                  AND (CAST(:fromDate AS date)     IS NULL OR f.created_at >= :fromDate)
-                  AND (CAST(:toDate AS date)       IS NULL OR f.created_at <  :toDate)
-                  AND (CAST(:mkb10Code AS varchar) IS NULL OR f.final_mkb10code = :mkb10Code)
-            LEFT JOIN organization co
-                   ON co.uuid = f.created_org_uuid
-            WHERE c.type = :dimType
-              AND (CAST(:dimParent AS varchar) IS NULL OR c.parent_code = :dimParent)
-              AND ( f.id IS NULL
-                    OR :isSanepid = FALSE
-                    OR f.receiver_organization_id = :currentOrgId
-                    OR (%s) )
-            GROUP BY GROUPING SETS ((c.code, name), ())
-            ORDER BY is_total, c.code
+        WITH base AS (
+                                     SELECT
+                                         c.code,
+                                         CASE :locale
+                                             WHEN 'uz-Cyrl' THEN c.name_uz_cyril
+                                             WHEN 'ru'      THEN c.name_ru
+                                             WHEN 'kaa'     THEN c.name_kaa
+                                             ELSE                c.name_uz
+                                         END AS name,
+                                         f.id,
+                                         f.status
+                                     FROM cls_catalog c
+                                     LEFT JOIN pt_address a
+                                            ON a.%s = c.code
+                                           AND a.type = 'TEMPORARY'
+                                     LEFT JOIN form058 f
+                                            ON f.patient_id = a.patient_id
+                                           AND (CAST(:fromDate AS date)     IS NULL OR f.created_at >= :fromDate)
+                                           AND (CAST(:toDate AS date)       IS NULL OR f.created_at <  :toDate)
+                                           AND (CAST(:mkb10Code AS varchar) IS NULL OR f.final_mkb10code = :mkb10Code)
+                                     LEFT JOIN organization co
+                                            ON co.uuid = f.created_org_uuid
+                                     WHERE c.type = :dimType
+                                       AND (CAST(:dimParent AS varchar) IS NULL OR c.parent_code = :dimParent)
+                                       AND ( f.id IS NULL
+                                             OR :isSanepid = FALSE
+                                             OR f.receiver_organization_id = :currentOrgId
+                                             OR (%s) )
+                                 )
+                                 SELECT
+                                     code,
+                                     name,
+                                     COUNT(*) FILTER (WHERE id IS NOT NULL AND status = 'APPROVED')                AS confirmed,
+                                     COUNT(*) FILTER (WHERE id IS NOT NULL AND status IS DISTINCT FROM 'APPROVED') AS unconfirmed,
+                                     GROUPING(code) AS is_total
+                                 FROM base
+                                 GROUP BY GROUPING SETS (
+                                     (code, name),
+                                     ()
+                                 )
+                                 ORDER BY is_total, code;
             """;
 
     private final NamedParameterJdbcTemplate template;
