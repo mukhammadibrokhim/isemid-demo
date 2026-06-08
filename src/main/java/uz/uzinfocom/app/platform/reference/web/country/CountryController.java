@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.reference.web.country;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -32,6 +33,7 @@ import uz.uzinfocom.app.platform.reference.application.country.query.CountryQuer
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
+import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
 @Tag(
         name = "Reference - Countries",
@@ -49,6 +51,7 @@ public class CountryController {
     private final CountryQueryService countryQueryService;
     private final CountryCommandService countryCommandService;
     private final MessageResolver messageResolver;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
             summary = "Get paginated country reference data",
@@ -67,10 +70,11 @@ public class CountryController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<CountryTableResponse> getAll(
-            @ParameterObject @Valid @ModelAttribute CountryFilterRequest request
+            @ParameterObject @Valid @ModelAttribute CountryFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<CountryTableResponse> page = countryQueryService.findTable(request);
-        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(

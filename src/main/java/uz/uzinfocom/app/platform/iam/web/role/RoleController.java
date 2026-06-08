@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
+import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
 @Tag(
         name = "Role",
@@ -41,6 +43,7 @@ public class RoleController {
     private final RoleQueryService roleQueryService;
     private final RoleCommandService roleCommandService;
     private final MessageResolver messages;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
             summary = "Получить список ролей",
@@ -49,10 +52,11 @@ public class RoleController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
     @GetMapping
     public PagedResponse<RoleTableResponse> getAll(
-            @ParameterObject @Valid @ModelAttribute RoleFilterRequest request
+            @ParameterObject @Valid @ModelAttribute RoleFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<RoleTableResponse> page = roleQueryService.findTable(request);
-        return PagedResponse.fromPage(page, messages.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(page, messages.resolve("common.success"), httpRequest);
     }
 
     @Operation(

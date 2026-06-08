@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
+import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
 @Tag(
         name = "Permission",
@@ -39,6 +41,7 @@ public class PermissionController {
     private final PermissionQueryService permissionQueryService;
     private final PermissionCommandService permissionCommandService;
     private final MessageResolver messageResolver;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
             summary = "Получить список прав доступа",
@@ -47,10 +50,11 @@ public class PermissionController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
     @GetMapping
     public PagedResponse<PermissionTableResponse> getAll(
-           @ParameterObject @Valid @ModelAttribute PermissionFilterRequest request
+            @ParameterObject @Valid @ModelAttribute PermissionFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<PermissionTableResponse> responses = permissionQueryService.findTable(request);
-        return PagedResponse.fromPage(responses, messageResolver.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(responses, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(

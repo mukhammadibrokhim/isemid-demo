@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -25,6 +26,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
+import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,14 +39,16 @@ public class UserController {
 
     private final UserQueryService userQueryService;
     private final MessageResolver messageResolver;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(summary = "Find users")
     @GetMapping
     public PagedResponse<UserTableResponse> findAll(
-            @ParameterObject @Valid @ModelAttribute UserFilterRequest request
+            @ParameterObject @Valid @ModelAttribute UserFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<UserTableResponse> page = userQueryService.findTable(request);
-        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(summary = "Get user by id")

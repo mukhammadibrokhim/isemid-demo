@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.reference.web.district;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -32,6 +33,7 @@ import uz.uzinfocom.app.platform.reference.application.district.query.DistrictQu
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
+import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
 import java.util.List;
 
@@ -51,6 +53,7 @@ public class DistrictController {
     private final DistrictQueryService districtQueryService;
     private final DistrictCommandService districtCommandService;
     private final MessageResolver messageResolver;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
             summary = "Get paginated district reference data",
@@ -70,10 +73,11 @@ public class DistrictController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<DistrictTableResponse> getAll(
-            @ParameterObject @Valid @ModelAttribute DistrictFilterRequest request
+            @ParameterObject @Valid @ModelAttribute DistrictFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<DistrictTableResponse> page = districtQueryService.findTable(request);
-        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(

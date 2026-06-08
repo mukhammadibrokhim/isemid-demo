@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.reference.web.neighborhood;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -32,6 +33,7 @@ import uz.uzinfocom.app.platform.reference.application.neighborhood.query.Neighb
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
+import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
 import java.util.List;
 
@@ -51,6 +53,7 @@ public class NeighborhoodController {
     private final NeighborhoodQueryService neighborhoodQueryService;
     private final NeighborhoodCommandService neighborhoodCommandService;
     private final MessageResolver messageResolver;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
             summary = "Get paginated neighborhood reference data",
@@ -70,10 +73,11 @@ public class NeighborhoodController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<NeighborhoodTableResponse> getAll(
-            @ParameterObject @Valid @ModelAttribute NeighborhoodFilterRequest request
+            @ParameterObject @Valid @ModelAttribute NeighborhoodFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<NeighborhoodTableResponse> page = neighborhoodQueryService.findTable(request);
-        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(

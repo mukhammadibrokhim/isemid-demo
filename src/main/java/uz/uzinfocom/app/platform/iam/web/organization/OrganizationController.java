@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -28,6 +29,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
+import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
 import java.util.List;
 
@@ -39,14 +41,16 @@ public class OrganizationController {
 
     private final OrganizationQueryService queryService;
     private final MessageResolver messageResolver;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(summary = "Find organizations")
     @GetMapping
     public PagedResponse<OrganizationTableResponse> getAll(
-            @ParameterObject @Valid @ModelAttribute OrganizationFilerRequest request
+            @ParameterObject @Valid @ModelAttribute OrganizationFilerRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<OrganizationTableResponse> page = queryService.findTable(request);
-        return PagedResponse.fromPage(page, messageResolver.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(summary = "Get organization by id")
@@ -73,11 +77,12 @@ public class OrganizationController {
     public PagedResponse<OrganizationUserLookupResponse> getUsersByOrganization(
             @Parameter(description = "Organization id.", required = true)
             @PathVariable(ApiPaths.Organization.ID) Long organizationId,
-            @ParameterObject @Valid @ModelAttribute OrganizationUserLookupRequest request
+            @ParameterObject @Valid @ModelAttribute OrganizationUserLookupRequest request,
+            HttpServletRequest httpRequest
     ) {
         Page<OrganizationUserLookupResponse> response =
                 queryService.findUserLookupsByOrganizationId(organizationId, request);
 
-        return PagedResponse.fromPage(response, messageResolver.resolve("common.success"));
+        return pagedResponseAssembler.toResponse(response, messageResolver.resolve("common.success"), httpRequest);
     }
 }
