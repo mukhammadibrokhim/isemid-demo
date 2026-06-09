@@ -9,8 +9,8 @@ public class CitizenDataNotFoundException extends Api2Exception {
     public CitizenDataNotFoundException(String operation, Api2UpstreamError upstreamError) {
         super(
                 HttpStatus.NOT_FOUND,
-                "CITIZEN_DATA_NOT_FOUND",
-                "Citizen data was not found in API2.",
+                "CITIZEN_NOT_FOUND",
+                "api2.citizen.error.not_found",
                 operation,
                 upstreamError
         );

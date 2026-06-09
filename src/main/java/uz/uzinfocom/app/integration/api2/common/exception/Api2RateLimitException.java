@@ -7,9 +7,9 @@ public class Api2RateLimitException extends Api2Exception {
 
     public Api2RateLimitException(String operation, Api2UpstreamError upstreamError) {
         super(
-                HttpStatus.TOO_MANY_REQUESTS,
-                "API2_UPSTREAM_RATE_LIMITED",
-                "API2 upstream rate limit was reached.",
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "API2_RATE_LIMITED",
+                "api2.error.rate_limited",
                 operation,
                 upstreamError
         );

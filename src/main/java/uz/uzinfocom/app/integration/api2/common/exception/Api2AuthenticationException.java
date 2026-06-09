@@ -7,9 +7,9 @@ public class Api2AuthenticationException extends Api2Exception {
 
     public Api2AuthenticationException(String operation, Api2UpstreamError upstreamError) {
         super(
-                HttpStatus.UNAUTHORIZED,
+                HttpStatus.BAD_GATEWAY,
                 "API2_UPSTREAM_UNAUTHORIZED",
-                "API2 upstream rejected authentication.",
+                "api2.error.upstream_unauthorized",
                 operation,
                 upstreamError
         );

@@ -1,8 +1,8 @@
 package uz.uzinfocom.app.integration.api2.api;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -14,11 +14,9 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import uz.uzinfocom.app.integration.api2.api.dto.Api2ErrorResponse;
 import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
-import uz.uzinfocom.app.integration.api2.citizen.exception.CitizenLookupValidationException;
-import uz.uzinfocom.app.integration.api2.citizen.exception.UnsupportedCitizenLookupTypeException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
-import uz.uzinfocom.app.integration.api2.legalentity.exception.LegalEntityValidationException;
-import uz.uzinfocom.app.platform.observability.TraceContext;
+import uz.uzinfocom.app.platform.i18n.MessageResolver;
+import uz.uzinfocom.app.platform.observability.TraceIdProvider;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -26,38 +24,35 @@ import java.util.List;
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(basePackages = "uz.uzinfocom.app.integration.api2")
+@RequiredArgsConstructor
 public class Api2ExceptionHandler {
+
+    private final MessageResolver messages;
+    private final TraceIdProvider traceIdProvider;
 
     @ExceptionHandler(Api2Exception.class)
     public ResponseEntity<Api2ErrorResponse> handleApi2Exception(
             Api2Exception exception,
             HttpServletRequest request
     ) {
-        List<FieldValidationError> fieldErrors = fieldErrors(exception);
-        String traceId = traceId();
+        String traceId = traceIdProvider.getTraceId(request);
+        String message = messages.resolve(exception.getMessageCode());
+        List<FieldValidationError> fieldErrors = localizedFieldErrors(exception.getFieldErrors());
 
-        log.warn(
-                "API2 exception handled. traceId={}, exception={}, errorCode={}, operation={}, method={}, path={}, fields={}",
-                traceId,
-                exception.getClass().getSimpleName(),
-                exception.getErrorCode(),
-                exception.getOperation(),
-                request.getMethod(),
-                request.getRequestURI(),
-                fieldErrors.stream().map(FieldValidationError::field).toList()
-        );
+        logApi2Exception(exception, request, traceId, fieldErrors);
 
         return ResponseEntity
                 .status(exception.getResponseStatus())
                 .body(error(
                         exception.getResponseStatus(),
                         exception.getErrorCode(),
-                        exception.getMessage(),
+                        message,
                         exception.getOperation(),
                         exception.getUpstreamStatus(),
                         exception.getUpstreamCode(),
                         exception.getUpstreamMessage(),
                         exception.getUpstreamDetail(),
+                        traceId,
                         fieldErrors
                 ));
     }
@@ -67,24 +62,18 @@ public class Api2ExceptionHandler {
             MissingServletRequestParameterException exception,
             HttpServletRequest request
     ) {
-        String errorCode = isLegalEntityRequest(request)
-                ? "LEGAL_ENTITY_VALIDATION_FAILED"
-                : "CITIZEN_LOOKUP_VALIDATION_FAILED";
-        String message = isLegalEntityRequest(request)
-                ? "Legal entity lookup request is invalid."
-                : "Citizen lookup request is invalid.";
-        String operation = isLegalEntityRequest(request)
-                ? "LEGAL_ENTITY_TIN_LOOKUP"
-                : "CITIZEN_LOOKUP";
-        List<FieldValidationError> fieldErrors = List.of(new FieldValidationError(
+        Api2RequestContext context = requestContext(request);
+        String traceId = traceIdProvider.getTraceId(request);
+        List<FieldValidationError> fieldErrors = localizedFieldErrors(List.of(new FieldValidationError(
                 exception.getParameterName(),
-                exception.getParameterName() + " is required."
-        ));
+                "validation.required"
+        )));
 
         log.warn(
-                "API2 request parameter missing. traceId={}, errorCode={}, method={}, path={}, parameter={}",
-                traceId(),
-                errorCode,
+                "API2 request parameter missing. traceId={}, errorCode={}, operation={}, method={}, path={}, parameter={}",
+                traceId,
+                context.validationErrorCode(),
+                context.operation(),
                 request.getMethod(),
                 request.getRequestURI(),
                 exception.getParameterName()
@@ -94,13 +83,14 @@ public class Api2ExceptionHandler {
                 .badRequest()
                 .body(error(
                         HttpStatus.BAD_REQUEST,
-                        errorCode,
-                        message,
-                        operation,
+                        context.validationErrorCode(),
+                        messages.resolve(context.validationMessageCode()),
+                        context.operation(),
                         null,
                         null,
                         null,
                         null,
+                        traceId,
                         fieldErrors
                 ));
     }
@@ -110,26 +100,33 @@ public class Api2ExceptionHandler {
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request
     ) {
-        String errorCode = "CITIZEN_LOOKUP_VALIDATION_FAILED";
-        String message = "Citizen lookup request is invalid.";
-        String operation = "CITIZEN_LOOKUP";
+        Api2RequestContext context = requestContext(request);
+        String traceId = traceIdProvider.getTraceId(request);
+        String errorCode = context.validationErrorCode();
+        String messageCode = context.validationMessageCode();
         String field = exception.getName();
-        String fieldMessage = field + " has an invalid value.";
+        String fieldMessageCode = "validation.invalid_value";
 
-        if ("type".equals(field) && CitizenLookupType.class.equals(exception.getRequiredType())) {
+        if (!context.legalEntity()
+                && "type".equals(field)
+                && CitizenLookupType.class.equals(exception.getRequiredType())) {
             errorCode = "CITIZEN_LOOKUP_TYPE_UNSUPPORTED";
-            message = "Unsupported citizen lookup type.";
-            fieldMessage = "type must be one of NNUZB, PPN, CZ.";
+            messageCode = "api2.citizen.error.unsupported_type";
+            fieldMessageCode = "validation.citizen_type.allowed";
         } else if ("birth_date".equals(field)) {
-            fieldMessage = "birth_date must be an ISO date.";
+            fieldMessageCode = "validation.birth_date.invalid";
         }
 
-        List<FieldValidationError> fieldErrors = List.of(new FieldValidationError(field, fieldMessage));
+        List<FieldValidationError> fieldErrors = localizedFieldErrors(List.of(new FieldValidationError(
+                field,
+                fieldMessageCode
+        )));
 
         log.warn(
-                "API2 request argument type mismatch. traceId={}, errorCode={}, method={}, path={}, field={}",
-                traceId(),
+                "API2 request argument type mismatch. traceId={}, errorCode={}, operation={}, method={}, path={}, field={}",
+                traceId,
                 errorCode,
+                context.operation(),
                 request.getMethod(),
                 request.getRequestURI(),
                 field
@@ -140,14 +137,52 @@ public class Api2ExceptionHandler {
                 .body(error(
                         HttpStatus.BAD_REQUEST,
                         errorCode,
-                        message,
-                        operation,
+                        messages.resolve(messageCode),
+                        context.operation(),
                         null,
                         null,
                         null,
                         null,
+                        traceId,
                         fieldErrors
                 ));
+    }
+
+    private void logApi2Exception(
+            Api2Exception exception,
+            HttpServletRequest request,
+            String traceId,
+            List<FieldValidationError> fieldErrors
+    ) {
+        if (exception.getResponseStatus().is5xxServerError()) {
+            log.error(
+                    "API2 exception handled. traceId={}, exception={}, errorCode={}, messageCode={}, operation={}, upstreamStatus={}, method={}, path={}, fields={}",
+                    traceId,
+                    exception.getClass().getSimpleName(),
+                    exception.getErrorCode(),
+                    exception.getMessageCode(),
+                    exception.getOperation(),
+                    exception.getUpstreamStatus(),
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    fieldErrors.stream().map(FieldValidationError::field).toList(),
+                    exception
+            );
+            return;
+        }
+
+        log.warn(
+                "API2 exception handled. traceId={}, exception={}, errorCode={}, messageCode={}, operation={}, upstreamStatus={}, method={}, path={}, fields={}",
+                traceId,
+                exception.getClass().getSimpleName(),
+                exception.getErrorCode(),
+                exception.getMessageCode(),
+                exception.getOperation(),
+                exception.getUpstreamStatus(),
+                request.getMethod(),
+                request.getRequestURI(),
+                fieldErrors.stream().map(FieldValidationError::field).toList()
+        );
     }
 
     private Api2ErrorResponse error(
@@ -159,6 +194,7 @@ public class Api2ExceptionHandler {
             String upstreamCode,
             String upstreamMessage,
             String upstreamDetail,
+            String traceId,
             List<FieldValidationError> fieldErrors
     ) {
         return new Api2ErrorResponse(
@@ -171,25 +207,42 @@ public class Api2ExceptionHandler {
                 upstreamCode,
                 upstreamMessage,
                 upstreamDetail,
-                traceId(),
+                traceId,
                 fieldErrors == null ? List.of() : fieldErrors
         );
     }
 
-    private List<FieldValidationError> fieldErrors(Api2Exception exception) {
-        if (exception instanceof CitizenLookupValidationException validationException) {
-            return validationException.fieldErrors();
+    private List<FieldValidationError> localizedFieldErrors(List<FieldValidationError> fieldErrors) {
+        if (fieldErrors == null || fieldErrors.isEmpty()) {
+            return List.of();
         }
 
-        if (exception instanceof UnsupportedCitizenLookupTypeException unsupportedTypeException) {
-            return unsupportedTypeException.fieldErrors();
+        return fieldErrors.stream()
+                .map(error -> new FieldValidationError(
+                        error.field(),
+                        messages.resolve(error.message())
+                ))
+                .toList();
+    }
+
+    private Api2RequestContext requestContext(HttpServletRequest request) {
+        boolean legalEntity = isLegalEntityRequest(request);
+
+        if (legalEntity) {
+            return new Api2RequestContext(
+                    true,
+                    "LEGAL_ENTITY_VALIDATION_FAILED",
+                    "api2.legal_entity.error.validation",
+                    "LEGAL_ENTITY_TIN_LOOKUP"
+            );
         }
 
-        if (exception instanceof LegalEntityValidationException validationException) {
-            return validationException.fieldErrors();
-        }
-
-        return List.of();
+        return new Api2RequestContext(
+                false,
+                "CITIZEN_LOOKUP_VALIDATION_FAILED",
+                "api2.citizen.error.validation",
+                "CITIZEN_LOOKUP"
+        );
     }
 
     private boolean isLegalEntityRequest(HttpServletRequest request) {
@@ -197,7 +250,11 @@ public class Api2ExceptionHandler {
                 && request.getRequestURI().contains("/v1/legal-entity");
     }
 
-    private String traceId() {
-        return MDC.get(TraceContext.MDC_KEY);
+    private record Api2RequestContext(
+            boolean legalEntity,
+            String validationErrorCode,
+            String validationMessageCode,
+            String operation
+    ) {
     }
 }

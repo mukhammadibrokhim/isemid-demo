@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.integration.api2.legalentity.application.LegalEntityLookupService;
 import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupResult;
+import uz.uzinfocom.app.platform.i18n.MessageResolver;
 
 @Tag(name = "API2 Legal Entity", description = "Legal entity lookup through API2.")
 @RestController
@@ -16,6 +17,7 @@ import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupRes
 public class LegalEntityLookupController {
 
     private final LegalEntityLookupService legalEntityLookupService;
+    private final MessageResolver messages;
 
     @Operation(summary = "Lookup legal entity data through API2")
     @GetMapping("/v1/legal-entity")
@@ -27,7 +29,7 @@ public class LegalEntityLookupController {
 
         return new LegalEntityLookupResponse(
                 true,
-                "Legal entity lookup completed.",
+                messages.resolve("api2.legal_entity.lookup.success"),
                 result.source(),
                 result.upstreamStatus(),
                 result.data()

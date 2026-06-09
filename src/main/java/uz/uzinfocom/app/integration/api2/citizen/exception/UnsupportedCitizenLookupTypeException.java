@@ -14,13 +14,17 @@ public class UnsupportedCitizenLookupTypeException extends Api2Exception {
         super(
                 HttpStatus.BAD_REQUEST,
                 "CITIZEN_LOOKUP_TYPE_UNSUPPORTED",
-                "Unsupported citizen lookup type.",
+                "api2.citizen.error.unsupported_type",
                 "CITIZEN_LOOKUP",
-                null
+                null,
+                List.of(new FieldValidationError(
+                        "type",
+                        "validation.citizen_type.allowed"
+                ))
         );
         this.fieldErrors = List.of(new FieldValidationError(
                 "type",
-                "type must be one of NNUZB, PPN, CZ."
+                "validation.citizen_type.allowed"
         ));
     }
 

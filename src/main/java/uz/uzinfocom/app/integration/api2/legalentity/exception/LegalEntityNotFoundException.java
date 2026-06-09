@@ -10,7 +10,7 @@ public class LegalEntityNotFoundException extends Api2Exception {
         super(
                 HttpStatus.NOT_FOUND,
                 "LEGAL_ENTITY_NOT_FOUND",
-                "Legal entity data was not found in API2.",
+                "api2.legal_entity.error.not_found",
                 operation,
                 upstreamError
         );

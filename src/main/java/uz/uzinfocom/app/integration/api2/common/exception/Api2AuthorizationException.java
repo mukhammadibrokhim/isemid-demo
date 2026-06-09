@@ -7,9 +7,9 @@ public class Api2AuthorizationException extends Api2Exception {
 
     public Api2AuthorizationException(String operation, Api2UpstreamError upstreamError) {
         super(
-                HttpStatus.FORBIDDEN,
+                HttpStatus.BAD_GATEWAY,
                 "API2_UPSTREAM_FORBIDDEN",
-                "API2 upstream denied access.",
+                "api2.error.upstream_forbidden",
                 operation,
                 upstreamError
         );

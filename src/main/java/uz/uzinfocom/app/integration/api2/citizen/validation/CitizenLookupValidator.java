@@ -35,9 +35,9 @@ public class CitizenLookupValidator {
         String nnuzb = trim(request.nnuzb());
 
         if (!StringUtils.hasText(nnuzb)) {
-            errors.add(new FieldValidationError("nnuzb", "nnuzb is required."));
+            errors.add(new FieldValidationError("nnuzb", "validation.required"));
         } else if (!NNUZB_PATTERN.matcher(nnuzb).matches()) {
-            errors.add(new FieldValidationError("nnuzb", "nnuzb must be exactly 14 digits."));
+            errors.add(new FieldValidationError("nnuzb", "validation.nnuzb.format"));
         }
 
         validateBirthDate(request.birthDate(), errors);
@@ -58,7 +58,7 @@ public class CitizenLookupValidator {
         String document = trim(request.document());
 
         if (!StringUtils.hasText(document)) {
-            errors.add(new FieldValidationError("document", "document is required."));
+            errors.add(new FieldValidationError("document", "validation.required"));
         }
 
         validateBirthDate(request.birthDate(), errors);
@@ -80,11 +80,11 @@ public class CitizenLookupValidator {
         String number = trim(request.number());
 
         if (!StringUtils.hasText(series)) {
-            errors.add(new FieldValidationError("series", "series is required."));
+            errors.add(new FieldValidationError("series", "validation.required"));
         }
 
         if (!StringUtils.hasText(number)) {
-            errors.add(new FieldValidationError("number", "number is required."));
+            errors.add(new FieldValidationError("number", "validation.required"));
         }
 
         throwIfInvalid(errors);
@@ -101,12 +101,12 @@ public class CitizenLookupValidator {
 
     private void validateBirthDate(LocalDate birthDate, List<FieldValidationError> errors) {
         if (birthDate == null) {
-            errors.add(new FieldValidationError("birth_date", "birth_date is required."));
+            errors.add(new FieldValidationError("birth_date", "validation.birth_date.required"));
             return;
         }
 
         if (birthDate.isAfter(LocalDate.now())) {
-            errors.add(new FieldValidationError("birth_date", "birth_date must not be in the future."));
+            errors.add(new FieldValidationError("birth_date", "validation.birth_date.future"));
         }
     }
 

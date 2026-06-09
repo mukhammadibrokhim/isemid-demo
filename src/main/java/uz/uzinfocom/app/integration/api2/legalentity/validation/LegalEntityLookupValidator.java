@@ -19,9 +19,9 @@ public class LegalEntityLookupValidator {
         String tin = rawTin == null ? null : rawTin.trim();
 
         if (!StringUtils.hasText(tin)) {
-            errors.add(new FieldValidationError("tin", "tin is required."));
+            errors.add(new FieldValidationError("tin", "validation.required"));
         } else if (!TIN_PATTERN.matcher(tin).matches()) {
-            errors.add(new FieldValidationError("tin", "tin must be exactly 9 digits."));
+            errors.add(new FieldValidationError("tin", "validation.tin.format"));
         }
 
         if (!errors.isEmpty()) {

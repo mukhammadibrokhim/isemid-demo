@@ -8,8 +8,8 @@ public class Api2UnavailableException extends Api2Exception {
     public Api2UnavailableException(String operation, Api2UpstreamError upstreamError) {
         super(
                 HttpStatus.SERVICE_UNAVAILABLE,
-                "API2_UPSTREAM_UNAVAILABLE",
-                "API2 upstream service is unavailable.",
+                "API2_UNAVAILABLE",
+                "api2.error.unavailable",
                 operation,
                 upstreamError
         );
@@ -18,8 +18,8 @@ public class Api2UnavailableException extends Api2Exception {
     public Api2UnavailableException(String operation, Throwable cause) {
         super(
                 HttpStatus.SERVICE_UNAVAILABLE,
-                "API2_UPSTREAM_UNAVAILABLE",
-                "API2 upstream service is unavailable.",
+                "API2_UNAVAILABLE",
+                "api2.error.unavailable",
                 operation,
                 null,
                 cause

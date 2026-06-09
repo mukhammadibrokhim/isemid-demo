@@ -12,6 +12,7 @@ import uz.uzinfocom.app.integration.api2.citizen.application.CitizenLookupServic
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupRequest;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
+import uz.uzinfocom.app.platform.i18n.MessageResolver;
 
 import java.time.LocalDate;
 
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 public class CitizenLookupController {
 
     private final CitizenLookupService citizenLookupService;
+    private final MessageResolver messages;
 
     @Operation(summary = "Lookup citizen data through API2")
     @GetMapping("/v1/citizen")
@@ -51,7 +53,7 @@ public class CitizenLookupController {
 
         return new CitizenLookupResponse(
                 true,
-                "Citizen lookup completed.",
+                messages.resolve("api2.citizen.lookup.success"),
                 result.source(),
                 result.upstreamStatus(),
                 result.data()

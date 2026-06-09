@@ -8,16 +8,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriBuilder;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupSource;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2MalformedResponseException;
-import uz.uzinfocom.app.integration.api2.common.exception.Api2UnavailableException;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
+import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBody;
+import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodyReader;
+import uz.uzinfocom.app.integration.api2.common.support.Api2UpstreamError;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,18 +34,18 @@ public class CitizenApi2Client {
     private final RestClient restClient;
     private final Api2Properties properties;
     private final Api2ErrorDecoder errorDecoder;
-    private final JsonMapper jsonMapper;
+    private final Api2ResponseBodyReader responseBodyReader;
 
     public CitizenApi2Client(
             @Qualifier("api2RestClient") RestClient restClient,
             Api2Properties properties,
             Api2ErrorDecoder errorDecoder,
-            JsonMapper jsonMapper
+            Api2ResponseBodyReader responseBodyReader
     ) {
         this.restClient = restClient;
         this.properties = properties;
         this.errorDecoder = errorDecoder;
-        this.jsonMapper = jsonMapper;
+        this.responseBodyReader = responseBodyReader;
     }
 
     public CitizenLookupResult lookupByNnuzb(String nnuzb, LocalDate birthDate) {
@@ -96,7 +96,7 @@ public class CitizenApi2Client {
         } catch (Api2Exception exception) {
             throw exception;
         } catch (RestClientException exception) {
-            throw new Api2UnavailableException(operation, exception);
+            throw errorDecoder.decodeTransport(operation, exception);
         }
     }
 
@@ -106,26 +106,36 @@ public class CitizenApi2Client {
             ClientHttpResponse response
     ) throws IOException {
         HttpStatusCode statusCode = response.getStatusCode();
-        JsonNode body = readBody(operation, response);
+        Api2ResponseBody body = responseBodyReader.read(response);
 
         if (statusCode.isError()) {
             throw errorDecoder.decodeCitizen(operation, statusCode, body);
+        }
+
+        if (!body.hasJson()) {
+            throw new Api2MalformedResponseException(
+                    operation,
+                    malformedResponse(statusCode, body)
+            );
+        }
+
+        if (errorDecoder.isFailurePayload(body)) {
+            throw errorDecoder.decodeCitizenPayloadFailure(operation, statusCode, body);
         }
 
         return new CitizenLookupResult(
                 type,
                 CitizenLookupSource.CP,
                 statusCode.value(),
-                body
+                body.json()
         );
     }
 
-    private JsonNode readBody(String operation, ClientHttpResponse response) throws IOException {
-        try {
-            JsonNode body = jsonMapper.readTree(response.getBody());
-            return body == null ? jsonMapper.createObjectNode() : body;
-        } catch (IOException exception) {
-            throw new Api2MalformedResponseException(operation, exception);
-        }
+    private Api2UpstreamError malformedResponse(HttpStatusCode statusCode, Api2ResponseBody body) {
+        String detail = body == null || body.empty()
+                ? "Upstream response body is empty."
+                : body.safeRawBody();
+
+        return new Api2UpstreamError(statusCode.value(), null, null, detail);
     }
 }

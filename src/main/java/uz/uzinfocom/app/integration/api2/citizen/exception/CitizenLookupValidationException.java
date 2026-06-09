@@ -14,9 +14,10 @@ public class CitizenLookupValidationException extends Api2Exception {
         super(
                 HttpStatus.BAD_REQUEST,
                 "CITIZEN_LOOKUP_VALIDATION_FAILED",
-                "Citizen lookup request is invalid.",
+                "api2.citizen.error.validation",
                 "CITIZEN_LOOKUP",
-                null
+                null,
+                fieldErrors
         );
         this.fieldErrors = fieldErrors == null ? List.of() : List.copyOf(fieldErrors);
     }

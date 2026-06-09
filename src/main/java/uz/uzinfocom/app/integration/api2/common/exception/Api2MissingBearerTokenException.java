@@ -8,7 +8,7 @@ public class Api2MissingBearerTokenException extends Api2Exception {
         super(
                 HttpStatus.UNAUTHORIZED,
                 "API2_BEARER_TOKEN_MISSING",
-                "Authenticated Bearer token is required for API2 integration.",
+                "api2.error.bearer_token_missing",
                 "API2_BEARER_TOKEN_FORWARDING",
                 null
         );

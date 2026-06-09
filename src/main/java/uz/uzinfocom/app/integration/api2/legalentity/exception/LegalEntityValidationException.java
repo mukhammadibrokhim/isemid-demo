@@ -14,9 +14,10 @@ public class LegalEntityValidationException extends Api2Exception {
         super(
                 HttpStatus.BAD_REQUEST,
                 "LEGAL_ENTITY_VALIDATION_FAILED",
-                "Legal entity lookup request is invalid.",
+                "api2.legal_entity.error.validation",
                 "LEGAL_ENTITY_TIN_LOOKUP",
-                null
+                null,
+                fieldErrors
         );
         this.fieldErrors = fieldErrors == null ? List.of() : List.copyOf(fieldErrors);
     }
