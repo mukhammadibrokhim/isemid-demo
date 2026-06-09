@@ -1,6 +1,5 @@
 package uz.uzinfocom.app.integration.api2.citizen.client;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;

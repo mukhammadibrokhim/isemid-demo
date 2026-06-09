@@ -1,11 +1,13 @@
 package uz.uzinfocom.app.integration.api2.common.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.common.support.Api2UpstreamError;
 
 import java.util.List;
 
+@Getter
 public class Api2Exception extends RuntimeException {
 
     private final HttpStatus responseStatus;
@@ -71,39 +73,4 @@ public class Api2Exception extends RuntimeException {
         this.fieldErrors = fieldErrors == null ? List.of() : List.copyOf(fieldErrors);
     }
 
-    public HttpStatus getResponseStatus() {
-        return responseStatus;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-    public String getMessageCode() {
-        return messageCode;
-    }
-
-    public String getOperation() {
-        return operation;
-    }
-
-    public Integer getUpstreamStatus() {
-        return upstreamStatus;
-    }
-
-    public String getUpstreamCode() {
-        return upstreamCode;
-    }
-
-    public String getUpstreamMessage() {
-        return upstreamMessage;
-    }
-
-    public String getUpstreamDetail() {
-        return upstreamDetail;
-    }
-
-    public List<FieldValidationError> getFieldErrors() {
-        return fieldErrors;
-    }
 }
