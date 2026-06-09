@@ -71,6 +71,68 @@ public class LocationReportRepository {
                                  ORDER BY is_total, code;
             """;
 
+
+    private static final String SQL2 = """
+        WITH base AS (
+             SELECT
+                 c.code,
+                 CASE :locale
+                     WHEN 'uz-Cyrl' THEN c.name_uz_cyril
+                     WHEN 'ru'      THEN c.name_ru
+                     WHEN 'kaa'     THEN c.name_kaa
+                     ELSE                c.name_uz
+                     END AS name,
+                 f.id,
+                 f.status
+             FROM cls_catalog c
+                      LEFT JOIN pt_address a
+                                ON a.type = 'TEMPORARY'
+                                    AND (
+                                       -- NEIGHBORHOOD: direct match
+                                       (c.type = 'neighborhood' AND a.neighborhood_code = c.code)
+                                           -- CITY: neighborhood's parent is this city
+                                           OR (c.type = 'city' AND EXISTS (
+                                           SELECT 1 FROM cls_catalog nb
+                                           WHERE nb.code = a.neighborhood_code
+                                             AND nb.parent_code = c.code
+                                       ))
+                                           -- STATE/REPUBLICAN: city's parent is this state
+                                           OR (c.type NOT IN ('neighborhood','city') AND EXISTS (
+                                           SELECT 1 FROM cls_catalog nb
+                                                             JOIN cls_catalog city ON city.code = nb.parent_code
+                                           WHERE nb.code = a.neighborhood_code
+                                             AND city.parent_code = c.code
+                                       ))
+                                       )
+                      LEFT JOIN form058 f
+                                ON f.patient_id = a.patient_id
+                                    AND (CAST(:fromDate AS date)     IS NULL OR f.created_at >= :fromDate)
+                                    AND (CAST(:toDate AS date)       IS NULL OR f.created_at <  :toDate)
+                                    AND (CAST(:mkb10Code AS varchar) IS NULL OR f.final_mkb10code = :mkb10Code)
+                      LEFT JOIN organization co
+                                ON co.uuid = f.created_org_uuid
+             WHERE c.type = :dimType
+               AND (CAST(:dimParent AS varchar) IS NULL OR c.parent_code = :dimParent)
+               AND ( f.id IS NULL
+                 OR :isSanepid = FALSE
+                 OR f.receiver_organization_id = :currentOrgId
+                  OR (%s)
+                   )
+         )
+         SELECT
+             code,
+             name,
+             COUNT(*) FILTER (WHERE id IS NOT NULL AND status = 'APPROVED')                AS confirmed,
+             COUNT(*) FILTER (WHERE id IS NOT NULL AND status IS DISTINCT FROM 'APPROVED') AS unconfirmed,
+             GROUPING(code) AS is_total
+         FROM base
+         GROUP BY GROUPING SETS (
+             (code, name),
+             ()
+             )
+         ORDER BY is_total, code
+        """;
+
     private final NamedParameterJdbcTemplate template;
 
     public LocationReportRepository(NamedParameterJdbcTemplate template) {
@@ -87,9 +149,11 @@ public class LocationReportRepository {
             ReportScope scope,
             String locale) {
 
-        String sql = SQL.formatted(
-                scope.dimension().addressColumn(),
-                scope.visibilityLevelSql());
+//        String sql = SQL.formatted(
+//                scope.dimension().addressColumn(),
+//                scope.visibilityLevelSql());
+
+        String sql = SQL2.formatted(scope.visibilityLevelSql());
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("locale", locale, Types.VARCHAR)
