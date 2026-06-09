@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.features.report.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +15,8 @@ import uz.uzinfocom.isemid.features.report.dtos.response.MonitoringDynamicsRespo
 import uz.uzinfocom.isemid.features.report.service.MonitoringService;
 import uz.uzinfocom.isemid.features.report.service.RegionalDiseaseDashboardService;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping(ApiPaths.Report.MONITORING)
 @Tag(name = "Report Forms")
@@ -27,8 +28,8 @@ public class MonitoringController {
 
     @GetMapping
     public ApiResponse<MonitoringResponse> getMonitoring(
-            @RequestParam String fromDate,
-            @RequestParam String toDate,
+            @RequestParam @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate fromDate,
+            @RequestParam @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate toDate,
             @RequestParam(required = false) String regionCode,
             @RequestParam(required = false) String mkb10Code
     ) {

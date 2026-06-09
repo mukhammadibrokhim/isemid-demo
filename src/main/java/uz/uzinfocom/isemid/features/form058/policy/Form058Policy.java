@@ -7,8 +7,13 @@ import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 
 import java.util.EnumSet;
+
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 @Component
 @RequiredArgsConstructor
@@ -54,5 +59,22 @@ public class Form058Policy {
 
     public void assertDiagnosisApprovable(Form058 form058) {
         //TODO Should add status validation
+    }
+
+    public void validateCreatPermission(Organization currentOrganization) {
+        if (currentOrganization == null) {
+            throw new ApiException(FORBIDDEN, "error.organization.current.not_found");
+        }
+
+        boolean isRepublicanOrRegional =
+                LevelType.REPUBLICAN == currentOrganization.getLevelType()
+                        || LevelType.REGIONAL == currentOrganization.getLevelType();
+
+        boolean isSanepidService =
+                MedicalType.SANEPID_SERVICE == currentOrganization.getMedicalType();
+
+        if (isRepublicanOrRegional && isSanepidService) {
+            throw new ApiException(FORBIDDEN, "error.create.not_allowed_for_republican_or_regional_sanepid");
+        }
     }
 }
