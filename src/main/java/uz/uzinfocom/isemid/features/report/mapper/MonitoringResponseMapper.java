@@ -140,10 +140,12 @@ public class MonitoringResponseMapper {
                 && hasText(row.diseaseCode());
     }
 
-    private String normalizeDiseaseCode(
-            String diseaseCode
-    ) {
+    private String normalizeDiseaseCode(String diseaseCode) {
         String normalized = diseaseCode.trim();
+
+        if ("UNCLASSIFIED".equalsIgnoreCase(normalized)) {
+            return "UNCLASSIFIED";
+        }
 
         if (normalized.startsWith("(")
                 && normalized.endsWith(")")) {

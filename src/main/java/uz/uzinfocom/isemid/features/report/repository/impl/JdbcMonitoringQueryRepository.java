@@ -267,19 +267,29 @@ public class JdbcMonitoringQueryRepository
             """;
 
     private static final String DISEASE_STATISTICS_SQL = """
-            WITH RECURSIVE filtered_codes AS (
+            WITH RECURSIVE normalized_forms AS (
                 SELECT
                     %s AS region_code,
 
-                    UPPER(
+                    CASE
+                        WHEN form058.final_mkb10code IS NULL
+                            THEN NULL
+
+                        WHEN UPPER(
+                                TRIM(
+                                    BOTH '()'
+                                    FROM TRIM(form058.final_mkb10code)
+                                )
+                             ) IN ('', 'STRING')
+                            THEN NULL
+
+                        ELSE UPPER(
                         TRIM(
                             BOTH '()'
                             FROM TRIM(form058.final_mkb10code)
                         )
-                    ) AS source_code,
-
-                    COUNT(form058.id)
-                        AS cases_count
+                        )
+                    END AS source_code
 
                 FROM form058 form058
 
@@ -290,24 +300,20 @@ public class JdbcMonitoringQueryRepository
                 WHERE form058.created_at >= :fromDateTime
                   AND form058.created_at < :toDateTimeExclusive
 
-                  AND form058.final_mkb10code IS NOT NULL
-                  AND TRIM(form058.final_mkb10code) <> ''
-
-                  AND LOWER(
-                        TRIM(form058.final_mkb10code)
-                      ) <> 'string'
-
                 %s
                 %s
+            ),
+            filtered_codes AS (
+                SELECT
+                    normalized_form.region_code,
+                    normalized_form.source_code,
+                    COUNT(*) AS cases_count
+
+                FROM normalized_forms normalized_form
 
                 GROUP BY
-                    %s,
-                    UPPER(
-                        TRIM(
-                            BOTH '()'
-                            FROM TRIM(form058.final_mkb10code)
-                        )
-                    )
+                    normalized_form.region_code,
+                    normalized_form.source_code
             ),
             mkb_hierarchy AS (
                 SELECT
@@ -339,6 +345,8 @@ public class JdbcMonitoringQueryRepository
                                    FROM TRIM(mkb.code)
                                )
                            ) = filtered_code.source_code
+
+                WHERE filtered_code.source_code IS NOT NULL
 
                 UNION ALL
 
@@ -372,43 +380,90 @@ public class JdbcMonitoringQueryRepository
                   AND NOT parent.id =
                           ANY(hierarchy.visited_ids)
             ),
-            ranked_blocks AS (
+            ranked_candidates AS (
                 SELECT
                     hierarchy.region_code,
                     hierarchy.source_code,
-                    hierarchy.cases_count,
                     hierarchy.current_code,
+                    hierarchy.hierarchy_depth,
 
                     ROW_NUMBER() OVER (
                         PARTITION BY
                             hierarchy.region_code,
                             hierarchy.source_code
-                        ORDER BY hierarchy.hierarchy_depth ASC
-                    ) AS block_rank
+
+                        ORDER BY
+                            /*
+                             * Birinchi navbatda A00-A09 kabi
+                             * MKB class/block tanlanadi.
+                             */
+                            CASE
+                                WHEN hierarchy.current_code ~
+                                     '^[A-Z][0-9]{2}-[A-Z][0-9]{2}$'
+                                    THEN 0
+                                ELSE 1
+                            END,
+
+                            /*
+                             * Class mavjud bo‘lsa eng yaqin
+                             * yuqori class tanlanadi.
+                             */
+                            CASE
+                                WHEN hierarchy.current_code ~
+                                     '^[A-Z][0-9]{2}-[A-Z][0-9]{2}$'
+                                    THEN hierarchy.hierarchy_depth
+                                ELSE NULL
+                            END ASC NULLS LAST,
+
+                            /*
+                             * Class umuman topilmasa hierarchy
+                             * ichidagi eng yuqori parent olinadi.
+                             */
+                            hierarchy.hierarchy_depth DESC
+                    ) AS candidate_rank
 
                 FROM mkb_hierarchy hierarchy
+            ),
+            resolved_codes AS (
+                SELECT
+                    filtered_code.region_code,
 
-                WHERE hierarchy.current_code ~
-                      '^[A-Z][0-9]{2}-[A-Z][0-9]{2}$'
+                    COALESCE(
+                        ranked_candidate.current_code,
+                        'UNCLASSIFIED'
+                    ) AS disease_code,
+
+                    filtered_code.cases_count
+
+                FROM filtered_codes filtered_code
+
+                LEFT JOIN ranked_candidates ranked_candidate
+                       ON ranked_candidate.region_code
+                          IS NOT DISTINCT FROM
+                          filtered_code.region_code
+
+                      AND ranked_candidate.source_code
+                          IS NOT DISTINCT FROM
+                          filtered_code.source_code
+
+                      AND ranked_candidate.candidate_rank = 1
             )
             SELECT
-                ranked_block.region_code,
-                ranked_block.current_code AS disease_code,
+                resolved_code.region_code,
+                resolved_code.disease_code,
 
-                SUM(ranked_block.cases_count)
+                SUM(resolved_code.cases_count)
                     AS cases_count
 
-            FROM ranked_blocks ranked_block
-
-            WHERE ranked_block.block_rank = 1
+            FROM resolved_codes resolved_code
 
             GROUP BY
-                ranked_block.region_code,
-                ranked_block.current_code
+                resolved_code.region_code,
+                resolved_code.disease_code
 
             ORDER BY
-                ranked_block.region_code,
-                ranked_block.current_code
+                resolved_code.region_code,
+                resolved_code.disease_code
             """;
 
     private static final RowMapper<MonitoringLocationRow>
