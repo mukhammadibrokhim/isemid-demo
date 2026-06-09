@@ -3,7 +3,6 @@ package uz.uzinfocom.isemid.features.report.service.impls;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.features.report.dtos.MonitoringResponse;
 import uz.uzinfocom.isemid.features.report.dtos.request.MonitoringFilter;
@@ -30,7 +29,6 @@ public class MonitoringServiceImpl implements MonitoringService {
     @Override
     @Transactional(
             readOnly = true,
-            isolation = Isolation.REPEATABLE_READ,
             timeout = 60
     )
     public MonitoringResponse getMonitoring(
