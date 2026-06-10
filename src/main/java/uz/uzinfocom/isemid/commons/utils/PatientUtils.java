@@ -29,6 +29,13 @@ public class PatientUtils {
                 .isAfter(LocalDate.now());
     }
 
+    public static boolean isAgeLessOrEqualAtFormCreation(Form058 f, int maxAge) {
+        if (f == null || f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
+        return f.getPatient().getBirthDate()
+                .plusYears(maxAge + 1)
+                .isAfter(f.getCreatedAt().toLocalDateTime().toLocalDate());
+    }
+
     /**
      * ✅ Returns true if minAge ≤ age < maxAge + 1.
      */
@@ -38,6 +45,14 @@ public class PatientUtils {
         LocalDate now = LocalDate.now();
         return !birthDate.plusYears(minAge).isAfter(now) &&
                 birthDate.plusYears(maxAge + 1).isAfter(now);
+    }
+
+    public static boolean isAgeBetweenAtFormCreation(Form058 f, int minAge, int maxAge) {
+        if (f == null || f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
+        LocalDate birthDate = f.getPatient().getBirthDate();
+        LocalDate formCreationDate = f.getCreatedAt().toLocalDateTime().toLocalDate();
+        return !birthDate.plusYears(minAge).isAfter(formCreationDate) &&
+                birthDate.plusYears(maxAge + 1).isAfter(formCreationDate);
     }
 
     /**
@@ -51,6 +66,13 @@ public class PatientUtils {
                 .isAfter(LocalDate.now());
     }
 
+    public static boolean isUnderOneMonthAtFormCreation(Form058 f) {
+        if (f == null || f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
+        return f.getPatient().getBirthDate()
+                .plusMonths(1)
+                .isAfter(f.getCreatedAt().toLocalDateTime().toLocalDate());
+    }
+
     /**
      * ✅ 1 oy ≤ yosh < 1 yil
      * ("1 ойдан 1 ёшгача")
@@ -62,6 +84,17 @@ public class PatientUtils {
 
         boolean atLeast1Month = !birthDate.plusMonths(1).isAfter(now);  // ≥ 1 month
         boolean lessThan1Year = birthDate.plusYears(1).isAfter(now);    // < 1 year
+
+        return atLeast1Month && lessThan1Year;
+    }
+
+    public static boolean isAgeFrom1MonthTo1YearAtFormCreation(Form058 f) {
+        if (f == null || f.getPatient() == null || f.getPatient().getBirthDate() == null) return false;
+        LocalDate birthDate = f.getPatient().getBirthDate();
+        LocalDate formCreationDate = f.getCreatedAt().toLocalDateTime().toLocalDate();
+
+        boolean atLeast1Month = !birthDate.plusMonths(1).isAfter(formCreationDate);  // ≥ 1 month
+        boolean lessThan1Year = birthDate.plusYears(1).isAfter(formCreationDate);    // < 1 year
 
         return atLeast1Month && lessThan1Year;
     }

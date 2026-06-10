@@ -54,13 +54,13 @@ public class Form28_1ReportServiceImpl implements Form28_1ReportService {
 
                 long total = matched.size();
                 long female = matched.stream().filter(PatientUtils::isFemale).count();
-                long age017 = matched.stream().filter(f -> isAgeLessOrEqual(f, 17)).count();
-                long age014 = matched.stream().filter(f -> isAgeLessOrEqual(f, 14)).count();
-                long under1 = matched.stream().filter(f -> isAgeLessOrEqual(f, 1)).count();
-                long age1to2 = matched.stream().filter(f -> isAgeBetween(f, 1, 2)).count();
-                long age3to5 = matched.stream().filter(f -> isAgeBetween(f, 3, 5)).count();
+                long age017 = matched.stream().filter(f -> isAgeLessOrEqualAtFormCreation(f, 17)).count();
+                long age014 = matched.stream().filter(f -> isAgeLessOrEqualAtFormCreation(f, 14)).count();
+                long under1 = matched.stream().filter(f -> isAgeLessOrEqualAtFormCreation(f, 1)).count();
+                long age1to2 = matched.stream().filter(f -> isAgeBetweenAtFormCreation(f, 1, 2)).count();
+                long age3to5 = matched.stream().filter(f -> isAgeBetweenAtFormCreation(f, 3, 5)).count();
                 long rural = matched.stream().filter(PatientUtils::isRural).count();
-                long rural017 = matched.stream().filter(f -> isRural(f) && isAgeLessOrEqual(f, 17)).count();
+                long rural017 = matched.stream().filter(f -> isRural(f) && isAgeLessOrEqualAtFormCreation(f, 17)).count();
 
                 Form28_1ReportDto dto = new Form28_1ReportDto();
                 dto.setShortName(report.getShortName());
