@@ -54,7 +54,7 @@ public class LocationReportRepository {
                                        AND (CAST(:dimParent AS varchar) IS NULL OR c.parent_code = :dimParent)
                                        AND ( f.id IS NULL
                                              OR :isSanepid = FALSE
-                                             OR f.created_org_uuid = :currentOrgId
+                                             OR f.sender_organization_id = :currentOrgId
                                              OR (%s) )
                                  )
                                  SELECT
@@ -91,6 +91,8 @@ public class LocationReportRepository {
                 scope.dimension().addressColumn(),
                 scope.visibilityLevelSql());
 
+        log.info("Fetching location reports for {}", scope);
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("locale", locale, Types.VARCHAR)
                 .addValue("dimType", scope.dimension().catalogType().name(), Types.VARCHAR)
@@ -98,7 +100,7 @@ public class LocationReportRepository {
                 .addValue("fromDate", fromDate, Types.DATE)
                 .addValue("toDate", toDate, Types.DATE)
                 .addValue("mkb10Code", mkb10Code, Types.VARCHAR)
-                .addValue("isSanepid", scope.sanepid(), Types.BOOLEAN)
+                .addValue("isSanepid", scope.isSanepid(), Types.BOOLEAN)
                 .addValue("currentOrgId", scope.currentOrgId())
                 .addValue("orgStateCode", scope.orgStateCode(), Types.VARCHAR)
                 .addValue("orgCityCode", scope.orgCityCode(), Types.VARCHAR);
