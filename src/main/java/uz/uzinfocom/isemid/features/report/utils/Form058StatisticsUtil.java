@@ -5,6 +5,7 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.dtos.Form1ReportDto;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
@@ -27,7 +28,7 @@ public class Form058StatisticsUtil {
         long emergencyUnder18 = 0;
         long emergencyFemales = 0;
 
-        LocalDate today = LocalDate.now();
+//        LocalDate today = LocalDate.now();
 
         for (Form058 form : forms) {
             if (form == null || form.getPatient() == null || form.getPatient().getBirthDate() == null) {
@@ -35,7 +36,8 @@ public class Form058StatisticsUtil {
             }
 
             LocalDate birth = form.getPatient().getBirthDate();
-            int age = Period.between(birth, today).getYears();
+            LocalDate formCreationDate = form.getCreatedAt().toLocalDateTime().toLocalDate();
+            int age = Period.between(birth, formCreationDate).getYears();
 
             boolean isUnder14 = age < 14;  // 13y 12m 29d
             boolean isUnder18 = age < 18;  // 17y 12m 29d
