@@ -2,9 +2,6 @@ package uz.uzinfocom.app.platform.iam.web.role;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -15,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
-import uz.uzinfocom.app.platform.iam.application.permission.query.dto.PermissionDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.role.command.RoleCommandService;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RoleCreateRequest;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RolePermissionUpdateRequest;
@@ -27,7 +23,6 @@ import uz.uzinfocom.app.platform.iam.application.role.query.dto.RolePermissionRe
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
 import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 
