@@ -90,7 +90,7 @@ public class ReportScopeResolver {
                 sanepid,
                 org.getStateCode(),
                 org.getCityCode(),
-                org.getId());
+                org.getUuid());
     }
 
     /**
