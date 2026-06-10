@@ -1,25 +1,47 @@
 package uz.uzinfocom.app.platform.iam.application.role.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.application.permission.query.dto.PermissionDetailResponse;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 
 import java.util.List;
 
-@Schema(description = "Детальная информация о роли с назначенными правами доступа.")
+@Schema(description = "Подробная информация о роли.")
 public record RoleDetailResponse(
-        @Schema(description = "Уникальный идентификатор записи.", example = "1")
+
+        @Schema(
+                description = "Идентификатор роли.",
+                example = "1"
+        )
         Long id,
-        @Schema(description = "Наименование роли.", example = "ROLE_ADMIN")
+
+        @Schema(
+                description = "Системное наименование роли.",
+                example = "isemid_epidemiologist"
+        )
         String name,
+
+        @Schema(
+                description = "Признак активности роли.",
+                example = "true"
+        )
+        Boolean active,
+
         @Schema(description = "Описание роли на узбекском языке.")
         String descriptionUz,
-        @Schema(description = "Описание роли на узбекском языке кириллицей.")
+
+        @Schema(description = "Описание роли на узбекском языке в кириллице.")
         String descriptionUzCyril,
+
         @Schema(description = "Описание роли на русском языке.")
         String descriptionRu,
+
         @Schema(description = "Описание роли на каракалпакском языке.")
         String descriptionKaa,
-        @Schema(description = "Права доступа, назначенные роли.")
-        List<PermissionDetailResponse> permissions
+
+        @Schema(description = "Информация об аудите.")
+        AuditResponse audit,
+
+        @Schema(description = "Разрешения, назначенные роли.")
+        List<RolePermissionResponse> permissions
 ) {
 }

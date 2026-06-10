@@ -4,11 +4,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import uz.uzinfocom.app.platform.iam.domain.Permission;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Optional;
 
 public interface PermissionRepository extends JpaRepository<Permission, Long>, JpaSpecificationExecutor<Permission> {
-    List<Permission> findAllByIdIn(Collection<Long> ids);
+
+    Optional<Permission> findByIdAndDeletedFalse(Long id);
 
     boolean existsBySubjectIgnoreCase(String subject);
 

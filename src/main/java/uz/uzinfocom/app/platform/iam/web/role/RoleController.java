@@ -23,12 +23,15 @@ import uz.uzinfocom.app.platform.iam.application.role.command.dto.RoleUpdateRequ
 import uz.uzinfocom.app.platform.iam.application.role.query.RoleQueryService;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleFilterRequest;
+import uz.uzinfocom.app.platform.iam.application.role.query.dto.RolePermissionResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
 import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
 import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+
+import java.util.List;
 
 @Tag(
         name = "Role",
@@ -143,11 +146,11 @@ public class RoleController {
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
     @GetMapping(ApiPaths.Role.PERMISSIONS)
-    public ApiResponse<java.util.List<PermissionDetailResponse>> getPermissions(
+    public ApiResponse<java.util.List<RolePermissionResponse>> getPermissions(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)
             @PathVariable @Positive Long id
     ) {
-        java.util.List<PermissionDetailResponse> response = roleQueryService.findPermissions(id);
+        List<RolePermissionResponse> response = roleQueryService.findPermissions(id);
         return ApiResponse.success(messages.resolve("common.success"), response);
     }
 

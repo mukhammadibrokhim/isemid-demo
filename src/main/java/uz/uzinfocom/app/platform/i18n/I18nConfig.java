@@ -15,7 +15,7 @@ import java.util.Locale;
 public class I18nConfig {
 
     private static final Locale UZ_LATIN = Locale.forLanguageTag("uz");
-    private static final Locale UZ_CYRILLIC = Locale.forLanguageTag("uz-Cyrl");
+    private static final Locale UZ_CYRILLIC = Locale.forLanguageTag("uz-Cyril");
     private static final Locale KARAKALPAK = Locale.forLanguageTag("kaa");
     private static final Locale RUSSIAN = Locale.forLanguageTag("ru");
 

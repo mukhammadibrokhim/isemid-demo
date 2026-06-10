@@ -7,8 +7,6 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
-import uz.uzinfocom.app.shared.exception.ConflictException;
-import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RoleCreateRequest;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RolePermissionItemRequest;
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RolePermissionUpdateRequest;
@@ -21,6 +19,8 @@ import uz.uzinfocom.app.platform.iam.domain.RolePermission;
 import uz.uzinfocom.app.platform.iam.domain.enums.PermissionAction;
 import uz.uzinfocom.app.platform.iam.repository.PermissionRepository;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
+import uz.uzinfocom.app.shared.exception.ConflictException;
+import uz.uzinfocom.app.shared.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -136,7 +136,7 @@ public class RoleCommandService {
 
     /**
      * Adds/merges permissions into existing role permissions.
-     *
+     * <p>
      * Example:
      * Existing: PATIENT -> READ
      * Request : PATIENT -> UPDATE
@@ -230,12 +230,12 @@ public class RoleCommandService {
 
     /**
      * Removes selected actions from role permissions.
-     *
+     * <p>
      * Example:
      * Existing: PATIENT -> READ, UPDATE
      * Request : PATIENT -> UPDATE
      * Result  : PATIENT -> READ
-     *
+     * <p>
      * If no actions remain, RolePermission row is removed.
      */
     @Transactional
@@ -333,15 +333,15 @@ public class RoleCommandService {
 
     /**
      * Normalizes request:
-     *
+     * <p>
      * 1. Duplicate permissionId values are merged.
      * 2. If MANAGE exists, all other actions are ignored.
-     *
+     * <p>
      * Example:
      * permissionId=1 actions=[READ]
      * permissionId=1 actions=[UPDATE]
      * Result: permissionId=1 actions=[READ, UPDATE]
-     *
+     * <p>
      * Example:
      * permissionId=1 actions=[READ, MANAGE]
      * Result: permissionId=1 actions=[MANAGE]

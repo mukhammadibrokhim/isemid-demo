@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationTableResponse;
 import uz.uzinfocom.app.platform.iam.application.organization.query.projection.OrganizationTableProjection;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.reference.application.lookup.mapper.ReferenceMappingHelper;
 
@@ -17,5 +18,6 @@ public interface OrganizationQueryMapper {
     @Mapping(target = "districtName", source = "districtCode", qualifiedByName = "districtName")
     OrganizationTableResponse toTableResponse(OrganizationTableProjection organizationTableProjection);
 
-    OrganizationDetailResponse toDetailedResponse(Organization organization);
+    @Mapping(target = "audit", source = "audit")
+    OrganizationDetailResponse toDetailedResponse(Organization organization, AuditResponse audit);
 }

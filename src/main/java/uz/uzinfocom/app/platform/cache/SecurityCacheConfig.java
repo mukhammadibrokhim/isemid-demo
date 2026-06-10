@@ -8,6 +8,7 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uz.uzinfocom.app.platform.iam.application.shared.cache.AuditCacheConfig;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 
 import java.time.Duration;
@@ -34,6 +35,8 @@ public class SecurityCacheConfig {
                 cache(SecurityCacheNames.SELECTED_ORGANIZATION_BY_USER_ID_AND_UUID, 50_000, Duration.ofMinutes(15)),
                 cache(SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, 20_000, Duration.ofMinutes(15)),
                 cache(SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, 5_000, Duration.ofMinutes(30)),
+
+                cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
 
                 cache(ReferenceCacheConfig.REF_COUNTRIES, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_COUNTRY_BY_CODE, 50_000, Duration.ofHours(1)),

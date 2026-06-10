@@ -28,9 +28,9 @@ public class LocalizedTextResolver {
             return firstNonBlank(kaa, uz, ru, uzCyril);
         }
 
-        if ("uz-Cyrl".equalsIgnoreCase(tag)
-                || "uz-UZ-Cyrl".equalsIgnoreCase(tag)
-                || "uz_Cyrl".equalsIgnoreCase(tag)) {
+        if ("uz-Cyril".equalsIgnoreCase(tag)
+                || "uz-UZ-Cyril".equalsIgnoreCase(tag)
+                || "uz_Cyril".equalsIgnoreCase(tag)) {
             return firstNonBlank(uzCyril, uz, ru, kaa);
         }
 

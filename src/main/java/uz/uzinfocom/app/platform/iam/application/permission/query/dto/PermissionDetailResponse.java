@@ -1,8 +1,7 @@
 package uz.uzinfocom.app.platform.iam.application.permission.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.util.Set;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 
 @Schema(description = "Детальная информация о праве доступа.")
 public record PermissionDetailResponse(
@@ -18,7 +17,7 @@ public record PermissionDetailResponse(
         String descriptionUzCyril,
         @Schema(description = "Описание права доступа на каракалпакском языке.")
         String descriptionKaa,
-        @Schema(description = "Список разрешенных действий.", example = "[\"VIEW\", \"CREATE\"]")
-        Set<String> actions
+        @Schema(description = "Информация об аудите разрешения.")
+        AuditResponse audit
 ) {
 }

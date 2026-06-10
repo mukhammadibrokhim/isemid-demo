@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.platform.iam.application.user.query.specification;
 
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
@@ -15,54 +16,57 @@ public final class UserSpecification {
     private UserSpecification() {
     }
 
-    public static Specification<User> byFilter(UserFilterRequest request) {
+    public static Specification<User> byFilter(UserFilterRequest filter) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (StringUtils.hasText(request.firstName())) {
-                predicates.add(cb.like(
-                        cb.lower(cb.coalesce(root.get("firstName"), "")),
-                        like(request.firstName())
-                ));
+            addLike(predicates, root.get("firstName"), filter.firstName(), cb);
+            addLike(predicates, root.get("lastName"), filter.lastName(), cb);
+            addLike(predicates, root.get("middleName"), filter.middleName(), cb);
+
+            if (StringUtils.hasText(filter.nnuzb())) {
+                predicates.add(
+                        cb.equal(
+                                root.<String>get("nnuzb"),
+                                filter.nnuzb().trim()
+                        )
+                );
             }
 
-            if (StringUtils.hasText(request.lastName())) {
-                predicates.add(cb.like(
-                        cb.lower(cb.coalesce(root.get("lastName"), "")),
-                        like(request.lastName())
-                ));
+            if (StringUtils.hasText(filter.phoneNumber())) {
+                predicates.add(
+                        cb.like(
+                                root.get("phoneNumber"),
+                                "%" + filter.phoneNumber().trim() + "%"
+                        )
+                );
             }
 
-            if (StringUtils.hasText(request.middleName())) {
-                predicates.add(cb.like(
-                        cb.lower(cb.coalesce(root.get("middleName"), "")),
-                        like(request.middleName())
-                ));
-            }
-
-            if (StringUtils.hasText(request.nnuzb())) {
-                predicates.add(cb.like(
-                        cb.lower(cb.coalesce(root.get("nnuzb"), "")),
-                        like(request.nnuzb())
-                ));
-            }
-
-            if (StringUtils.hasText(request.phoneNumber())) {
-                predicates.add(cb.like(
-                        cb.lower(cb.coalesce(root.get("phoneNumber"), "")),
-                        like(request.phoneNumber())
-                ));
-            }
-
-            if (request.active() != null) {
-                predicates.add(cb.equal(root.get("active"), request.active()));
+            if (filter.active() != null) {
+                predicates.add(
+                        cb.equal(root.get("active"), filter.active())
+                );
             }
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
 
-    private static String like(String value) {
-        return "%" + value.trim().toLowerCase(Locale.ROOT) + "%";
+    private static void addLike(
+            List<Predicate> predicates,
+            Path<String> field,
+            String value,
+            jakarta.persistence.criteria.CriteriaBuilder cb
+    ) {
+        if (!StringUtils.hasText(value)) {
+            return;
+        }
+
+        predicates.add(
+                cb.like(
+                        cb.lower(field),
+                        "%" + value.trim().toLowerCase(Locale.ROOT) + "%"
+                )
+        );
     }
 }

@@ -6,17 +6,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.*;
 import uz.uzinfocom.app.platform.iam.application.organization.query.mapper.OrganizationQueryMapper;
 import uz.uzinfocom.app.platform.iam.application.organization.query.projection.OrganizationTableProjection;
 import uz.uzinfocom.app.platform.iam.application.organization.query.specification.OrganizationSpecification;
+import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class OrganizationQueryService {
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final OrganizationQueryMapper organizationQueryMapper;
+    private final AuditResolver auditResolver;
 
     @Transactional(readOnly = true)
     public Page<OrganizationTableResponse> findTable(OrganizationFilerRequest request) {
@@ -34,12 +37,12 @@ public class OrganizationQueryService {
                 OrganizationSortFields.ALLOWED_SORT_FIELDS
         );
 
-        Page<OrganizationTableProjection> page = organizationRepository.findBy(
+        Page<OrganizationTableProjection> page = Objects.requireNonNull(organizationRepository.findBy(
                 OrganizationSpecification.byFilter(request),
                 query -> query
                         .as(OrganizationTableProjection.class)
                         .page(pageable)
-        );
+        ), "Organization table page return null");
 
         return page.map(organizationQueryMapper::toTableResponse);
     }
@@ -49,7 +52,7 @@ public class OrganizationQueryService {
         Organization organization = organizationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("organization.not_found"));
 
-        return organizationQueryMapper.toDetailedResponse(organization);
+        return organizationQueryMapper.toDetailedResponse(organization, auditResolver.resolve(organization));
     }
 
     @Transactional(readOnly = true)
