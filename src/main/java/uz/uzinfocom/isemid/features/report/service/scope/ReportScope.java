@@ -1,7 +1,5 @@
 package uz.uzinfocom.isemid.features.report.service.scope;
 
-import java.util.UUID;
-
 /**
  * Fully resolved inputs for a single location-report query.
  *
@@ -18,8 +16,8 @@ public record ReportScope(
         ReportDimension dimension,
         String dimensionParentCode,
         String visibilityLevelSql,
-        boolean sanepid,
+        boolean isSanepid,
         String orgStateCode,
         String orgCityCode,
-        UUID currentOrgId
+        Long currentOrgId
 ) {}
