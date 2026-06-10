@@ -92,6 +92,8 @@ public class LocationReportRepository {
                 scope.visibilityLevelSql());
 
         log.info("Fetching location reports for {}", scope);
+        log.info("dimension (catalogType.name): {}", scope.dimension().catalogType().name());
+        log.info("dimension (catalogType): {}", scope.dimension().catalogType());
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("locale", locale, Types.VARCHAR)
