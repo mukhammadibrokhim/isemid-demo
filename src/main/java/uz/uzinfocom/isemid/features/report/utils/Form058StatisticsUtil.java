@@ -68,8 +68,7 @@ public class Form058StatisticsUtil {
 
         double growthRate = 0.0;
         if (confirmedTotal > 0) {
-            growthRate = ((double) emergencyTotal / confirmedTotal) * 100;
-            growthRate = Math.round(growthRate * 100.0) / 100.0;
+            growthRate = ((double) (emergencyTotal - confirmedTotal) * 100.0) / emergencyTotal;
         }
 
         return Form1ReportDto.builder()
