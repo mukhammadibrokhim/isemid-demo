@@ -27,6 +27,7 @@ import uz.uzinfocom.isemid.features.report.service.scope.ReportScope;
 @Slf4j
 public class LocationReportRepository {
 
+    // language=sql
     private static final String SQL = """
         WITH base AS (
                                      SELECT

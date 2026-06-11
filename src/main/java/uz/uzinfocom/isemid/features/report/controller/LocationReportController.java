@@ -24,7 +24,7 @@ public class LocationReportController {
   private final MessageUtil messageUtil;
 
   public LocationReportController(
-      @Qualifier("nationalDiseaseCasesReport") LocationReportService locationReportService,
+      @Qualifier("locationReportServiceImpl") LocationReportService locationReportService,
       MessageUtil messageUtil) {
     this.locationReportService = locationReportService;
     this.messageUtil = messageUtil;
