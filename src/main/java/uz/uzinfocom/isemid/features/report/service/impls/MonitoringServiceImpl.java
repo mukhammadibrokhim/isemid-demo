@@ -78,19 +78,19 @@ public class MonitoringServiceImpl implements MonitoringService {
     ) {
         if (fromDate == null) {
             throw new IllegalArgumentException(
-                    "fromDate majburiy"
+                    "fromDate is required"
             );
         }
 
         if (toDate == null) {
             throw new IllegalArgumentException(
-                    "toDate majburiy"
+                    "toDate is required"
             );
         }
 
         if (fromDate.isAfter(toDate)) {
             throw new IllegalArgumentException(
-                    "fromDate toDate sanasidan keyin bo‘lishi mumkin emas"
+                    "fromDate cannot be after toDate"
             );
         }
     }
