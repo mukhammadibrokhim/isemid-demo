@@ -12,20 +12,33 @@ import java.util.Map;
 @Getter
 @Setter
 public class MonitoringResponse {
+
     private LocalDate toDate;
+
     private List<Item> data = new ArrayList<>();
 
     @Getter
     @Setter
     public static class Item {
+
         private String regionCode;
+
         private int totalCases;
+
         private int confirmed;
         private int unconfirmed;
+
         private int male;
         private int female;
-        private AgeGroupCount ageGroups = new AgeGroupCount();
-        private Map<String, Integer> diseaseType = new LinkedHashMap<>();
+
+
+        private int unknownGender;
+
+        private AgeGroupCount ageGroups =
+                new AgeGroupCount();
+
+        private Map<String, Integer> diseaseType =
+                new LinkedHashMap<>();
     }
 
     @Getter
@@ -39,5 +52,6 @@ public class MonitoringResponse {
         private int age_25_45;
         private int age_45_65;
         private int age_65_plus;
+        private int age_unknown;
     }
 }
