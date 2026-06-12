@@ -88,4 +88,34 @@ public final class ApiPaths {
         public static final String BY_TYPE_AND_PARENT_CODE = "/types/{type}/parents/{parentCode}";
     }
 
+    public static final class Form058 {
+        private Form058() {
+        }
+
+        public static final String ROOT = API_V1 + "/form058";
+    }
+
+    public static final class Card {
+        private Card() {
+        }
+
+        public static final String ROOT = API_V1 + "/cards";
+    }
+
+    public static final class Act {
+        private Act() {
+        }
+
+        public static final String ROOT = API_V1 + "/acts";
+    }
+
+    public static final class ExternalApi {
+        private ExternalApi() {
+        }
+
+        public static final String ISEMID_CALLBACK = API_V1 + "/acts/lis/callback/";
+        public static final String LIS_ACT_API = "/api/lis/labs/%s/acts/%s?allowedDuplicate=%s";
+        public static final String LIS_RESEARCH_TYPE_API = "/api/lis/research-types/%s/template-id";
+    }
+
 }

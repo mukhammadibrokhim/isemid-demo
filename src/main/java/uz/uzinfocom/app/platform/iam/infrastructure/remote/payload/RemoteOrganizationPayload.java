@@ -188,7 +188,7 @@ public record RemoteOrganizationPayload(
         return address.stream()
                 .filter(item -> RemotePayloadSupport.equalsAnyIgnoreCase(item.use(), "primary", "work", "home"))
                 .findFirst()
-                .orElse(address.getFirst());
+                .orElse(address.get(0));
     }
 
     private Optional<RemoteCodingPayload> firstTypeCodingBySystemContains(String systemPart) {

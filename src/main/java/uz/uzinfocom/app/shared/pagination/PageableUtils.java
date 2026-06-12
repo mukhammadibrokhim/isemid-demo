@@ -26,6 +26,12 @@ public final class PageableUtils {
         return of(request, DEFAULT_SORT_BY, DEFAULT_SORT_DIRECTION, allowedSortFields);
     }
 
+    public static Pageable pageableSortByIdDesc(int page, int size) {
+        int normalizedPage = Math.max(page, 1) - 1;
+        int normalizedSize = normalizeSize(size);
+        return PageRequest.of(normalizedPage, normalizedSize, Sort.by(DEFAULT_SORT_DIRECTION, DEFAULT_SORT_BY));
+    }
+
     public static Pageable of(
             PageableRequest request,
             String defaultSortBy,

@@ -13,9 +13,9 @@
     </parent>
 
     <groupId>uz.uzinfocom</groupId>
-    <artifactId>isemid-platform-foundation</artifactId>
+    <artifactId>isemid-platform</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>ISEMID Platform Foundation</name>
+    <name>ISEMID Platform</name>
     <description>Production-grade modular backend foundation for ISEMID</description>
 
     <properties>

@@ -62,7 +62,7 @@ public record RemotePractitionerPayload(
             return fromDhp;
         }
 
-        return knownAs == null || knownAs.isEmpty() ? null : knownAs.getFirst().firstName();
+        return knownAs == null || knownAs.isEmpty() ? null : knownAs.get(0).firstName();
     }
 
     public String lastName() {
@@ -73,7 +73,7 @@ public record RemotePractitionerPayload(
             return value;
         }
 
-        return knownAs == null || knownAs.isEmpty() ? null : knownAs.getFirst().lastName();
+        return knownAs == null || knownAs.isEmpty() ? null : knownAs.get(0).lastName();
     }
 
     public String middleName() {
@@ -95,7 +95,7 @@ public record RemotePractitionerPayload(
             }
         }
 
-        return knownAs == null || knownAs.isEmpty() ? null : knownAs.getFirst().patronymic();
+        return knownAs == null || knownAs.isEmpty() ? null : knownAs.get(0).patronymic();
     }
 
     public String fullName() {
@@ -133,7 +133,7 @@ public record RemotePractitionerPayload(
         return address.stream()
                 .filter(item -> RemotePayloadSupport.equalsAnyIgnoreCase(item.use(), "primary", "home", "work"))
                 .findFirst()
-                .orElse(address.getFirst());
+                .orElse(address.get(0));
     }
 
     public String regionCode() {

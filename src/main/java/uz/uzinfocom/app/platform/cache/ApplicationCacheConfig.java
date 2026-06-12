@@ -16,7 +16,7 @@ import java.util.List;
 
 @Configuration
 @EnableCaching
-public class SecurityCacheConfig {
+public class ApplicationCacheConfig {
 
     @Bean(name = "securityCacheManager")
     public CacheManager securityCacheManager() {

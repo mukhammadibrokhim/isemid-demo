@@ -14,6 +14,8 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
 
     Optional<Catalog> findByTypeAndCodeAndDeletedFalse(String type, String code);
 
+    Optional<Catalog> findFirstByCodeAndDeletedFalse(String code);
+
     boolean existsByTypeAndCode(String type, String code);
 
     List<Catalog> findAllByTypeAndDeletedFalseOrderByNameUzAsc(String type);

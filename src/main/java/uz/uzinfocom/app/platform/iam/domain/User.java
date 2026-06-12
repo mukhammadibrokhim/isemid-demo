@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.persistence.entity.AuditableEntity;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -75,4 +78,40 @@ public class User extends AuditableEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new LinkedHashSet<>();
+
+    @Transient
+    public Organization getCurrentOrganization() {
+        return CurrentOrganizationContext.getOptional()
+                .orElseGet(() -> organizations.stream().findFirst().orElse(null));
+    }
+
+    public String getFullName() {
+        return String.join(" ",
+                nullToBlank(lastName),
+                nullToBlank(firstName),
+                nullToBlank(middleName)
+        ).trim();
+    }
+
+    public boolean hasRole(String roleName) {
+        if (roleName == null || roles == null) {
+            return false;
+        }
+
+        String normalized = normalizeRole(roleName);
+        return roles.stream()
+                .map(Role::getName)
+                .filter(Objects::nonNull)
+                .map(User::normalizeRole)
+                .anyMatch(normalized::equals);
+    }
+
+    private static String normalizeRole(String value) {
+        String normalized = value.trim().toLowerCase(Locale.ROOT);
+        return normalized.startsWith("role_") ? normalized.substring("role_".length()) : normalized;
+    }
+
+    private static String nullToBlank(String value) {
+        return value == null ? "" : value;
+    }
 }
