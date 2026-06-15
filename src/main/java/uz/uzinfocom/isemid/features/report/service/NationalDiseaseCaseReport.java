@@ -10,22 +10,19 @@ import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto;
 import uz.uzinfocom.isemid.features.report.dtos.LocationReportDto.ReportDto;
 import uz.uzinfocom.isemid.features.report.dtos.response.LocationReportRow;
 import uz.uzinfocom.isemid.features.report.repository.LocationReportRepository;
-import uz.uzinfocom.isemid.features.report.repository.LocationReportRepositoryV2;
-import uz.uzinfocom.isemid.features.report.service.scope.ReportScope;
 import uz.uzinfocom.isemid.features.report.service.scope.ReportScopeResolver;
-import uz.uzinfocom.isemid.features.report.service.scope.ReportScopeResolverV2;
-import uz.uzinfocom.isemid.features.report.service.scope.ReportScopeV2;
+import uz.uzinfocom.isemid.features.report.service.scope.ReportScope;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 @Slf4j
 @Service("locationReportServiceImpl")
-public class LocationReportServiceImpl implements LocationReportService {
+public class NationalDiseaseCaseReport implements LocationReportService {
 
-  private final LocationReportRepositoryV2 repository;
-  private final ReportScopeResolverV2 scopeResolver;
+  private final LocationReportRepository repository;
+  private final ReportScopeResolver scopeResolver;
 
-  public LocationReportServiceImpl(LocationReportRepositoryV2 repository,
-      ReportScopeResolverV2 scopeResolver) {
+  public NationalDiseaseCaseReport(LocationReportRepository repository,
+      ReportScopeResolver scopeResolver) {
     this.repository = repository;
     this.scopeResolver = scopeResolver;
   }
@@ -34,7 +31,7 @@ public class LocationReportServiceImpl implements LocationReportService {
   public LocationReportDto getByLocation(String mkb10Code, LocalDate fromDate, LocalDate toDate,
       String parentCode, User currentUser) {
     Organization org = currentUser.getCurrentOrganization();
-    ReportScopeV2 scope = scopeResolver.resolve(org, parentCode);
+    ReportScope scope = scopeResolver.resolve(org, parentCode);
     String locale = LocaleContextHolder.getLocale().getLanguage();
     log.info("scope: {}", scope);
     List<LocationReportRow> rows = repository.fetch(mkb10Code, fromDate, toDate, scope, locale);
