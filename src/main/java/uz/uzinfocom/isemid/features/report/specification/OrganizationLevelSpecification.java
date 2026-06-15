@@ -21,6 +21,7 @@ public class OrganizationLevelSpecification {
         LEFT JOIN organization co 
           ON co.uuid = f.created_org_uuid 
           WHERE c.type = 'state' 
+          AND :hasPermission = true
       ) 
       SELECT code, name, 
       COUNT(*) FILTER (WHERE id IS NOT NULL AND status = 'APPROVED') AS confirmed, 
@@ -47,7 +48,7 @@ public class OrganizationLevelSpecification {
         LEFT JOIN organization co 
           ON co.uuid = f.created_org_uuid 
           WHERE c.type = 'city'
-          AND   c.parent_code= :parentCode
+          AND   c.parent_code= :parentCode AND :hasPermission = true
       ) 
       SELECT code, name, 
       COUNT(*) FILTER (WHERE id IS NOT NULL AND status = 'APPROVED') AS confirmed, 
@@ -75,7 +76,7 @@ public class OrganizationLevelSpecification {
         LEFT JOIN organization co 
           ON co.uuid = f.created_org_uuid 
           WHERE c.type = 'neighborhood' 
-          AND   c.parent_code= :parentCode
+          AND   c.parent_code= :parentCode AND :hasPermission = true
       ) 
       SELECT code, name, 
       COUNT(*) FILTER (WHERE id IS NOT NULL AND status = 'APPROVED') AS confirmed, 
@@ -106,6 +107,7 @@ public class OrganizationLevelSpecification {
           WHERE c.type = 'neighborhood' 
           AND   c.parent_code= :parentCode
           AND f.sender_organization_id = :currentOrganizationId
+          AND :hasPermission = true
       ) 
       SELECT code, name, 
       COUNT(*) FILTER (WHERE id IS NOT NULL AND status = 'APPROVED') AS confirmed, 
