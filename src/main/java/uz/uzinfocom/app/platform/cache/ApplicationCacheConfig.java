@@ -9,6 +9,7 @@ import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uz.uzinfocom.app.platform.iam.application.shared.cache.AuditCacheConfig;
+import uz.uzinfocom.app.platform.iam.application.shared.cache.OrganizationCacheConfig;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
 
 import java.time.Duration;
@@ -37,6 +38,7 @@ public class ApplicationCacheConfig {
                 cache(SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, 5_000, Duration.ofMinutes(30)),
 
                 cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
+                cache(OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID, 20_000, Duration.ofHours(12)),
 
                 cache(ReferenceCacheConfig.REF_COUNTRIES, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_COUNTRY_BY_CODE, 50_000, Duration.ofHours(1)),

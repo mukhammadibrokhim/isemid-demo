@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryFilterRequest;
-import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryResponse;
+import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryDetailedResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryTableResponse;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.country.command.CountryCommandService;
@@ -87,7 +87,7 @@ public class CountryController {
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<CountryResponse> getById(
+    public ApiResponse<CountryDetailedResponse> getById(
             @Parameter(description = "Country internal identifier.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
@@ -104,7 +104,7 @@ public class CountryController {
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<CountryResponse> getByCode(
+    public ApiResponse<CountryDetailedResponse> getByCode(
             @Parameter(description = "Country code.", required = true, example = "UZB")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
@@ -121,7 +121,7 @@ public class CountryController {
     )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<CountryResponse> create(
+    public ApiResponse<CountryDetailedResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Country reference data to create.",
                     required = true
@@ -141,7 +141,7 @@ public class CountryController {
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
-    public ApiResponse<CountryResponse> update(
+    public ApiResponse<CountryDetailedResponse> update(
             @Parameter(description = "Country internal identifier.", required = true, example = "1")
             @PathVariable @Positive Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(

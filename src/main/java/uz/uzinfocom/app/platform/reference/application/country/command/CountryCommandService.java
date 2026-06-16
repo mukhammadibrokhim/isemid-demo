@@ -9,7 +9,7 @@ import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNorma
 import uz.uzinfocom.app.platform.reference.application.common.event.CountryChangedEvent;
 import uz.uzinfocom.app.platform.reference.domain.Country;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryCreateRequest;
-import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryResponse;
+import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryDetailedResponse;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.country.query.mapper.CountryMapper;
 import uz.uzinfocom.app.platform.reference.repository.CountryRepository;
@@ -28,7 +28,7 @@ public class CountryCommandService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public CountryResponse create(CountryCreateRequest request) {
+    public CountryDetailedResponse create(CountryCreateRequest request) {
         String code = ReferenceCodeNormalizer.normalizeCode(request.code());
 
         if (countryRepository.existsByCode(code)) {
@@ -52,7 +52,7 @@ public class CountryCommandService {
     }
 
     @Transactional
-    public CountryResponse update(Long id, CountryUpdateRequest request) {
+    public CountryDetailedResponse update(Long id, CountryUpdateRequest request) {
         Country country = countryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("reference.country.not_found_by_id", id));
 

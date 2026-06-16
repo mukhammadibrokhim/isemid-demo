@@ -19,32 +19,28 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     Optional<Organization> findByUuid(UUID uuid);
 
     @Query("""
-        select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationLookupResponse(
-            o.id,
-            o.uuid,
-            o.name,
-            o.tin,
-            o.phone,
-            o.active,
-            o.regionCode,
-            o.districtCode,
-            o.levelType,
-            o.medicalType
-        )
-        from Organization o
-        where (
-              :search = ''
-              or lower(coalesce(o.name, '')) like concat('%', :search, '%')
-              or lower(coalesce(o.tin, '')) like concat('%', :search, '%')
-              or lower(coalesce(o.phone, '')) like concat('%', :search, '%')
-              or lower(coalesce(o.regionCode, '')) like concat('%', :search, '%')
-              or lower(coalesce(o.districtCode, '')) like concat('%', :search, '%')
-        )
-          and (:levelType is null or o.levelType = :levelType)
-          and (:medicalType is null or o.medicalType = :medicalType)
-          and (:active is null or o.active = :active)
-        order by o.name asc, o.id desc\s
-       \s""")
+             select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationLookupResponse(
+                 o.id,
+                 o.uuid,
+                 o.name,
+                 o.active,
+                 o.levelType,
+                 o.medicalType
+             )
+             from Organization o
+             where (
+                   :search = ''
+                   or lower(coalesce(o.name, '')) like concat('%', :search, '%')
+                   or lower(coalesce(o.tin, '')) like concat('%', :search, '%')
+                   or lower(coalesce(o.phone, '')) like concat('%', :search, '%')
+                   or lower(coalesce(o.regionCode, '')) like concat('%', :search, '%')
+                   or lower(coalesce(o.districtCode, '')) like concat('%', :search, '%')
+             )
+               and (:levelType is null or o.levelType = :levelType)
+               and (:medicalType is null or o.medicalType = :medicalType)
+               and (:active is null or o.active = :active)
+             order by o.name asc, o.id desc\s
+            \s""")
     List<OrganizationLookupResponse> lookupOrganizations(
             @Param("search") String search,
             @Param("levelType") OrganizationLevel levelType,
@@ -52,4 +48,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
             @Param("active") Boolean active,
             Pageable pageable
     );
+
+    @Query("SELECT o.id FROM Organization o WHERE o.uuid = :uuid and o.active =true")
+    Optional<Long> findActiveIdByUuid(@Param("uuid") UUID uuid);
 }

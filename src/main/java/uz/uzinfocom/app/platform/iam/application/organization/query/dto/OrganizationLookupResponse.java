@@ -14,16 +14,8 @@ public record OrganizationLookupResponse(
         UUID uuid,
         @Schema(description = "Наименование организации.")
         String name,
-        @Schema(description = "ИНН организации.")
-        String tin,
-        @Schema(description = "Номер телефона организации.")
-        String phone,
         @Schema(description = "Признак активности записи.", example = "true")
         Boolean active,
-        @Schema(description = "Код региона организации.")
-        String regionCode,
-        @Schema(description = "Код района или города организации.")
-        String districtCode,
         @Schema(description = "Уровень организации.")
         OrganizationLevel levelType,
         @Schema(description = "Тип медицинской организации.")

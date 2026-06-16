@@ -10,10 +10,6 @@ public record OrganizationUserLookupResponse(
         Long id,
         @Schema(description = "Уникальный UUID пользователя.")
         UUID uuid,
-        @Schema(description = "ННУЗБ пользователя.")
-        String nnuzb,
-        @Schema(description = "Логин пользователя.")
-        String username,
         @Schema(description = "Имя пользователя.")
         String firstName,
         @Schema(description = "Фамилия пользователя.")

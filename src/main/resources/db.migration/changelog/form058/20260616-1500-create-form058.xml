@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260616-1500-create-form058" author="codex">
+        <createTable tableName="form058">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_form058" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_form058_uuid"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_by_id" type="BIGINT"/>
+
+            <column name="status" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sender_organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="receiver_organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hospital_place_id" type="BIGINT"/>
+
+            <column name="mkb10_code" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mkb10_name" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="final_mkb10_code" type="VARCHAR(20)"/>
+            <column name="final_mkb10_name" type="VARCHAR(512)"/>
+
+            <column name="disease_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_visit_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="visit_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="initial_report_date_time" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="disease_place" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notifier_full_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="journal_form_code" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="form_comment" type="VARCHAR(2000)"/>
+
+            <column name="patient_nnuzb" type="VARCHAR(14)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="patient_pinfl" type="VARCHAR(14)"/>
+            <column name="patient_full_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="patient_birth_date" type="DATE"/>
+            <column name="patient_gender" type="VARCHAR(32)"/>
+            <column name="patient_phone" type="VARCHAR(64)"/>
+
+            <column name="location_region_code" type="VARCHAR(64)"/>
+            <column name="location_district_code" type="VARCHAR(64)"/>
+            <column name="location_neighborhood_code" type="VARCHAR(64)"/>
+            <column name="location_address" type="VARCHAR(1000)"/>
+
+            <column name="has_linked_cards" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_card_id" type="BIGINT"/>
+            <column name="cancel_reason" type="VARCHAR(1000)"/>
+            <column name="canceled_by_id" type="BIGINT"/>
+            <column name="canceled_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="approved_by_id" type="BIGINT"/>
+            <column name="approved_organization_id" type="BIGINT"/>
+            <column name="approved_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="not_approved_reason" type="VARCHAR(1000)"/>
+        </createTable>
+
+        <createIndex tableName="form058" indexName="idx_form058_sender_status">
+            <column name="sender_organization_id"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="form058" indexName="idx_form058_receiver_status">
+            <column name="receiver_organization_id"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="form058" indexName="idx_form058_patient_nnuzb">
+            <column name="patient_nnuzb"/>
+        </createIndex>
+        <createIndex tableName="form058" indexName="idx_form058_assigned_card_id">
+            <column name="assigned_card_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

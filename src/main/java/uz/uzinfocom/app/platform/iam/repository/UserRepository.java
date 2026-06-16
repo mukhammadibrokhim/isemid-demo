@@ -22,9 +22,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     @EntityGraph(attributePaths = {"organizations"})
     @Query("""
-        select distinct u
-        from User u
-        where u.id = :id
+                SELECT DISTINCT u
+                FROM User u
+                WHERE u.id = :id
     """)
     Optional<User> findSecurityUserWithOrganizationsById(@Param("id") Long id);
 
@@ -35,41 +35,38 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
             "roles.rolePermissions.actions"
     })
     @Query("""
-        select distinct u
-        from User u
-        where u.id = :id
-    """)
+                SELECT DISTINCT u
+                FROM User u
+                WHERE u.id = :id
+            """)
     Optional<User> findForAuthorizationById(@Param("id") Long id);
 
     @Query("""
-        select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse(
-            u.id,
-            u.uuid,
-            u.nnuzb,
-            u.username,
-            u.firstName,
-            u.lastName,
-            u.middleName,
-            u.phoneNumber
-        )
-        from User u
-        join u.organizations o
-        where o.id = :organizationId
-          and u.active = true
-          and (
-                :search = ''
-                or lower(coalesce(u.firstName, '')) like concat('%', :search, '%')
-                or lower(coalesce(u.lastName, '')) like concat('%', :search, '%')
-                or lower(coalesce(u.middleName, '')) like concat('%', :search, '%')
-                or lower(coalesce(u.username, '')) like concat('%', :search, '%')
-                or lower(coalesce(u.nnuzb, '')) like concat('%', :search, '%')
-                or lower(coalesce(u.phoneNumber, '')) like concat('%', :search, '%')
-          )
-        """)
+            SELECT NEW uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse(
+                u.id,
+                u.uuid,
+                u.firstName,
+                u.lastName,
+                u.middleName,
+                u.phoneNumber
+            )
+            FROM User u
+            JOIN u.organizations o
+            WHERE o.id = :organizationId
+              AND u.active = true
+              AND (
+                    :search = ''
+                    OR lower(coalesce(u.firstName, '')) LIKE concat('%', :search, '%')
+                    OR lower(coalesce(u.lastName, '')) LIKE concat('%', :search, '%')
+                    OR lower(coalesce(u.middleName, '')) LIKE concat('%', :search, '%')
+                    OR lower(coalesce(u.username, '')) LIKE concat('%', :search, '%')
+                    OR lower(coalesce(u.nnuzb, '')) LIKE concat('%', :search, '%')
+                    OR lower(coalesce(u.phoneNumber, '')) LIKE concat('%', :search, '%')
+              )
+            """)
     org.springframework.data.domain.Page<OrganizationUserLookupResponse> findUserLookupsByOrganizationId(
             @Param("organizationId") Long organizationId,
             @Param("search") String search,
             Pageable pageable
     );
-
 }

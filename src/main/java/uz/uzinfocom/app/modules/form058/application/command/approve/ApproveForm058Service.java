@@ -1,0 +1,76 @@
+package uz.uzinfocom.app.modules.form058.application.command.approve;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.form058.application.command.update.Form058UpdateMapper;
+import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Result;
+import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
+import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
+import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
+import uz.uzinfocom.app.modules.form058.application.shared.CurrentForm058User;
+import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058Repository;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+
+import java.util.Objects;
+
+@Service
+@RequiredArgsConstructor
+public class ApproveForm058Service {
+
+    private final Form058Repository form058Repository;
+    private final Form058UpdateMapper form058UpdateMapper;
+    private final CurrentForm058User currentForm058User;
+
+    @Transactional
+    public UpdateForm058Result approve(ApproveForm058Command command) {
+        if (!StringUtils.hasText(command.finalMkb10Code()) || !StringUtils.hasText(command.finalMkb10Name())) {
+            throw new Form058ValidationException("error.form058.approval-not-allowed");
+        }
+
+        Form058 form058 = findRequired(command.formId());
+        Long currentOrganizationId = validateReceiverScope(form058);
+        form058.approve(
+                command.finalMkb10Code().trim(),
+                command.finalMkb10Name().trim(),
+                currentForm058User.userIdOrNull(),
+                currentOrganizationId
+        );
+        return form058UpdateMapper.toResult(form058Repository.save(form058));
+    }
+
+    @Transactional
+    public UpdateForm058Result notApprove(Long formId, String reason) {
+        Form058 form058 = findRequired(formId);
+        validateReceiverScope(form058);
+        form058.notApprove(StringUtils.hasText(reason) ? reason.trim() : null);
+        return form058UpdateMapper.toResult(form058Repository.save(form058));
+    }
+
+    @Transactional
+    public UpdateForm058Result approveDiagnosis(ApproveForm058Command command) {
+        Form058 form058 = findRequired(command.formId());
+        validateReceiverScope(form058);
+        form058.setFinalMkb10Code(command.finalMkb10Code());
+        form058.setFinalMkb10Name(command.finalMkb10Name());
+        return form058UpdateMapper.toResult(form058Repository.save(form058));
+    }
+
+    private Form058 findRequired(Long id) {
+        return form058Repository.findById(id)
+                .orElseThrow(() -> new Form058NotFoundException(id));
+    }
+
+    private Long validateReceiverScope(Form058 form058) {
+        Long currentOrganizationId = CurrentOrganizationContext.getOptional()
+                .map(Organization::getId)
+                .orElseThrow(Form058ScopeViolationException::new);
+        if (!Objects.equals(currentOrganizationId, form058.getReceiverOrganizationId())) {
+            throw new Form058ScopeViolationException();
+        }
+        return currentOrganizationId;
+    }
+}

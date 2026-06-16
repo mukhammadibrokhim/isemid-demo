@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryFilterRequest;
-import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryResponse;
+import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryDetailedResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryTableResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.mapper.CountryMapper;
 import uz.uzinfocom.app.platform.reference.application.country.query.projection.CountryTableProjection;
@@ -50,7 +50,7 @@ public class CountryQueryService {
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = ReferenceCacheConfig.REF_COUNTRIES, key = "'all'")
-    public List<CountryResponse> getAll() {
+    public List<CountryDetailedResponse> getAll() {
         return countryRepository.findAllByDeletedFalseOrderByNameUzAsc()
                 .stream()
                 .map(countryMapper::toResponse)
@@ -58,7 +58,7 @@ public class CountryQueryService {
     }
 
     @Transactional(readOnly = true)
-    public CountryResponse getById(Long id) {
+    public CountryDetailedResponse getById(Long id) {
         return countryRepository.findByIdAndDeletedFalse(id)
                 .map(countryMapper::toResponse)
                 .orElseThrow(() -> new NotFoundException("reference.country.not_found_by_id", id));
@@ -70,7 +70,7 @@ public class CountryQueryService {
             key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT)",
             condition = "#code != null"
     )
-    public CountryResponse getByCode(String code) {
+    public CountryDetailedResponse getByCode(String code) {
         String normalizedCode = ReferenceCodeNormalizer.normalizeCode(code);
 
         return countryRepository.findByCodeAndDeletedFalse(normalizedCode)
