@@ -24,6 +24,7 @@ import java.util.Set;
 
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.utils.PatientUtils.isAgeLessOrEqual;
+import static uz.uzinfocom.isemid.commons.utils.PatientUtils.isAgeLessOrEqualAtFormCreation;
 
 @Service
 @RequiredArgsConstructor
@@ -53,9 +54,9 @@ public class Form28_2ReportServiceImpl implements Form28_2ReportService {
                         .toList();
 
                 long total = matched.size();
-                long age0to17 = matched.stream().filter(f -> isAgeLessOrEqual(f, 17)).count();
-                long under1Month = matched.stream().filter(PatientUtils::isUnderOneMonth).count();
-                long from1MonthTo1Year = matched.stream().filter(PatientUtils::isAgeFrom1MonthTo1Year).count();
+                long age0to17 = matched.stream().filter(f -> isAgeLessOrEqualAtFormCreation(f, 17)).count();
+                long under1Month = matched.stream().filter(PatientUtils::isUnderOneMonthAtFormCreation).count();
+                long from1MonthTo1Year = matched.stream().filter(PatientUtils::isAgeFrom1MonthTo1YearAtFormCreation).count();
 
                 Form28_2ReportDto dto = new Form28_2ReportDto();
                 dto.setShortName(report.getShortName());
