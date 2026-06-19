@@ -38,6 +38,7 @@ public class PatientRequest {
     private String kinshipFullName;
 
     @NotNull
+    @PastOrPresent(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthDate;
     private Integer ageYears;
     private Integer ageMonths;
