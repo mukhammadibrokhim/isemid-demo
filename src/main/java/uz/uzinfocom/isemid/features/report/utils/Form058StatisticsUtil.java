@@ -5,7 +5,7 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.dtos.Form1ReportDto;
 
-import java.sql.Timestamp;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
@@ -28,7 +28,9 @@ public class Form058StatisticsUtil {
         long emergencyUnder18 = 0;
         long emergencyFemales = 0;
 
-//        LocalDate today = LocalDate.now();
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(2);
+        nf.setMinimumFractionDigits(2);
 
         for (Form058 form : forms) {
             if (form == null || form.getPatient() == null || form.getPatient().getBirthDate() == null) {
@@ -84,7 +86,7 @@ public class Form058StatisticsUtil {
                 .emergencyUnder18(emergencyUnder18)
                 .emergencyFemales(emergencyFemales)
                 .children(children)
-                .growthRate(growthRate)
+                .growthRate(nf.format(growthRate))
                 .build();
     }
 

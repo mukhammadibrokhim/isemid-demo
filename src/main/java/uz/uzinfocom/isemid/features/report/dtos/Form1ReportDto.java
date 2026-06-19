@@ -28,7 +28,7 @@ public class Form1ReportDto {
     private long emergencyAdults;
     private long emergencyFemales;
 
-    private double growthRate;
+    private String growthRate;
     @Builder.Default
     private Set<Form1ReportDto> children = new HashSet<>();
 
