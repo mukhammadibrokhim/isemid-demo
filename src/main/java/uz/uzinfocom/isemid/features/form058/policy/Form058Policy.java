@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 
 import java.util.EnumSet;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 @Component
@@ -46,9 +47,17 @@ public class Form058Policy {
     }
 
     public void assertApprovable(Form058 form058) {
-        //TODO Should add status validation
-    }
+        if (form058 == null) {
+            throw new IllegalArgumentException("Form058 must not be null");
+        }
 
+        if (form058.getStatus() != FormStatus.CARD_LINKED) {
+            throw new ApiException(BAD_REQUEST,
+                    "Form058 can be approved only when status is CARD_LINKED. Current status: "
+                            + form058.getStatus()
+            );
+        }
+    }
     public void assertNotApprovable(Form058 form058) {
         //TODO Should add status validation
     }
