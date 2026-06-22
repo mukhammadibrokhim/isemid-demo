@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import uz.uzinfocom.isemid.features.form058.annotation.MinYear;
 import uz.uzinfocom.isemid.features.form058.models.enums.AddressType;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.patient.enums.MaritalStatus;
@@ -38,6 +39,8 @@ public class PatientRequest {
     private String kinshipFullName;
 
     @NotNull
+    @PastOrPresent(message = "Дата рождения не может быть в будущем.")
+    @MinYear(message = "Дата рождения не может быть ранее 1900г.")
     private LocalDate birthDate;
     private Integer ageYears;
     private Integer ageMonths;
