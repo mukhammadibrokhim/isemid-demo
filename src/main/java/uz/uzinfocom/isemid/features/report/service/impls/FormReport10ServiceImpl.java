@@ -27,7 +27,6 @@ public class FormReport10ServiceImpl implements FormReport10Service {
     public Object generate(User currentUser, LocalDate startDate, LocalDate endDate, String parentCode) {
 
         LocalDate previousStartDate = startDate.minusYears(1);
-        LocalDate previousEndDate = endDate.minusYears(1);
 
         List<Form058> forms = form058Repository.findAll(
                 build(previousStartDate, endDate, currentUser)

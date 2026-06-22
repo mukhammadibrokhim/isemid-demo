@@ -26,10 +26,10 @@ public class FormReport10Controller {
     @GetMapping
     public ApiResponse<?> generate(
             @CurrentUser User currentUser,
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
             @RequestParam(required = false) String parentCode
     ) {
-        return ApiResponse.success(messageUtil, service.generate(currentUser, startDate, endDate, parentCode));
+        return ApiResponse.success(messageUtil, service.generate(currentUser, fromDate, toDate, parentCode));
     }
 }
