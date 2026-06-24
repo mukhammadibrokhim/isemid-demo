@@ -31,7 +31,8 @@ public record IntegrationProperties(
             @NotBlank String lisPublicApiBaseUrl,
             @NotBlank String lisActIntegrationBaseUrl,
             @NotBlank String isemidPublicApiBaseUrl,
-            @NotBlank String localApiBaseUrl
+            @NotBlank String localApiBaseUrl,
+            @NotBlank String dmedForm058ChangePushApiBaseUrl
     ) {
     }
 
@@ -49,12 +50,14 @@ public record IntegrationProperties(
 
             @NotBlank String lisCreateActPath,
             @NotBlank String lisActCodePath,
-            @NotBlank String lisCallbackPath
+            @NotBlank String lisCallbackPath,
+            @NotBlank String dmedForm058ChangePushApiPath
     ) {
     }
 
     public record Keys(
-            String lisApiKey
+            String lisApiKey,
+            String dmedApiKey
     ) {
     }
 
