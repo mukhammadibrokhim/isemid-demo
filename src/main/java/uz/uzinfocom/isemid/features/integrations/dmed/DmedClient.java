@@ -1,18 +1,16 @@
 package uz.uzinfocom.isemid.features.integrations.dmed;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
-import uz.uzinfocom.isemid.commons.utils.RestClientUtil;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PatchExchange;
+import uz.uzinfocom.isemid.features.integrations.dmed.dto.Form058ChangeEvent;
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
-public class DmedClient {
+@HttpExchange(contentType = "application/json")
+public interface DmedClient {
 
 
-  public void push(){
-
-  }
+  @PatchExchange
+  void pushFormStatusChangeEvent(@PathVariable("formId") Long formId,
+      @RequestBody Form058ChangeEvent formStatus);
 }
