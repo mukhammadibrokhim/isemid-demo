@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260622-1200-01-create-form058-location" author="codex">
+        <sql dbms="postgresql">
+            CREATE TABLE IF NOT EXISTS fm058_location (
+                id BIGSERIAL PRIMARY KEY,
+                version BIGINT NOT NULL DEFAULT 0,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+                updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+                created_by_id BIGINT,
+                updated_by_id BIGINT,
+                latitude DOUBLE PRECISION,
+                longitude DOUBLE PRECISION,
+                location VARCHAR(1000)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260622-1200-02-add-form058-embedded-and-relation-columns" author="codex">
+        <sql dbms="postgresql">
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS patient_id BIGINT;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS location_id BIGINT;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS created_org_uuid UUID;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS updated_org_uuid UUID;
+
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS mkb10_usage_limit INTEGER;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS lab_confirmation BOOLEAN;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS admission_date DATE;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS diagnosis_date DATE;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS doc_send_date TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS disease_place_code VARCHAR(64);
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS disease_cause VARCHAR(2000);
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS epidemic_measures VARCHAR(2000);
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS card_by_full_name VARCHAR(255);
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS approved_full_name VARCHAR(255);
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS approved_org_uuid UUID;
+
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS deleted BOOLEAN;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS deleted_by_id BIGINT;
+            ALTER TABLE form058 ADD COLUMN IF NOT EXISTS delete_reason VARCHAR(1000);
+            UPDATE form058 SET deleted = false WHERE deleted IS NULL;
+            ALTER TABLE form058 ALTER COLUMN deleted SET DEFAULT false;
+            ALTER TABLE form058 ALTER COLUMN deleted SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260622-1200-03-index-form058-refactor-columns" author="codex">
+        <sql dbms="postgresql">
+            CREATE INDEX IF NOT EXISTS idx_form058_patient_id ON form058 (patient_id);
+            CREATE INDEX IF NOT EXISTS idx_form058_location_id ON form058 (location_id);
+            CREATE INDEX IF NOT EXISTS idx_form058_deleted ON form058 (deleted);
+            CREATE INDEX IF NOT EXISTS idx_form058_mkb10_code ON form058 (mkb10_code);
+            CREATE INDEX IF NOT EXISTS idx_form058_final_mkb10_code ON form058 (final_mkb10_code);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260622-1200-04-normalize-form058-date-columns" author="codex">
+        <sql dbms="postgresql">
+            ALTER TABLE form058 ALTER COLUMN disease_date TYPE TIMESTAMP USING disease_date::timestamp;
+            ALTER TABLE form058 ALTER COLUMN first_visit_date TYPE TIMESTAMP USING first_visit_date::timestamp;
+            ALTER TABLE form058 ALTER COLUMN visit_date TYPE TIMESTAMP USING visit_date::timestamp;
+            ALTER TABLE form058 ALTER COLUMN admission_date TYPE TIMESTAMP USING admission_date::timestamp;
+            ALTER TABLE form058 ALTER COLUMN diagnosis_date TYPE TIMESTAMP USING diagnosis_date::timestamp;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

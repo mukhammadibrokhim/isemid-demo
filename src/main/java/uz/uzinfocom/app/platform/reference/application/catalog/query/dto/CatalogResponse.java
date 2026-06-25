@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.platform.reference.application.catalog.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 
 @Schema(description = "Detailed Catalog reference response.")
 public record CatalogResponse(
@@ -21,6 +22,7 @@ public record CatalogResponse(
         @Schema(description = "Catalog item name in Karakalpak.")
         String nameKaa,
         @Schema(description = "Soft-delete flag.", example = "false")
-        Boolean deleted
+        Boolean deleted,
+        AuditResponse audit
 ) {
 }

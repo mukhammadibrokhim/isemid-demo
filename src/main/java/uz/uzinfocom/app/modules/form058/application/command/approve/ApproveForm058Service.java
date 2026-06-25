@@ -11,7 +11,7 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolat
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
 import uz.uzinfocom.app.modules.form058.application.shared.CurrentForm058User;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
-import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058Repository;
+import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
@@ -21,7 +21,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ApproveForm058Service {
 
-    private final Form058Repository form058Repository;
+    private final Form058JpaRepository form058JpaRepository;
     private final Form058UpdateMapper form058UpdateMapper;
     private final CurrentForm058User currentForm058User;
 
@@ -39,7 +39,7 @@ public class ApproveForm058Service {
                 currentForm058User.userIdOrNull(),
                 currentOrganizationId
         );
-        return form058UpdateMapper.toResult(form058Repository.save(form058));
+        return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
     }
 
     @Transactional
@@ -47,20 +47,19 @@ public class ApproveForm058Service {
         Form058 form058 = findRequired(formId);
         validateReceiverScope(form058);
         form058.notApprove(StringUtils.hasText(reason) ? reason.trim() : null);
-        return form058UpdateMapper.toResult(form058Repository.save(form058));
+        return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
     }
 
     @Transactional
     public UpdateForm058Result approveDiagnosis(ApproveForm058Command command) {
         Form058 form058 = findRequired(command.formId());
         validateReceiverScope(form058);
-        form058.setFinalMkb10Code(command.finalMkb10Code());
-        form058.setFinalMkb10Name(command.finalMkb10Name());
-        return form058UpdateMapper.toResult(form058Repository.save(form058));
+        form058.updateFinalDiagnosis(command.finalMkb10Code(), command.finalMkb10Name());
+        return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
     }
 
     private Form058 findRequired(Long id) {
-        return form058Repository.findById(id)
+        return form058JpaRepository.findActiveByIdForUpdate(id)
                 .orElseThrow(() -> new Form058NotFoundException(id));
     }
 

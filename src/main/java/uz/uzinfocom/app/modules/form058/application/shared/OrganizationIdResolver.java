@@ -20,8 +20,8 @@ public class OrganizationIdResolver {
     @Cacheable(
             cacheNames = OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID,
             key = "#uuid",
-            sync = true,
-            unless = "#result == null"
+            cacheManager = "securityCacheManager",
+            sync = true
     )
     public Long resolveActiveId(UUID uuid) {
         if (uuid == null) {

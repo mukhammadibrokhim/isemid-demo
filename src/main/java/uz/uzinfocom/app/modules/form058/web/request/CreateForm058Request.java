@@ -3,8 +3,8 @@ package uz.uzinfocom.app.modules.form058.web.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -62,25 +62,4 @@ public record CreateForm058Request(
         LocationRequest location
 ) {
 
-    public record PatientRequest(
-            @NotBlank(message = "{validation.form058.patient.nnuzb.required}")
-            @Pattern(regexp = "\\d{14}", message = "{validation.nnuzb.format}")
-            String nnuzb,
-
-            @Pattern(regexp = "\\d{14}", message = "{validation.form058.patient.pinfl.format}")
-            String pinfl,
-
-            @NotBlank(message = "{validation.form058.patient.full-name.required}")
-            @Size(max = 255, message = "{validation.form058.patient.full-name.size}")
-            String fullName,
-
-            LocalDate birthDate,
-
-            @Size(max = 32, message = "{validation.form058.patient.gender.size}")
-            String gender,
-
-            @Size(max = 64, message = "{validation.form058.patient.phone.size}")
-            String phone
-    ) {
-    }
 }

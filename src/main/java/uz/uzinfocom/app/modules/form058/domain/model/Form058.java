@@ -1,18 +1,37 @@
 package uz.uzinfocom.app.modules.form058.domain.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import uz.uzinfocom.app.features.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
+import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ApprovalInfo;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058CancellationInfo;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ClinicalInfo;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058DateInfo;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058DiagnosisInfo;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058EpidemicInfo;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ReportInfo;
+import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
-import uz.uzinfocom.app.platform.persistence.entity.UuidAuditableEntity;
 
 import java.time.Instant;
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -23,20 +42,45 @@ import java.time.LocalDate;
 @Table(
         name = "form058",
         indexes = {
-                @Index(name = "idx_form058_sender_status", columnList = "sender_organization_id,status"),
-                @Index(name = "idx_form058_receiver_status", columnList = "receiver_organization_id,status"),
-                @Index(name = "idx_form058_patient_nnuzb", columnList = "patient_nnuzb"),
-                @Index(name = "idx_form058_assigned_card_id", columnList = "assigned_card_id")
+                @Index(name = "idx_form058_status", columnList = "status"),
+                @Index(name = "idx_form058_patient_id", columnList = "patient_id"),
+                @Index(name = "idx_form058_sender_org_id", columnList = "sender_organization_id"),
+                @Index(name = "idx_form058_receiver_org_id", columnList = "receiver_organization_id"),
+                @Index(name = "idx_form058_created_at", columnList = "created_at"),
+                @Index(name = "idx_form058_mkb10_code", columnList = "mkb10_code"),
+                @Index(name = "idx_form058_final_mkb10_code", columnList = "final_mkb10_code"),
+                @Index(name = "idx_form058_deleted", columnList = "deleted")
         }
 )
 public class Form058 extends AbsEntity {
+
+    @Embedded
+    private Form058DiagnosisInfo diagnosisInfo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
     private FormStatus status;
 
-    @Column(name = "source", nullable = false, length = 64)
+    @Column(name = "source", nullable = false, length = 20)
     private String source;
+
+    /**
+     * Form058 belongs to a patient.
+     * Do not use CascadeType.ALL here because Form058 must not control Patient lifecycle.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "patient_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_form058_patient")
+    )
+    private Patient patient;
+
+    @Embedded
+    private Form058ClinicalInfo clinicalInfo;
+
+    @Embedded
+    private Form058DateInfo dateInfo;
 
     @Column(name = "sender_organization_id", nullable = false)
     private Long senderOrganizationId;
@@ -44,137 +88,161 @@ public class Form058 extends AbsEntity {
     @Column(name = "receiver_organization_id", nullable = false)
     private Long receiverOrganizationId;
 
-    @Column(name = "hospital_place_id")
-    private Long hospitalPlaceId;
-
-    @Column(name = "mkb10_code", nullable = false, length = 20)
-    private String mkb10Code;
-
-    @Column(name = "mkb10_name", nullable = false, length = 512)
-    private String mkb10Name;
-
-    @Column(name = "final_mkb10_code", length = 20)
-    private String finalMkb10Code;
-
-    @Column(name = "final_mkb10_name", length = 512)
-    private String finalMkb10Name;
-
-    @Column(name = "disease_date", nullable = false)
-    private LocalDate diseaseDate;
-
-    @Column(name = "first_visit_date", nullable = false)
-    private LocalDate firstVisitDate;
-
-    @Column(name = "visit_date", nullable = false)
-    private LocalDate visitDate;
-
-    @Column(name = "initial_report_date_time", nullable = false)
-    private Instant initialReportDateTime;
-
-    @Column(name = "disease_place", nullable = false, length = 512)
-    private String diseasePlace;
-
-    @Column(name = "notifier_full_name", nullable = false, length = 255)
-    private String notifierFullName;
-
-    @Column(name = "journal_form_code", nullable = false, length = 64)
-    private String journalFormCode;
-
-    @Column(name = "form_comment", length = 2000)
-    private String comment;
-
+    /**
+     * Location is owned by Form058.
+     * Persist and merge are enough. Remove is intentionally not cascaded.
+     */
     @OneToOne(
             fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            },
+            optional = true
     )
-    @JoinColumn(name = "location_id")
-    private Location location;
+    @JoinColumn(
+            name = "location_id",
+            foreignKey = @ForeignKey(name = "fk_form058_location")
+    )
+    private Form058Location location;
 
+    @Embedded
+    private Form058EpidemicInfo epidemicInfo;
+
+    @Embedded
+    private Form058ReportInfo reportInfo;
+
+    /**
+     * Denormalized flag for fast table filtering.
+     */
     @Column(name = "has_linked_cards", nullable = false)
-    private boolean hasLinkedCards;
+    @Builder.Default
+    private boolean hasLinkedCards = false;
 
+    /**
+     * Legacy single-card link kept for existing API and database compatibility.
+     */
+    @Deprecated
     @Column(name = "assigned_card_id")
     private Long assignedCardId;
 
-    @Column(name = "cancel_reason", length = 1000)
-    private String cancelReason;
+    @Embedded
+    private Form058CancellationInfo cancellationInfo;
 
-    @Column(name = "canceled_by_id")
-    private Long canceledBy;
+    @Embedded
+    private Form058ApprovalInfo approvalInfo;
 
-    @Column(name = "canceled_at")
-    private Instant canceledAt;
+    /**
+     * Soft delete state.
+     * SQL delete annotation is not used. Delete is handled explicitly from the service layer.
+     */
+    @Column(name = "deleted", nullable = false)
+    @Builder.Default
+    private boolean deleted = false;
 
-    @Column(name = "approved_by_id")
-    private Long approvedBy;
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
-    @Column(name = "approved_organization_id")
-    private Long approvedOrganizationId;
+    @Column(name = "deleted_by_id")
+    private Long deletedBy;
 
-    @Column(name = "approved_at")
-    private Instant approvedAt;
+    @Column(name = "delete_reason", length = 1000)
+    private String deleteReason;
 
-    @Column(name = "not_approved_reason", length = 1000)
-    private String notApprovedReason;
+    public void attachLocation(Form058Location location) {
+        this.location = location;
+    }
 
-    @PrePersist
-    protected void prePersistForm058() {
-        if (status == null) {
-            status = FormStatus.SENT;
-        }
-        if (source == null || source.isBlank()) {
-            source = "ISEMID";
-        }
-        if (location == null) {
-            location = new Location();
-        }
+    public void refreshCardLinkState() {
+        this.hasLinkedCards = this.assignedCardId != null;
     }
 
     public void ensureEditable() {
-        if (status == null || !status.editable()) {
-            throw new InvalidForm058StateException("error.form058.update-not-allowed", status);
+        if (isCanceled() || isApproved() || isDeleted()) {
+            throw new InvalidForm058StateException("error.form058.update-not-allowed", this.status);
         }
     }
 
-    public void ensureCancellable() {
-        if (status == null || !status.cancellable()) {
-            throw new InvalidForm058StateException("error.form058.invalid-status", status);
+    public void cancel(String reason, Long canceledBy) {
+        if (isCanceled()) {
+            return;
         }
+
+        ensureCancellationInfo();
+        this.status = FormStatus.CANCELED;
+        this.cancellationInfo.setCancelReason(reason);
+        this.cancellationInfo.setCanceledBy(canceledBy);
+        this.cancellationInfo.setCanceledAt(Instant.now());
     }
 
-    public void ensureApprovable() {
-        if (status == null || !status.approvable()) {
-            throw new InvalidForm058StateException("error.form058.approval-not-allowed", status);
-        }
-    }
-
-    public void cancel(String reason, Long userId) {
-        ensureCancellable();
-        status = FormStatus.CANCELED;
-        cancelReason = reason;
-        canceledBy = userId;
-        canceledAt = Instant.now();
-    }
-
-    public void approve(String diagnosisCode, String diagnosisName, Long userId, Long organizationId) {
-        ensureApprovable();
-        status = FormStatus.APPROVED;
-        finalMkb10Code = diagnosisCode;
-        finalMkb10Name = diagnosisName;
-        approvedBy = userId;
-        approvedOrganizationId = organizationId;
-        approvedAt = Instant.now();
+    public void approve(String finalMkb10Code, String finalMkb10Name, Long approvedBy, Long approvedOrganizationId) {
+        ensureDiagnosisInfo();
+        ensureApprovalInfo();
+        this.status = FormStatus.APPROVED;
+        this.diagnosisInfo.setFinalMkb10Code(finalMkb10Code);
+        this.diagnosisInfo.setFinalMkb10Name(finalMkb10Name);
+        this.approvalInfo.setApprovedBy(approvedBy);
+        this.approvalInfo.setApprovedOrganizationId(approvedOrganizationId);
+        this.approvalInfo.setApprovedAt(Instant.now());
     }
 
     public void notApprove(String reason) {
-        ensureApprovable();
-        status = FormStatus.NOT_APPROVED;
-        notApprovedReason = reason;
+        ensureCancellationInfo();
+        this.status = FormStatus.NOT_APPROVED;
+        this.cancellationInfo.setNotApprovedReason(reason);
     }
 
-    public void assignCard(Long cardId) {
-        assignedCardId = cardId;
-        hasLinkedCards = cardId != null;
+    public void updateFinalDiagnosis(String finalMkb10Code, String finalMkb10Name) {
+        ensureDiagnosisInfo();
+        this.diagnosisInfo.setFinalMkb10Code(finalMkb10Code);
+        this.diagnosisInfo.setFinalMkb10Name(finalMkb10Name);
+    }
+
+    public void softDelete(Long deletedBy, String reason) {
+        if (this.deleted) {
+            return;
+        }
+
+        this.deleted = true;
+        this.deletedAt = Instant.now();
+        this.deletedBy = deletedBy;
+        this.deleteReason = reason;
+    }
+
+    public void restore() {
+        this.deleted = false;
+        this.deletedAt = null;
+        this.deletedBy = null;
+        this.deleteReason = null;
+    }
+
+    public boolean isApproved() {
+        return FormStatus.APPROVED.equals(this.status);
+    }
+
+    public boolean isCanceled() {
+        return FormStatus.CANCELED.equals(this.status);
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    private void ensureDiagnosisInfo() {
+        if (this.diagnosisInfo == null) {
+            this.diagnosisInfo = new Form058DiagnosisInfo();
+        }
+    }
+
+    private void ensureCancellationInfo() {
+        if (this.cancellationInfo == null) {
+            this.cancellationInfo = new Form058CancellationInfo();
+        }
+    }
+
+    private void ensureApprovalInfo() {
+        if (this.approvalInfo == null) {
+            this.approvalInfo = new Form058ApprovalInfo();
+        }
     }
 }

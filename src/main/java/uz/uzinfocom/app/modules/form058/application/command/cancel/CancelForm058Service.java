@@ -11,7 +11,7 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolat
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
 import uz.uzinfocom.app.modules.form058.application.shared.CurrentForm058User;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
-import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058Repository;
+import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
@@ -21,7 +21,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class CancelForm058Service {
 
-    private final Form058Repository form058Repository;
+    private final Form058JpaRepository form058Repository;
     private final Form058UpdateMapper form058UpdateMapper;
     private final CurrentForm058User currentForm058User;
 
@@ -31,7 +31,7 @@ public class CancelForm058Service {
             throw new Form058ValidationException("error.form058.cancel-reason-required");
         }
 
-        Form058 form058 = form058Repository.findById(command.formId())
+        Form058 form058 = form058Repository.findActiveByIdForUpdate(command.formId())
                 .orElseThrow(() -> new Form058NotFoundException(command.formId()));
         validateSenderScope(form058);
         form058.cancel(command.reason().trim(), currentForm058User.userIdOrNull());

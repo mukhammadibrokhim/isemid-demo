@@ -4,8 +4,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
+import uz.uzinfocom.app.modules.form058.application.validator.Form058CreateValidator;
+import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,20 +51,35 @@ class Form058CreateValidatorTest {
         return new CreateForm058Command(
                 "A00",
                 "Cholera",
+                patient(),
                 null,
                 null,
                 null,
                 null,
-                100L,
+                Instant.now(),
                 receiverOrganizationId,
                 null,
-                "home",
+                1L,
                 "Doctor",
                 "J-1",
                 null,
-                "12345678901234",
                 null,
+                null,
+                null, null
+        );
+    }
+
+    private CreatePatientCommand patient() {
+        return new CreatePatientCommand(
                 "Patient",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,

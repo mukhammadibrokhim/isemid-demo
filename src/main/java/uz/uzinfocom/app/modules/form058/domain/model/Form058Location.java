@@ -13,7 +13,7 @@ import uz.uzinfocom.app.platform.persistence.entity.AuditableEntity;
 @AllArgsConstructor
 @Entity(name = "fm058_location")
 @Table(name = "fm058_location")
-public class Location extends AuditableEntity {
+public class Form058Location extends AuditableEntity {
 
     @Column(name = "latitude")
     private Double latitude;

@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.features.form058.domain.exception;
+package uz.uzinfocom.app.modules.form058.domain.exception;
 
 import uz.uzinfocom.app.shared.exception.ConflictException;
 

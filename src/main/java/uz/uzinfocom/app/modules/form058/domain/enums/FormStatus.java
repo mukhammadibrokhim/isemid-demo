@@ -1,7 +1,6 @@
 package uz.uzinfocom.app.modules.form058.domain.enums;
 
 public enum FormStatus {
-
     NOT_APPROVED,
     SENT,
     RECEIVED,

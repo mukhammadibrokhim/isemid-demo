@@ -2,90 +2,81 @@ package uz.uzinfocom.app.modules.form058.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
-import uz.uzinfocom.app.modules.form058.application.query.dto.Form058DetailResult;
-import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResult;
-import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
-import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058QueryRepository;
+import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
+import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058DetailResponse;
+import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058DetailResponseMapper;
+import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058TableMapper;
+import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
+import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
+import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
+import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class Form058QueryService {
 
-    private static final Map<String, String> ALLOWED_SORT_FIELDS = Map.of(
-            "id", "id",
-            "status", "status",
-            "visitDate", "visitDate",
-            "initialReportDateTime", "initialReportDateTime",
-            "patientFullName", "patientFullName",
-            "mkb10Code", "mkb10Code"
-    );
+    private final Form058JpaRepository repository;
+    private final OrganizationScopeResolver organizationScopeResolver;
+    private final Form058DetailResponseMapper form058DetailResponseMapper;
+    private final Form058TableMapper form058TableMapper;
+    private final AuditResolver auditResolver;
 
-    private final Form058QueryRepository form058QueryRepository;
-    private final Form058QueryMapper form058QueryMapper;
+    public Page<Form058TableResponse> findAll(Form058Filter filter) {
+        ResolvedOrganizationScope scope = currentScope();
 
-    @Transactional(readOnly = true)
-    public Page<Form058TableResult> findSent(Form058Filter filter) {
-        return form058QueryRepository.findTable(normalize(filter), currentOrganizationId(), false, ALLOWED_SORT_FIELDS)
-                .map(form058QueryMapper::toTableResult);
+        return switch (filter.direction()) {
+            case OUTGOING -> findByScope(filter, scope, false);
+            case INCOMING -> findByScope(filter, scope, true);
+            case ALL -> findByScope(filter, scope, null);
+        };
     }
 
-    @Transactional(readOnly = true)
-    public Page<Form058TableResult> findReceived(Form058Filter filter) {
-        return form058QueryRepository.findTable(normalize(filter), currentOrganizationId(), true, ALLOWED_SORT_FIELDS)
-                .map(form058QueryMapper::toTableResult);
+    private Page<Form058TableResponse> findByScope(
+            Form058Filter filter,
+            ResolvedOrganizationScope scope,
+            Boolean received
+    ) {
+        Pageable pageable = PageableUtils.of(filter, Form058SortFields.ALLOWED);
+        Page<Form058TableProjection> page = Objects.requireNonNull(repository.findBy(
+                Form058Specification.table(filter, scope, received),
+                query -> query
+                        .as(Form058TableProjection.class)
+                        .page(pageable)
+        ), "Form058 Table is returned null!");
+        return page.map(projection -> form058TableMapper.toTableResponse(projection, filter.direction()));
+
     }
 
-    @Transactional(readOnly = true)
-    public Form058DetailResult getById(Long id) {
-        Long organizationId = currentOrganizationId();
-        return form058QueryRepository.findVisibleById(id, organizationId)
-                .map(form058QueryMapper::toDetailResult)
-                .orElseThrow(() -> new Form058NotFoundException(id));
+    private ResolvedOrganizationScope currentScope() {
+        return organizationScopeResolver.resolve(currentOrganization());
     }
 
-    @Transactional(readOnly = true)
-    public Form058DetailResult getByNnuzb(String nnuzb) {
-        Long organizationId = currentOrganizationId();
-        return form058QueryRepository.findLatestVisibleByNnuzb(nnuzb, organizationId)
-                .map(form058QueryMapper::toDetailResult)
-                .orElseThrow(() -> new Form058NotFoundException(nnuzb));
-    }
-
-    @Transactional(readOnly = true)
-    public Form058DetailResult getByCard(Long cardId) {
-        Long organizationId = currentOrganizationId();
-        return form058QueryRepository.findVisibleByCard(cardId, organizationId)
-                .map(form058QueryMapper::toDetailResult)
-                .orElseThrow(() -> new Form058NotFoundException(cardId));
-    }
-
-    @Transactional(readOnly = true)
-    public Map<FormStatus, Long> confirmationStats() {
-        Long organizationId = currentOrganizationId();
-        Map<FormStatus, Long> stats = new EnumMap<>(FormStatus.class);
-        form058QueryRepository.countStatusesByOrganization(organizationId)
-                .forEach(row -> stats.put(row.getStatus(), row.getCount()));
-        return stats;
-    }
-
-    private Long currentOrganizationId() {
+    private Organization currentOrganization() {
         return CurrentOrganizationContext.getOptional()
-                .map(Organization::getId)
                 .orElseThrow(Form058ScopeViolationException::new);
     }
 
-    private Form058Filter normalize(Form058Filter filter) {
-        return filter == null
-                ? new Form058Filter(null, null, null, null, null, null, null, null)
-                : filter;
+    public Form058DetailResponse getById(Long id) {
+        Form058 form058 = repository.findOne(Form058Specification.visibleById(id, currentScope())).orElseThrow(() -> new Form058NotFoundException(id));
+        return form058DetailResponseMapper.toDetailedResponse(form058, auditResolver.resolve(form058));
     }
+//
+//    public Form058DetailResponse getByNnuzb(String nnuzb) {
+//        return form058DetailResponseMapper.toDetailedResponse(null);
+////                .orElseThrow(() -> new Form058NotFoundException(nnuzb)));
+//    }
 }

@@ -83,14 +83,11 @@ public class OpenApiConfig {
             OperationCustomizer securityAndOrganizationHeaderCustomizer
     ) {
         return GroupedOpenApi.builder()
-                .group("Справочники")
+                .group("references")
                 .displayName("Справочники")
                 .addOpenApiCustomizer(openApi -> openApi.info(new Info()
                         .title("Справочники")
-                        .description(
-                                "API для работы со справочниками, классификаторами " +
-                                        "и нормативно-справочной информацией."
-                        )
+                        .description("API для работы со справочниками, классификаторами и нормативно-справочной информацией.")
                         .version("1.0.0")))
                 .addOpenApiCustomizer(commonOpenApiCustomizer)
                 .addOperationCustomizer(securityAndOrganizationHeaderCustomizer)
@@ -107,7 +104,7 @@ public class OpenApiConfig {
             OperationCustomizer securityAndOrganizationHeaderCustomizer
     ) {
         return GroupedOpenApi.builder()
-                .group("Основные API")
+                .group("main")
                 .displayName("Основные API")
                 .addOpenApiCustomizer(openApi -> openApi.info(new Info()
                         .title("Основные API")

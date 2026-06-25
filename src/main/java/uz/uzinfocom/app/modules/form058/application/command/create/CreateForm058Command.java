@@ -1,11 +1,15 @@
 package uz.uzinfocom.app.modules.form058.application.command.create;
 
+import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
+
 import java.time.Instant;
 import java.time.LocalDate;
 
 public record CreateForm058Command(
         String mkb10Code,
         String mkb10Name,
+        CreatePatientCommand patient,
+        String source,
         LocalDate diseaseDate,
         LocalDate firstVisitDate,
         LocalDate visitDate,
@@ -17,15 +21,8 @@ public record CreateForm058Command(
         String notifierFullName,
         String journalFormCode,
         String comment,
-        String patientNnuzb,
-        String patientPinfl,
-        String patientFullName,
-        LocalDate patientBirthDate,
-        String patientGender,
-        String patientPhone,
-        String locationRegionCode,
-        String locationDistrictCode,
-        String locationNeighborhoodCode,
-        String locationAddress
+        Double locationLatitude,
+        Double locationLongitude,
+        String location
 ) {
 }

@@ -12,7 +12,6 @@ import uz.uzinfocom.app.platform.iam.application.shared.repository.AuditUserQuer
 @RequiredArgsConstructor
 public class AuditUserLookupService {
 
-
     private final AuditUserQueryRepository auditUserQueryRepository;
 
     @Cacheable(

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import uz.uzinfocom.app.platform.reference.application.lookup.projection.ReferenceItemProjection;
 import uz.uzinfocom.app.platform.reference.domain.District;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +15,8 @@ public interface DistrictRepository extends JpaRepository<District, Long>, JpaSp
     Optional<District> findByIdAndDeletedFalse(Long id);
 
     Optional<District> findByCodeAndDeletedFalse(String code);
+
+    List<District> findAllByCodeInAndDeletedFalse(Collection<String> codes);
 
     boolean existsByCodeAndDeletedFalse(String code);
 

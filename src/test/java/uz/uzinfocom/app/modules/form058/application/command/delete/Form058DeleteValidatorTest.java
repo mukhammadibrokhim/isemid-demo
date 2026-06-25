@@ -2,9 +2,9 @@ package uz.uzinfocom.app.modules.form058.application.command.delete;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import uz.uzinfocom.app.features.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
+import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
@@ -22,10 +22,10 @@ class Form058DeleteValidatorTest {
     }
 
     @Test
-    void acceptsSentFormWithoutLinkedCards() {
+    void acceptsSentForm() {
         CurrentOrganizationContext.set(organization(10L));
 
-        assertThatCode(() -> validator.validate(form(FormStatus.SENT), false))
+        assertThatCode(() -> validator.validate(form(FormStatus.SENT)))
                 .doesNotThrowAnyException();
     }
 
@@ -33,15 +33,7 @@ class Form058DeleteValidatorTest {
     void rejectsApprovedForm() {
         CurrentOrganizationContext.set(organization(10L));
 
-        assertThatThrownBy(() -> validator.validate(form(FormStatus.APPROVED), false))
-                .isInstanceOf(InvalidForm058StateException.class);
-    }
-
-    @Test
-    void rejectsLinkedCards() {
-        CurrentOrganizationContext.set(organization(10L));
-
-        assertThatThrownBy(() -> validator.validate(form(FormStatus.SENT), true))
+        assertThatThrownBy(() -> validator.validate(form(FormStatus.APPROVED)))
                 .isInstanceOf(InvalidForm058StateException.class);
     }
 
@@ -49,7 +41,7 @@ class Form058DeleteValidatorTest {
     void rejectsSenderOutsideCurrentOrganization() {
         CurrentOrganizationContext.set(organization(99L));
 
-        assertThatThrownBy(() -> validator.validate(form(FormStatus.SENT), false))
+        assertThatThrownBy(() -> validator.validate(form(FormStatus.SENT)))
                 .isInstanceOf(Form058ScopeViolationException.class);
     }
 
