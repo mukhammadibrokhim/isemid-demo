@@ -10,7 +10,6 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.commons.configs.logging.RestClientLoggingInterceptor;
 import uz.uzinfocom.isemid.commons.configs.properties.IntegrationProperties;
-import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.features.integrations.dmed.DmedClient;
 
 @Configuration
