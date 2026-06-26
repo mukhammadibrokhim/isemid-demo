@@ -25,7 +25,7 @@ public class ForecastController {
     private final Form058HoltWintersFacade facadeV2;
     private final MessageUtil messageUtil;
 
-    @GetMapping(ApiPaths.Forecast.ROOT + "/holt-weekly")
+    @GetMapping(ApiPaths.Forecast.ROOT_V2 + "/holt-weekly")
     public ApiResponse<?> holtWeekly(
             @CurrentUser User currentUser,
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -39,7 +39,7 @@ public class ForecastController {
                 facade.holt(currentUser, startDate, endDate, alpha, beta, stateCode, mkb10C0de));
     }
 
-    @GetMapping(ApiPaths.Forecast.ROOT_V2 + "/holt-weekly")
+    @GetMapping(ApiPaths.Forecast.ROOT + "/holt-weekly")
     public ApiResponse<?> holtWeeklyV2(
             @CurrentUser User currentUser,
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
