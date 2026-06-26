@@ -1,25 +1,38 @@
 package uz.uzinfocom.isemid.features.forecast.models.dto;
 
-import lombok.Builder;
-
 import java.time.LocalDate;
 import java.util.List;
 
-@Builder
 public record HoltWeeklyResponse(
         double alpha,
         double beta,
-        List<Point> points
+        double gamma,
+        int season,
+        List<Point> history,
+        List<FuturePoint> future,
+        Metrics metrics
 ) {
     public record Point(
-            int weekNo,
+            int periodNo,
             LocalDate from,
             LocalDate to,
             long y,
-            Double yHat,
+            Double forecast,
             Double error,
             Double level,
-            Double trend
-    ) {
-    }
+            Double trend,
+            Double seasonal
+    ) {}
+
+    public record FuturePoint(
+            int h,
+            LocalDate from,
+            LocalDate to,
+            double forecast
+    ) {}
+
+    public record Metrics(
+            double mape,
+            String quality
+    ) {}
 }
