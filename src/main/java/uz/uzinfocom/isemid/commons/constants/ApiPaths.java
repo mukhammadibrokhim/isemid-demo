@@ -65,7 +65,8 @@ public final class ApiPaths {
     }
 
     public static final class Forecast {
-        public static final String ROOT = BASE_PATH + "/forecast";
+        public static final String ROOT    = BASE_PATH    + "/forecast";
+        public static final String ROOT_V2 = BASE_PATH_V2 + "/forecast";
     }
 
     public final static class Db {
