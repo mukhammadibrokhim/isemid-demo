@@ -31,9 +31,15 @@ public class ForecastController {
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam("alpha") double alpha,
             @RequestParam("beta") double beta,
+            @RequestParam("gamma") double gamma,
+            @RequestParam(value = "season", defaultValue = "12") int season,
+            @RequestParam(value = "horizon", defaultValue = "12") int horizon,
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String mkb10C0de
     ) {
-        return ApiResponse.success(messageUtil, facade.holt(currentUser, startDate, endDate, alpha, beta, stateCode, mkb10C0de));
+        return ApiResponse.success(messageUtil, facade.holt(
+                currentUser, startDate, endDate,
+                alpha, beta, gamma, season, horizon,
+                stateCode, mkb10C0de));
     }
 }

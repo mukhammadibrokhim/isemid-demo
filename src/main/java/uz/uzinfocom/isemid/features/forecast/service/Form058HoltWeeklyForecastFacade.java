@@ -11,22 +11,26 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class Form058HoltWeeklyForecastFacade {
 
-    private final WeekBucketService bucketService;
-    private final Form058WeeklyAggregationService aggregationService;
+    private final MonthBucketService bucketService;
+    private final Form058MonthlyAggregationService aggregationService;
     private final HoltWeeklyCalculator calculator;
 
     public HoltWeeklyResponse holt(User currentUser,
                                    LocalDate startDate,
                                    LocalDate endDate,
                                    double alpha,
-                                   double beta, String stateCode, String mkb10C0de) {
-
+                                   double beta,
+                                   double gamma,
+                                   int season,
+                                   int horizon,
+                                   String stateCode,
+                                   String mkb10Code) {
         if (startDate == null) throw new IllegalArgumentException("startDate is required");
         if (endDate == null) endDate = bucketService.today();
         if (startDate.isAfter(endDate)) throw new IllegalArgumentException("startDate > endDate");
 
-        var weekly = aggregationService.weeklyCounts(currentUser, startDate, endDate, stateCode, mkb10C0de);
+        var monthly = aggregationService.monthlyCounts(currentUser, startDate, endDate, stateCode, mkb10Code);
 
-        return calculator.compute(weekly, alpha, beta);
+        return calculator.compute(monthly, alpha, beta, gamma, season, horizon);
     }
 }
