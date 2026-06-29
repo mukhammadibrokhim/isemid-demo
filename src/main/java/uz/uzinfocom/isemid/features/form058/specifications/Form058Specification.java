@@ -1,7 +1,6 @@
 package uz.uzinfocom.isemid.features.form058.specifications;
 
 import jakarta.persistence.criteria.*;
-import org.hibernate.boot.model.naming.Identifier;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058FilterRequest;
@@ -11,6 +10,7 @@ import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.models.Affiliation;
+import uz.uzinfocom.isemid.features.patient.models.Identifier;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 import uz.uzinfocom.isemid.features.user.models.User;
