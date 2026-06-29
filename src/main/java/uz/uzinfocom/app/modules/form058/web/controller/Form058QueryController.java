@@ -22,7 +22,7 @@ import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Form 058 Query")
+@Tag(name = "Form 058")
 @RequestMapping(ApiPaths.Form058.ROOT)
 public class Form058QueryController {
 

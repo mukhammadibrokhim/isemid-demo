@@ -24,7 +24,7 @@ import uz.uzinfocom.app.shared.response.ApiResponse;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Form 058 Command")
+@Tag(name = "Form 058")
 @RequestMapping(ApiPaths.Form058.ROOT)
 public class Form058CommandController {
 

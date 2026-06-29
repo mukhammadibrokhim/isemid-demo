@@ -8,15 +8,29 @@ public final class OpenApiGroups {
     private OpenApiGroups() {
     }
 
+    private static final String[] REFERENCES_PATHS = {
+            "/v1/references",
+            "/v1/references/**"
+    };
+
+    private static final String[] ACCESS_CONTROL_PATHS = {
+            "/v1/role",
+            "/v1/role/**",
+            "/v1/roles",
+            "/v1/roles/**",
+
+            "/v1/permission",
+            "/v1/permission/**",
+            "/v1/permissions",
+            "/v1/permissions/**"
+    };
+
     public static final ApiDocumentationGroup REFERENCES = new ApiDocumentationGroup(
             "references",
             "Справочники",
             "Справочники",
             "API для работы со справочниками, классификаторами и нормативно-справочной информацией.",
-            new String[]{
-                    "/v1/references",
-                    "/v1/references/**"
-            }
+            REFERENCES_PATHS
     );
 
     public static final ApiDocumentationGroup ACCESS_CONTROL = new ApiDocumentationGroup(
@@ -24,12 +38,7 @@ public final class OpenApiGroups {
             "Роли и права доступа",
             "Роли и права доступа",
             "API для управления ролями, правами доступа и связями между ролями и правами.",
-            new String[]{
-                    "/v1/role",
-                    "/v1/role/**",
-                    "/v1/permission",
-                    "/v1/permission/**"
-            }
+            ACCESS_CONTROL_PATHS
     );
 
     public static String[] pathsToExcludeFromMain() {
