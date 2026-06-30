@@ -33,7 +33,7 @@ import java.util.UUID;
 
 @Tag(name = "Users", description = "User lookup and membership APIs.")
 @RestController
-@RequestMapping(ApiPaths.User.BASE)
+@RequestMapping(ApiPaths.User.ROOT)
 @RequiredArgsConstructor
 public class UserController {
 

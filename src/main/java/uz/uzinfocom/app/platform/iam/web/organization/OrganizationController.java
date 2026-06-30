@@ -21,7 +21,7 @@ import java.util.List;
 
 @Tag(name = "Organizations", description = "Organization lookup and membership APIs.")
 @RestController
-@RequestMapping(ApiPaths.Organization.BASE)
+@RequestMapping(ApiPaths.Organization.ROOT)
 @RequiredArgsConstructor
 public class OrganizationController {
 

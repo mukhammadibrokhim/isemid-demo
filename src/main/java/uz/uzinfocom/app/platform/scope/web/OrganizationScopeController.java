@@ -20,7 +20,7 @@ import uz.uzinfocom.app.shared.response.ApiResponse;
 )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(ApiPaths.Scope.BASE)
+@RequestMapping(ApiPaths.Scope.ROOT)
 public class OrganizationScopeController {
 
     private final OrganizationScopeResolver resolver;
@@ -28,15 +28,21 @@ public class OrganizationScopeController {
 
     @Operation(
             summary = "Получить текущий организационный контекст",
-            description = "Возвращает режим доступа и территориальные ограничения, рассчитанные для выбранной организации пользователя."
+            description = "Возвращает режим доступа, тип организации, уровень организации и территориальные ограничения, рассчитанные для выбранной организации пользователя."
     )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Успешный запрос."
+    )
     @GetMapping(ApiPaths.Scope.CURRENT)
     public ApiResponse<CurrentScopeResponse> current() {
-        ResolvedOrganizationScope scope = resolver.resolve(CurrentOrganizationContext.require());
+        ResolvedOrganizationScope scope = resolver.resolve(
+                CurrentOrganizationContext.require()
+        );
+
         return ApiResponse.success(
                 messages.resolve("organization.scope.loaded"),
-                new CurrentScopeResponse(scope.mode(), scope.organizationUuid(), scope.regionCode(), scope.districtCode())
+                CurrentScopeResponse.from(scope)
         );
     }
 }

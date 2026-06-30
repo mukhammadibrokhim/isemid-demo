@@ -21,4 +21,9 @@ public class OrganizationMappingHelper {
     public Long nullableActiveOrganizationId(UUID uuid) {
         return uuid == null ? null : organizationIdResolver.resolveActiveId(uuid);
     }
+
+    @Named("activeOrganizationNameById")
+    public String activeOrganizationNameById(Long id) {
+        return id == null ? null : organizationIdResolver.resolveActiveId(id);
+    }
 }

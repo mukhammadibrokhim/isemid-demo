@@ -30,4 +30,19 @@ public class OrganizationIdResolver {
         return organizationRepository.findActiveIdByUuid(uuid)
                 .orElseThrow(() -> new Form058ValidationException("error.organization.not-found", uuid));
     }
+
+
+    @Cacheable(
+            cacheNames = OrganizationCacheConfig.ORGANIZATION_NAME_BY_ID,
+            key = "#id",
+            cacheManager = "securityCacheManager",
+            sync = true
+    )
+    public String resolveActiveId(Long id) {
+        if (id == null) {
+            throw new Form058ValidationException("validation.form058.organization.required");
+        }
+        return organizationRepository.findActiveNameById(id)
+                .orElseThrow(() -> new Form058ValidationException("error.organization.not-found", id));
+    }
 }

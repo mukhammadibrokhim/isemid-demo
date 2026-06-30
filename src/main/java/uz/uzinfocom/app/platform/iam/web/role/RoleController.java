@@ -34,7 +34,7 @@ import java.util.List;
 )
 @Validated
 @RestController
-@RequestMapping(ApiPaths.Role.BASE)
+@RequestMapping(ApiPaths.Role.ROOT)
 @RequiredArgsConstructor
 public class RoleController {
 

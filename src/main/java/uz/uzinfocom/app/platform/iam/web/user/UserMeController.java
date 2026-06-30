@@ -19,7 +19,7 @@ import uz.uzinfocom.app.shared.response.ApiResponse;
         description = "API для получения профиля текущего пользователя, его организаций, ролей и прав доступа."
 )
 @RestController
-@RequestMapping(ApiPaths.User.BASE)
+@RequestMapping(ApiPaths.User.ROOT)
 @RequiredArgsConstructor
 public class UserMeController {
 

@@ -34,7 +34,7 @@ import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 )
 @Validated
 @RestController
-@RequestMapping(ApiPaths.Permission.BASE)
+@RequestMapping(ApiPaths.Permission.ROOT)
 @RequiredArgsConstructor
 public class PermissionController {
 

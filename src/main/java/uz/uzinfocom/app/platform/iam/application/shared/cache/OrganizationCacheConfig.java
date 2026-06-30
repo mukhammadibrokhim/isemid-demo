@@ -8,4 +8,7 @@ public final class OrganizationCacheConfig {
 
     public static final String ORGANIZATION_ID_BY_UUID =
             "organization-id-by-uuid";
+
+    public static final String ORGANIZATION_NAME_BY_ID =
+            "organization-name-by-id";
 }

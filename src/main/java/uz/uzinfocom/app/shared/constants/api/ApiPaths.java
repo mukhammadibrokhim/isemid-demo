@@ -12,7 +12,7 @@ public final class ApiPaths {
         private Organization() {
         }
 
-        public static final String BASE = API_V1 + "/organizations";
+        public static final String ROOT = API_V1 + "/organizations";
 
         public static final String LOOKUP = "/lookup";
         public static final String BY_ID = "/{id}";
@@ -27,7 +27,7 @@ public final class ApiPaths {
         private User() {
         }
 
-        public static final String BASE = API_V1 + "/users";
+        public static final String ROOT = API_V1 + "/users";
 
         public static final String ME = "/me";
         public static final String BY_ID = "/{id}";
@@ -42,7 +42,7 @@ public final class ApiPaths {
         private Role() {
         }
 
-        public static final String BASE = API_V1 + "/roles";
+        public static final String ROOT = API_V1 + "/roles";
 
         public static final String BY_ID = "/{id}";
 
@@ -54,7 +54,7 @@ public final class ApiPaths {
     }
 
     public static final class Permission {
-        public static final String BASE = API_V1 + "/permissions";
+        public static final String ROOT = API_V1 + "/permissions";
 
         public static final String BY_ID = "/{id}";
         public static final String RESTORE = "/{id}/restore";
@@ -64,7 +64,7 @@ public final class ApiPaths {
         private Scope() {
         }
 
-        public static final String BASE = API_V1 + "/scopes";
+        public static final String ROOT = API_V1 + "/scopes";
         public static final String CURRENT = "/current";
     }
 
@@ -72,13 +72,13 @@ public final class ApiPaths {
         private Reference() {
         }
 
-        public static final String BASE = API_V1 + "/references";
+        public static final String ROOT = API_V1 + "/references";
 
-        public static final String COUNTRIES = BASE + "/countries";
-        public static final String REGIONS = BASE + "/regions";
-        public static final String DISTRICTS = BASE + "/districts";
-        public static final String NEIGHBORHOODS = BASE + "/neighborhood";
-        public static final String CATALOGS = BASE + "/catalogs";
+        public static final String COUNTRIES = ROOT + "/countries";
+        public static final String REGIONS = ROOT + "/regions";
+        public static final String DISTRICTS = ROOT + "/districts";
+        public static final String NEIGHBORHOODS = ROOT + "/neighborhood";
+        public static final String CATALOGS = ROOT + "/catalogs";
 
         public static final String BY_ID = "/{id}";
         public static final String BY_CODE = "/code/{code}";

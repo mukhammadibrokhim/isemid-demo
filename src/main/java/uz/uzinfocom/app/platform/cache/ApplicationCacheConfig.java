@@ -39,6 +39,7 @@ public class ApplicationCacheConfig {
 
                 cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
                 cache(OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID, 20_000, Duration.ofHours(12)),
+                cache(OrganizationCacheConfig.ORGANIZATION_NAME_BY_ID, 20_000, Duration.ofHours(12)),
 
                 cache(ReferenceCacheConfig.REF_COUNTRIES, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_COUNTRY_BY_CODE, 50_000, Duration.ofHours(1)),

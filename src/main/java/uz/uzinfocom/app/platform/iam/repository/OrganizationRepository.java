@@ -51,4 +51,12 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
 
     @Query("SELECT o.id FROM Organization o WHERE o.uuid = :uuid and o.active =true")
     Optional<Long> findActiveIdByUuid(@Param("uuid") UUID uuid);
+
+    @Query("""
+                SELECT o.name
+                FROM Organization o
+                WHERE o.id = :id
+                  AND o.active = true
+            """)
+    Optional<String> findActiveNameById(@Param("id") Long id);
 }

@@ -31,10 +31,12 @@ public class Form058QueryService {
 
     private final Form058JpaRepository repository;
     private final OrganizationScopeResolver organizationScopeResolver;
+    private final Form058Specification form058Specification;
     private final Form058DetailResponseMapper form058DetailResponseMapper;
     private final Form058TableMapper form058TableMapper;
     private final AuditResolver auditResolver;
 
+    @Transactional(readOnly = true)
     public Page<Form058TableResponse> findAll(Form058Filter filter) {
         ResolvedOrganizationScope scope = currentScope();
 
@@ -45,20 +47,55 @@ public class Form058QueryService {
         };
     }
 
-    private Page<Form058TableResponse> findByScope(
+    @Transactional(readOnly = true)
+    protected Page<Form058TableResponse> findByScope(
             Form058Filter filter,
             ResolvedOrganizationScope scope,
             Boolean received
     ) {
-        Pageable pageable = PageableUtils.of(filter, Form058SortFields.ALLOWED);
-        Page<Form058TableProjection> page = Objects.requireNonNull(repository.findBy(
-                Form058Specification.table(filter, scope, received),
-                query -> query
-                        .as(Form058TableProjection.class)
-                        .page(pageable)
-        ), "Form058 Table is returned null!");
-        return page.map(projection -> form058TableMapper.toTableResponse(projection, filter.direction()));
+        Pageable pageable = PageableUtils.of(
+                filter,
+                Form058SortFields.ALLOWED
+        );
 
+        Page<Form058TableProjection> page = Objects.requireNonNull(
+                repository.findBy(
+                        form058Specification.table(filter, scope, received),
+                        query -> query
+                                .as(Form058TableProjection.class)
+                                .page(pageable)
+                ),
+                "Form058 table page returned null"
+        );
+
+        return page.map(projection -> form058TableMapper
+                .toTableResponse(projection, filter.direction()));
+    }
+
+    public Form058DetailResponse getById(Long id) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        Form058 form058 = repository.findOne(
+                form058Specification.visibleById(id, scope)
+        ).orElseThrow(() -> new Form058NotFoundException(id));
+
+        return form058DetailResponseMapper.toDetailedResponse(
+                form058,
+                auditResolver.resolve(form058)
+        );
+    }
+
+    public Form058DetailResponse getByNnuzb(String nnuzb) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        Form058 form058 = repository.findOne(
+                form058Specification.visibleByNnuzb(nnuzb, scope)
+        ).orElseThrow(() -> new Form058NotFoundException(nnuzb));
+
+        return form058DetailResponseMapper.toDetailedResponse(
+                form058,
+                auditResolver.resolve(form058)
+        );
     }
 
     private ResolvedOrganizationScope currentScope() {
@@ -69,14 +106,4 @@ public class Form058QueryService {
         return CurrentOrganizationContext.getOptional()
                 .orElseThrow(Form058ScopeViolationException::new);
     }
-
-    public Form058DetailResponse getById(Long id) {
-        Form058 form058 = repository.findOne(Form058Specification.visibleById(id, currentScope())).orElseThrow(() -> new Form058NotFoundException(id));
-        return form058DetailResponseMapper.toDetailedResponse(form058, auditResolver.resolve(form058));
-    }
-//
-//    public Form058DetailResponse getByNnuzb(String nnuzb) {
-//        return form058DetailResponseMapper.toDetailedResponse(null);
-////                .orElseThrow(() -> new Form058NotFoundException(nnuzb)));
-//    }
 }

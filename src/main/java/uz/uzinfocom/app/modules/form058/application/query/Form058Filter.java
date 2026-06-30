@@ -13,11 +13,12 @@ import java.time.LocalDate;
 
 @Schema(description = "Form058 table filter.")
 public record Form058Filter(
-        @Min(1)
+
+        @Min(value = 1, message = "{pagination.page.min}")
         Integer page,
 
-        @Min(1)
-        @Max(200)
+        @Min(value = 1, message = "{pagination.size.min}")
+        @Max(value = 200, message = "{pagination.size.max}")
         Integer size,
 
         String sortBy,
@@ -26,7 +27,7 @@ public record Form058Filter(
 
         FormStatus status,
 
-        @NotNull(message = "direction is required")
+        @NotNull(message = "{form058.filter.direction.required}")
         Form058Direction direction,
 
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -35,8 +36,26 @@ public record Form058Filter(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate dateTo,
 
-        String search,
+        Long id,
+
+        String documentValue,
+
+        String mkb10Code,
+
+        Long senderOrganizationId,
+
+        String regionCode,
+
+        String districtCode,
+
+        String source,
+
+        Boolean affiliation,
 
         Boolean hasLinkedCards
+
 ) implements PageableRequest {
+        public boolean isAffiliationFilterEnabled() {
+                return Boolean.TRUE.equals(affiliation);
+        }
 }
