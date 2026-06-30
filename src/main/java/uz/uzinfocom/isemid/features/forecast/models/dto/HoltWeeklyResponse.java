@@ -20,6 +20,5 @@ public record HoltWeeklyResponse(
             Double error,
             Double level,
             Double trend
-    ) {
-    }
+    ) {}
 }
