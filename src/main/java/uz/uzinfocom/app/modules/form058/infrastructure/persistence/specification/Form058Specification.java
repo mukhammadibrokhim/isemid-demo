@@ -344,23 +344,8 @@ public class Form058Specification {
         return cb.exists(subquery);
     }
 
-    private Predicate equalIgnoreCase(
-            CriteriaBuilder cb,
-            Expression<String> field,
-            String value
-    ) {
-        return cb.equal(
-                cb.lower(field),
-                normalizeLower(value)
-        );
-    }
-
     private String normalizeCode(String value) {
         return value.trim().toUpperCase(Locale.ROOT);
-    }
-
-    private String normalizeLower(String value) {
-        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     private String normalizeDocumentValue(String value) {

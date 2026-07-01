@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.persistence.entity.AuditableEntity;
-import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
@@ -78,12 +77,6 @@ public class User extends AuditableEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new LinkedHashSet<>();
-
-    @Transient
-    public Organization getCurrentOrganization() {
-        return CurrentOrganizationContext.getOptional()
-                .orElseGet(() -> organizations.stream().findFirst().orElse(null));
-    }
 
     public String getFullName() {
         return String.join(" ",

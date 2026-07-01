@@ -76,15 +76,4 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
             """)
     List<Long> findActiveIdsByCityCode(@Param("districtCode") String districtCode);
 
-    @Query("""
-            select o.id
-            from Organization o
-            where o.active = true
-              and o.regionCode = :regionCode
-              and o.districtCode = :districtCode
-            """)
-    List<Long> findActiveIdsByStateCodeAndCityCode(
-            @Param("regionCode") String regionCode,
-            @Param("districtCode") String districtCode
-    );
 }
