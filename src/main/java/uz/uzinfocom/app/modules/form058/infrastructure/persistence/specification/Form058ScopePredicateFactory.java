@@ -37,14 +37,12 @@ public class Form058ScopePredicateFactory {
             return cb.or(
                     scopePredicateFactory.apply(
                             root,
-                            query,
                             cb,
                             SENDER_ORGANIZATION_ID,
                             scope
                     ),
                     scopePredicateFactory.apply(
                             root,
-                            query,
                             cb,
                             RECEIVER_ORGANIZATION_ID,
                             scope
@@ -58,7 +56,6 @@ public class Form058ScopePredicateFactory {
 
         return scopePredicateFactory.apply(
                 root,
-                query,
                 cb,
                 organizationField,
                 scope

@@ -1,7 +1,6 @@
 package uz.uzinfocom.app.platform.scope.jpa;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,6 @@ public class OrganizationScopePredicateFactory {
      */
     public <T> Predicate apply(
             Root<T> root,
-            CriteriaQuery<?> query,
             CriteriaBuilder cb,
             String organizationIdField,
             ResolvedOrganizationScope scope
