@@ -36,6 +36,7 @@ public class ApplicationCacheConfig {
                 cache(SecurityCacheNames.SELECTED_ORGANIZATION_BY_USER_ID_AND_UUID, 50_000, Duration.ofMinutes(15)),
                 cache(SecurityCacheNames.USER_AUTHORITIES_BY_USER_ID, 20_000, Duration.ofMinutes(15)),
                 cache(SecurityCacheNames.ROLE_PERMISSIONS_BY_ROLE_IDS, 5_000, Duration.ofMinutes(30)),
+                cache(SecurityCacheNames.SCOPE_ORGANIZATION_IDS, 5_000, Duration.ofDays(1)),
 
                 cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
                 cache(OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID, 20_000, Duration.ofHours(12)),

@@ -24,7 +24,7 @@ import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
                 ),
                 @Index(
                         name = "idx_address_location",
-                        columnList = "state_code, city_code, neighborhood_code"
+                        columnList = "region_code, district_code, neighborhood_code"
                 )
         }
 )

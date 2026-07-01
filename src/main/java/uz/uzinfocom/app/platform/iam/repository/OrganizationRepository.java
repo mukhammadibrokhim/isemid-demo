@@ -59,4 +59,32 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
                   AND o.active = true
             """)
     Optional<String> findActiveNameById(@Param("id") Long id);
+
+    @Query("""
+            select o.id
+            from Organization o
+            where o.active = true
+              and o.regionCode = :regionCode
+            """)
+    List<Long> findActiveIdsByStateCode(@Param("regionCode") String regionCode);
+
+    @Query("""
+            select o.id
+            from Organization o
+            where o.active = true
+              and o.districtCode = :districtCode
+            """)
+    List<Long> findActiveIdsByCityCode(@Param("districtCode") String districtCode);
+
+    @Query("""
+            select o.id
+            from Organization o
+            where o.active = true
+              and o.regionCode = :regionCode
+              and o.districtCode = :districtCode
+            """)
+    List<Long> findActiveIdsByStateCodeAndCityCode(
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode
+    );
 }

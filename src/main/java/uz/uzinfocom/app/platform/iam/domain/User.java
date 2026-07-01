@@ -53,10 +53,10 @@ public class User extends AuditableEntity {
     @Column(name = "country_code", length = 20)
     private String countryCode;
 
-    @Column(name = "state_code", length = 20)
+    @Column(name = "region_code", length = 20)
     private String regionCode;
 
-    @Column(name = "city_code", length = 20)
+    @Column(name = "district_code", length = 20)
     private String districtCode;
 
     private String line;

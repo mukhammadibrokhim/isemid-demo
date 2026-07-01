@@ -16,13 +16,32 @@ import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class Form058Specification {
 
+    private static final String ID = "id";
+    private static final String DELETED = "deleted";
+    private static final String PATIENT = "patient";
+
+    private static final String STATUS = "status";
+    private static final String SOURCE = "source";
+    private static final String HAS_LINKED_CARDS = "hasLinkedCards";
+
+    private static final String DIAGNOSIS_INFO = "diagnosisInfo";
+    private static final String MKB10_CODE = "mkb10Code";
+
     private static final String SENDER_ORGANIZATION_ID = "senderOrganizationId";
+    private static final String RECEIVER_ORGANIZATION_ID = "receiverOrganizationId";
+
+    /**
+     * Agar Organization entity ichida field nomlari stateCode/cityCode bo‘lsa,
+     * shu ikkitasini regionCode/districtCode o‘rniga almashtirasan.
+     */
+    private static final String ORGANIZATION_REGION_CODE = "regionCode";
+    private static final String ORGANIZATION_DISTRICT_CODE = "districtCode";
+    private static final String ORGANIZATION_ACTIVE = "active";
 
     private final Form058ScopePredicateFactory form058ScopePredicateFactory;
 
@@ -34,7 +53,7 @@ public class Form058Specification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.isFalse(root.get("deleted")));
+            predicates.add(cb.isFalse(root.get(DELETED)));
 
             predicates.add(accessScopePredicate(
                     root,
@@ -45,7 +64,14 @@ public class Form058Specification {
                     received
             ));
 
-            applyFilters(predicates, root, query, cb, filter);
+            applyFilters(
+                    predicates,
+                    root,
+                    query,
+                    cb,
+                    filter,
+                    received
+            );
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
@@ -57,7 +83,7 @@ public class Form058Specification {
     ) {
         return visible(scope)
                 .and((root, query, cb) ->
-                        cb.equal(root.get("id"), id)
+                        cb.equal(root.get(ID), id)
                 );
     }
 
@@ -67,13 +93,18 @@ public class Form058Specification {
     ) {
         return visible(scope)
                 .and((root, query, cb) ->
-                        documentValueExists(root, query, cb, nnuzb)
+                        documentValueExists(
+                                root,
+                                query,
+                                cb,
+                                normalizeDocumentValue(nnuzb)
+                        )
                 );
     }
 
     private Specification<Form058> visible(ResolvedOrganizationScope scope) {
         return (root, query, cb) -> cb.and(
-                cb.isFalse(root.get("deleted")),
+                cb.isFalse(root.get(DELETED)),
                 form058ScopePredicateFactory.applyDirectionScope(
                         root,
                         query,
@@ -85,14 +116,15 @@ public class Form058Specification {
     }
 
     /**
-     * Builds the access scope predicate for the Form058 table.
+     * Access scope:
      * <p>
-     * Default mode:
-     * Form058 records are filtered by the regular sender/receiver organization scope.
+     * Default:
+     * - OUTGOING -> senderOrganizationId bo‘yicha scope
+     * - INCOMING -> receiverOrganizationId bo‘yicha scope
+     * - ALL      -> sender yoki receiver bo‘yicha scope
      * <p>
      * Affiliation mode:
-     * Form058 records are filtered only by patient affiliation.
-     * The patient must have WORKPLACE or EDUCATIONAL affiliation with the current organization.
+     * - faqat patient affiliation orqali ko‘rinadi
      */
     private Predicate accessScopePredicate(
             Root<Form058> root,
@@ -107,7 +139,7 @@ public class Form058Specification {
                     root,
                     query,
                     cb,
-                    scope.organizationUuid()
+                    scope.organizationId()
             );
         }
 
@@ -125,7 +157,8 @@ public class Form058Specification {
             Root<Form058> root,
             CriteriaQuery<?> query,
             CriteriaBuilder cb,
-            Form058Filter filter
+            Form058Filter filter,
+            Boolean received
     ) {
         if (filter == null) {
             return;
@@ -133,7 +166,7 @@ public class Form058Specification {
 
         if (filter.id() != null) {
             predicates.add(cb.equal(
-                    root.get("id"),
+                    root.get(ID),
                     filter.id()
             ));
         }
@@ -143,22 +176,21 @@ public class Form058Specification {
                     root,
                     query,
                     cb,
-                    normalize(filter.documentValue())
+                    normalizeDocumentValue(filter.documentValue())
             ));
         }
 
         if (filter.status() != null) {
             predicates.add(cb.equal(
-                    root.get("status"),
+                    root.get(STATUS),
                     filter.status()
             ));
         }
 
         if (StringUtils.hasText(filter.mkb10Code())) {
-            predicates.add(equalIgnoreCase(
-                    cb,
-                    root.get("diagnosisInfo").get("mkb10Code"),
-                    filter.mkb10Code()
+            predicates.add(cb.equal(
+                    root.get(DIAGNOSIS_INFO).get(MKB10_CODE),
+                    normalizeCode(filter.mkb10Code())
             ));
         }
 
@@ -169,31 +201,91 @@ public class Form058Specification {
             ));
         }
 
-        if (StringUtils.hasText(filter.regionCode())) {
-            predicates.add(root.<Long>get(SENDER_ORGANIZATION_ID).in(
-                    organizationIdsByRegion(query, cb, filter.regionCode())
-            ));
-        }
-
-        if (StringUtils.hasText(filter.districtCode())) {
-            predicates.add(root.<Long>get(SENDER_ORGANIZATION_ID).in(
-                    organizationIdsByDistrict(query, cb, filter.districtCode())
+        if (StringUtils.hasText(filter.regionCode()) || StringUtils.hasText(filter.districtCode())) {
+            predicates.add(organizationLocationPredicate(
+                    root,
+                    query,
+                    cb,
+                    received,
+                    filter.regionCode(),
+                    filter.districtCode()
             ));
         }
 
         if (StringUtils.hasText(filter.source())) {
             predicates.add(cb.equal(
-                    root.get("source"),
-                    filter.source().trim().toUpperCase(Locale.ROOT)
+                    root.get(SOURCE),
+                    normalizeCode(filter.source())
             ));
         }
 
         if (filter.hasLinkedCards() != null) {
             predicates.add(cb.equal(
-                    root.get("hasLinkedCards"),
+                    root.get(HAS_LINKED_CARDS),
                     filter.hasLinkedCards()
             ));
         }
+    }
+
+    private Predicate organizationLocationPredicate(
+            Root<Form058> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Boolean received,
+            String regionCode,
+            String districtCode
+    ) {
+        if (received == null) {
+            return cb.or(
+                    root.<Long>get(SENDER_ORGANIZATION_ID).in(
+                            organizationIdsByLocation(query, cb, regionCode, districtCode)
+                    ),
+                    root.<Long>get(RECEIVER_ORGANIZATION_ID).in(
+                            organizationIdsByLocation(query, cb, regionCode, districtCode)
+                    )
+            );
+        }
+
+        String organizationField = Boolean.TRUE.equals(received)
+                ? RECEIVER_ORGANIZATION_ID
+                : SENDER_ORGANIZATION_ID;
+
+        return root.<Long>get(organizationField).in(
+                organizationIdsByLocation(query, cb, regionCode, districtCode)
+        );
+    }
+
+    private Subquery<Long> organizationIdsByLocation(
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            String regionCode,
+            String districtCode
+    ) {
+        Subquery<Long> subquery = query.subquery(Long.class);
+        Root<Organization> organization = subquery.from(Organization.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(cb.isTrue(organization.get(ORGANIZATION_ACTIVE)));
+
+        if (StringUtils.hasText(regionCode)) {
+            predicates.add(cb.equal(
+                    organization.get(ORGANIZATION_REGION_CODE),
+                    normalizeCode(regionCode)
+            ));
+        }
+
+        if (StringUtils.hasText(districtCode)) {
+            predicates.add(cb.equal(
+                    organization.get(ORGANIZATION_DISTRICT_CODE),
+                    normalizeCode(districtCode)
+            ));
+        }
+
+        subquery.select(organization.get(ID))
+                .where(cb.and(predicates.toArray(Predicate[]::new)));
+
+        return subquery;
     }
 
     private Predicate documentValueExists(
@@ -208,8 +300,8 @@ public class Form058Specification {
         subquery.select(cb.literal(1L));
         subquery.where(
                 cb.equal(
-                        identifier.get("patient").get("id"),
-                        root.get("patient").get("id")
+                        identifier.get(PATIENT).get(ID),
+                        root.get(PATIENT).get(ID)
                 ),
                 cb.equal(
                         identifier.get("value"),
@@ -224,9 +316,9 @@ public class Form058Specification {
             Root<Form058> root,
             CriteriaQuery<?> query,
             CriteriaBuilder cb,
-            UUID currentOrganizationUuid
+            Long currentOrganizationId
     ) {
-        if (currentOrganizationUuid == null) {
+        if (currentOrganizationId == null) {
             return cb.disjunction();
         }
 
@@ -236,12 +328,12 @@ public class Form058Specification {
         subquery.select(cb.literal(1L));
         subquery.where(
                 cb.equal(
-                        affiliation.get("patient").get("id"),
-                        root.get("patient").get("id")
+                        affiliation.get(PATIENT).get(ID),
+                        root.get(PATIENT).get(ID)
                 ),
                 cb.equal(
-                        affiliation.get("organizationUuid"),
-                        currentOrganizationUuid
+                        affiliation.get("organizationId"),
+                        currentOrganizationId
                 ),
                 affiliation.get("type").in(
                         AffiliationType.WORKPLACE,
@@ -252,46 +344,6 @@ public class Form058Specification {
         return cb.exists(subquery);
     }
 
-    private Subquery<Long> organizationIdsByRegion(
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            String regionCode
-    ) {
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<Organization> organization = subquery.from(Organization.class);
-
-        subquery.select(organization.get("id"))
-                .where(
-                        cb.equal(
-                                cb.lower(organization.get("regionCode")),
-                                normalize(regionCode)
-                        ),
-                        cb.isFalse(organization.get("deleted"))
-                );
-
-        return subquery;
-    }
-
-    private Subquery<Long> organizationIdsByDistrict(
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            String districtCode
-    ) {
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<Organization> organization = subquery.from(Organization.class);
-
-        subquery.select(organization.get("id"))
-                .where(
-                        cb.equal(
-                                cb.lower(organization.get("districtCode")),
-                                normalize(districtCode)
-                        ),
-                        cb.isFalse(organization.get("deleted"))
-                );
-
-        return subquery;
-    }
-
     private Predicate equalIgnoreCase(
             CriteriaBuilder cb,
             Expression<String> field,
@@ -299,11 +351,19 @@ public class Form058Specification {
     ) {
         return cb.equal(
                 cb.lower(field),
-                normalize(value)
+                normalizeLower(value)
         );
     }
 
-    private String normalize(String value) {
+    private String normalizeCode(String value) {
+        return value.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeLower(String value) {
         return value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeDocumentValue(String value) {
+        return value.trim().toUpperCase(Locale.ROOT);
     }
 }

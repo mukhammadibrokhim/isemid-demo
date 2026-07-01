@@ -19,6 +19,13 @@ public class Form058ScopePredicateFactory {
 
     private final OrganizationScopePredicateFactory scopePredicateFactory;
 
+    /**
+     * Direction-based Form058 scope:
+     * <p>
+     * received = true  -> incoming records, scope by receiverOrganizationId
+     * received = false -> outgoing records, scope by senderOrganizationId
+     * received = null  -> all visible records, sender OR receiver scope
+     */
     public Predicate applyDirectionScope(
             Root<Form058> root,
             CriteriaQuery<?> query,

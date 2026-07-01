@@ -4,23 +4,30 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
+import java.util.List;
+
 @Component
+@RequiredArgsConstructor
 public class OrganizationScopePredicateFactory {
+
+    private final OrganizationScopeOrganizationIdResolver organizationIdResolver;
 
     /**
      * Generic organization scope predicate.
      * <p>
-     * Rule:
-     * - SANEPID_SERVICE: uses resolved hierarchy scope: ALL / REGION / DISTRICT / ORGANIZATION
-     * - Non-SANEPID_SERVICE: always direct organization filter
+     * Rules:
+     * - Non-SANEPID_SERVICE -> only own organization
+     * - SANEPID_SERVICE + ALL -> no organization restriction
+     * - SANEPID_SERVICE + REGION -> organizations by stateCode
+     * - SANEPID_SERVICE + DISTRICT -> organizations by cityCode
+     * - SANEPID_SERVICE + ORGANIZATION -> only own organization
      */
     public <T> Predicate apply(
             Root<T> root,
@@ -31,14 +38,13 @@ public class OrganizationScopePredicateFactory {
     ) {
         validate(scope, organizationIdField);
 
-        /*
-         * Critical rule:
-         * If selected organization is NOT SANEPID_SERVICE,
-         * do not apply REGION/DISTRICT hierarchy.
-         * It must see only records related to its own organization.
-         */
         if (!scope.isSanepidService()) {
-            return directOrganization(root, cb, organizationIdField, scope);
+            return directOrganization(
+                    root,
+                    cb,
+                    organizationIdField,
+                    scope.organizationId()
+            );
         }
 
         OrganizationScopeMode mode = scope.mode();
@@ -50,23 +56,18 @@ public class OrganizationScopePredicateFactory {
                     root,
                     cb,
                     organizationIdField,
-                    scope
+                    scope.organizationId()
             );
 
-            case REGION -> byRegion(
+            case REGION, DISTRICT -> byResolvedOrganizationIds(
                     root,
-                    query,
                     cb,
                     organizationIdField,
-                    scope
-            );
-
-            case DISTRICT -> byDistrict(
-                    root,
-                    query,
-                    cb,
-                    organizationIdField,
-                    scope
+                    organizationIdResolver.resolveScopeOrganizationIds(
+                            mode,
+                            scope.regionCode(),
+                            scope.districtCode()
+                    )
             );
         };
     }
@@ -75,82 +76,36 @@ public class OrganizationScopePredicateFactory {
             Root<T> root,
             CriteriaBuilder cb,
             String organizationIdField,
-            ResolvedOrganizationScope scope
+            Long organizationId
     ) {
-        if (scope.organizationId() == null) {
+        if (organizationId == null) {
             throw new ScopeViolationException("organization.scope_violation");
         }
 
         return cb.equal(
                 root.<Long>get(organizationIdField),
-                scope.organizationId()
+                organizationId
         );
     }
 
-    private <T> Predicate byRegion(
+    private <T> Predicate byResolvedOrganizationIds(
             Root<T> root,
-            CriteriaQuery<?> query,
             CriteriaBuilder cb,
             String organizationIdField,
-            ResolvedOrganizationScope scope
+            List<Long> organizationIds
     ) {
-        if (!StringUtils.hasText(scope.regionCode())) {
-            throw new ScopeViolationException("organization.scope_violation");
+        if (organizationIds == null || organizationIds.isEmpty()) {
+            return cb.disjunction();
         }
 
-        return root.<Long>get(organizationIdField).in(
-                organizationIdsByRegion(query, cb, scope.regionCode())
-        );
-    }
-
-    private <T> Predicate byDistrict(
-            Root<T> root,
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            String organizationIdField,
-            ResolvedOrganizationScope scope
-    ) {
-        if (!StringUtils.hasText(scope.districtCode())) {
-            throw new ScopeViolationException("organization.scope_violation");
+        if (organizationIds.size() == 1) {
+            return cb.equal(
+                    root.<Long>get(organizationIdField),
+                    organizationIds.getFirst()
+            );
         }
 
-        return root.<Long>get(organizationIdField).in(
-                organizationIdsByDistrict(query, cb, scope.districtCode())
-        );
-    }
-
-    private Subquery<Long> organizationIdsByRegion(
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            String regionCode
-    ) {
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<Organization> organization = subquery.from(Organization.class);
-
-        subquery.select(organization.get("id"))
-                .where(
-                        cb.equal(organization.get("regionCode"), regionCode),
-                        cb.isFalse(organization.get("deleted"))
-                );
-
-        return subquery;
-    }
-
-    private Subquery<Long> organizationIdsByDistrict(
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            String districtCode
-    ) {
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<Organization> organization = subquery.from(Organization.class);
-
-        subquery.select(organization.get("id"))
-                .where(
-                        cb.equal(organization.get("districtCode"), districtCode),
-                        cb.isFalse(organization.get("deleted"))
-                );
-
-        return subquery;
+        return root.<Long>get(organizationIdField).in(organizationIds);
     }
 
     private void validate(

@@ -38,10 +38,10 @@ public class Organization extends AuditableEntity {
     @Column(length = 50)
     private String phone;
 
-    @Column(name = "state_code", length = 64)
+    @Column(name = "region_code", length = 64)
     private String regionCode;
 
-    @Column(name = "city_code", length = 64)
+    @Column(name = "district_code", length = 64)
     private String districtCode;
 
     @Enumerated(EnumType.STRING)

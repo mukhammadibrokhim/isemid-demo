@@ -13,6 +13,8 @@ public final class SecurityCacheNames {
 
     public static final String IAM_ROLE_BY_NAME = ROLE_BY_NAME;
 
+    public static final String SCOPE_ORGANIZATION_IDS = "scopeOrganizationIds";
+
     private SecurityCacheNames() {
     }
 }
