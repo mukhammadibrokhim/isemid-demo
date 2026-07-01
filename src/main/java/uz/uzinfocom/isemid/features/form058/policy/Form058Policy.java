@@ -67,7 +67,16 @@ public class Form058Policy {
     }
 
     public void assertDiagnosisApprovable(Form058 form058) {
-        //TODO Should add status validation
+        if (form058 == null) {
+            throw new ApiException(FORBIDDEN, "error.form058.not_found");
+        }
+
+        if (form058.getStatus() != FormStatus.CARD_LINKED) {
+            throw new ApiException(
+                    FORBIDDEN,
+                    "error.form058.diagnosis_approval_not_allowed_status"
+            );
+        }
     }
 
     public void validateCreatPermission(Organization currentOrganization) {

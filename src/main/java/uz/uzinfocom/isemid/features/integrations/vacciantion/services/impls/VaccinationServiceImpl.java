@@ -30,13 +30,13 @@ public class VaccinationServiceImpl implements VaccinationService {
     private final IntegrationUrlFactory integrationUrlFactory;
 
     @Override
-    public Object getVaccinationByNnuzbLast(String nnuzb) {
+    public Object getVaccinationByNnuzbLast(String nnuzb, String token) {
         String masked = maskNnuzb(nnuzb);
         log.info("Fetching latest vaccination data for NNUZB: {}", masked);
 
         validateByNnuzb(nnuzb,messageUtil);
         URI uri = integrationUrlFactory.vaccinationUrl(nnuzb);
-        String resp = makeRequest(String.valueOf(uri), HttpMethod.GET, null, null, String.class, messageUtil);
+        String resp = makeRequest(String.valueOf(uri), HttpMethod.GET, token, null, String.class, messageUtil);
         log.debug("Raw response received for {}: {}", masked, resp);
 
         List<VaccinationResponse> mapped = mapping(resp);
