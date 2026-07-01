@@ -1,7 +1,6 @@
 package uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,6 @@ public class Form058ScopePredicateFactory {
      */
     public Predicate applyDirectionScope(
             Root<Form058> root,
-            CriteriaQuery<?> query,
             CriteriaBuilder cb,
             ResolvedOrganizationScope scope,
             Boolean received

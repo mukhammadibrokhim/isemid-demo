@@ -107,7 +107,6 @@ public class Form058Specification {
                 cb.isFalse(root.get(DELETED)),
                 form058ScopePredicateFactory.applyDirectionScope(
                         root,
-                        query,
                         cb,
                         scope,
                         null
@@ -145,7 +144,6 @@ public class Form058Specification {
 
         return form058ScopePredicateFactory.applyDirectionScope(
                 root,
-                query,
                 cb,
                 scope,
                 received
