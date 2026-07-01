@@ -8,7 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.form058.application.query.Form058Filter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058QueryService;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
@@ -33,7 +36,7 @@ public class Form058QueryController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<Form058TableResponse> findAll(
-            @ParameterObject @Valid @ModelAttribute Form058Filter filter,
+            @ParameterObject @Valid Form058Filter filter,
             HttpServletRequest httpRequest
     ) {
         return pagedResponseAssembler.toResponse(form058QueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);

@@ -92,7 +92,7 @@ public final class ApiPaths {
         private Form058() {
         }
 
-        public static final String ROOT = API_V1 + "/form058";
+        public static final String ROOT = API_V1 + "/form-058";
     }
 
     public static final class Card {

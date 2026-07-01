@@ -13,6 +13,9 @@ import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -24,6 +27,9 @@ public class Form058Specification {
     private static final String ID = "id";
     private static final String DELETED = "deleted";
     private static final String PATIENT = "patient";
+
+    private static final String CREATED_AT = "createdAt";
+    private static final ZoneId APPLICATION_ZONE = ZoneId.of("Asia/Tashkent");
 
     private static final String STATUS = "status";
     private static final String SOURCE = "source";
@@ -125,6 +131,16 @@ public class Form058Specification {
             predicates.add(cb.equal(root.get(ID), filter.id()));
         }
 
+        if (filter.dateFrom() != null || filter.dateTo() != null) {
+            applyCreatedAtDateRangeFilter(
+                    predicates,
+                    root,
+                    cb,
+                    filter.dateFrom(),
+                    filter.dateTo()
+            );
+        }
+
         if (StringUtils.hasText(filter.documentValue())) {
             predicates.add(documentValueExists(root, query, cb, normalizeDocumentValue(filter.documentValue())));
         }
@@ -151,6 +167,26 @@ public class Form058Specification {
 
         if (filter.hasLinkedCards() != null) {
             predicates.add(cb.equal(root.get(HAS_LINKED_CARDS), filter.hasLinkedCards()));
+        }
+    }
+
+    private void applyCreatedAtDateRangeFilter(
+            List<Predicate> predicates,
+            Root<Form058> root,
+            CriteriaBuilder cb,
+            LocalDate dateFrom,
+            LocalDate dateTo
+    ) {
+        if (dateFrom != null) {
+            Instant fromInclusive = dateFrom.atStartOfDay(APPLICATION_ZONE).toInstant();
+
+            predicates.add(cb.greaterThanOrEqualTo(root.get(CREATED_AT), fromInclusive));
+        }
+
+        if (dateTo != null) {
+            Instant toExclusive = dateTo.plusDays(1).atStartOfDay(APPLICATION_ZONE).toInstant();
+
+            predicates.add(cb.lessThan(root.get(CREATED_AT), toExclusive));
         }
     }
 
