@@ -44,16 +44,17 @@ class ForecastControllerTest {
         when(messageUtil.get("message.success")).thenReturn("OK");
         when(facade.holt(any(), any(), any(), anyDouble(), anyDouble(), any(), any()))
                 .thenReturn(STUB_V1);
+        // season and horizon are now Integer (nullable); period is the new param
         when(facadeV2.holt(any(), any(), any(), anyDouble(), anyDouble(), anyDouble(),
-                anyInt(), anyInt(), any(), any()))
+                any(), any(), any(), any(), any()))
                 .thenReturn(STUB_V2);
     }
 
-    // ── holtWeekly (v1) ───────────────────────────────────────────────────────
+    // ── holtWeekly (v2 path, double-exponential) ──────────────────────────────
 
     @Test
     void holtWeekly_requiredParams_returns200() throws Exception {
-        mockMvc.perform(get("/v1/forecast/holt-weekly")
+        mockMvc.perform(get("/v2/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1"))
@@ -65,7 +66,7 @@ class ForecastControllerTest {
 
     @Test
     void holtWeekly_missingAlpha_returns400() throws Exception {
-        mockMvc.perform(get("/v1/forecast/holt-weekly")
+        mockMvc.perform(get("/v2/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("beta",      "0.1"))
                 .andExpect(status().isBadRequest());
@@ -73,7 +74,7 @@ class ForecastControllerTest {
 
     @Test
     void holtWeekly_missingBeta_returns400() throws Exception {
-        mockMvc.perform(get("/v1/forecast/holt-weekly")
+        mockMvc.perform(get("/v2/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3"))
                 .andExpect(status().isBadRequest());
@@ -81,7 +82,7 @@ class ForecastControllerTest {
 
     @Test
     void holtWeekly_missingStartDate_returns400() throws Exception {
-        mockMvc.perform(get("/v1/forecast/holt-weekly")
+        mockMvc.perform(get("/v2/forecast/holt-weekly")
                         .param("alpha", "0.3")
                         .param("beta",  "0.1"))
                 .andExpect(status().isBadRequest());
@@ -89,7 +90,7 @@ class ForecastControllerTest {
 
     @Test
     void holtWeekly_optionalEndDateOmitted_passesNullToFacade() throws Exception {
-        mockMvc.perform(get("/v1/forecast/holt-weekly")
+        mockMvc.perform(get("/v2/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1"))
@@ -102,7 +103,7 @@ class ForecastControllerTest {
 
     @Test
     void holtWeekly_optionalFilters_passedToFacade() throws Exception {
-        mockMvc.perform(get("/v1/forecast/holt-weekly")
+        mockMvc.perform(get("/v2/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1")
@@ -115,18 +116,18 @@ class ForecastControllerTest {
 
     @Test
     void holtWeekly_invalidDateFormat_returns400() throws Exception {
-        mockMvc.perform(get("/v1/forecast/holt-weekly")
+        mockMvc.perform(get("/v2/forecast/holt-weekly")
                         .param("startDate", "01-01-2024")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1"))
                 .andExpect(status().isBadRequest());
     }
 
-    // ── holtWeeklyV2 ─────────────────────────────────────────────────────────
+    // ── holtWeeklyV2 (v1 path, Holt-Winters) ─────────────────────────────────
 
     @Test
     void holtWeeklyV2_requiredParams_returns200() throws Exception {
-        mockMvc.perform(get("/v2/forecast/holt-weekly")
+        mockMvc.perform(get("/v1/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1")
@@ -139,7 +140,7 @@ class ForecastControllerTest {
 
     @Test
     void holtWeeklyV2_missingGamma_returns400() throws Exception {
-        mockMvc.perform(get("/v2/forecast/holt-weekly")
+        mockMvc.perform(get("/v1/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1"))
@@ -147,8 +148,8 @@ class ForecastControllerTest {
     }
 
     @Test
-    void holtWeeklyV2_defaultSeasonAndHorizon_passesTwelveToFacade() throws Exception {
-        mockMvc.perform(get("/v2/forecast/holt-weekly")
+    void holtWeeklyV2_seasonAndHorizonOmitted_passesNullToFacade() throws Exception {
+        mockMvc.perform(get("/v1/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1")
@@ -159,15 +160,15 @@ class ForecastControllerTest {
         ArgumentCaptor<Integer> horizonCaptor = ArgumentCaptor.forClass(Integer.class);
         verify(facadeV2).holt(any(), any(), any(),
                 anyDouble(), anyDouble(), anyDouble(),
-                seasonCaptor.capture(), horizonCaptor.capture(), any(), any());
+                seasonCaptor.capture(), horizonCaptor.capture(), any(), any(), any());
 
-        assertThat(seasonCaptor.getValue()).isEqualTo(12);
-        assertThat(horizonCaptor.getValue()).isEqualTo(12);
+        assertThat(seasonCaptor.getValue()).isNull();
+        assertThat(horizonCaptor.getValue()).isNull();
     }
 
     @Test
     void holtWeeklyV2_explicitSeasonAndHorizon_passedToFacade() throws Exception {
-        mockMvc.perform(get("/v2/forecast/holt-weekly")
+        mockMvc.perform(get("/v1/forecast/holt-weekly")
                         .param("startDate", "2024-01-01")
                         .param("alpha",     "0.3")
                         .param("beta",      "0.1")
@@ -177,12 +178,12 @@ class ForecastControllerTest {
                 .andExpect(status().isOk());
 
         verify(facadeV2).holt(any(), any(), any(),
-                anyDouble(), anyDouble(), anyDouble(), eq(4), eq(8), any(), any());
+                anyDouble(), anyDouble(), anyDouble(), eq(4), eq(8), any(), any(), any());
     }
 
     @Test
     void holtWeeklyV2_datesAreParsedCorrectly() throws Exception {
-        mockMvc.perform(get("/v2/forecast/holt-weekly")
+        mockMvc.perform(get("/v1/forecast/holt-weekly")
                         .param("startDate", "2023-06-15")
                         .param("endDate",   "2025-11-30")
                         .param("alpha",     "0.3")
@@ -194,6 +195,35 @@ class ForecastControllerTest {
                 eq(LocalDate.of(2023, 6, 15)),
                 eq(LocalDate.of(2025, 11, 30)),
                 anyDouble(), anyDouble(), anyDouble(),
-                anyInt(), anyInt(), any(), any());
+                any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void holtWeeklyV2_defaultPeriodIsMonthly() throws Exception {
+        mockMvc.perform(get("/v1/forecast/holt-weekly")
+                        .param("startDate", "2024-01-01")
+                        .param("alpha",     "0.3")
+                        .param("beta",      "0.1")
+                        .param("gamma",     "0.2"))
+                .andExpect(status().isOk());
+
+        verify(facadeV2).holt(any(), any(), any(),
+                anyDouble(), anyDouble(), anyDouble(),
+                any(), any(), eq("MONTHLY"), any(), any());
+    }
+
+    @Test
+    void holtWeeklyV2_explicitPeriodWeekly_passedToFacade() throws Exception {
+        mockMvc.perform(get("/v1/forecast/holt-weekly")
+                        .param("startDate", "2024-01-01")
+                        .param("alpha",     "0.3")
+                        .param("beta",      "0.1")
+                        .param("gamma",     "0.2")
+                        .param("period",    "WEEKLY"))
+                .andExpect(status().isOk());
+
+        verify(facadeV2).holt(any(), any(), any(),
+                anyDouble(), anyDouble(), anyDouble(),
+                any(), any(), eq("WEEKLY"), any(), any());
     }
 }
