@@ -33,18 +33,8 @@ public class Form058ScopePredicateFactory {
     ) {
         if (received == null) {
             return cb.or(
-                    scopePredicateFactory.apply(
-                            root,
-                            cb,
-                            SENDER_ORGANIZATION_ID,
-                            scope
-                    ),
-                    scopePredicateFactory.apply(
-                            root,
-                            cb,
-                            RECEIVER_ORGANIZATION_ID,
-                            scope
-                    )
+                    scopePredicateFactory.apply(root, cb, SENDER_ORGANIZATION_ID, scope),
+                    scopePredicateFactory.apply(root, cb, RECEIVER_ORGANIZATION_ID, scope)
             );
         }
 
@@ -52,11 +42,6 @@ public class Form058ScopePredicateFactory {
                 ? RECEIVER_ORGANIZATION_ID
                 : SENDER_ORGANIZATION_ID;
 
-        return scopePredicateFactory.apply(
-                root,
-                cb,
-                organizationField,
-                scope
-        );
+        return scopePredicateFactory.apply(root, cb, organizationField, scope);
     }
 }

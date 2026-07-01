@@ -37,12 +37,7 @@ public class OrganizationScopePredicateFactory {
         validate(scope, organizationIdField);
 
         if (!scope.isSanepidService()) {
-            return directOrganization(
-                    root,
-                    cb,
-                    organizationIdField,
-                    scope.organizationId()
-            );
+            return directOrganization(root, cb, organizationIdField, scope.organizationId());
         }
 
         OrganizationScopeMode mode = scope.mode();
