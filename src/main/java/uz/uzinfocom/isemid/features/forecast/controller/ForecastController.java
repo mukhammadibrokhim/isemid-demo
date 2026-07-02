@@ -47,14 +47,15 @@ public class ForecastController {
             @RequestParam("alpha") double alpha,
             @RequestParam("beta") double beta,
             @RequestParam("gamma") double gamma,
-            @RequestParam(value = "season", defaultValue = "12") int season,
-            @RequestParam(value = "horizon", defaultValue = "12") int horizon,
+            @RequestParam(value = "season", required = false) Integer season,
+            @RequestParam(value = "horizon", required = false) Integer horizon,
+            @RequestParam(value = "period", defaultValue = "MONTHLY") String period,
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String mkb10C0de
     ) {
         return ApiResponse.success(messageUtil,
                 facadeV2.holt(currentUser, startDate, endDate,
-                        alpha, beta, gamma, season, horizon,
+                        alpha, beta, gamma, season, horizon, period,
                         stateCode, mkb10C0de));
     }
 }
