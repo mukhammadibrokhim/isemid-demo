@@ -63,6 +63,7 @@ public class HoltWintersCalculator {
 
         // ── Recursive Holt-Winters (additive) ────────────────────────────────
         double mapeSum = 0;
+        double sqErrorSum = 0;
         int mCount = 0;
 
         for (int i = season; i < n; i++) {
@@ -85,6 +86,7 @@ public class HoltWintersCalculator {
 
             double error = yi - forecast;
             mapeSum += (yi != 0) ? Math.abs(error / yi) * 100.0 : 0.0;
+            sqErrorSum += error * error;
             mCount++;
 
             history.add(new HoltWintersResponse.Point(
@@ -99,6 +101,10 @@ public class HoltWintersCalculator {
 
         double mape = (mCount == 0) ? 0.0 : mapeSum / mCount;
 
+        // Residual std of the in-sample one-step-ahead fitted errors, used as the
+        // basis for prediction intervals — grown per horizon step below.
+        double residualStd = (mCount == 0) ? 0.0 : Math.sqrt(sqErrorSum / mCount);
+
         // ── Future: F_{n+h} = L_n + h*T_n + S[n − m + ((h−1) % m)] ─────────
         List<HoltWintersResponse.FuturePoint> future = new ArrayList<>();
         if (horizon > 0) {
@@ -108,7 +114,19 @@ public class HoltWintersCalculator {
                 LocalDate from = fm.atDay(1);
                 LocalDate to   = fm.atEndOfMonth();
                 int sIdx = n - season + ((h - 1) % season);
-                future.add(new HoltWintersResponse.FuturePoint(h, from, to, L + h * T + S[sIdx]));
+
+                // Point forecast clamped at 0 — case counts cannot be negative.
+                double point = Math.max(0.0, L + h * T + S[sIdx]);
+
+                // Interval widens with horizon (√h growth), then clamped at 0 on the lower side.
+                double sigmaH = residualStd * Math.sqrt(h);
+                double lower80 = Math.max(0.0, point - 1.28 * sigmaH);
+                double upper80 = point + 1.28 * sigmaH;
+                double lower95 = Math.max(0.0, point - 1.96 * sigmaH);
+                double upper95 = point + 1.96 * sigmaH;
+
+                future.add(new HoltWintersResponse.FuturePoint(
+                        h, from, to, point, lower80, upper80, lower95, upper95));
             }
         }
 
