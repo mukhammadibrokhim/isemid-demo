@@ -91,7 +91,7 @@ public class CatalogServiceImpl implements CatalogService {
     public List<Catalog> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode) {
         return catalogRepository.findAllByTypeAndParentCode(catalogType.name(), parentCode);
     }
-    @Cacheable(value = "byParentCode", key = "parentCode")
+    @Cacheable(value = "byParentCode", key = "#parentCode")
     @Override
     public List<Catalog> findAllByParentCode(String parentCode) {
         return catalogRepository.findAllByParentCode(parentCode);
