@@ -125,7 +125,7 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    @Cacheable(value = "catalogType", key = "catalogType")
+    @Cacheable(value = "catalogType", key = "#catalogType")
     public List<Catalog> finAllByType(CatalogType catalogType) {
         return catalogRepository.findAllByType(catalogType.name());
     }
