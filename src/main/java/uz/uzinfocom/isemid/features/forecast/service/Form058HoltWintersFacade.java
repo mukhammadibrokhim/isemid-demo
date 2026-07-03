@@ -37,17 +37,34 @@ public class Form058HoltWintersFacade {
         LocalDate end = endDate != null ? endDate : LocalDate.now();
         if (startDate.isAfter(end)) throw new IllegalArgumentException("startDate > endDate");
 
+        // Fetch two extra seasons of history before the requested window so
+        // the seasonal model always has enough context to fit properly,
+        // regardless of how short a range the caller asked to see. The
+        // response's history is trimmed back down to [startDate, end] below
+        // — the extra data is only used to warm up the fit.
+        LocalDate visibleFrom = weekly ? startDate : startDate.withDayOfMonth(1);
+        LocalDate fetchStart = weekly
+                ? startDate.minusDays(7L * 2 * effectiveSeason)
+                : startDate.minusMonths(2L * effectiveSeason);
+
         List<MonthSeriesPoint> series;
         if (weekly) {
             series = weeklyAggregationService
-                    .weeklyCounts(currentUser, startDate, end, stateCode, mkb10Code)
+                    .weeklyCounts(currentUser, fetchStart, end, stateCode, mkb10Code)
                     .stream()
                     .map(w -> new MonthSeriesPoint(w.weekNo(), w.from(), w.to(), w.y()))
                     .toList();
         } else {
-            series = monthlyAggregationService.monthlyCounts(currentUser, startDate, end, stateCode, mkb10Code);
+            series = monthlyAggregationService.monthlyCounts(currentUser, fetchStart, end, stateCode, mkb10Code);
         }
 
-        return calculator.compute(series, alpha, beta, gamma, effectiveSeason, effectiveHorizon, weekly);
+        HoltWintersResponse result = calculator.compute(series, alpha, beta, gamma, effectiveSeason, effectiveHorizon, weekly);
+
+        List<HoltWintersResponse.Point> visibleHistory = result.history().stream()
+                .filter(p -> !p.from().isBefore(visibleFrom))
+                .toList();
+
+        return new HoltWintersResponse(result.alpha(), result.beta(), result.gamma(), result.season(),
+                visibleHistory, result.future(), result.metrics());
     }
 }
