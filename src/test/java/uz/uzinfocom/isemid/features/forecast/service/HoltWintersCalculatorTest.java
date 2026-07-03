@@ -189,12 +189,18 @@ class HoltWintersCalculatorTest {
     }
 
     @Test
-    void emptyRepo_exactlyOneSeason_noRecursiveForecasts() {
+    void emptyRepo_exactlyOneSeason_fallsBackToNonSeasonal_recursesAfterFirstPoint() {
+        // n == season < 2*season: not enough for seasonal decomposition,
+        // so this falls back to plain Holt, which only needs the first
+        // point to seed level/trend before it starts recursing.
         long[] zeros = new long[12];
         var result = calculator.compute(monthlyPoints(zeros), 0.3, 0.1, 0.2, 12, 0);
         assertThat(result.history()).hasSize(12);
-        result.history().forEach(p ->
-                assertThat(p.forecast()).as("period %d", p.periodNo()).isNull());
+        assertThat(result.history().get(0).forecast()).as("first period").isNull();
+        for (int i = 1; i < 12; i++) {
+            assertThat(result.history().get(i).forecast()).as("period %d", i).isNotNull();
+            assertThat(result.history().get(i).seasonal()).as("period %d seasonal", i).isNull();
+        }
     }
 
     @Test
@@ -215,11 +221,13 @@ class HoltWintersCalculatorTest {
     }
 
     @Test
-    void emptyRepo_lessThanOneSeason_returnsEmpty() {
+    void emptyRepo_lessThanOneSeason_fallsBackToNonSeasonal_stillReturnsData() {
         long[] zeros = new long[11];
         var result = calculator.compute(monthlyPoints(zeros), 0.3, 0.1, 0.2, 12, 12);
-        assertThat(result.history()).isEmpty();
-        assertThat(result.future()).isEmpty();
+        assertThat(result.history()).hasSize(11);
+        assertThat(result.future()).hasSize(12);
+        result.future().forEach(fp ->
+                assertThat(fp.forecast()).as("future h=%d", fp.h()).isZero());
     }
 
     @Test
@@ -233,8 +241,8 @@ class HoltWintersCalculatorTest {
     // ── Edge cases & validation ───────────────────────────────────────────────
 
     @Test
-    void insufficientData_returnsEmptyHistoryAndFuture() {
-        var result = calculator.compute(monthlyPoints(new long[]{1, 2, 3}), 0.3, 0.1, 0.2, 12, 12);
+    void fewerThanTwoPoints_returnsEmptyHistoryAndFuture() {
+        var result = calculator.compute(monthlyPoints(new long[]{1}), 0.3, 0.1, 0.2, 12, 12);
         assertThat(result.history()).isEmpty();
         assertThat(result.future()).isEmpty();
     }
@@ -243,6 +251,39 @@ class HoltWintersCalculatorTest {
     void nullList_returnsEmptyResult() {
         var result = calculator.compute(null, 0.3, 0.1, 0.2, 12, 0);
         assertThat(result.history()).isEmpty();
+    }
+
+    // ── Non-seasonal fallback (n < 2*season) ──────────────────────────────────
+
+    @Test
+    void shortRange_fewerThanOneSeason_stillProducesHistoryAndForecast() {
+        var result = calculator.compute(monthlyPoints(new long[]{100, 105, 108, 112, 115, 120}),
+                0.3, 0.1, 0.2, 12, 3);
+        assertThat(result.history()).hasSize(6);
+        assertThat(result.future()).hasSize(3);
+        assertThat(result.history().get(0).forecast()).as("first period").isNull();
+        for (int i = 1; i < 6; i++) {
+            assertThat(result.history().get(i).forecast()).as("period %d", i).isNotNull();
+            assertThat(result.history().get(i).seasonal()).as("period %d seasonal", i).isNull();
+        }
+    }
+
+    @Test
+    void shortRange_futureForecast_isPlainTrendExtrapolation() {
+        var result = calculator.compute(monthlyPoints(new long[]{100, 105, 108, 112, 115, 120}),
+                0.3, 0.1, 0.2, 12, 2);
+        var last = result.history().get(5);
+        double expectedH1 = Math.max(0.0, last.level() + last.trend());
+        double expectedH2 = Math.max(0.0, last.level() + 2 * last.trend());
+        assertThat(result.future().get(0).forecast()).isCloseTo(expectedH1, offset(1e-6));
+        assertThat(result.future().get(1).forecast()).isCloseTo(expectedH2, offset(1e-6));
+    }
+
+    @Test
+    void twoPointSeries_minimalData_stillComputes() {
+        var result = calculator.compute(monthlyPoints(new long[]{10, 20}), 0.3, 0.1, 0.2, 12, 1);
+        assertThat(result.history()).hasSize(2);
+        assertThat(result.future()).hasSize(1);
     }
 
     @Test
