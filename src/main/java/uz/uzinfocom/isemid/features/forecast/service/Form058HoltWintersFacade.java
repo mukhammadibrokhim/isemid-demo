@@ -1,7 +1,10 @@
 package uz.uzinfocom.isemid.features.forecast.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.forecast.models.dto.HoltWintersResponse;
 import uz.uzinfocom.isemid.features.forecast.service.Form058MonthlyAggregationService.MonthSeriesPoint;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -16,6 +19,7 @@ public class Form058HoltWintersFacade {
     private final Form058MonthlyAggregationService monthlyAggregationService;
     private final Form058WeeklyAggregationService weeklyAggregationService;
     private final HoltWintersCalculator calculator;
+    private final MessageUtil messageUtil;
 
     public HoltWintersResponse holt(User currentUser,
                                     LocalDate startDate,
@@ -28,14 +32,18 @@ public class Form058HoltWintersFacade {
                                     String period,
                                     String stateCode,
                                     String mkb10Code) {
-        if (startDate == null) throw new IllegalArgumentException("startDate is required");
+        if (startDate == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, messageUtil.get("error.forecast.start_date_required"));
+        }
 
         boolean weekly = "WEEKLY".equalsIgnoreCase(period);
         int effectiveSeason = season != null ? season : (weekly ? 52 : 12);
         int effectiveHorizon = horizon != null ? horizon : effectiveSeason;
 
         LocalDate end = endDate != null ? endDate : LocalDate.now();
-        if (startDate.isAfter(end)) throw new IllegalArgumentException("startDate > endDate");
+        if (startDate.isAfter(end)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, messageUtil.get("error.forecast.start_after_end"));
+        }
 
         // Fetch two extra seasons of history before the requested window so
         // the seasonal model always has enough context to fit properly,
