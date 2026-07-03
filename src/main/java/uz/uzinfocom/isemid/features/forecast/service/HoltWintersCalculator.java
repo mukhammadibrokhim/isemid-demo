@@ -14,7 +14,7 @@ public class HoltWintersCalculator {
 
     public HoltWintersResponse compute(List<MonthSeriesPoint> monthly,
                                        double alpha, double beta, double gamma,
-                                       int season, int horizon) {
+                                       int season, int horizon, boolean weekly) {
         validate(alpha, beta, gamma, season, horizon);
 
         if (monthly == null || monthly.size() < 2) {
@@ -30,7 +30,7 @@ public class HoltWintersCalculator {
         // historical seasonal shape instead of extrapolating it. Fall back
         // to plain Holt (level + trend only) instead.
         if (n < 2 * season) {
-            return computeNonSeasonal(monthly, alpha, beta, gamma, season, horizon);
+            return computeNonSeasonal(monthly, alpha, beta, gamma, season, horizon, weekly);
         }
 
         double[] y = new double[n];
@@ -109,17 +109,15 @@ public class HoltWintersCalculator {
         // ── Future: F_{n+h} = L_n + h*T_n + S[n − m + ((h−1) % m)] ─────────
         List<HoltWintersResponse.FuturePoint> future = new ArrayList<>();
         if (horizon > 0) {
-            YearMonth lastMonth = YearMonth.from(monthly.get(n - 1).to());
+            LocalDate lastTo = monthly.get(n - 1).to();
             for (int h = 1; h <= horizon; h++) {
-                YearMonth fm = lastMonth.plusMonths(h);
-                LocalDate from = fm.atDay(1);
-                LocalDate to   = fm.atEndOfMonth();
+                Period p = nextPeriod(lastTo, h, weekly);
                 int sIdx = n - season + ((h - 1) % season);
 
                 // Point forecast clamped at 0 — case counts cannot be negative.
                 double point = Math.max(0.0, L + h * T + S[sIdx]);
 
-                future.add(new HoltWintersResponse.FuturePoint(h, from, to, point));
+                future.add(new HoltWintersResponse.FuturePoint(h, p.from(), p.to(), point));
             }
         }
 
@@ -133,7 +131,7 @@ public class HoltWintersCalculator {
     // seed level/trend, so it can still plot short date ranges.
     private HoltWintersResponse computeNonSeasonal(List<MonthSeriesPoint> monthly,
                                                     double alpha, double beta, double gamma,
-                                                    int season, int horizon) {
+                                                    int season, int horizon, boolean weekly) {
         int n = monthly.size();
         double[] y = new double[n];
         for (int i = 0; i < n; i++) y[i] = monthly.get(i).y();
@@ -173,19 +171,33 @@ public class HoltWintersCalculator {
 
         List<HoltWintersResponse.FuturePoint> future = new ArrayList<>();
         if (horizon > 0) {
-            YearMonth lastMonth = YearMonth.from(monthly.get(n - 1).to());
+            LocalDate lastTo = monthly.get(n - 1).to();
             for (int h = 1; h <= horizon; h++) {
-                YearMonth fm = lastMonth.plusMonths(h);
-                LocalDate from = fm.atDay(1);
-                LocalDate to   = fm.atEndOfMonth();
-
+                Period p = nextPeriod(lastTo, h, weekly);
                 double point = Math.max(0.0, L + h * T);
-                future.add(new HoltWintersResponse.FuturePoint(h, from, to, point));
+                future.add(new HoltWintersResponse.FuturePoint(h, p.from(), p.to(), point));
             }
         }
 
         return new HoltWintersResponse(alpha, beta, gamma, season, history, future,
                 new HoltWintersResponse.Metrics(mape, quality(mape)));
+    }
+
+    private record Period(LocalDate from, LocalDate to) {}
+
+    // Future bucket boundaries must follow the same cadence as the historical
+    // buckets (WeekBucketService / MonthBucketService) — otherwise weekly
+    // series get monthly-spaced future dates, which desyncs the forecast
+    // line from the chart's x-axis and makes it look like most periods
+    // are missing.
+    private static Period nextPeriod(LocalDate lastTo, int h, boolean weekly) {
+        if (weekly) {
+            LocalDate from = lastTo.plusDays(7L * (h - 1) + 1);
+            LocalDate to = from.plusDays(6);
+            return new Period(from, to);
+        }
+        YearMonth fm = YearMonth.from(lastTo).plusMonths(h);
+        return new Period(fm.atDay(1), fm.atEndOfMonth());
     }
 
     private static String quality(double mape) {
