@@ -28,11 +28,7 @@ public record HoltWintersResponse(
             int h,
             LocalDate from,
             LocalDate to,
-            double forecast,
-            double lower80,
-            double upper80,
-            double lower95,
-            double upper95
+            double forecast
     ) {}
 
     public record Metrics(
