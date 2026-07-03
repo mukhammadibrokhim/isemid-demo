@@ -48,6 +48,6 @@ public class Form058HoltWintersFacade {
             series = monthlyAggregationService.monthlyCounts(currentUser, startDate, end, stateCode, mkb10Code);
         }
 
-        return calculator.compute(series, alpha, beta, gamma, effectiveSeason, effectiveHorizon);
+        return calculator.compute(series, alpha, beta, gamma, effectiveSeason, effectiveHorizon, weekly);
     }
 }
