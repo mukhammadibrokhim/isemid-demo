@@ -1,6 +1,9 @@
 package uz.uzinfocom.isemid.features.forecast.service;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import uz.uzinfocom.isemid.commons.exceptions.ApiException;
+import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.forecast.service.Form058MonthlyAggregationService.MonthSeriesPoint;
 
 import java.time.LocalDate;
@@ -9,10 +12,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class HoltWintersCalculatorTest {
 
-    private final HoltWintersCalculator calculator = new HoltWintersCalculator();
+    private final HoltWintersCalculator calculator = new HoltWintersCalculator(mock(MessageUtil.class));
 
     // 24 months of data (2 full seasons, season=12)
     private static final long[] DATA_24 = {
@@ -111,6 +115,46 @@ class HoltWintersCalculatorTest {
         assertThat(result.metrics().quality()).isEqualTo("Ёмон");
     }
 
+    @Test
+    void zeroActualPoints_areSkippedFromMape_notCountedAsZeroError() {
+        // Mix of zero and non-zero actuals in the recursion range: MAPE must
+        // be the mean over only the non-zero-actual points, not diluted by
+        // treating the zero points as if they had 0% error.
+        long[] mixed = new long[24];
+        Arrays.fill(mixed, 0, 12, 100L);
+        // second season: alternate 0 and 200 — forecast will be far from
+        // both, but the zero-actual months must not count toward MAPE at all
+        for (int i = 12; i < 24; i++) mixed[i] = (i % 2 == 0) ? 0L : 200L;
+        var result = calculator.compute(monthlyPoints(mixed), 0.3, 0.1, 0.2, 12, 0, false);
+
+        // recompute expected MAPE independently, skipping y=0 points entirely
+        double sumFirst = 0;
+        for (int i = 0; i < 12; i++) sumFirst += mixed[i];
+        double L = sumFirst / 12;
+        double sumSecond = 0;
+        for (int i = 12; i < 24; i++) sumSecond += mixed[i];
+        double T = (sumSecond / 12 - L) / 12;
+        double[] S = new double[24];
+        for (int i = 0; i < 12; i++) S[i] = mixed[i] - L;
+        double mapeSum = 0;
+        int mCount = 0;
+        for (int i = 12; i < 24; i++) {
+            double yi = mixed[i];
+            double forecast = L + T + S[i - 12];
+            double newL = 0.3 * (yi - S[i - 12]) + 0.7 * (L + T);
+            double newT = 0.1 * (newL - L) + 0.9 * T;
+            S[i] = 0.2 * (yi - newL) + 0.8 * S[i - 12];
+            L = newL;
+            T = newT;
+            if (yi != 0) {
+                mapeSum += Math.abs((yi - forecast) / yi) * 100.0;
+                mCount++;
+            }
+        }
+        double expectedMape = mapeSum / mCount;
+        assertThat(result.metrics().mape()).isCloseTo(expectedMape, offset(1e-9));
+    }
+
     // ── Future forecasts ──────────────────────────────────────────────────────
 
     @Test
@@ -143,26 +187,25 @@ class HoltWintersCalculatorTest {
                 calculator.compute(monthlyPoints(DATA_24), 0.3, 0.1, 0.2, 12, 24, false));
     }
 
-    // ── Weekly cadence (period=WEEKLY) ──────────────────────────────────────────
+    @Test
+    void monthlyFuture_notAffectedByWeeklyFlag() {
+        var weeklyOff = calculator.compute(monthlyPoints(DATA_24), 0.3, 0.1, 0.2, 12, 2, false);
+        assertThat(weeklyOff.future().get(0).from()).isEqualTo(LocalDate.of(2026, 1, 1));
+    }
 
     @Test
     void weeklyFuture_datesStepBySevenDays_notByCalendarMonth() {
-        // 6 weeks of data, season=52 → n < 2*season → non-seasonal fallback,
-        // but future dates must still advance week-by-week, not month-by-month.
-        var result = calculator.compute(weeklyPoints(new long[]{10, 12, 9, 15, 11, 14}),
-                0.3, 0.1, 0.2, 52, 3, true);
-        var lastHistory = result.history().get(5);
+        // small season (4) with exactly 2 seasons of data so the seasonal
+        // path runs; only the date cadence is under test here.
+        var result = calculator.compute(
+                weeklyPoints(new long[]{10, 12, 9, 15, 11, 14, 13, 16}),
+                0.3, 0.1, 0.2, 4, 3, true);
+        var lastHistory = result.history().get(7);
         var f = result.future();
         assertThat(f.get(0).from()).isEqualTo(lastHistory.to().plusDays(1));
         assertThat(f.get(0).to()).isEqualTo(f.get(0).from().plusDays(6));
         assertThat(f.get(1).from()).isEqualTo(f.get(0).to().plusDays(1));
         assertThat(f.get(2).from()).isEqualTo(f.get(1).to().plusDays(1));
-    }
-
-    @Test
-    void monthlyFuture_notAffectedByWeeklyFlag() {
-        var weeklyOff = calculator.compute(monthlyPoints(DATA_24), 0.3, 0.1, 0.2, 12, 2, false);
-        assertThat(weeklyOff.future().get(0).from()).isEqualTo(LocalDate.of(2026, 1, 1));
     }
 
     // ── Empty repository (all y = 0) ──────────────────────────────────────────
@@ -211,48 +254,6 @@ class HoltWintersCalculatorTest {
     }
 
     @Test
-    void emptyRepo_exactlyOneSeason_fallsBackToNonSeasonal_recursesAfterFirstPoint() {
-        // n == season < 2*season: not enough for seasonal decomposition,
-        // so this falls back to plain Holt, which only needs the first
-        // point to seed level/trend before it starts recursing.
-        long[] zeros = new long[12];
-        var result = calculator.compute(monthlyPoints(zeros), 0.3, 0.1, 0.2, 12, 0, false);
-        assertThat(result.history()).hasSize(12);
-        assertThat(result.history().get(0).forecast()).as("first period").isNull();
-        for (int i = 1; i < 12; i++) {
-            assertThat(result.history().get(i).forecast()).as("period %d", i).isNotNull();
-            assertThat(result.history().get(i).seasonal()).as("period %d seasonal", i).isNull();
-        }
-    }
-
-    @Test
-    void emptyRepo_exactlyOneSeason_mapeDefaultsToZero() {
-        long[] zeros = new long[12];
-        var result = calculator.compute(monthlyPoints(zeros), 0.3, 0.1, 0.2, 12, 0, false);
-        assertThat(result.metrics().mape()).isZero();
-        assertThat(result.metrics().quality()).isEqualTo("Аъло");
-    }
-
-    @Test
-    void emptyRepo_exactlyOneSeason_futureIsZeroWithHorizon() {
-        long[] zeros = new long[12];
-        var result = calculator.compute(monthlyPoints(zeros), 0.3, 0.1, 0.2, 12, 3, false);
-        assertThat(result.future()).hasSize(3);
-        result.future().forEach(fp ->
-                assertThat(fp.forecast()).as("future h=%d", fp.h()).isZero());
-    }
-
-    @Test
-    void emptyRepo_lessThanOneSeason_fallsBackToNonSeasonal_stillReturnsData() {
-        long[] zeros = new long[11];
-        var result = calculator.compute(monthlyPoints(zeros), 0.3, 0.1, 0.2, 12, 12, false);
-        assertThat(result.history()).hasSize(11);
-        assertThat(result.future()).hasSize(12);
-        result.future().forEach(fp ->
-                assertThat(fp.forecast()).as("future h=%d", fp.h()).isZero());
-    }
-
-    @Test
     void emptyRepo_partiallyZero_nonZeroSecondSeasonUpdatesLevel() {
         long[] mixed = new long[24];
         Arrays.fill(mixed, 12, 24, 100L);  // first season = 0, second = 100
@@ -260,84 +261,88 @@ class HoltWintersCalculatorTest {
         assertThat(result.history().get(23).level()).isGreaterThan(0);
     }
 
-    // ── Edge cases & validation ───────────────────────────────────────────────
+    // ── Insufficient data → validation error (not a silent fallback) ──────────
 
     @Test
-    void fewerThanTwoPoints_returnsEmptyHistoryAndFuture() {
-        var result = calculator.compute(monthlyPoints(new long[]{1}), 0.3, 0.1, 0.2, 12, 12, false);
-        assertThat(result.history()).isEmpty();
-        assertThat(result.future()).isEmpty();
+    void insufficientData_throwsBadRequestApiException() {
+        assertThatThrownBy(() ->
+                calculator.compute(monthlyPoints(new long[]{1, 2, 3}), 0.3, 0.1, 0.2, 12, 12, false))
+                .isInstanceOf(ApiException.class)
+                .extracting(e -> ((ApiException) e).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void nullList_returnsEmptyResult() {
-        var result = calculator.compute(null, 0.3, 0.1, 0.2, 12, 0, false);
-        assertThat(result.history()).isEmpty();
-    }
-
-    // ── Non-seasonal fallback (n < 2*season) ──────────────────────────────────
-
-    @Test
-    void shortRange_fewerThanOneSeason_stillProducesHistoryAndForecast() {
-        var result = calculator.compute(monthlyPoints(new long[]{100, 105, 108, 112, 115, 120}),
-                0.3, 0.1, 0.2, 12, 3, false);
-        assertThat(result.history()).hasSize(6);
-        assertThat(result.future()).hasSize(3);
-        assertThat(result.history().get(0).forecast()).as("first period").isNull();
-        for (int i = 1; i < 6; i++) {
-            assertThat(result.history().get(i).forecast()).as("period %d", i).isNotNull();
-            assertThat(result.history().get(i).seasonal()).as("period %d seasonal", i).isNull();
-        }
+    void fewerThanTwoPoints_throwsBadRequestApiException() {
+        assertThatThrownBy(() ->
+                calculator.compute(monthlyPoints(new long[]{1}), 0.3, 0.1, 0.2, 12, 12, false))
+                .isInstanceOf(ApiException.class);
     }
 
     @Test
-    void shortRange_futureForecast_isPlainTrendExtrapolation() {
-        var result = calculator.compute(monthlyPoints(new long[]{100, 105, 108, 112, 115, 120}),
-                0.3, 0.1, 0.2, 12, 2, false);
-        var last = result.history().get(5);
-        double expectedH1 = Math.max(0.0, last.level() + last.trend());
-        double expectedH2 = Math.max(0.0, last.level() + 2 * last.trend());
-        assertThat(result.future().get(0).forecast()).isCloseTo(expectedH1, offset(1e-6));
-        assertThat(result.future().get(1).forecast()).isCloseTo(expectedH2, offset(1e-6));
+    void nullList_throwsBadRequestApiException() {
+        assertThatThrownBy(() -> calculator.compute(null, 0.3, 0.1, 0.2, 12, 0, false))
+                .isInstanceOf(ApiException.class);
     }
 
     @Test
-    void twoPointSeries_minimalData_stillComputes() {
-        var result = calculator.compute(monthlyPoints(new long[]{10, 20}), 0.3, 0.1, 0.2, 12, 1, false);
-        assertThat(result.history()).hasSize(2);
-        assertThat(result.future()).hasSize(1);
+    void exactlyOneSeason_stillThrows() {
+        // n == season < 2*season: one full season alone isn't enough to
+        // initialize both L/T/S (T needs a second season to estimate).
+        long[] zeros = new long[12];
+        assertThatThrownBy(() -> calculator.compute(monthlyPoints(zeros), 0.3, 0.1, 0.2, 12, 0, false))
+                .isInstanceOf(ApiException.class);
     }
 
     @Test
-    void alphaOutOfRange_throws() {
+    void exactlyTwoSeasons_doesNotThrow() {
+        // n == 2*season is the minimum sufficient case — boundary check.
+        assertThatNoException().isThrownBy(() ->
+                calculator.compute(monthlyPoints(DATA_24), 0.3, 0.1, 0.2, 12, 0, false));
+    }
+
+    // ── Validation ──────────────────────────────────────────────────────────
+
+    @Test
+    void alphaOutOfRange_throwsBadRequest() {
         assertThatThrownBy(() -> calculator.compute(List.of(), 0.0, 0.5, 0.5, 12, 0, false))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("alpha");
+                .isInstanceOf(ApiException.class)
+                .extracting(e -> ((ApiException) e).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
         assertThatThrownBy(() -> calculator.compute(List.of(), 1.0, 0.5, 0.5, 12, 0, false))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("alpha");
+                .isInstanceOf(ApiException.class);
     }
 
     @Test
-    void betaOutOfRange_throws() {
+    void betaOutOfRange_throwsBadRequest() {
         assertThatThrownBy(() -> calculator.compute(List.of(), 0.5, 0.0, 0.5, 12, 0, false))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("beta");
+                .isInstanceOf(ApiException.class)
+                .extracting(e -> ((ApiException) e).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void gammaOutOfRange_throws() {
+    void gammaOutOfRange_throwsBadRequest() {
         assertThatThrownBy(() -> calculator.compute(List.of(), 0.5, 0.5, 1.0, 12, 0, false))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("gamma");
+                .isInstanceOf(ApiException.class)
+                .extracting(e -> ((ApiException) e).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void seasonLessThanTwo_throws() {
+    void seasonLessThanTwo_throwsBadRequest() {
         assertThatThrownBy(() -> calculator.compute(List.of(), 0.3, 0.1, 0.2, 1, 0, false))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("season");
+                .isInstanceOf(ApiException.class)
+                .extracting(e -> ((ApiException) e).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void horizonNegative_throws() {
+    void horizonNegative_throwsBadRequest() {
         assertThatThrownBy(() -> calculator.compute(List.of(), 0.3, 0.1, 0.2, 12, -1, false))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("horizon");
+                .isInstanceOf(ApiException.class)
+                .extracting(e -> ((ApiException) e).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
