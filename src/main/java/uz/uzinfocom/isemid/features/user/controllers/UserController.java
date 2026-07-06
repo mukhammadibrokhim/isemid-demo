@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.features.user.dtos.requests.UserFilterRequest;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
@@ -24,8 +25,6 @@ import uz.uzinfocom.isemid.features.user.services.UserService;
 import java.util.UUID;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
-import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
 import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
@@ -54,20 +53,18 @@ public class UserController {
     )
     @GetMapping("/all")
     public PagedResponse<?> getAllUsers(
-            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
-            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-            @RequestParam(required = false) String nnuzb,
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String lastName,
-            @RequestParam(required = false) String middleName,
-            @RequestParam(required = false) String phoneNumber,
-            @RequestParam(required = false) String accessLevelCode,
-            @RequestParam(required = false) Boolean active,
+            @Valid @ModelAttribute UserFilterRequest filter,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<User> userPage = userService.filter(page, size, nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, currentUser);
-        return PagedResponse.build(page, userPage.map(userMapper::toResponse), getRequestUrl(request), messageUtil);
+        Page<User> userPage = userService.filter(filter, currentUser);
+
+        return PagedResponse.build(
+                filter.getPage(),
+                userPage.map(userMapper::toResponse),
+                getRequestUrl(request),
+                messageUtil
+        );
     }
 
     @Operation(summary = "Получить пользователя по ID", description = "Получает пользователя по заданному идентификатору (ID).")
