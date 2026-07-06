@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -38,22 +39,11 @@ public class UserController {
 
     @Operation(
             summary = "Получить всех пользователей",
-            description = "Получает список всех пользователей с возможностью пагинации и фильтрации по различным параметрам.",
-            parameters = {
-                    @Parameter(name = "page", description = "Номер страницы для пагинации", example = "0"),
-                    @Parameter(name = "size", description = "Количество пользователей на странице", example = "10"),
-                    @Parameter(name = "nnuzb", description = "Фильтр по nnuzb"),
-                    @Parameter(name = "firstName", description = "Фильтр по имени"),
-                    @Parameter(name = "lastName", description = "Фильтр по фамилии"),
-                    @Parameter(name = "middleName", description = "Фильтр по отчеству"),
-                    @Parameter(name = "phoneNumber", description = "Фильтр по номеру телефона"),
-                    @Parameter(name = "accessLevelCode", description = "Фильтр по коду уровня доступа"),
-                    @Parameter(name = "active", description = "Фильтр по статусу активности")
-            }
+            description = "Получает список всех пользователей с возможностью пагинации и фильтрации по различным параметрам."
     )
     @GetMapping("/all")
     public PagedResponse<?> getAllUsers(
-            @Valid @ModelAttribute UserFilterRequest filter,
+            @Valid @ModelAttribute @ParameterObject UserFilterRequest filter,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
