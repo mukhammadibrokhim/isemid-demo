@@ -14,15 +14,25 @@ public class HoltWintersCalculator {
 
     public HoltWintersResponse compute(List<MonthSeriesPoint> monthly,
                                        double alpha, double beta, double gamma,
-                                       int season, int horizon) {
+                                       int season, int horizon, boolean weekly) {
         validate(alpha, beta, gamma, season, horizon);
 
-        if (monthly == null || monthly.size() < season) {
+        if (monthly == null || monthly.size() < 2) {
             return new HoltWintersResponse(alpha, beta, gamma, season,
                     List.of(), List.of(), new HoltWintersResponse.Metrics(0.0, "Ёмон"));
         }
 
         int n = monthly.size();
+
+        // Fewer than two full seasons: seasonal indices can't be estimated
+        // reliably, and the recursion has too few steps to move away from
+        // its crude initial values — the forecast ends up echoing the
+        // historical seasonal shape instead of extrapolating it. Fall back
+        // to plain Holt (level + trend only) instead.
+        if (n < 2 * season) {
+            return computeNonSeasonal(monthly, alpha, beta, gamma, season, horizon, weekly);
+        }
+
         double[] y = new double[n];
         for (int i = 0; i < n; i++) y[i] = monthly.get(i).y();
 
@@ -32,13 +42,10 @@ public class HoltWintersCalculator {
         for (int i = 0; i < season; i++) sumFirst += y[i];
         double L = sumFirst / season;
 
-        // T = (avg second season − avg first season) / m  [requires ≥ 2 seasons]
-        double T = 0;
-        if (n >= 2 * season) {
-            double sumSecond = 0;
-            for (int i = season; i < 2 * season; i++) sumSecond += y[i];
-            T = (sumSecond / season - L) / season;
-        }
+        // T = (avg second season − avg first season) / m  [n >= 2*season is guaranteed here]
+        double sumSecond = 0;
+        for (int i = season; i < 2 * season; i++) sumSecond += y[i];
+        double T = (sumSecond / season - L) / season;
 
         // S_t = y_t − L  for t = 1..m
         double[] S = new double[n];
@@ -63,7 +70,6 @@ public class HoltWintersCalculator {
 
         // ── Recursive Holt-Winters (additive) ────────────────────────────────
         double mapeSum = 0;
-        double sqErrorSum = 0;
         int mCount = 0;
 
         for (int i = season; i < n; i++) {
@@ -86,7 +92,6 @@ public class HoltWintersCalculator {
 
             double error = yi - forecast;
             mapeSum += (yi != 0) ? Math.abs(error / yi) * 100.0 : 0.0;
-            sqErrorSum += error * error;
             mCount++;
 
             history.add(new HoltWintersResponse.Point(
@@ -101,37 +106,98 @@ public class HoltWintersCalculator {
 
         double mape = (mCount == 0) ? 0.0 : mapeSum / mCount;
 
-        // Residual std of the in-sample one-step-ahead fitted errors, used as the
-        // basis for prediction intervals — grown per horizon step below.
-        double residualStd = (mCount == 0) ? 0.0 : Math.sqrt(sqErrorSum / mCount);
-
         // ── Future: F_{n+h} = L_n + h*T_n + S[n − m + ((h−1) % m)] ─────────
         List<HoltWintersResponse.FuturePoint> future = new ArrayList<>();
         if (horizon > 0) {
-            YearMonth lastMonth = YearMonth.from(monthly.get(n - 1).to());
+            LocalDate lastTo = monthly.get(n - 1).to();
             for (int h = 1; h <= horizon; h++) {
-                YearMonth fm = lastMonth.plusMonths(h);
-                LocalDate from = fm.atDay(1);
-                LocalDate to   = fm.atEndOfMonth();
+                Period p = nextPeriod(lastTo, h, weekly);
                 int sIdx = n - season + ((h - 1) % season);
 
                 // Point forecast clamped at 0 — case counts cannot be negative.
                 double point = Math.max(0.0, L + h * T + S[sIdx]);
 
-                // Interval widens with horizon (√h growth), then clamped at 0 on the lower side.
-                double sigmaH = residualStd * Math.sqrt(h);
-                double lower80 = Math.max(0.0, point - 1.28 * sigmaH);
-                double upper80 = point + 1.28 * sigmaH;
-                double lower95 = Math.max(0.0, point - 1.96 * sigmaH);
-                double upper95 = point + 1.96 * sigmaH;
-
-                future.add(new HoltWintersResponse.FuturePoint(
-                        h, from, to, point, lower80, upper80, lower95, upper95));
+                future.add(new HoltWintersResponse.FuturePoint(h, p.from(), p.to(), point));
             }
         }
 
         return new HoltWintersResponse(alpha, beta, gamma, season, history, future,
                 new HoltWintersResponse.Metrics(mape, quality(mape)));
+    }
+
+    // ── Plain Holt (level + trend, no seasonal component) ──────────────────
+    // Used when there isn't enough data for a reliable seasonal estimate
+    // (see the n < 2*season check in compute()). Needs only two points to
+    // seed level/trend, so it can still plot short date ranges.
+    private HoltWintersResponse computeNonSeasonal(List<MonthSeriesPoint> monthly,
+                                                    double alpha, double beta, double gamma,
+                                                    int season, int horizon, boolean weekly) {
+        int n = monthly.size();
+        double[] y = new double[n];
+        for (int i = 0; i < n; i++) y[i] = monthly.get(i).y();
+
+        double L = y[0];
+        double T = y[1] - y[0];
+
+        List<HoltWintersResponse.Point> history = new ArrayList<>(n);
+        history.add(new HoltWintersResponse.Point(
+                monthly.get(0).monthNo(), monthly.get(0).from(), monthly.get(0).to(),
+                monthly.get(0).y(), null, null, L, T, null));
+
+        double mapeSum = 0;
+        int mCount = 0;
+
+        for (int i = 1; i < n; i++) {
+            double yi = y[i];
+
+            // F_t = L_{t-1} + T_{t-1}
+            double forecast = L + T;
+
+            double newL = alpha * yi + (1.0 - alpha) * (L + T);
+            double newT = beta * (newL - L) + (1.0 - beta) * T;
+            L = newL;
+            T = newT;
+
+            double error = yi - forecast;
+            mapeSum += (yi != 0) ? Math.abs(error / yi) * 100.0 : 0.0;
+            mCount++;
+
+            history.add(new HoltWintersResponse.Point(
+                    monthly.get(i).monthNo(), monthly.get(i).from(), monthly.get(i).to(),
+                    monthly.get(i).y(), forecast, error, L, T, null));
+        }
+
+        double mape = (mCount == 0) ? 0.0 : mapeSum / mCount;
+
+        List<HoltWintersResponse.FuturePoint> future = new ArrayList<>();
+        if (horizon > 0) {
+            LocalDate lastTo = monthly.get(n - 1).to();
+            for (int h = 1; h <= horizon; h++) {
+                Period p = nextPeriod(lastTo, h, weekly);
+                double point = Math.max(0.0, L + h * T);
+                future.add(new HoltWintersResponse.FuturePoint(h, p.from(), p.to(), point));
+            }
+        }
+
+        return new HoltWintersResponse(alpha, beta, gamma, season, history, future,
+                new HoltWintersResponse.Metrics(mape, quality(mape)));
+    }
+
+    private record Period(LocalDate from, LocalDate to) {}
+
+    // Future bucket boundaries must follow the same cadence as the historical
+    // buckets (WeekBucketService / MonthBucketService) — otherwise weekly
+    // series get monthly-spaced future dates, which desyncs the forecast
+    // line from the chart's x-axis and makes it look like most periods
+    // are missing.
+    private static Period nextPeriod(LocalDate lastTo, int h, boolean weekly) {
+        if (weekly) {
+            LocalDate from = lastTo.plusDays(7L * (h - 1) + 1);
+            LocalDate to = from.plusDays(6);
+            return new Period(from, to);
+        }
+        YearMonth fm = YearMonth.from(lastTo).plusMonths(h);
+        return new Period(fm.atDay(1), fm.atEndOfMonth());
     }
 
     private static String quality(double mape) {
