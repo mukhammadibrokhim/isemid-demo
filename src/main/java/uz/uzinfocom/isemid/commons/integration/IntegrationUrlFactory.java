@@ -129,17 +129,4 @@ public class IntegrationUrlFactory {
                 .build()
                 .toUri();
     }
-
-    public String lisActIntegrationBaseUrl() {
-        return properties.hosts().lisActIntegrationBaseUrl();
-    }
-
-    public URI createDmedNotificationUrl(Long form058Id) {
-        return UriComponentsBuilder
-            .fromUriString(properties.hosts().dmedForm058ChangePushApiBaseUrl())
-            .path(properties.paths().dmedForm058ChangePushApiPath())
-            .path(String.valueOf(form058Id))
-            .build()
-            .toUri();
-    }
 }
