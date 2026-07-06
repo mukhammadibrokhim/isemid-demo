@@ -3,15 +3,19 @@ package uz.uzinfocom.isemid.features.user.services.impl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.user.dtos.requests.UserFilterRequest;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.MisUserResponse;
 import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
@@ -28,10 +32,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.springframework.beans.support.PagedListHolder.DEFAULT_PAGE_SIZE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
+import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.MAX_PAGE_SIZE;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 
 @Service
@@ -49,11 +54,38 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public Page<User> filter(int page, int size, String nnuzb, String firstName, String lastName, String middleName, String phoneNumber, String accessLevelCode, Boolean active, User currentUser) {
-        Specification<User> spec = UserSpecification.build(nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, currentUser);
-        return userRepository.findAll(spec, pageableSortByIdDesc(page, size));
+    @Transactional(readOnly = true)
+    public Page<User> filter(
+            UserFilterRequest filter,
+            User currentUser
+    ) {
+        int page = normalizePage(filter.getPage());
+        int size = normalizeSize(filter.getSize());
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(
+                        Sort.Order.asc("lastName"),
+                        Sort.Order.asc("firstName"),
+                        Sort.Order.asc("middleName"),
+                        Sort.Order.desc("id")
+                )
+        );
+        return userRepository.findAll(UserSpecification.build(filter, currentUser), pageable);
     }
 
+    private int normalizePage(int page) {
+        return Math.max(page, 0);
+    }
+
+    private int normalizeSize(int size) {
+        if (size <= 0) {
+            return DEFAULT_PAGE_SIZE;
+        }
+
+        return Math.min(size, MAX_PAGE_SIZE);
+    }
     @Override
     public Optional<User> findByUuid(UUID practitioner) {
         return userRepository.findByUuid(practitioner);
@@ -107,6 +139,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public List<User> getAllByIds(List<Long> userIds) {
         return userRepository.findAllById(userIds);
+    }
+
+    @Override
+    public Page<User> filter(int page, int size, String nnuzb, String firstName, String lastName, String middleName,
+                             String phoneNumber, Boolean active, User currentUser) {
+        return null;
     }
 
     @Override
