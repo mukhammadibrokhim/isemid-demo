@@ -6,7 +6,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.*;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.request.OrganizationFilerRequest;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.request.OrganizationLookupRequest;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.request.OrganizationUserLookupRequest;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationDetailResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationLookupResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationTableResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationUserLookupResponse;
 import uz.uzinfocom.app.platform.iam.application.organization.query.mapper.OrganizationQueryMapper;
 import uz.uzinfocom.app.platform.iam.application.organization.query.projection.OrganizationTableProjection;
 import uz.uzinfocom.app.platform.iam.application.organization.query.specification.OrganizationSpecification;
@@ -84,6 +90,7 @@ public class OrganizationQueryService {
 
         return organizationRepository.lookupOrganizations(
                 request.normalizedSearch(),
+                request.id(),
                 request.levelType(),
                 request.medicalType(),
                 request.active(),

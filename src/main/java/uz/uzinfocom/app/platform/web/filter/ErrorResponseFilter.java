@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -15,19 +14,17 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
-import uz.uzinfocom.app.platform.observability.TraceIdProvider;
+import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.web.response.ErrorResponseWriter;
 
 import java.io.IOException;
 
-@Slf4j
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+@Order(Ordered.HIGHEST_PRECEDENCE + 30)
 @RequiredArgsConstructor
 public class ErrorResponseFilter extends OncePerRequestFilter {
 
     private final ErrorResponseWriter errorResponseWriter;
-    private final TraceIdProvider traceIdProvider;
 
     @Override
     protected void doFilterInternal(
@@ -63,15 +60,11 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             AuthenticationException exception
     ) throws IOException {
-        String traceId = traceIdProvider.getTraceId(request);
-
-        log.warn(
-                "Authentication failed before MVC handling. traceId={}, method={}, path={}, remoteAddr={}, reason={}",
-                traceId,
-                request.getMethod(),
-                request.getRequestURI(),
-                request.getRemoteAddr(),
-                exception.getMessage()
+        RequestLogErrorContext.attach(
+                request,
+                ErrorCode.UNAUTHORIZED.getCode(),
+                "Authentication failed before MVC handling",
+                exception
         );
 
         errorResponseWriter.write(request, response, HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED);
@@ -82,15 +75,11 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             AccessDeniedException exception
     ) throws IOException {
-        String traceId = traceIdProvider.getTraceId(request);
-
-        log.warn(
-                "Access denied before MVC handling. traceId={}, method={}, path={}, remoteAddr={}, reason={}",
-                traceId,
-                request.getMethod(),
-                request.getRequestURI(),
-                request.getRemoteAddr(),
-                exception.getMessage()
+        RequestLogErrorContext.attach(
+                request,
+                ErrorCode.FORBIDDEN.getCode(),
+                "Access denied before MVC handling",
+                exception
         );
 
         if (isMessageCode(exception.getMessage())) {
@@ -112,14 +101,10 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             Exception exception
     ) throws IOException {
-        String traceId = traceIdProvider.getTraceId(request);
-
-        log.error(
-                "Unhandled filter-chain exception. traceId={}, method={}, path={}, remoteAddr={}",
-                traceId,
-                request.getMethod(),
-                request.getRequestURI(),
-                request.getRemoteAddr(),
+        RequestLogErrorContext.attach(
+                request,
+                ErrorCode.INTERNAL_ERROR.getCode(),
+                "Unhandled filter-chain exception",
                 exception
         );
 

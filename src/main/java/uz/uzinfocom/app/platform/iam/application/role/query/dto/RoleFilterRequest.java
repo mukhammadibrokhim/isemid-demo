@@ -9,12 +9,12 @@ import uz.uzinfocom.app.shared.pagination.PageableRequest;
 public record RoleFilterRequest(
 
         @Schema(description = "Номер страницы, начиная с 1.", example = "1")
-        @Min(1)
+        @Min(value = 1, message = "{role.filter.page.min}")
         Integer page,
 
         @Schema(description = "Количество записей на странице.", example = "20")
-        @Min(1)
-        @Max(200)
+        @Min(value = 1, message = "{role.filter.size.min}")
+        @Max(value = 200, message = "{role.filter.size.max}")
         Integer size,
 
         @Schema(description = "Поле для сортировки.", example = "name")

@@ -35,6 +35,7 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "reportInfo", source = "form058.reportInfo")
     @Mapping(target = "cancellationInfo", source = "form058.cancellationInfo")
     @Mapping(target = "approvalInfo", source = "form058.approvalInfo")
+    @Mapping(target = "deleteInfo", source = "form058.deleteInfo")
 
     @Mapping(target = "patient", source = "form058.patient")
     @Mapping(target = "audit", source = "audit")
@@ -66,10 +67,10 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "assignedCardId", source = "assignedCardId")
     Form058CardLinkDetailResponse toCardLinkResponse(Form058 source);
 
-    @Mapping(target = "deleted", source = "deleted")
-    @Mapping(target = "deletedAt", source = "deletedAt")
-    @Mapping(target = "deletedBy", source = "deletedBy")
-    @Mapping(target = "deleteReason", source = "deleteReason")
+    @Mapping(target = "deleted", source = "source.deleteInfo.deleted")
+    @Mapping(target = "deletedAt", source = "source.deleteInfo.deletedAt")
+    @Mapping(target = "deletedBy", source = "source.deleteInfo.deletedBy")
+    @Mapping(target = "deleteReason", source = "source.deleteInfo.deleteReason")
     Form058DeleteDetailResponse toDeleteResponse(Form058 source);
 
 

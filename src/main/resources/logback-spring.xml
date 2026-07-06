@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
-    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
-
-    <springProperty scope="context"
-                    name="APP_NAME"
-                    source="spring.application.name"
-                    defaultValue="isemid-platform-foundation"/>
-
-    <property name="LOG_DIR" value="logs"/>
+    <springProperty scope="context" name="APP_NAME"
+                    source="spring.application.name" defaultValue="isemid"/>
+    <springProperty scope="context" name="APP_LOG_LEVEL"
+                    source="logging.level.uz.uzinfocom.app" defaultValue="INFO"/>
+    <springProperty scope="context" name="SECURITY_LOG_LEVEL"
+                    source="logging.level.org.springframework.security" defaultValue="WARN"/>
+    <springProperty scope="context" name="LOG_DIR"
+                    source="logging.file.path" defaultValue="logs"/>
 
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level traceId=%X{traceId:-N/A} ${APP_NAME} %logger{36} - %msg%n"/>
@@ -20,31 +20,97 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="GENERAL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/isemid-platform.log</file>
-
+        <immediateFlush>true</immediateFlush>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/isemid-platform.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>50MB</maxFileSize>
+            <fileNamePattern>${LOG_DIR}/archive/isemid-platform.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
             <maxHistory>30</maxHistory>
-            <totalSizeCap>2GB</totalSizeCap>
+            <totalSizeCap>5GB</totalSizeCap>
         </rollingPolicy>
-
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <logger name="uz.uzinfocom.app" level="DEBUG"/>
+    <appender name="ASYNC_GENERAL" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>0</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="GENERAL_FILE"/>
+    </appender>
+
+    <appender name="HTTP_REQUEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/http-request.log</file>
+        <immediateFlush>true</immediateFlush>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/archive/http-request.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="OUTBOUND_HTTP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/outbound-http.log</file>
+        <immediateFlush>true</immediateFlush>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/archive/outbound-http.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="CRITICAL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/critical.log</file>
+        <immediateFlush>true</immediateFlush>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/archive/critical.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="HTTP_REQUEST" level="INFO" additivity="false">
+        <appender-ref ref="HTTP_REQUEST_FILE"/>
+        <appender-ref ref="CRITICAL_FILE"/>
+    </logger>
+    <logger name="OUTBOUND_HTTP" level="INFO" additivity="false">
+        <appender-ref ref="OUTBOUND_HTTP_FILE"/>
+        <appender-ref ref="CRITICAL_FILE"/>
+    </logger>
+
+    <logger name="uz.uzinfocom.app" level="${APP_LOG_LEVEL}"/>
     <logger name="org.springframework.web" level="INFO"/>
-    <logger name="org.springframework.security" level="DEBUG"/>
+    <logger name="org.springframework.security" level="${SECURITY_LOG_LEVEL}"/>
     <logger name="org.hibernate.SQL" level="WARN"/>
     <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="ASYNC_GENERAL"/>
+        <appender-ref ref="CRITICAL_FILE"/>
     </root>
 
 </configuration>

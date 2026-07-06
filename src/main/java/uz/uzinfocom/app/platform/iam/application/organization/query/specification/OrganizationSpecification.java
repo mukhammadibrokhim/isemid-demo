@@ -3,7 +3,7 @@ package uz.uzinfocom.app.platform.iam.application.organization.query.specificati
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationFilerRequest;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.request.OrganizationFilerRequest;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 
 import java.util.ArrayList;

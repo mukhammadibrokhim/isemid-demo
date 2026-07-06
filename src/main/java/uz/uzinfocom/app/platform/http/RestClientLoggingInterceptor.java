@@ -1,202 +1,281 @@
 package uz.uzinfocom.app.platform.http;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StreamUtils;
-import tools.jackson.databind.json.JsonMapper;
+import uz.uzinfocom.app.platform.observability.ObservabilityProperties;
 import uz.uzinfocom.app.platform.observability.TraceContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Duration;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Locale;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RestClientLoggingInterceptor implements ClientHttpRequestInterceptor {
 
-    private static final ZoneId ZONE_ID = ZoneId.of("Asia/Tashkent");
+    private static final Logger OUTBOUND_LOG = LoggerFactory.getLogger("OUTBOUND_HTTP");
 
-    private final JsonMapper objectMapper;
     private final SensitiveLoggingSanitizer sanitizer;
-    private final PlatformRestClientProperties properties;
+    private final ObservabilityProperties properties;
 
-    @Nonnull
     @Override
-    public ClientHttpResponse intercept(
-            @Nonnull HttpRequest request,
-            @Nonnull byte[] body,
-            @Nonnull ClientHttpRequestExecution execution
+    public @NonNull ClientHttpResponse intercept(
+            @NonNull HttpRequest request,
+            byte @NonNull [] body,
+            @NonNull ClientHttpRequestExecution execution
     ) throws IOException {
-
-        if (!properties.isLoggingEnabled()) {
+        ObservabilityProperties.OutboundHttpLogging config = properties.getOutboundHttpLogging();
+        if (!config.isEnabled()) {
             return execution.execute(request, body);
         }
 
-        OffsetDateTime startedAt = OffsetDateTime.now(ZONE_ID);
-
+        long startedAtNanos = System.nanoTime();
         try {
             ClientHttpResponse response = execution.execute(request, body);
-            byte[] responseBody = readResponseBodySafely(response);
-
-            OffsetDateTime finishedAt = OffsetDateTime.now(ZONE_ID);
-
-            logSuccess(
-                    request,
-                    body,
-                    response,
-                    responseBody,
-                    startedAt,
-                    finishedAt
-            );
-
-            return new BufferedClientHttpResponse(response, responseBody);
+            ResponseCapture capture = captureResponseBody(response, config);
+            long durationMs = (System.nanoTime() - startedAtNanos) / 1_000_000L;
+            int status = response.getStatusCode().value();
+            logCompletion(request, body, response, capture, status, durationMs, config);
+            return capture.response();
         } catch (IOException | RuntimeException exception) {
-            OffsetDateTime finishedAt = OffsetDateTime.now(ZONE_ID);
-
-            logFailure(
-                    request,
-                    body,
-                    startedAt,
-                    finishedAt,
-                    exception
-            );
-
+            long durationMs = (System.nanoTime() - startedAtNanos) / 1_000_000L;
+            logTransportFailure(request, body.length, durationMs, exception, config);
             throw exception;
         }
     }
 
-    private void logSuccess(
+    private ResponseCapture captureResponseBody(
+            ClientHttpResponse response,
+            ObservabilityProperties.OutboundHttpLogging config
+    ) throws IOException {
+        if (!config.isLogResponseBody()) {
+            return new ResponseCapture(response, null, false, null);
+        }
+
+        HttpHeaders headers = response.getHeaders();
+        long contentLength = headers.getContentLength();
+        MediaType contentType = headers.getContentType();
+        String skipReason = responseBodySkipReason(headers, contentType, contentLength, config);
+        if (skipReason != null) {
+            return new ResponseCapture(response, null, true, skipReason);
+        }
+
+        byte[] responseBody = response.getBody().readNBytes((int) contentLength);
+        return new ResponseCapture(
+                new BufferedClientHttpResponse(response, responseBody),
+                responseBody,
+                false,
+                null
+        );
+    }
+
+    private String responseBodySkipReason(
+            HttpHeaders headers,
+            MediaType contentType,
+            long contentLength,
+            ObservabilityProperties.OutboundHttpLogging config
+    ) {
+        if (contentLength < 0) {
+            return "unknown_content_length";
+        }
+        if (contentLength > config.getMaxBodyBytes()) {
+            return "content_length_exceeds_limit";
+        }
+        if (!sanitizer.isAllowedTextContentType(contentType, config.getAllowedTextContentTypes())) {
+            return "content_type_not_allowed";
+        }
+        String disposition = headers.getFirst(HttpHeaders.CONTENT_DISPOSITION);
+        if (disposition != null && disposition.toLowerCase(Locale.ROOT).contains("attachment")) {
+            return "file_download";
+        }
+        String transferEncoding = headers.getFirst(HttpHeaders.TRANSFER_ENCODING);
+        if (transferEncoding != null && transferEncoding.toLowerCase(Locale.ROOT).contains("chunked")) {
+            return "streaming_response";
+        }
+        return null;
+    }
+
+    private void logCompletion(
             HttpRequest request,
             byte[] requestBody,
             ClientHttpResponse response,
-            byte[] responseBody,
-            OffsetDateTime startedAt,
-            OffsetDateTime finishedAt
+            ResponseCapture capture,
+            int status,
+            long durationMs,
+            ObservabilityProperties.OutboundHttpLogging config
     ) {
+        boolean slow = durationMs >= config.getSlowRequestThresholdMs();
+        LogLevel level;
+        if (status >= 500) {
+            level = LogLevel.ERROR;
+        } else if (status >= 400 || slow) {
+            level = LogLevel.WARN;
+        } else if (config.isLogSuccessfulRequests()) {
+            level = LogLevel.INFO;
+        } else {
+            level = LogLevel.DEBUG;
+        }
+        if (!isEnabled(level)) {
+            return;
+        }
+
         try {
-            Map<String, Object> logMap = new LinkedHashMap<>();
+            StringBuilder event = baseEvent(request, durationMs);
+            append(event, "outcome", status >= 400 ? "error" : "success");
+            append(event, "status", status);
+            append(event, "requestContentType", contentType(request.getHeaders()));
+            append(event, "responseContentType", contentType(response.getHeaders()));
+            append(event, "requestContentLength", requestBody.length);
+            append(event, "responseContentLength", response.getHeaders().getContentLength());
 
-            logMap.put("event", "outbound_http_completed");
-            logMap.put("traceId", MDC.get(TraceContext.MDC_KEY));
-            logMap.put("requestMethod", request.getMethod().name());
-            logMap.put("requestUri", sanitizeUri(request));
-            logMap.put("requestHeaders", sanitizer.sanitizeHeaders(request.getHeaders()));
-            logMap.put("requestContentLength", requestBody == null ? 0 : requestBody.length);
-            logMap.put("requestBody", sanitizer.sanitizeBody(
-                    requestBody,
-                    request.getHeaders(),
-                    properties.isLogRequestBody()
-            ));
-
-            logMap.put("responseStatusCode", getStatusCodeSafely(response));
-            logMap.put("responseStatusText", getStatusTextSafely(response));
-            logMap.put("responseHeaders", sanitizer.sanitizeHeaders(response.getHeaders()));
-            logMap.put("responseContentLength", responseBody == null ? 0 : responseBody.length);
-            logMap.put("responseBody", sanitizer.sanitizeBody(
-                    responseBody,
-                    response.getHeaders(),
-                    properties.isLogResponseBody()
-            ));
-
-            logMap.put("startedAt", startedAt.toString());
-            logMap.put("finishedAt", finishedAt.toString());
-            logMap.put("durationMs", Duration.between(startedAt, finishedAt).toMillis());
-
-            log.info(objectMapper.writeValueAsString(logMap));
-        } catch (Exception logException) {
-            log.warn(
-                    "Failed to write outbound HTTP success log. uri={}, error={}",
-                    request.getURI(),
-                    logException.getMessage(),
-                    logException
-            );
+            if (config.isIncludeHeaders()) {
+                append(event, "requestHeaders", sanitizer.sanitizeHeaders(request.getHeaders()));
+                append(event, "responseHeaders", sanitizer.sanitizeHeaders(response.getHeaders()));
+            }
+            appendRequestBody(event, requestBody, request.getHeaders(), config);
+            if (config.isLogResponseBody()) {
+                if (capture.bodySkipped()) {
+                    append(event, "responseBodySkipped", true);
+                    append(event, "responseBodySkipReason", capture.bodySkipReason());
+                } else {
+                    append(event, "responseBody", sanitizer.sanitizeBody(
+                            capture.body(), response.getHeaders(), config.getMaxBodyBytes()));
+                }
+            }
+            write(level, event.toString());
+        } catch (RuntimeException loggingFailure) {
+            logFallback(request, loggingFailure);
         }
     }
 
-    private void logFailure(
+    private void appendRequestBody(
+            StringBuilder event,
+            byte[] body,
+            HttpHeaders headers,
+            ObservabilityProperties.OutboundHttpLogging config
+    ) {
+        if (!config.isLogRequestBody()) {
+            return;
+        }
+        if (body.length > config.getMaxBodyBytes()) {
+            append(event, "requestBodySkipped", true);
+            append(event, "requestBodySkipReason", "body_exceeds_limit");
+            return;
+        }
+        if (!sanitizer.isAllowedTextContentType(headers.getContentType(), config.getAllowedTextContentTypes())) {
+            append(event, "requestBodySkipped", true);
+            append(event, "requestBodySkipReason", "content_type_not_allowed");
+            return;
+        }
+        append(event, "requestBody", sanitizer.sanitizeBody(body, headers, config.getMaxBodyBytes()));
+    }
+
+    private void logTransportFailure(
             HttpRequest request,
-            byte[] requestBody,
-            OffsetDateTime startedAt,
-            OffsetDateTime finishedAt,
-            Exception exception
+            long requestContentLength,
+            long durationMs,
+            Exception exception,
+            ObservabilityProperties.OutboundHttpLogging config
     ) {
+        if (!OUTBOUND_LOG.isErrorEnabled()) {
+            return;
+        }
         try {
-            Map<String, Object> logMap = new LinkedHashMap<>();
-
-            logMap.put("event", "outbound_http_failed");
-            logMap.put("traceId", MDC.get(TraceContext.MDC_KEY));
-            logMap.put("requestMethod", request.getMethod().name());
-            logMap.put("requestUri", sanitizeUri(request));
-            logMap.put("requestHeaders", sanitizer.sanitizeHeaders(request.getHeaders()));
-            logMap.put("requestContentLength", requestBody == null ? 0 : requestBody.length);
-            logMap.put("requestBody", sanitizer.sanitizeBody(
-                    requestBody,
-                    request.getHeaders(),
-                    properties.isLogRequestBody()
-            ));
-
-            logMap.put("startedAt", startedAt.toString());
-            logMap.put("finishedAt", finishedAt.toString());
-            logMap.put("durationMs", Duration.between(startedAt, finishedAt).toMillis());
-            logMap.put("errorType", exception.getClass().getName());
-            logMap.put("errorMessage", exception.getMessage());
-
-            log.error(objectMapper.writeValueAsString(logMap), exception);
-        } catch (Exception logException) {
-            log.warn(
-                    "Failed to write outbound HTTP failure log. uri={}, error={}",
-                    request.getURI(),
-                    logException.getMessage(),
-                    logException
-            );
+            StringBuilder event = baseEvent(request, durationMs);
+            append(event, "outcome", "transport_error");
+            append(event, "requestContentType", contentType(request.getHeaders()));
+            append(event, "requestContentLength", requestContentLength);
+            append(event, "errorType", exception.getClass().getName());
+            append(event, "errorMessage", sanitizer.sanitizeText(exception.getMessage(), config.getMaxBodyBytes()));
+            OUTBOUND_LOG.error(event.toString(), exception);
+        } catch (RuntimeException loggingFailure) {
+            logFallback(request, loggingFailure);
         }
     }
 
-    private byte[] readResponseBodySafely(ClientHttpResponse response) throws IOException {
-        InputStream bodyStream = response.getBody();
-        return StreamUtils.copyToByteArray(bodyStream);
+    private StringBuilder baseEvent(HttpRequest request, long durationMs) {
+        ObservabilityProperties.HttpLogging inboundConfig = properties.getHttpLogging();
+        StringBuilder event = new StringBuilder(384);
+        append(event, "event", "outbound_http");
+        append(event, "traceId", TraceContext.currentTraceId());
+        append(event, "method", request.getMethod());
+        append(event, "sanitizedUri", sanitizer.sanitizeUri(
+                request.getURI(), inboundConfig.getSensitiveQueryParameters(), inboundConfig.getMaxTextLength()));
+        append(event, "targetHost", sanitizer.sanitizeText(request.getURI().getHost(), 255));
+        append(event, "durationMs", durationMs);
+        return event;
     }
 
-    private Integer getStatusCodeSafely(ClientHttpResponse response) {
+    private void logFallback(HttpRequest request, RuntimeException loggingFailure) {
+        String safePath;
         try {
-            return response.getStatusCode().value();
-        } catch (IOException exception) {
-            return null;
+            safePath = sanitizer.sanitizePath(request.getURI().getRawPath(), true, 300);
+        } catch (RuntimeException ignored) {
+            safePath = "[unavailable]";
+        }
+        OUTBOUND_LOG.warn(
+                "event=outbound_http_logging_failure traceId={} method={} targetHost={} path={} loggingErrorType={}",
+                TraceContext.currentTraceId(),
+                request.getMethod(),
+                sanitizer.sanitizeText(request.getURI().getHost(), 255),
+                safePath,
+                loggingFailure.getClass().getName()
+        );
+    }
+
+    private boolean isEnabled(LogLevel level) {
+        return switch (level) {
+            case DEBUG -> OUTBOUND_LOG.isDebugEnabled();
+            case INFO -> OUTBOUND_LOG.isInfoEnabled();
+            case WARN -> OUTBOUND_LOG.isWarnEnabled();
+            case ERROR -> OUTBOUND_LOG.isErrorEnabled();
+        };
+    }
+
+    private void write(LogLevel level, String event) {
+        switch (level) {
+            case DEBUG -> OUTBOUND_LOG.debug(event);
+            case INFO -> OUTBOUND_LOG.info(event);
+            case WARN -> OUTBOUND_LOG.warn(event);
+            case ERROR -> OUTBOUND_LOG.error(event);
         }
     }
 
-    private String getStatusTextSafely(ClientHttpResponse response) {
-        try {
-            return response.getStatusText();
-        } catch (IOException exception) {
-            return null;
-        }
+    private String contentType(HttpHeaders headers) {
+        MediaType contentType = headers.getContentType();
+        return contentType == null ? null : contentType.toString();
     }
 
-    private String sanitizeUri(HttpRequest request) {
-        String uri = String.valueOf(request.getURI());
+    private void append(StringBuilder target, String name, Object value) {
+        if (value == null) {
+            return;
+        }
+        if (!target.isEmpty()) {
+            target.append(' ');
+        }
+        target.append(name).append('=').append(value);
+    }
 
-        return uri
-                .replaceAll("(?i)(access_token=)[^&]+", "$1****")
-                .replaceAll("(?i)(refresh_token=)[^&]+", "$1****")
-                .replaceAll("(?i)(token=)[^&]+", "$1****")
-                .replaceAll("(?i)(pinfl=)[^&]+", "$1****")
-                .replaceAll("(?i)(nnuzb=)[^&]+", "$1****");
+    private enum LogLevel {
+        DEBUG, INFO, WARN, ERROR
+    }
+
+    private record ResponseCapture(
+            ClientHttpResponse response,
+            byte[] body,
+            boolean bodySkipped,
+            String bodySkipReason
+    ) {
     }
 
     private record BufferedClientHttpResponse(
@@ -204,28 +283,24 @@ public class RestClientLoggingInterceptor implements ClientHttpRequestIntercepto
             byte[] body
     ) implements ClientHttpResponse {
 
-        @Nonnull
         @Override
-        public HttpStatusCode getStatusCode() throws IOException {
+        public @NonNull org.springframework.http.HttpStatusCode getStatusCode() throws IOException {
             return delegate.getStatusCode();
         }
 
-        @Nonnull
         @Override
-        public String getStatusText() throws IOException {
+        public @NonNull String getStatusText() throws IOException {
             return delegate.getStatusText();
         }
 
-        @Nonnull
         @Override
-        public HttpHeaders getHeaders() {
+        public @NonNull HttpHeaders getHeaders() {
             return delegate.getHeaders();
         }
 
-        @Nonnull
         @Override
-        public InputStream getBody() {
-            return new ByteArrayInputStream(body == null ? new byte[0] : body);
+        public @NonNull InputStream getBody() {
+            return new ByteArrayInputStream(body);
         }
 
         @Override

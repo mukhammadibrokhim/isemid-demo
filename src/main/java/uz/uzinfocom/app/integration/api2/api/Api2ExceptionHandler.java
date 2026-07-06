@@ -2,7 +2,6 @@ package uz.uzinfocom.app.integration.api2.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -16,12 +15,12 @@ import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
+import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(basePackages = "uz.uzinfocom.app.integration.api2")
 @RequiredArgsConstructor
@@ -39,7 +38,12 @@ public class Api2ExceptionHandler {
         String message = messages.resolve(exception.getMessageCode());
         List<FieldValidationError> fieldErrors = localizedFieldErrors(exception.getFieldErrors());
 
-        logApi2Exception(exception, request, traceId, fieldErrors);
+        RequestLogErrorContext.attach(
+                request,
+                exception.getErrorCode(),
+                exception.getClass().getSimpleName() + " during " + exception.getOperation(),
+                exception
+        );
 
         return ResponseEntity
                 .status(exception.getResponseStatus())
@@ -69,14 +73,11 @@ public class Api2ExceptionHandler {
                 "validation.required"
         )));
 
-        log.warn(
-                "API2 request parameter missing. traceId={}, errorCode={}, operation={}, method={}, path={}, parameter={}",
-                traceId,
+        RequestLogErrorContext.attach(
+                request,
                 context.validationErrorCode(),
-                context.operation(),
-                request.getMethod(),
-                request.getRequestURI(),
-                exception.getParameterName()
+                "Required request parameter is missing: " + exception.getParameterName(),
+                exception
         );
 
         return ResponseEntity
@@ -122,14 +123,11 @@ public class Api2ExceptionHandler {
                 fieldMessageCode
         )));
 
-        log.warn(
-                "API2 request argument type mismatch. traceId={}, errorCode={}, operation={}, method={}, path={}, field={}",
-                traceId,
+        RequestLogErrorContext.attach(
+                request,
                 errorCode,
-                context.operation(),
-                request.getMethod(),
-                request.getRequestURI(),
-                field
+                "Request argument type mismatch: " + field,
+                exception
         );
 
         return ResponseEntity
@@ -146,43 +144,6 @@ public class Api2ExceptionHandler {
                         traceId,
                         fieldErrors
                 ));
-    }
-
-    private void logApi2Exception(
-            Api2Exception exception,
-            HttpServletRequest request,
-            String traceId,
-            List<FieldValidationError> fieldErrors
-    ) {
-        if (exception.getResponseStatus().is5xxServerError()) {
-            log.error(
-                    "API2 exception handled. traceId={}, exception={}, errorCode={}, messageCode={}, operation={}, upstreamStatus={}, method={}, path={}, fields={}",
-                    traceId,
-                    exception.getClass().getSimpleName(),
-                    exception.getErrorCode(),
-                    exception.getMessageCode(),
-                    exception.getOperation(),
-                    exception.getUpstreamStatus(),
-                    request.getMethod(),
-                    request.getRequestURI(),
-                    fieldErrors.stream().map(FieldValidationError::field).toList(),
-                    exception
-            );
-            return;
-        }
-
-        log.warn(
-                "API2 exception handled. traceId={}, exception={}, errorCode={}, messageCode={}, operation={}, upstreamStatus={}, method={}, path={}, fields={}",
-                traceId,
-                exception.getClass().getSimpleName(),
-                exception.getErrorCode(),
-                exception.getMessageCode(),
-                exception.getOperation(),
-                exception.getUpstreamStatus(),
-                request.getMethod(),
-                request.getRequestURI(),
-                fieldErrors.stream().map(FieldValidationError::field).toList()
-        );
     }
 
     private Api2ErrorResponse error(

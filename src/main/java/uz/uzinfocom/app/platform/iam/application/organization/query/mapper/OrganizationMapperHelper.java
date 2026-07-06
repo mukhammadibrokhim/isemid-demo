@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationShortResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationShortResponse;
 import uz.uzinfocom.app.platform.iam.application.shared.cache.OrganizationCacheConfig;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;

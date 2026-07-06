@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.platform.iam.web.user.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationShortResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationShortResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleShortResponse;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 

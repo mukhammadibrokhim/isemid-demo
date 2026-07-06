@@ -51,7 +51,7 @@ public class Form058QueryController {
 //        );
 //    }
 
-    @GetMapping("/{id}")
+    @GetMapping(ApiPaths.Form058.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Form058DetailResponse> byId(@PathVariable @Positive Long id) {
         return ApiResponse.success(

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationLookupResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationLookupResponse;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
@@ -19,30 +19,32 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     Optional<Organization> findByUuid(UUID uuid);
 
     @Query("""
-             select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationLookupResponse(
-                 o.id,
-                 o.uuid,
-                 o.name,
-                 o.active,
-                 o.levelType,
-                 o.medicalType
-             )
-             from Organization o
-             where (
-                   :search = ''
-                   or lower(coalesce(o.name, '')) like concat('%', :search, '%')
-                   or lower(coalesce(o.tin, '')) like concat('%', :search, '%')
-                   or lower(coalesce(o.phone, '')) like concat('%', :search, '%')
-                   or lower(coalesce(o.regionCode, '')) like concat('%', :search, '%')
-                   or lower(coalesce(o.districtCode, '')) like concat('%', :search, '%')
-             )
-               and (:levelType is null or o.levelType = :levelType)
-               and (:medicalType is null or o.medicalType = :medicalType)
-               and (:active is null or o.active = :active)
-             order by o.name asc, o.id desc\s
-            \s""")
+        select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationLookupResponse(
+            o.id,
+            o.uuid,
+            o.name,
+            o.active,
+            o.levelType,
+            o.medicalType
+        )
+        from Organization o
+        where (:id is null or o.id = :id)
+          and (
+                :search = ''
+             or lower(coalesce(o.name, '')) like concat('%', :search, '%')
+             or lower(coalesce(o.tin, '')) like concat('%', :search, '%')
+             or lower(coalesce(o.phone, '')) like concat('%', :search, '%')
+             or lower(coalesce(o.regionCode, '')) like concat('%', :search, '%')
+             or lower(coalesce(o.districtCode, '')) like concat('%', :search, '%')
+          )
+          and (:levelType is null or o.levelType = :levelType)
+          and (:medicalType is null or o.medicalType = :medicalType)
+          and (:active is null or o.active = :active)
+        order by o.name asc, o.id desc
+        """)
     List<OrganizationLookupResponse> lookupOrganizations(
             @Param("search") String search,
+            @Param("id") Long id,
             @Param("levelType") OrganizationLevel levelType,
             @Param("medicalType") MedicalType medicalType,
             @Param("active") Boolean active,

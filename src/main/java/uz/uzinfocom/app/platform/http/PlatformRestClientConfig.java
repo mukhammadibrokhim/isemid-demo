@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import uz.uzinfocom.app.platform.observability.TraceIdClientHttpRequestInterceptor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -64,13 +65,15 @@ public class PlatformRestClientConfig {
     public RestClient restClient(
             RestClient.Builder builder,
             ClientHttpRequestFactory platformClientHttpRequestFactory,
-            RestClientTracePropagationInterceptor tracePropagationInterceptor,
+            TraceIdClientHttpRequestInterceptor tracePropagationInterceptor,
             RestClientLoggingInterceptor loggingInterceptor
     ) {
         return builder
                 .requestFactory(platformClientHttpRequestFactory)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .requestInterceptors(interceptors -> {
+                    interceptors.removeIf(interceptor -> interceptor == tracePropagationInterceptor
+                            || interceptor == loggingInterceptor);
                     interceptors.add(tracePropagationInterceptor);
                     interceptors.add(loggingInterceptor);
                 })

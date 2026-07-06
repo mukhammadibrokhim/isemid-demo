@@ -99,14 +99,14 @@ public interface Form058UpdateMapper {
     }
 
     private void updateEpidemicInfo(UpdateForm058Command command, Form058 form058) {
-        if (command.diseasePlace() == null) {
+        if (command.diseasePlaceCode() == null) {
             return;
         }
 
         if (form058.getEpidemicInfo() == null) {
             form058.setEpidemicInfo(new Form058EpidemicInfo());
         }
-        form058.getEpidemicInfo().setDiseasePlace(command.diseasePlace());
+        form058.getEpidemicInfo().setDiseasePlaceCode(command.diseasePlaceCode());
     }
 
     private void updateReportInfo(UpdateForm058Command command, Form058 form058) {

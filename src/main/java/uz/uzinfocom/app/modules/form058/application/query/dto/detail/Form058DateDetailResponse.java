@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.modules.form058.application.query.dto.detail;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record Form058DateDetailResponse(
         LocalDate admissionDate,
@@ -9,7 +9,6 @@ public record Form058DateDetailResponse(
         LocalDate firstVisitDate,
         LocalDate diagnosisDate,
         LocalDate visitDate,
-        Instant docSendDate,
-        Instant initialReportDateTime
+        LocalDateTime initialReportDateTime
 ) {
 }

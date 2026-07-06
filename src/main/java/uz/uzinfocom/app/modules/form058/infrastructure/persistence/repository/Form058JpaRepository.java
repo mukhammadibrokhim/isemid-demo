@@ -16,10 +16,10 @@ public interface Form058JpaRepository extends JpaRepository<Form058, Long>, JpaS
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-            select f
-            from Form058 f
-            where f.id = :id
-              and f.deleted = false
+            SELECT f
+            FROM Form058 f
+            WHERE f.id = :id
+              AND f.deleteInfo.deleted = false
             """)
     Optional<Form058> findActiveByIdForUpdate(@Param("id") Long id);
 

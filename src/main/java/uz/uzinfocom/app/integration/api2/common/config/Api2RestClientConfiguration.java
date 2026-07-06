@@ -17,6 +17,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import uz.uzinfocom.app.integration.api2.common.auth.Api2BearerTokenInterceptor;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
+import uz.uzinfocom.app.platform.http.RestClientLoggingInterceptor;
+import uz.uzinfocom.app.platform.observability.TraceIdClientHttpRequestInterceptor;
 
 @Configuration
 @EnableConfigurationProperties(Api2Properties.class)
@@ -57,13 +59,22 @@ public class Api2RestClientConfiguration {
             RestClient.Builder builder,
             Api2Properties properties,
             @Qualifier("api2ClientHttpRequestFactory") ClientHttpRequestFactory requestFactory,
+            TraceIdClientHttpRequestInterceptor traceIdInterceptor,
+            RestClientLoggingInterceptor loggingInterceptor,
             Api2BearerTokenInterceptor bearerTokenInterceptor
     ) {
         return builder.clone()
                 .baseUrl(properties.baseUrl())
                 .requestFactory(requestFactory)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .requestInterceptor(bearerTokenInterceptor)
+                .requestInterceptors(interceptors -> {
+                    interceptors.removeIf(interceptor -> interceptor == traceIdInterceptor
+                            || interceptor == loggingInterceptor
+                            || interceptor == bearerTokenInterceptor);
+                    interceptors.add(traceIdInterceptor);
+                    interceptors.add(loggingInterceptor);
+                    interceptors.add(bearerTokenInterceptor);
+                })
                 .build();
     }
 }

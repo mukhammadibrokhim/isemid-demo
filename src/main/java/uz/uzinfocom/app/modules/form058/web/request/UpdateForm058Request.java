@@ -1,11 +1,13 @@
 package uz.uzinfocom.app.modules.form058.web.request;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record UpdateForm058Request(
@@ -15,20 +17,25 @@ public record UpdateForm058Request(
         @Size(max = 512, message = "{validation.form058.mkb10-name.size}")
         String mkb10Name,
 
+        @PastOrPresent(message = "{validation.form058.disease-date.past_or_present}")
         LocalDate diseaseDate,
 
+        @PastOrPresent(message = "{validation.form058.first-visit-date.past_or_present}")
         LocalDate firstVisitDate,
 
+        @PastOrPresent(message = "{validation.form058.visit-date.past_or_present}")
         LocalDate visitDate,
 
-        Instant initialReportDateTime,
+        @PastOrPresent(message = "{validation.form058.initial-report-date-time.past_or_present}")
+        LocalDateTime initialReportDateTime,
 
         UUID receiverOrganizationId,
 
+        @Positive(message = "{validation.form058.hospital-place-id.positive}")
         Long hospitalPlaceId,
 
-        @Size(max = 512, message = "{validation.form058.disease-place.size}")
-        String diseasePlace,
+        @Size(max = 64, message = "{validation.form058.disease-place.size}")
+        String diseasePlaceCode,
 
         @Size(max = 255, message = "{validation.form058.notifier-full-name.size}")
         String notifierFullName,

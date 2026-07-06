@@ -25,11 +25,4 @@ public class PlatformRestClientProperties {
 
     private int maxConnectionsPerRoute = 50;
 
-    private boolean loggingEnabled = true;
-
-    private boolean logRequestBody = true;
-
-    private boolean logResponseBody = true;
-
-    private int maxLoggedBodySizeBytes = 16 * 1024;
 }

@@ -55,7 +55,7 @@ public class Form058Specification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.isFalse(root.get(DELETED)));
+            predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
             predicates.add(accessScopePredicate(root, query, cb, filter, scope, received));
 
             applyFilters(predicates, root, query, cb, filter, received);
@@ -84,7 +84,7 @@ public class Form058Specification {
 
     private Specification<Form058> visible(ResolvedOrganizationScope scope) {
         return (root, query, cb) -> cb.and(
-                cb.isFalse(root.get(DELETED)),
+                cb.isFalse(root.get("deleteInfo").get(DELETED)),
                 form058ScopePredicateFactory.applyDirectionScope(root, cb, scope, null)
         );
     }

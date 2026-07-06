@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.platform.iam.application.organization.query.dto;
+package uz.uzinfocom.app.platform.iam.application.organization.query.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
@@ -12,6 +12,9 @@ public record OrganizationLookupRequest(
         @Schema(description = "Строка поиска по наименованию или реквизитам организации.")
         String search,
 
+        @Schema(description = "Внутренний идентификатор организации.", example = "336")
+        Long id,
+
         @Schema(description = "Уровень организации.")
         OrganizationLevel levelType,
 
@@ -22,8 +25,8 @@ public record OrganizationLookupRequest(
         Boolean active,
 
         @Schema(description = "Максимальное количество записей в ответе.", example = "20")
-        @Min(1)
-        @Max(50)
+        @Min(value = 1, message = "{organization.lookup.limit.min}")
+        @Max(value = 50, message = "{organization.lookup.limit.max}")
         Integer limit
 
 ) {

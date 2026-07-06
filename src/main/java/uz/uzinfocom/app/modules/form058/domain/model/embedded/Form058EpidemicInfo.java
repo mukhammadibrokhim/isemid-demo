@@ -15,9 +15,6 @@ public class Form058EpidemicInfo {
     @Column(name = "disease_place_code", length = 64)
     private String diseasePlaceCode;
 
-    @Column(name = "disease_place", length = 512)
-    private String diseasePlace;
-
     @Column(name = "disease_cause", length = 2000)
     private String diseaseCause;
 

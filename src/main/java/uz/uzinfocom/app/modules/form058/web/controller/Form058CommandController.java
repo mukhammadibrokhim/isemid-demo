@@ -47,7 +47,7 @@ public class Form058CommandController {
         );
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(ApiPaths.Form058.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<UpdateForm058Response> update(
             @PathVariable @Positive Long id,
@@ -59,10 +59,10 @@ public class Form058CommandController {
         );
     }
 
-    @DeleteMapping("/{formId}")
+    @DeleteMapping(ApiPaths.Form058.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Void> delete(@PathVariable @Positive Long formId) {
-        deleteForm058Service.delete(formId);
+    public ApiResponse<Void> delete(@PathVariable @Positive Long id) {
+        deleteForm058Service.delete(id);
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
     }
 }

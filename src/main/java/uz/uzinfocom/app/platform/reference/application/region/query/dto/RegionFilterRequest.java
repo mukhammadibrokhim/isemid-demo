@@ -10,12 +10,12 @@ import uz.uzinfocom.app.shared.pagination.PageableRequest;
 @Schema(description = "Region table filter and pagination parameters.")
 public record RegionFilterRequest(
         @Schema(description = "Page number, starting from 1.", example = "1")
-        @Min(1)
+        @Min(value = 1, message = "{reference.region.filter.page.min}")
         Integer page,
 
         @Schema(description = "Number of records per page. Maximum value is 200.", example = "20")
-        @Min(1)
-        @Max(200)
+        @Min(value = 1, message = "{reference.region.filter.size.min}")
+        @Max(value = 200, message = "{reference.region.filter.size.max}")
         Integer size,
 
         @Schema(

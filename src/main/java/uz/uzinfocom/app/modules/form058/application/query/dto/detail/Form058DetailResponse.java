@@ -4,7 +4,6 @@ import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 
-import java.time.Instant;
 import java.util.UUID;
 
 public record Form058DetailResponse(
@@ -29,11 +28,7 @@ public record Form058DetailResponse(
 
         Form058CancellationDetailResponse cancellationInfo,
         Form058ApprovalDetailResponse approvalInfo,
-
-        Boolean deleted,
-        Instant deletedAt,
-        Long deletedBy,
-        String deleteReason,
+        Form058DeleteDetailResponse deleteInfo,
 
         PatientDetailResponse patient,
 

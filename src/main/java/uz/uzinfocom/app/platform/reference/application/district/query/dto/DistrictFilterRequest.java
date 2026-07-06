@@ -10,12 +10,12 @@ import uz.uzinfocom.app.shared.pagination.PageableRequest;
 @Schema(description = "District table filter and pagination parameters.")
 public record DistrictFilterRequest(
         @Schema(description = "Page number, starting from 1.", example = "1")
-        @Min(1)
+        @Min(value = 1, message = "{reference.district.filter.page.min}")
         Integer page,
 
         @Schema(description = "Number of records per page. Maximum value is 200.", example = "20")
-        @Min(1)
-        @Max(200)
+        @Min(value = 1, message = "{reference.district.filter.size.min}")
+        @Max(value = 200, message = "{reference.district.filter.size.max}")
         Integer size,
 
         @Schema(

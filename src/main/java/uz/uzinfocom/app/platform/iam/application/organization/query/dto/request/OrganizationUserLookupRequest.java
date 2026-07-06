@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.platform.iam.application.organization.query.dto;
+package uz.uzinfocom.app.platform.iam.application.organization.query.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
@@ -9,12 +9,12 @@ import uz.uzinfocom.app.shared.pagination.PageableRequest;
 public record OrganizationUserLookupRequest(
 
         @Schema(description = "Номер страницы, начиная с 1.", example = "1")
-        @Min(1)
+        @Min(value = 1, message = "{organization.user_lookup.page.min}")
         Integer page,
 
         @Schema(description = "Количество записей на странице.", example = "20")
-        @Min(1)
-        @Max(50)
+        @Min(value = 1, message = "{organization.user_lookup.size.min}")
+        @Max(value = 50, message = "{organization.user_lookup.size.max}")
         Integer size,
 
         @Schema(description = "Поле для сортировки.", example = "lastName")

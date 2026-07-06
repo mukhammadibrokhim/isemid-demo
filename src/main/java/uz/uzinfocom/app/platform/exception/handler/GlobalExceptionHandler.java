@@ -21,7 +21,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
-import uz.uzinfocom.app.platform.observability.RequestLoggingFilter;
+import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
 import uz.uzinfocom.app.shared.exception.AppException;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
@@ -70,7 +70,8 @@ public class GlobalExceptionHandler {
         attachLogError(
                 request,
                 ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations)
+                firstViolationMessage(violations),
+                exception
         );
 
         String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
@@ -97,7 +98,8 @@ public class GlobalExceptionHandler {
         attachLogError(
                 request,
                 ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations)
+                firstViolationMessage(violations),
+                exception
         );
 
         String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
@@ -131,7 +133,8 @@ public class GlobalExceptionHandler {
         attachLogError(
                 request,
                 ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations)
+                firstViolationMessage(violations),
+                exception
         );
 
         String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
@@ -157,7 +160,8 @@ public class GlobalExceptionHandler {
         attachLogError(
                 request,
                 ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations)
+                firstViolationMessage(violations),
+                exception
         );
 
         String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
@@ -211,7 +215,7 @@ public class GlobalExceptionHandler {
                 exception.getMessage()
         ));
 
-        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage());
+        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
 
         return ResponseEntity
                 .badRequest()
@@ -230,7 +234,7 @@ public class GlobalExceptionHandler {
                 exception.getMessage()
         ));
 
-        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage());
+        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
 
         return ResponseEntity
                 .badRequest()
@@ -249,7 +253,7 @@ public class GlobalExceptionHandler {
                 exception.getMessage()
         ));
 
-        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage());
+        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
 
         return ResponseEntity
                 .badRequest()
@@ -390,23 +394,21 @@ public class GlobalExceptionHandler {
             String errorCode,
             Exception exception
     ) {
-        request.setAttribute(RequestLoggingFilter.ERROR_CODE_ATTR, errorCode);
-        request.setAttribute(
-                RequestLoggingFilter.ERROR_MESSAGE_ATTR,
-                extractExceptionMessage(exception)
+        RequestLogErrorContext.attach(
+                request,
+                errorCode,
+                extractExceptionMessage(exception),
+                exception
         );
     }
 
     private void attachLogError(
             HttpServletRequest request,
             String errorCode,
-            String message
+            String message,
+            Exception exception
     ) {
-        request.setAttribute(RequestLoggingFilter.ERROR_CODE_ATTR, errorCode);
-        request.setAttribute(
-                RequestLoggingFilter.ERROR_MESSAGE_ATTR,
-                normalizeMessage(message)
-        );
+        RequestLogErrorContext.attach(request, errorCode, normalizeMessage(message), exception);
     }
 
     private String firstViolationMessage(List<FieldViolationResponse> violations) {

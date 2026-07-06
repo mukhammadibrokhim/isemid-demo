@@ -2,8 +2,8 @@ package uz.uzinfocom.app.platform.iam.application.organization.query.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationDetailResponse;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationTableResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationDetailResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationTableResponse;
 import uz.uzinfocom.app.platform.iam.application.organization.query.projection.OrganizationTableProjection;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 import uz.uzinfocom.app.platform.iam.domain.Organization;

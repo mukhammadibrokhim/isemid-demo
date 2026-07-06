@@ -2,9 +2,6 @@ package uz.uzinfocom.app.platform.iam.web.user;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -17,14 +14,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationShortResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationShortResponse;
 import uz.uzinfocom.app.platform.iam.application.user.query.UserQueryService;
 import uz.uzinfocom.app.platform.iam.web.user.dto.request.UserFilterRequest;
 import uz.uzinfocom.app.platform.iam.web.user.dto.response.UserDetailedResponse;
 import uz.uzinfocom.app.platform.iam.web.user.dto.response.UserTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.PagedResponse;
 import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 

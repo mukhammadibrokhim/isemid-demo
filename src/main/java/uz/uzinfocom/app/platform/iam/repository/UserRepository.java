@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationUserLookupResponse;
 import uz.uzinfocom.app.platform.iam.domain.User;
 
 import java.util.Optional;
@@ -42,7 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findForAuthorizationById(@Param("id") Long id);
 
     @Query("""
-            SELECT NEW uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationUserLookupResponse(
+            SELECT NEW uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationUserLookupResponse(
                 u.id,
                 u.uuid,
                 u.firstName,

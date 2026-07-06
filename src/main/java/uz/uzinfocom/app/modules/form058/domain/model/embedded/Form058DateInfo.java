@@ -31,9 +31,6 @@ public class Form058DateInfo {
     @Column(name = "visit_date", nullable = false)
     private LocalDateTime visitDate;
 
-    @Column(name = "doc_send_date")
-    private Instant docSendDate;
-
     @Column(name = "initial_report_date_time", nullable = false)
-    private Instant initialReportDateTime;
+    private LocalDateTime initialReportDateTime;
 }

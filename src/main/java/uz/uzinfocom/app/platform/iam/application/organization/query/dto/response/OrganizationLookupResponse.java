@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.platform.iam.application.organization.query.dto;
+package uz.uzinfocom.app.platform.iam.application.organization.query.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;

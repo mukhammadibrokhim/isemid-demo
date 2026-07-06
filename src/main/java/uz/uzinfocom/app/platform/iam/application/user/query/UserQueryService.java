@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.OrganizationShortResponse;
+import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationShortResponse;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.application.user.query.mapper.UserQueryMapper;
 import uz.uzinfocom.app.platform.iam.application.user.query.projection.UserTableProjection;

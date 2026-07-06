@@ -1,33 +1,11 @@
 package uz.uzinfocom.app.modules.form058.domain.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
-import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ApprovalInfo;
-import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058CancellationInfo;
-import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ClinicalInfo;
-import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058DateInfo;
-import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058DiagnosisInfo;
-import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058EpidemicInfo;
-import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ReportInfo;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
@@ -134,20 +112,12 @@ public class Form058 extends AbsEntity {
 
     /**
      * Soft delete state.
-     * SQL delete annotation is not used. Delete is handled explicitly from the service layer.
+     * Columns remain in form058 table:
+     * deleted, deleted_at, deleted_by_id, delete_reason.
      */
-    @Column(name = "deleted", nullable = false)
+    @Embedded
     @Builder.Default
-    private boolean deleted = false;
-
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
-
-    @Column(name = "deleted_by_id")
-    private Long deletedBy;
-
-    @Column(name = "delete_reason", length = 1000)
-    private String deleteReason;
+    private Form058DeleteInfo deleteInfo = new Form058DeleteInfo();
 
     public void attachLocation(Form058Location location) {
         this.location = location;
@@ -157,9 +127,20 @@ public class Form058 extends AbsEntity {
         this.hasLinkedCards = this.assignedCardId != null;
     }
 
+    public void markCardsLinked() {
+        this.hasLinkedCards = true;
+    }
+
+    public void markCardsUnlinked() {
+        this.hasLinkedCards = false;
+    }
+
     public void ensureEditable() {
         if (isCanceled() || isApproved() || isDeleted()) {
-            throw new InvalidForm058StateException("error.form058.update-not-allowed", this.status);
+            throw new InvalidForm058StateException(
+                    "error.form058.update-not-allowed",
+                    this.status
+            );
         }
     }
 
@@ -169,15 +150,22 @@ public class Form058 extends AbsEntity {
         }
 
         ensureCancellationInfo();
+
         this.status = FormStatus.CANCELED;
         this.cancellationInfo.setCancelReason(reason);
         this.cancellationInfo.setCanceledBy(canceledBy);
         this.cancellationInfo.setCanceledAt(Instant.now());
     }
 
-    public void approve(String finalMkb10Code, String finalMkb10Name, Long approvedBy, Long approvedOrganizationId) {
+    public void approve(
+            String finalMkb10Code,
+            String finalMkb10Name,
+            Long approvedBy,
+            Long approvedOrganizationId
+    ) {
         ensureDiagnosisInfo();
         ensureApprovalInfo();
+
         this.status = FormStatus.APPROVED;
         this.diagnosisInfo.setFinalMkb10Code(finalMkb10Code);
         this.diagnosisInfo.setFinalMkb10Name(finalMkb10Name);
@@ -188,6 +176,7 @@ public class Form058 extends AbsEntity {
 
     public void notApprove(String reason) {
         ensureCancellationInfo();
+
         this.status = FormStatus.NOT_APPROVED;
         this.cancellationInfo.setNotApprovedReason(reason);
     }
@@ -199,21 +188,13 @@ public class Form058 extends AbsEntity {
     }
 
     public void softDelete(Long deletedBy, String reason) {
-        if (this.deleted) {
-            return;
-        }
-
-        this.deleted = true;
-        this.deletedAt = Instant.now();
-        this.deletedBy = deletedBy;
-        this.deleteReason = reason;
+        ensureDeleteInfo();
+        this.deleteInfo.softDelete(deletedBy, reason);
     }
 
     public void restore() {
-        this.deleted = false;
-        this.deletedAt = null;
-        this.deletedBy = null;
-        this.deleteReason = null;
+        ensureDeleteInfo();
+        this.deleteInfo.restore();
     }
 
     public boolean isApproved() {
@@ -225,7 +206,7 @@ public class Form058 extends AbsEntity {
     }
 
     public boolean isDeleted() {
-        return this.deleted;
+        return this.deleteInfo != null && this.deleteInfo.isDeleted();
     }
 
     private void ensureDiagnosisInfo() {
@@ -243,6 +224,12 @@ public class Form058 extends AbsEntity {
     private void ensureApprovalInfo() {
         if (this.approvalInfo == null) {
             this.approvalInfo = new Form058ApprovalInfo();
+        }
+    }
+
+    private void ensureDeleteInfo() {
+        if (this.deleteInfo == null) {
+            this.deleteInfo = new Form058DeleteInfo();
         }
     }
 }

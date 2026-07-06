@@ -17,22 +17,36 @@ import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 @Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})
 public interface Form058WebMapper {
 
-    @Mapping(target = "source", source = "sourceHeader")
-    @Mapping(
-            target = "senderOrganizationId",
-            source = "request.senderOrganizationId",
-            qualifiedByName = "activeOrganizationId"
-    )
-    @Mapping(
-            target = "receiverOrganizationId",
-            source = "request.receiverOrganizationId",
-            qualifiedByName = "activeOrganizationId"
-    )
+    @Mapping(target = "source", source = "source")
+    @Mapping(target = "senderOrganizationId", source = "request.senderOrganizationId", qualifiedByName = "activeOrganizationId")
+    @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "activeOrganizationId")
+    @Mapping(target = "hospitalPlaceId", source = "request.hospitalPlaceId", qualifiedByName = "activeOrganizationId")
+    @Mapping(target = "diseasePlaceCode", source = "request.diseasePlaceCode")
+    @Mapping(target = "diseaseCause", source = "request.diseaseCause")
+    @Mapping(target = "epidemicMeasures", source = "request.epidemicMeasures")
+
+    @Mapping(target = "notifierFullName", source = "request.notifierFullName")
+    @Mapping(target = "journalFormCode", source = "request.journalFormCode")
+    @Mapping(target = "comment", source = "request.comment")
+
     @Mapping(target = "locationLatitude", source = "request.location.latitude")
     @Mapping(target = "locationLongitude", source = "request.location.longitude")
     @Mapping(target = "location", source = "request.location.location")
+
+    @Mapping(target = "diseaseDate", source = "request.diseaseDate")
+    @Mapping(target = "firstVisitDate", source = "request.firstVisitDate")
+    @Mapping(target = "visitDate", source = "request.visitDate")
+    @Mapping(target = "admissionDate", source = "request.admissionDate")
+    @Mapping(target = "diagnosisDate", source = "request.diagnosisDate")
+    @Mapping(target = "initialReportDateTime", source = "request.initialReportDateTime")
+
     @Mapping(target = "patient", source = "request.patient")
-    CreateForm058Command toCommand(CreateForm058Request request, String sourceHeader);
+    @Mapping(target = "finalMkb10Code", source = "request.mkb10Code")
+    @Mapping(target = "finalMkb10Name", source = "request.mkb10Name")
+    @Mapping(target = "mkb10UsageLimit", source = "request.mkb10UsageLimit")
+    @Mapping(target = "labConfirmation", source = "request.labConfirmation")
+    CreateForm058Command toCommand(CreateForm058Request request, String source);
+
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "nullableActiveOrganizationId")
@@ -43,7 +57,7 @@ public interface Form058WebMapper {
     @Mapping(target = "visitDate", source = "request.visitDate")
     @Mapping(target = "initialReportDateTime", source = "request.initialReportDateTime")
     @Mapping(target = "hospitalPlaceId", source = "request.hospitalPlaceId")
-    @Mapping(target = "diseasePlace", source = "request.diseasePlace")
+    @Mapping(target = "diseasePlaceCode", source = "request.diseasePlaceCode")
     @Mapping(target = "notifierFullName", source = "request.notifierFullName")
     @Mapping(target = "journalFormCode", source = "request.journalFormCode")
     @Mapping(target = "comment", source = "request.comment")

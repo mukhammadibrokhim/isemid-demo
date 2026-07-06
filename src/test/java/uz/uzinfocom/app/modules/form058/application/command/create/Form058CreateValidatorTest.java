@@ -9,8 +9,6 @@ import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
-import java.time.Instant;
-
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -51,21 +49,24 @@ class Form058CreateValidatorTest {
         return new CreateForm058Command(
                 "A00",
                 "Cholera",
+                null,
+                null,
+                null,
                 patient(),
                 null,
                 null,
                 null,
                 null,
-                Instant.now(),
+                null,
+                null,
+                null,
+                null,
+                null,
                 receiverOrganizationId,
                 null,
-                1L,
-                "Doctor",
-                "J-1",
                 null,
-                null,
-                null,
-                null, null
+                null, null,
+                null, null, null, null, null, null
         );
     }
 
