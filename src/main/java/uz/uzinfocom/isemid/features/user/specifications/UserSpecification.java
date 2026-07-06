@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserFilterRequest;
+import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.util.ArrayList;
@@ -33,29 +34,13 @@ public final class UserSpecification {
     private static final String PHONE_NUMBER = "phoneNumber";
     private static final String ACTIVE = "active";
 
-    private static final String ACCESS_LEVEL = "accessLevel";
-    private static final String ACCESS_LEVEL_CODE = "code";
-
     private static final String ORGANIZATIONS = "organizations";
+    private static final String ROLES = "roles";
 
-    /*
-     * User entity ichidagi denormalized organization fieldlar.
-     */
-    private static final String ORGANIZATION_STATE_CODE =
-            "organizationStateCode";
-
-    private static final String ORGANIZATION_CITY_CODE =
-            "organizationCityCode";
-
-    private static final String USER_ORG_MEDICAL_TYPE =
-            "userOrgMedicalType";
-
-    /*
-     * Organization entity fieldlari.
-     */
-    private static final String ORGANIZATION_ID = "id";
-    private static final String ORGANIZATION_SCOPE_STATE_CODE = "stateCode";
-    private static final String ORGANIZATION_SCOPE_CITY_CODE = "cityCode";
+    private static final String ID = "id";
+    private static final String STATE_CODE = "stateCode";
+    private static final String CITY_CODE = "cityCode";
+    private static final String MEDICAL_TYPE = "medicalType";
 
     private static final String TASHKENT_STATE_CODE = "UZ-TK";
 
@@ -80,10 +65,9 @@ public final class UserSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             /*
-             * Quyidagi barcha request filterlar faqat field qiymati
-             * mavjud bo‘lgandagina queryga qo‘shiladi.
+             * Shaxsga tegishli filterlar.
+             * Qiymat null yoki blank bo‘lsa predicate qo‘shilmaydi.
              */
-
             addExactPredicate(
                     predicates,
                     root.get(NNUZB),
@@ -120,43 +104,37 @@ public final class UserSpecification {
             );
 
             /*
-             * Viloyat bo‘yicha filter.
-             * Null yoki blank bo‘lsa ishlamaydi.
+             * Organization bo‘yicha request filter:
+             *
+             * - stateCode
+             * - cityCode
+             * - medicalType
+             *
+             * Barcha shartlar bitta Organization ichida mos kelishi kerak.
              */
-            addCodePredicate(
+            addOrganizationFilterPredicate(
                     predicates,
-                    root.get(ORGANIZATION_STATE_CODE),
+                    root,
+                    query,
+                    cb,
                     filter.getOrganizationStateCode(),
-                    cb
-            );
-
-            /*
-             * Tuman/shahar bo‘yicha filter.
-             * Null yoki blank bo‘lsa ishlamaydi.
-             */
-            addCodePredicate(
-                    predicates,
-                    root.get(ORGANIZATION_CITY_CODE),
                     filter.getOrganizationCityCode(),
-                    cb
-            );
-
-            /*
-             * Muassasa turi bo‘yicha filter.
-             * Null yoki empty bo‘lsa ishlamaydi.
-             */
-            addMedicalTypePredicate(
-                    predicates,
-                    root.get(USER_ORG_MEDICAL_TYPE),
                     filter.getUserOrgMedicalTypes()
             );
 
             /*
+             * Role ID bo‘yicha filter.
+             */
+            addRoleIdsPredicate(
+                    predicates,
+                    root,
+                    query,
+                    cb,
+                    filter.getRoleIds()
+            );
+
+            /*
              * Aktiv/noaktiv filter.
-             *
-             * active == true  -> faqat aktiv
-             * active == false -> faqat noaktiv
-             * active == null  -> filter qo‘shilmaydi
              */
             if (filter.getActive() != null) {
                 predicates.add(
@@ -168,10 +146,8 @@ public final class UserSpecification {
             }
 
             /*
-             * LevelType bo‘yicha access scope request filter emas.
-             *
-             * Non-super-admin user uchun bu har doim ishlaydi.
-             * Super admin uchun scope cheklovi qo‘shilmaydi.
+             * Bu request filter emas.
+             * Non-super-admin uchun security scope doim ishlaydi.
              */
             if (!isSuperAdmin(currentUser)) {
                 predicates.add(
@@ -191,21 +167,135 @@ public final class UserSpecification {
     }
 
     /**
-     * Joriy user organization leveliga qarab qaysi userlarni
-     * ko‘rishi mumkinligini aniqlaydi.
+     * Hudud va muassasa turi bo‘yicha filter.
      *
-     * REPUBLICAN:
-     * - barcha userlar
+     * EXISTS ishlatiladi, chunki User ichida stateCode yoki medicalType yo‘q.
+     * Ular User.organizations relationidagi Organization entity ichida.
+     */
+    private static void addOrganizationFilterPredicate(
+            List<Predicate> predicates,
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            String organizationStateCode,
+            String organizationCityCode,
+            Set<MedicalType> medicalTypes
+    ) {
+        boolean hasStateCode = hasText(organizationStateCode);
+        boolean hasCityCode = hasText(organizationCityCode);
+        boolean hasMedicalTypes =
+                medicalTypes != null && !medicalTypes.isEmpty();
+
+        /*
+         * Organization filterlaridan birortasi ham kelmagan bo‘lsa
+         * subquery yaratilmaydi.
+         */
+        if (!hasStateCode && !hasCityCode && !hasMedicalTypes) {
+            return;
+        }
+
+        Subquery<Integer> organizationExists =
+                query.subquery(Integer.class);
+
+        Root<User> correlatedUser =
+                organizationExists.correlate(root);
+
+        Join<User, Organization> organizationJoin =
+                correlatedUser.join(
+                        ORGANIZATIONS,
+                        JoinType.INNER
+                );
+
+        List<Predicate> organizationPredicates =
+                new ArrayList<>();
+
+        if (hasStateCode) {
+            organizationPredicates.add(
+                    cb.equal(
+                            cb.upper(
+                                    organizationJoin.<String>get(STATE_CODE)
+                            ),
+                            normalizeCode(organizationStateCode)
+                    )
+            );
+        }
+
+        if (hasCityCode) {
+            organizationPredicates.add(
+                    cb.equal(
+                            cb.upper(
+                                    organizationJoin.<String>get(CITY_CODE)
+                            ),
+                            normalizeCode(organizationCityCode)
+                    )
+            );
+        }
+
+        if (hasMedicalTypes) {
+            organizationPredicates.add(
+                    organizationJoin
+                            .get(MEDICAL_TYPE)
+                            .in(medicalTypes)
+            );
+        }
+
+        organizationExists
+                .select(cb.literal(1))
+                .where(
+                        cb.and(
+                                organizationPredicates.toArray(
+                                        Predicate[]::new
+                                )
+                        )
+                );
+
+        predicates.add(
+                cb.exists(organizationExists)
+        );
+    }
+
+    /**
+     * User.roles.id bo‘yicha ANY role filter.
      *
-     * REGIONAL:
-     * - o‘z stateCode hududidagi organization userlari
-     *
-     * URBAN:
-     * - Toshkent shahri bo‘lsa stateCode = UZ-TK
-     * - boshqa holatda cityCode bo‘yicha
-     *
-     * DISTRICT, AREA, INTERDISTRICT:
-     * - faqat aynan o‘z organization userlari
+     * Masalan roleIds=[2, 5] bo‘lsa,
+     * userda 2 yoki 5 role mavjud bo‘lsa natijaga kiradi.
+     */
+    private static void addRoleIdsPredicate(
+            List<Predicate> predicates,
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Set<Long> roleIds
+    ) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+
+        Subquery<Integer> roleExists =
+                query.subquery(Integer.class);
+
+        Root<User> correlatedUser =
+                roleExists.correlate(root);
+
+        Join<User, Role> roleJoin =
+                correlatedUser.join(
+                        ROLES,
+                        JoinType.INNER
+                );
+
+        roleExists
+                .select(cb.literal(1))
+                .where(
+                        roleJoin.get(ID).in(roleIds)
+                );
+
+        predicates.add(
+                cb.exists(roleExists)
+        );
+    }
+
+    /**
+     * Current user organization leveliga qarab access scope.
      */
     private static Predicate buildAccessScopePredicate(
             Root<User> root,
@@ -218,7 +308,8 @@ public final class UserSpecification {
 
         /*
          * Fail-closed:
-         * organization mavjud bo‘lmasa, hech qanday user ko‘rsatilmaydi.
+         * non-super-admin organizationga biriktirilmagan bo‘lsa
+         * hech qanday userni ko‘rmaydi.
          */
         if (currentUserOrganizations == null
                 || currentUserOrganizations.isEmpty()) {
@@ -226,27 +317,20 @@ public final class UserSpecification {
         }
 
         /*
-         * Current user birorta REPUBLICAN organizationga tegishli bo‘lsa,
-         * barcha userlarni ko‘rishi mumkin.
+         * Birorta REPUBLICAN organization mavjud bo‘lsa
+         * hududiy scope cheklanmaydi.
          */
-        boolean hasRepublicanScope = currentUserOrganizations.stream()
-                .filter(Objects::nonNull)
-                .map(Organization::getLevelType)
-                .filter(Objects::nonNull)
-                .anyMatch(LevelType.REPUBLICAN::equals);
+        boolean hasRepublicanScope =
+                currentUserOrganizations.stream()
+                        .filter(Objects::nonNull)
+                        .map(Organization::getLevelType)
+                        .filter(Objects::nonNull)
+                        .anyMatch(LevelType.REPUBLICAN::equals);
 
         if (hasRepublicanScope) {
             return cb.conjunction();
         }
 
-        /*
-         * EXISTS ishlatilmoqda:
-         *
-         * - asosiy queryda collection JOIN hosil qilmaydi;
-         * - duplicate User qaytarmaydi;
-         * - query.distinct(true) talab qilmaydi;
-         * - pagination stabil ishlaydi.
-         */
         Subquery<Integer> organizationExists =
                 query.subquery(Integer.class);
 
@@ -259,20 +343,24 @@ public final class UserSpecification {
                         JoinType.INNER
                 );
 
-        List<Predicate> scopePredicates = new ArrayList<>();
+        List<Predicate> scopePredicates =
+                new ArrayList<>();
 
-        for (Organization currentOrganization : currentUserOrganizations) {
+        for (Organization currentOrganization :
+                currentUserOrganizations) {
+
             if (currentOrganization == null) {
                 continue;
             }
 
-            LevelType levelType = currentOrganization.getLevelType();
+            LevelType levelType =
+                    currentOrganization.getLevelType();
 
             if (levelType == null) {
                 continue;
             }
 
-            Predicate scopePredicate = switch (levelType) {
+            Predicate levelPredicate = switch (levelType) {
                 case REPUBLICAN -> cb.conjunction();
 
                 case REGIONAL -> buildRegionalScope(
@@ -297,11 +385,11 @@ public final class UserSpecification {
                 default -> cb.disjunction();
             };
 
-            scopePredicates.add(scopePredicate);
+            scopePredicates.add(levelPredicate);
         }
 
         /*
-         * Birorta valid level scope topilmasa, hech narsa ko‘rsatilmaydi.
+         * Valid organization level topilmasa access berilmaydi.
          */
         if (scopePredicates.isEmpty()) {
             return cb.disjunction();
@@ -311,7 +399,9 @@ public final class UserSpecification {
                 .select(cb.literal(1))
                 .where(
                         cb.or(
-                                scopePredicates.toArray(Predicate[]::new)
+                                scopePredicates.toArray(
+                                        Predicate[]::new
+                                )
                         )
                 );
 
@@ -323,7 +413,8 @@ public final class UserSpecification {
             Organization currentOrganization,
             CriteriaBuilder cb
     ) {
-        String stateCode = currentOrganization.getStateCode();
+        String stateCode =
+                currentOrganization.getStateCode();
 
         if (!hasText(stateCode)) {
             return cb.disjunction();
@@ -331,9 +422,7 @@ public final class UserSpecification {
 
         return cb.equal(
                 cb.upper(
-                        targetOrganization.<String>get(
-                                ORGANIZATION_SCOPE_STATE_CODE
-                        )
+                        targetOrganization.<String>get(STATE_CODE)
                 ),
                 normalizeCode(stateCode)
         );
@@ -344,23 +433,23 @@ public final class UserSpecification {
             Organization currentOrganization,
             CriteriaBuilder cb
     ) {
-        String stateCode = currentOrganization.getStateCode();
+        String stateCode =
+                currentOrganization.getStateCode();
 
         /*
-         * Toshkent shahri uchun barcha tumanlar stateCode orqali olinadi.
+         * Toshkent shahri uchun barcha tumanlar stateCode orqali.
          */
         if (TASHKENT_STATE_CODE.equalsIgnoreCase(stateCode)) {
             return cb.equal(
                     cb.upper(
-                            targetOrganization.<String>get(
-                                    ORGANIZATION_SCOPE_STATE_CODE
-                            )
+                            targetOrganization.<String>get(STATE_CODE)
                     ),
                     TASHKENT_STATE_CODE
             );
         }
 
-        String cityCode = currentOrganization.getCityCode();
+        String cityCode =
+                currentOrganization.getCityCode();
 
         if (!hasText(cityCode)) {
             return cb.disjunction();
@@ -368,9 +457,7 @@ public final class UserSpecification {
 
         return cb.equal(
                 cb.upper(
-                        targetOrganization.<String>get(
-                                ORGANIZATION_SCOPE_CITY_CODE
-                        )
+                        targetOrganization.<String>get(CITY_CODE)
                 ),
                 normalizeCode(cityCode)
         );
@@ -386,50 +473,8 @@ public final class UserSpecification {
         }
 
         return cb.equal(
-                targetOrganization.get(ORGANIZATION_ID),
+                targetOrganization.get(ID),
                 currentOrganization.getId()
-        );
-    }
-
-    private static void addAccessLevelPredicate(
-            List<Predicate> predicates,
-            Root<User> root,
-            String accessLevelCode,
-            CriteriaBuilder cb
-    ) {
-        if (!hasText(accessLevelCode)) {
-            return;
-        }
-
-        Join<Object, Object> accessLevelJoin =
-                root.join(
-                        ACCESS_LEVEL,
-                        JoinType.INNER
-                );
-
-        predicates.add(
-                cb.equal(
-                        cb.upper(
-                                accessLevelJoin.<String>get(
-                                        ACCESS_LEVEL_CODE
-                                )
-                        ),
-                        normalizeCode(accessLevelCode)
-                )
-        );
-    }
-
-    private static void addMedicalTypePredicate(
-            List<Predicate> predicates,
-            Path<MedicalType> path,
-            Set<MedicalType> medicalTypes
-    ) {
-        if (medicalTypes == null || medicalTypes.isEmpty()) {
-            return;
-        }
-
-        predicates.add(
-                path.in(medicalTypes)
         );
     }
 
@@ -447,24 +492,6 @@ public final class UserSpecification {
                 cb.equal(
                         path,
                         value.trim()
-                )
-        );
-    }
-
-    private static void addCodePredicate(
-            List<Predicate> predicates,
-            Path<String> path,
-            String value,
-            CriteriaBuilder cb
-    ) {
-        if (!hasText(value)) {
-            return;
-        }
-
-        predicates.add(
-                cb.equal(
-                        cb.upper(path),
-                        normalizeCode(value)
                 )
         );
     }
