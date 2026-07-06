@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableStatus;
 import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
-import uz.uzinfocom.app.modules.form058.web.request.enums.Form058Direction;
+import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
 
 @Component
 public class Form058TableMapperHelper {

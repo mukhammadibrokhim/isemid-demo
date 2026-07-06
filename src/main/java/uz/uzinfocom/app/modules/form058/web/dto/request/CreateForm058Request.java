@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.modules.form058.web.request;
+package uz.uzinfocom.app.modules.form058.web.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;

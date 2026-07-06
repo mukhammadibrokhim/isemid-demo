@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.modules.form058.web.response;
+package uz.uzinfocom.app.modules.form058.web.dto.response;
 
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 

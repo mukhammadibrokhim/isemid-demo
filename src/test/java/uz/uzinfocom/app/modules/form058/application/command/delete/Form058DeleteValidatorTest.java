@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.form058.application.command.delete;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
+import uz.uzinfocom.app.modules.form058.application.security.Form058AccessGuard;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
@@ -14,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class Form058DeleteValidatorTest {
 
-    private final Form058DeleteValidator validator = new Form058DeleteValidator();
+    private final Form058DeleteValidator validator = new Form058DeleteValidator(new Form058AccessGuard());
 
     @AfterEach
     void clearContext() {

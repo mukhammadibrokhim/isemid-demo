@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.modules.form058.web.request;
+package uz.uzinfocom.app.modules.form058.web.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

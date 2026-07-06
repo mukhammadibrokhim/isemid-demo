@@ -8,7 +8,7 @@ import uz.uzinfocom.app.modules.form058.application.query.mapper.helper.Form058T
 import uz.uzinfocom.app.modules.form058.application.query.mapper.helper.Form058TableMapperHelper;
 import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
 import uz.uzinfocom.app.modules.form058.application.shared.OrganizationMappingHelper;
-import uz.uzinfocom.app.modules.form058.web.request.enums.Form058Direction;
+import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
 
 @Mapper(
         componentModel = "spring",

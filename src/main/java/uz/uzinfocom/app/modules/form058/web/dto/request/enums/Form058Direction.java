@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.modules.form058.web.request.enums;
+package uz.uzinfocom.app.modules.form058.web.dto.request.enums;
 
 public enum Form058Direction {
     OUTGOING,

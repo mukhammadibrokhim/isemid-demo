@@ -44,6 +44,9 @@ public class Organization extends AuditableEntity {
     @Column(name = "district_code", length = 64)
     private String districtCode;
 
+    @Column(name = "address_line")
+    private String addressLine;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "level_type", nullable = false, length = 50)
     private OrganizationLevel levelType;

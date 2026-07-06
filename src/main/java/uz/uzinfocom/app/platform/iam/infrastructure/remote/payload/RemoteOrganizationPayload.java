@@ -2,8 +2,8 @@ package uz.uzinfocom.app.platform.iam.infrastructure.remote.payload;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import tools.jackson.databind.JsonNode;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,16 +43,6 @@ public record RemoteOrganizationPayload(
                 .orElse(null);
     }
 
-    public String prn() {
-        return RemotePayloadSupport.identifierValueByCode(identifier, "PRN")
-                .orElse(null);
-    }
-
-    public String resourceIdentifier() {
-        return RemotePayloadSupport.identifierValueByCode(identifier, "RI")
-                .orElse(null);
-    }
-
     public List<RemoteCodingPayload> typeCodings() {
         return RemotePayloadSupport.extractCodings(type);
     }
@@ -72,12 +62,6 @@ public record RemoteOrganizationPayload(
     public String medicalTypeCode() {
         return firstTypeCodingBySystemContains("organization-type-medical")
                 .map(RemoteCodingPayload::code)
-                .orElse(null);
-    }
-
-    public String medicalTypeDisplay() {
-        return firstTypeCodingBySystemContains("organization-type-medical")
-                .map(RemoteCodingPayload::display)
                 .orElse(null);
     }
 

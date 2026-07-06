@@ -17,11 +17,12 @@ public class DeleteForm058Service {
     private final CurrentForm058User currentForm058User;
 
     @Transactional
-    public void delete(Long formId) {
-        Form058 form058 = form058Repository.findActiveByIdForUpdate(formId)
-                .orElseThrow(() -> new Form058NotFoundException(formId));
+    public void delete(Long id, String reason) {
+        Form058 form058 = form058Repository.findActiveByIdForUpdate(id)
+                .orElseThrow(() -> new Form058NotFoundException(id));
+
         form058DeleteValidator.validate(form058);
-        form058.softDelete(currentForm058User.userIdOrNull(), "Business delete");
-        form058Repository.save(form058);
+
+        form058.softDelete(currentForm058User.userIdOrNull(), reason);
     }
 }

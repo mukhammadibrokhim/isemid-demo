@@ -12,6 +12,7 @@ import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058Deta
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058DetailResponseMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058TableMapper;
 import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
+import uz.uzinfocom.app.modules.form058.application.security.Form058AccessGuard;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
@@ -34,6 +35,7 @@ public class Form058QueryService {
     private final Form058Specification form058Specification;
     private final Form058DetailResponseMapper form058DetailResponseMapper;
     private final Form058TableMapper form058TableMapper;
+    private final Form058AccessGuard form058AccessGuard;
     private final AuditResolver auditResolver;
 
     public Page<Form058TableResponse> findAll(Form058Filter filter) {
@@ -42,7 +44,10 @@ public class Form058QueryService {
         return switch (filter.direction()) {
             case OUTGOING -> findByScope(filter, scope, false);
             case INCOMING -> findByScope(filter, scope, true);
-            case ALL -> findByScope(filter, scope, null);
+            case ALL -> {
+                form058AccessGuard.requireSuperAdmin();
+                yield findByScope(filter, scope, null);
+            }
         };
     }
 

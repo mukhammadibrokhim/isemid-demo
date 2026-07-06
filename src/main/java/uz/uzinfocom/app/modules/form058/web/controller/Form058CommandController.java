@@ -10,13 +10,14 @@ import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.delete.DeleteForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Service;
+import uz.uzinfocom.app.modules.form058.web.dto.request.CreateForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.request.DeleteForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
+import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.mapper.Form058WebMapper;
-import uz.uzinfocom.app.modules.form058.web.request.CreateForm058Request;
-import uz.uzinfocom.app.modules.form058.web.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.resolvers.Form058Headers;
 import uz.uzinfocom.app.modules.form058.web.resolvers.Form058SourceResolver;
-import uz.uzinfocom.app.modules.form058.web.response.CreateForm058Response;
-import uz.uzinfocom.app.modules.form058.web.response.UpdateForm058Response;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.response.ApiResponse;
@@ -59,10 +60,14 @@ public class Form058CommandController {
         );
     }
 
-    @DeleteMapping(ApiPaths.Form058.BY_ID)
+    @DeleteMapping(value = ApiPaths.Form058.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Void> delete(@PathVariable @Positive Long id) {
-        deleteForm058Service.delete(id);
+    public ApiResponse<Void> delete(
+            @PathVariable Long id,
+            @Valid @RequestBody DeleteForm058Request request
+    ) {
+        deleteForm058Service.delete(id, request.reason());
+
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
     }
 }

@@ -7,10 +7,10 @@ import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Result;
 import uz.uzinfocom.app.modules.form058.application.shared.OrganizationMappingHelper;
-import uz.uzinfocom.app.modules.form058.web.request.CreateForm058Request;
-import uz.uzinfocom.app.modules.form058.web.request.UpdateForm058Request;
-import uz.uzinfocom.app.modules.form058.web.response.CreateForm058Response;
-import uz.uzinfocom.app.modules.form058.web.response.UpdateForm058Response;
+import uz.uzinfocom.app.modules.form058.web.dto.request.CreateForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
+import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
 import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 

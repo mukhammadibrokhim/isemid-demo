@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.modules.form058.web.request;
+package uz.uzinfocom.app.modules.form058.web.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PastOrPresent;
