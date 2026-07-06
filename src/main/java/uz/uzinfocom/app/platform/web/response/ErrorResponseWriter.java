@@ -69,14 +69,18 @@ public class ErrorResponseWriter {
             String message,
             List<FieldViolationResponse> violations
     ) throws IOException {
-        String traceId = traceIdProvider.getTraceId(request);
+        if (response.isCommitted()) {
+            return;
+        }
+
+        String traceId = traceIdProvider.getOrCreate(request);
 
         ErrorResponse body = ErrorResponse.of(
                 code,
                 message,
                 traceId,
                 request.getRequestURI(),
-                violations
+                violations == null ? List.of() : violations
         );
 
         response.resetBuffer();

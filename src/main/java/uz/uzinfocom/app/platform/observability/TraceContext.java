@@ -18,16 +18,21 @@ public final class TraceContext {
         return MDC.get(MDC_KEY);
     }
 
-    public static String getTraceId(HttpServletRequest request) {
-        if (request != null) {
-            Object attribute = request.getAttribute(REQUEST_ATTRIBUTE);
-
-            if (attribute instanceof String traceId
-                    && StringUtils.hasText(traceId)) {
-                return traceId;
-            }
+    public static String getRequestTraceId(HttpServletRequest request) {
+        if (request == null) {
+            return null;
         }
+        Object attribute = request.getAttribute(REQUEST_ATTRIBUTE);
+        return attribute instanceof String traceId && StringUtils.hasText(traceId)
+                ? traceId
+                : null;
+    }
 
+    public static String getTraceId(HttpServletRequest request) {
+        String requestTraceId = getRequestTraceId(request);
+        if (requestTraceId != null) {
+            return requestTraceId;
+        }
         return currentTraceId();
     }
 

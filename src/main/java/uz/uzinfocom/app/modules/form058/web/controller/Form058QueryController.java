@@ -3,15 +3,13 @@ package uz.uzinfocom.app.modules.form058.web.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.modules.form058.application.query.Form058Filter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058QueryService;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
@@ -42,14 +40,14 @@ public class Form058QueryController {
         return pagedResponseAssembler.toResponse(form058QueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
     }
 
-//    @GetMapping("/by-nnuzb")
-//    @PreAuthorize("isAuthenticated()")
-//    public ApiResponse<Form058DetailResponse> byNnuzb(@RequestParam @NotBlank String nnuzb) {
-//        return ApiResponse.success(
-//                messageResolver.resolve("common.success"),
-//                form058QueryService.getByNnuzb(nnuzb)
-//        );
-//    }
+    @GetMapping("/by-nnuzb")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<Form058DetailResponse> byNnuzb(@RequestParam @NotBlank String nnuzb) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                form058QueryService.getByNnuzb(nnuzb)
+        );
+    }
 
     @GetMapping(ApiPaths.Form058.BY_ID)
     @PreAuthorize("isAuthenticated()")

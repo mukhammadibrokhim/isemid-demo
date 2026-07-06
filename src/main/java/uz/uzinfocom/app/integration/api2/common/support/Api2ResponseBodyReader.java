@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StreamUtils;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -15,6 +14,8 @@ import java.util.Locale;
 @Component
 @RequiredArgsConstructor
 public class Api2ResponseBodyReader {
+
+    private static final int MAX_RESPONSE_BODY_BYTES = 1_048_576;
 
     private final JsonMapper jsonMapper;
 
@@ -44,8 +45,13 @@ public class Api2ResponseBodyReader {
     }
 
     private byte[] readBytes(ClientHttpResponse response) {
+        long contentLength = response.getHeaders().getContentLength();
+        if (contentLength > MAX_RESPONSE_BODY_BYTES) {
+            return null;
+        }
         try {
-            return StreamUtils.copyToByteArray(response.getBody());
+            byte[] body = response.getBody().readNBytes(MAX_RESPONSE_BODY_BYTES + 1);
+            return body.length <= MAX_RESPONSE_BODY_BYTES ? body : null;
         } catch (IOException exception) {
             return null;
         }

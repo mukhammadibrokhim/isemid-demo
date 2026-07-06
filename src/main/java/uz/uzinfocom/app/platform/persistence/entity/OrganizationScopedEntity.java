@@ -4,46 +4,60 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.persistence.audit.CurrentAuditContext;
+import uz.uzinfocom.app.platform.persistence.audit.OrganizationAuditListener;
 
 import java.util.UUID;
 
 @Getter
 @Setter
 @MappedSuperclass
+@EntityListeners(OrganizationAuditListener.class)
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class OrganizationScopedEntity extends UuidAuditableEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "created_org_uuid",
-            referencedColumnName = "uuid",
-            updatable = false
-    )
-    private Organization createdOrg;
-
-    @Column(name = "created_org_uuid", insertable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
+    @Column(name = "created_org_uuid", nullable = false, updatable = false)
     private UUID createdOrgUuid;
 
+    @Setter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "updated_org_uuid",
-            referencedColumnName = "uuid"
-    )
-    private Organization updatedOrg;
+    @JoinColumn(name = "created_org_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    private Organization createdOrg;
 
-    @Column(name = "updated_org_uuid", insertable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
+    @Column(name = "updated_org_uuid")
     private UUID updatedOrgUuid;
 
-    @PreUpdate
-    protected void preUpdateOrganizationAudit() {
-        Organization currentOrganization = CurrentAuditContext.currentOrganization();
+    @Setter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_org_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    private Organization updatedOrg;
 
-        if (currentOrganization != null) {
-            updatedOrg = currentOrganization;
+    public final void initializeOrganizationAudit(UUID organizationUuid) {
+        if (organizationUuid == null) {
+            throw new IllegalArgumentException(
+                    "Organization UUID must not be null"
+            );
+        }
+
+        if (createdOrgUuid == null) {
+            createdOrgUuid = organizationUuid;
+        }
+
+        if (updatedOrgUuid == null) {
+            updatedOrgUuid = organizationUuid;
         }
     }
 
+    public final void updateOrganizationAudit(UUID organizationUuid) {
+        if (organizationUuid == null) {
+            throw new IllegalArgumentException(
+                    "Organization UUID must not be null"
+            );
+        }
+
+        updatedOrgUuid = organizationUuid;
+    }
 }

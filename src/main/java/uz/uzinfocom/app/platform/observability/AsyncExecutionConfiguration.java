@@ -36,12 +36,14 @@ public class AsyncExecutionConfiguration {
         executor.setAwaitTerminationSeconds(config.getAwaitTerminationSeconds());
         executor.setRejectedExecutionHandler((task, pool) -> {
             LOGGER.error(
-                    "Async task rejected. traceId={}, poolSize={}, activeCount={}, queueSize={}, completedTaskCount={}",
+                    "event=async_task_rejected traceId={} poolSize={} activeCount={} queuedTaskCount={} remainingQueueCapacity={} completedTaskCount={} maximumPoolSize={}",
                     TraceContext.currentTraceId(),
                     pool.getPoolSize(),
                     pool.getActiveCount(),
                     pool.getQueue().size(),
-                    pool.getCompletedTaskCount()
+                    pool.getQueue().remainingCapacity(),
+                    pool.getCompletedTaskCount(),
+                    pool.getMaximumPoolSize()
             );
             throw new RejectedExecutionException("Application async executor is saturated");
         });
@@ -57,6 +59,13 @@ public class AsyncExecutionConfiguration {
         if (config.getQueueCapacity() <= 0) {
             throw new IllegalStateException(
                     "app.observability.async-executor.queue-capacity must be positive"
+            );
+        }
+        if (config.getKeepAliveSeconds() <= 0
+                || config.getAwaitTerminationSeconds() <= 0
+                || !org.springframework.util.StringUtils.hasText(config.getThreadNamePrefix())) {
+            throw new IllegalStateException(
+                    "Async executor keep-alive, shutdown timeout, and thread-name-prefix must be configured"
             );
         }
     }

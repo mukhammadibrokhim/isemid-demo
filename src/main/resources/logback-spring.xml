@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
-    <springProperty scope="context" name="APP_NAME"
-                    source="spring.application.name" defaultValue="isemid"/>
-    <springProperty scope="context" name="APP_LOG_LEVEL"
-                    source="logging.level.uz.uzinfocom.app" defaultValue="INFO"/>
-    <springProperty scope="context" name="SECURITY_LOG_LEVEL"
-                    source="logging.level.org.springframework.security" defaultValue="WARN"/>
-    <springProperty scope="context" name="LOG_DIR"
-                    source="logging.file.path" defaultValue="logs"/>
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="isemid"/>
+    <springProperty scope="context" name="APP_LOG_LEVEL" source="logging.level.uz.uzinfocom.app" defaultValue="INFO"/>
+    <springProperty scope="context" name="SECURITY_LOG_LEVEL" source="logging.level.org.springframework.security" defaultValue="WARN"/>
+    <springProperty scope="context" name="LOG_DIR" source="logging.file.path" defaultValue="logs"/>
 
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level traceId=%X{traceId:-N/A} ${APP_NAME} %logger{36} - %msg%n"/>
@@ -93,10 +89,12 @@
     </appender>
 
     <logger name="HTTP_REQUEST" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="HTTP_REQUEST_FILE"/>
         <appender-ref ref="CRITICAL_FILE"/>
     </logger>
     <logger name="OUTBOUND_HTTP" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="OUTBOUND_HTTP_FILE"/>
         <appender-ref ref="CRITICAL_FILE"/>
     </logger>

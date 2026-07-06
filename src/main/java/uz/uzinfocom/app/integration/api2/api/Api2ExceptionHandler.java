@@ -14,6 +14,7 @@ import uz.uzinfocom.app.integration.api2.api.dto.Api2ErrorResponse;
 import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
+import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodySanitizer;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
@@ -34,7 +35,7 @@ public class Api2ExceptionHandler {
             Api2Exception exception,
             HttpServletRequest request
     ) {
-        String traceId = traceIdProvider.getTraceId(request);
+        String traceId = traceIdProvider.getOrCreate(request);
         String message = messages.resolve(exception.getMessageCode());
         List<FieldValidationError> fieldErrors = localizedFieldErrors(exception.getFieldErrors());
 
@@ -53,9 +54,9 @@ public class Api2ExceptionHandler {
                         message,
                         exception.getOperation(),
                         exception.getUpstreamStatus(),
-                        exception.getUpstreamCode(),
-                        exception.getUpstreamMessage(),
-                        exception.getUpstreamDetail(),
+                        safeUpstreamText(exception.getUpstreamCode()),
+                        safeUpstreamText(exception.getUpstreamMessage()),
+                        safeUpstreamText(exception.getUpstreamDetail()),
                         traceId,
                         fieldErrors
                 ));
@@ -67,7 +68,7 @@ public class Api2ExceptionHandler {
             HttpServletRequest request
     ) {
         Api2RequestContext context = requestContext(request);
-        String traceId = traceIdProvider.getTraceId(request);
+        String traceId = traceIdProvider.getOrCreate(request);
         List<FieldValidationError> fieldErrors = localizedFieldErrors(List.of(new FieldValidationError(
                 exception.getParameterName(),
                 "validation.required"
@@ -102,7 +103,7 @@ public class Api2ExceptionHandler {
             HttpServletRequest request
     ) {
         Api2RequestContext context = requestContext(request);
-        String traceId = traceIdProvider.getTraceId(request);
+        String traceId = traceIdProvider.getOrCreate(request);
         String errorCode = context.validationErrorCode();
         String messageCode = context.validationMessageCode();
         String field = exception.getName();
@@ -179,11 +180,16 @@ public class Api2ExceptionHandler {
         }
 
         return fieldErrors.stream()
+                .limit(100)
                 .map(error -> new FieldValidationError(
                         error.field(),
                         messages.resolve(error.message())
                 ))
                 .toList();
+    }
+
+    private String safeUpstreamText(String value) {
+        return Api2ResponseBodySanitizer.sanitize(value, null);
     }
 
     private Api2RequestContext requestContext(HttpServletRequest request) {

@@ -9,16 +9,16 @@ import java.util.regex.Pattern;
 public final class Api2ResponseBodySanitizer {
 
     private static final int MAX_SAFE_TEXT_LENGTH = 500;
-    private static final String MASK = "****";
+    private static final String MASK = "***";
 
     private static final Pattern BEARER_PATTERN =
             Pattern.compile("(?i)Bearer\\s+[A-Za-z0-9\\-._~+/]+=*");
     private static final Pattern JSON_KEY_VALUE_PATTERN =
-            Pattern.compile("(?i)(\"(?:authorization|access_token|refresh_token|id_token|token|cookie|password|secret|client_secret|api_key|ppn|pinfl|nnuzb|passport|passport_number|passport_series|document|series|number|tin|birth_date)\"\\s*:\\s*\")([^\"]*)(\")");
+            Pattern.compile("(?i)(\"(?:authorization|access_token|refresh_token|id_token|token|cookie|password|secret|client_secret|api_key|ppn|pinfl|nnuzb|passport|passport_number|passport_series|document|series|number|tin|birth_date|phone|phone_number|patient_id|patient_identifier|medical_record_number)\"\\s*:\\s*\")([^\"]*)(\")");
     private static final Pattern RAW_KEY_VALUE_PATTERN =
-            Pattern.compile("(?i)((?:authorization|access_token|refresh_token|id_token|token|cookie|password|secret|client_secret|api_key|ppn|pinfl|nnuzb|passport|passport_number|passport_series|document|series|number|tin|birth_date)\\s*[=:]\\s*)([^,\\s&]+)");
+            Pattern.compile("(?i)((?:authorization|access_token|refresh_token|id_token|token|cookie|password|secret|client_secret|api_key|ppn|pinfl|nnuzb|passport|passport_number|passport_series|document|series|number|tin|birth_date|phone|phone_number|patient_id|patient_identifier|medical_record_number)\\s*[=:]\\s*)([^,\\s&]+)");
     private static final Pattern QUERY_KEY_VALUE_PATTERN =
-            Pattern.compile("(?i)([?&](?:authorization|access_token|refresh_token|id_token|token|cookie|ppn|pinfl|nnuzb|passport|document|series|number|tin|birth_date)=)([^&\\s]+)");
+            Pattern.compile("(?i)([?&](?:authorization|access_token|refresh_token|id_token|token|cookie|ppn|pinfl|nnuzb|passport|document|series|number|tin|birth_date|phone|phone_number|patient_id|patient_identifier|medical_record_number)=)([^&\\s]+)");
     private static final Pattern LONG_IDENTIFIER_PATTERN =
             Pattern.compile("\\b\\d{9,}\\b");
     private static final Pattern CONTROL_WHITESPACE_PATTERN =

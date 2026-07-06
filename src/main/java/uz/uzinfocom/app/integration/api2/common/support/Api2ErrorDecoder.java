@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 @Component
 public class Api2ErrorDecoder {
 
+    private static final int MAX_FIELD_ERRORS = 100;
     private static final Pattern SAFE_FIELD_NAME =
             Pattern.compile("^[A-Za-z0-9_.\\-\\[\\]]{1,64}$");
 
@@ -254,13 +255,16 @@ public class Api2ErrorDecoder {
     }
 
     private void collectFieldErrors(JsonNode node, List<FieldValidationError> errors) {
-        if (node == null || node.isNull()) {
+        if (node == null || node.isNull() || errors.size() >= MAX_FIELD_ERRORS) {
             return;
         }
 
         if (node.isArray()) {
             for (JsonNode item : node) {
                 collectFieldErrors(item, errors);
+                if (errors.size() >= MAX_FIELD_ERRORS) {
+                    break;
+                }
             }
             return;
         }
@@ -276,6 +280,9 @@ public class Api2ErrorDecoder {
         }
 
         for (var entry : node.properties()) {
+            if (errors.size() >= MAX_FIELD_ERRORS) {
+                break;
+            }
             if (entry.getValue() == null || entry.getValue().isNull()) {
                 continue;
             }

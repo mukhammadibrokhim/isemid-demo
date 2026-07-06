@@ -34,15 +34,16 @@ public class SensitiveLoggingSanitizer {
             "authorization", "access_token", "refresh_token", "id_token", "token", "bearer",
             "password", "old_password", "new_password", "secret", "client_secret", "api_key",
             "apikey", "x_api_key", "pinfl", "nnuzb", "ni", "ppn", "passport",
-            "passport_number", "passport_series", "birth_certificate", "cookie"
+            "passport_number", "passport_series", "birth_certificate", "phone", "phone_number",
+            "patient_id", "patient_identifier", "medical_record_number", "cookie"
     ));
     private static final Pattern BEARER_PATTERN =
             Pattern.compile("(?i)Bearer\\s+[A-Za-z0-9\\-._~+/]+=*");
     private static final Pattern JSON_KEY_VALUE_PATTERN = Pattern.compile(
-            "(?i)(\"(?:authorization|access_token|refresh_token|id_token|token|password|secret|client_secret|api_key|apikey|pinfl|nnuzb|passport|passport_number|passport_series|birth_certificate)\"\\s*:\\s*\")([^\"]*)(\")"
+            "(?i)(\"(?:authorization|access_token|refresh_token|id_token|token|password|secret|client_secret|api_key|apikey|pinfl|nnuzb|passport|passport_number|passport_series|birth_certificate|phone|phone_number|patient_id|patient_identifier|medical_record_number)\"\\s*:\\s*\")([^\"]*)(\")"
     );
     private static final Pattern RAW_KEY_VALUE_PATTERN = Pattern.compile(
-            "(?i)((?:authorization|access_token|refresh_token|id_token|token|password|secret|client_secret|api_key|apikey|pinfl|nnuzb|passport|passport_number|passport_series|birth_certificate)\\s*[=:]\\s*)([^,\\s&]+)"
+            "(?i)((?:authorization|access_token|refresh_token|id_token|token|password|secret|client_secret|api_key|apikey|pinfl|nnuzb|passport|passport_number|passport_series|birth_certificate|phone|phone_number|patient_id|patient_identifier|medical_record_number)\\s*[=:]\\s*)([^,\\s&]+)"
     );
     private static final Pattern PEM_BLOCK_PATTERN = Pattern.compile(
             "(?s)\\s*-----BEGIN [A-Z0-9 ]+-----.*-----END [A-Z0-9 ]+-----\\s*"

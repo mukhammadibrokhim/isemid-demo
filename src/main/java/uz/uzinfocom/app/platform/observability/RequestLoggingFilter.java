@@ -27,13 +27,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
     private final ObservabilityProperties properties;
     private final SensitiveLoggingSanitizer sanitizer;
+    private final TraceIdProvider traceIdProvider;
 
     public RequestLoggingFilter(
             ObservabilityProperties properties,
-            SensitiveLoggingSanitizer sanitizer
+            SensitiveLoggingSanitizer sanitizer,
+            TraceIdProvider traceIdProvider
     ) {
         this.properties = properties;
         this.sanitizer = sanitizer;
+        this.traceIdProvider = traceIdProvider;
     }
 
     @Override
@@ -64,7 +67,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         long startedAtNanos = System.nanoTime();
-        String traceId = TraceContext.getTraceId(request);
+        String traceId = traceIdProvider.getOrCreate(request);
         ErrorMessageCaptureResponse responseWrapper = new ErrorMessageCaptureResponse(response);
         Throwable failure = null;
 
@@ -145,11 +148,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         int status = response.getStatus();
         boolean slow = durationMs >= config.getSlowRequestThresholdMs();
         boolean success = status < 400 && directFailure == null && asyncOutcome == null;
+        boolean serverFailure = status >= 500
+                || directFailure instanceof Error
+                || (directFailure != null && status < 400)
+                || "error".equals(asyncOutcome)
+                || "timeout".equals(asyncOutcome);
 
         if (success && !slow && !config.isLogSuccessfulRequests()) {
             return;
         }
-        if (status >= 500 || directFailure instanceof Error) {
+        if (serverFailure) {
             if (!HTTP_LOG.isErrorEnabled()) {
                 return;
             }
@@ -180,7 +188,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             append(event, "route", sanitize(attribute(request), config.getMaxTextLength()));
             append(event, "path", sanitizer.sanitizePath(request.getRequestURI(), config.isMaskPathIdentifiers(), config.getMaxTextLength()));
             if (config.isIncludeQueryString()) {
-                append(event, "sanitizedQuery", sanitizer.sanitizeQuery(
+                append(event, "query", sanitizer.sanitizeQuery(
                         request.getQueryString(), config.getSensitiveQueryParameters(), config.getMaxTextLength()));
             }
             append(event, "status", status);
@@ -202,7 +210,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 append(event, "userAgent", sanitize(request.getHeader("User-Agent"), config.getMaxUserAgentLength()));
             }
 
-            if (status >= 500 || failure instanceof Error) {
+            if (serverFailure) {
                 if (failure != null) {
                     HTTP_LOG.error(event.toString(), failure);
                 } else {

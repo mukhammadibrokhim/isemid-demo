@@ -8,7 +8,6 @@ import lombok.NonNull;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -44,8 +43,10 @@ public class TraceIdFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        String traceId = resolveTraceId(request);
-        TraceContext.setTraceId(request, traceId);
+        String incomingCandidate = request.getDispatcherType() == jakarta.servlet.DispatcherType.REQUEST
+                ? request.getHeader(properties.getTraceIdHeader())
+                : null;
+        String traceId = traceIdProvider.resolveOrCreate(request, incomingCandidate);
         response.setHeader(properties.getTraceIdHeader(), traceId);
 
         try (TraceContext.Scope ignored = TraceContext.open(traceId)) {
@@ -60,15 +61,5 @@ public class TraceIdFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         doFilterInternal(request, response, filterChain);
-    }
-
-    private String resolveTraceId(HttpServletRequest request) {
-        Object existing = request.getAttribute(TraceContext.REQUEST_ATTRIBUTE);
-        if (existing instanceof String traceId && StringUtils.hasText(traceId)) {
-            return traceId;
-        }
-        return traceIdProvider.resolveIncomingTraceId(
-                request.getHeader(properties.getTraceIdHeader())
-        );
     }
 }

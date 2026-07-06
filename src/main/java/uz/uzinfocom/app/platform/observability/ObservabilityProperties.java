@@ -28,9 +28,16 @@ public class ObservabilityProperties {
 
     private boolean acceptIncomingTraceId = true;
 
+    @Min(1)
+    @Max(64)
+    private int traceIdMinLength = 16;
+
     @Min(16)
     @Max(128)
     private int traceIdMaxLength = 64;
+
+    @NotBlank
+    private String traceIdAllowedSeparators = "-_.:";
 
     @Valid
     private HttpLogging httpLogging = new HttpLogging();
@@ -43,6 +50,18 @@ public class ObservabilityProperties {
 
     @PostConstruct
     void freezeCollections() {
+        if (traceIdMinLength > traceIdMaxLength) {
+            throw new IllegalStateException(
+                    "app.observability.trace-id-min-length must not exceed trace-id-max-length"
+            );
+        }
+        for (int index = 0; index < traceIdAllowedSeparators.length(); index++) {
+            if ("-_.:".indexOf(traceIdAllowedSeparators.charAt(index)) < 0) {
+                throw new IllegalStateException(
+                        "app.observability.trace-id-allowed-separators contains an unsafe character"
+                );
+            }
+        }
         httpLogging.setExcludedPathPrefixes(List.copyOf(httpLogging.getExcludedPathPrefixes()));
         httpLogging.setSensitiveQueryParameters(Set.copyOf(httpLogging.getSensitiveQueryParameters()));
         outboundHttpLogging.setAllowedTextContentTypes(
@@ -95,11 +114,15 @@ public class ObservabilityProperties {
                 "apikey",
                 "pinfl",
                 "nnuzb",
-                "NI",
-                "PPN",
+                "ni",
+                "ppn",
                 "passport",
                 "passport_number",
-                "birth_certificate"
+                "birth_certificate",
+                "phone",
+                "patient_id",
+                "patient_identifier",
+                "medical_record_number"
         ));
     }
 

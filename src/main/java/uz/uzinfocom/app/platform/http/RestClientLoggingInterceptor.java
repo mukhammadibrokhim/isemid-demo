@@ -144,7 +144,9 @@ public class RestClientLoggingInterceptor implements ClientHttpRequestIntercepto
             }
             appendRequestBody(event, requestBody, request.getHeaders(), config);
             if (config.isLogResponseBody()) {
+                append(event, "bodySkipped", capture.bodySkipped());
                 if (capture.bodySkipped()) {
+                    append(event, "bodySkipReason", capture.bodySkipReason());
                     append(event, "responseBodySkipped", true);
                     append(event, "responseBodySkipReason", capture.bodySkipReason());
                 } else {

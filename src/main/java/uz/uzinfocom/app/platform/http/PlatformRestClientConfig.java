@@ -27,6 +27,7 @@ public class PlatformRestClientConfig {
 
     @Bean(destroyMethod = "close")
     public CloseableHttpClient platformCloseableHttpClient() {
+        validateProperties();
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.ofMilliseconds(properties.getConnectTimeout().toMillis()))
                 .setSocketTimeout(Timeout.ofMilliseconds(properties.getReadTimeout().toMillis()))
@@ -68,15 +69,34 @@ public class PlatformRestClientConfig {
             TraceIdClientHttpRequestInterceptor tracePropagationInterceptor,
             RestClientLoggingInterceptor loggingInterceptor
     ) {
-        return builder
+        return builder.clone()
                 .requestFactory(platformClientHttpRequestFactory)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .requestInterceptors(interceptors -> {
-                    interceptors.removeIf(interceptor -> interceptor == tracePropagationInterceptor
-                            || interceptor == loggingInterceptor);
+                    interceptors.removeIf(interceptor ->
+                            interceptor instanceof TraceIdClientHttpRequestInterceptor
+                                    || interceptor instanceof RestClientLoggingInterceptor);
                     interceptors.add(tracePropagationInterceptor);
                     interceptors.add(loggingInterceptor);
                 })
                 .build();
+    }
+
+    private void validateProperties() {
+        if (properties.getConnectTimeout().isZero() || properties.getConnectTimeout().isNegative()
+                || properties.getReadTimeout().isZero() || properties.getReadTimeout().isNegative()
+                || properties.getConnectionRequestTimeout().isZero()
+                || properties.getConnectionRequestTimeout().isNegative()
+                || properties.getConnectionTimeToLive().isZero()
+                || properties.getConnectionTimeToLive().isNegative()
+                || properties.getEvictIdleConnectionsAfter().isZero()
+                || properties.getEvictIdleConnectionsAfter().isNegative()) {
+            throw new IllegalStateException("All app.security.http duration properties must be positive");
+        }
+        if (properties.getMaxConnectionsPerRoute() > properties.getMaxConnections()) {
+            throw new IllegalStateException(
+                    "app.security.http.max-connections-per-route must not exceed max-connections"
+            );
+        }
     }
 }

@@ -36,7 +36,6 @@ public class Form058QueryService {
     private final Form058TableMapper form058TableMapper;
     private final AuditResolver auditResolver;
 
-    @Transactional(readOnly = true)
     public Page<Form058TableResponse> findAll(Form058Filter filter) {
         ResolvedOrganizationScope scope = currentScope();
 
@@ -47,7 +46,6 @@ public class Form058QueryService {
         };
     }
 
-    @Transactional(readOnly = true)
     protected Page<Form058TableResponse> findByScope(
             Form058Filter filter,
             ResolvedOrganizationScope scope,
@@ -75,9 +73,9 @@ public class Form058QueryService {
     public Form058DetailResponse getById(Long id) {
         ResolvedOrganizationScope scope = currentScope();
 
-        Form058 form058 = repository.findOne(
-                form058Specification.visibleById(id, scope)
-        ).orElseThrow(() -> new Form058NotFoundException(id));
+        Form058 form058 = repository
+                .findOne(form058Specification.visibleById(id, scope))
+                .orElseThrow(() -> new Form058NotFoundException(id));
 
         return form058DetailResponseMapper.toDetailedResponse(
                 form058,
@@ -88,9 +86,9 @@ public class Form058QueryService {
     public Form058DetailResponse getByNnuzb(String nnuzb) {
         ResolvedOrganizationScope scope = currentScope();
 
-        Form058 form058 = repository.findOne(
-                form058Specification.visibleByNnuzb(nnuzb, scope)
-        ).orElseThrow(() -> new Form058NotFoundException(nnuzb));
+        Form058 form058 = repository
+                .findOne(form058Specification.visibleByNnuzb(nnuzb, scope))
+                .orElseThrow(() -> new Form058NotFoundException(nnuzb));
 
         return form058DetailResponseMapper.toDetailedResponse(
                 form058,

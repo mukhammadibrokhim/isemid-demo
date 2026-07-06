@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.exception.handler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +30,19 @@ import uz.uzinfocom.app.shared.response.ErrorResponse;
 import uz.uzinfocom.app.shared.response.FieldViolationResponse;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Comparator;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.regex.Pattern;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private static final int MAX_VIOLATIONS = 100;
+    private static final int MAX_FIELD_LENGTH = 100;
+    private static final int MAX_VIOLATION_MESSAGE_LENGTH = 300;
+    private static final Pattern SAFE_FIELD_PATTERN =
+            Pattern.compile("^[A-Za-z0-9_.\\-\\[\\]]{1,100}$");
 
     private final MessageResolver messages;
     private final TraceIdProvider traceIdProvider;
@@ -58,13 +67,9 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException exception,
             HttpServletRequest request
     ) {
-        List<FieldViolationResponse> violations = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(fieldError -> new FieldViolationResponse(
-                        fieldError.getField(),
-                        fieldError.getDefaultMessage()
-                ))
+        List<FieldViolationResponse> violations = exception.getBindingResult().getFieldErrors().stream()
+                .limit(MAX_VIOLATIONS)
+                .map(fieldError -> violation(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
 
         attachLogError(
@@ -86,13 +91,9 @@ public class GlobalExceptionHandler {
             BindException exception,
             HttpServletRequest request
     ) {
-        List<FieldViolationResponse> violations = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(fieldError -> new FieldViolationResponse(
-                        fieldError.getField(),
-                        fieldError.getDefaultMessage()
-                ))
+        List<FieldViolationResponse> violations = exception.getBindingResult().getFieldErrors().stream()
+                .limit(MAX_VIOLATIONS)
+                .map(fieldError -> violation(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
 
         attachLogError(
@@ -114,20 +115,13 @@ public class GlobalExceptionHandler {
             HandlerMethodValidationException exception,
             HttpServletRequest request
     ) {
-        List<String> fieldNames = exception.getParameterValidationResults()
-                .stream()
-                .map(result -> result.getMethodParameter().getParameterName())
-                .filter(Objects::nonNull)
-                .toList();
-
-        String fieldName = fieldNames.isEmpty() ? "methodValidation" : String.join(",", fieldNames);
-
-        List<FieldViolationResponse> violations = exception.getAllErrors()
-                .stream()
-                .map(error -> new FieldViolationResponse(
-                        fieldName,
-                        error.getDefaultMessage()
-                ))
+        List<FieldViolationResponse> violations = exception.getParameterValidationResults().stream()
+                .flatMap(result -> {
+                    String parameterName = result.getMethodParameter().getParameterName();
+                    return result.getResolvableErrors().stream()
+                            .map(error -> violation(parameterName, error.getDefaultMessage()));
+                })
+                .limit(MAX_VIOLATIONS)
                 .toList();
 
         attachLogError(
@@ -151,9 +145,11 @@ public class GlobalExceptionHandler {
     ) {
         List<FieldViolationResponse> violations = exception.getConstraintViolations()
                 .stream()
-                .map(violation -> new FieldViolationResponse(
-                        violation.getPropertyPath().toString(),
-                        violation.getMessage()
+                .sorted(Comparator.comparing(violation -> violation.getPropertyPath().toString()))
+                .limit(MAX_VIOLATIONS)
+                .map(constraint -> violation(
+                        constraint.getPropertyPath().toString(),
+                        constraint.getMessage()
                 ))
                 .toList();
 
@@ -210,9 +206,9 @@ public class GlobalExceptionHandler {
     ) {
         String message = messages.resolve("error.argument_type_mismatch");
 
-        List<FieldViolationResponse> violations = List.of(new FieldViolationResponse(
+        List<FieldViolationResponse> violations = List.of(violation(
                 exception.getParameterName(),
-                exception.getMessage()
+                messages.resolve("validation.required")
         ));
 
         attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
@@ -229,9 +225,9 @@ public class GlobalExceptionHandler {
     ) {
         String message = messages.resolve(ErrorCode.BAD_REQUEST.getDefaultMessageCode());
 
-        List<FieldViolationResponse> violations = List.of(new FieldViolationResponse(
+        List<FieldViolationResponse> violations = List.of(violation(
                 exception.getHeaderName(),
-                exception.getMessage()
+                messages.resolve("validation.required")
         ));
 
         attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
@@ -248,9 +244,9 @@ public class GlobalExceptionHandler {
     ) {
         String message = messages.resolve(ErrorCode.BAD_REQUEST.getDefaultMessageCode());
 
-        List<FieldViolationResponse> violations = List.of(new FieldViolationResponse(
+        List<FieldViolationResponse> violations = List.of(violation(
                 exception.getName(),
-                exception.getMessage()
+                messages.resolve("validation.invalid_value")
         ));
 
         attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
@@ -364,6 +360,24 @@ public class GlobalExceptionHandler {
                 .body(error(ErrorCode.DATA_INTEGRITY.getCode(), message, request, List.of()));
     }
 
+    @ExceptionHandler({RejectedExecutionException.class, TaskRejectedException.class})
+    public ResponseEntity<ErrorResponse> handleAsyncExecutorSaturation(
+            RuntimeException exception,
+            HttpServletRequest request
+    ) {
+        ErrorCode code = ErrorCode.ASYNC_EXECUTOR_SATURATED;
+        String message = messages.resolve(code.getDefaultMessageCode());
+        RequestLogErrorContext.attach(
+                request,
+                code.getCode(),
+                "Application async executor rejected the submitted task",
+                exception
+        );
+        return ResponseEntity
+                .status(code.getStatus())
+                .body(error(code.getCode(), message, request, List.of()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(
             Exception exception,
@@ -384,7 +398,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request,
             List<FieldViolationResponse> violations
     ) {
-        String traceId = traceIdProvider.getTraceId(request);
+        String traceId = traceIdProvider.getOrCreate(request);
 
         return ErrorResponse.of(code, message, traceId, request.getRequestURI(), violations);
     }
@@ -416,6 +430,39 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .map(violation -> violation.field() + ": " + normalizeMessage(violation.message()))
                 .orElse("Validation failed");
+    }
+
+    private FieldViolationResponse violation(String field, String message) {
+        return new FieldViolationResponse(safeField(field), safeViolationMessage(message));
+    }
+
+    private String safeField(String field) {
+        if (field == null) {
+            return "request";
+        }
+        String normalized = field.trim();
+        if (normalized.length() > MAX_FIELD_LENGTH || !SAFE_FIELD_PATTERN.matcher(normalized).matches()) {
+            return "request";
+        }
+        return normalized;
+    }
+
+    private String safeViolationMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return messages.resolve("validation.invalid_value");
+        }
+        if (message.contains("Failed to convert")
+                || message.contains("rejected value")
+                || message.contains("java.")) {
+            return messages.resolve("validation.invalid_value");
+        }
+        StringBuilder safe = new StringBuilder(Math.min(message.length(), MAX_VIOLATION_MESSAGE_LENGTH));
+        for (int index = 0; index < message.length() && safe.length() < MAX_VIOLATION_MESSAGE_LENGTH; index++) {
+            char character = message.charAt(index);
+            safe.append(Character.isISOControl(character) ? ' ' : character);
+        }
+        String normalized = safe.toString().trim();
+        return normalized.isEmpty() ? messages.resolve("validation.invalid_value") : normalized;
     }
 
     private String extractExceptionMessage(Exception exception) {

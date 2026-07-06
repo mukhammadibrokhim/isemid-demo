@@ -16,6 +16,7 @@ public enum ErrorCode {
     SCOPE_VIOLATION("SCOPE_VIOLATION", HttpStatus.FORBIDDEN, "organization.scope_violation"),
     INTERNAL_ERROR("INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "error.internal_server"),
     DATA_INTEGRITY("DATA_INTEGRITY", HttpStatus.INTERNAL_SERVER_ERROR, "error.data_integrity"),
+    ASYNC_EXECUTOR_SATURATED("ASYNC_EXECUTOR_SATURATED", HttpStatus.SERVICE_UNAVAILABLE, "error.service_unavailable"),
     RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, "error.endpoint_not_found"),
     METHOD_NOT_ALLOWED("METHOD_NOT_ALLOWED", HttpStatus.METHOD_NOT_ALLOWED, "error.method_not_supported"),
     UNSUPPORTED_MEDIA_TYPE("UNSUPPORTED_MEDIA_TYPE", HttpStatus.UNSUPPORTED_MEDIA_TYPE, "error.unsupported_media_type"),

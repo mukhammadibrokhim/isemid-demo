@@ -26,6 +26,10 @@ public class Api2RestClientConfiguration {
 
     @Bean(name = "api2CloseableHttpClient", destroyMethod = "close")
     public CloseableHttpClient api2CloseableHttpClient(Api2Properties properties) {
+        if (properties.connectTimeout().isZero() || properties.connectTimeout().isNegative()
+                || properties.readTimeout().isZero() || properties.readTimeout().isNegative()) {
+            throw new IllegalStateException("API2 connect and read timeouts must be positive");
+        }
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.ofMilliseconds(properties.connectTimeout().toMillis()))
                 .setSocketTimeout(Timeout.ofMilliseconds(properties.readTimeout().toMillis()))
@@ -68,9 +72,10 @@ public class Api2RestClientConfiguration {
                 .requestFactory(requestFactory)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .requestInterceptors(interceptors -> {
-                    interceptors.removeIf(interceptor -> interceptor == traceIdInterceptor
-                            || interceptor == loggingInterceptor
-                            || interceptor == bearerTokenInterceptor);
+                    interceptors.removeIf(interceptor ->
+                            interceptor instanceof TraceIdClientHttpRequestInterceptor
+                                    || interceptor instanceof RestClientLoggingInterceptor
+                                    || interceptor instanceof Api2BearerTokenInterceptor);
                     interceptors.add(traceIdInterceptor);
                     interceptors.add(loggingInterceptor);
                     interceptors.add(bearerTokenInterceptor);

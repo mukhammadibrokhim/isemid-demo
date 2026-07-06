@@ -8,6 +8,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -15,9 +16,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
+import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
+import uz.uzinfocom.app.platform.security.handler.JsonAuthenticationEntryPoint;
 import uz.uzinfocom.app.platform.web.response.ErrorResponseWriter;
 
 import java.io.IOException;
+import java.util.concurrent.RejectedExecutionException;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 30)
@@ -25,6 +29,8 @@ import java.io.IOException;
 public class ErrorResponseFilter extends OncePerRequestFilter {
 
     private final ErrorResponseWriter errorResponseWriter;
+    private final JsonAuthenticationEntryPoint authenticationEntryPoint;
+    private final JsonAccessDeniedHandler accessDeniedHandler;
 
     @Override
     protected void doFilterInternal(
@@ -40,6 +46,12 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
             }
 
             Throwable rootCause = rootCause(exception);
+
+            if (rootCause instanceof RejectedExecutionException
+                    || rootCause instanceof TaskRejectedException) {
+                writeServiceUnavailable(request, response, rootCause);
+                return;
+            }
 
             if (rootCause instanceof AuthenticationException authenticationException) {
                 writeAuthenticationError(request, response, authenticationException);
@@ -60,14 +72,7 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             AuthenticationException exception
     ) throws IOException {
-        RequestLogErrorContext.attach(
-                request,
-                ErrorCode.UNAUTHORIZED.getCode(),
-                "Authentication failed before MVC handling",
-                exception
-        );
-
-        errorResponseWriter.write(request, response, HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED);
+        authenticationEntryPoint.commence(request, response, exception);
     }
 
     private void writeAccessDeniedError(
@@ -75,25 +80,26 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             AccessDeniedException exception
     ) throws IOException {
+        accessDeniedHandler.handle(request, response, exception);
+    }
+
+    private void writeServiceUnavailable(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Throwable exception
+    ) throws IOException {
         RequestLogErrorContext.attach(
                 request,
-                ErrorCode.FORBIDDEN.getCode(),
-                "Access denied before MVC handling",
+                ErrorCode.ASYNC_EXECUTOR_SATURATED.getCode(),
+                "Application async executor rejected the submitted task",
                 exception
         );
-
-        if (isMessageCode(exception.getMessage())) {
-            errorResponseWriter.write(
-                    request,
-                    response,
-                    HttpStatus.FORBIDDEN,
-                    ErrorCode.FORBIDDEN,
-                    exception.getMessage()
-            );
-            return;
-        }
-
-        errorResponseWriter.write(request, response, HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
+        errorResponseWriter.write(
+                request,
+                response,
+                HttpStatus.SERVICE_UNAVAILABLE,
+                ErrorCode.ASYNC_EXECUTOR_SATURATED
+        );
     }
 
     private void writeInternalError(
@@ -129,9 +135,5 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
         }
 
         throw new ServletException(exception);
-    }
-
-    private boolean isMessageCode(String message) {
-        return message != null && message.matches("[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+");
     }
 }
