@@ -20,6 +20,7 @@ import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058ResponseAdapter;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.services.Form058Facade;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
@@ -40,6 +41,7 @@ import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 @RequiredArgsConstructor
 public class Form058Controller {
     private final Form058Service form058Service;
+    private final Form058Facade form058Facade;
     private final MessageUtil messageUtil;
     private final Form058Mapper form058Mapper;
     private final Form058ResponseAdapter formAdapter;
@@ -119,7 +121,7 @@ public class Form058Controller {
     @Operation(summary = "Назначение карты для формы 058", description = "Позволяет назначить карту (Card) для существующей формы 058.")
     @PostMapping("/assign-card")
     public ApiResponse<Form058Response> assignCard(@Valid @RequestBody Form058AssignCardRequest request, @CurrentUser User user) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.assignCard(request, user)));
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Facade.assignCard(request, user)));
     }
 
     @Operation(summary = "Изменение организации получателя формы 058", description = "Позволяет изменить только организацию, получившую форму 058, без изменения других данных формы.")
@@ -139,7 +141,7 @@ public class Form058Controller {
     ) {
         return ApiResponse.success(
                 messageUtil,
-                form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason(), currentUser))
+                form058Mapper.toResponse(form058Facade.cancel(formId, request.getCancelReason(), currentUser))
         );
     }
 
