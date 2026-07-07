@@ -1,9 +1,15 @@
 package uz.uzinfocom.isemid.features.integrations.dmed.config;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
@@ -34,10 +40,21 @@ public class DmedClientConfig {
 
     @Bean
     public DmedClient dmedClient(RestClientLoggingInterceptor loggingInterceptor) {
-        SimpleClientHttpRequestFactory httpRequestFactory =
-            new SimpleClientHttpRequestFactory();
-        httpRequestFactory.setConnectTimeout(CONNECT_TIMEOUT);
-        httpRequestFactory.setReadTimeout(READ_TIMEOUT);
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(CONNECT_TIMEOUT))
+            .build();
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setDefaultConnectionConfig(connectionConfig);
+
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setResponseTimeout(Timeout.ofMilliseconds(READ_TIMEOUT))
+            .build();
+        CloseableHttpClient httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build();
+        HttpComponentsClientHttpRequestFactory httpRequestFactory =
+            new HttpComponentsClientHttpRequestFactory(httpClient);
 
         RestClient restClient = RestClient.builder()
                 .requestFactory(httpRequestFactory)
