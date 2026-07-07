@@ -18,7 +18,13 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "organization")
+@Table(
+        name = "organization",
+        indexes = {
+                @Index(name = "idx_organization_active_region", columnList = "active,region_code"),
+                @Index(name = "idx_organization_active_district", columnList = "active,district_code")
+        }
+)
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor

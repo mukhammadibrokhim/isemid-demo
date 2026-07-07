@@ -49,6 +49,25 @@ public class OrganizationScopeOrganizationIdResolver {
         };
     }
 
+    /**
+     * Resolves active organization ids matching an ad-hoc region/district filter
+     * (as opposed to the mandatory SANEPID scope above). Materialized and cached
+     * so callers can use `IN (:ids)` instead of `IN (subquery)` — Postgres estimates
+     * a literal id list far more accurately than a correlated subquery, which
+     * otherwise causes a full backward scan of large tables like form058.
+     */
+    @Cacheable(
+            cacheManager = "securityCacheManager",
+            cacheNames = SecurityCacheNames.FILTER_ORGANIZATION_IDS_BY_REGION_DISTRICT,
+            key = "(#regionCode == null ? '' : #regionCode) + ':' + (#districtCode == null ? '' : #districtCode)"
+    )
+    public List<Long> resolveFilterOrganizationIds(String regionCode, String districtCode) {
+        String normalizedRegionCode = StringUtils.hasText(regionCode) ? normalize(regionCode) : null;
+        String normalizedDistrictCode = StringUtils.hasText(districtCode) ? normalize(districtCode) : null;
+
+        return organizationRepository.findActiveIdsByRegionAndDistrict(normalizedRegionCode, normalizedDistrictCode);
+    }
+
     private String normalizeRequired(String value) {
         if (!StringUtils.hasText(value)) {
             throw new ScopeViolationException("organization.scope_violation");

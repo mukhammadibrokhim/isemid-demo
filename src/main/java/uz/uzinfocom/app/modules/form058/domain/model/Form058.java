@@ -27,7 +27,9 @@ import java.time.Instant;
                 @Index(name = "idx_form058_created_at", columnList = "created_at"),
                 @Index(name = "idx_form058_mkb10_code", columnList = "mkb10_code"),
                 @Index(name = "idx_form058_final_mkb10_code", columnList = "final_mkb10_code"),
-                @Index(name = "idx_form058_deleted", columnList = "deleted")
+                @Index(name = "idx_form058_deleted", columnList = "deleted"),
+                @Index(name = "idx_form058_deleted_sender_created", columnList = "deleted,sender_organization_id,created_at"),
+                @Index(name = "idx_form058_deleted_receiver_created", columnList = "deleted,receiver_organization_id,created_at")
         }
 )
 public class Form058 extends AbsEntity {

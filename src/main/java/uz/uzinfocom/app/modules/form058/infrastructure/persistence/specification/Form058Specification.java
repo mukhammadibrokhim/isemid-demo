@@ -10,8 +10,8 @@ import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopeOrganizationIdResolver;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -41,11 +41,8 @@ public class Form058Specification {
     private static final String SENDER_ORGANIZATION_ID = "senderOrganizationId";
     private static final String RECEIVER_ORGANIZATION_ID = "receiverOrganizationId";
 
-    private static final String ORGANIZATION_REGION_CODE = "regionCode";
-    private static final String ORGANIZATION_DISTRICT_CODE = "districtCode";
-    private static final String ORGANIZATION_ACTIVE = "active";
-
     private final Form058ScopePredicateFactory form058ScopePredicateFactory;
+    private final OrganizationScopeOrganizationIdResolver organizationScopeOrganizationIdResolver;
 
     public Specification<Form058> table(
             Form058Filter filter,
@@ -59,6 +56,30 @@ public class Form058Specification {
             predicates.add(accessScopePredicate(root, query, cb, filter, scope, received));
 
             applyFilters(predicates, root, query, cb, filter, received);
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    /**
+     * True cross-organization view (no sender/receiver restriction at all).
+     * Callers must gate this behind a super-admin authorization check —
+     * this specification intentionally does not enforce any scope itself.
+     */
+    public Specification<Form058> tableUnscoped(
+            Form058Filter filter,
+            ResolvedOrganizationScope scope
+    ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
+
+            if (filter != null && filter.isAffiliationFilterEnabled()) {
+                predicates.add(patientAffiliationExists(root, query, cb, scope.organizationId()));
+            }
+
+            applyFilters(predicates, root, query, cb, filter, null);
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
@@ -158,7 +179,7 @@ public class Form058Specification {
         }
 
         if (StringUtils.hasText(filter.regionCode()) || StringUtils.hasText(filter.districtCode())) {
-            predicates.add(organizationLocationPredicate(root, query, cb, received, filter.regionCode(), filter.districtCode()));
+            predicates.add(organizationLocationPredicate(root, cb, received, filter.regionCode(), filter.districtCode()));
         }
 
         if (StringUtils.hasText(filter.source())) {
@@ -190,18 +211,26 @@ public class Form058Specification {
         }
     }
 
+    /**
+     * Resolves organization ids via a cached, materialized list instead of a
+     * live JPA subquery. Postgres estimates `column IN (:list)` far more
+     * accurately than `column IN (subquery)` — the latter forced a full
+     * backward scan of form058 regardless of indexes (see resolveFilterOrganizationIds).
+     */
     private Predicate organizationLocationPredicate(
             Root<Form058> root,
-            CriteriaQuery<?> query,
             CriteriaBuilder cb,
             Boolean received,
             String regionCode,
             String districtCode
     ) {
+        List<Long> organizationIds = organizationScopeOrganizationIdResolver
+                .resolveFilterOrganizationIds(regionCode, districtCode);
+
         if (received == null) {
             return cb.or(
-                    root.<Long>get(SENDER_ORGANIZATION_ID).in(organizationIdsByLocation(query, cb, regionCode, districtCode)),
-                    root.<Long>get(RECEIVER_ORGANIZATION_ID).in(organizationIdsByLocation(query, cb, regionCode, districtCode))
+                    organizationIdPredicate(root, cb, SENDER_ORGANIZATION_ID, organizationIds),
+                    organizationIdPredicate(root, cb, RECEIVER_ORGANIZATION_ID, organizationIds)
             );
         }
 
@@ -209,34 +238,20 @@ public class Form058Specification {
                 ? RECEIVER_ORGANIZATION_ID
                 : SENDER_ORGANIZATION_ID;
 
-        return root.<Long>get(organizationField).in(organizationIdsByLocation(query, cb, regionCode, districtCode));
+        return organizationIdPredicate(root, cb, organizationField, organizationIds);
     }
 
-    private Subquery<Long> organizationIdsByLocation(
-            CriteriaQuery<?> query,
+    private Predicate organizationIdPredicate(
+            Root<Form058> root,
             CriteriaBuilder cb,
-            String regionCode,
-            String districtCode
+            String organizationIdField,
+            List<Long> organizationIds
     ) {
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<Organization> organization = subquery.from(Organization.class);
-
-        List<Predicate> predicates = new ArrayList<>();
-
-        predicates.add(cb.isTrue(organization.get(ORGANIZATION_ACTIVE)));
-
-        if (StringUtils.hasText(regionCode)) {
-            predicates.add(cb.equal(organization.get(ORGANIZATION_REGION_CODE), normalizeCode(regionCode)));
+        if (organizationIds.isEmpty()) {
+            return cb.disjunction();
         }
 
-        if (StringUtils.hasText(districtCode)) {
-            predicates.add(cb.equal(organization.get(ORGANIZATION_DISTRICT_CODE), normalizeCode(districtCode)));
-        }
-
-        subquery.select(organization.get(ID))
-                .where(cb.and(predicates.toArray(Predicate[]::new)));
-
-        return subquery;
+        return root.<Long>get(organizationIdField).in(organizationIds);
     }
 
     private Predicate documentValueExists(

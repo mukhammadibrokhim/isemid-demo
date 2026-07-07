@@ -26,6 +26,10 @@ import java.time.LocalDate;
                 @Index(
                         name = "idx_pt_identifier_type_value",
                         columnList = "type_code,value"
+                ),
+                @Index(
+                        name = "idx_pt_identifier_value",
+                        columnList = "value,patient_id"
                 )
         }
 )

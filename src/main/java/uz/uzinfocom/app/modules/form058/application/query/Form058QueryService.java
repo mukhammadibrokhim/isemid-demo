@@ -44,10 +44,7 @@ public class Form058QueryService {
         return switch (filter.direction()) {
             case OUTGOING -> findByScope(filter, scope, false);
             case INCOMING -> findByScope(filter, scope, true);
-            case ALL -> {
-                form058AccessGuard.requireSuperAdmin();
-                yield findByScope(filter, scope, null);
-            }
+            case ALL -> findAllUnscoped(filter, scope);
         };
     }
 
@@ -64,6 +61,36 @@ public class Form058QueryService {
         Page<Form058TableProjection> page = Objects.requireNonNull(
                 repository.findBy(
                         form058Specification.table(filter, scope, received),
+                        query -> query
+                                .as(Form058TableProjection.class)
+                                .page(pageable)
+                ),
+                "Form058 table page returned null"
+        );
+
+        return page.map(projection -> form058TableMapper
+                .toTableResponse(projection, filter.direction()));
+    }
+
+    /**
+     * ALL is a super-admin-only view across every organization: no sender/receiver
+     * scope restriction is applied. requireSuperAdmin() is the only gate protecting
+     * this from being a full data leak, so it must never be removed.
+     */
+    private Page<Form058TableResponse> findAllUnscoped(
+            Form058Filter filter,
+            ResolvedOrganizationScope scope
+    ) {
+        form058AccessGuard.requireSuperAdmin();
+
+        Pageable pageable = PageableUtils.of(
+                filter,
+                Form058SortFields.ALLOWED
+        );
+
+        Page<Form058TableProjection> page = Objects.requireNonNull(
+                repository.findBy(
+                        form058Specification.tableUnscoped(filter, scope),
                         query -> query
                                 .as(Form058TableProjection.class)
                                 .page(pageable)

@@ -32,6 +32,10 @@ import java.util.UUID;
                 @Index(
                         name = "idx_pt_affiliation_patient_id",
                         columnList = "patient_id"
+                ),
+                @Index(
+                        name = "idx_pt_affiliation_patient_org_type",
+                        columnList = "patient_id,organization_id,type"
                 )
         }
 )

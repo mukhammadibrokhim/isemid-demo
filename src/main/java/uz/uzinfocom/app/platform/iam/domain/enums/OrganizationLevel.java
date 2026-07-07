@@ -3,6 +3,9 @@ package uz.uzinfocom.app.platform.iam.domain.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 @Getter
 @AllArgsConstructor
 public enum OrganizationLevel {
@@ -17,12 +20,9 @@ public enum OrganizationLevel {
     private final String code;
     private final String display;
 
-    public static OrganizationLevel fromCode(String code) {
-        for (OrganizationLevel type : values()) {
-            if (type.code.equals(code)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown code: " + code);
+    public static Optional<OrganizationLevel> fromCode(String code) {
+        return Arrays.stream(values())
+                .filter(level -> level.code.equals(code))
+                .findFirst();
     }
 }

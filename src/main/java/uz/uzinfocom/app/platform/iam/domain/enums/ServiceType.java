@@ -2,6 +2,9 @@ package uz.uzinfocom.app.platform.iam.domain.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 @Getter
 public enum ServiceType {
     OUTPATIENT("1", "Outpatient"),
@@ -19,12 +22,9 @@ public enum ServiceType {
         this.displayName = displayName;
     }
 
-    public static ServiceType fromCode(String code) {
-        for (ServiceType type : values()) {
-            if (type.getCode().equals(code)) {
-                return type;
-            }
-        }
-        return null;
+    public static Optional<ServiceType> fromCode(String code) {
+        return Arrays.stream(values())
+                .filter(type -> type.code.equals(code))
+                .findFirst();
     }
 }
