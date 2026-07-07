@@ -39,6 +39,18 @@ public class Organization extends AuditableEntity {
     @Column(nullable = false, length = 500)
     private String name;
 
+    @Column(name = "name_uz", length = 500)
+    private String nameUz;
+
+    @Column(name = "name_uz_cyril", length = 500)
+    private String nameUzCyril;
+
+    @Column(name = "name_ru", length = 500)
+    private String nameRu;
+
+    @Column(name = "name_kaa", length = 500)
+    private String nameKaa;
+
     private Boolean active;
 
     @Column(length = 50)

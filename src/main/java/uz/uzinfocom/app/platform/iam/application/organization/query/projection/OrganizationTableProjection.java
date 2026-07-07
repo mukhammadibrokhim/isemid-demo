@@ -5,6 +5,14 @@ public interface OrganizationTableProjection {
 
     String getName();
 
+    String getNameUz();
+
+    String getNameUzCyril();
+
+    String getNameRu();
+
+    String getNameKaa();
+
     String getRegionCode();
 
     String getDistrictCode();

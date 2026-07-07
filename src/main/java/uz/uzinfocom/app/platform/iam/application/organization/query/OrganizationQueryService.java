@@ -95,6 +95,8 @@ public class OrganizationQueryService {
                 request.medicalType(),
                 request.active(),
                 pageable
-        );
+        ).stream()
+                .map(organizationQueryMapper::toLookupResponse)
+                .toList();
     }
 }

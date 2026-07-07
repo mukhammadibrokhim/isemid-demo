@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.form058.application.shared;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
 
 import java.util.UUID;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 public class OrganizationMappingHelper {
 
     private final OrganizationIdResolver organizationIdResolver;
+    private final OrganizationNameResolver organizationNameResolver;
 
     @Named("activeOrganizationId")
     public Long activeOrganizationId(UUID uuid) {
@@ -24,6 +26,10 @@ public class OrganizationMappingHelper {
 
     @Named("activeOrganizationNameById")
     public String activeOrganizationNameById(Long id) {
-        return id == null ? null : organizationIdResolver.resolveActiveId(id);
+        if (id == null) {
+            return null;
+        }
+
+        return organizationNameResolver.resolve(organizationIdResolver.resolveActiveNameFields(id));
     }
 }

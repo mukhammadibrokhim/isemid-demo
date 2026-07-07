@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.iam.application.sync.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
@@ -18,10 +19,15 @@ public class OrganizationRemoteMapper {
 
     public Organization toEntity(RemoteOrganizationPayload payload) {
         UUID uuid = payload.uuid();
+        String resolvedName = resolveName(payload);
 
         return Organization.builder()
                 .uuid(uuid)
-                .name(resolveName(payload))
+                .name(resolvedName)
+                .nameUz(orDefault(payload.nameUz(), resolvedName))
+                .nameUzCyril(orDefault(payload.nameUzCyril(), resolvedName))
+                .nameRu(orDefault(payload.nameRu(), resolvedName))
+                .nameKaa(orDefault(payload.nameKaa(), resolvedName))
                 .active(payload.active() == null || payload.active())
                 .levelType(parseLevel(payload.levelCode(), uuid))
                 .medicalType(parseMedicalType(payload.medicalTypeCode(), uuid))
@@ -31,10 +37,25 @@ public class OrganizationRemoteMapper {
                 .build();
     }
 
+    /**
+     * Guarantees a non-blank organization display name even when the remote
+     * system sends neither a name nor any usable alias — falls back to the
+     * organization's own uuid so the entity never ends up with a blank name.
+     */
     private String resolveName(RemoteOrganizationPayload payload) {
-        return payload.name() == null || payload.name().isBlank()
-                ? payload.uuid().toString()
-                : payload.name();
+        return StringUtils.hasText(payload.name())
+                ? payload.name()
+                : payload.uuid().toString();
+    }
+
+    /**
+     * Every nameXxx() accessor on the payload already falls back to the raw
+     * name field when its language-specific alias is missing — but the raw
+     * name itself can still be blank/null. This closes that gap by falling
+     * back to the already-resolved, guaranteed-non-blank name instead.
+     */
+    private String orDefault(String value, String fallback) {
+        return StringUtils.hasText(value) ? value : fallback;
     }
 
     private OrganizationLevel parseLevel(String code, UUID organizationUuid) {

@@ -139,6 +139,11 @@ public record RemoteOrganizationPayload(
                 .orElse(null);
     }
 
+    public String nameUz() {
+        return aliasByLanguage("uz")
+                .orElse(name);
+    }
+
     public String nameRu() {
         return aliasByLanguage("ru")
                 .orElse(name);
@@ -146,6 +151,11 @@ public record RemoteOrganizationPayload(
 
     public String nameUzCyril() {
         return aliasByLanguage("uz-Cyrl")
+                .orElse(name);
+    }
+
+    public String nameKaa() {
+        return aliasByLanguage("kaa")
                 .orElse(name);
     }
 

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationLookupResponse;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLocalizedName;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
@@ -19,14 +19,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     Optional<Organization> findByUuid(UUID uuid);
 
     @Query("""
-        select new uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationLookupResponse(
-            o.id,
-            o.uuid,
-            o.name,
-            o.active,
-            o.levelType,
-            o.medicalType
-        )
+        select o
         from Organization o
         where (:id is null or o.id = :id)
           and (
@@ -42,7 +35,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
           and (:active is null or o.active = :active)
         order by o.name asc, o.id desc
         """)
-    List<OrganizationLookupResponse> lookupOrganizations(
+    List<Organization> lookupOrganizations(
             @Param("search") String search,
             @Param("id") Long id,
             @Param("levelType") OrganizationLevel levelType,
@@ -55,12 +48,14 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     Optional<Long> findActiveIdByUuid(@Param("uuid") UUID uuid);
 
     @Query("""
-                SELECT o.name
+                SELECT new uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLocalizedName(
+                    o.name, o.nameUz, o.nameUzCyril, o.nameRu, o.nameKaa
+                )
                 FROM Organization o
                 WHERE o.id = :id
                   AND o.active = true
             """)
-    Optional<String> findActiveNameById(@Param("id") Long id);
+    Optional<OrganizationLocalizedName> findActiveNameFieldsById(@Param("id") Long id);
 
     @Query("""
             select o.id
