@@ -14,6 +14,8 @@ import uz.uzinfocom.isemid.features.user.models.User;
 @RequiredArgsConstructor
 @Slf4j
 public class Form058Facade {
+
+  public static final String FORM_ORIGIN_SOURCE = "DMED";
   private final Form058Service form058Service;
   private final DmedClient dmedClient;
   private final TransactionTemplate transactionTemplate;
@@ -33,11 +35,12 @@ public class Form058Facade {
     });
 
     assert result != null;
-    dmedClient.pushFormStatusChangeEvent(
-        result.form().getId(),
-        result.event()
-    );
-
+    if(result.form().getSource().equalsIgnoreCase(FORM_ORIGIN_SOURCE)){
+      dmedClient.pushFormStatusChangeEvent(
+          result.form().getId(),
+          result.event()
+      );
+    }
     return result.form();
   }
 
@@ -57,10 +60,12 @@ public class Form058Facade {
     });
 
     assert result != null;
-    dmedClient.pushFormStatusChangeEvent(
-        result.form().getId(),
-        result.event()
-    );
+    if(result.form().getSource().equalsIgnoreCase(FORM_ORIGIN_SOURCE)){
+      dmedClient.pushFormStatusChangeEvent(
+          result.form().getId(),
+          result.event()
+      );
+    }
 
     return result.form();
   }
