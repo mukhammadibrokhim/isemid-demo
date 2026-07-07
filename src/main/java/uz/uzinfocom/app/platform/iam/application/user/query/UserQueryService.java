@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response.OrganizationShortResponse;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
 import uz.uzinfocom.app.platform.iam.application.user.query.mapper.UserQueryMapper;
 import uz.uzinfocom.app.platform.iam.application.user.query.projection.UserTableProjection;
 import uz.uzinfocom.app.platform.iam.application.user.query.specification.UserSpecification;
@@ -33,6 +34,7 @@ public class UserQueryService {
     private final UserRepository userRepo;
     private final UserQueryMapper userQueryMapper;
     private final AuditResolver auditResolver;
+    private final OrganizationNameResolver organizationNameResolver;
 
     @Transactional(readOnly = true)
     public Page<UserTableResponse> findTable(UserFilterRequest request) {
@@ -86,7 +88,7 @@ public class UserQueryService {
                 .map(organization -> new OrganizationShortResponse(
                         organization.getId(),
                         organization.getUuid(),
-                        organization.getName()
+                        organizationNameResolver.resolve(organization)
                 ))
                 .toList();
     }

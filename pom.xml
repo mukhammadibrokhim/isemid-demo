@@ -20,20 +20,21 @@
 
     <properties>
         <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- 3.x projectdan olib kelindi -->
         <mapstruct.version>1.6.3</mapstruct.version>
 
-        <!-- Spring Boot 4 uchun springdoc 3.x ishlating -->
         <springdoc.version>3.0.3</springdoc.version>
 
-        <!-- 4.x generated pomdan saqlandi -->
         <datasource-micrometer.version>2.2.1</datasource-micrometer.version>
         <spring-modulith.version>2.0.6</spring-modulith.version>
+
+        <!-- Structured JSON console logging in production (see logback-spring.xml) -->
+        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
     </properties>
 
     <dependencies>
-        <!-- Web / REST API. Boot 4 da spring-boot-starter-webmvc ishlatiladi. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
@@ -51,30 +52,22 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-liquibase</artifactId>-->
-<!--        </dependency>-->
-
         <!-- Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- OAuth2 Resource Server. Boot 4 generated nomi. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
         </dependency>
 
-        <!-- Agar login/SSO client flow kerak bo'lsa saqlang. Faqat JWT resource server bo'lsa olib tashlash mumkin. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-client</artifactId>
         </dependency>
 
-        <!-- Cache + Caffeine: 3.x pomdan qo'shildi -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
@@ -89,22 +82,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-opentelemetry</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-micrometer-tracing-brave</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>io.micrometer</groupId>-->
-<!--            <artifactId>micrometer-tracing-bridge-brave</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>net.ttddyy.observation</groupId>-->
-<!--            <artifactId>datasource-micrometer-opentelemetry</artifactId>-->
-<!--        </dependency>-->
+
+        <!-- Structured JSON logging (production console encoder, see logback-spring.xml) -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>${logstash-logback-encoder.version}</version>
+        </dependency>
         <dependency>
             <groupId>net.ttddyy.observation</groupId>
             <artifactId>datasource-micrometer-spring-boot</artifactId>
@@ -120,21 +104,18 @@
             <artifactId>spring-modulith-starter-jpa</artifactId>
         </dependency>
 
-        <!-- OpenAPI / Swagger UI: 3.x pomdan qo'shildi, Boot 4 uchun 3.x versiya -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
 
-        <!-- MapStruct: 3.x pomdan qo'shildi -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
 
-        <!-- HTTP Client: 3.x pomdan qo'shildi -->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
@@ -208,11 +189,6 @@
             <artifactId>spring-boot-starter-data-jpa-test</artifactId>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-opentelemetry-test</artifactId>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-client-test</artifactId>

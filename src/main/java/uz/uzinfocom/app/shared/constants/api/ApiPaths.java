@@ -94,6 +94,9 @@ public final class ApiPaths {
 
         public static final String ROOT = API_V1 + "/form-058";
         public static final String BY_ID = "/{id}";
+        public static final String APPROVE = "/{id}/approve";
+        public static final String NOT_APPROVE = "/{id}/not-approve";
+        public static final String CANCEL = "/{id}/cancel";
 
     }
 

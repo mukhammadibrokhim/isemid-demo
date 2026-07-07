@@ -7,11 +7,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uz.uzinfocom.app.modules.form058.application.command.approve.ApproveForm058Service;
+import uz.uzinfocom.app.modules.form058.application.command.cancel.CancelForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.delete.DeleteForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Service;
+import uz.uzinfocom.app.modules.form058.web.dto.request.ApproveForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.request.CancelForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CreateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.DeleteForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.request.NotApproveForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
@@ -32,6 +37,8 @@ public class Form058CommandController {
     private final CreateForm058Service createForm058Service;
     private final UpdateForm058Service updateForm058Service;
     private final DeleteForm058Service deleteForm058Service;
+    private final ApproveForm058Service approveForm058Service;
+    private final CancelForm058Service cancelForm058Service;
     private final Form058WebMapper form058WebMapper;
     private final Form058SourceResolver sourceResolver;
     private final MessageResolver messageResolver;
@@ -67,7 +74,42 @@ public class Form058CommandController {
             @Valid @RequestBody DeleteForm058Request request
     ) {
         deleteForm058Service.delete(id, request.reason());
-
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
+    }
+
+    @PostMapping(ApiPaths.Form058.APPROVE)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<UpdateForm058Response> approve(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody ApproveForm058Request request
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.approved"),
+                form058WebMapper.toResponse(approveForm058Service.approve(form058WebMapper.toCommand(id, request)))
+        );
+    }
+
+    @PostMapping(ApiPaths.Form058.NOT_APPROVE)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<UpdateForm058Response> notApprove(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody NotApproveForm058Request request
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.rejected"),
+                form058WebMapper.toResponse(approveForm058Service.notApprove(form058WebMapper.toCommand(id, request)))
+        );
+    }
+
+    @PostMapping(ApiPaths.Form058.CANCEL)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<UpdateForm058Response> cancel(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody CancelForm058Request request
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.canceled"),
+                form058WebMapper.toResponse(cancelForm058Service.cancel(form058WebMapper.toCommand(id, request)))
+        );
     }
 }

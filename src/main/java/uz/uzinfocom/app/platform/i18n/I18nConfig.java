@@ -15,7 +15,10 @@ import java.util.Locale;
 public class I18nConfig {
 
     private static final Locale UZ_LATIN = Locale.forLanguageTag("uz");
-    private static final Locale UZ_CYRILLIC = Locale.forLanguageTag("uz-Cyril");
+    // "Cyrl" is the correct BCP-47 script subtag (ISO 15924) for Cyrillic —
+    // "uz-Cyril" is not a valid tag and never matches a real client's
+    // Accept-Language: uz-Cyrl header, so Cyrillic content was unreachable.
+    private static final Locale UZ_CYRILLIC = Locale.forLanguageTag("uz-Cyrl");
     private static final Locale KARAKALPAK = Locale.forLanguageTag("kaa");
     private static final Locale RUSSIAN = Locale.forLanguageTag("ru");
 

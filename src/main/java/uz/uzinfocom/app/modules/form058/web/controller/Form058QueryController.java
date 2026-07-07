@@ -37,7 +37,8 @@ public class Form058QueryController {
             @ParameterObject @Valid Form058Filter filter,
             HttpServletRequest httpRequest
     ) {
-        return pagedResponseAssembler.toResponse(form058QueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
+        return pagedResponseAssembler
+                .toResponse(form058QueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
     }
 
     @GetMapping("/by-nnuzb")

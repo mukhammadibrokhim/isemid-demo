@@ -15,6 +15,12 @@ public final class SecurityRouteCatalog {
      *
      * <p>
      * Production-safe default: DB/debug endpoints are intentionally excluded.
+     * Only read-only, non-sensitive actuator endpoints are listed explicitly —
+     * a blanket "/v1/actuator/**" would also expose mutable/sensitive endpoints
+     * (e.g. "loggers", which lets a caller change log levels at runtime) to
+     * unauthenticated callers the moment they're added to management.endpoints
+     * .web.exposure.include. Anything not listed here falls through to
+     * anyRequest().authenticated() in SecurityConfig.
      * </p>
      */
     public static final List<String> OPEN_PATTERNS = List.of(
@@ -24,7 +30,10 @@ public final class SecurityRouteCatalog {
             "/api-docs/**",
             "/v1/auth/**",
             "/v1/log/**",
-            "/v1/actuator/**"
+            "/v1/actuator/health/**",
+            "/v1/actuator/info",
+            "/v1/actuator/prometheus",
+            "/v1/actuator/metrics/**"
     );
 
     /**

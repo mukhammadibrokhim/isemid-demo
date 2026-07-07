@@ -2,12 +2,18 @@ package uz.uzinfocom.app.modules.form058.web.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import uz.uzinfocom.app.modules.form058.application.command.approve.ApproveForm058Command;
+import uz.uzinfocom.app.modules.form058.application.command.approve.NotApproveForm058Command;
+import uz.uzinfocom.app.modules.form058.application.command.cancel.CancelForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Result;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Result;
 import uz.uzinfocom.app.modules.form058.application.shared.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.form058.web.dto.request.ApproveForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.request.CancelForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CreateForm058Request;
+import uz.uzinfocom.app.modules.form058.web.dto.request.NotApproveForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
@@ -70,5 +76,18 @@ public interface Form058WebMapper {
     CreateForm058Response toResponse(CreateForm058Result result);
 
     UpdateForm058Response toResponse(UpdateForm058Result result);
+
+    @Mapping(target = "formId", source = "id")
+    @Mapping(target = "finalMkb10Code", source = "request.finalMkb10Code")
+    @Mapping(target = "finalMkb10Name", source = "request.finalMkb10Name")
+    ApproveForm058Command toCommand(Long id, ApproveForm058Request request);
+
+    @Mapping(target = "formId", source = "id")
+    @Mapping(target = "reason", source = "request.reason")
+    NotApproveForm058Command toCommand(Long id, NotApproveForm058Request request);
+
+    @Mapping(target = "formId", source = "id")
+    @Mapping(target = "reason", source = "request.reason")
+    CancelForm058Command toCommand(Long id, CancelForm058Request request);
 
 }

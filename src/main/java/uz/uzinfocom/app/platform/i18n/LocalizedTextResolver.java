@@ -18,7 +18,6 @@ public class LocalizedTextResolver {
         Locale locale = LocaleContextHolder.getLocale();
 
         String language = locale.getLanguage();
-        String tag = locale.toLanguageTag();
 
         if ("ru".equalsIgnoreCase(language)) {
             return firstNonBlank(ru, uz, uzCyril, kaa);
@@ -28,9 +27,11 @@ public class LocalizedTextResolver {
             return firstNonBlank(kaa, uz, ru, uzCyril);
         }
 
-        if ("uz-Cyril".equalsIgnoreCase(tag)
-                || "uz-UZ-Cyril".equalsIgnoreCase(tag)
-                || "uz_Cyril".equalsIgnoreCase(tag)) {
+        // Script-based check (not a tag-string match): BCP-47's script subtag
+        // for Cyrillic is "Cyrl", correctly parsed only when the locale is
+        // registered as "uz-Cyrl" (see I18nConfig) — not the "uz-Cyril" typo
+        // this used to compare against, which never matched a real request.
+        if ("Cyrl".equalsIgnoreCase(locale.getScript())) {
             return firstNonBlank(uzCyril, uz, ru, kaa);
         }
 

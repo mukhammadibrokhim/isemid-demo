@@ -9,13 +9,42 @@
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level traceId=%X{traceId:-N/A} ${APP_NAME} %logger{36} - %msg%n"/>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
+    <!--
+        Console output differs by profile:
+        - prod: structured JSON to stdout, for log shippers/aggregators
+          (Loki, ELK, CloudWatch) to parse and index. MDC (traceId) is
+          included automatically as top-level JSON fields.
+        - anything else (dev/local): human-readable pattern for terminals.
+    -->
+    <springProfile name="prod">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"service":"${APP_NAME}"}</customFields>
+                <includeContext>false</includeContext>
+            </encoder>
+        </appender>
+    </springProfile>
 
+    <springProfile name="!prod">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!--
+        File appenders stay in the plain-text pattern (they are a local
+        debugging aid / fallback, not the primary production log sink).
+        Every one of them is wrapped in an AsyncAppender so a slow disk never
+        blocks a request-handling thread — the flush below happens on the
+        async worker thread, not the caller's. immediateFlush is therefore
+        kept ON: with async already absorbing the I/O cost, turning it off
+        would only risk low-volume loggers (outbound-http, critical) sitting
+        in an unflushed OS buffer and looking "stale" to anyone tailing the
+        file during an incident, for no real throughput benefit.
+    -->
     <appender name="GENERAL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/isemid-platform.log</file>
         <immediateFlush>true</immediateFlush>
@@ -55,6 +84,15 @@
         </encoder>
     </appender>
 
+    <appender name="ASYNC_HTTP_REQUEST" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>0</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="HTTP_REQUEST_FILE"/>
+    </appender>
+
     <appender name="OUTBOUND_HTTP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/outbound-http.log</file>
         <immediateFlush>true</immediateFlush>
@@ -68,6 +106,15 @@
             <pattern>${LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
+    </appender>
+
+    <appender name="ASYNC_OUTBOUND_HTTP" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>0</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="OUTBOUND_HTTP_FILE"/>
     </appender>
 
     <appender name="CRITICAL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -88,15 +135,24 @@
         </encoder>
     </appender>
 
+    <appender name="ASYNC_CRITICAL" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>0</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="CRITICAL_FILE"/>
+    </appender>
+
     <logger name="HTTP_REQUEST" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="HTTP_REQUEST_FILE"/>
-        <appender-ref ref="CRITICAL_FILE"/>
+        <appender-ref ref="ASYNC_HTTP_REQUEST"/>
+        <appender-ref ref="ASYNC_CRITICAL"/>
     </logger>
     <logger name="OUTBOUND_HTTP" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="OUTBOUND_HTTP_FILE"/>
-        <appender-ref ref="CRITICAL_FILE"/>
+        <appender-ref ref="ASYNC_OUTBOUND_HTTP"/>
+        <appender-ref ref="ASYNC_CRITICAL"/>
     </logger>
 
     <logger name="uz.uzinfocom.app" level="${APP_LOG_LEVEL}"/>
@@ -108,7 +164,7 @@
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ASYNC_GENERAL"/>
-        <appender-ref ref="CRITICAL_FILE"/>
+        <appender-ref ref="ASYNC_CRITICAL"/>
     </root>
 
 </configuration>

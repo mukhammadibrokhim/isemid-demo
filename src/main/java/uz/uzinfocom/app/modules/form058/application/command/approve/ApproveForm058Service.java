@@ -24,6 +24,7 @@ public class ApproveForm058Service {
     private final Form058JpaRepository form058JpaRepository;
     private final Form058UpdateMapper form058UpdateMapper;
     private final CurrentForm058User currentForm058User;
+    private final Form058ApprovalValidator form058ApprovalValidator;
 
     @Transactional
     public UpdateForm058Result approve(ApproveForm058Command command) {
@@ -32,21 +33,21 @@ public class ApproveForm058Service {
         }
 
         Form058 form058 = findRequired(command.formId());
-        Long currentOrganizationId = validateReceiverScope(form058);
+        form058ApprovalValidator.validateApprove(form058);
         form058.approve(
                 command.finalMkb10Code().trim(),
                 command.finalMkb10Name().trim(),
                 currentForm058User.userIdOrNull(),
-                currentOrganizationId
+                form058.getReceiverOrganizationId()
         );
         return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
     }
 
     @Transactional
-    public UpdateForm058Result notApprove(Long formId, String reason) {
-        Form058 form058 = findRequired(formId);
-        validateReceiverScope(form058);
-        form058.notApprove(StringUtils.hasText(reason) ? reason.trim() : null);
+    public UpdateForm058Result notApprove(NotApproveForm058Command command) {
+        Form058 form058 = findRequired(command.formId());
+        form058ApprovalValidator.validateNotApprove(form058);
+        form058.notApprove(StringUtils.hasText(command.reason()) ? command.reason().trim() : null);
         return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
     }
 
