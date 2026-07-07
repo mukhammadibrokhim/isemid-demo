@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpRequest;
@@ -19,6 +20,14 @@ import org.springframework.util.StreamUtils;
 @RequiredArgsConstructor
 @Slf4j
 public class RestClientLoggingInterceptor implements ClientHttpRequestInterceptor {
+
+  private static final Pattern PASSWORD_PATTERN =
+      Pattern.compile("(password|passwd|pwd)[\"']?\\s*[:=]\\s*[\"']?([^\"',\\s}]+)",
+          Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern TOKEN_PATTERN =
+      Pattern.compile("(token|authorization|bearer)[\"']?\\s*[:=]\\s*[\"']?([^\"',\\s}]+)",
+          Pattern.CASE_INSENSITIVE);
   private final ObjectMapper objectMapper;
 
   @Override
@@ -40,7 +49,7 @@ public class RestClientLoggingInterceptor implements ClientHttpRequestIntercepto
     Map<String, String> logMap = new LinkedHashMap<>();
     logMap.put("uri",             request.getURI().toString());
     logMap.put("method",          request.getMethod().name());
-    logMap.put("requestHeaders",  request.getHeaders().toString());
+    logMap.put("requestHeaders",  maskSensitiveData(request.getHeaders().toString()));
     logMap.put("requestBody",     parsedBody);
     logMap.put("statusCode",      String.valueOf(response.getStatusCode().value()));
     logMap.put("statusMessage",   httpStatus != null
@@ -51,5 +60,23 @@ public class RestClientLoggingInterceptor implements ClientHttpRequestIntercepto
     log.info(objectMapper.writeValueAsString(logMap));
 
     return response;
+  }
+
+  private String maskSensitiveData(String message) {
+    if (message == null) {
+      return null;
+    }
+
+    String masked = message;
+
+    // Маскировка паролей
+    masked = PASSWORD_PATTERN.matcher(masked)
+        .replaceAll("$1: ********");
+
+    // Маскировка токенов
+    masked = TOKEN_PATTERN.matcher(masked)
+        .replaceAll("$1: ********");
+
+    return masked;
   }
 }
