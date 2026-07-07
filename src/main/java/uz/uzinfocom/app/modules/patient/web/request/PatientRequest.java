@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.patient.web.request;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 
@@ -49,9 +50,11 @@ public record PatientRequest(
         String professionCode,
 
         @Valid
+        @NotEmpty(message = "{patient.request.identifiers.required}")
         List<CreatePatientIdentifierRequest> identifiers,
 
         @Valid
+        @NotEmpty(message = "{patient.request.addresses.required}")
         List<CreatePatientAddressRequest> addresses,
 
         @Valid
