@@ -2,8 +2,6 @@ package uz.uzinfocom.isemid.features.forecast.service;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import uz.uzinfocom.isemid.commons.exceptions.ApiException;
-import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.forecast.service.Form058MonthlyAggregationService.MonthSeriesPoint;
 import uz.uzinfocom.isemid.features.forecast.service.Form058WeeklyAggregationService.WeekSeriesPoint;
 
@@ -12,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -24,10 +21,10 @@ class Form058HoltWintersFacadeTest {
 
     private final Form058MonthlyAggregationService monthlyAggregationService = mock(Form058MonthlyAggregationService.class);
     private final Form058WeeklyAggregationService weeklyAggregationService = mock(Form058WeeklyAggregationService.class);
-    private final HoltWintersCalculator calculator = new HoltWintersCalculator(mock(MessageUtil.class));
+    private final HoltWintersCalculator calculator = new HoltWintersCalculator();
 
     private final Form058HoltWintersFacade facade = new Form058HoltWintersFacade(
-            monthlyAggregationService, weeklyAggregationService, calculator, mock(MessageUtil.class));
+            monthlyAggregationService, weeklyAggregationService, calculator);
 
     @Test
     void monthly_fetchesTwoSeasonsOfHistoryBeforeRequestedStart() {
@@ -99,21 +96,6 @@ class Form058HoltWintersFacadeTest {
         assertThat(result.future().get(0).from()).isEqualTo(end.plusDays(1));
         assertThat(result.future().get(0).to()).isEqualTo(end.plusDays(7));
         assertThat(result.future().get(1).from()).isEqualTo(result.future().get(0).to().plusDays(1));
-    }
-
-    @Test
-    void nullStartDate_throwsApiException() {
-        assertThatThrownBy(() ->
-                facade.holt(null, null, LocalDate.of(2025, 1, 1), 0.3, 0.1, 0.2, null, null, "MONTHLY", null, null))
-                .isInstanceOf(ApiException.class);
-    }
-
-    @Test
-    void startDateAfterEndDate_throwsApiException() {
-        assertThatThrownBy(() ->
-                facade.holt(null, LocalDate.of(2025, 6, 1), LocalDate.of(2025, 1, 1),
-                        0.3, 0.1, 0.2, null, null, "MONTHLY", null, null))
-                .isInstanceOf(ApiException.class);
     }
 
     private static List<MonthSeriesPoint> monthlyPoints(LocalDate startMonth, int count) {

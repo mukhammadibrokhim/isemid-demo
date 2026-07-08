@@ -7,7 +7,6 @@ import uz.uzinfocom.isemid.features.forecast.repositories.Form058ForecastReposit
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.user.models.User;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,41 +35,21 @@ public class Form058WeeklyAggregationService {
         if (endDate == null) endDate = bucketService.today();
         if (startDate.isAfter(endDate)) return List.of();
 
-        // effective filters (param overrides user org)
+        // 1) buckets
+        var buckets = bucketService.buckets(startDate, endDate);
+
+        // 2) query range [from, to)
+        LocalDateTime fromTs = startDate.atStartOfDay();
+        LocalDateTime toTs = endDate.plusDays(1).atStartOfDay();
+
+        // 3) effective filters (param overrides user org)
         String effectiveStateCode = normalize(stateCode);
         if (effectiveStateCode == null) {
             effectiveStateCode = normalize(resolveUserStateCode(currentUser));
         }
         String effectiveMkb10 = normalize(mkb10Code);
 
-        // Don't zero-fill buckets from before the org/state has any recorded
-        // data at all — those synthetic zeros would drag the model's level
-        // and seasonal estimates down and mislead the forecast. Only the
-        // leading edge is trimmed; a zero count within an otherwise-active
-        // stretch is still a real observation and stays in the series.
-        LocalDate earliestRecord = repo.earliestRecordDate(effectiveStateCode);
-        if (earliestRecord == null) return List.of();
-        LocalDate effectiveStart = earliestRecord.isAfter(startDate) ? earliestRecord : startDate;
-
-        // Never include the current, still-in-progress ISO week — it can
-        // only ever hold a partial count, which would poison the model's
-        // last (most-recent, most-influential) observation.
-        LocalDate today = bucketService.today();
-        LocalDate lastCompleteWeekEnd = today.with(DayOfWeek.MONDAY).minusDays(1);
-        LocalDate effectiveEnd = endDate.isAfter(lastCompleteWeekEnd) ? lastCompleteWeekEnd : endDate;
-
-        if (effectiveStart.isAfter(effectiveEnd)) return List.of();
-
-        // 1) buckets — snapped to full ISO weeks (Monday..Sunday)
-        var buckets = bucketService.buckets(effectiveStart, effectiveEnd);
-        if (buckets.isEmpty()) return List.of();
-
-        // 2) query range [from, to), aligned to the same ISO-week boundaries
-        // the buckets use, so every bucket is fully covered by the query.
-        LocalDateTime fromTs = buckets.getFirst().from().atStartOfDay();
-        LocalDateTime toTs = buckets.getLast().to().plusDays(1).atStartOfDay();
-
-        // 3) effective filters resolved above; daily counts from DB
+        // 4) daily counts from DB
         List<DayCountProjection> days = repo.countCreatedByDay(
                 fromTs, toTs,
                 effectiveStateCode,
