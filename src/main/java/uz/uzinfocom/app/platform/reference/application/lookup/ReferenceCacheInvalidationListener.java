@@ -10,6 +10,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import uz.uzinfocom.app.platform.reference.application.common.event.CatalogChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.CountryChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.DistrictChangedEvent;
+import uz.uzinfocom.app.platform.reference.application.common.event.ManualReportChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.NeighborhoodChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.RegionChangedEvent;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
@@ -58,6 +59,12 @@ public class ReferenceCacheInvalidationListener {
         if (cache != null && event.type() != null) {
             cache.evict(event.type());
         }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void on(ManualReportChangedEvent event) {
+        evictAll(ReferenceCacheConfig.REF_MANUAL_REPORT_BY_CODE);
+        evictAll(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_MKB10_CODE);
     }
 
     private void evictAll(String cacheName) {

@@ -23,6 +23,9 @@ public final class ReferenceCacheConfig {
     public static final String REF_LOOKUP_NEIGHBORHOODS = "reference-neighborhoods";
     public static final String REF_CATALOG_BY_TYPE = "reference-catalog-by-type";
 
+    public static final String REF_MANUAL_REPORT_BY_CODE = "ref-manual-report-by-code";
+    public static final String REF_MANUAL_REPORTS_BY_MKB10_CODE = "ref-manual-reports-by-mkb10-code";
+
     private ReferenceCacheConfig() {
     }
 }

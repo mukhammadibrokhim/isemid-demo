@@ -59,7 +59,10 @@ public class ApplicationCacheConfig {
                 cache(ReferenceCacheConfig.REF_LOOKUP_REGIONS, 10, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_LOOKUP_DISTRICTS, 10, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_LOOKUP_NEIGHBORHOODS, 10, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_CATALOG_BY_TYPE, 1_000, Duration.ofHours(1))
+                cache(ReferenceCacheConfig.REF_CATALOG_BY_TYPE, 1_000, Duration.ofHours(1)),
+
+                cache(ReferenceCacheConfig.REF_MANUAL_REPORT_BY_CODE, 5_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_MKB10_CODE, 20_000, Duration.ofHours(1))
         ));
 
         return manager;
