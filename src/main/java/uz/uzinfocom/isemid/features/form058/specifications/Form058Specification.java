@@ -216,6 +216,10 @@ public class Form058Specification {
                 predicates.add(cb.equal(root.get("source"), filterRequest.source().trim()));
             }
 
+            if (filterRequest.organizationId() != null) {
+                predicates.add(cb.equal(root.get("senderOrganizationId"), filterRequest.organizationId()));
+            }
+
             if (hasText(filterRequest.patientDocValue())) {
                 assert query != null;
                 Subquery<Long> identifierExistsSubquery = query.subquery(Long.class);
