@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Default statistics target (100) is too coarse for sender_organization_id /
+        receiver_organization_id on a large form058 table: for organization-scope
+        filters that match only a small fraction of rows, Postgres underestimates
+        selectivity and picks a backward primary-key scan instead of the existing
+        idx_form058_sender_org_id / idx_form058_receiver_org_id indexes, scanning
+        a large part of the table per request (seen as ~450-1200ms list queries).
+        Raising the statistics target fixes the planner's row estimate so it uses
+        the existing indexes correctly. No new index is required.
+    -->
+    <changeSet id="20260707-1400-01-raise-form058-organization-column-statistics" author="codex">
+        <sql dbms="postgresql">
+            ALTER TABLE form058 ALTER COLUMN sender_organization_id SET STATISTICS 1000;
+            ALTER TABLE form058 ALTER COLUMN receiver_organization_id SET STATISTICS 1000;
+            ANALYZE form058;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

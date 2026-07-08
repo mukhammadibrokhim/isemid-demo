@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260707-1600-01-add-organization-name-translations" author="codex">
+        <sql dbms="postgresql">
+            ALTER TABLE organization ADD COLUMN IF NOT EXISTS name_uz VARCHAR(500);
+            ALTER TABLE organization ADD COLUMN IF NOT EXISTS name_uz_cyril VARCHAR(500);
+            ALTER TABLE organization ADD COLUMN IF NOT EXISTS name_ru VARCHAR(500);
+            ALTER TABLE organization ADD COLUMN IF NOT EXISTS name_kaa VARCHAR(500);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

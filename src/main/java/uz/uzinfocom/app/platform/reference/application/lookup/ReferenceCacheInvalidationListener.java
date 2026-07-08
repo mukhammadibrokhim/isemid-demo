@@ -11,6 +11,7 @@ import uz.uzinfocom.app.platform.reference.application.common.event.CatalogChang
 import uz.uzinfocom.app.platform.reference.application.common.event.CountryChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.DistrictChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.ManualReportChangedEvent;
+import uz.uzinfocom.app.platform.reference.application.common.event.Mkb10ChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.NeighborhoodChangedEvent;
 import uz.uzinfocom.app.platform.reference.application.common.event.RegionChangedEvent;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
@@ -65,6 +66,12 @@ public class ReferenceCacheInvalidationListener {
     public void on(ManualReportChangedEvent event) {
         evictAll(ReferenceCacheConfig.REF_MANUAL_REPORT_BY_CODE);
         evictAll(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_MKB10_CODE);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void on(Mkb10ChangedEvent event) {
+        evictAll(ReferenceCacheConfig.REF_MKB10_BY_CODE);
+        evictAll(ReferenceCacheConfig.REF_MKB10_CHILDREN_BY_PARENT_ID);
     }
 
     private void evictAll(String cacheName) {

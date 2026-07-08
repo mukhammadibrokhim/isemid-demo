@@ -26,6 +26,9 @@ public final class ReferenceCacheConfig {
     public static final String REF_MANUAL_REPORT_BY_CODE = "ref-manual-report-by-code";
     public static final String REF_MANUAL_REPORTS_BY_MKB10_CODE = "ref-manual-reports-by-mkb10-code";
 
+    public static final String REF_MKB10_BY_CODE = "ref-mkb10-by-code";
+    public static final String REF_MKB10_CHILDREN_BY_PARENT_ID = "ref-mkb10-children-by-parent-id";
+
     private ReferenceCacheConfig() {
     }
 }
