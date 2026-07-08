@@ -1,29 +1,40 @@
 package uz.uzinfocom.app.platform.iam.application.user.query.specification;
 
 import jakarta.persistence.criteria.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.web.user.dto.request.UserFilterRequest;
+import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public final class UserSpecification {
+@Component
+@RequiredArgsConstructor
+public class UserSpecification {
 
-    private UserSpecification() {
-    }
+    private final UserScopePredicateFactory userScopePredicateFactory;
 
-    public static Specification<User> byFilter(UserFilterRequest filter) {
+    /**
+     * Every User list/search must stay within the caller's current organization
+     * scope — scope is mandatory here, not just another optional filter field.
+     */
+    public Specification<User> byFilter(UserFilterRequest filter, ResolvedOrganizationScope scope) {
         Objects.requireNonNull(filter, "UserFilterRequest must not be null");
+        Objects.requireNonNull(scope, "ResolvedOrganizationScope must not be null");
 
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(userScopePredicateFactory.applyOrganizationScope(root, query, cb, scope));
 
             addLike(predicates, root.get("firstName"), filter.firstName(), cb);
             addLike(predicates, root.get("lastName"), filter.lastName(), cb);

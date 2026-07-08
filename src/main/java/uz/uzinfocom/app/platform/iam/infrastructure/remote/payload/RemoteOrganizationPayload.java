@@ -139,24 +139,32 @@ public record RemoteOrganizationPayload(
                 .orElse(null);
     }
 
+    /**
+     * These intentionally return null (not the base {@code name}) when the
+     * source has no alias for that language — a missing translation must stay
+     * absent in the database. Falling back to the default name here would
+     * write a false "translation" into a locale column, and
+     * OrganizationNameResolver/LocalizedTextResolver already fall back to the
+     * default name at read time, so no fallback is needed at sync time.
+     */
     public String nameUz() {
         return aliasByLanguage("uz")
-                .orElse(name);
+                .orElse(null);
     }
 
     public String nameRu() {
         return aliasByLanguage("ru")
-                .orElse(name);
+                .orElse(null);
     }
 
     public String nameUzCyril() {
         return aliasByLanguage("uz-Cyrl")
-                .orElse(name);
+                .orElse(null);
     }
 
     public String nameKaa() {
         return aliasByLanguage("kaa")
-                .orElse(name);
+                .orElse(null);
     }
 
     public String parentOrganizationUuid() {

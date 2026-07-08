@@ -24,10 +24,10 @@ public class OrganizationRemoteMapper {
         return Organization.builder()
                 .uuid(uuid)
                 .name(resolvedName)
-                .nameUz(orDefault(payload.nameUz(), resolvedName))
-                .nameUzCyril(orDefault(payload.nameUzCyril(), resolvedName))
-                .nameRu(orDefault(payload.nameRu(), resolvedName))
-                .nameKaa(orDefault(payload.nameKaa(), resolvedName))
+                .nameUz(payload.nameUz())
+                .nameUzCyril(payload.nameUzCyril())
+                .nameRu(payload.nameRu())
+                .nameKaa(payload.nameKaa())
                 .active(payload.active() == null || payload.active())
                 .levelType(parseLevel(payload.levelCode(), uuid))
                 .medicalType(parseMedicalType(payload.medicalTypeCode(), uuid))
@@ -46,16 +46,6 @@ public class OrganizationRemoteMapper {
         return StringUtils.hasText(payload.name())
                 ? payload.name()
                 : payload.uuid().toString();
-    }
-
-    /**
-     * Every nameXxx() accessor on the payload already falls back to the raw
-     * name field when its language-specific alias is missing — but the raw
-     * name itself can still be blank/null. This closes that gap by falling
-     * back to the already-resolved, guaranteed-non-blank name instead.
-     */
-    private String orDefault(String value, String fallback) {
-        return StringUtils.hasText(value) ? value : fallback;
     }
 
     private OrganizationLevel parseLevel(String code, UUID organizationUuid) {

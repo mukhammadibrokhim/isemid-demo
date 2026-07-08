@@ -20,7 +20,11 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
+import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
@@ -35,6 +39,8 @@ public class OrganizationQueryService {
     private final UserRepository userRepository;
     private final OrganizationQueryMapper organizationQueryMapper;
     private final AuditResolver auditResolver;
+    private final OrganizationSpecification organizationSpecification;
+    private final OrganizationScopeResolver organizationScopeResolver;
 
     @Transactional(readOnly = true)
     public Page<OrganizationTableResponse> findTable(OrganizationFilerRequest request) {
@@ -44,13 +50,20 @@ public class OrganizationQueryService {
         );
 
         Page<OrganizationTableProjection> page = Objects.requireNonNull(organizationRepository.findBy(
-                OrganizationSpecification.byFilter(request),
+                organizationSpecification.byFilter(request, currentScope()),
                 query -> query
                         .as(OrganizationTableProjection.class)
                         .page(pageable)
         ), "Organization table page return null");
 
         return page.map(organizationQueryMapper::toTableResponse);
+    }
+
+    private ResolvedOrganizationScope currentScope() {
+        Organization currentOrganization = CurrentOrganizationContext.getOptional()
+                .orElseThrow(() -> new ScopeViolationException("organization.scope_violation"));
+
+        return organizationScopeResolver.resolve(currentOrganization);
     }
 
     @Transactional(readOnly = true)
