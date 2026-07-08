@@ -22,11 +22,11 @@ import org.springframework.util.StreamUtils;
 public class RestClientLoggingInterceptor implements ClientHttpRequestInterceptor {
 
   private static final Pattern PASSWORD_PATTERN =
-      Pattern.compile("(password|passwd|pwd)[\"']?\\s*[:=]\\s*[\"']?([^\"',\\s}]+)",
+      Pattern.compile("(password|passwd|pwd)[\"']?\\s*[:=]\\s*[\"']?([^\"',}\\]]+)",
           Pattern.CASE_INSENSITIVE);
 
   private static final Pattern TOKEN_PATTERN =
-      Pattern.compile("(token|authorization|bearer)[\"']?\\s*[:=]\\s*[\"']?([^\"',\\s}]+)",
+      Pattern.compile("(token|authorization|bearer)[\"']?\\s*[:=]\\s*[\"']?([^\"',}\\]]+)",
           Pattern.CASE_INSENSITIVE);
   private final ObjectMapper objectMapper;
 
