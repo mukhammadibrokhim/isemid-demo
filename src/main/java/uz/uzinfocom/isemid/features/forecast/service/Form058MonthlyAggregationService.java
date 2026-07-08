@@ -9,7 +9,6 @@ import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,35 +29,18 @@ public class Form058MonthlyAggregationService {
         if (endDate == null) endDate = bucketService.today();
         if (startDate.isAfter(endDate)) return List.of();
 
+        var buckets = bucketService.buckets(startDate, endDate);
+
+        LocalDate rangeFrom = startDate.withDayOfMonth(1);
+        LocalDate rangeTo = endDate.withDayOfMonth(endDate.lengthOfMonth());
+        LocalDateTime fromTs = rangeFrom.atStartOfDay();
+        LocalDateTime toTs = rangeTo.plusDays(1).atStartOfDay();
+
         String effectiveStateCode = normalize(stateCode);
         if (effectiveStateCode == null) {
             effectiveStateCode = normalize(resolveUserStateCode(currentUser));
         }
         String effectiveMkb10 = normalize(mkb10Code);
-
-        // Don't zero-fill buckets from before the org/state has any recorded
-        // data at all — those synthetic zeros would drag the model's level
-        // and seasonal estimates down and mislead the forecast. Only the
-        // leading edge is trimmed; a zero count within an otherwise-active
-        // stretch is still a real observation and stays in the series.
-        LocalDate earliestRecord = repo.earliestRecordDate(effectiveStateCode);
-        if (earliestRecord == null) return List.of();
-        LocalDate effectiveStart = earliestRecord.isAfter(startDate) ? earliestRecord : startDate;
-
-        // Never include the current, still-in-progress calendar month — it
-        // can only ever hold a partial count, which would poison the
-        // model's last (most-recent, most-influential) observation.
-        LocalDate today = bucketService.today();
-        LocalDate lastCompleteMonthEnd = YearMonth.from(today).minusMonths(1).atEndOfMonth();
-        LocalDate effectiveEnd = endDate.isAfter(lastCompleteMonthEnd) ? lastCompleteMonthEnd : endDate;
-
-        if (effectiveStart.isAfter(effectiveEnd)) return List.of();
-
-        var buckets = bucketService.buckets(effectiveStart, effectiveEnd);
-        if (buckets.isEmpty()) return List.of();
-
-        LocalDateTime fromTs = buckets.getFirst().from().atStartOfDay();
-        LocalDateTime toTs = buckets.getLast().to().plusDays(1).atStartOfDay();
 
         List<DayCountProjection> days = repo.countCreatedByDay(fromTs, toTs, effectiveStateCode, effectiveMkb10);
 
