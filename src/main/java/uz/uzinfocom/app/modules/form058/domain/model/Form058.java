@@ -137,6 +137,23 @@ public class Form058 extends AbsEntity {
         this.hasLinkedCards = false;
     }
 
+    /**
+     * Called once one or more cards exist on this form. Advances the
+     * workflow into {@link FormStatus#CARD_LINKED} — but only forward: a
+     * form already past that point (APPROVED_PENDING and beyond) must not
+     * be pushed backwards just because another card was added to it.
+     * {@link #ensureEditable()} already rules out CANCELED/APPROVED/deleted
+     * forms before this is ever reached.
+     */
+    public void linkCards() {
+        ensureEditable();
+        markCardsLinked();
+
+        if (status == FormStatus.NOT_APPROVED || status == FormStatus.SENT || status == FormStatus.RECEIVED) {
+            status = FormStatus.CARD_LINKED;
+        }
+    }
+
     public void ensureEditable() {
         if (isCanceled() || isApproved() || isDeleted()) {
             throw new InvalidForm058StateException(

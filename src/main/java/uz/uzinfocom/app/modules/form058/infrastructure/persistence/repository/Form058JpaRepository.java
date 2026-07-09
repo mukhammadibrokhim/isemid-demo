@@ -12,7 +12,14 @@ import java.util.Optional;
 
 public interface Form058JpaRepository extends JpaRepository<Form058, Long>, JpaSpecificationExecutor<Form058> {
 
-    Optional<Form058> findByIdAndDeletedFalse(Long id);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT f
+            FROM Form058 f
+            WHERE f.id = :id
+              AND f.deleteInfo.deleted = false
+            """)
+    Optional<Form058> findByIdAndDeletedFalse(@Param("id") Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

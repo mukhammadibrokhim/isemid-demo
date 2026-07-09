@@ -32,6 +32,9 @@
 
         <!-- Structured JSON console logging in production (see logback-spring.xml) -->
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+
+        <!-- Module boundary enforcement (see CardModuleBoundaryTest) -->
+        <archunit.version>1.3.0</archunit.version>
     </properties>
 
     <dependencies>
@@ -217,6 +220,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
