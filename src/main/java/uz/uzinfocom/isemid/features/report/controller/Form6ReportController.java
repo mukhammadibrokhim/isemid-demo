@@ -28,8 +28,9 @@ public class Form6ReportController {
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(required = false) String parentCode,
+            @RequestParam(required = false) String mkb10Code,
             @CurrentUser User currentUser
     ) {
-        return ApiResponse.success(messageUtil, form6ReportService.generateFor6(currentUser, startDate, endDate, parentCode));
+        return ApiResponse.success(messageUtil, form6ReportService.generateFor6(currentUser, startDate, endDate, parentCode, mkb10Code));
     }
 }
