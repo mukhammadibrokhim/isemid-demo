@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.report.service.impls;
 
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,9 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
             String mkb10Code,
             Gender gender,
             User currentUser,
-            String parentCode
+            String parentCode,
+            String stateCode,
+            String cityCode
     ) {
         Organization organization = requireCurrentOrganization(currentUser);
 
@@ -50,7 +51,9 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
                 birthDate,
                 mkb10Code,
                 gender,
-                organization
+                organization,
+                stateCode,
+                cityCode
         );
 
         List<Form058> forms = form058Repository.findAll(specification);
@@ -74,25 +77,23 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
             LocalDate birthDate,
             String mkb10Code,
             Gender gender,
-            Organization organization
+            Organization organization,
+            String stateCode,
+            String cityCode
     ) {
-        String normalizedMkb10Code = normalizeMkb10Code(mkb10Code);
+        String normalizedMkb10Code = normalizeCode(mkb10Code);
+        String normalizedStateCode = normalizeCode(stateCode);
+        String normalizedCityCode = normalizeCode(cityCode);
 
         return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>(8);
+            List<Predicate> predicates = new ArrayList<>(10);
 
             /*
-             * Faqat Form058 entity qaytarilayotgan asosiy query uchun fetch qilinadi.
-             * Kelajakda pagination ishlatilsa, count query ichida fetch join bajarilmaydi.
-             */
-            if (query != null && Form058.class.equals(query.getResultType())) {
-                root.fetch("createdOrg", JoinType.LEFT);
-                root.fetch("patient", JoinType.LEFT);
-            }
-
-            /*
-             * SpecificationUtils ichida createdAt ustuniga DATE(), CAST()
-             * yoki boshqa SQL function qo‘llanmasligi kerak.
+             * ManyToOne relationlarga root path orqali murojaat qilamiz.
+             * Bu birthDate/gender va createdOrg filterlari uchun yetarli.
+             *
+             * @Transactional(readOnly = true) helper ishlayotgan vaqtda
+             * persistence context ochiq qoladi.
              */
             SpecificationUtils.fromToDateFilter(
                     fromDate,
@@ -103,15 +104,13 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
                     "createdAt"
             );
 
-            addNotApprovedPredicate(root.get("status"), cb, predicates);
+            addNotApprovedPredicate(
+                    root.get("status"),
+                    cb,
+                    predicates
+            );
 
             if (normalizedMkb10Code != null) {
-                /*
-                 * Tasdiqlanmagan formalarda initial MKB-10 kodi ishlatiladi.
-                 *
-                 * Ustunga UPPER/TRIM qo‘llanmayapti, chunki bu oddiy
-                 * mkb10_code indeksidan foydalanishga imkon beradi.
-                 */
                 predicates.add(
                         cb.equal(
                                 root.get("mkb10Code"),
@@ -120,11 +119,6 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
                 );
             }
 
-            /*
-             * Alohida root.join("patient") ishlatmaymiz.
-             * Aks holda patient uchun fetch join va filter join alohida-alohida
-             * SQL join hosil qilishi mumkin.
-             */
             if (birthDate != null) {
                 predicates.add(
                         cb.equal(
@@ -143,6 +137,36 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
                 );
             }
 
+            /*
+             * Form058.createdOrg.stateCode bo‘yicha filter.
+             */
+            if (normalizedStateCode != null) {
+                predicates.add(
+                        cb.equal(
+                                root.get("createdOrg").get("stateCode"),
+                                normalizedStateCode
+                        )
+                );
+            }
+
+            /*
+             * Form058.createdOrg.cityCode bo‘yicha filter.
+             */
+            if (normalizedCityCode != null) {
+                predicates.add(
+                        cb.equal(
+                                root.get("createdOrg").get("cityCode"),
+                                normalizedCityCode
+                        )
+                );
+            }
+
+            /*
+             * Foydalanuvchi faqat o‘zining ruxsat etilgan SANEPID
+             * hududi ichidagi ma’lumotlarni ko‘ra olishi kerak.
+             *
+             * stateCode/cityCode filterlari ushbu scope bilan AND qilinadi.
+             */
             SpecificationUtils.addSanepidAccessPredicate(
                     root,
                     cb,
@@ -161,12 +185,6 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
             jakarta.persistence.criteria.CriteriaBuilder cb,
             List<Predicate> predicates
     ) {
-        /*
-         * APPROVED bo‘lmagan barcha statuslar:
-         * SENT, RECEIVED, CARD_LINKED, NOT_APPROVED, CANCELED va boshqalar.
-         *
-         * Eski ma’lumotlarda status NULL bo‘lishi mumkinligi hisobga olingan.
-         */
         predicates.add(
                 cb.or(
                         cb.isNull(statusPath),
@@ -192,14 +210,11 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
                             forms
                     );
 
-            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED -> {
-                String organizationCode = resolveOrganizationCode(organization);
-
-                yield helper.buildOrganizations(
-                        organizationCode,
-                        forms
-                );
-            }
+            case DISTRICT, AREA, INTERDISTRICT, NOT_DEFINED ->
+                    helper.buildOrganizations(
+                            resolveOrganizationCode(organization),
+                            forms
+                    );
         };
     }
 
@@ -213,15 +228,21 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
             return organization.getCityCode().trim();
         }
 
-        return organization.getStateCode();
+        if (hasText(organization.getStateCode())) {
+            return organization.getStateCode().trim();
+        }
+
+        throw new IllegalStateException(
+                "Current organization stateCode or cityCode is not configured"
+        );
     }
 
-    private String normalizeMkb10Code(String mkb10Code) {
-        if (!hasText(mkb10Code)) {
+    private String normalizeCode(String code) {
+        if (!hasText(code)) {
             return null;
         }
 
-        return mkb10Code
+        return code
                 .trim()
                 .toUpperCase(Locale.ROOT);
     }
