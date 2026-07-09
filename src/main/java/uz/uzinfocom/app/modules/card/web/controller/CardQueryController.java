@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.card.application.query.CardFilterRequest;
 import uz.uzinfocom.app.modules.card.application.query.CardQueryService;
@@ -29,6 +30,7 @@ import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 @Validated
 @RestController
 @RequiredArgsConstructor
+@RequestMapping(name = ApiPaths.Card.ROOT)
 @Tag(name = "Card")
 public class CardQueryController {
 
@@ -40,31 +42,17 @@ public class CardQueryController {
      * The attached employee's own queue — always scoped server-side to the
      * authenticated user, never to a client-supplied id.
      */
-    @GetMapping(ApiPaths.Card.ROOT + ApiPaths.Card.MINE)
+    @GetMapping(ApiPaths.Card.MINE)
     @PreAuthorize("isAuthenticated()")
-    public PagedResponse<CardTableResponse> findMine(
+    public PagedResponse<CardTableResponse> findAssignedToMe(
             @ParameterObject @Valid CardFilterRequest filter,
             HttpServletRequest httpRequest
     ) {
         return pagedResponseAssembler
-                .toResponse(cardQueryService.findMine(filter), messageResolver.resolve("common.success"), httpRequest);
+                .toResponse(cardQueryService.findAssignedToMe(filter), messageResolver.resolve("common.success"), httpRequest);
     }
 
-    /**
-     * The supervisor's review queue — completed cards assigned to the
-     * authenticated user, awaiting an approve/reject decision.
-     */
-    @GetMapping(ApiPaths.Card.ROOT + ApiPaths.Card.PENDING_APPROVAL)
-    @PreAuthorize("isAuthenticated()")
-    public PagedResponse<CardTableResponse> findPendingApproval(
-            @ParameterObject @Valid CardFilterRequest filter,
-            HttpServletRequest httpRequest
-    ) {
-        return pagedResponseAssembler
-                .toResponse(cardQueryService.findPendingSupervisorApproval(filter), messageResolver.resolve("common.success"), httpRequest);
-    }
-
-    @GetMapping(ApiPaths.Card.ROOT + ApiPaths.Card.BY_ID)
+    @GetMapping(ApiPaths.Card.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<CardDetailResponse> byId(@PathVariable @Positive Long id) {
         return ApiResponse.success(

@@ -13,6 +13,7 @@ import uz.uzinfocom.app.modules.card.application.exception.InvalidCardStatusExce
 import uz.uzinfocom.app.modules.card.application.exception.UnsupportedCardTypeException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
 import uz.uzinfocom.app.modules.card.application.shared.CurrentCardUser;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
@@ -53,31 +54,18 @@ public class CardCommandService {
     private final CardTypeHandlerRegistry handlerRegistry;
     private final CurrentCardUser currentCardUser;
 
-    @Transactional
-    public Card create(Long formId, CardRequest request) {
-        Form058 form = form058Repository.findByIdAndDeletedFalse(formId)
-                .orElseThrow(() -> new Form058NotFoundException(formId));
-
-        CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
-        Card card = handler.handleCreate(form, request);
-        Card saved = cardRepository.save(card);
-
-        form.linkCards();
-        form058Repository.save(form);
-
-        return saved;
-    }
-
     /**
      * Bulk-assigns one blank card per distinct requested type to a form,
      * all sharing the same set of attached employees, with
      * {@code assignedById} set to whoever is calling this (the supervisor
      * who will later approve/reject the finished work) — mirrors the
      * legacy "assign card" step that precedes actual data entry, which
-     * happens afterward via {@link #update}. Callers only need to know
-     * this succeeded (and that the form is now CARD_LINKED) — the created
-     * cards themselves are not returned; each assigned user finds theirs
-     * afterwards through {@code GET /cards/mine}.
+     * happens afterward via {@link #update}. This is the only way cards
+     * get created — there is no separate "create one fully-populated card"
+     * operation. Callers only need to know this succeeded (and that the
+     * form is now CARD_LINKED) — the created cards themselves are not
+     * returned; each assigned user finds theirs afterwards through
+     * {@code GET /cards/assigned-to-me}.
      */
     @Transactional
     public void assignCards(Long formId, AssignCardsRequest request) {
@@ -110,13 +98,18 @@ public class CardCommandService {
 
     /**
      * Only allowed while the attached user actually has the ball (accepted,
-     * or reworking after a supervisor rejection) — see
-     * {@link CardStatus#canBeUpdated()}. Before acceptance there's nothing
-     * to edit yet; after the user's own rejection, the card needs
-     * {@link #reassignUsers reassignment} first.
+     * already in progress, or reworking after a supervisor rejection) —
+     * see {@link CardStatus#canBeUpdated()}. Before acceptance there's
+     * nothing to edit yet; after the user's own rejection, the card needs
+     * {@link #reassignUsers reassignment} first. Every successful save
+     * moves the status to {@link CardStatus#IN_PROGRESS} — this is the
+     * plain "Save" action; {@link #complete} is the separate "Save and
+     * Complete" step that sends it to the supervisor. Returns the full
+     * detail response so the caller sees the result of the edit without a
+     * separate {@code GET} round-trip.
      */
     @Transactional
-    public void update(Long cardId, CardRequest request) {
+    public CardDetailResponse update(Long cardId, CardRequest request) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
 
@@ -128,42 +121,45 @@ public class CardCommandService {
 
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
         handler.handleUpdate(card, request);
-        cardRepository.save(card);
+        card.setStatus(CardStatus.IN_PROGRESS);
+        Card saved = cardRepository.save(card);
+        return handler.handleToResponse(saved);
     }
 
     /**
-     * Hands a card the attached user rejected to different employee(s) —
-     * replaces the users entirely and resets the card to NEW so they go
-     * through the normal accept/reject cycle themselves. Whoever performs
-     * the reassignment becomes the new {@code assignedById} (the
-     * supervisor who will review the eventual submission), same as the
-     * original {@link #assignCards}.
+     * Only the supervisor a card is already assigned to may hand it to
+     * different employee(s) — replaces the users entirely and resets the
+     * card to NEW so they go through the normal accept/reject cycle
+     * themselves. {@code assignedById} stays the same supervisor; only the
+     * attached employees change.
      */
     @Transactional
     public void reassignUsers(Long cardId, ReassignCardUsersRequest request) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new CardNotFoundException(cardId));
+        Card card = requireAssignedSupervisorCard(cardId);
 
         requireTransition(card.getStatus().canBeReassigned(), card.getStatus());
-
-        Long assignedById = currentCardUser.userIdOrNull();
-        if (assignedById == null) {
-            throw new CardScopeViolationException();
-        }
 
         Map<Long, User> userMap = resolveUsers(request.assignUserIds());
 
         card.setUsers(new HashSet<>(userMap.values()));
-        card.setAssignedById(assignedById);
         card.setAttachedUserComment(null);
         card.setStatus(CardStatus.NEW);
         cardRepository.save(card);
     }
 
+    /**
+     * Only safe before any real data exists on the card — see
+     * {@link CardStatus#canBeDeleted()}. Once the attached user has saved
+     * at least once (IN_PROGRESS) or the card has moved further along,
+     * deleting it would destroy real work or a real supervisor decision.
+     */
     @Transactional
     public void delete(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
+
+        requireTransition(card.getStatus().canBeDeleted(), card.getStatus());
+
         Long formId = card.getForm058().getId();
 
         cardRepository.delete(card);

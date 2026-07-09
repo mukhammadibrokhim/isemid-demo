@@ -20,6 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * There is no dedicated "create with data already filled in" handler
+ * method — cards start blank and get their data via {@code update}, which
+ * is what {@link #cardWith} exercises here to set up each test's starting
+ * state.
+ */
 class Card205HandlerTest {
 
     private Card205Handler handler;
@@ -34,13 +40,13 @@ class Card205HandlerTest {
     }
 
     @Test
-    void createBuildsEntityGraphAndWiresBackReferences() {
+    void updateBuildsEntityGraphAndWiresBackReferences() {
         Card205Request request = requestWith("MKB-1",
-                List.of(new InformationOtherBittenPeopleRequest("Doe", "John", null, "M", "1990", null, null, null, null, null, null, null, null)),
-                List.of(new InformationOtherBittenAnimalsRequest("CAT1", null, "Somewhere")),
-                List.of(new InformationAboutAnimaBittenPeopleRequest("CAT2", "Dog", "Owner Name", null, null, null, null, null, null, null)));
+                List.of(new InformationOtherBittenPeopleRequest(null, "Doe", "John", null, "M", "1990", null, null, null, null, null, null, null, null)),
+                List.of(new InformationOtherBittenAnimalsRequest(null, "CAT1", null, "Somewhere")),
+                List.of(new InformationAboutAnimaBittenPeopleRequest(null, "CAT2", "Dog", "Owner Name", null, null, null, null, null, null, null)));
 
-        Card205 card205 = handler.create(form, request);
+        Card205 card205 = cardWith(request);
 
         assertThat(card205.getForm058()).isSameAs(form);
         assertThat(card205.getCardType()).isEqualTo(CardType.CARD205);
@@ -59,10 +65,10 @@ class Card205HandlerTest {
     @Test
     void updateReplacesChildrenInPlaceWithoutReassigningTheCollection() {
         Card205Request initial = requestWith("MKB-1",
-                List.of(new InformationOtherBittenPeopleRequest("Doe", "John", null, "M", "1990", null, null, null, null, null, null, null, null)),
-                List.of(new InformationOtherBittenAnimalsRequest("CAT1", null, "Somewhere")),
-                List.of(new InformationAboutAnimaBittenPeopleRequest("CAT2", "Dog", "Owner Name", null, null, null, null, null, null, null)));
-        Card205 card205 = handler.create(form, initial);
+                List.of(new InformationOtherBittenPeopleRequest(null, "Doe", "John", null, "M", "1990", null, null, null, null, null, null, null, null)),
+                List.of(new InformationOtherBittenAnimalsRequest(null, "CAT1", null, "Somewhere")),
+                List.of(new InformationAboutAnimaBittenPeopleRequest(null, "CAT2", "Dog", "Owner Name", null, null, null, null, null, null, null)));
+        Card205 card205 = cardWith(initial);
         List<?> originalList = card205.getInfoBittenPeople();
 
         Card205Request updated = requestWith("MKB-2", List.of(), List.of(), List.of());
@@ -77,10 +83,10 @@ class Card205HandlerTest {
     @Test
     void toResponseRoundTripsFieldsAndChildren() {
         Card205Request request = requestWith("MKB-1",
-                List.of(new InformationOtherBittenPeopleRequest("Doe", "John", null, "M", "1990", null, null, null, null, null, null, null, null)),
-                List.of(new InformationOtherBittenAnimalsRequest("CAT1", null, "Somewhere")),
-                List.of(new InformationAboutAnimaBittenPeopleRequest("CAT2", "Dog", "Owner Name", null, null, null, null, null, null, null)));
-        Card205 card205 = handler.create(form, request);
+                List.of(new InformationOtherBittenPeopleRequest(null, "Doe", "John", null, "M", "1990", null, null, null, null, null, null, null, null)),
+                List.of(new InformationOtherBittenAnimalsRequest(null, "CAT1", null, "Somewhere")),
+                List.of(new InformationAboutAnimaBittenPeopleRequest(null, "CAT2", "Dog", "Owner Name", null, null, null, null, null, null, null)));
+        Card205 card205 = cardWith(request);
 
         Card205DetailResponse response = handler.toResponse(card205);
 
@@ -93,6 +99,13 @@ class Card205HandlerTest {
         assertThat(response.infoOtherBittenAnimal()).hasSize(1);
         assertThat(response.infoAbtAnimalBittenPeople()).hasSize(1);
         assertThat(response.infoAbtAnimalBittenPeople().getFirst().fullNameOfAnimalBittenOwner()).isEqualTo("Owner Name");
+    }
+
+    private Card205 cardWith(Card205Request request) {
+        Card205 card205 = new Card205();
+        card205.setForm058(form);
+        handler.update(card205, request);
+        return card205;
     }
 
     private Card205Request requestWith(

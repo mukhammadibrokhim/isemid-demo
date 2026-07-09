@@ -8,7 +8,6 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card175.Card175;
 import uz.uzinfocom.app.modules.card.mapper.card175.Card175Mapper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card175Request;
-import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 
 @Component
 @RequiredArgsConstructor
@@ -19,14 +18,6 @@ public class Card175Handler implements CardTypeHandler<Card175, Card175Request, 
     @Override
     public CardType getType() {
         return CardType.CARD175;
-    }
-
-    @Override
-    public Card175 create(Form058 form, Card175Request request) {
-        Card175 card175 = new Card175();
-        card175.setForm058(form);
-        mapper.copyOwnFields(card175, request);
-        return card175;
     }
 
     @Override

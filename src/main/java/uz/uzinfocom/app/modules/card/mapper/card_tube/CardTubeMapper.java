@@ -34,11 +34,19 @@ public interface CardTubeMapper {
     @Mapping(target = "cardTube", ignore = true)
     XRay toEntity(XRayRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "cardTube", ignore = true)
+    void update(@MappingTarget XRay entity, XRayRequest request);
+
     XRayResponse toResponse(XRay entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "cardTube", ignore = true)
     TBHistory toEntity(TBHistoryRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "cardTube", ignore = true)
+    void update(@MappingTarget TBHistory entity, TBHistoryRequest request);
 
     TBHistoryResponse toResponse(TBHistory entity);
 
@@ -46,11 +54,19 @@ public interface CardTubeMapper {
     @Mapping(target = "cardTube", ignore = true)
     InfectionSource toEntity(InfectionSourceRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "cardTube", ignore = true)
+    void update(@MappingTarget InfectionSource entity, InfectionSourceRequest request);
+
     InfectionSourceResponse toResponse(InfectionSource entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "cardTube", ignore = true)
     ContactMonitoring toEntity(ContactMonitoringRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "cardTube", ignore = true)
+    void update(@MappingTarget ContactMonitoring entity, ContactMonitoringRequest request);
 
     ContactMonitoringResponse toResponse(ContactMonitoring entity);
 

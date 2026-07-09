@@ -29,20 +29,68 @@ public interface Card205Mapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card205", ignore = true)
+    @Mapping(target = "location.region", source = "region")
+    @Mapping(target = "location.district", source = "district")
+    @Mapping(target = "location.neighborhood", source = "neighborhood")
+    @Mapping(target = "location.street", source = "street")
+    @Mapping(target = "location.houseNumber", source = "houseNumber")
+    @Mapping(target = "location.apartmentNumber", source = "apartmentNumber")
     InformationOtherBittenPeople toEntity(InformationOtherBittenPeopleRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card205", ignore = true)
+    @Mapping(target = "location.region", source = "region")
+    @Mapping(target = "location.district", source = "district")
+    @Mapping(target = "location.neighborhood", source = "neighborhood")
+    @Mapping(target = "location.street", source = "street")
+    @Mapping(target = "location.houseNumber", source = "houseNumber")
+    @Mapping(target = "location.apartmentNumber", source = "apartmentNumber")
+    void update(@MappingTarget InformationOtherBittenPeople entity, InformationOtherBittenPeopleRequest request);
+
+    @Mapping(target = "region", source = "location.region")
+    @Mapping(target = "district", source = "location.district")
+    @Mapping(target = "neighborhood", source = "location.neighborhood")
+    @Mapping(target = "street", source = "location.street")
+    @Mapping(target = "houseNumber", source = "location.houseNumber")
+    @Mapping(target = "apartmentNumber", source = "location.apartmentNumber")
     InformationOtherBittenPeopleResponse toResponse(InformationOtherBittenPeople entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card205", ignore = true)
     InformationOtherBittenAnimals toEntity(InformationOtherBittenAnimalsRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card205", ignore = true)
+    void update(@MappingTarget InformationOtherBittenAnimals entity, InformationOtherBittenAnimalsRequest request);
+
     InformationOtherBittenAnimalsResponse toResponse(InformationOtherBittenAnimals entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card205", ignore = true)
+    @Mapping(target = "location.region", source = "region")
+    @Mapping(target = "location.district", source = "district")
+    @Mapping(target = "location.neighborhood", source = "neighborhood")
+    @Mapping(target = "location.street", source = "street")
+    @Mapping(target = "location.houseNumber", source = "houseNumber")
+    @Mapping(target = "location.apartmentNumber", source = "apartmentNumber")
     InformationAboutAnimaBittenPeople toEntity(InformationAboutAnimaBittenPeopleRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card205", ignore = true)
+    @Mapping(target = "location.region", source = "region")
+    @Mapping(target = "location.district", source = "district")
+    @Mapping(target = "location.neighborhood", source = "neighborhood")
+    @Mapping(target = "location.street", source = "street")
+    @Mapping(target = "location.houseNumber", source = "houseNumber")
+    @Mapping(target = "location.apartmentNumber", source = "apartmentNumber")
+    void update(@MappingTarget InformationAboutAnimaBittenPeople entity, InformationAboutAnimaBittenPeopleRequest request);
+
+    @Mapping(target = "region", source = "location.region")
+    @Mapping(target = "district", source = "location.district")
+    @Mapping(target = "neighborhood", source = "location.neighborhood")
+    @Mapping(target = "street", source = "location.street")
+    @Mapping(target = "houseNumber", source = "location.houseNumber")
+    @Mapping(target = "apartmentNumber", source = "location.apartmentNumber")
     InformationAboutAnimaBittenPeopleResponse toResponse(InformationAboutAnimaBittenPeople entity);
 
     /**

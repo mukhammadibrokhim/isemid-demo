@@ -28,11 +28,19 @@ public interface Card174Mapper {
     @Mapping(target = "card174", ignore = true)
     InfectionMonitoring toEntity(InfectionMonitoringRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card174", ignore = true)
+    void update(@MappingTarget InfectionMonitoring entity, InfectionMonitoringRequest request);
+
     InfectionMonitoringResponse toResponse(InfectionMonitoring entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card174", ignore = true)
     OutbreakControlMeasure toEntity(OutbreakControlMeasureRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card174", ignore = true)
+    void update(@MappingTarget OutbreakControlMeasure entity, OutbreakControlMeasureRequest request);
 
     OutbreakControlMeasureResponse toResponse(OutbreakControlMeasure entity);
 

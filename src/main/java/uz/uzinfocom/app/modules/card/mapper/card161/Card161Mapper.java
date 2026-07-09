@@ -53,11 +53,19 @@ public interface Card161Mapper {
     @Mapping(target = "card161", ignore = true)
     Card161RiskFactor toEntity(Card161RiskFactorRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget Card161RiskFactor entity, Card161RiskFactorRequest request);
+
     Card161RiskFactorResponse toResponse(Card161RiskFactor entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
     ContactPerson toEntity(ContactPersonRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget ContactPerson entity, ContactPersonRequest request);
 
     ContactPersonResponse toResponse(ContactPerson entity);
 
@@ -65,11 +73,19 @@ public interface Card161Mapper {
     @Mapping(target = "card161", ignore = true)
     EnvironmentalLabTest toEntity(EnvironmentalLabTestRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget EnvironmentalLabTest entity, EnvironmentalLabTestRequest request);
+
     EnvironmentalLabTestResponse toResponse(EnvironmentalLabTest entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
     EnvironmentalSource toEntity(EnvironmentalSourceRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget EnvironmentalSource entity, EnvironmentalSourceRequest request);
 
     EnvironmentalSourceResponse toResponse(EnvironmentalSource entity);
 
@@ -77,11 +93,19 @@ public interface Card161Mapper {
     @Mapping(target = "card161", ignore = true)
     HomePreventiveMeasure toEntity(HomePreventiveMeasureRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget HomePreventiveMeasure entity, HomePreventiveMeasureRequest request);
+
     HomePreventiveMeasureResponse toResponse(HomePreventiveMeasure entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
     InfectionSource toEntity(InfectionSourceRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget InfectionSource entity, InfectionSourceRequest request);
 
     InfectionSourceResponse toResponse(InfectionSource entity);
 
@@ -95,17 +119,29 @@ public interface Card161Mapper {
     @Mapping(target = "card161", ignore = true)
     OutbreakDisinfectionMeasure toEntity(OutbreakDisinfectionMeasureRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget OutbreakDisinfectionMeasure entity, OutbreakDisinfectionMeasureRequest request);
+
     OutbreakDisinfectionMeasureResponse toResponse(OutbreakDisinfectionMeasure entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
     ScreenedGroup toEntity(ScreenedGroupRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget ScreenedGroup entity, ScreenedGroupRequest request);
+
     ScreenedGroupResponse toResponse(ScreenedGroup entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
     Vaccination toEntity(VaccinationRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget Vaccination entity, VaccinationRequest request);
 
     VaccinationResponse toResponse(Vaccination entity);
 

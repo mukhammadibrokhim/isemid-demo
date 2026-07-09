@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card161DetailR
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
+import uz.uzinfocom.app.modules.card.domain.model.card161.Vaccination;
 import uz.uzinfocom.app.modules.card.mapper.card161.Card161MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
@@ -30,11 +31,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Exercises the create -> update -> toResponse round trip through the real
+ * Exercises the update -> toResponse round trip through the real
  * (generated) mapper, focused on the trickiest part of the vertical slice:
  * the "clear + repopulate" child-collection replacement that keeps
  * orphanRemoval correct without ever reassigning a Hibernate-managed
- * collection field.
+ * collection field. There is no dedicated "create with data already
+ * filled in" handler method — cards start blank (see
+ * {@code CardTypeHandler#createBlank()}) and get their data via
+ * {@code update}, which is what {@link #cardWith} exercises here to set up
+ * each test's starting state.
  */
 class Card161HandlerTest {
 
@@ -52,16 +57,16 @@ class Card161HandlerTest {
     }
 
     @Test
-    void createBuildsEntityGraphAndWiresBackReferences() {
+    void updateBuildsEntityGraphAndWiresBackReferences() {
         Organization polyclinic = new Organization();
         when(entityManager.getReference(Organization.class, 7L)).thenReturn(polyclinic);
 
         Card161Request request = requestWith("initial symptoms", 7L,
-                List.of(new VaccinationRequest("VERIFIED", "BCG", "SN-1", null, 2, true)),
-                List.of(new Card161RiskFactorRequest("RF1", "Somewhere", "Summer")),
+                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, 2, true)),
+                List.of(new Card161RiskFactorRequest(null, "RF1", "Somewhere", "Summer")),
                 new InfectionSourceDetailRequest("NOT_FOUND", "John Doe", "PERIOD1", "DOG"));
 
-        Card161 card161 = handler.create(form, request);
+        Card161 card161 = cardWith(request);
 
         assertThat(card161.getForm058()).isSameAs(form);
         assertThat(card161.getCardType()).isEqualTo(CardType.CARD161);
@@ -82,10 +87,10 @@ class Card161HandlerTest {
     @Test
     void updateReplacesChildrenInPlaceWithoutReassigningTheCollection() {
         Card161Request initial = requestWith("first", null,
-                List.of(new VaccinationRequest("VERIFIED", "BCG", "SN-1", null, 2, true)),
-                List.of(new Card161RiskFactorRequest("RF1", "Somewhere", "Summer")),
+                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, 2, true)),
+                List.of(new Card161RiskFactorRequest(null, "RF1", "Somewhere", "Summer")),
                 new InfectionSourceDetailRequest("NOT_FOUND", "John Doe", "PERIOD1", "DOG"));
-        Card161 card161 = handler.create(form, initial);
+        Card161 card161 = cardWith(initial);
         List<?> originalVaccinationList = card161.getVaccinations();
 
         Card161Request updated = requestWith("second", null,
@@ -98,13 +103,58 @@ class Card161HandlerTest {
         assertThat(card161.getInfectionSourceDetail()).isNull();
     }
 
+    /**
+     * Regression test: an earlier version always built a brand new
+     * {@link Vaccination} per request, so re-saving unchanged rows deleted
+     * and re-inserted them with a new auto-generated id every time. A
+     * request that echoes back an existing child's id must update that same
+     * managed row in place instead.
+     */
+    @Test
+    void updatePreservesExistingChildIdsAndDropsChildrenOmittedFromTheRequest() {
+        Card161Request initial = requestWith("first", null,
+                List.of(
+                        new VaccinationRequest(null, "V1", "BCG", "SN-1", null, 1, true),
+                        new VaccinationRequest(null, "V2", "OPV", "SN-2", null, 2, false)
+                ),
+                List.of(), null);
+        Card161 card161 = cardWith(initial);
+
+        // In a real request these ids come back from the database; here we
+        // assign them directly since these unit tests never actually flush.
+        Vaccination firstDose = card161.getVaccinations().get(0);
+        Vaccination secondDose = card161.getVaccinations().get(1);
+        firstDose.setId(100L);
+        secondDose.setId(200L);
+
+        Card161Request updated = requestWith("second", null,
+                List.of(
+                        new VaccinationRequest(100L, "V1-EDITED", "BCG", "SN-1", null, 9, true),
+                        new VaccinationRequest(null, "V3-NEW", "MMR", "SN-3", null, 3, false)
+                ),
+                List.of(), null);
+        handler.update(card161, updated);
+
+        assertThat(card161.getVaccinations()).hasSize(2);
+        assertThat(card161.getVaccinations()).extracting(Vaccination::getId)
+                .containsExactlyInAnyOrder(100L, null);
+
+        Vaccination stillFirstDose = card161.getVaccinations().stream()
+                .filter(v -> Long.valueOf(100L).equals(v.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(stillFirstDose).isSameAs(firstDose);
+        assertThat(stillFirstDose.getVaccinationVerifiedCode()).isEqualTo("V1-EDITED");
+        assertThat(stillFirstDose.getDoseVolume()).isEqualTo(9);
+    }
+
     @Test
     void toResponseRoundTripsFieldsAndChildren() {
         Card161Request request = requestWith("initial symptoms", null,
-                List.of(new VaccinationRequest("VERIFIED", "BCG", "SN-1", null, 2, true)),
-                List.of(new Card161RiskFactorRequest("RF1", "Somewhere", "Summer")),
+                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, 2, true)),
+                List.of(new Card161RiskFactorRequest(null, "RF1", "Somewhere", "Summer")),
                 new InfectionSourceDetailRequest("NOT_FOUND", "John Doe", "PERIOD1", "DOG"));
-        Card161 card161 = handler.create(form, request);
+        Card161 card161 = cardWith(request);
 
         Card161DetailResponse response = handler.toResponse(card161);
 
@@ -116,6 +166,13 @@ class Card161HandlerTest {
         assertThat(response.vaccinations().getFirst().vaccinationName()).isEqualTo("BCG");
         assertThat(response.riskFactors()).hasSize(1);
         assertThat(response.infectionSourceDetail().personFullName()).isEqualTo("John Doe");
+    }
+
+    private Card161 cardWith(Card161Request request) {
+        Card161 card161 = new Card161();
+        card161.setForm058(form);
+        handler.update(card161, request);
+        return card161;
     }
 
     private Card161Request requestWith(

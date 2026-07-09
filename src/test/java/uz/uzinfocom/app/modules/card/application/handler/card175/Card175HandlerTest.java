@@ -18,6 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * There is no dedicated "create with data already filled in" handler
+ * method — cards start blank and get their data via {@code update}, which
+ * is what {@link #cardWith} exercises here to set up each test's starting
+ * state.
+ */
 class Card175HandlerTest {
 
     private Card175Handler handler;
@@ -32,10 +38,10 @@ class Card175HandlerTest {
     }
 
     @Test
-    void createBuildsEntity() {
+    void updateBuildsEntity() {
         Card175Request request = requestWith("PATHOGEN1", List.of("INJURY1", "INJURY2"));
 
-        Card175 card175 = handler.create(form, request);
+        Card175 card175 = cardWith(request);
 
         assertThat(card175.getForm058()).isSameAs(form);
         assertThat(card175.getCardType()).isEqualTo(CardType.CARD175);
@@ -45,7 +51,7 @@ class Card175HandlerTest {
 
     @Test
     void updateOverwritesScalarAndCollectionFields() {
-        Card175 card175 = handler.create(form, requestWith("PATHOGEN1", List.of("INJURY1")));
+        Card175 card175 = cardWith(requestWith("PATHOGEN1", List.of("INJURY1")));
 
         handler.update(card175, requestWith("PATHOGEN2", List.of()));
 
@@ -55,7 +61,7 @@ class Card175HandlerTest {
 
     @Test
     void toResponseRoundTripsFields() {
-        Card175 card175 = handler.create(form, requestWith("PATHOGEN1", List.of("INJURY1")));
+        Card175 card175 = cardWith(requestWith("PATHOGEN1", List.of("INJURY1")));
 
         Card175DetailResponse response = handler.toResponse(card175);
 
@@ -64,6 +70,13 @@ class Card175HandlerTest {
         assertThat(response.formId()).isEqualTo(7L);
         assertThat(response.pathogenType()).isEqualTo("PATHOGEN1");
         assertThat(response.partOfInjury()).containsExactly("INJURY1");
+    }
+
+    private Card175 cardWith(Card175Request request) {
+        Card175 card175 = new Card175();
+        card175.setForm058(form);
+        handler.update(card175, request);
+        return card175;
     }
 
     private Card175Request requestWith(String pathogenType, List<String> partOfInjury) {

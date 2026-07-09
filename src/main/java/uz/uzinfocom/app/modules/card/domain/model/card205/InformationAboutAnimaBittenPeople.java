@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.card.domain.model.card205;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -51,21 +52,6 @@ public class InformationAboutAnimaBittenPeople extends UuidAuditableEntity {
     @Column(name = "address_of_animal_bitten_owner", length = 500)
     private String addressOfAnimalBittenOwner;
 
-    @Column(name = "region", length = 64)
-    private String region;
-
-    @Column(name = "district", length = 64)
-    private String district;
-
-    @Column(name = "neighborhood", length = 255)
-    private String neighborhood;
-
-    @Column(name = "street", length = 255)
-    private String street;
-
-    @Column(name = "house_number", length = 32)
-    private String houseNumber;
-
-    @Column(name = "apartment_number", length = 32)
-    private String apartmentNumber;
+    @Embedded
+    private AdministrativeAddress location;
 }

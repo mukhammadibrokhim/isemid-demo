@@ -21,6 +21,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * There is no dedicated "create with data already filled in" handler
+ * method — cards start blank and get their data via {@code update}, which
+ * is what {@link #cardWith} exercises here to set up each test's starting
+ * state.
+ */
 class CardTubeHandlerTest {
 
     private CardTubeHandler handler;
@@ -35,14 +41,14 @@ class CardTubeHandlerTest {
     }
 
     @Test
-    void createBuildsEntityGraphAndWiresBackReferences() {
+    void updateBuildsEntityGraphAndWiresBackReferences() {
         CardTubeRequest request = requestWith("DISP-1",
-                List.of(new XRayRequest(LocalDate.now(), "Clinic1", "Clear")),
-                List.of(new TBHistoryRequest("Loc1", LocalDate.now(), "MKB1", "Name1", "Group1")),
-                List.of(new InfectionSourceRequest("TB1", "John Doe", "REL1", "6 months")),
-                List.of(new ContactMonitoringRequest("Jane Doe", LocalDate.now(), 30, "REL1", "Workplace1", "Receiver1", LocalDate.now(), "STATUS1")));
+                List.of(new XRayRequest(null, LocalDate.now(), "Clinic1", "Clear")),
+                List.of(new TBHistoryRequest(null, "Loc1", LocalDate.now(), "MKB1", "Name1", "Group1")),
+                List.of(new InfectionSourceRequest(null, "TB1", "John Doe", "REL1", "6 months")),
+                List.of(new ContactMonitoringRequest(null, "Jane Doe", LocalDate.now(), 30, "REL1", "Workplace1", "Receiver1", LocalDate.now(), "STATUS1")));
 
-        CardTube cardTube = handler.create(form, request);
+        CardTube cardTube = cardWith(request);
 
         assertThat(cardTube.getForm058()).isSameAs(form);
         assertThat(cardTube.getCardType()).isEqualTo(CardType.CARD_TUBE);
@@ -64,9 +70,9 @@ class CardTubeHandlerTest {
     @Test
     void updateReplacesChildrenInPlaceWithoutReassigningTheCollection() {
         CardTubeRequest initial = requestWith("DISP-1",
-                List.of(new XRayRequest(LocalDate.now(), "Clinic1", "Clear")),
+                List.of(new XRayRequest(null, LocalDate.now(), "Clinic1", "Clear")),
                 List.of(), List.of(), List.of());
-        CardTube cardTube = handler.create(form, initial);
+        CardTube cardTube = cardWith(initial);
         List<?> originalList = cardTube.getPreMBTChestXRay();
 
         CardTubeRequest updated = requestWith("DISP-2", List.of(), List.of(), List.of(), List.of());
@@ -79,11 +85,11 @@ class CardTubeHandlerTest {
     @Test
     void toResponseRoundTripsFieldsAndChildren() {
         CardTubeRequest request = requestWith("DISP-1",
-                List.of(new XRayRequest(LocalDate.now(), "Clinic1", "Clear")),
-                List.of(new TBHistoryRequest("Loc1", LocalDate.now(), "MKB1", "Name1", "Group1")),
-                List.of(new InfectionSourceRequest("TB1", "John Doe", "REL1", "6 months")),
-                List.of(new ContactMonitoringRequest("Jane Doe", LocalDate.now(), 30, "REL1", "Workplace1", "Receiver1", LocalDate.now(), "STATUS1")));
-        CardTube cardTube = handler.create(form, request);
+                List.of(new XRayRequest(null, LocalDate.now(), "Clinic1", "Clear")),
+                List.of(new TBHistoryRequest(null, "Loc1", LocalDate.now(), "MKB1", "Name1", "Group1")),
+                List.of(new InfectionSourceRequest(null, "TB1", "John Doe", "REL1", "6 months")),
+                List.of(new ContactMonitoringRequest(null, "Jane Doe", LocalDate.now(), 30, "REL1", "Workplace1", "Receiver1", LocalDate.now(), "STATUS1")));
+        CardTube cardTube = cardWith(request);
 
         CardTubeDetailResponse response = handler.toResponse(cardTube);
 
@@ -96,6 +102,13 @@ class CardTubeHandlerTest {
         assertThat(response.possibleInfectionSources()).hasSize(1);
         assertThat(response.contactMonitoringList()).hasSize(1);
         assertThat(response.contactMonitoringList().getFirst().fullName()).isEqualTo("Jane Doe");
+    }
+
+    private CardTube cardWith(CardTubeRequest request) {
+        CardTube cardTube = new CardTube();
+        cardTube.setForm058(form);
+        handler.update(cardTube, request);
+        return cardTube;
     }
 
     private CardTubeRequest requestWith(

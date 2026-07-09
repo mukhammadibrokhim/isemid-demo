@@ -114,22 +114,21 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/cards";
         public static final String BY_ID = "/{id}";
 
-        // Personal, server-scoped list views — never trust a client-supplied
-        // user id for these, always resolve from the authenticated principal.
+        // Personal, server-scoped list view — never trust a client-supplied
+        // user id for this, always resolve from the authenticated principal.
         public static final String MINE = "/mine";
-        public static final String PENDING_APPROVAL = "/pending-approval";
 
         // Attached-employee actions (the user working the card).
         public static final String ACCEPT = "/{id}/accept";
         public static final String REJECT = "/{id}/reject";
         public static final String COMPLETE = "/{id}/complete";
-        public static final String REASSIGN = "/{id}/reassign";
 
         // Supervisor actions (the user the card is assigned to via
         // assignedById) — nested under /supervisor/ so the two reviewer
         // roles can never be confused with each other at the URL level.
         public static final String SUPERVISOR_APPROVE = "/{id}/supervisor/approve";
         public static final String SUPERVISOR_REJECT = "/{id}/supervisor/reject";
+        public static final String SUPERVISOR_REASSIGN = "/{id}/supervisor/reassign";
 
         public static final String ACTS = "/{id}/acts";
     }

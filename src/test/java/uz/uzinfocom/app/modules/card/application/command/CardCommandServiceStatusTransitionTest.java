@@ -6,12 +6,19 @@ import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationExc
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.exception.InvalidCardStatusException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
 import uz.uzinfocom.app.modules.card.application.shared.CurrentCardUser;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
+import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
+import uz.uzinfocom.app.modules.card.domain.model.card175.Card175;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
+import uz.uzinfocom.app.modules.card.mapper.card175.Card175MapperImpl;
+import uz.uzinfocom.app.modules.card.application.handler.card175.Card175Handler;
+import uz.uzinfocom.app.modules.card.web.dto.request.Card175Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
+import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
@@ -22,7 +29,10 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,7 +64,10 @@ class CardCommandServiceStatusTransitionTest {
 
         service = new CardCommandService(cardRepository, form058Repository, userRepository, handlerRegistry, currentCardUser);
 
-        when(cardRepository.save(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        // Other cards still exist for the form, so delete() never needs to
+        // touch form058Repository (kept out of scope for these tests).
+        when(cardRepository.existsByForm058_Id(any())).thenReturn(true);
     }
 
     @Test
@@ -90,7 +103,7 @@ class CardCommandServiceStatusTransitionTest {
 
     @Test
     void rejectByUserSetsCommentAndStatus() {
-        Card card = cardWith(CardStatus.IN_PROGRESS, attachedUserId(ATTACHED_USER_ID), null);
+        Card card = cardWith(CardStatus.ACCEPTED_BY_USER, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
         when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
@@ -98,6 +111,16 @@ class CardCommandServiceStatusTransitionTest {
 
         assertThat(card.getStatus()).isEqualTo(CardStatus.REJECTED_BY_USER);
         assertThat(card.getAttachedUserComment()).isEqualTo("Wrong data");
+    }
+
+    @Test
+    void rejectByUserRejectsOnceInProgress() {
+        Card card = cardWith(CardStatus.IN_PROGRESS, attachedUserId(ATTACHED_USER_ID), null);
+        givenCard(card);
+        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        assertThatThrownBy(() -> service.rejectByUser(CARD_ID, "too late"))
+                .isInstanceOf(InvalidCardStatusException.class);
     }
 
     @Test
@@ -256,15 +279,15 @@ class CardCommandServiceStatusTransitionTest {
     }
 
     @Test
-    void updatePassesTheStatusGateOnceAcceptedOrReworkingAfterSupervisorRejection() {
+    void updatePassesTheStatusGateOnceAcceptedInProgressOrReworkingAfterSupervisorRejection() {
         // CardRequest is sealed and its only implementations are large
         // records, so a null request stands in here — what matters is
         // *which* exception surfaces: canBeUpdated() throws
         // InvalidCardStatusException before request is ever touched (see
-        // the blocked-status tests above), so for these two allowed
-        // statuses the gate must pass silently and blow up on
-        // request.type() instead — proving it let the call through.
-        for (CardStatus status : List.of(CardStatus.ACCEPTED_BY_USER, CardStatus.REJECTED)) {
+        // the blocked-status tests above), so for these allowed statuses
+        // the gate must pass silently and blow up on request.type()
+        // instead — proving it let the call through.
+        for (CardStatus status : List.of(CardStatus.ACCEPTED_BY_USER, CardStatus.IN_PROGRESS, CardStatus.REJECTED)) {
             Card161 card = new Card161();
             card.setStatus(status);
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
@@ -275,9 +298,49 @@ class CardCommandServiceStatusTransitionTest {
     }
 
     @Test
-    void reassignUsersSucceedsForUserRejectedCard() {
+    void updateMovesStatusToInProgressOnASuccessfulSave() {
+        Card175 card = new Card175();
+        card.setStatus(CardStatus.ACCEPTED_BY_USER);
+        when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
+        doReturn(new Card175Handler(new Card175MapperImpl())).when(handlerRegistry).get(CardType.CARD175);
+
+        CardDetailResponse response = service.update(CARD_ID, blankCard175Request());
+
+        assertThat(card.getStatus()).isEqualTo(CardStatus.IN_PROGRESS);
+        assertThat(response.status()).isEqualTo(CardStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void deleteBlocksOnceRealDataExistsOrTheCardHasMovedOn() {
+        for (CardStatus status : List.of(CardStatus.IN_PROGRESS, CardStatus.COMPLETED, CardStatus.APPROVED, CardStatus.REJECTED)) {
+            Card161 card = new Card161();
+            card.setStatus(status);
+            givenCard(card);
+
+            assertThatThrownBy(() -> service.delete(CARD_ID))
+                    .isInstanceOf(InvalidCardStatusException.class);
+        }
+    }
+
+    @Test
+    void deleteSucceedsBeforeAnyRealDataExists() {
+        for (CardStatus status : List.of(CardStatus.NEW, CardStatus.ACCEPTED_BY_USER, CardStatus.REJECTED_BY_USER)) {
+            Card161 card = new Card161();
+            card.setStatus(status);
+            card.setForm058(formWithId(500L));
+            givenCard(card);
+
+            service.delete(CARD_ID);
+
+            verify(cardRepository).delete(card);
+        }
+    }
+
+    @Test
+    void reassignUsersSucceedsForTheAssignedSupervisorOnAUserRejectedCard() {
         Card161 card = new Card161();
         card.setStatus(CardStatus.REJECTED_BY_USER);
+        card.setAssignedById(SUPERVISOR_ID);
         card.setAttachedUserComment("Wrong data");
         givenCard(card);
         when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
@@ -294,8 +357,18 @@ class CardCommandServiceStatusTransitionTest {
     }
 
     @Test
+    void reassignUsersRejectsWrongSupervisor() {
+        Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), SUPERVISOR_ID);
+        givenCard(card);
+        when(currentCardUser.userIdOrNull()).thenReturn(999L);
+
+        assertThatThrownBy(() -> service.reassignUsers(CARD_ID, new ReassignCardUsersRequest(List.of(1L))))
+                .isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
     void reassignUsersRejectsCardNotYetRejectedByUser() {
-        Card card = cardWith(CardStatus.NEW, Set.of(), null);
+        Card card = cardWith(CardStatus.NEW, Set.of(), SUPERVISOR_ID);
         givenCard(card);
         when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
 
@@ -305,7 +378,7 @@ class CardCommandServiceStatusTransitionTest {
 
     @Test
     void reassignUsersRequiresAnAuthenticatedCaller() {
-        Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), null);
+        Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), SUPERVISOR_ID);
         givenCard(card);
         when(currentCardUser.userIdOrNull()).thenReturn(null);
 
@@ -315,7 +388,7 @@ class CardCommandServiceStatusTransitionTest {
 
     @Test
     void reassignUsersRejectsUnknownUserId() {
-        Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), null);
+        Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), SUPERVISOR_ID);
         givenCard(card);
         when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of());
@@ -356,5 +429,30 @@ class CardCommandServiceStatusTransitionTest {
         User user = new User();
         user.setId(id);
         return user;
+    }
+
+    private Form058 formWithId(Long id) {
+        Form058 form = Form058.builder().build();
+        form.setId(id);
+        return form;
+    }
+
+    /**
+     * Card175 is the flattest card type (no children), which is why it's
+     * used here to exercise a real {@code update()} call end-to-end
+     * without needing a sealed-interface mock — every field is left null,
+     * which the handler/mapper accept without complaint.
+     */
+    private Card175Request blankCard175Request() {
+        return new Card175Request(
+                null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null,
+                null, null, null,
+                null,
+                null,
+                null, null, null, null, null, null,
+                null, null, null
+        );
     }
 }

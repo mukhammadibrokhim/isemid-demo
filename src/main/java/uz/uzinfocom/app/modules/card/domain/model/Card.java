@@ -78,8 +78,8 @@ public abstract class Card extends AbsEntity {
     private Long assignedById;
 
     /**
-     * Indexed on {@code user_id} because {@code GET /cards/mine} filters
-     * this join table by user on every request — without it, that query
+     * Indexed on {@code user_id} because {@code GET /cards/assigned-to-me}
+     * filters this join table by user on every request — without it, that query
      * degrades to a full scan of {@code card_users} as it grows. The
      * unique constraint doubles as the index for the reverse direction
      * ({@code card_id} lookups) and enforces at the DB level what the

@@ -6,11 +6,13 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The "mine" and "pending my approval" list views must always resolve their
- * scoping id from the authenticated principal, never from whatever the
- * caller passed in the filter — otherwise one employee could browse
- * another's queue, or a supervisor another supervisor's, by guessing a user
- * id in the query string.
+ * The "mine" list view must always resolve its scoping id from the
+ * authenticated principal, never from whatever the caller passed in the
+ * filter — otherwise one employee could browse another's queue by guessing
+ * a user id in the query string. A supervisor's "awaiting my approval"
+ * view has no dedicated endpoint — it's just this same generic filter with
+ * {@code assignedById} + {@code status=COMPLETED} passed as regular query
+ * params against the existing form-scoped listing.
  */
 class CardFilterRequestTest {
 
@@ -26,17 +28,5 @@ class CardFilterRequestTest {
         assertThat(scoped.formId()).isEqualTo(5L);
         assertThat(scoped.status()).isEqualTo(CardStatus.NEW);
         assertThat(scoped.page()).isEqualTo(1);
-    }
-
-    @Test
-    void scopedToSupervisorForcesCompletedStatusAndClearsAssignedToUserId() {
-        CardFilterRequest clientFilter = new CardFilterRequest(1, 20, "id", "asc", 5L, null, CardStatus.NEW, 999L, 888L);
-
-        CardFilterRequest scoped = clientFilter.scopedToSupervisor(42L);
-
-        assertThat(scoped.assignedById()).isEqualTo(42L);
-        assertThat(scoped.assignedToUserId()).isNull();
-        assertThat(scoped.status()).isEqualTo(CardStatus.COMPLETED);
-        assertThat(scoped.formId()).isEqualTo(5L);
     }
 }

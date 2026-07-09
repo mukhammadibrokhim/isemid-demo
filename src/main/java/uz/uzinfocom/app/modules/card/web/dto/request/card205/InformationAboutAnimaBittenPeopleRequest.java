@@ -1,8 +1,10 @@
 package uz.uzinfocom.app.modules.card.web.dto.request.card205;
 
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.modules.card.web.dto.request.ChildRequest;
 
 public record InformationAboutAnimaBittenPeopleRequest(
+        Long id,
         @Size(max = 64) String animalCategoryCode,
         @Size(max = 255) String animalType,
         @Size(max = 255) String fullNameOfAnimalBittenOwner,
@@ -13,5 +15,5 @@ public record InformationAboutAnimaBittenPeopleRequest(
         @Size(max = 255) String street,
         @Size(max = 32) String houseNumber,
         @Size(max = 32) String apartmentNumber
-) {
+) implements ChildRequest {
 }

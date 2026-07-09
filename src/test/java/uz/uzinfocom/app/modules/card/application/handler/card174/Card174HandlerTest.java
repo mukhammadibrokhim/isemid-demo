@@ -20,9 +20,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Mirrors {@code Card161HandlerTest} — exercises create -> update ->
- * toResponse through the real (generated) mapper to catch mapping bugs like
- * a missing {@code type} discriminator or a lost child back-reference.
+ * Mirrors {@code Card161HandlerTest} — exercises update -> toResponse
+ * through the real (generated) mapper to catch mapping bugs like a missing
+ * {@code type} discriminator or a lost child back-reference. There is no
+ * dedicated "create with data already filled in" handler method — cards
+ * start blank and get their data via {@code update}, which is what
+ * {@link #cardWith} exercises here to set up each test's starting state.
  */
 class Card174HandlerTest {
 
@@ -38,12 +41,12 @@ class Card174HandlerTest {
     }
 
     @Test
-    void createBuildsEntityGraphAndWiresBackReferences() {
+    void updateBuildsEntityGraphAndWiresBackReferences() {
         Card174Request request = requestWith("MKB-1",
-                List.of(new InfectionMonitoringRequest(1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
-                List.of(new OutbreakControlMeasureRequest(5, 1, 2, "PM1", 10, true)));
+                List.of(new InfectionMonitoringRequest(null, 1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
+                List.of(new OutbreakControlMeasureRequest(null, 5, 1, 2, "PM1", 10, true)));
 
-        Card174 card174 = handler.create(form, request);
+        Card174 card174 = cardWith(request);
 
         assertThat(card174.getForm058()).isSameAs(form);
         assertThat(card174.getCardType()).isEqualTo(CardType.CARD174);
@@ -59,9 +62,9 @@ class Card174HandlerTest {
     @Test
     void updateReplacesChildrenInPlaceWithoutReassigningTheCollection() {
         Card174Request initial = requestWith("MKB-1",
-                List.of(new InfectionMonitoringRequest(1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
-                List.of(new OutbreakControlMeasureRequest(5, 1, 2, "PM1", 10, true)));
-        Card174 card174 = handler.create(form, initial);
+                List.of(new InfectionMonitoringRequest(null, 1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
+                List.of(new OutbreakControlMeasureRequest(null, 5, 1, 2, "PM1", 10, true)));
+        Card174 card174 = cardWith(initial);
         List<?> originalList = card174.getInfectionMonitoring();
 
         Card174Request updated = requestWith("MKB-2", List.of(), List.of());
@@ -75,9 +78,9 @@ class Card174HandlerTest {
     @Test
     void toResponseRoundTripsFieldsAndChildren() {
         Card174Request request = requestWith("MKB-1",
-                List.of(new InfectionMonitoringRequest(1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
-                List.of(new OutbreakControlMeasureRequest(5, 1, 2, "PM1", 10, true)));
-        Card174 card174 = handler.create(form, request);
+                List.of(new InfectionMonitoringRequest(null, 1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
+                List.of(new OutbreakControlMeasureRequest(null, 5, 1, 2, "PM1", 10, true)));
+        Card174 card174 = cardWith(request);
 
         Card174DetailResponse response = handler.toResponse(card174);
 
@@ -89,6 +92,13 @@ class Card174HandlerTest {
         assertThat(response.infectionMonitoring().getFirst().lastName()).isEqualTo("Doe");
         assertThat(response.outbreakControlMeasures()).hasSize(1);
         assertThat(response.outbreakControlMeasures().getFirst().processingMethodCode()).isEqualTo("PM1");
+    }
+
+    private Card174 cardWith(Card174Request request) {
+        Card174 card174 = new Card174();
+        card174.setForm058(form);
+        handler.update(card174, request);
+        return card174;
     }
 
     private Card174Request requestWith(

@@ -51,17 +51,8 @@ public class CardQueryService {
      * guessing their id.
      */
     @Transactional(readOnly = true)
-    public Page<CardTableResponse> findMine(CardFilterRequest filter) {
+    public Page<CardTableResponse> findAssignedToMe(CardFilterRequest filter) {
         return findTable(filter.scopedToAttachedUser(requireCurrentUserId()));
-    }
-
-    /**
-     * The supervisor's review queue — cards assigned to the authenticated
-     * user that are COMPLETED and awaiting an approve/reject decision.
-     */
-    @Transactional(readOnly = true)
-    public Page<CardTableResponse> findPendingSupervisorApproval(CardFilterRequest filter) {
-        return findTable(filter.scopedToSupervisor(requireCurrentUserId()));
     }
 
     @Transactional(readOnly = true)

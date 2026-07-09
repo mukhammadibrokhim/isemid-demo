@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
+import uz.uzinfocom.app.modules.card.application.handler.ChildCollectionSync;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card161DetailResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
@@ -20,11 +21,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card161.Vaccination;
 import uz.uzinfocom.app.modules.card.mapper.card161.Card161Mapper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.InfectionSourceDetailRequest;
-import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-
-import java.util.List;
-import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor
@@ -36,14 +33,6 @@ public class Card161Handler implements CardTypeHandler<Card161, Card161Request, 
     @Override
     public CardType getType() {
         return CardType.CARD161;
-    }
-
-    @Override
-    public Card161 create(Form058 form, Card161Request request) {
-        Card161 card161 = new Card161();
-        card161.setForm058(form);
-        apply(card161, request);
-        return card161;
     }
 
     @Override
@@ -72,15 +61,15 @@ public class Card161Handler implements CardTypeHandler<Card161, Card161Request, 
 
         card161.setPolyclinic(resolveReference(Organization.class, request.polyclinicId()));
 
-        replaceChildren(card161, card161.getVaccinations(), request.vaccinations(), mapper::toEntity, Vaccination::setCard161);
-        replaceChildren(card161, card161.getRiskFactors(), request.riskFactors(), mapper::toEntity, Card161RiskFactor::setCard161);
-        replaceChildren(card161, card161.getPossibleInfectionSources(), request.possibleInfectionSources(), mapper::toEntity, InfectionSource::setCard161);
-        replaceChildren(card161, card161.getEnvironmentalSources(), request.environmentalSources(), mapper::toEntity, EnvironmentalSource::setCard161);
-        replaceChildren(card161, card161.getEnvironmentalLabTests(), request.environmentalLabTests(), mapper::toEntity, EnvironmentalLabTest::setCard161);
-        replaceChildren(card161, card161.getContactPersonDetails(), request.contactPersonDetails(), mapper::toEntity, ContactPerson::setCard161);
-        replaceChildren(card161, card161.getScreenedGroups(), request.screenedGroups(), mapper::toEntity, ScreenedGroup::setCard161);
-        replaceChildren(card161, card161.getHomePreventiveMeasures(), request.homePreventiveMeasures(), mapper::toEntity, HomePreventiveMeasure::setCard161);
-        replaceChildren(card161, card161.getOutbreakDisinfectionMeasures(), request.outbreakDisinfectionMeasures(), mapper::toEntity, OutbreakDisinfectionMeasure::setCard161);
+        ChildCollectionSync.sync(card161, card161.getVaccinations(), request.vaccinations(), mapper::toEntity, mapper::update, Vaccination::setCard161);
+        ChildCollectionSync.sync(card161, card161.getRiskFactors(), request.riskFactors(), mapper::toEntity, mapper::update, Card161RiskFactor::setCard161);
+        ChildCollectionSync.sync(card161, card161.getPossibleInfectionSources(), request.possibleInfectionSources(), mapper::toEntity, mapper::update, InfectionSource::setCard161);
+        ChildCollectionSync.sync(card161, card161.getEnvironmentalSources(), request.environmentalSources(), mapper::toEntity, mapper::update, EnvironmentalSource::setCard161);
+        ChildCollectionSync.sync(card161, card161.getEnvironmentalLabTests(), request.environmentalLabTests(), mapper::toEntity, mapper::update, EnvironmentalLabTest::setCard161);
+        ChildCollectionSync.sync(card161, card161.getContactPersonDetails(), request.contactPersonDetails(), mapper::toEntity, mapper::update, ContactPerson::setCard161);
+        ChildCollectionSync.sync(card161, card161.getScreenedGroups(), request.screenedGroups(), mapper::toEntity, mapper::update, ScreenedGroup::setCard161);
+        ChildCollectionSync.sync(card161, card161.getHomePreventiveMeasures(), request.homePreventiveMeasures(), mapper::toEntity, mapper::update, HomePreventiveMeasure::setCard161);
+        ChildCollectionSync.sync(card161, card161.getOutbreakDisinfectionMeasures(), request.outbreakDisinfectionMeasures(), mapper::toEntity, mapper::update, OutbreakDisinfectionMeasure::setCard161);
 
         applyInfectionSourceDetail(card161, request.infectionSourceDetail());
     }
@@ -103,27 +92,6 @@ public class Card161Handler implements CardTypeHandler<Card161, Card161Request, 
         detail.setAnimalTypeCode(request.animalTypeCode());
 
         card161.setInfectionSourceDetail(detail);
-    }
-
-    /**
-     * Replaces the contents of a Hibernate-managed {@code @OneToMany}
-     * collection in place (never reassigns the field) so
-     * {@code orphanRemoval = true} correctly deletes whatever isn't in the
-     * new request, while inserts/updates apply to the rest.
-     */
-    private <E, R> void replaceChildren(
-            Card161 card161,
-            List<E> managedCollection,
-            List<R> requests,
-            Function<R, E> toEntity,
-            java.util.function.BiConsumer<E, Card161> setParent
-    ) {
-        managedCollection.clear();
-        for (R request : requests) {
-            E entity = toEntity.apply(request);
-            setParent.accept(entity, card161);
-            managedCollection.add(entity);
-        }
     }
 
     private <T> T resolveReference(Class<T> type, Long id) {

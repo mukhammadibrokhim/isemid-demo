@@ -21,9 +21,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * {@code CardFilterRequestTest} covers the actual scoping logic (pure,
- * mockless). This test only pins down the auth gate: both "self-scoped"
- * views must refuse to run at all for an unauthenticated caller rather than
- * silently falling back to an unscoped query.
+ * mockless). This test only pins down the auth gate:
+ * {@code findAssignedToMe} must refuse to run at all for an unauthenticated
+ * caller rather than silently falling back to an unscoped query.
  */
 class CardQueryServiceScopedViewsTest {
 
@@ -46,36 +46,19 @@ class CardQueryServiceScopedViewsTest {
     }
 
     @Test
-    void findMineRunsForAnAuthenticatedUser() {
+    void findAssignedToMeRunsForAnAuthenticatedUser() {
         when(currentCardUser.userIdOrNull()).thenReturn(42L);
 
-        service.findMine(emptyFilter());
+        service.findAssignedToMe(emptyFilter());
 
         verify(cardRepository, times(1)).findBy(any(Specification.class), any(Function.class));
     }
 
     @Test
-    void findMineRefusesAnUnauthenticatedCaller() {
+    void findAssignedToMeRefusesAnUnauthenticatedCaller() {
         when(currentCardUser.userIdOrNull()).thenReturn(null);
 
-        assertThatThrownBy(() -> service.findMine(emptyFilter()))
-                .isInstanceOf(CardScopeViolationException.class);
-    }
-
-    @Test
-    void findPendingSupervisorApprovalRunsForAnAuthenticatedUser() {
-        when(currentCardUser.userIdOrNull()).thenReturn(42L);
-
-        service.findPendingSupervisorApproval(emptyFilter());
-
-        verify(cardRepository, times(1)).findBy(any(Specification.class), any(Function.class));
-    }
-
-    @Test
-    void findPendingSupervisorApprovalRefusesAnUnauthenticatedCaller() {
-        when(currentCardUser.userIdOrNull()).thenReturn(null);
-
-        assertThatThrownBy(() -> service.findPendingSupervisorApproval(emptyFilter()))
+        assertThatThrownBy(() -> service.findAssignedToMe(emptyFilter()))
                 .isInstanceOf(CardScopeViolationException.class);
     }
 

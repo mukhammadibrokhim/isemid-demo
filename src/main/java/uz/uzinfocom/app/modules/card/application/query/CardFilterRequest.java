@@ -27,14 +27,4 @@ public record CardFilterRequest(
     public CardFilterRequest scopedToAttachedUser(Long userId) {
         return new CardFilterRequest(page, size, sortBy, sortDir, formId, cardType, status, userId, null);
     }
-
-    /**
-     * Copies this filter with {@code assignedById} forced to the given
-     * value, {@code status} forced to {@link CardStatus#COMPLETED}, and
-     * {@code assignedToUserId} cleared — used to scope the
-     * "pending my approval" view to the authenticated supervisor.
-     */
-    public CardFilterRequest scopedToSupervisor(Long supervisorId) {
-        return new CardFilterRequest(page, size, sortBy, sortDir, formId, cardType, CardStatus.COMPLETED, null, supervisorId);
-    }
 }

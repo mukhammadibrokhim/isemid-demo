@@ -4,7 +4,6 @@ import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResp
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRequest;
-import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 
 /**
  * One implementation per {@link CardType} — the single place responsible
@@ -14,13 +13,14 @@ import uz.uzinfocom.app.modules.form058.domain.model.Form058;
  * <p>
  * Only {@link CardTypeHandlerRegistry} and {@code CardService} call the
  * default {@code handleXxx} methods; concrete handlers implement the
- * strongly-typed methods only.
+ * strongly-typed methods only. There is no "create with data already
+ * filled in" path — every card starts as a {@link #createBlank() blank
+ * shell} via the bulk assign flow, and gets its actual field data through
+ * {@link #update} afterwards.
  */
 public interface CardTypeHandler<C extends Card, Q extends CardRequest, R extends CardDetailResponse> {
 
     CardType getType();
-
-    C create(Form058 form, Q request);
 
     /**
      * Creates a brand-new, otherwise-empty instance of this type, with only
@@ -40,13 +40,6 @@ public interface CardTypeHandler<C extends Card, Q extends CardRequest, R extend
     void validate(C card);
 
     R toResponse(C card);
-
-    @SuppressWarnings("unchecked")
-    default Card handleCreate(Form058 form, CardRequest request) {
-        C card = create(form, (Q) request);
-        validate(card);
-        return card;
-    }
 
     default Card handleCreateBlank() {
         return createBlank();

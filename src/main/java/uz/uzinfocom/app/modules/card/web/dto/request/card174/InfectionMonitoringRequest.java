@@ -1,10 +1,12 @@
 package uz.uzinfocom.app.modules.card.web.dto.request.card174;
 
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.modules.card.web.dto.request.ChildRequest;
 
 import java.time.LocalDate;
 
 public record InfectionMonitoringRequest(
+        Long id,
         Integer sequentialNumber,
         @Size(max = 255) String lastName,
         @Size(max = 255) String firstName,
@@ -18,5 +20,5 @@ public record InfectionMonitoringRequest(
         @Size(max = 500) String possibleInfectionLocation,
         @Size(max = 500) String possibleInfectionFactor,
         LocalDate possibleInfectionDate
-) {
+) implements ChildRequest {
 }

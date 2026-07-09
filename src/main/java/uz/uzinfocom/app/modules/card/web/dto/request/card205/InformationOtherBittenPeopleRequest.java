@@ -1,10 +1,12 @@
 package uz.uzinfocom.app.modules.card.web.dto.request.card205;
 
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.modules.card.web.dto.request.ChildRequest;
 
 import java.time.LocalDateTime;
 
 public record InformationOtherBittenPeopleRequest(
+        Long id,
         @Size(max = 255) String lastName,
         @Size(max = 255) String firstName,
         @Size(max = 255) String middleName,
@@ -18,5 +20,5 @@ public record InformationOtherBittenPeopleRequest(
         @Size(max = 32) String houseNumber,
         @Size(max = 32) String apartmentNumber,
         LocalDateTime bittenDate
-) {
+) implements ChildRequest {
 }
