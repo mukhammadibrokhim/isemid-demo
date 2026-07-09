@@ -1,0 +1,92 @@
+package uz.uzinfocom.app.modules.card.application.query.dto.detail;
+
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.Card161RiskFactorResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.ContactPersonResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EnvironmentalLabTestResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EnvironmentalSourceResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.HomePreventiveMeasureResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.InfectionSourceDetailResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.InfectionSourceResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.OutbreakDisinfectionMeasureResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.ScreenedGroupResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.VaccinationResponse;
+import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
+import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+public record Card161DetailResponse(
+        Long id,
+        CardType type,
+        CardStatus status,
+        Long formId,
+        Long assignedById,
+        String supervisorComment,
+        String attachedUserComment,
+        LocalDate completedDate,
+
+        String callerType,
+        Boolean isResident,
+        String residentialTreatmentFacility,
+        LocalDateTime diseaseDetectedDate,
+        String regionCode,
+        String districtCode,
+        Long polyclinicId,
+        String initialSymptoms,
+        String detectedCode,
+        LocalDateTime epidemiologicalExamDate,
+        LocalDateTime observationEndDate,
+        LocalDateTime finalDiagnosisDate,
+        String deliveryMethodCode,
+        String homeStayExclusionReasonCode,
+        String lateAdmissionReasonCode,
+        String diagnosisVerifiedCode,
+        List<VaccinationResponse> vaccinations,
+        LocalDate estimatedInfectionDateFrom,
+        LocalDate estimatedInfectionDateTo,
+        List<Card161RiskFactorResponse> riskFactors,
+        List<InfectionSourceResponse> possibleInfectionSources,
+        List<EnvironmentalSourceResponse> environmentalSources,
+        String livingConditionCode,
+        Integer numberOfPeople,
+        Integer numberOfRooms,
+        String area,
+        String waterSupplyCode,
+        String liquidWasteDisposalTypeCode,
+        String solidWasteDisposalTypeCode,
+        String roomConditionCode,
+        String yardConditionCode,
+        String areaConditionCode,
+        Boolean hasLice,
+        Boolean hasOtherInsects,
+        Boolean hasRodents,
+        String importantCausesOfDiseaseCode,
+        String visitedObjectsCode,
+        String denselyPopulated,
+        String isolationStatus,
+        String waterSupplyStatus,
+        String sanitaryMaintenance,
+        String sewerageStatus,
+        String foodStorage,
+        String foodPreparation,
+        String diseaseCausingFactors,
+        List<EnvironmentalLabTestResponse> environmentalLabTests,
+        List<ContactPersonResponse> contactPersonDetails,
+        List<ScreenedGroupResponse> screenedGroups,
+        List<HomePreventiveMeasureResponse> homePreventiveMeasures,
+        List<OutbreakDisinfectionMeasureResponse> outbreakDisinfectionMeasures,
+        String hospitalName,
+        String infectionLocationCode,
+        String probableInfectionLocationCode,
+        Boolean isInfectionSourceMissing,
+        InfectionSourceDetailResponse infectionSourceDetail,
+        String mainProbableInfectionFactorCode,
+        List<String> infectionCausingConditionCode,
+        String outbreakInfectionCode,
+        String caseStatusCode,
+        String epidemiologist,
+        String epidemiologistAssistant
+) implements CardDetailResponse {
+}

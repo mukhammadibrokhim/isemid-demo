@@ -1,0 +1,83 @@
+package uz.uzinfocom.app.modules.card.application.query.dto.detail;
+
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.InfectionMonitoringResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.OutbreakControlMeasureResponse;
+import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
+import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public record Card174DetailResponse(
+        Long id,
+        CardType type,
+        CardStatus status,
+        Long formId,
+        Long assignedById,
+        String supervisorComment,
+        String attachedUserComment,
+        LocalDate completedDate,
+
+        Integer serialDocNumber,
+        String mkb10Code,
+        String mkb10Name,
+        String pathogenType,
+        LocalDate dataObtainedDate,
+        LocalDate reportToVeterinaryDepartmentDate,
+        String animalPrimaryDiagnosis,
+        String humanPrimaryDiagnosis,
+        LocalDate investigationDate,
+        LocalDate lastDiseaseYear,
+        LocalDate currentAnimalInfectionDate,
+        String outbreakLocalization,
+        String animalOwner,
+        String ownerAddress,
+        String affectedAnimalTypeCode,
+        Integer affectedAnimalCount,
+        String animalOwnershipCode,
+        Boolean isAreaExotic,
+        Boolean rodentIncrease,
+        Boolean vectorIncrease,
+        Boolean wildRodentsIncrease,
+        Boolean synanthropicRodentsIncrease,
+        Boolean bloodSuckingArthropodsIncrease,
+        Boolean epizootologyExistence,
+        List<String> diseaseFactorCodes,
+        String animalType,
+        LocalDate testDate,
+        Integer testSampleCount,
+        String testingMethod,
+        String testResult,
+        List<String> affectedAnimalCodes,
+        Integer affectedHumans,
+        Integer includingIndustrialConditions,
+        Integer includingWhoApplied,
+        Integer includingIdentified,
+        Integer treatedHumans,
+        Integer affectedInOutbreak,
+        List<InfectionMonitoringResponse> infectionMonitoring,
+        String quarantineTypeCode,
+        LocalDate quarantineStartDate,
+        LocalDate quarantineEndDate,
+        String animalDisposalMethodCode,
+        LocalDate animalDisposalDate,
+        String precautionaryMeasures,
+        String strayAnimalCapture,
+        String wildAnimalCulling,
+        String deratizationCode,
+        Double deratizationArea,
+        String inspectors,
+        String isolation,
+        String meatSubmission,
+        String treatment,
+        Boolean measureTaken,
+        List<String> disinfectionTransmissionFactorCodes,
+        Integer disinfectedFactorAmount,
+        LocalDate disinfectionDate,
+        List<String> eliminationMethodCodes,
+        String locationOfEvent,
+        String executionControlResults,
+        List<OutbreakControlMeasureResponse> outbreakControlMeasures,
+        String additionalMeasuresInfo
+) implements CardDetailResponse {
+}
