@@ -17,6 +17,7 @@ public interface UserService {
 
     Page<User> filter(int page, int size, String nnuzb, String firstName, String lastName, String middleName,
                       String phoneNumber, Boolean active, User currentUser);
+
     Page<User> filter(UserFilterRequest filter, User currentUser);
 
 
