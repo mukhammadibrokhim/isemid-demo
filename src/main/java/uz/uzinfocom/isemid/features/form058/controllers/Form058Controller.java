@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -59,7 +60,7 @@ public class Form058Controller {
 
     @GetMapping("/all")
     public PagedResponse<?> getAll(
-            @ModelAttribute Form058FilterRequest filterRequest,
+            @Valid @ModelAttribute @ParameterObject Form058FilterRequest filterRequest,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
@@ -73,7 +74,7 @@ public class Form058Controller {
 
     @GetMapping("/received/all")
     public PagedResponse<?> getReceivedAll(
-            @ModelAttribute Form058FilterRequest filterRequest,
+            @Valid @ModelAttribute @ParameterObject Form058FilterRequest filterRequest,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
