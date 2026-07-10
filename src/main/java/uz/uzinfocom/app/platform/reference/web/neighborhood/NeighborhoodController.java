@@ -39,7 +39,7 @@ import java.util.List;
 
 @Tag(
         name = "Reference - Neighborhoods",
-        description = "Neighborhood reference dictionary management APIs."
+        description = "API для управления справочником махаллей."
 )
 @Validated
 @RestController
@@ -56,19 +56,19 @@ public class NeighborhoodController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
-            summary = "Get paginated neighborhood reference data",
+            summary = "Получить постраничные данные справочника махаллей",
             description = """
-                    Returns active Neighborhood reference records as a paginated table.
+                    Возвращает активные записи справочника махаллей в виде постраничной таблицы.
 
-                    Supported filters: code, name, soatoId.
-                    Neighborhood.parentCode identifies the parent District code.
-                    Pagination is 1-based.
-                    Supported sort fields: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
+                    Поддерживаемые фильтры: code, name, soatoId.
+                    Neighborhood.parentCode указывает на код родительского района.
+                    Нумерация страниц начинается с 1.
+                    Поддерживаемые поля сортировки: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Neighborhoods successfully retrieved."
+            description = "Махалли успешно получены."
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -81,51 +81,51 @@ public class NeighborhoodController {
     }
 
     @Operation(
-            summary = "Get neighborhood by id",
-            description = "Returns a single active Neighborhood reference record by its internal identifier."
+            summary = "Получить махаллю по идентификатору",
+            description = "Возвращает одну активную запись махалли по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Neighborhood successfully retrieved."
+            description = "Махалля успешно получена."
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<NeighborhoodResponse> getById(
-            @Parameter(description = "Neighborhood internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), neighborhoodQueryService.getById(id));
     }
 
     @Operation(
-            summary = "Get neighborhood by code",
-            description = "Returns a single active Neighborhood reference record by the normalized neighborhood code."
+            summary = "Получить махаллю по коду",
+            description = "Возвращает одну активную запись махалли по нормализованному коду махалли."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Neighborhood successfully retrieved."
+            description = "Махалля успешно получена."
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<NeighborhoodResponse> getByCode(
-            @Parameter(description = "Neighborhood code.", required = true, example = "AN-202001")
+            @Parameter(description = "Код махалли.", required = true, example = "AN-202001")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), neighborhoodQueryService.getByCode(code));
     }
 
     @Operation(
-            summary = "Get neighborhoods by district code",
-            description = "Returns active Neighborhood reference records whose parentCode matches the supplied District code."
+            summary = "Получить махалли по коду района",
+            description = "Возвращает активные записи махаллей, у которых parentCode совпадает с указанным кодом района."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Neighborhoods successfully retrieved."
+            description = "Махалли успешно получены."
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<NeighborhoodResponse>> getByParentCode(
-            @Parameter(description = "District code stored in Neighborhood.parentCode.", required = true, example = "AN-202")
+            @Parameter(description = "Код района, хранящийся в Neighborhood.parentCode.", required = true, example = "AN-202")
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {
         return ApiResponse.success(
@@ -135,18 +135,18 @@ public class NeighborhoodController {
     }
 
     @Operation(
-            summary = "Create neighborhood",
-            description = "Creates a new Neighborhood reference record under an existing District parent."
+            summary = "Создать махаллю",
+            description = "Создаёт новую запись махалли в составе существующего родительского района."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
-            description = "Neighborhood successfully created."
+            description = "Махалля успешно создана."
     )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<NeighborhoodResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Neighborhood reference data to create.",
+                    description = "Данные создаваемой махалли.",
                     required = true
             )
             @Valid @RequestBody NeighborhoodCreateRequest request
@@ -155,20 +155,20 @@ public class NeighborhoodController {
     }
 
     @Operation(
-            summary = "Update neighborhood",
-            description = "Updates an existing active Neighborhood reference record by internal identifier."
+            summary = "Обновить махаллю",
+            description = "Обновляет существующую активную запись махалли по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Neighborhood successfully updated."
+            description = "Махалля успешно обновлена."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<NeighborhoodResponse> update(
-            @Parameter(description = "Neighborhood internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "New Neighborhood reference data.",
+                    description = "Новые данные махалли.",
                     required = true
             )
             @Valid @RequestBody NeighborhoodUpdateRequest request
@@ -177,17 +177,17 @@ public class NeighborhoodController {
     }
 
     @Operation(
-            summary = "Delete neighborhood",
-            description = "Soft-deletes a Neighborhood reference record. Deleted records are excluded from read endpoints."
+            summary = "Удалить махаллю",
+            description = "Мягко удаляет запись махалли. Удалённые записи исключаются из эндпоинтов чтения."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Neighborhood successfully deleted."
+            description = "Махалля успешно удалена."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Void> delete(
-            @Parameter(description = "Neighborhood internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         neighborhoodCommandService.delete(id);

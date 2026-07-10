@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.card.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -31,18 +33,24 @@ import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(name = ApiPaths.Card.ROOT)
-@Tag(name = "Card")
+@Tag(
+        name = "Card",
+        description = "Просмотр эпидемиологических карт (CARD161, CARD174, CARD175, CARD205, CARD_TUBE): "
+                + "личный список карт сотрудника и получение карты по идентификатору."
+)
 public class CardQueryController {
 
     private final CardQueryService cardQueryService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
 
-    /**
-     * The attached employee's own queue — always scoped server-side to the
-     * authenticated user, never to a client-supplied id.
-     */
-    @GetMapping(ApiPaths.Card.MINE)
+    @Operation(
+            summary = "Мои карты",
+            description = "Возвращает постраничный список карт, прикреплённых к текущему авторизованному "
+                    + "сотруднику. Область видимости всегда определяется на сервере по авторизованному "
+                    + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно."
+    )
+    @GetMapping(ApiPaths.Card.ASSIGNED_TO_ME)
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<CardTableResponse> findAssignedToMe(
             @ParameterObject @Valid CardFilterRequest filter,
@@ -52,9 +60,17 @@ public class CardQueryController {
                 .toResponse(cardQueryService.findAssignedToMe(filter), messageResolver.resolve("common.success"), httpRequest);
     }
 
+    @Operation(
+            summary = "Получить карту по идентификатору",
+            description = "Возвращает полную детальную информацию по карте, включая все дочерние данные "
+                    + "(вакцинации, факторы риска, контактные лица и т.д.), в зависимости от типа карты."
+    )
     @GetMapping(ApiPaths.Card.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<CardDetailResponse> byId(@PathVariable @Positive Long id) {
+    public ApiResponse<CardDetailResponse> byId(
+            @Parameter(description = "Идентификатор карты.", required = true)
+            @PathVariable @Positive Long id
+    ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 cardQueryService.getById(id)

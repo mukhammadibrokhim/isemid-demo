@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.card.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -27,25 +29,25 @@ import uz.uzinfocom.app.shared.response.ApiResponse;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Form 058")
+@Tag(name = "Form 058", description = "Форма №058 — эпидемиологическое извещение об инфекционном заболевании.")
 public class Form058CardCommandController {
 
     private final CardCommandService cardCommandService;
     private final MessageResolver messageResolver;
 
-    /**
-     * Bulk-assigns card types + employees to a form — creates one blank
-     * card per distinct requested type, all attached to the same set of
-     * users, ready for those employees to fill in via {@code PUT
-     * /cards/{id}} once they see it in {@code GET /cards/assigned-to-me}.
-     * Only success matters here, not the created cards themselves — the
-     * form's status moving to CARD_LINKED is the actual observable effect.
-     * This is the only way cards get created — there is no separate
-     * "create one fully-populated card" endpoint.
-     */
+    @Operation(
+            summary = "Назначить карты и сотрудников на форму",
+            description = "Массово создаёт пустые карты для формы №058: по одной пустой карте на каждый "
+                    + "запрошенный уникальный тип, все прикреплены к одному и тому же набору сотрудников. "
+                    + "Сотрудники затем видят карты в списке \"Мои карты\" (GET /cards/assigned-to-me) и "
+                    + "заполняют их через PUT /cards/{id}. Это единственный способ создания карт — "
+                    + "отдельного эндпоинта для создания одной полностью заполненной карты не существует. "
+                    + "При успешном выполнении статус формы переходит в CARD_LINKED."
+    )
     @PostMapping(ApiPaths.Form058.ROOT + ApiPaths.Form058.ASSIGN_CARDS)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> assignCards(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
             @Valid @RequestBody AssignCardsRequest request
     ) {

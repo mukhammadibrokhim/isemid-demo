@@ -32,7 +32,7 @@ import java.util.List;
 
 @Tag(
         name = "Reference - Catalogs",
-        description = "General reference catalog management APIs."
+        description = "API для управления общими справочниками-каталогами."
 )
 @Validated
 @RestController
@@ -49,19 +49,19 @@ public class CatalogController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
-            summary = "Get paginated catalog reference data",
+            summary = "Получить постраничные данные каталога",
             description = """
-                    Returns active Catalog reference records as a paginated table.
+                    Возвращает активные записи справочника-каталога в виде постраничной таблицы.
 
-                    Supported filters: type, code, parentCode, search.
-                    Catalog parentCode points to another item in the same catalog type.
-                    Pagination is 1-based.
-                    Supported sort fields: id, type, code, parentCode, nameUz, nameRu.
+                    Поддерживаемые фильтры: type, code, parentCode, search.
+                    Catalog.parentCode указывает на другой элемент того же типа каталога.
+                    Нумерация страниц начинается с 1.
+                    Поддерживаемые поля сортировки: id, type, code, parentCode, nameUz, nameRu.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Catalog items successfully retrieved."
+            description = "Элементы каталога успешно получены."
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -74,36 +74,36 @@ public class CatalogController {
     }
 
     @Operation(
-            summary = "Get catalog item by id",
-            description = "Returns a single active Catalog reference record by its internal identifier."
+            summary = "Получить элемент каталога по идентификатору",
+            description = "Возвращает один активный элемент каталога по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Catalog item successfully retrieved."
+            description = "Элемент каталога успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<CatalogResponse> getById(
-            @Parameter(description = "Catalog item internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор элемента каталога.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), catalogQueryService.getById(id));
     }
 
     @Operation(
-            summary = "Get catalog item by type and code",
-            description = "Returns a single active Catalog reference record by catalog type and normalized item code."
+            summary = "Получить элемент каталога по типу и коду",
+            description = "Возвращает один активный элемент каталога по типу каталога и нормализованному коду элемента."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Catalog item successfully retrieved."
+            description = "Элемент каталога успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE_AND_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<CatalogResponse> getByTypeAndCode(
-            @Parameter(description = "Catalog type.", required = true, example = "GENDER")
+            @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
             @PathVariable @NotNull String type,
-            @Parameter(description = "Catalog item code.", required = true)
+            @Parameter(description = "Код элемента каталога.", required = true)
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(
@@ -113,36 +113,36 @@ public class CatalogController {
     }
 
     @Operation(
-            summary = "Get catalog items by type",
-            description = "Returns active Catalog reference records for the supplied catalog type, ordered by sort order and Uzbek name."
+            summary = "Получить элементы каталога по типу",
+            description = "Возвращает активные элементы каталога указанного типа, отсортированные по порядку и наименованию на узбекском языке."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Catalog items successfully retrieved."
+            description = "Элементы каталога успешно получены."
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<CatalogResponse>> getByType(
-            @Parameter(description = "Catalog type.", required = true, example = "GENDER")
+            @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
             @PathVariable @NotNull String type
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), catalogQueryService.getByType(type));
     }
 
     @Operation(
-            summary = "Get catalog items by type and parent code",
-            description = "Returns active Catalog reference records in the supplied catalog type whose parentCode matches another item in the same catalog type."
+            summary = "Получить элементы каталога по типу и коду родителя",
+            description = "Возвращает активные элементы каталога указанного типа, у которых parentCode совпадает с другим элементом того же типа каталога."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Catalog items successfully retrieved."
+            description = "Элементы каталога успешно получены."
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE_AND_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<CatalogResponse>> getByTypeAndParentCode(
-            @Parameter(description = "Catalog type.", required = true, example = "GENDER")
+            @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
             @PathVariable @NotNull String type,
-            @Parameter(description = "Parent catalog item code in the same catalog type.", required = true)
+            @Parameter(description = "Код родительского элемента того же типа каталога.", required = true)
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {
         return ApiResponse.success(
@@ -152,18 +152,18 @@ public class CatalogController {
     }
 
     @Operation(
-            summary = "Create catalog item",
-            description = "Creates a new Catalog reference record. Codes and optional parent codes are normalized before persistence."
+            summary = "Создать элемент каталога",
+            description = "Создаёт новый элемент каталога. Код и опциональный код родителя нормализуются перед сохранением."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
-            description = "Catalog item successfully created."
+            description = "Элемент каталога успешно создан."
     )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<CatalogResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Catalog reference data to create.",
+                    description = "Данные создаваемого элемента каталога.",
                     required = true
             )
             @Valid @RequestBody CatalogCreateRequest request
@@ -172,20 +172,20 @@ public class CatalogController {
     }
 
     @Operation(
-            summary = "Update catalog item",
-            description = "Updates an existing active Catalog reference record by internal identifier."
+            summary = "Обновить элемент каталога",
+            description = "Обновляет существующий активный элемент каталога по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Catalog item successfully updated."
+            description = "Элемент каталога успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<CatalogResponse> update(
-            @Parameter(description = "Catalog item internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор элемента каталога.", required = true, example = "1")
             @PathVariable @Positive Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "New Catalog reference data.",
+                    description = "Новые данные элемента каталога.",
                     required = true
             )
             @Valid @RequestBody CatalogUpdateRequest request
@@ -194,17 +194,17 @@ public class CatalogController {
     }
 
     @Operation(
-            summary = "Delete catalog item",
-            description = "Soft-deletes a Catalog reference record. Deleted records are excluded from read endpoints."
+            summary = "Удалить элемент каталога",
+            description = "Мягко удаляет элемент каталога. Удалённые записи исключаются из эндпоинтов чтения."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Catalog item successfully deleted."
+            description = "Элемент каталога успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Void> delete(
-            @Parameter(description = "Catalog item internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор элемента каталога.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         catalogCommandService.delete(id);

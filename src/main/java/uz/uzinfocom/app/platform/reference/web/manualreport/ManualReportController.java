@@ -39,8 +39,9 @@ import java.util.List;
 
 @Tag(
         name = "Reference - Manual Reports",
-        description = "Manual report reference dictionary management APIs. Manual reports group ICD-10 (MKB-10) " +
-                "diagnosis codes into named, admin-configured report buckets used for epidemiological reporting."
+        description = "API для управления справочником ручных отчётов. Ручные отчёты группируют коды диагнозов " +
+                "МКБ-10 в именованные, настраиваемые администратором группы отчётности, используемые для " +
+                "эпидемиологической отчётности."
 )
 @Validated
 @RestController
@@ -57,18 +58,18 @@ public class ManualReportController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
-            summary = "Get paginated manual report reference data",
+            summary = "Получить постраничные данные ручных отчётов",
             description = """
-                    Returns active Manual Report reference records as a paginated table.
+                    Возвращает активные записи справочника ручных отчётов в виде постраничной таблицы.
 
-                    Supported filters: code, name.
-                    Pagination is 1-based.
-                    Supported sort fields: id, code, shortName, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
+                    Поддерживаемые фильтры: code, name.
+                    Нумерация страниц начинается с 1.
+                    Поддерживаемые поля сортировки: id, code, shortName, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Manual reports successfully retrieved."
+            description = "Ручные отчёты успешно получены."
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -81,52 +82,53 @@ public class ManualReportController {
     }
 
     @Operation(
-            summary = "Get manual report by id",
-            description = "Returns a single active Manual Report reference record by its internal identifier."
+            summary = "Получить ручной отчёт по идентификатору",
+            description = "Возвращает одну активную запись ручного отчёта по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Manual report successfully retrieved."
+            description = "Ручной отчёт успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<ManualReportResponse> getById(
-            @Parameter(description = "Manual Report internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор ручного отчёта.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), manualReportQueryService.getById(id));
     }
 
     @Operation(
-            summary = "Get manual report by code",
-            description = "Returns a single active Manual Report reference record by its normalized code."
+            summary = "Получить ручной отчёт по коду",
+            description = "Возвращает одну активную запись ручного отчёта по его нормализованному коду."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Manual report successfully retrieved."
+            description = "Ручной отчёт успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<ManualReportResponse> getByCode(
-            @Parameter(description = "Manual Report code.", required = true, example = "TUBERCULOSIS")
+            @Parameter(description = "Код ручного отчёта.", required = true, example = "TUBERCULOSIS")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), manualReportQueryService.getByCode(code));
     }
 
     @Operation(
-            summary = "Get manual reports by ICD-10 (MKB-10) code",
-            description = "Returns every active Manual Report whose assigned MKB-10 code set contains the given " +
-                    "diagnosis code. Used to resolve which report bucket(s) a Form058 diagnosis counts toward."
+            summary = "Получить ручные отчёты по коду МКБ-10",
+            description = "Возвращает все активные ручные отчёты, в набор кодов МКБ-10 которых входит указанный " +
+                    "код диагноза. Используется для определения, в какую группу(ы) отчётности засчитывается " +
+                    "диагноз формы №058."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Manual reports successfully retrieved."
+            description = "Ручные отчёты успешно получены."
     )
     @GetMapping(ApiPaths.Reference.BY_MKB10_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<ManualReportResponse>> getByMkb10Code(
-            @Parameter(description = "ICD-10 (MKB-10) diagnosis code.", required = true, example = "A15")
+            @Parameter(description = "Код диагноза по МКБ-10.", required = true, example = "A15")
             @PathVariable @NotBlank @Size(max = 20) String code
     ) {
         return ApiResponse.success(
@@ -136,19 +138,19 @@ public class ManualReportController {
     }
 
     @Operation(
-            summary = "Create manual report",
-            description = "Creates a new Manual Report reference record. The code is normalized and MKB-10 codes " +
-                    "are trimmed and upper-cased before persistence."
+            summary = "Создать ручной отчёт",
+            description = "Создаёт новую запись ручного отчёта. Код нормализуется, а коды МКБ-10 обрезаются от " +
+                    "пробелов и приводятся к верхнему регистру перед сохранением."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
-            description = "Manual report successfully created."
+            description = "Ручной отчёт успешно создан."
     )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<ManualReportResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Manual Report reference data to create.",
+                    description = "Данные создаваемого ручного отчёта.",
                     required = true
             )
             @Valid @RequestBody ManualReportCreateRequest request
@@ -157,20 +159,20 @@ public class ManualReportController {
     }
 
     @Operation(
-            summary = "Update manual report",
-            description = "Updates an existing active Manual Report reference record by internal identifier."
+            summary = "Обновить ручной отчёт",
+            description = "Обновляет существующую активную запись ручного отчёта по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Manual report successfully updated."
+            description = "Ручной отчёт успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<ManualReportResponse> update(
-            @Parameter(description = "Manual Report internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор ручного отчёта.", required = true, example = "1")
             @PathVariable @Positive Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "New Manual Report reference data.",
+                    description = "Новые данные ручного отчёта.",
                     required = true
             )
             @Valid @RequestBody ManualReportUpdateRequest request
@@ -179,17 +181,17 @@ public class ManualReportController {
     }
 
     @Operation(
-            summary = "Delete manual report",
-            description = "Soft-deletes a Manual Report reference record. Deleted records are excluded from read endpoints."
+            summary = "Удалить ручной отчёт",
+            description = "Мягко удаляет запись ручного отчёта. Удалённые записи исключаются из эндпоинтов чтения."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Manual report successfully deleted."
+            description = "Ручной отчёт успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Void> delete(
-            @Parameter(description = "Manual Report internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор ручного отчёта.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         manualReportCommandService.delete(id);

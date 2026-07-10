@@ -1,6 +1,5 @@
-package uz.uzinfocom.app.modules.card.application.handler;
+package uz.uzinfocom.app.platform.persistence.sync;
 
-import uz.uzinfocom.app.modules.card.web.dto.request.ChildRequest;
 import uz.uzinfocom.app.platform.persistence.entity.BaseEntity;
 
 import java.util.ArrayList;
@@ -28,6 +27,11 @@ import java.util.function.Function;
  * <p>Never reassigns the collection field itself — only mutates it via
  * {@code clear()}/{@code addAll(...)} — so {@code orphanRemoval} keeps
  * working and callers holding a reference to the list see the update.
+ *
+ * <p>Lives at the platform level (not inside any one feature module)
+ * because it's a generic algorithm over {@link BaseEntity}/{@link ChildRequest},
+ * not a domain-shaped value object — first used by the {@code card} module,
+ * now shared with {@code form0581}.
  */
 public final class ChildCollectionSync {
 

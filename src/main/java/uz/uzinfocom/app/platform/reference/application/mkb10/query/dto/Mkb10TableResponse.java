@@ -2,27 +2,27 @@ package uz.uzinfocom.app.platform.reference.application.mkb10.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "MKB-10 classifier row for paginated table responses.")
+@Schema(description = "Строка классификатора МКБ-10 для постраничного табличного ответа.")
 public record Mkb10TableResponse(
-        @Schema(description = "External classifier id.", example = "1500")
+        @Schema(description = "Внешний идентификатор классификатора.", example = "1500")
         Long id,
-        @Schema(description = "Parent node's external id. Null for top-level (chapter) nodes.", example = "12")
+        @Schema(description = "Внешний идентификатор родительского узла. Null для узлов верхнего уровня (глав).", example = "12")
         Long parentId,
-        @Schema(description = "Unique ICD-10 code.", example = "A15")
+        @Schema(description = "Уникальный код МКБ-10.", example = "A15")
         String code,
-        @Schema(description = "Depth of this node in the classifier hierarchy, starting from 0.", example = "3")
+        @Schema(description = "Глубина данного узла в иерархии классификатора, начиная с 0.", example = "3")
         int level,
-        @Schema(description = "Whether this node is a leaf (an assignable diagnosis code).", example = "true")
+        @Schema(description = "Признак того, что узел является конечным (назначаемым кодом диагноза).", example = "true")
         boolean lastLevel,
-        @Schema(description = "Diagnosis name in Uzbek Latin.", example = "Tuberkulyoz")
+        @Schema(description = "Наименование диагноза на узбекском языке (латиница).", example = "Tuberkulyoz")
         String nameUz,
-        @Schema(description = "Diagnosis name in Uzbek Cyrillic.", example = "Туберкулёз")
+        @Schema(description = "Наименование диагноза на узбекском языке (кириллица).", example = "Туберкулёз")
         String nameUzCyril,
-        @Schema(description = "Diagnosis name in Russian.", example = "Туберкулёз")
+        @Schema(description = "Наименование диагноза на русском языке.", example = "Туберкулёз")
         String nameRu,
-        @Schema(description = "Diagnosis name in Karakalpak.", example = "Túberkulez")
+        @Schema(description = "Наименование диагноза на каракалпакском языке.", example = "Túberkulez")
         String nameKaa,
-        @Schema(description = "Soft-delete flag.", example = "false")
+        @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted
 ) {
 }

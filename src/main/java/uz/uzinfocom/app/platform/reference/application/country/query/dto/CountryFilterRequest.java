@@ -6,19 +6,19 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
-@Schema(description = "Country table filter and pagination parameters.")
+@Schema(description = "Параметры фильтрации и пагинации таблицы стран.")
 public record CountryFilterRequest(
-        @Schema(description = "Page number, starting from 1.", example = "1")
+        @Schema(description = "Номер страницы, начиная с 1.", example = "1")
         @Min(value = 1, message = "{reference.country.filter.page.min}")
         Integer page,
 
-        @Schema(description = "Number of records per page. Maximum value is 200.", example = "20")
+        @Schema(description = "Количество записей на странице. Максимальное значение — 200.", example = "20")
         @Min(value = 1, message = "{reference.country.filter.size.min}")
         @Max(value = 200, message = "{reference.country.filter.size.max}")
         Integer size,
 
         @Schema(
-                description = "Sort field. Unsupported values fall back to the default sort.",
+                description = "Поле сортировки. Неподдерживаемые значения приводят к сортировке по умолчанию.",
                 example = "nameUz",
                 allowableValues = {
                         "id",
@@ -33,17 +33,17 @@ public record CountryFilterRequest(
         )
         String sortBy,
 
-        @Schema(description = "Sort direction.", example = "asc", allowableValues = {"asc", "desc"})
+        @Schema(description = "Направление сортировки.", example = "asc", allowableValues = {"asc", "desc"})
         String sortDir,
 
         @Schema(
-                description = "Search text matched against Country names in supported languages.",
+                description = "Текст поиска по наименованиям стран на поддерживаемых языках.",
                 example = "Oʻzbekiston"
         )
         @Size(max = 255, message = "{reference.name.max_length}")
         String name,
 
-        @Schema(description = "Exact Country code filter.", example = "UZB")
+        @Schema(description = "Фильтр по точному коду страны.", example = "UZB")
         @Size(max = 50, message = "{reference.code.max_length}")
         String code
 ) implements PageableRequest {

@@ -16,7 +16,7 @@ import uz.uzinfocom.app.platform.i18n.MessageResolver;
 
 import java.time.LocalDate;
 
-@Tag(name = "API2 Citizen", description = "Citizen lookup through API2.")
+@Tag(name = "API2 Citizen", description = "Поиск сведений о физическом лице через внешнюю систему API2.")
 @RestController
 @RequiredArgsConstructor
 public class CitizenLookupController {
@@ -24,22 +24,25 @@ public class CitizenLookupController {
     private final CitizenLookupService citizenLookupService;
     private final MessageResolver messages;
 
-    @Operation(summary = "Lookup citizen data through API2")
+    @Operation(
+            summary = "Найти сведения о физическом лице через API2",
+            description = "Выполняет поиск физического лица во внешней системе API2 по ПИНФЛ, паспортным данным или свидетельству о рождении — в зависимости от указанного типа поиска."
+    )
     @GetMapping("/v1/citizen")
     public CitizenLookupResponse lookupCitizen(
-            @Parameter(description = "Lookup type: NNUZB, PPN, or CZ.", required = true)
+            @Parameter(description = "Тип поиска: NNUZB (ПИНФЛ), PPN (паспорт) или CZ (свидетельство о рождении).", required = true)
             @RequestParam CitizenLookupType type,
-            @Parameter(description = "Birth date for NNUZB or PPN lookup.")
+            @Parameter(description = "Дата рождения — для поиска по ПИНФЛ (NNUZB) или паспорту (PPN).")
             @RequestParam(name = "birth_date", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate birthDate,
-            @Parameter(description = "14 digit NNUZB.")
+            @Parameter(description = "14-значный ПИНФЛ.")
             @RequestParam(required = false) String nnuzb,
-            @Parameter(description = "Passport document for PPN lookup.")
+            @Parameter(description = "Номер паспорта — для поиска по паспорту (PPN).")
             @RequestParam(required = false) String document,
-            @Parameter(description = "Birth certificate series for CZ lookup.")
+            @Parameter(description = "Серия свидетельства о рождении — для поиска по свидетельству (CZ).")
             @RequestParam(required = false) String series,
-            @Parameter(description = "Birth certificate number for CZ lookup.")
+            @Parameter(description = "Номер свидетельства о рождении — для поиска по свидетельству (CZ).")
             @RequestParam(required = false) String number
     ) {
         CitizenLookupResult result = citizenLookupService.lookup(new CitizenLookupRequest(

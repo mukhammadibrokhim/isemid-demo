@@ -2,54 +2,54 @@ package uz.uzinfocom.app.platform.reference.application.catalog.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Catalog reference item for paginated table responses.")
+@Schema(description = "Элемент каталога для постраничного табличного ответа.")
 public record CatalogTableResponse(
 
         @Schema(
-                description = "Catalog item internal identifier.",
+                description = "Внутренний идентификатор элемента каталога.",
                 example = "1"
         )
         Long id,
 
         @Schema(
-                description = "Catalog type.",
+                description = "Тип каталога.",
                 example = "GENDER"
         )
         String type,
 
         @Schema(
-                description = "Unique item code within the selected catalog type.",
+                description = "Уникальный код элемента внутри выбранного типа каталога.",
                 example = "MALE"
         )
         String code,
 
         @Schema(
-                description = "Optional parent item code within the same catalog type.",
+                description = "Необязательный код родительского элемента внутри того же типа каталога.",
                 example = "PERSON",
                 nullable = true
         )
         String parentCode,
 
         @Schema(
-                description = "Catalog item name in Uzbek Latin.",
+                description = "Наименование элемента каталога на узбекском языке (латиница).",
                 example = "Erkak"
         )
         String nameUz,
 
         @Schema(
-                description = "Catalog item name in Uzbek Cyrillic.",
+                description = "Наименование элемента каталога на узбекском языке (кириллица).",
                 example = "Эркак"
         )
         String nameUzCyril,
 
         @Schema(
-                description = "Catalog item name in Russian.",
+                description = "Наименование элемента каталога на русском языке.",
                 example = "Мужской"
         )
         String nameRu,
 
         @Schema(
-                description = "Catalog item name in Karakalpak.",
+                description = "Наименование элемента каталога на каракалпакском языке.",
                 example = "Ер адам"
         )
         String nameKaa

@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.form058.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -30,7 +32,11 @@ import uz.uzinfocom.app.shared.response.ApiResponse;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Form 058")
+@Tag(
+        name = "Form 058",
+        description = "Управление формой №058 — экстренным извещением об инфекционном заболевании: "
+                + "создание, редактирование, удаление, утверждение и аннулирование."
+)
 @RequestMapping(ApiPaths.Form058.ROOT)
 public class Form058CommandController {
 
@@ -43,9 +49,15 @@ public class Form058CommandController {
     private final Form058SourceResolver sourceResolver;
     private final MessageResolver messageResolver;
 
+    @Operation(
+            summary = "Создать форму №058",
+            description = "Регистрирует новую форму №058 и связанного пациента (если он ещё не зарегистрирован "
+                    + "в системе). Начальный статус формы — NOT_APPROVED."
+    )
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<CreateForm058Response> create(
+            @Parameter(description = "Источник поступления формы (заполняется автоматически по заголовку запроса).")
             @RequestHeader(value = Form058Headers.X_SOURCE, required = false) String sourceHeader,
             @Valid @RequestBody CreateForm058Request request
     ) {
@@ -55,9 +67,14 @@ public class Form058CommandController {
         );
     }
 
+    @Operation(
+            summary = "Обновить форму №058",
+            description = "Редактирует данные ранее созданной формы. Недоступно после утверждения/аннулирования формы."
+    )
     @PutMapping(ApiPaths.Form058.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<UpdateForm058Response> update(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
             @Valid @RequestBody UpdateForm058Request request
     ) {
@@ -67,9 +84,14 @@ public class Form058CommandController {
         );
     }
 
+    @Operation(
+            summary = "Удалить форму №058",
+            description = "Удаляет форму с обязательным указанием причины удаления."
+    )
     @DeleteMapping(value = ApiPaths.Form058.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> delete(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable Long id,
             @Valid @RequestBody DeleteForm058Request request
     ) {
@@ -77,9 +99,15 @@ public class Form058CommandController {
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
     }
 
-    @PostMapping(ApiPaths.Form058.APPROVE)
+    @Operation(
+            summary = "Утвердить форму №058",
+            description = "Переводит форму в статус APPROVED. Доступно, когда форма находится в статусе "
+                    + "ожидания утверждения (APPROVED_PENDING)."
+    )
+    @PatchMapping(ApiPaths.Form058.APPROVE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<UpdateForm058Response> approve(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
             @Valid @RequestBody ApproveForm058Request request
     ) {
@@ -89,9 +117,14 @@ public class Form058CommandController {
         );
     }
 
-    @PostMapping(ApiPaths.Form058.NOT_APPROVE)
+    @Operation(
+            summary = "Отклонить утверждение формы №058",
+            description = "Отказывает в утверждении формы с указанием причины — форма возвращается на доработку."
+    )
+    @PatchMapping(ApiPaths.Form058.NOT_APPROVE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<UpdateForm058Response> notApprove(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
             @Valid @RequestBody NotApproveForm058Request request
     ) {
@@ -101,9 +134,14 @@ public class Form058CommandController {
         );
     }
 
-    @PostMapping(ApiPaths.Form058.CANCEL)
+    @Operation(
+            summary = "Аннулировать форму №058",
+            description = "Переводит форму в статус CANCELED с обязательным указанием причины аннулирования."
+    )
+    @PatchMapping(ApiPaths.Form058.CANCEL)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<UpdateForm058Response> cancel(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
             @Valid @RequestBody CancelForm058Request request
     ) {

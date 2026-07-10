@@ -39,8 +39,9 @@ import java.util.List;
 
 @Tag(
         name = "Reference - MKB-10",
-        description = "ICD-10 (MKB-10) classifier reference dictionary management APIs. Nodes are bulk-imported " +
-                "from the external WHO ICD-10 hierarchy and keep the source's ids to preserve parent/child links."
+        description = "API для управления справочником классификатора МКБ-10. Узлы массово импортируются из " +
+                "внешней иерархии МКБ-10 ВОЗ и сохраняют идентификаторы источника для целостности связей " +
+                "родитель-потомок."
 )
 @Validated
 @RestController
@@ -57,18 +58,18 @@ public class Mkb10Controller {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
-            summary = "Get paginated MKB-10 classifier data",
+            summary = "Получить постраничные данные классификатора МКБ-10",
             description = """
-                    Returns active MKB-10 nodes as a paginated table.
+                    Возвращает активные узлы МКБ-10 в виде постраничной таблицы.
 
-                    Supported filters: code, name, parentId, level.
-                    Pagination is 1-based.
-                    Supported sort fields: id, code, level, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
+                    Поддерживаемые фильтры: code, name, parentId, level.
+                    Нумерация страниц начинается с 1.
+                    Поддерживаемые поля сортировки: id, code, level, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "MKB-10 nodes successfully retrieved."
+            description = "Узлы МКБ-10 успешно получены."
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -81,12 +82,12 @@ public class Mkb10Controller {
     }
 
     @Operation(
-            summary = "Get top-level MKB-10 chapters",
-            description = "Returns every active MKB-10 node with no parent (the top level of the classifier tree)."
+            summary = "Получить корневые разделы МКБ-10",
+            description = "Возвращает все активные узлы МКБ-10 без родителя (верхний уровень дерева классификатора)."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "MKB-10 root nodes successfully retrieved."
+            description = "Корневые узлы МКБ-10 успешно получены."
     )
     @GetMapping(ApiPaths.Reference.ROOTS)
     @PreAuthorize("isAuthenticated()")
@@ -95,70 +96,71 @@ public class Mkb10Controller {
     }
 
     @Operation(
-            summary = "Get direct children of an MKB-10 node",
-            description = "Returns every active MKB-10 node whose parent is the given node id, for tree navigation."
+            summary = "Получить дочерние узлы МКБ-10",
+            description = "Возвращает все активные узлы МКБ-10, чей родитель — указанный идентификатор узла, для навигации по дереву."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "MKB-10 child nodes successfully retrieved."
+            description = "Дочерние узлы МКБ-10 успешно получены."
     )
     @GetMapping(ApiPaths.Reference.CHILDREN)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<Mkb10Response>> getChildren(
-            @Parameter(description = "Parent MKB-10 node external id.", required = true, example = "12")
+            @Parameter(description = "Внешний идентификатор родительского узла МКБ-10.", required = true, example = "12")
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), mkb10QueryService.getChildren(id));
     }
 
     @Operation(
-            summary = "Get MKB-10 node by id",
-            description = "Returns a single active MKB-10 node by its external identifier."
+            summary = "Получить узел МКБ-10 по идентификатору",
+            description = "Возвращает один активный узел МКБ-10 по его внешнему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "MKB-10 node successfully retrieved."
+            description = "Узел МКБ-10 успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Mkb10Response> getById(
-            @Parameter(description = "MKB-10 node external id.", required = true, example = "1500")
+            @Parameter(description = "Внешний идентификатор узла МКБ-10.", required = true, example = "1500")
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), mkb10QueryService.getById(id));
     }
 
     @Operation(
-            summary = "Get MKB-10 node by code",
-            description = "Returns a single active MKB-10 node by its normalized ICD-10 code."
+            summary = "Получить узел МКБ-10 по коду",
+            description = "Возвращает один активный узел МКБ-10 по его нормализованному коду МКБ-10."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "MKB-10 node successfully retrieved."
+            description = "Узел МКБ-10 успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Mkb10Response> getByCode(
-            @Parameter(description = "ICD-10 code.", required = true, example = "A15")
+            @Parameter(description = "Код МКБ-10.", required = true, example = "A15")
             @PathVariable @NotBlank @Size(max = 20) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), mkb10QueryService.getByCode(code));
     }
 
     @Operation(
-            summary = "Create MKB-10 node",
-            description = "Creates a new MKB-10 classifier node. The id must match the external WHO ICD-10 " +
-                    "source's numbering so parent/child references stay valid across re-imports."
+            summary = "Создать узел МКБ-10",
+            description = "Создаёт новый узел классификатора МКБ-10. Идентификатор должен соответствовать " +
+                    "нумерации внешнего источника МКБ-10 ВОЗ, чтобы связи родитель-потомок оставались корректными " +
+                    "при повторном импорте."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
-            description = "MKB-10 node successfully created."
+            description = "Узел МКБ-10 успешно создан."
     )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Mkb10Response> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "MKB-10 node data to create.",
+                    description = "Данные создаваемого узла МКБ-10.",
                     required = true
             )
             @Valid @RequestBody Mkb10CreateRequest request
@@ -167,20 +169,20 @@ public class Mkb10Controller {
     }
 
     @Operation(
-            summary = "Update MKB-10 node",
-            description = "Updates an existing active MKB-10 node by its external identifier."
+            summary = "Обновить узел МКБ-10",
+            description = "Обновляет существующий активный узел МКБ-10 по его внешнему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "MKB-10 node successfully updated."
+            description = "Узел МКБ-10 успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Mkb10Response> update(
-            @Parameter(description = "MKB-10 node external id.", required = true, example = "1500")
+            @Parameter(description = "Внешний идентификатор узла МКБ-10.", required = true, example = "1500")
             @PathVariable @Positive Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "New MKB-10 node data.",
+                    description = "Новые данные узла МКБ-10.",
                     required = true
             )
             @Valid @RequestBody Mkb10UpdateRequest request
@@ -189,17 +191,17 @@ public class Mkb10Controller {
     }
 
     @Operation(
-            summary = "Delete MKB-10 node",
-            description = "Soft-deletes an MKB-10 node. Nodes with active children cannot be deleted."
+            summary = "Удалить узел МКБ-10",
+            description = "Мягко удаляет узел МКБ-10. Узлы с активными дочерними элементами удалить нельзя."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "MKB-10 node successfully deleted."
+            description = "Узел МКБ-10 успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Void> delete(
-            @Parameter(description = "MKB-10 node external id.", required = true, example = "1500")
+            @Parameter(description = "Внешний идентификатор узла МКБ-10.", required = true, example = "1500")
             @PathVariable @Positive Long id
     ) {
         mkb10CommandService.delete(id);

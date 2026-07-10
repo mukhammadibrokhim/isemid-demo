@@ -7,10 +7,10 @@ import jakarta.validation.constraints.Size;
 
 import java.util.Set;
 
-@Schema(description = "Request payload for updating a Manual Report reference record.")
+@Schema(description = "Данные для обновления записи ручного отчёта.")
 public record ManualReportUpdateRequest(
         @Schema(
-                description = "Unique Manual Report code.",
+                description = "Уникальный код ручного отчёта.",
                 example = "TUBERCULOSIS",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
@@ -18,34 +18,34 @@ public record ManualReportUpdateRequest(
         @Size(max = 50, message = "{reference.code.max_length}")
         String code,
 
-        @Schema(description = "Short display name for the report.", example = "TB")
+        @Schema(description = "Краткое отображаемое наименование отчёта.", example = "TB")
         @Size(max = 100, message = "{reference.manual_report.short_name.size}")
         String shortName,
 
-        @Schema(description = "Report name in Uzbek Latin.", example = "Sil kasalligi bo‘yicha hisobot")
+        @Schema(description = "Наименование отчёта на узбекском языке (латиница).", example = "Sil kasalligi bo‘yicha hisobot")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUz,
 
-        @Schema(description = "Report name in Uzbek Cyrillic.", example = "Сил касаллиги бўйича ҳисобот")
+        @Schema(description = "Наименование отчёта на узбекском языке (кириллица).", example = "Сил касаллиги бўйича ҳисобот")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUzCyril,
 
-        @Schema(description = "Report name in Russian.", example = "Отчёт по туберкулёзу")
+        @Schema(description = "Наименование отчёта на русском языке.", example = "Отчёт по туберкулёзу")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameRu,
 
-        @Schema(description = "Report name in Karakalpak.", example = "Túberkulez esabatı")
+        @Schema(description = "Наименование отчёта на каракалпакском языке.", example = "Túberkulez esabatı")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameKaa,
 
-        @Schema(description = "Whether matching diagnoses count toward aggregate totals.", example = "true")
+        @Schema(description = "Учитываются ли соответствующие диагнозы в общих итогах.", example = "true")
         Boolean includeInTotal,
 
-        @Schema(description = "Free-form report type tags used to group manual reports.")
+        @Schema(description = "Произвольные теги типа отчёта, используемые для группировки ручных отчётов.")
         Set<String> reportTypes,
 
         @Schema(
-                description = "ICD-10 (MKB-10) diagnosis codes this report aggregates. At least one is required.",
+                description = "Коды диагнозов МКБ-10, агрегируемые данным отчётом. Требуется хотя бы один код.",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         @NotEmpty(message = "{reference.manual_report.mkb10_codes.required}")

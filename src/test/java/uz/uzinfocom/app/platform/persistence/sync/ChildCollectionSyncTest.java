@@ -1,7 +1,6 @@
-package uz.uzinfocom.app.modules.card.application.handler;
+package uz.uzinfocom.app.platform.persistence.sync;
 
 import org.junit.jupiter.api.Test;
-import uz.uzinfocom.app.modules.card.web.dto.request.ChildRequest;
 import uz.uzinfocom.app.platform.persistence.entity.BaseEntity;
 
 import java.util.ArrayList;

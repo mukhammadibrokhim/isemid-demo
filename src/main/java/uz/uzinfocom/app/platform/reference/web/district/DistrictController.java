@@ -39,7 +39,7 @@ import java.util.List;
 
 @Tag(
         name = "Reference - Districts",
-        description = "District reference dictionary management APIs."
+        description = "API для управления справочником районов."
 )
 @Validated
 @RestController
@@ -56,19 +56,19 @@ public class DistrictController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
-            summary = "Get paginated district reference data",
+            summary = "Получить постраничные данные справочника районов",
             description = """
-                    Returns active District reference records as a paginated table.
+                    Возвращает активные записи справочника районов в виде постраничной таблицы.
 
-                    Supported filters: code, name, soatoId.
-                    District.parentCode identifies the parent Region code.
-                    Pagination is 1-based.
-                    Supported sort fields: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
+                    Поддерживаемые фильтры: code, name, soatoId.
+                    District.parentCode указывает на код родительского региона.
+                    Нумерация страниц начинается с 1.
+                    Поддерживаемые поля сортировки: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Districts successfully retrieved."
+            description = "Районы успешно получены."
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -81,51 +81,51 @@ public class DistrictController {
     }
 
     @Operation(
-            summary = "Get district by id",
-            description = "Returns a single active District reference record by its internal identifier."
+            summary = "Получить район по идентификатору",
+            description = "Возвращает одну активную запись района по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "District successfully retrieved."
+            description = "Район успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<DistrictResponse> getById(
-            @Parameter(description = "District internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор района.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), districtQueryService.getById(id));
     }
 
     @Operation(
-            summary = "Get district by code",
-            description = "Returns a single active District reference record by the normalized district code."
+            summary = "Получить район по коду",
+            description = "Возвращает одну активную запись района по нормализованному коду района."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "District successfully retrieved."
+            description = "Район успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<DistrictResponse> getByCode(
-            @Parameter(description = "District code.", required = true, example = "AN-202")
+            @Parameter(description = "Код района.", required = true, example = "AN-202")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), districtQueryService.getByCode(code));
     }
 
     @Operation(
-            summary = "Get districts by region code",
-            description = "Returns active District reference records whose parentCode matches the supplied Region code."
+            summary = "Получить районы по коду региона",
+            description = "Возвращает активные записи районов, у которых parentCode совпадает с указанным кодом региона."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Districts successfully retrieved."
+            description = "Районы успешно получены."
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<DistrictResponse>> getByParentCode(
-            @Parameter(description = "Region code stored in District.parentCode.", required = true, example = "UZ-AN")
+            @Parameter(description = "Код региона, хранящийся в District.parentCode.", required = true, example = "UZ-AN")
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {
         return ApiResponse.success(
@@ -135,18 +135,18 @@ public class DistrictController {
     }
 
     @Operation(
-            summary = "Create district",
-            description = "Creates a new District reference record under an existing Region parent."
+            summary = "Создать район",
+            description = "Создаёт новую запись района в составе существующего родительского региона."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
-            description = "District successfully created."
+            description = "Район успешно создан."
     )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<DistrictResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "District reference data to create.",
+                    description = "Данные создаваемого района.",
                     required = true
             )
             @Valid @RequestBody DistrictCreateRequest request
@@ -155,20 +155,20 @@ public class DistrictController {
     }
 
     @Operation(
-            summary = "Update district",
-            description = "Updates an existing active District reference record by internal identifier."
+            summary = "Обновить район",
+            description = "Обновляет существующую активную запись района по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "District successfully updated."
+            description = "Район успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<DistrictResponse> update(
-            @Parameter(description = "District internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор района.", required = true, example = "1")
             @PathVariable @Positive Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "New District reference data.",
+                    description = "Новые данные района.",
                     required = true
             )
             @Valid @RequestBody DistrictUpdateRequest request
@@ -177,17 +177,17 @@ public class DistrictController {
     }
 
     @Operation(
-            summary = "Delete district",
-            description = "Soft-deletes a District reference record. Deleted records are excluded from read endpoints."
+            summary = "Удалить район",
+            description = "Мягко удаляет запись района. Удалённые записи исключаются из эндпоинтов чтения."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "District successfully deleted."
+            description = "Район успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Void> delete(
-            @Parameter(description = "District internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор района.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         districtCommandService.delete(id);

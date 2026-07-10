@@ -11,7 +11,7 @@ import uz.uzinfocom.app.integration.api2.legalentity.application.LegalEntityLook
 import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupResult;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 
-@Tag(name = "API2 Legal Entity", description = "Legal entity lookup through API2.")
+@Tag(name = "API2 Legal Entity", description = "Поиск сведений о юридическом лице через внешнюю систему API2.")
 @RestController
 @RequiredArgsConstructor
 public class LegalEntityLookupController {
@@ -19,10 +19,13 @@ public class LegalEntityLookupController {
     private final LegalEntityLookupService legalEntityLookupService;
     private final MessageResolver messages;
 
-    @Operation(summary = "Lookup legal entity data through API2")
+    @Operation(
+            summary = "Найти сведения о юридическом лице через API2",
+            description = "Выполняет поиск юридического лица во внешней системе API2 по ИНН (идентификационному номеру налогоплательщика)."
+    )
     @GetMapping("/v1/legal-entity")
     public LegalEntityLookupResponse lookupLegalEntity(
-            @Parameter(description = "9 digit taxpayer identification number.", required = true)
+            @Parameter(description = "9-значный идентификационный номер налогоплательщика (ИНН).", required = true)
             @RequestParam String tin
     ) {
         LegalEntityLookupResult result = legalEntityLookupService.lookupByTin(tin);

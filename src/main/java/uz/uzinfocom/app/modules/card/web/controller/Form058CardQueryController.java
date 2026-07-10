@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.card.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -27,16 +29,23 @@ import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Form 058")
+@Tag(name = "Form 058", description = "Форма №058 — эпидемиологическое извещение об инфекционном заболевании.")
 public class Form058CardQueryController {
 
     private final CardQueryService cardQueryService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
 
+    @Operation(
+            summary = "Список карт формы №058",
+            description = "Возвращает постраничный список всех карт, привязанных к указанной форме №058, "
+                    + "с возможностью фильтрации по типу карты, статусу, прикреплённому сотруднику и "
+                    + "супервайзеру."
+    )
     @GetMapping(ApiPaths.Form058.ROOT + ApiPaths.Form058.CARDS)
     @PreAuthorize("isAuthenticated()")
     public PagedResponse<CardTableResponse> findByForm(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
             @ParameterObject @Valid CardFilterRequest filter,
             HttpServletRequest httpRequest

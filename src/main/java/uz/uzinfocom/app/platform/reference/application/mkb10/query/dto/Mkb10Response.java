@@ -2,51 +2,51 @@ package uz.uzinfocom.app.platform.reference.application.mkb10.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Detailed MKB-10 classifier node response.")
+@Schema(description = "Детальный ответ по узлу классификатора МКБ-10.")
 public record Mkb10Response(
 
-        @Schema(description = "External classifier id, as assigned by the source WHO ICD-10 dataset.", example = "1500")
+        @Schema(description = "Внешний идентификатор классификатора, присвоенный исходным набором данных МКБ-10 ВОЗ.", example = "1500")
         Long id,
 
-        @Schema(description = "Legacy/alternate numeric identifier carried over from a prior classification system.",
+        @Schema(description = "Устаревший/альтернативный числовой идентификатор из предыдущей системы классификации.",
                 example = "1500")
         Long secondaryId,
 
-        @Schema(description = "Parent node's external id. Null for top-level (chapter) nodes.", example = "12")
+        @Schema(description = "Внешний идентификатор родительского узла. Null для узлов верхнего уровня (глав).", example = "12")
         Long parentId,
 
-        @Schema(description = "Unique ICD-10 code.", example = "A15")
+        @Schema(description = "Уникальный код МКБ-10.", example = "A15")
         String code,
 
-        @Schema(description = "Depth of this node in the classifier hierarchy, starting from 0.", example = "3")
+        @Schema(description = "Глубина данного узла в иерархии классификатора, начиная с 0.", example = "3")
         int level,
 
-        @Schema(description = "Whether this node is a leaf (an assignable diagnosis code) rather than a category heading.",
+        @Schema(description = "Признак того, что узел является конечным (назначаемым кодом диагноза), а не заголовком категории.",
                 example = "true")
         boolean lastLevel,
 
-        @Schema(description = "Diagnosis name in Uzbek Latin.", example = "Tuberkulyoz")
+        @Schema(description = "Наименование диагноза на узбекском языке (латиница).", example = "Tuberkulyoz")
         String nameUz,
 
-        @Schema(description = "Diagnosis name in Uzbek Cyrillic.", example = "Туберкулёз")
+        @Schema(description = "Наименование диагноза на узбекском языке (кириллица).", example = "Туберкулёз")
         String nameUzCyril,
 
-        @Schema(description = "Diagnosis name in Russian.", example = "Туберкулёз")
+        @Schema(description = "Наименование диагноза на русском языке.", example = "Туберкулёз")
         String nameRu,
 
-        @Schema(description = "Diagnosis name in Karakalpak.", example = "Túberkulez")
+        @Schema(description = "Наименование диагноза на каракалпакском языке.", example = "Túberkulez")
         String nameKaa,
 
-        @Schema(description = "Free-form remark about this classifier node.")
+        @Schema(description = "Произвольное примечание к данному узлу классификатора.")
         String comment,
 
-        @Schema(description = "How many times this code may be used/selected.", example = "1")
+        @Schema(description = "Сколько раз может быть использован/выбран данный код.", example = "1")
         Integer usageLimit,
 
-        @Schema(description = "Number of direct child nodes under this node.", example = "5")
+        @Schema(description = "Количество непосредственных дочерних узлов данного узла.", example = "5")
         long childrenCount,
 
-        @Schema(description = "Soft-delete flag.", example = "false")
+        @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted
 ) {
 }

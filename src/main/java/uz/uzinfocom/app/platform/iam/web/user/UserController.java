@@ -27,7 +27,7 @@ import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Users", description = "User lookup and membership APIs.")
+@Tag(name = "Users", description = "API для поиска пользователей и просмотра их организаций.")
 @RestController
 @RequestMapping(ApiPaths.User.ROOT)
 @RequiredArgsConstructor
@@ -37,7 +37,10 @@ public class UserController {
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
 
-    @Operation(summary = "Find users")
+    @Operation(
+            summary = "Получить список пользователей",
+            description = "Возвращает постраничный список пользователей с возможностью фильтрации."
+    )
     @GetMapping
     public PagedResponse<UserTableResponse> findAll(
             @ParameterObject @Valid @ModelAttribute UserFilterRequest request,
@@ -47,28 +50,37 @@ public class UserController {
         return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
-    @Operation(summary = "Get user by id")
+    @Operation(
+            summary = "Получить пользователя по идентификатору",
+            description = "Возвращает детальную информацию о пользователе."
+    )
     @GetMapping(ApiPaths.User.BY_ID)
     public ApiResponse<UserDetailedResponse> findById(
-            @Parameter(description = "User id.", required = true)
+            @Parameter(description = "Идентификатор пользователя.", required = true)
             @PathVariable(ApiPaths.User.ID) Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), userQueryService.getRequiredById(id));
     }
 
-    @Operation(summary = "Get user by UUID")
+    @Operation(
+            summary = "Получить пользователя по UUID",
+            description = "Возвращает детальную информацию о пользователе по его UUID."
+    )
     @GetMapping(ApiPaths.User.BY_UUID)
     public ApiResponse<UserDetailedResponse> findByUuid(
-            @Parameter(description = "User UUID.", required = true)
+            @Parameter(description = "UUID пользователя.", required = true)
             @PathVariable UUID uuid
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), userQueryService.getRequiredByUuid(uuid));
     }
 
-    @Operation(summary = "Get user organizations")
+    @Operation(
+            summary = "Получить организации пользователя",
+            description = "Возвращает список организаций, к которым принадлежит указанный пользователь."
+    )
     @GetMapping(ApiPaths.User.ORGANIZATIONS)
     public ApiResponse<List<OrganizationShortResponse>> getUserOrganizations(
-            @Parameter(description = "User id.", required = true)
+            @Parameter(description = "Идентификатор пользователя.", required = true)
             @PathVariable(ApiPaths.User.ID) Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), userQueryService.findOrganizations(id));

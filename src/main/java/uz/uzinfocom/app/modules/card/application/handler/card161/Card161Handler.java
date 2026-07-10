@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
-import uz.uzinfocom.app.modules.card.application.handler.ChildCollectionSync;
+import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card161DetailResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;

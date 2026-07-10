@@ -8,52 +8,52 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Request payload for updating an MKB-10 classifier node. The id itself is not editable.")
+@Schema(description = "Данные для обновления узла классификатора МКБ-10. Сам идентификатор не редактируется.")
 public record Mkb10UpdateRequest(
-        @Schema(description = "Legacy/alternate numeric identifier carried over from a prior classification system.",
+        @Schema(description = "Устаревший/альтернативный числовой идентификатор из предыдущей системы классификации.",
                 example = "1500")
         Long secondaryId,
 
-        @Schema(description = "Parent node's external id. Null for top-level (chapter) nodes.", example = "12")
+        @Schema(description = "Внешний идентификатор родительского узла. Null для узлов верхнего уровня (глав).", example = "12")
         @Positive(message = "{reference.mkb10.parent_id.positive}")
         Long parentId,
 
-        @Schema(description = "Unique ICD-10 code.", example = "A15", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Уникальный код МКБ-10.", example = "A15", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank(message = "{reference.mkb10.code.required}")
         @Size(max = 20, message = "{reference.mkb10.code.max_length}")
         String code,
 
-        @Schema(description = "Depth of this node in the classifier hierarchy, starting from 0.", example = "3")
+        @Schema(description = "Глубина данного узла в иерархии классификатора, начиная с 0.", example = "3")
         @NotNull(message = "{reference.mkb10.level.required}")
         @PositiveOrZero(message = "{reference.mkb10.level.positive_or_zero}")
         Integer level,
 
-        @Schema(description = "Whether this node is a leaf (an assignable diagnosis code) rather than a category heading.",
+        @Schema(description = "Признак того, что узел является конечным (назначаемым кодом диагноза), а не заголовком категории.",
                 example = "true")
         @NotNull(message = "{reference.mkb10.last_level.required}")
         Boolean lastLevel,
 
-        @Schema(description = "Diagnosis name in Uzbek Latin.", example = "Tuberkulyoz")
+        @Schema(description = "Наименование диагноза на узбекском языке (латиница).", example = "Tuberkulyoz")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUz,
 
-        @Schema(description = "Diagnosis name in Uzbek Cyrillic.", example = "Туберкулёз")
+        @Schema(description = "Наименование диагноза на узбекском языке (кириллица).", example = "Туберкулёз")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUzCyril,
 
-        @Schema(description = "Diagnosis name in Russian.", example = "Туберкулёз")
+        @Schema(description = "Наименование диагноза на русском языке.", example = "Туберкулёз")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameRu,
 
-        @Schema(description = "Diagnosis name in Karakalpak.", example = "Túberkulez")
+        @Schema(description = "Наименование диагноза на каракалпакском языке.", example = "Túberkulez")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameKaa,
 
-        @Schema(description = "Free-form remark about this classifier node.")
+        @Schema(description = "Произвольное примечание к данному узлу классификатора.")
         @Size(max = 2000, message = "{reference.mkb10.comment.max_length}")
         String comment,
 
-        @Schema(description = "How many times this code may be used/selected. Defaults to 1 when omitted.",
+        @Schema(description = "Сколько раз может быть использован/выбран данный код. По умолчанию 1, если не указано.",
                 example = "1")
         @Min(value = 0, message = "{reference.mkb10.usage_limit.min}")
         Integer usageLimit

@@ -2,25 +2,25 @@ package uz.uzinfocom.app.platform.reference.application.manualreport.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Manual Report reference row for paginated table responses.")
+@Schema(description = "Строка ручного отчёта для постраничного табличного ответа.")
 public record ManualReportTableResponse(
-        @Schema(description = "Manual Report internal identifier.", example = "1")
+        @Schema(description = "Внутренний идентификатор ручного отчёта.", example = "1")
         Long id,
-        @Schema(description = "Unique Manual Report code.", example = "TUBERCULOSIS")
+        @Schema(description = "Уникальный код ручного отчёта.", example = "TUBERCULOSIS")
         String code,
-        @Schema(description = "Short display name for the report.", example = "TB")
+        @Schema(description = "Краткое отображаемое наименование отчёта.", example = "TB")
         String shortName,
-        @Schema(description = "Report name in Uzbek Latin.", example = "Sil kasalligi bo‘yicha hisobot")
+        @Schema(description = "Наименование отчёта на узбекском языке (латиница).", example = "Sil kasalligi bo‘yicha hisobot")
         String nameUz,
-        @Schema(description = "Report name in Uzbek Cyrillic.", example = "Сил касаллиги бўйича ҳисобот")
+        @Schema(description = "Наименование отчёта на узбекском языке (кириллица).", example = "Сил касаллиги бўйича ҳисобот")
         String nameUzCyril,
-        @Schema(description = "Report name in Russian.", example = "Отчёт по туберкулёзу")
+        @Schema(description = "Наименование отчёта на русском языке.", example = "Отчёт по туберкулёзу")
         String nameRu,
-        @Schema(description = "Report name in Karakalpak.", example = "Túberkulez esabatı")
+        @Schema(description = "Наименование отчёта на каракалпакском языке.", example = "Túberkulez esabatı")
         String nameKaa,
-        @Schema(description = "Whether matching diagnoses count toward aggregate totals.", example = "true")
+        @Schema(description = "Учитываются ли соответствующие диагнозы в общих итогах.", example = "true")
         Boolean includeInTotal,
-        @Schema(description = "Soft-delete flag.", example = "false")
+        @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted
 ) {
 }

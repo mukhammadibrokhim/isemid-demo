@@ -39,7 +39,7 @@ import java.util.List;
 
 @Tag(
         name = "Reference - Regions",
-        description = "Region reference dictionary management APIs."
+        description = "API для управления справочником регионов."
 )
 @Validated
 @RestController
@@ -56,19 +56,19 @@ public class RegionController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
-            summary = "Get paginated region reference data",
+            summary = "Получить постраничные данные справочника регионов",
             description = """
-                    Returns active Region reference records as a paginated table.
+                    Возвращает активные записи справочника регионов в виде постраничной таблицы.
 
-                    Supported filters: code, name, soatoId.
-                    Region.parentCode identifies the parent Country code.
-                    Pagination is 1-based.
-                    Supported sort fields: id, code, parentCode, soatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
+                    Поддерживаемые фильтры: code, name, soatoId.
+                    Region.parentCode указывает на код родительской страны.
+                    Нумерация страниц начинается с 1.
+                    Поддерживаемые поля сортировки: id, code, parentCode, soatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Regions successfully retrieved."
+            description = "Регионы успешно получены."
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -81,51 +81,51 @@ public class RegionController {
     }
 
     @Operation(
-            summary = "Get region by id",
-            description = "Returns a single active Region reference record by its internal identifier."
+            summary = "Получить регион по идентификатору",
+            description = "Возвращает одну активную запись региона по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Region successfully retrieved."
+            description = "Регион успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<RegionResponse> getById(
-            @Parameter(description = "Region internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор региона.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), regionQueryService.getById(id));
     }
 
     @Operation(
-            summary = "Get region by code",
-            description = "Returns a single active Region reference record by the normalized region code."
+            summary = "Получить регион по коду",
+            description = "Возвращает одну активную запись региона по нормализованному коду региона."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Region successfully retrieved."
+            description = "Регион успешно получен."
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<RegionResponse> getByCode(
-            @Parameter(description = "Region code.", required = true, example = "UZ-AN")
+            @Parameter(description = "Код региона.", required = true, example = "UZ-AN")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), regionQueryService.getByCode(code));
     }
 
     @Operation(
-            summary = "Get regions by country code",
-            description = "Returns active Region reference records whose parentCode matches the supplied Country code."
+            summary = "Получить регионы по коду страны",
+            description = "Возвращает активные записи регионов, у которых parentCode совпадает с указанным кодом страны."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Regions successfully retrieved."
+            description = "Регионы успешно получены."
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<RegionResponse>> getByParentCode(
-            @Parameter(description = "Country code stored in Region.parentCode.", required = true, example = "UZ")
+            @Parameter(description = "Код страны, хранящийся в Region.parentCode.", required = true, example = "UZ")
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {
         return ApiResponse.success(
@@ -135,18 +135,18 @@ public class RegionController {
     }
 
     @Operation(
-            summary = "Create region",
-            description = "Creates a new Region reference record under an existing Country parent."
+            summary = "Создать регион",
+            description = "Создаёт новую запись региона в составе существующей родительской страны."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
-            description = "Region successfully created."
+            description = "Регион успешно создан."
     )
     @PostMapping
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<RegionResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Region reference data to create.",
+                    description = "Данные создаваемого региона.",
                     required = true
             )
             @Valid @RequestBody RegionCreateRequest request
@@ -155,20 +155,20 @@ public class RegionController {
     }
 
     @Operation(
-            summary = "Update region",
-            description = "Updates an existing active Region reference record by internal identifier."
+            summary = "Обновить регион",
+            description = "Обновляет существующую активную запись региона по внутреннему идентификатору."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Region successfully updated."
+            description = "Регион успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<RegionResponse> update(
-            @Parameter(description = "Region internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор региона.", required = true, example = "1")
             @PathVariable @Positive Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "New Region reference data.",
+                    description = "Новые данные региона.",
                     required = true
             )
             @Valid @RequestBody RegionUpdateRequest request
@@ -177,17 +177,17 @@ public class RegionController {
     }
 
     @Operation(
-            summary = "Delete region",
-            description = "Soft-deletes a Region reference record. Deleted records are excluded from read endpoints."
+            summary = "Удалить регион",
+            description = "Мягко удаляет запись региона. Удалённые записи исключаются из эндпоинтов чтения."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
-            description = "Region successfully deleted."
+            description = "Регион успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize(ADMIN_AUTHORITIES)
     public ApiResponse<Void> delete(
-            @Parameter(description = "Region internal identifier.", required = true, example = "1")
+            @Parameter(description = "Внутренний идентификатор региона.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {
         regionCommandService.delete(id);

@@ -2,46 +2,46 @@ package uz.uzinfocom.app.platform.reference.application.country.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Detailed Country reference response.")
+@Schema(description = "Детальный ответ по стране.")
 public record CountryDetailedResponse(
 
-        @Schema(description = "Country internal identifier.", example = "240")
+        @Schema(description = "Внутренний идентификатор страны.", example = "240")
         Long id,
 
-        @Schema(description = "Unique Country code.", example = "UZB")
+        @Schema(description = "Уникальный код страны.", example = "UZB")
         String code,
 
-        @Schema(description = "Country name in Uzbek Latin.", example = "Oʻzbekiston")
+        @Schema(description = "Наименование страны на узбекском языке (латиница).", example = "Oʻzbekiston")
         String nameUz,
 
-        @Schema(description = "Country name in Uzbek Cyrillic.", example = "Ўзбекистон")
+        @Schema(description = "Наименование страны на узбекском языке (кириллица).", example = "Ўзбекистон")
         String nameUzCyril,
 
-        @Schema(description = "Country name in Russian.", example = "Узбекистан")
+        @Schema(description = "Наименование страны на русском языке.", example = "Узбекистан")
         String nameRu,
 
-        @Schema(description = "Country name in Karakalpak.", example = "Ózbekstan")
+        @Schema(description = "Наименование страны на каракалпакском языке.", example = "Ózbekstan")
         String nameKaa,
 
         @Schema(
-                description = "ISO 3166-1 alpha-2 country code.",
+                description = "Код страны по ISO 3166-1 alpha-2.",
                 example = "UZ"
         )
         String alpha2Code,
 
         @Schema(
-                description = "ISO 3166-2 country subdivision prefix.",
+                description = "Префикс административного деления страны по ISO 3166-2.",
                 example = "UZ"
         )
         String iso3166Part2Code,
 
         @Schema(
-                description = "Country citizenship classifier code.",
+                description = "Код классификатора гражданства страны.",
                 example = "860"
         )
         String citizenshipCode,
 
-        @Schema(description = "Soft-delete flag.", example = "false")
+        @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted
 ) {
 }

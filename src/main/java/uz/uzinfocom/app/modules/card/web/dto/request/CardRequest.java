@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.card.web.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 
 /**
@@ -11,6 +12,14 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardType;
  * {@code CardRequest} stays exhaustive. Polymorphism lives only here, in the
  * DTO layer — the JPA entities have no Jackson annotations at all.
  */
+@Schema(
+        description = "Данные эпидемиологической карты для сохранения. Конкретная структура зависит от поля "
+                + "\"type\" — оно определяет, какой из пяти типов карт (CARD161, CARD174, CARD175, CARD205, "
+                + "CARD_TUBE) заполняется.",
+        oneOf = {Card161Request.class, Card174Request.class, Card175Request.class,
+                Card205Request.class, CardTubeRequest.class},
+        discriminatorProperty = "type"
+)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Card161Request.class, name = "CARD161"),

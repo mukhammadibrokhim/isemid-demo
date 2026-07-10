@@ -2,25 +2,25 @@ package uz.uzinfocom.app.platform.reference.application.region.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Region reference row for paginated table responses.")
+@Schema(description = "Строка региона для постраничного табличного ответа.")
 public record RegionTableResponse(
-        @Schema(description = "Region internal identifier.", example = "1")
+        @Schema(description = "Внутренний идентификатор региона.", example = "1")
         Long id,
-        @Schema(description = "Unique Region code.", example = "UZ-AN")
+        @Schema(description = "Уникальный код региона.", example = "UZ-AN")
         String code,
-        @Schema(description = "Parent Country code for the Region.", example = "UZ")
+        @Schema(description = "Код родительской страны для данного региона.", example = "UZ")
         String parentCode,
-        @Schema(description = "Region SOATO identifier.", example = "1703")
+        @Schema(description = "Идентификатор СОАТО региона.", example = "1703")
         Integer soatoId,
-        @Schema(description = "Region name in Uzbek Latin.", example = "Andijon viloyati")
+        @Schema(description = "Наименование региона на узбекском языке (латиница).", example = "Andijon viloyati")
         String nameUz,
-        @Schema(description = "Region name in Uzbek Cyrillic.", example = "Андижон вилояти")
+        @Schema(description = "Наименование региона на узбекском языке (кириллица).", example = "Андижон вилояти")
         String nameUzCyril,
-        @Schema(description = "Region name in Russian.", example = "Андижанская область")
+        @Schema(description = "Наименование региона на русском языке.", example = "Андижанская область")
         String nameRu,
-        @Schema(description = "Region name in Karakalpak.", example = "Andijan wálayatı")
+        @Schema(description = "Наименование региона на каракалпакском языке.", example = "Andijan wálayatı")
         String nameKaa,
-        @Schema(description = "Soft-delete flag.", example = "false")
+        @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted
 ) {
 }

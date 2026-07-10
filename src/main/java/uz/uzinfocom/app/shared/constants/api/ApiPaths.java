@@ -107,6 +107,18 @@ public final class ApiPaths {
 
     }
 
+    public static final class Form0581 {
+        private Form0581() {
+        }
+
+        public static final String ROOT = API_V1 + "/form-058-1";
+        public static final String BY_ID = "/{id}";
+        public static final String BY_DOCUMENT_VALUE = "/by-document";
+        public static final String APPROVE = "/{id}/approve";
+        public static final String NOT_APPROVE = "/{id}/not-approve";
+        public static final String CANCEL = "/{id}/cancel";
+    }
+
     public static final class Card {
         private Card() {
         }
@@ -116,7 +128,7 @@ public final class ApiPaths {
 
         // Personal, server-scoped list view — never trust a client-supplied
         // user id for this, always resolve from the authenticated principal.
-        public static final String MINE = "/mine";
+        public static final String ASSIGNED_TO_ME = "/assigned-to-me";
 
         // Attached-employee actions (the user working the card).
         public static final String ACCEPT = "/{id}/accept";

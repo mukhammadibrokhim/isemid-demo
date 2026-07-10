@@ -2,21 +2,21 @@ package uz.uzinfocom.app.platform.reference.application.country.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Country reference row for paginated table responses.")
+@Schema(description = "Строка страны для постраничного табличного ответа.")
 public record CountryTableResponse(
-        @Schema(description = "Country internal identifier.", example = "240")
+        @Schema(description = "Внутренний идентификатор страны.", example = "240")
         Long id,
-        @Schema(description = "Unique Country code.", example = "UZB")
+        @Schema(description = "Уникальный код страны.", example = "UZB")
         String code,
-        @Schema(description = "Country name in Uzbek Latin.", example = "Oʻzbekiston")
+        @Schema(description = "Наименование страны на узбекском языке (латиница).", example = "Oʻzbekiston")
         String nameUz,
-        @Schema(description = "Country name in Uzbek Cyrillic.", example = "Ўзбекистон")
+        @Schema(description = "Наименование страны на узбекском языке (кириллица).", example = "Ўзбекистон")
         String nameUzCyril,
-        @Schema(description = "Country name in Russian.", example = "Узбекистан")
+        @Schema(description = "Наименование страны на русском языке.", example = "Узбекистан")
         String nameRu,
-        @Schema(description = "Country name in Karakalpak.", example = "Ózbekstan")
+        @Schema(description = "Наименование страны на каракалпакском языке.", example = "Ózbekstan")
         String nameKaa,
-        @Schema(description = "Soft-delete flag.", example = "false")
+        @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted
 ) {
 }

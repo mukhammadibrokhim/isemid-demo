@@ -3,26 +3,27 @@ package uz.uzinfocom.app.platform.reference.application.catalog.query.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 
-@Schema(description = "Detailed Catalog reference response.")
+@Schema(description = "Детальный ответ по элементу каталога.")
 public record CatalogResponse(
-        @Schema(description = "Catalog item internal identifier.", example = "1")
+        @Schema(description = "Внутренний идентификатор элемента каталога.", example = "1")
         Long id,
-        @Schema(description = "Catalog type.", example = "GENDER")
+        @Schema(description = "Тип каталога.", example = "GENDER")
         String type,
-        @Schema(description = "Unique item code inside the selected catalog type.")
+        @Schema(description = "Уникальный код элемента внутри выбранного типа каталога.")
         String code,
-        @Schema(description = "Optional parent item code inside the same catalog type.")
+        @Schema(description = "Необязательный код родительского элемента внутри того же типа каталога.")
         String parentCode,
-        @Schema(description = "Catalog item name in Uzbek Latin.")
+        @Schema(description = "Наименование элемента каталога на узбекском языке (латиница).")
         String nameUz,
-        @Schema(description = "Catalog item name in Uzbek Cyrillic.")
+        @Schema(description = "Наименование элемента каталога на узбекском языке (кириллица).")
         String nameUzCyril,
-        @Schema(description = "Catalog item name in Russian.")
+        @Schema(description = "Наименование элемента каталога на русском языке.")
         String nameRu,
-        @Schema(description = "Catalog item name in Karakalpak.")
+        @Schema(description = "Наименование элемента каталога на каракалпакском языке.")
         String nameKaa,
-        @Schema(description = "Soft-delete flag.", example = "false")
+        @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted,
+        @Schema(description = "Сведения об аудите записи.")
         AuditResponse audit
 ) {
 }

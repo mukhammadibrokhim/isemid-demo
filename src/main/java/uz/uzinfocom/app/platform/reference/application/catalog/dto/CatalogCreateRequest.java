@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Request payload for creating a Catalog reference record.")
+@Schema(description = "Данные для создания элемента каталога.")
 public record CatalogCreateRequest(
         @Schema(
-                description = "Catalog type.",
+                description = "Тип каталога.",
                 example = "GENDER",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
@@ -16,30 +16,30 @@ public record CatalogCreateRequest(
         String type,
 
         @Schema(
-                description = "Unique item code inside the selected catalog type.",
+                description = "Уникальный код элемента внутри выбранного типа каталога.",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         @NotBlank(message = "{reference.code.required}")
         @Size(max = 50, message = "{reference.code.max_length}")
         String code,
 
-        @Schema(description = "Optional parent item code inside the same catalog type.")
+        @Schema(description = "Необязательный код родительского элемента внутри того же типа каталога.")
         @Size(max = 50, message = "{reference.parent_code.max_length}")
         String parentCode,
 
-        @Schema(description = "Catalog item name in Uzbek Latin.")
+        @Schema(description = "Наименование элемента каталога на узбекском языке (латиница).")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUz,
 
-        @Schema(description = "Catalog item name in Uzbek Cyrillic.")
+        @Schema(description = "Наименование элемента каталога на узбекском языке (кириллица).")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUzCyril,
 
-        @Schema(description = "Catalog item name in Russian.")
+        @Schema(description = "Наименование элемента каталога на русском языке.")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameRu,
 
-        @Schema(description = "Catalog item name in Karakalpak.")
+        @Schema(description = "Наименование элемента каталога на каракалпакском языке.")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameKaa
 ) {

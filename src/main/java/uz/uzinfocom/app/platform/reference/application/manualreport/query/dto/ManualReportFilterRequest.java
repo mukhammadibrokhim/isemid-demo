@@ -6,19 +6,19 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
-@Schema(description = "Manual Report table filter and pagination parameters.")
+@Schema(description = "Параметры фильтрации и пагинации таблицы ручных отчётов.")
 public record ManualReportFilterRequest(
-        @Schema(description = "Page number, starting from 1.", example = "1")
+        @Schema(description = "Номер страницы, начиная с 1.", example = "1")
         @Min(value = 1, message = "{reference.manual_report.filter.page.min}")
         Integer page,
 
-        @Schema(description = "Number of records per page. Maximum value is 200.", example = "20")
+        @Schema(description = "Количество записей на странице. Максимальное значение — 200.", example = "20")
         @Min(value = 1, message = "{reference.manual_report.filter.size.min}")
         @Max(value = 200, message = "{reference.manual_report.filter.size.max}")
         Integer size,
 
         @Schema(
-                description = "Sort field. Unsupported values fall back to the default sort.",
+                description = "Поле сортировки. Неподдерживаемые значения приводят к сортировке по умолчанию.",
                 example = "nameUz",
                 allowableValues = {
                         "id",
@@ -34,17 +34,17 @@ public record ManualReportFilterRequest(
         )
         String sortBy,
 
-        @Schema(description = "Sort direction.", example = "asc", allowableValues = {"asc", "desc"})
+        @Schema(description = "Направление сортировки.", example = "asc", allowableValues = {"asc", "desc"})
         String sortDir,
 
         @Schema(
-                description = "Search text matched against Manual Report names in supported languages.",
+                description = "Текст поиска по наименованиям ручных отчётов на поддерживаемых языках.",
                 example = "Sil"
         )
         @Size(max = 255, message = "{reference.name.max_length}")
         String name,
 
-        @Schema(description = "Exact Manual Report code filter.", example = "TUBERCULOSIS")
+        @Schema(description = "Фильтр по точному коду ручного отчёта.", example = "TUBERCULOSIS")
         @Size(max = 50, message = "{reference.code.max_length}")
         String code
 ) implements PageableRequest {

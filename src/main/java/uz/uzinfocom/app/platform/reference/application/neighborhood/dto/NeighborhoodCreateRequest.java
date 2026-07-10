@@ -4,10 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Request payload for creating a Neighborhood reference record.")
+@Schema(description = "Данные для создания записи махалли.")
 public record NeighborhoodCreateRequest(
         @Schema(
-                description = "Unique Neighborhood code.",
+                description = "Уникальный код махалли.",
                 example = "AN-202001",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
@@ -16,7 +16,7 @@ public record NeighborhoodCreateRequest(
         String code,
 
         @Schema(
-                description = "Parent District code for the Neighborhood.",
+                description = "Код родительского района для данной махалли.",
                 example = "AN-202",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
@@ -24,19 +24,19 @@ public record NeighborhoodCreateRequest(
         @Size(max = 50, message = "{reference.parent_code.max_length}")
         String parentCode,
 
-        @Schema(description = "Neighborhood name in Uzbek Latin.", example = "Dalvarzin")
+        @Schema(description = "Наименование махалли на узбекском языке (латиница).", example = "Dalvarzin")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUz,
 
-        @Schema(description = "Neighborhood name in Uzbek Cyrillic.", example = "Далварзин")
+        @Schema(description = "Наименование махалли на узбекском языке (кириллица).", example = "Далварзин")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameUzCyril,
 
-        @Schema(description = "Neighborhood name in Russian.", example = "Далварзин")
+        @Schema(description = "Наименование махалли на русском языке.", example = "Далварзин")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameRu,
 
-        @Schema(description = "Neighborhood name in Karakalpak.", example = "Dalvarzin")
+        @Schema(description = "Наименование махалли на каракалпакском языке.", example = "Dalvarzin")
         @Size(max = 255, message = "{reference.name.max_length}")
         String nameKaa
 ) {

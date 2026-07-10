@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.card.application.query.dto.detail;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 
@@ -9,6 +10,14 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardType;
  * Common contract for every per-type card detail response, matching
  * {@link uz.uzinfocom.app.modules.card.web.dto.request.CardRequest}.
  */
+@Schema(
+        description = "Детальные сведения по эпидемиологической карте. Конкретная структура зависит от поля "
+                + "\"type\" — оно определяет, какой из пяти типов карт (CARD161, CARD174, CARD175, CARD205, "
+                + "CARD_TUBE) возвращается.",
+        oneOf = {Card161DetailResponse.class, Card174DetailResponse.class, Card175DetailResponse.class,
+                Card205DetailResponse.class, CardTubeDetailResponse.class},
+        discriminatorProperty = "type"
+)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Card161DetailResponse.class, name = "CARD161"),
