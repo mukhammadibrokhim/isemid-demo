@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin;
@@ -104,26 +105,27 @@ public final class UserSpecification {
             );
 
             /*
-             * Organization bo‘yicha request filter:
+             * Organization bo’yicha request filter (stateCode/cityCode/medicalType)
+             * VA non-super-admin uchun access scope BIR XIL Organization join
+             * ustida birgalikda tekshiriladi.
              *
-             * - stateCode
-             * - cityCode
-             * - medicalType
-             *
-             * Barcha shartlar bitta Organization ichida mos kelishi kerak.
+             * Ikkalasi alohida EXISTS bo’lsa, bir nechta tashkilotga biriktirilgan
+             * user uchun filter bitta tashkilotga, scope esa boshqa tashkilotga mos
+             * kelishi mumkin edi - natijada scope tashqarisidagi user filter orqali
+             * "sizib chiqar" edi. Shu sabab ikkalasi bitta EXISTS ichida, bitta join
+             * ustida birlashtirilgan.
              */
-            addOrganizationFilterPredicate(
+            addOrganizationPredicate(
                     predicates,
                     root,
                     query,
                     cb,
-                    filter.getOrganizationStateCode(),
-                    filter.getOrganizationCityCode(),
-                    filter.getUserOrgMedicalTypes()
+                    filter,
+                    currentUser
             );
 
             /*
-             * Role ID bo‘yicha filter.
+             * Role ID bo’yicha filter.
              */
             addRoleIdsPredicate(
                     predicates,
@@ -145,21 +147,6 @@ public final class UserSpecification {
                 );
             }
 
-            /*
-             * Bu request filter emas.
-             * Non-super-admin uchun security scope doim ishlaydi.
-             */
-            if (!isSuperAdmin(currentUser)) {
-                predicates.add(
-                        buildAccessScopePredicate(
-                                root,
-                                query,
-                                cb,
-                                currentUser
-                        )
-                );
-            }
-
             return cb.and(
                     predicates.toArray(Predicate[]::new)
             );
@@ -172,42 +159,124 @@ public final class UserSpecification {
      * EXISTS ishlatiladi, chunki User ichida stateCode yoki medicalType yo‘q.
      * Ular User.organizations relationidagi Organization entity ichida.
      */
-    private static void addOrganizationFilterPredicate(
+    private static void addOrganizationPredicate(
             List<Predicate> predicates,
             Root<User> root,
             CriteriaQuery<?> query,
             CriteriaBuilder cb,
-            String organizationStateCode,
-            String organizationCityCode,
-            Set<MedicalType> medicalTypes
+            UserFilterRequest filter,
+            User currentUser
     ) {
+        String organizationStateCode = filter.getOrganizationStateCode();
+        String organizationCityCode = filter.getOrganizationCityCode();
+        Set<MedicalType> medicalTypes = filter.getUserOrgMedicalTypes();
+
         boolean hasStateCode = hasText(organizationStateCode);
         boolean hasCityCode = hasText(organizationCityCode);
         boolean hasMedicalTypes =
                 medicalTypes != null && !medicalTypes.isEmpty();
+        boolean hasRequestFilter =
+                hasStateCode || hasCityCode || hasMedicalTypes;
 
-        /*
-         * Organization filterlaridan birortasi ham kelmagan bo‘lsa
-         * subquery yaratilmaydi.
-         */
-        if (!hasStateCode && !hasCityCode && !hasMedicalTypes) {
+        Function<Join<User, Organization>, List<Predicate>> requestFilterPredicates =
+                organizationJoin -> buildRequestFilterPredicates(
+                        organizationJoin,
+                        cb,
+                        organizationStateCode,
+                        hasStateCode,
+                        organizationCityCode,
+                        hasCityCode,
+                        medicalTypes,
+                        hasMedicalTypes
+                );
+
+        if (isSuperAdmin(currentUser)) {
+            if (hasRequestFilter) {
+                predicates.add(
+                        buildOrganizationExists(root, query, cb, requestFilterPredicates)
+                );
+            }
             return;
         }
 
-        Subquery<Integer> organizationExists =
-                query.subquery(Integer.class);
+        List<Organization> currentUserOrganizations =
+                currentUser.getOrganizations();
 
-        Root<User> correlatedUser =
-                organizationExists.correlate(root);
+        /*
+         * Fail-closed:
+         * non-super-admin organizationga biriktirilmagan bo‘lsa
+         * hech qanday userni ko‘rmaydi.
+         */
+        if (currentUserOrganizations == null
+                || currentUserOrganizations.isEmpty()) {
+            predicates.add(cb.disjunction());
+            return;
+        }
 
-        Join<User, Organization> organizationJoin =
-                correlatedUser.join(
-                        ORGANIZATIONS,
-                        JoinType.INNER
+        /*
+         * Birorta REPUBLICAN organization mavjud bo‘lsa
+         * hududiy scope cheklanmaydi.
+         */
+        boolean hasRepublicanScope =
+                currentUserOrganizations.stream()
+                        .filter(Objects::nonNull)
+                        .map(Organization::getLevelType)
+                        .filter(Objects::nonNull)
+                        .anyMatch(LevelType.REPUBLICAN::equals);
+
+        if (hasRepublicanScope) {
+            if (hasRequestFilter) {
+                predicates.add(
+                        buildOrganizationExists(root, query, cb, requestFilterPredicates)
                 );
+            }
+            return;
+        }
 
-        List<Predicate> organizationPredicates =
-                new ArrayList<>();
+        /*
+         * Request filter (stateCode/cityCode/medicalType) va access scope
+         * BITTA Organization join ustida birga tekshiriladi.
+         *
+         * Alohida EXISTS ishlatilsa, bir nechta tashkilotga biriktirilgan
+         * user uchun filter bitta tashkilotga, scope esa boshqa tashkilotga
+         * mos kelib, scope tashqarisidagi user filter orqali "sizib chiqishi"
+         * mumkin edi.
+         */
+        predicates.add(
+                buildOrganizationExists(
+                        root,
+                        query,
+                        cb,
+                        organizationJoin -> {
+                            List<Predicate> combined = new ArrayList<>(
+                                    requestFilterPredicates.apply(organizationJoin)
+                            );
+
+                            combined.add(
+                                    buildScopePredicate(
+                                            organizationJoin,
+                                            cb,
+                                            currentUserOrganizations
+                                    )
+                            );
+
+                            return combined;
+                        }
+                )
+        );
+    }
+
+    private static List<Predicate> buildRequestFilterPredicates(
+            Join<User, Organization> organizationJoin,
+            CriteriaBuilder cb,
+            String organizationStateCode,
+            boolean hasStateCode,
+            String organizationCityCode,
+            boolean hasCityCode,
+            Set<MedicalType> medicalTypes,
+            boolean hasMedicalTypes
+    ) {
+        List<Predicate> organizationPredicates = new ArrayList<>();
 
         if (hasStateCode) {
             organizationPredicates.add(
@@ -239,6 +308,30 @@ public final class UserSpecification {
             );
         }
 
+        return organizationPredicates;
+    }
+
+    private static Predicate buildOrganizationExists(
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Function<Join<User, Organization>, List<Predicate>> predicateBuilder
+    ) {
+        Subquery<Integer> organizationExists =
+                query.subquery(Integer.class);
+
+        Root<User> correlatedUser =
+                organizationExists.correlate(root);
+
+        Join<User, Organization> organizationJoin =
+                correlatedUser.join(
+                        ORGANIZATIONS,
+                        JoinType.INNER
+                );
+
+        List<Predicate> organizationPredicates =
+                predicateBuilder.apply(organizationJoin);
+
         organizationExists
                 .select(cb.literal(1))
                 .where(
@@ -249,9 +342,7 @@ public final class UserSpecification {
                         )
                 );
 
-        predicates.add(
-                cb.exists(organizationExists)
-        );
+        return cb.exists(organizationExists);
     }
 
     /**
@@ -296,53 +387,16 @@ public final class UserSpecification {
 
     /**
      * Current user organization leveliga qarab access scope.
+     *
+     * Berilgan {@code targetOrganization} join'i chaqiruvchi tomonidan
+     * (odatda request filter bilan bitta EXISTS ichida) beriladi, shu sababli
+     * scope shu join ustidagi Organization qatoriga nisbatan tekshiriladi.
      */
-    private static Predicate buildAccessScopePredicate(
-            Root<User> root,
-            CriteriaQuery<?> query,
+    private static Predicate buildScopePredicate(
+            Join<User, Organization> targetOrganization,
             CriteriaBuilder cb,
-            User currentUser
+            List<Organization> currentUserOrganizations
     ) {
-        List<Organization> currentUserOrganizations =
-                currentUser.getOrganizations();
-
-        /*
-         * Fail-closed:
-         * non-super-admin organizationga biriktirilmagan bo‘lsa
-         * hech qanday userni ko‘rmaydi.
-         */
-        if (currentUserOrganizations == null
-                || currentUserOrganizations.isEmpty()) {
-            return cb.disjunction();
-        }
-
-        /*
-         * Birorta REPUBLICAN organization mavjud bo‘lsa
-         * hududiy scope cheklanmaydi.
-         */
-        boolean hasRepublicanScope =
-                currentUserOrganizations.stream()
-                        .filter(Objects::nonNull)
-                        .map(Organization::getLevelType)
-                        .filter(Objects::nonNull)
-                        .anyMatch(LevelType.REPUBLICAN::equals);
-
-        if (hasRepublicanScope) {
-            return cb.conjunction();
-        }
-
-        Subquery<Integer> organizationExists =
-                query.subquery(Integer.class);
-
-        Root<User> correlatedUser =
-                organizationExists.correlate(root);
-
-        Join<User, Organization> targetOrganization =
-                correlatedUser.join(
-                        ORGANIZATIONS,
-                        JoinType.INNER
-                );
-
         List<Predicate> scopePredicates =
                 new ArrayList<>();
 
@@ -395,17 +449,9 @@ public final class UserSpecification {
             return cb.disjunction();
         }
 
-        organizationExists
-                .select(cb.literal(1))
-                .where(
-                        cb.or(
-                                scopePredicates.toArray(
-                                        Predicate[]::new
-                                )
-                        )
-                );
-
-        return cb.exists(organizationExists);
+        return cb.or(
+                scopePredicates.toArray(Predicate[]::new)
+        );
     }
 
     private static Predicate buildRegionalScope(
