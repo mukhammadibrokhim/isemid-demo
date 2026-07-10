@@ -42,6 +42,7 @@ public final class UserSpecification {
     private static final String STATE_CODE = "stateCode";
     private static final String CITY_CODE = "cityCode";
     private static final String MEDICAL_TYPE = "medicalType";
+    private static final String LEVEL_TYPE = "levelType";
 
     private static final String TASHKENT_STATE_CODE = "UZ-TK";
 
@@ -466,11 +467,14 @@ public final class UserSpecification {
             return cb.disjunction();
         }
 
-        return cb.equal(
-                cb.upper(
-                        targetOrganization.<String>get(STATE_CODE)
+        return cb.and(
+                cb.equal(
+                        cb.upper(
+                                targetOrganization.<String>get(STATE_CODE)
+                        ),
+                        normalizeCode(stateCode)
                 ),
-                normalizeCode(stateCode)
+                excludeRepublicanLevel(targetOrganization, cb)
         );
     }
 
@@ -486,11 +490,14 @@ public final class UserSpecification {
          * Toshkent shahri uchun barcha tumanlar stateCode orqali.
          */
         if (TASHKENT_STATE_CODE.equalsIgnoreCase(stateCode)) {
-            return cb.equal(
-                    cb.upper(
-                            targetOrganization.<String>get(STATE_CODE)
+            return cb.and(
+                    cb.equal(
+                            cb.upper(
+                                    targetOrganization.<String>get(STATE_CODE)
+                            ),
+                            TASHKENT_STATE_CODE
                     ),
-                    TASHKENT_STATE_CODE
+                    excludeRepublicanLevel(targetOrganization, cb)
             );
         }
 
@@ -501,11 +508,33 @@ public final class UserSpecification {
             return cb.disjunction();
         }
 
-        return cb.equal(
-                cb.upper(
-                        targetOrganization.<String>get(CITY_CODE)
+        return cb.and(
+                cb.equal(
+                        cb.upper(
+                                targetOrganization.<String>get(CITY_CODE)
+                        ),
+                        normalizeCode(cityCode)
                 ),
-                normalizeCode(cityCode)
+                excludeRepublicanLevel(targetOrganization, cb)
+        );
+    }
+
+    /**
+     * REPUBLICAN darajali tashkilotlar butun mamlakat miqyosida ishlaydi va
+     * ko'pincha manzil maydonlari (stateCode/cityCode) shunchaki qayerda
+     * joylashganini bildiradi (masalan, Vazirlik Toshkentda joylashgan bo'lsa
+     * ham stateCode=UZ-TK bo'lishi mumkin). Shu sabab REGIONAL/URBAN scope
+     * hech qachon REPUBLICAN darajadagi tashkilotni "o'zimizniki" deb hisoblamasligi
+     * kerak - aks holda pastroq darajadagi admin faqat manzili mos kelgani uchun
+     * yuqori darajadagi tashkilot xodimlarini ko'rib qolar edi.
+     */
+    private static Predicate excludeRepublicanLevel(
+            Join<User, Organization> targetOrganization,
+            CriteriaBuilder cb
+    ) {
+        return cb.or(
+                cb.isNull(targetOrganization.get(LEVEL_TYPE)),
+                cb.notEqual(targetOrganization.get(LEVEL_TYPE), LevelType.REPUBLICAN)
         );
     }
 
