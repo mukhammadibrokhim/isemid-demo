@@ -75,8 +75,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userRepository.findAll(UserSpecification.build(filter, currentUser), pageable);
     }
 
+    /**
+     * Loyihada sahifalash 1 dan boshlanadi (bkz. {@code PageableUtils.pageableSortByIdDesc}),
+     * Spring Data esa 0 dan. Shu sabab bu yerda ham {@code page - 1} qilinadi -
+     * aks holda page=1 (birinchi sahifa) Spring uchun ikkinchi sahifa bo'lib qolib,
+     * natijalar noto'g'ri (yoki bo'sh) chiqadi.
+     */
     private int normalizePage(int page) {
-        return Math.max(page, 0);
+        return Math.max(page - 1, 0);
     }
 
     private int normalizeSize(int size) {
