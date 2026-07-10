@@ -13,8 +13,12 @@ import java.util.Set;
 @Setter
 public class UserFilterRequest {
 
-    @Min(0)
-    private int page = 0;
+    /**
+     * Loyihada sahifalash 1 dan boshlanadi (bkz. PaginationConstants.DEFAULT_PAGE_INT,
+     * PageableUtils) - 1 birinchi sahifani bildiradi.
+     */
+    @Min(1)
+    private int page = 1;
 
     @Min(1)
     @Max(100)
