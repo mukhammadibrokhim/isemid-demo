@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.form058.dtos.requests;
 
 import uz.uzinfocom.isemid.commons.constants.PaginationConstants;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 
 import java.time.LocalDate;
 
@@ -15,6 +16,7 @@ public record Form058FilterRequest(
         String mkb10Code,
         Long organizationId,
         String patientDocValue,
+        FormStatus status,
         String source
 ) {
 

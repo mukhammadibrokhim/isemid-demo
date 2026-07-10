@@ -209,7 +209,10 @@ public class Form058Specification {
             }
 
             if (hasText(filterRequest.mkb10Code())) {
-                predicates.add(cb.equal(root.get("finalMkb10Code"), filterRequest.mkb10Code()));
+                predicates.add(cb.equal(root.get("mkb10Code"), filterRequest.mkb10Code()));
+            }
+            if (filterRequest.status() != null) {
+                predicates.add(cb.equal(root.get("status"), filterRequest.status()));
             }
 
             if (hasText(filterRequest.source())) {
