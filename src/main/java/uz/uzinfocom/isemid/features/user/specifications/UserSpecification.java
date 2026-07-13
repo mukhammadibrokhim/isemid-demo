@@ -1,78 +1,609 @@
 package uz.uzinfocom.isemid.features.user.specifications;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
+import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
+import uz.uzinfocom.isemid.features.user.dtos.requests.UserFilterRequest;
+import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.models.User;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 
 import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin;
 
-public class UserSpecification {
+public final class UserSpecification {
+
+    private static final String NNUZB = "nnuzb";
+    private static final String FIRST_NAME = "firstName";
+    private static final String LAST_NAME = "lastName";
+    private static final String MIDDLE_NAME = "middleName";
+    private static final String PHONE_NUMBER = "phoneNumber";
+    private static final String ACTIVE = "active";
+
+    private static final String ORGANIZATIONS = "organizations";
+    private static final String ROLES = "roles";
+
+    private static final String ID = "id";
+    private static final String STATE_CODE = "stateCode";
+    private static final String CITY_CODE = "cityCode";
+    private static final String MEDICAL_TYPE = "medicalType";
+    private static final String LEVEL_TYPE = "levelType";
+
+    private static final String TASHKENT_STATE_CODE = "UZ-TK";
+
+    private UserSpecification() {
+    }
+
     public static Specification<User> build(
-            final String nnuzb,
-            final String firstName,
-            final String lastName,
-            final String middleName,
-            final String phoneNumber,
-            final String accessLevelCode,
-            final Boolean active,
+            UserFilterRequest filter,
             User currentUser
     ) {
+        Objects.requireNonNull(
+                filter,
+                "UserFilterRequest must not be null"
+        );
+
+        Objects.requireNonNull(
+                currentUser,
+                "Current user must not be null"
+        );
+
         return (root, query, cb) -> {
-            var predicates = Stream.of(
-                    hasText(nnuzb) ? cb.equal(root.get("nnuzb"), nnuzb) : null,
-                    hasText(firstName) ? cb.like(cb.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%") : null,
-                    hasText(lastName) ? cb.like(cb.lower(root.get("lastName")), "%" + lastName.toLowerCase() + "%") : null,
-                    hasText(middleName) ? cb.like(cb.lower(root.get("middleName")), "%" + middleName.toLowerCase() + "%") : null,
-                    hasText(phoneNumber) ? cb.equal(root.get("phoneNumber"), phoneNumber) : null,
-                    hasText(accessLevelCode)
-                            ? cb.equal(root.join("accessLevel", JoinType.LEFT).get("code"), accessLevelCode)
-                            : null,
-                    active != null ? cb.equal(root.get("active"), active) : null
-            ).filter(Objects::nonNull).collect(Collectors.toList());
+            List<Predicate> predicates = new ArrayList<>();
 
-            if (currentUser != null && !isSuperAdmin(currentUser)) {
-                List<Organization> userOrgs = currentUser.getOrganizations();
-                if (userOrgs != null && !userOrgs.isEmpty()) {
-                    Join<User, Organization> orgJoin = root.join("organizations", JoinType.LEFT);
+            /*
+             * Shaxsga tegishli filterlar.
+             * Qiymat null yoki blank bo‘lsa predicate qo‘shilmaydi.
+             */
+            addExactPredicate(
+                    predicates,
+                    root.get(NNUZB),
+                    filter.getNnuzb(),
+                    cb
+            );
 
-                    List<Predicate> orgPredicates = new ArrayList<>();
+            addContainsIgnoreCasePredicate(
+                    predicates,
+                    root.get(FIRST_NAME),
+                    filter.getFirstName(),
+                    cb
+            );
 
-                    for (Organization org : userOrgs) {
-                        LevelType level = org.getLevelType();
-                        if (level == null) continue;
+            addContainsIgnoreCasePredicate(
+                    predicates,
+                    root.get(LAST_NAME),
+                    filter.getLastName(),
+                    cb
+            );
 
-                        Predicate orgPredicate = switch (level) {
-                            case REPUBLICAN -> cb.conjunction();
-                            case REGIONAL -> cb.equal(orgJoin.get("stateCode"), org.getStateCode());
-                            case URBAN -> {
-                                if ("UZ-TK".equalsIgnoreCase(org.getStateCode())) {
-                                    yield cb.equal(orgJoin.get("stateCode"), org.getStateCode());
-                                } else {
-                                    yield cb.equal(orgJoin.get("cityCode"), org.getCityCode());
-                                }
-                            }
-                            case DISTRICT, AREA, INTERDISTRICT -> cb.equal(orgJoin.get("id"), org.getId());
-                            default -> cb.disjunction();
-                        };
-                        orgPredicates.add(orgPredicate);
-                    }
+            addContainsIgnoreCasePredicate(
+                    predicates,
+                    root.get(MIDDLE_NAME),
+                    filter.getMiddleName(),
+                    cb
+            );
 
-                    if (!orgPredicates.isEmpty()) {
-                        predicates.add(cb.or(orgPredicates.toArray(new Predicate[0])));
-                    }
-                }
+            addExactPredicate(
+                    predicates,
+                    root.get(PHONE_NUMBER),
+                    filter.getPhoneNumber(),
+                    cb
+            );
+
+            /*
+             * Organization bo’yicha request filter (stateCode/cityCode/medicalType)
+             * VA non-super-admin uchun access scope BIR XIL Organization join
+             * ustida birgalikda tekshiriladi.
+             *
+             * Ikkalasi alohida EXISTS bo’lsa, bir nechta tashkilotga biriktirilgan
+             * user uchun filter bitta tashkilotga, scope esa boshqa tashkilotga mos
+             * kelishi mumkin edi - natijada scope tashqarisidagi user filter orqali
+             * "sizib chiqar" edi. Shu sabab ikkalasi bitta EXISTS ichida, bitta join
+             * ustida birlashtirilgan.
+             */
+            addOrganizationPredicate(
+                    predicates,
+                    root,
+                    query,
+                    cb,
+                    filter,
+                    currentUser
+            );
+
+            /*
+             * Role ID bo’yicha filter.
+             */
+            addRoleIdsPredicate(
+                    predicates,
+                    root,
+                    query,
+                    cb,
+                    filter.getRoleIds()
+            );
+
+            /*
+             * Aktiv/noaktiv filter.
+             */
+            if (filter.getActive() != null) {
+                predicates.add(
+                        cb.equal(
+                                root.get(ACTIVE),
+                                filter.getActive()
+                        )
+                );
             }
 
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return cb.and(
+                    predicates.toArray(Predicate[]::new)
+            );
         };
+    }
+
+    /**
+     * Hudud va muassasa turi bo‘yicha filter.
+     *
+     * EXISTS ishlatiladi, chunki User ichida stateCode yoki medicalType yo‘q.
+     * Ular User.organizations relationidagi Organization entity ichida.
+     */
+    private static void addOrganizationPredicate(
+            List<Predicate> predicates,
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            UserFilterRequest filter,
+            User currentUser
+    ) {
+        String organizationStateCode = filter.getOrganizationStateCode();
+        String organizationCityCode = filter.getOrganizationCityCode();
+        Set<MedicalType> medicalTypes = filter.getUserOrgMedicalTypes();
+
+        boolean hasStateCode = hasText(organizationStateCode);
+        boolean hasCityCode = hasText(organizationCityCode);
+        boolean hasMedicalTypes =
+                medicalTypes != null && !medicalTypes.isEmpty();
+        boolean hasRequestFilter =
+                hasStateCode || hasCityCode || hasMedicalTypes;
+
+        Function<Join<User, Organization>, List<Predicate>> requestFilterPredicates =
+                organizationJoin -> buildRequestFilterPredicates(
+                        organizationJoin,
+                        cb,
+                        organizationStateCode,
+                        hasStateCode,
+                        organizationCityCode,
+                        hasCityCode,
+                        medicalTypes,
+                        hasMedicalTypes
+                );
+
+        if (isSuperAdmin(currentUser)) {
+            if (hasRequestFilter) {
+                predicates.add(
+                        buildOrganizationExists(root, query, cb, requestFilterPredicates)
+                );
+            }
+            return;
+        }
+
+        List<Organization> currentUserOrganizations =
+                currentUser.getOrganizations();
+
+        /*
+         * Fail-closed:
+         * non-super-admin organizationga biriktirilmagan bo‘lsa
+         * hech qanday userni ko‘rmaydi.
+         */
+        if (currentUserOrganizations == null
+                || currentUserOrganizations.isEmpty()) {
+            predicates.add(cb.disjunction());
+            return;
+        }
+
+        /*
+         * Birorta REPUBLICAN organization mavjud bo‘lsa
+         * hududiy scope cheklanmaydi.
+         */
+        boolean hasRepublicanScope =
+                currentUserOrganizations.stream()
+                        .filter(Objects::nonNull)
+                        .map(Organization::getLevelType)
+                        .filter(Objects::nonNull)
+                        .anyMatch(LevelType.REPUBLICAN::equals);
+
+        if (hasRepublicanScope) {
+            if (hasRequestFilter) {
+                predicates.add(
+                        buildOrganizationExists(root, query, cb, requestFilterPredicates)
+                );
+            }
+            return;
+        }
+
+        /*
+         * Request filter (stateCode/cityCode/medicalType) va access scope
+         * BITTA Organization join ustida birga tekshiriladi.
+         *
+         * Alohida EXISTS ishlatilsa, bir nechta tashkilotga biriktirilgan
+         * user uchun filter bitta tashkilotga, scope esa boshqa tashkilotga
+         * mos kelib, scope tashqarisidagi user filter orqali "sizib chiqishi"
+         * mumkin edi.
+         */
+        predicates.add(
+                buildOrganizationExists(
+                        root,
+                        query,
+                        cb,
+                        organizationJoin -> {
+                            List<Predicate> combined = new ArrayList<>(
+                                    requestFilterPredicates.apply(organizationJoin)
+                            );
+
+                            combined.add(
+                                    buildScopePredicate(
+                                            organizationJoin,
+                                            cb,
+                                            currentUserOrganizations
+                                    )
+                            );
+
+                            return combined;
+                        }
+                )
+        );
+    }
+
+    private static List<Predicate> buildRequestFilterPredicates(
+            Join<User, Organization> organizationJoin,
+            CriteriaBuilder cb,
+            String organizationStateCode,
+            boolean hasStateCode,
+            String organizationCityCode,
+            boolean hasCityCode,
+            Set<MedicalType> medicalTypes,
+            boolean hasMedicalTypes
+    ) {
+        List<Predicate> organizationPredicates = new ArrayList<>();
+
+        if (hasStateCode) {
+            organizationPredicates.add(
+                    cb.equal(
+                            cb.upper(
+                                    organizationJoin.<String>get(STATE_CODE)
+                            ),
+                            normalizeCode(organizationStateCode)
+                    )
+            );
+        }
+
+        if (hasCityCode) {
+            organizationPredicates.add(
+                    cb.equal(
+                            cb.upper(
+                                    organizationJoin.<String>get(CITY_CODE)
+                            ),
+                            normalizeCode(organizationCityCode)
+                    )
+            );
+        }
+
+        if (hasMedicalTypes) {
+            organizationPredicates.add(
+                    organizationJoin
+                            .get(MEDICAL_TYPE)
+                            .in(medicalTypes)
+            );
+        }
+
+        return organizationPredicates;
+    }
+
+    private static Predicate buildOrganizationExists(
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Function<Join<User, Organization>, List<Predicate>> predicateBuilder
+    ) {
+        Subquery<Integer> organizationExists =
+                query.subquery(Integer.class);
+
+        Root<User> correlatedUser =
+                organizationExists.correlate(root);
+
+        Join<User, Organization> organizationJoin =
+                correlatedUser.join(
+                        ORGANIZATIONS,
+                        JoinType.INNER
+                );
+
+        List<Predicate> organizationPredicates =
+                predicateBuilder.apply(organizationJoin);
+
+        organizationExists
+                .select(cb.literal(1))
+                .where(
+                        cb.and(
+                                organizationPredicates.toArray(
+                                        Predicate[]::new
+                                )
+                        )
+                );
+
+        return cb.exists(organizationExists);
+    }
+
+    /**
+     * User.roles.id bo‘yicha ANY role filter.
+     *
+     * Masalan roleIds=[2, 5] bo‘lsa,
+     * userda 2 yoki 5 role mavjud bo‘lsa natijaga kiradi.
+     */
+    private static void addRoleIdsPredicate(
+            List<Predicate> predicates,
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Set<Long> roleIds
+    ) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+
+        Subquery<Integer> roleExists =
+                query.subquery(Integer.class);
+
+        Root<User> correlatedUser =
+                roleExists.correlate(root);
+
+        Join<User, Role> roleJoin =
+                correlatedUser.join(
+                        ROLES,
+                        JoinType.INNER
+                );
+
+        roleExists
+                .select(cb.literal(1))
+                .where(
+                        roleJoin.get(ID).in(roleIds)
+                );
+
+        predicates.add(
+                cb.exists(roleExists)
+        );
+    }
+
+    /**
+     * Current user organization leveliga qarab access scope.
+     *
+     * Berilgan {@code targetOrganization} join'i chaqiruvchi tomonidan
+     * (odatda request filter bilan bitta EXISTS ichida) beriladi, shu sababli
+     * scope shu join ustidagi Organization qatoriga nisbatan tekshiriladi.
+     */
+    private static Predicate buildScopePredicate(
+            Join<User, Organization> targetOrganization,
+            CriteriaBuilder cb,
+            List<Organization> currentUserOrganizations
+    ) {
+        List<Predicate> scopePredicates =
+                new ArrayList<>();
+
+        for (Organization currentOrganization :
+                currentUserOrganizations) {
+
+            if (currentOrganization == null) {
+                continue;
+            }
+
+            LevelType levelType =
+                    currentOrganization.getLevelType();
+
+            if (levelType == null) {
+                continue;
+            }
+
+            Predicate levelPredicate = switch (levelType) {
+                case REPUBLICAN -> cb.conjunction();
+
+                case REGIONAL -> buildRegionalScope(
+                        targetOrganization,
+                        currentOrganization,
+                        cb
+                );
+
+                case URBAN -> buildUrbanScope(
+                        targetOrganization,
+                        currentOrganization,
+                        cb
+                );
+
+                case DISTRICT, AREA, INTERDISTRICT ->
+                        buildOrganizationScope(
+                                targetOrganization,
+                                currentOrganization,
+                                cb
+                        );
+
+                default -> cb.disjunction();
+            };
+
+            scopePredicates.add(levelPredicate);
+        }
+
+        /*
+         * Valid organization level topilmasa access berilmaydi.
+         */
+        if (scopePredicates.isEmpty()) {
+            return cb.disjunction();
+        }
+
+        return cb.or(
+                scopePredicates.toArray(Predicate[]::new)
+        );
+    }
+
+    private static Predicate buildRegionalScope(
+            Join<User, Organization> targetOrganization,
+            Organization currentOrganization,
+            CriteriaBuilder cb
+    ) {
+        String stateCode =
+                currentOrganization.getStateCode();
+
+        if (!hasText(stateCode)) {
+            return cb.disjunction();
+        }
+
+        return cb.and(
+                cb.equal(
+                        cb.upper(
+                                targetOrganization.<String>get(STATE_CODE)
+                        ),
+                        normalizeCode(stateCode)
+                ),
+                excludeRepublicanLevel(targetOrganization, cb)
+        );
+    }
+
+    private static Predicate buildUrbanScope(
+            Join<User, Organization> targetOrganization,
+            Organization currentOrganization,
+            CriteriaBuilder cb
+    ) {
+        String stateCode =
+                currentOrganization.getStateCode();
+
+        /*
+         * Toshkent shahri uchun barcha tumanlar stateCode orqali.
+         */
+        if (TASHKENT_STATE_CODE.equalsIgnoreCase(stateCode)) {
+            return cb.and(
+                    cb.equal(
+                            cb.upper(
+                                    targetOrganization.<String>get(STATE_CODE)
+                            ),
+                            TASHKENT_STATE_CODE
+                    ),
+                    excludeRepublicanLevel(targetOrganization, cb)
+            );
+        }
+
+        String cityCode =
+                currentOrganization.getCityCode();
+
+        if (!hasText(cityCode)) {
+            return cb.disjunction();
+        }
+
+        return cb.and(
+                cb.equal(
+                        cb.upper(
+                                targetOrganization.<String>get(CITY_CODE)
+                        ),
+                        normalizeCode(cityCode)
+                ),
+                excludeRepublicanLevel(targetOrganization, cb)
+        );
+    }
+
+    /**
+     * REPUBLICAN darajali tashkilotlar butun mamlakat miqyosida ishlaydi va
+     * ko'pincha manzil maydonlari (stateCode/cityCode) shunchaki qayerda
+     * joylashganini bildiradi (masalan, Vazirlik Toshkentda joylashgan bo'lsa
+     * ham stateCode=UZ-TK bo'lishi mumkin). Shu sabab REGIONAL/URBAN scope
+     * hech qachon REPUBLICAN darajadagi tashkilotni "o'zimizniki" deb hisoblamasligi
+     * kerak - aks holda pastroq darajadagi admin faqat manzili mos kelgani uchun
+     * yuqori darajadagi tashkilot xodimlarini ko'rib qolar edi.
+     */
+    private static Predicate excludeRepublicanLevel(
+            Join<User, Organization> targetOrganization,
+            CriteriaBuilder cb
+    ) {
+        return cb.or(
+                cb.isNull(targetOrganization.get(LEVEL_TYPE)),
+                cb.notEqual(targetOrganization.get(LEVEL_TYPE), LevelType.REPUBLICAN)
+        );
+    }
+
+    private static Predicate buildOrganizationScope(
+            Join<User, Organization> targetOrganization,
+            Organization currentOrganization,
+            CriteriaBuilder cb
+    ) {
+        if (currentOrganization.getId() == null) {
+            return cb.disjunction();
+        }
+
+        return cb.equal(
+                targetOrganization.get(ID),
+                currentOrganization.getId()
+        );
+    }
+
+    private static void addExactPredicate(
+            List<Predicate> predicates,
+            Path<String> path,
+            String value,
+            CriteriaBuilder cb
+    ) {
+        if (!hasText(value)) {
+            return;
+        }
+
+        predicates.add(
+                cb.equal(
+                        path,
+                        value.trim()
+                )
+        );
+    }
+
+    private static void addContainsIgnoreCasePredicate(
+            List<Predicate> predicates,
+            Path<String> path,
+            String value,
+            CriteriaBuilder cb
+    ) {
+        if (!hasText(value)) {
+            return;
+        }
+
+        String normalizedValue = value
+                .trim()
+                .toLowerCase(Locale.ROOT);
+
+        predicates.add(
+                cb.like(
+                        cb.lower(path),
+                        "%" + escapeLike(normalizedValue) + "%",
+                        '\\'
+                )
+        );
+    }
+
+    private static String normalizeCode(String value) {
+        return value
+                .trim()
+                .toUpperCase(Locale.ROOT);
+    }
+
+    private static String escapeLike(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 }

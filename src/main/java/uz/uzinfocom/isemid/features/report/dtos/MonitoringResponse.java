@@ -12,19 +12,14 @@ import java.util.Map;
 @Getter
 @Setter
 public class MonitoringResponse {
-
     private LocalDate toDate;
-
     private List<Item> data = new ArrayList<>();
 
     @Getter
     @Setter
     public static class Item {
-
         private String regionCode;
-
         private int totalCases;
-
         private int confirmed;
         private int unconfirmed;
 

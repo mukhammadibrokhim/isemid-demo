@@ -26,7 +26,6 @@ import static org.springframework.util.StringUtils.hasText;
 @Service
 @RequiredArgsConstructor
 public class Form4_9ReportServiceImpl implements Form4_9ReportService {
-
     private final Form058Repository form058Repository;
     private final Form4_9ReportHelper helper;
 

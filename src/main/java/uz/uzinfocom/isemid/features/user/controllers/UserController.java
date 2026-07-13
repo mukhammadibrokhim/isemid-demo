@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -13,20 +14,19 @@ import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
 import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
-import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
+import uz.uzinfocom.isemid.features.user.dtos.requests.UserFilterRequest;
 import uz.uzinfocom.isemid.features.user.dtos.requests.UserRequest;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMeResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserResponse;
 import uz.uzinfocom.isemid.features.user.mappers.UserMapper;
 import uz.uzinfocom.isemid.features.user.models.User;
+import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
 import java.util.UUID;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
-import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.User.ROOT)
@@ -39,35 +39,22 @@ public class UserController {
 
     @Operation(
             summary = "Получить всех пользователей",
-            description = "Получает список всех пользователей с возможностью пагинации и фильтрации по различным параметрам.",
-            parameters = {
-                    @Parameter(name = "page", description = "Номер страницы для пагинации", example = "0"),
-                    @Parameter(name = "size", description = "Количество пользователей на странице", example = "10"),
-                    @Parameter(name = "nnuzb", description = "Фильтр по nnuzb"),
-                    @Parameter(name = "firstName", description = "Фильтр по имени"),
-                    @Parameter(name = "lastName", description = "Фильтр по фамилии"),
-                    @Parameter(name = "middleName", description = "Фильтр по отчеству"),
-                    @Parameter(name = "phoneNumber", description = "Фильтр по номеру телефона"),
-                    @Parameter(name = "accessLevelCode", description = "Фильтр по коду уровня доступа"),
-                    @Parameter(name = "active", description = "Фильтр по статусу активности")
-            }
+            description = "Получает список всех пользователей с возможностью пагинации и фильтрации по различным параметрам."
     )
     @GetMapping("/all")
     public PagedResponse<?> getAllUsers(
-            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
-            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-            @RequestParam(required = false) String nnuzb,
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String lastName,
-            @RequestParam(required = false) String middleName,
-            @RequestParam(required = false) String phoneNumber,
-            @RequestParam(required = false) String accessLevelCode,
-            @RequestParam(required = false) Boolean active,
+            @Valid @ModelAttribute @ParameterObject UserFilterRequest filter,
             @CurrentUser User currentUser,
             HttpServletRequest request
     ) {
-        Page<User> userPage = userService.filter(page, size, nnuzb, firstName, lastName, middleName, phoneNumber, accessLevelCode, active, currentUser);
-        return PagedResponse.build(page, userPage.map(userMapper::toResponse), getRequestUrl(request), messageUtil);
+        Page<User> userPage = userService.filter(filter, currentUser);
+
+        return PagedResponse.build(
+                filter.getPage(),
+                userPage.map(userMapper::toResponse),
+                getRequestUrl(request),
+                messageUtil
+        );
     }
 
     @Operation(summary = "Получить пользователя по ID", description = "Получает пользователя по заданному идентификатору (ID).")

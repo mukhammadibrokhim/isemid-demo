@@ -16,6 +16,7 @@ import uz.uzinfocom.isemid.features.card.models.card175.Card175;
 import uz.uzinfocom.isemid.features.card.models.card205.Card205;
 import uz.uzinfocom.isemid.features.card.models.card_tube.CardTube;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form0581.models.Form0581;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
@@ -33,7 +34,8 @@ import java.util.Set;
                 @Index(name = "idx_card_type", columnList = "cardType"),
                 @Index(name = "idx_card_status", columnList = "status"),
                 @Index(name = "idx_card_assigned_by", columnList = "assignedById"),
-                @Index(name = "idx_card_form058", columnList = "form058_id")
+                @Index(name = "idx_card_form058", columnList = "form058_id"),
+                @Index(name = "idx_card_form0581", columnList = "form058_1_id")
         }
 )
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -63,8 +65,13 @@ public abstract class Card extends AbsEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "form058_id")
-    @JsonBackReference
+    @JsonBackReference("form058-cards")
     private Form058 form058;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "form058_1_id")
+    @JsonBackReference("form0581-cards")
+    private Form0581 form0581;
 
     @Column(length = 1000)
     private String supervisorComment;

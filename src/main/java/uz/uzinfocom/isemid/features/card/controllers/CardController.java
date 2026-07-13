@@ -28,7 +28,7 @@ import java.time.LocalDate;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.Card.ROOT)
@@ -94,6 +94,12 @@ public class CardController {
     @PatchMapping("/{cardId}/accept")
     public ApiResponse<?> acceptCard(@PathVariable long cardId, @CurrentUser User currentUser) {
         return ApiResponse.success(messageUtil, mapper.toCardResponse(cardService.acceptCard(cardId, currentUser)));
+    }
+
+    @Operation(summary = "Начать работу с картой", description = "Отмечает карту как 'IN_PROGRESS', указывая, что назначенный пользователь начал работу с картой. Соответствующая форма (058 или 058-1) переходит в статус 'APPROVED_PENDING'.")
+    @PatchMapping("/{cardId}/start")
+    public ApiResponse<?> startWorkingOnCard(@PathVariable Long cardId, @CurrentUser User currentUser) {
+        return ApiResponse.success(messageUtil, mapper.toCardResponse(cardService.startWorkingOnCard(cardId, currentUser)));
     }
 
     @Operation(summary = "Отклонить входящую карту", description = "Отмечает карту как 'REJECTED_BY_USER', указывая, что назначенный пользователь отклонил карту. Требуется указать причину отклонения.")

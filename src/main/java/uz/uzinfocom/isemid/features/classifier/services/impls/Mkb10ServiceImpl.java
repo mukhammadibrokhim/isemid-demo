@@ -29,6 +29,7 @@ public class Mkb10ServiceImpl implements Mkb10Service {
     private final Mkb10Mapper mapper;
     private final MessageUtil messageUtil;
 
+    @Transactional(readOnly = true)
     @Override
     public Page<Mkb10> filter(int page, int size, String mkbCode, Long parentId, String nameUz, String nameUzCyril, String nameRu, String nameEn) {
         Specification<Mkb10> spec = Mkb10Specification.build(mkbCode, parentId, nameUz, nameUzCyril, nameRu, nameEn);
