@@ -100,7 +100,7 @@ public class Form0581ServiceImpl implements Form0581Service {
         FilterType effectiveFilterType = filterType == null ? FilterType.SENDER : filterType;
 
         Specification<Form0581> specification = Specification
-                .where(Form0581Specification.build(filterRequest))
+                .where(Form0581Specification.build(filterRequest, effectiveFilterType))
                 .and(form0581AccessSpecification.byScope(
                         effectiveFilterType,
                         scope,
