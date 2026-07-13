@@ -57,6 +57,13 @@ public class Form4_9ReportController {
             Gender gender,
 
             @RequestParam(required = false)
+            String stateCode,
+
+            @RequestParam(required = false)
+            String cityCode,
+
+
+            @RequestParam(required = false)
             String parentCode
     ) {
 
@@ -67,7 +74,9 @@ public class Form4_9ReportController {
                 mkb10Code,
                 gender,
                 currentUser,
-                parentCode
+                parentCode,
+                stateCode,
+                cityCode
         );
 
         return ResponseEntity.ok(result);

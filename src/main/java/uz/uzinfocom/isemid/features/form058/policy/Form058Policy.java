@@ -52,9 +52,8 @@ public class Form058Policy {
     );
 
     public void assertApprovable(Form058 form058) {
-        if (form058 == null) {
-            throw new IllegalArgumentException("Form058 must not be null");
-        }
+        //TODO Should add status validation
+    }
 
         if (!APPROVABLE_STATUSES.contains(form058.getStatus())) {
             throw new ApiException(BAD_REQUEST,

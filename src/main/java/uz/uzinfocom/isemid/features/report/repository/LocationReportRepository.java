@@ -47,7 +47,7 @@ public class LocationReportRepository {
                 .addValue("toDate", toDate, Types.DATE)
                 .addValue("mkb10Code", mkb10Code, Types.VARCHAR)
                 .addValue("parentCode", scope.parentCode(), Types.VARCHAR)
-                .addValue("currentOrgId", scope.currentOrganizationId())
+                .addValue("currentOrganizationId", scope.currentOrganizationId())
                 .addValue("hasPermission", scope.hasPermission(), Types.BOOLEAN);
 
         return template.query(scope.specification(), params, (rs, row) -> new LocationReportRow(

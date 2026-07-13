@@ -13,6 +13,6 @@ public interface Form4_9ReportService {
             String mkb10Code,
             Gender gender,
             User currentUser,
-            String parentCode
-    );
+            String parentCode,
+            String stateCode, String cityCode);
 }

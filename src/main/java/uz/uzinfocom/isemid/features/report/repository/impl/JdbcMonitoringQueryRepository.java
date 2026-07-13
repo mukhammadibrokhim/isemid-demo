@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.report.repository.MonitoringQueryRepository;
 
 import java.sql.Types;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 @Repository
@@ -22,11 +23,37 @@ public class JdbcMonitoringQueryRepository
 
     private static final int MAX_MKB_HIERARCHY_DEPTH = 32;
 
-    private static final String STATE_REGION_COLUMN =
+    private static final String STATE_CATALOG_TYPE = "state";
+    private static final String CITY_CATALOG_TYPE = "city";
+
+    private static final String STATE_CODE_SQL_EXPRESSION =
             "organization.state_code";
 
-    private static final String CITY_REGION_COLUMN =
+    private static final String CITY_CODE_SQL_EXPRESSION =
             "organization.city_code";
+
+    /**
+     * When a region filter is set, cities and districts belonging to this region are selected.
+     */
+    private static final String BASE_CITY_FILTER_SQL = """
+              AND catalog.parent_code = :regionCode
+            """;
+
+    /**
+     * The organization's state_code will be checked when the region filter is set.
+     */
+    private static final String ORGANIZATION_REGION_FILTER_SQL = """
+              AND organization.state_code = :regionCode
+            """;
+
+    /**
+     * final_mkb10code value:
+     * - trimming;
+     * - outer brackets are removed;
+     * - uppercase;
+     * - compared with the normalized parameter.
+     */
+
 
     private static final String MKB_FILTER_SQL = """
               AND UPPER(
@@ -37,37 +64,78 @@ public class JdbcMonitoringQueryRepository
                   ) = :mkb10Code
             """;
 
-    private static final String REGION_FILTER_SQL = """
-              AND organization.state_code = :regionCode
-            """;
-
-    private static final String REGION_BY_STATE_SQL = """
+    /**
+     * Age on the date Form058 was created via patient.birth_date
+     * is calculated as the year of full completion.
+     * <p>
+     * Examples:
+     * 2 years 11 months 29 days -> 2 years
+     * 3 years 11 months 29 days -> 3 years
+     * 4 years old -> 4 years old
+     * <p>
+     * Each Form058 falls into one of the following categories:
+     * <p>
+     * Gender:
+     * - MALE
+     * - FEMALE
+     * - UNKNOWN
+     * <p>
+     * Age:
+     * - 0-3
+     * - 4-6.
+     * - 7-10.
+     * 11–17.
+     * - 18-25
+     * 26-45.
+     * 46-65.
+     * - 66+
+     * - UNKNOWN
+     */
+    private static final String LOCATION_STATISTICS_SQL = """
             WITH base_regions AS (
-                SELECT
+                SELECT DISTINCT
                     catalog.code AS region_code
+
                 FROM cls_catalog catalog
-                WHERE catalog.type = 'state'
+
+                WHERE catalog.type = :catalogType
+                  AND catalog.code IS NOT NULL
+
+                %s
             ),
+
             filtered_forms AS (
                 SELECT
                     form058.id AS form_id,
-                    organization.state_code AS region_code,
+
+                    %s AS region_code,
+
                     form058.status AS form_status,
 
-                    LOWER(TRIM(patient.gender_code))
-                        AS gender_code,
+                    CASE
+                        WHEN UPPER(TRIM(patient.gender_code)) = 'MALE'
+                            THEN 'MALE'
+
+                        WHEN UPPER(TRIM(patient.gender_code)) = 'FEMALE'
+                            THEN 'FEMALE'
+
+                        ELSE 'UNKNOWN'
+                    END AS normalized_gender,
 
                     CASE
                         WHEN patient.birth_date IS NULL
                             THEN NULL
 
+                        WHEN form058.created_at IS NULL
+                            THEN NULL
+
                         WHEN patient.birth_date >
-                             CAST(form058.created_at AS DATE)
+                             form058.created_at::DATE
                             THEN NULL
 
                         ELSE EXTRACT(
                             YEAR FROM AGE(
-                                CAST(form058.created_at AS DATE),
+                                form058.created_at::DATE,
                                 patient.birth_date
                             )
                         )::INTEGER
@@ -80,67 +148,114 @@ public class JdbcMonitoringQueryRepository
                            form058.created_org_uuid
 
                 LEFT JOIN patient patient
-                       ON patient.id = form058.patient_id
+                       ON patient.id =
+                          form058.patient_id
 
                 WHERE form058.created_at >= :fromDateTime
                   AND form058.created_at < :toDateTimeExclusive
 
                 %s
+                %s
             )
+
             SELECT
                 base_region.region_code,
 
                 COUNT(form_data.form_id)
                     AS total_cases,
 
+                /*
+                 * APPROVED bo‘lgan formalar.
+                 */
                 COUNT(form_data.form_id) FILTER (
                     WHERE form_data.form_status = :approvedStatus
                 ) AS confirmed,
 
+                /*
+                 * APPROVED bo‘lmagan barcha statuslar.
+                 *
+                 * IS DISTINCT FROM ishlatilgani sababli
+                 * status NULL bo‘lsa ham unconfirmed hisoblanadi.
+                 */
                 COUNT(form_data.form_id) FILTER (
                     WHERE form_data.form_status
                           IS DISTINCT FROM :approvedStatus
                 ) AS unconfirmed,
 
+                /*
+                 * Gender guruhlari.
+                 */
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.gender_code = 'male'
+                    WHERE form_data.normalized_gender = 'MALE'
                 ) AS male,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.gender_code = 'female'
+                    WHERE form_data.normalized_gender = 'FEMALE'
                 ) AS female,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 0 AND 3
+                    WHERE form_data.normalized_gender = 'UNKNOWN'
+                ) AS unknown_gender,
+
+                /*
+                 * Yosh guruhlari.
+                 *
+                 * Yarim ochiq interval ishlatildi:
+                 * >= boshlanish va < keyingi chegara.
+                 *
+                 * Bu guruhlar orasida overlap va bo‘shliq
+                 * bo‘lmasligini aniq ta’minlaydi.
+                 */
+                COUNT(form_data.form_id) FILTER (
+                    WHERE form_data.age_years >= 0
+                      AND form_data.age_years < 4
                 ) AS age_0_3,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 4 AND 6
+                    WHERE form_data.age_years >= 4
+                      AND form_data.age_years < 7
                 ) AS age_4_6,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 7 AND 10
+                    WHERE form_data.age_years >= 7
+                      AND form_data.age_years < 11
                 ) AS age_7_10,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 11 AND 17
+                    WHERE form_data.age_years >= 11
+                      AND form_data.age_years < 18
                 ) AS age_11_17,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 18 AND 25
+                    WHERE form_data.age_years >= 18
+                      AND form_data.age_years < 26
                 ) AS age_18_25,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 26 AND 45
+                    WHERE form_data.age_years >= 26
+                      AND form_data.age_years < 46
                 ) AS age_26_45,
 
                 COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 46 AND 65
+                    WHERE form_data.age_years >= 46
+                      AND form_data.age_years < 66
                 ) AS age_46_65,
 
                 COUNT(form_data.form_id) FILTER (
                     WHERE form_data.age_years >= 66
-                ) AS age_66_plus
+                ) AS age_66_plus,
+
+                /*
+                 * Patient topilmagan, birth_date null yoki
+                 * birth_date noto‘g‘ri bo‘lgan formalar.
+                 *
+                 * form_id IS NOT NULL sharti base_regions
+                 * LEFT JOIN qilgan bo‘sh qatorni sanamaslik uchun kerak.
+                 */
+                COUNT(form_data.form_id) FILTER (
+                    WHERE form_data.form_id IS NOT NULL
+                      AND form_data.age_years IS NULL
+                ) AS unknown_age
 
             FROM base_regions base_region
 
@@ -149,123 +264,22 @@ public class JdbcMonitoringQueryRepository
                       base_region.region_code
 
             GROUP BY base_region.region_code
+
             ORDER BY base_region.region_code
             """;
 
-    private static final String REGION_BY_CITY_SQL = """
-            WITH base_regions AS (
-                SELECT
-                    catalog.code AS region_code
-                FROM cls_catalog catalog
-                WHERE catalog.type = 'city'
-                  AND catalog.parent_code = :regionCode
-            ),
-            filtered_forms AS (
-                SELECT
-                    form058.id AS form_id,
-                    organization.city_code AS region_code,
-                    form058.status AS form_status,
-
-                    LOWER(TRIM(patient.gender_code))
-                        AS gender_code,
-
-                    CASE
-                        WHEN patient.birth_date IS NULL
-                            THEN NULL
-
-                        WHEN patient.birth_date >
-                             CAST(form058.created_at AS DATE)
-                            THEN NULL
-
-                        ELSE EXTRACT(
-                            YEAR FROM AGE(
-                                CAST(form058.created_at AS DATE),
-                                patient.birth_date
-                            )
-                        )::INTEGER
-                    END AS age_years
-
-                FROM form058 form058
-
-                INNER JOIN organization organization
-                        ON organization.uuid =
-                           form058.created_org_uuid
-
-                LEFT JOIN patient patient
-                       ON patient.id = form058.patient_id
-
-                WHERE form058.created_at >= :fromDateTime
-                  AND form058.created_at < :toDateTimeExclusive
-
-                  AND organization.state_code = :regionCode
-
-                %s
-            )
-            SELECT
-                base_region.region_code,
-
-                COUNT(form_data.form_id)
-                    AS total_cases,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.form_status = :approvedStatus
-                ) AS confirmed,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.form_status
-                          IS DISTINCT FROM :approvedStatus
-                ) AS unconfirmed,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.gender_code = 'male'
-                ) AS male,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.gender_code = 'female'
-                ) AS female,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 0 AND 3
-                ) AS age_0_3,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 4 AND 6
-                ) AS age_4_6,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 7 AND 10
-                ) AS age_7_10,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 11 AND 17
-                ) AS age_11_17,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 18 AND 25
-                ) AS age_18_25,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 26 AND 45
-                ) AS age_26_45,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years BETWEEN 46 AND 65
-                ) AS age_46_65,
-
-                COUNT(form_data.form_id) FILTER (
-                    WHERE form_data.age_years >= 66
-                ) AS age_66_plus
-
-            FROM base_regions base_region
-
-            LEFT JOIN filtered_forms form_data
-                   ON form_data.region_code =
-                      base_region.region_code
-
-            GROUP BY base_region.region_code
-            ORDER BY base_region.region_code
-            """;
-
+    /**
+     * Each Form058 disease is counted in the statistics exactly once.
+     * <p>
+     * final_mkb10code:
+     * - null;
+     * - empty;
+     * - STRING;
+     * - not found in cls_mkb10;
+     * - no matching block found within the hierarchy
+     * <p>
+     * will fall to UNCLASSIFIED.
+     */
     private static final String DISEASE_STATISTICS_SQL = """
             WITH RECURSIVE normalized_forms AS (
                 SELECT
@@ -284,10 +298,10 @@ public class JdbcMonitoringQueryRepository
                             THEN NULL
 
                         ELSE UPPER(
-                        TRIM(
-                            BOTH '()'
-                            FROM TRIM(form058.final_mkb10code)
-                        )
+                            TRIM(
+                                BOTH '()'
+                                FROM TRIM(form058.final_mkb10code)
+                            )
                         )
                     END AS source_code
 
@@ -303,6 +317,7 @@ public class JdbcMonitoringQueryRepository
                 %s
                 %s
             ),
+
             filtered_codes AS (
                 SELECT
                     normalized_form.region_code,
@@ -315,6 +330,7 @@ public class JdbcMonitoringQueryRepository
                     normalized_form.region_code,
                     normalized_form.source_code
             ),
+
             mkb_hierarchy AS (
                 SELECT
                     filtered_code.region_code,
@@ -372,14 +388,16 @@ public class JdbcMonitoringQueryRepository
                 FROM mkb_hierarchy hierarchy
 
                 INNER JOIN cls_mkb10 parent
-                        ON parent.id = hierarchy.parent_id
+                        ON parent.id =
+                           hierarchy.parent_id
 
-                WHERE hierarchy.hierarchy_depth
-                      < :maxHierarchyDepth
+                WHERE hierarchy.hierarchy_depth <
+                      :maxHierarchyDepth
 
                   AND NOT parent.id =
                           ANY(hierarchy.visited_ids)
             ),
+
             ranked_candidates AS (
                 SELECT
                     hierarchy.region_code,
@@ -395,7 +413,7 @@ public class JdbcMonitoringQueryRepository
                         ORDER BY
                             /*
                              * Birinchi navbatda A00-A09 kabi
-                             * MKB class/block tanlanadi.
+                             * block formatidagi code tanlanadi.
                              */
                             CASE
                                 WHEN hierarchy.current_code ~
@@ -405,8 +423,7 @@ public class JdbcMonitoringQueryRepository
                             END,
 
                             /*
-                             * Class mavjud bo‘lsa eng yaqin
-                             * yuqori class tanlanadi.
+                             * Eng yaqin block ancestor tanlanadi.
                              */
                             CASE
                                 WHEN hierarchy.current_code ~
@@ -416,14 +433,15 @@ public class JdbcMonitoringQueryRepository
                             END ASC NULLS LAST,
 
                             /*
-                             * Class umuman topilmasa hierarchy
-                             * ichidagi eng yuqori parent olinadi.
+                             * Block topilmasa hierarchy ichidagi
+                             * eng yuqori parent fallback sifatida olinadi.
                              */
                             hierarchy.hierarchy_depth DESC
                     ) AS candidate_rank
 
                 FROM mkb_hierarchy hierarchy
             ),
+
             resolved_codes AS (
                 SELECT
                     filtered_code.region_code,
@@ -448,6 +466,7 @@ public class JdbcMonitoringQueryRepository
 
                       AND ranked_candidate.candidate_rank = 1
             )
+
             SELECT
                 resolved_code.region_code,
                 resolved_code.disease_code,
@@ -466,16 +485,25 @@ public class JdbcMonitoringQueryRepository
                 resolved_code.disease_code
             """;
 
+    /**
+     * MonitoringLocationRow record constructor order
+     * this mapper order must be identical.
+     */
     private static final RowMapper<MonitoringLocationRow>
-            REGION_ROW_MAPPER =
+            LOCATION_STATISTICS_ROW_MAPPER =
             (resultSet, rowNumber) ->
                     new MonitoringLocationRow(
                             resultSet.getString("region_code"),
+
                             resultSet.getLong("total_cases"),
+
                             resultSet.getLong("confirmed"),
                             resultSet.getLong("unconfirmed"),
+
                             resultSet.getLong("male"),
                             resultSet.getLong("female"),
+                            resultSet.getLong("unknown_gender"),
+
                             resultSet.getLong("age_0_3"),
                             resultSet.getLong("age_4_6"),
                             resultSet.getLong("age_7_10"),
@@ -483,11 +511,12 @@ public class JdbcMonitoringQueryRepository
                             resultSet.getLong("age_18_25"),
                             resultSet.getLong("age_26_45"),
                             resultSet.getLong("age_46_65"),
-                            resultSet.getLong("age_66_plus")
+                            resultSet.getLong("age_66_plus"),
+                            resultSet.getLong("unknown_age")
                     );
 
     private static final RowMapper<MonitoringDiseaseRow>
-            DISEASE_ROW_MAPPER =
+            DISEASE_STATISTICS_ROW_MAPPER =
             (resultSet, rowNumber) ->
                     new MonitoringDiseaseRow(
                             resultSet.getString("region_code"),
@@ -503,16 +532,24 @@ public class JdbcMonitoringQueryRepository
     ) {
         validateFilter(filter);
 
-        String mkbFilterSql = filter.hasMkb10Filter()
-                ? MKB_FILTER_SQL
-                : "";
+        boolean filterByRegion =
+                filter.hasRegionFilter();
 
-        String sql = filter.hasRegionFilter()
-                ? REGION_BY_CITY_SQL.formatted(mkbFilterSql)
-                : REGION_BY_STATE_SQL.formatted(mkbFilterSql);
+        String sql =
+                buildLocationStatisticsSql(
+                        filter,
+                        filterByRegion
+                );
 
         MapSqlParameterSource parameters =
                 createCommonParameters(filter)
+                        .addValue(
+                                "catalogType",
+                                filterByRegion
+                                        ? CITY_CATALOG_TYPE
+                                        : STATE_CATALOG_TYPE,
+                                Types.VARCHAR
+                        )
                         .addValue(
                                 "approvedStatus",
                                 FormStatus.APPROVED.name(),
@@ -522,7 +559,7 @@ public class JdbcMonitoringQueryRepository
         return jdbcTemplate.query(
                 sql,
                 parameters,
-                REGION_ROW_MAPPER
+                LOCATION_STATISTICS_ROW_MAPPER
         );
     }
 
@@ -532,24 +569,21 @@ public class JdbcMonitoringQueryRepository
     ) {
         validateFilter(filter);
 
-        String regionColumn = filter.hasRegionFilter()
-                ? CITY_REGION_COLUMN
-                : STATE_REGION_COLUMN;
+        String regionColumn =
+                resolveRegionColumn(filter);
 
-        String regionFilterSql = filter.hasRegionFilter()
-                ? REGION_FILTER_SQL
-                : "";
+        String organizationRegionFilterSql =
+                resolveOrganizationRegionFilterSql(filter);
 
-        String mkbFilterSql = filter.hasMkb10Filter()
-                ? MKB_FILTER_SQL
-                : "";
+        String mkbFilterSql =
+                resolveMkbFilterSql(filter);
 
-        String sql = DISEASE_STATISTICS_SQL.formatted(
-                regionColumn,
-                regionFilterSql,
-                mkbFilterSql,
-                regionColumn
-        );
+        String sql =
+                DISEASE_STATISTICS_SQL.formatted(
+                        regionColumn,
+                        organizationRegionFilterSql,
+                        mkbFilterSql
+                );
 
         MapSqlParameterSource parameters =
                 createCommonParameters(filter)
@@ -562,8 +596,65 @@ public class JdbcMonitoringQueryRepository
         return jdbcTemplate.query(
                 sql,
                 parameters,
-                DISEASE_ROW_MAPPER
+                DISEASE_STATISTICS_ROW_MAPPER
         );
+    }
+
+    private String buildLocationStatisticsSql(
+            MonitoringFilter filter,
+            boolean filterByRegion
+    ) {
+        String regionColumn =
+                resolveRegionColumn(filter);
+
+        String baseRegionFilterSql =
+                filterByRegion
+                        ? BASE_CITY_FILTER_SQL
+                        : "";
+
+        String organizationRegionFilterSql =
+                resolveOrganizationRegionFilterSql(filter);
+
+        String mkbFilterSql =
+                resolveMkbFilterSql(filter);
+
+        return LOCATION_STATISTICS_SQL.formatted(
+                baseRegionFilterSql,
+                regionColumn,
+                organizationRegionFilterSql,
+                mkbFilterSql
+        );
+    }
+
+    /**
+     * No region filter:
+     * grouped by organization.state_code.
+     * <p>
+     * Region filter available:
+     * grouped by organization.city_code.
+     */
+    private String resolveRegionColumn(
+            MonitoringFilter filter
+    ) {
+        return filter.hasRegionFilter()
+                ? CITY_CODE_SQL_EXPRESSION
+                : STATE_CODE_SQL_EXPRESSION;
+    }
+
+    private String resolveOrganizationRegionFilterSql(
+            MonitoringFilter filter
+    ) {
+        return filter.hasRegionFilter()
+                ? ORGANIZATION_REGION_FILTER_SQL
+                : "";
+    }
+
+    private String resolveMkbFilterSql(
+            MonitoringFilter filter
+    ) {
+        return filter.hasMkb10Filter()
+                ? MKB_FILTER_SQL
+                : "";
     }
 
     private MapSqlParameterSource createCommonParameters(
@@ -585,7 +676,9 @@ public class JdbcMonitoringQueryRepository
         if (filter.hasRegionFilter()) {
             parameters.addValue(
                     "regionCode",
-                    filter.regionCode(),
+                    normalizeRegionCode(
+                            filter.regionCode()
+                    ),
                     Types.VARCHAR
             );
         }
@@ -593,12 +686,60 @@ public class JdbcMonitoringQueryRepository
         if (filter.hasMkb10Filter()) {
             parameters.addValue(
                     "mkb10Code",
-                    filter.mkb10Code(),
+                    normalizeMkb10Code(
+                            filter.mkb10Code()
+                    ),
                     Types.VARCHAR
             );
         }
 
         return parameters;
+    }
+
+    private String normalizeRegionCode(
+            String regionCode
+    ) {
+        return Objects.requireNonNull(
+                        regionCode,
+                        "Monitoring regionCode must not be null"
+                )
+                .trim()
+                .toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * MKB code with normalization within SQL
+     * is reduced to the same form.
+     * <p>
+     * Examples:
+     * " (A00-A09) " -> "A00-A09"
+     * " a00-a09 " -> "A00-A09"
+     * " ((A00)) " -> "A00"
+     */
+    private String normalizeMkb10Code(
+            String mkb10Code
+    ) {
+        String normalized =
+                Objects.requireNonNull(
+                                mkb10Code,
+                                "Monitoring mkb10Code must not be null"
+                        )
+                        .trim();
+
+        while (normalized.startsWith("(")) {
+            normalized =
+                    normalized.substring(1).trim();
+        }
+
+        while (normalized.endsWith(")")) {
+            normalized =
+                    normalized.substring(
+                            0,
+                            normalized.length() - 1
+                    ).trim();
+        }
+
+        return normalized.toUpperCase(Locale.ROOT);
     }
 
     private void validateFilter(
@@ -619,11 +760,42 @@ public class JdbcMonitoringQueryRepository
                 "Monitoring toDate must not be null"
         );
 
+        Objects.requireNonNull(
+                filter.fromDateTime(),
+                "Monitoring fromDateTime must not be null"
+        );
+
+        Objects.requireNonNull(
+                filter.toDateTimeExclusive(),
+                "Monitoring toDateTimeExclusive must not be null"
+        );
+
         if (filter.fromDate().isAfter(filter.toDate())) {
             throw new IllegalArgumentException(
                     "Monitoring fromDate must not be after toDate"
             );
         }
-    }
 
+        if (!filter.fromDateTime()
+                .isBefore(filter.toDateTimeExclusive())) {
+            throw new IllegalArgumentException(
+                    "Monitoring fromDateTime must be before "
+                            + "toDateTimeExclusive"
+            );
+        }
+
+        if (filter.hasRegionFilter()
+                && filter.regionCode().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Monitoring regionCode must not be blank"
+            );
+        }
+
+        if (filter.hasMkb10Filter()
+                && filter.mkb10Code().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Monitoring mkb10Code must not be blank"
+            );
+        }
+    }
 }

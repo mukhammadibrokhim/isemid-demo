@@ -22,7 +22,9 @@ public class MonitoringResponseMapper {
         Map<String, Map<String, Integer>> diseaseByLocation =
                 groupDiseaseTypesByLocation(diseaseRows);
 
-        MonitoringResponse response = new MonitoringResponse();
+        MonitoringResponse response =
+                new MonitoringResponse();
+
         response.setToDate(toDate);
         response.setData(
                 toLocationItems(
@@ -55,17 +57,41 @@ public class MonitoringResponseMapper {
 
             item.setRegionCode(row.regionCode());
 
-            item.setTotalCases(toIntExact(row.totalCases()));
-            item.setConfirmed(toIntExact(row.confirmed()));
-            item.setUnconfirmed(toIntExact(row.unconfirmed()));
+            item.setTotalCases(
+                    toIntExact(row.totalCases())
+            );
 
-            item.setMale(toIntExact(row.male()));
-            item.setFemale(toIntExact(row.female()));
+            item.setConfirmed(
+                    toIntExact(row.confirmed())
+            );
 
-            item.setAgeGroups(toAgeGroups(row));
+            item.setUnconfirmed(
+                    toIntExact(row.unconfirmed())
+            );
+
+            item.setMale(
+                    toIntExact(row.male())
+            );
+
+            item.setFemale(
+                    toIntExact(row.female())
+            );
+
+            /*
+             * New field mapping.
+             */
+            item.setUnknownGender(
+                    toIntExact(row.unknownGender())
+            );
+
+            item.setAgeGroups(
+                    toAgeGroups(row)
+            );
 
             Map<String, Integer> diseaseType =
-                    diseaseByLocation.get(row.regionCode());
+                    diseaseByLocation.get(
+                            row.regionCode()
+                    );
 
             item.setDiseaseType(
                     diseaseType != null
@@ -85,19 +111,53 @@ public class MonitoringResponseMapper {
         MonitoringResponse.AgeGroupCount ageGroups =
                 new MonitoringResponse.AgeGroupCount();
 
-        ageGroups.setAge_0_3(toIntExact(row.age0To3()));
-        ageGroups.setAge_3_6(toIntExact(row.age4To6()));
-        ageGroups.setAge_6_10(toIntExact(row.age7To10()));
-        ageGroups.setAge_10_17(toIntExact(row.age11To17()));
-        ageGroups.setAge_18_25(toIntExact(row.age18To25()));
-        ageGroups.setAge_25_45(toIntExact(row.age26To45()));
-        ageGroups.setAge_45_65(toIntExact(row.age46To65()));
-        ageGroups.setAge_65_plus(toIntExact(row.age66Plus()));
+        /*
+         * Existing JSON field names are preserved.
+         */
+        ageGroups.setAge_0_3(
+                toIntExact(row.age0To3())
+        );
+
+        ageGroups.setAge_3_6(
+                toIntExact(row.age4To6())
+        );
+
+        ageGroups.setAge_6_10(
+                toIntExact(row.age7To10())
+        );
+
+        ageGroups.setAge_10_17(
+                toIntExact(row.age11To17())
+        );
+
+        ageGroups.setAge_18_25(
+                toIntExact(row.age18To25())
+        );
+
+        ageGroups.setAge_25_45(
+                toIntExact(row.age26To45())
+        );
+
+        ageGroups.setAge_45_65(
+                toIntExact(row.age46To65())
+        );
+
+        ageGroups.setAge_65_plus(
+                toIntExact(row.age66Plus())
+        );
+
+        /*
+         * New field mapping.
+         */
+        ageGroups.setAge_unknown(
+                toIntExact(row.unknownAge())
+        );
 
         return ageGroups;
     }
 
-    private Map<String, Map<String, Integer>> groupDiseaseTypesByLocation(
+    private Map<String, Map<String, Integer>>
+    groupDiseaseTypesByLocation(
             List<MonitoringDiseaseRow> rows
     ) {
         Map<String, Map<String, Integer>> result =
@@ -112,9 +172,13 @@ public class MonitoringResponseMapper {
                 continue;
             }
 
-            String locationCode = row.regionCode().trim();
+            String locationCode =
+                    row.regionCode().trim();
+
             String diseaseCode =
-                    normalizeDiseaseCode(row.diseaseCode());
+                    normalizeDiseaseCode(
+                            row.diseaseCode()
+                    );
 
             Map<String, Integer> diseaseTypes =
                     result.computeIfAbsent(
@@ -140,10 +204,14 @@ public class MonitoringResponseMapper {
                 && hasText(row.diseaseCode());
     }
 
-    private String normalizeDiseaseCode(String diseaseCode) {
-        String normalized = diseaseCode.trim();
+    private String normalizeDiseaseCode(
+            String diseaseCode
+    ) {
+        String normalized =
+                diseaseCode.trim();
 
-        if ("UNCLASSIFIED".equalsIgnoreCase(normalized)) {
+        if ("UNCLASSIFIED"
+                .equalsIgnoreCase(normalized)) {
             return "UNCLASSIFIED";
         }
 
@@ -155,11 +223,16 @@ public class MonitoringResponseMapper {
         return "(" + normalized + ")";
     }
 
-    private boolean hasText(String value) {
-        return value != null && !value.isBlank();
+    private boolean hasText(
+            String value
+    ) {
+        return value != null
+                && !value.isBlank();
     }
 
-    private int toIntExact(long value) {
+    private int toIntExact(
+            long value
+    ) {
         return Math.toIntExact(value);
     }
 }
