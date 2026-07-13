@@ -10,258 +10,536 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.Form4_9ReportDto;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Component
 @RequiredArgsConstructor
 public class Form4_9ReportHelper {
 
-    private static final String UNKNOWN_ORGANIZATION_NAME = "NOMA’LUM TASHKILOT";
+    private static final String CATEGORY_NO_ORGANIZED = "NO_ORGANIZED";
+    private static final String CATEGORY_NOT_ORGANIZED = "NOT_ORGANIZED";
+    private static final String CATEGORY_ORGANIZED = "ORGANIZED";
+    private static final String CATEGORY_STUDENT_SCHOOL = "STUDENT_SCHOOL";
+    private static final String CATEGORY_MIDDLE_STUDENT = "MIDDLE_STUDENT";
+    private static final String CATEGORY_SECONDARY_STUDENT = "SECONDARY_STUDENT";
+    private static final String CATEGORY_STUDENT = "STUDENT";
+    private static final String CATEGORY_WORKER = "WORKER";
+    private static final String CATEGORY_MEDICAL_WORKER = "MEDICAL_WORKER";
+    private static final String CATEGORY_NOT_EMPLOYED = "NOT_EMPLOYED";
+    private static final String CATEGORY_PENSIONER = "PENSIONER";
+    private static final String CATEGORY_UNSHELTRED = "UNSHELTRED";
+    private static final String CATEGORY_UNSHELTERED = "UNSHELTERED";
+    private static final String CATEGORY_STAFF = "STAFF";
 
     private final CatalogService catalogService;
 
-    public Object buildByParentCode(String parentCode, List<Form058> forms) {
-        Catalog parent = catalogService.findByCode(parentCode);
+    // ============================================================
+    // PUBLIC ENTRY POINTS
+    // ============================================================
 
-        if (parent == null || !hasText(parent.getType())) {
-            return buildRegionReports(forms);
+    public Object buildByParentCode(
+            String parentCode,
+            List<Form058> forms
+    ) {
+        String normalizedParentCode = normalizeCode(parentCode);
+
+        if (!hasText(normalizedParentCode)) {
+            return List.of();
         }
 
-        CatalogType type = resolveCatalogType(parent.getType());
+        List<Form058> safeForms = nullSafeForms(forms);
+        List<Catalog> children = nullSafeCatalogs(
+                catalogService.findAllByParentCode(normalizedParentCode)
+        );
 
-        if (type == null) {
-            return buildRegionReports(forms);
+        boolean containsNeighborhoods = children.stream()
+                .filter(Objects::nonNull)
+                .map(Catalog::getType)
+                .anyMatch(CatalogType.neighborhood.name()::equals);
+
+        /*
+         * Neighborhood darajasidan keyingi hisobot
+         * tashkilotlar kesimida quriladi.
+         */
+        if (containsNeighborhoods) {
+            return buildOrganizations(
+                    normalizedParentCode,
+                    safeForms
+            );
         }
 
-        return switch (type) {
-            case state -> buildDistrictReports(parentCode, forms);
-            case city -> buildOrganizations(parentCode, forms);
-            default -> buildRegionReports(forms);
-        };
+        List<Form4_9ReportDto> reports = new ArrayList<>(children.size());
+
+        for (Catalog child : children) {
+            if (child == null) {
+                continue;
+            }
+
+            String childCode = normalizeCode(child.getCode());
+
+            List<Form058> matchedForms = filterByLocation(
+                    safeForms,
+                    childCode
+            );
+
+            reports.add(
+                    buildReport(
+                            getDisplay(child),
+                            matchedForms
+                    )
+            );
+        }
+
+        return reports;
     }
 
     public Object buildRegionReports(List<Form058> forms) {
-        List<Catalog> regions = catalogService.findAllByType(CatalogType.state);
-        List<Catalog> categories = loadCategories();
+        List<Form058> safeForms = nullSafeForms(forms);
+        List<Catalog> regions = nullSafeCatalogs(
+                catalogService.findAllByType(CatalogType.state)
+        );
 
-        List<Form4_9ReportDto> result = new ArrayList<>();
+        List<Form4_9ReportDto> reports = new ArrayList<>(regions.size());
 
         for (Catalog region : regions) {
+            if (region == null) {
+                continue;
+            }
+
             String regionCode = normalizeCode(region.getCode());
-            String regionName = getDisplay(region);
 
-            List<Form058> regionForms = filterByLocation(forms, regionCode);
+            List<Form058> regionForms = safeForms.stream()
+                    .filter(Objects::nonNull)
+                    .filter(form -> matchesRegion(form, regionCode))
+                    .toList();
 
-            result.add(buildReport(regionName, regionForms, categories));
+            reports.add(
+                    buildReport(
+                            getDisplay(region),
+                            regionForms
+                    )
+            );
         }
 
-        return result;
+        return reports;
     }
 
-    public Object buildDistrictReports(String stateCode, List<Form058> forms) {
-        List<Catalog> districts = catalogService.findAllByParentCode(stateCode);
-        List<Catalog> categories = loadCategories();
+    public Object buildDistrictReports(
+            String stateCode,
+            List<Form058> forms
+    ) {
+        String normalizedStateCode = normalizeCode(stateCode);
 
-        List<Form4_9ReportDto> result = new ArrayList<>();
+        if (!hasText(normalizedStateCode)) {
+            return List.of();
+        }
+
+        List<Form058> safeForms = nullSafeForms(forms);
+        List<Catalog> districts = nullSafeCatalogs(
+                catalogService.findAllByParentCode(normalizedStateCode)
+        );
+
+        List<Form4_9ReportDto> reports = new ArrayList<>(districts.size());
 
         for (Catalog district : districts) {
+            if (district == null) {
+                continue;
+            }
+
             String districtCode = normalizeCode(district.getCode());
-            String districtName = getDisplay(district);
 
-            List<Form058> districtForms = filterByLocation(forms, districtCode);
+            /*
+             * Faqat shu tumanga tegishli formalar olinadi.
+             *
+             * Oldingi koddagi:
+             *
+             * city.isBlank() && state.equals(stateCode)
+             *
+             * sharti olib tashlandi. Chunki cityCode bo‘sh bo‘lgan
+             * bitta forma viloyatning barcha tumanlariga qo‘shilib ketardi.
+             */
+            List<Form058> districtForms = safeForms.stream()
+                    .filter(Objects::nonNull)
+                    .filter(form -> matchesDistrict(
+                            form,
+                            normalizedStateCode,
+                            districtCode
+                    ))
+                    .toList();
 
-            result.add(buildReport(districtName, districtForms, categories));
+            reports.add(
+                    buildReport(
+                            getDisplay(district),
+                            districtForms
+                    )
+            );
         }
 
-        return result;
+        return reports;
     }
 
-    public Object buildOrganizations(String cityCode, List<Form058> forms) {
-        List<Catalog> categories = loadCategories();
+    public Object buildOrganizations(
+            String districtCode,
+            List<Form058> forms
+    ) {
+        String normalizedDistrictCode = normalizeCode(districtCode);
 
-        List<Form058> cityForms = filterByLocation(forms, cityCode);
+        if (!hasText(normalizedDistrictCode)) {
+            return List.of();
+        }
 
-        Map<String, List<Form058>> formsByOrganization = cityForms.stream()
-                .filter(form -> form.getCreatedOrg() != null)
-                .collect(Collectors.groupingBy(
-                        form -> resolveOrganizationKey(form.getCreatedOrg()),
-                        LinkedHashMap::new,
-                        Collectors.toList()
-                ));
+        List<Form058> districtForms = nullSafeForms(forms).stream()
+                .filter(Objects::nonNull)
+                .filter(form -> belongsToDistrict(
+                        form,
+                        normalizedDistrictCode
+                ))
+                .toList();
 
-        return formsByOrganization.values()
+        /*
+         * Tashkilotlarni cityCode bo‘yicha emas,
+         * createdOrg identifikatori bo‘yicha guruhlaymiz.
+         *
+         * Bitta tumanda bir nechta tashkilot bir xil cityCode
+         * bilan saqlanishi mumkin.
+         */
+        Map<OrganizationKey, List<Form058>> formsByOrganization =
+                districtForms.stream()
+                        .filter(form -> form.getCreatedOrg() != null)
+                        .collect(Collectors.groupingBy(
+                                form -> organizationKey(
+                                        form.getCreatedOrg()
+                                ),
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        ));
+
+        return formsByOrganization.entrySet()
                 .stream()
-                .map(organizationForms -> {
-
-                    String organizationName = organizationForms.stream()
-                            .map(Form058::getCreatedOrg)
-                            .filter(Objects::nonNull)
-                            .map(Organization::getName)
-                            .filter(this::hasText)
-                            .findFirst()
-                            .orElse(UNKNOWN_ORGANIZATION_NAME);
-
-                    return buildReport(
-                            organizationName,
-                            organizationForms,
-                            categories
-                    );
-                })
-                .sorted(Comparator.comparing(Form4_9ReportDto::getName))
+                .map(entry -> buildReport(
+                        entry.getKey().displayName(),
+                        entry.getValue()
+                ))
+                .sorted(
+                        Comparator.comparing(
+                                Form4_9ReportDto::getName,
+                                Comparator.nullsLast(
+                                        String.CASE_INSENSITIVE_ORDER
+                                )
+                        )
+                )
                 .toList();
     }
 
+    // ============================================================
+    // REPORT BUILDING
+    // ============================================================
+
     private Form4_9ReportDto buildReport(
             String name,
-            List<Form058> forms,
-            List<Catalog> categories
+            List<Form058> forms
     ) {
-        Map<String, Long> stats = forms.stream()
-                .filter(form -> form.getPatient() != null)
-                .map(form -> form.getPatient().getCategoryCode())
-                .filter(this::hasText)
-                .map(this::normalizeCode)
-                .collect(Collectors.groupingBy(
-                        code -> code,
-                        Collectors.counting()
-                ));
+        CategoryStatistics statistics = calculateStatistics(forms);
 
-        Form4_9ReportDto dto = Form4_9ReportDto.builder()
-                .name(name)
+        return Form4_9ReportDto.builder()
+                .name(hasText(name) ? name : "-")
+                .unorganized(statistics.unorganized())
+                .organized(statistics.organized())
+                .pupils(statistics.pupils())
+                .secondaryInstitutions(
+                        statistics.secondaryInstitutions()
+                )
+                .institutions(statistics.institutions())
+                .employee(statistics.employee())
+                .medEmployee(statistics.medEmployee())
+                .unEmployee(statistics.unEmployee())
+                .pensioners(statistics.pensioners())
+                .homelessPeople(statistics.homelessPeople())
+                .total(statistics.total())
+                .staff(statistics.staff())
                 .build();
+    }
 
-        /*
-         * Category code faqat catalogdan olinadi.
-         * Bu yerda Java ichida "PENSIONER", "WORKER" deb count qilinmaydi.
-         */
-        for (Catalog category : categories) {
-            String categoryCode = normalizeCode(category.getCode());
+    /**
+     * Barcha statistikani bir marotaba ro‘yxatdan o‘tib hisoblaydi.
+     */
+    private CategoryStatistics calculateStatistics(
+            List<Form058> forms
+    ) {
+        long total = 0L;
+        long unorganized = 0L;
+        long organized = 0L;
+        long pupils = 0L;
+        long secondaryInstitutions = 0L;
+        long institutions = 0L;
+        long employee = 0L;
+        long medEmployee = 0L;
+        long unEmployee = 0L;
+        long pensioners = 0L;
+        long homelessPeople = 0L;
+        long explicitStaff = 0L;
+
+        for (Form058 form : nullSafeForms(forms)) {
+            if (form == null) {
+                continue;
+            }
+
+            /*
+             * TOTAL — report filteridan o‘tgan barcha Form058 yozuvlari.
+             *
+             * Patient yoki categoryCode yo‘q bo‘lsa ham forma umumiy
+             * totalga kiradi. Bu reportdagi real formalar sonini ko‘rsatadi.
+             */
+            total++;
+
+            if (form.getPatient() == null) {
+                continue;
+            }
+
+            String categoryCode = normalizeCategoryCode(
+                    form.getPatient().getCategoryCode()
+            );
 
             if (!hasText(categoryCode)) {
                 continue;
             }
 
-            long count = stats.getOrDefault(categoryCode, 0L);
+            switch (categoryCode) {
+                case CATEGORY_NO_ORGANIZED,
+                     CATEGORY_NOT_ORGANIZED -> unorganized++;
 
-            applyCategoryToDto(dto, categoryCode, count);
-        }
+                case CATEGORY_ORGANIZED -> organized++;
 
-        dto.setTotal(
-                dto.getUnorganized()
-                        + dto.getOrganized()
-                        + dto.getPupils()
-                        + dto.getSecondaryInstitutions()
-                        + dto.getInstitutions()
-                        + dto.getEmployee()
-                        + dto.getMedEmployee()
-                        + dto.getUnEmployee()
-                        + dto.getPensioners()
-                        + dto.getHomelessPeople()
-                        + dto.getStaff()
-        );
+                case CATEGORY_STUDENT_SCHOOL -> pupils++;
 
-        return dto;
-    }
+                case CATEGORY_MIDDLE_STUDENT,
+                     CATEGORY_SECONDARY_STUDENT -> secondaryInstitutions++;
 
-    private List<Catalog> loadCategories() {
-        return catalogService.findAllByType(CatalogType.category)
-                .stream()
-                .filter(category -> hasText(category.getCode()))
-                .toList();
-    }
+                case CATEGORY_STUDENT -> institutions++;
 
-    private void applyCategoryToDto(
-            Form4_9ReportDto dto,
-            String categoryCode,
-            long count
-    ) {
-        switch (categoryCode) {
-            case "NO_ORGANIZED" -> dto.setUnorganized(dto.getUnorganized() + count);
-            case "ORGANIZED" -> dto.setOrganized(dto.getOrganized() + count);
-            case "STUDENT_SCHOOL" -> dto.setPupils(dto.getPupils() + count);
-            case "MIDDLE_STUDENT" -> dto.setSecondaryInstitutions(dto.getSecondaryInstitutions() + count);
-            case "STUDENT" -> dto.setInstitutions(dto.getInstitutions() + count);
-            case "WORKER" -> dto.setEmployee(dto.getEmployee() + count);
-            case "MEDICAL_WORKER" -> dto.setMedEmployee(dto.getMedEmployee() + count);
-            case "NOT_EMPLOYED" -> dto.setUnEmployee(dto.getUnEmployee() + count);
-            case "PENSIONER" -> dto.setPensioners(dto.getPensioners() + count);
-            case "UNSHELTRED" -> dto.setHomelessPeople(dto.getHomelessPeople() + count);
+                case CATEGORY_WORKER -> employee++;
 
-            /*
-             * DTO da SEREVANTS va TEACHER uchun alohida field yo‘q.
-             * Shuning uchun ikkalasi staff ga qo‘shiladi.
-             */
-            case "SEREVANTS", "TEACHER" -> dto.setStaff(dto.getStaff() + count);
+                case CATEGORY_MEDICAL_WORKER -> medEmployee++;
 
-            default -> {
-                // DTO da bu category uchun alohida field yo‘q.
+                case CATEGORY_NOT_EMPLOYED -> unEmployee++;
+
+                case CATEGORY_PENSIONER -> pensioners++;
+
+                /*
+                 * Eski noto‘g‘ri yozilgan va to‘g‘ri variantning
+                 * ikkalasini ham qo‘llab-quvvatlaydi.
+                 */
+                case CATEGORY_UNSHELTRED,
+                     CATEGORY_UNSHELTERED -> homelessPeople++;
+
+                case CATEGORY_STAFF -> explicitStaff++;
+
+                default -> {
+                    /*
+                     * Noma’lum categoryCode TOTAL ichida qoladi,
+                     * ammo maxsus ustunlardan biriga qo‘shilmaydi.
+                     */
+                }
             }
         }
+
+        /*
+         * STAFF — to‘g‘ridan-to‘g‘ri STAFF kategoriyasi,
+         * oddiy xodimlar va tibbiyot xodimlari yig‘indisi.
+         *
+         * Har bir patientda bitta categoryCode bo‘lgani uchun
+         * bu yerda takroriy hisoblash bo‘lmaydi.
+         */
+        long staff = explicitStaff + employee + medEmployee;
+
+        return new CategoryStatistics(
+                unorganized,
+                organized,
+                pupils,
+                secondaryInstitutions,
+                institutions,
+                employee,
+                medEmployee,
+                unEmployee,
+                pensioners,
+                homelessPeople,
+                total,
+                staff
+        );
     }
 
-    private List<Form058> filterByLocation(List<Form058> forms, String locationCode) {
-        if (!hasText(locationCode)) {
+    // ============================================================
+    // LOCATION FILTERING
+    // ============================================================
+
+    private List<Form058> filterByLocation(
+            List<Form058> forms,
+            String locationCode
+    ) {
+        String normalizedLocationCode = normalizeCode(locationCode);
+
+        if (!hasText(normalizedLocationCode)) {
             return List.of();
         }
 
-        String code = normalizeCode(locationCode);
-
-        return forms.stream()
+        return nullSafeForms(forms).stream()
+                .filter(Objects::nonNull)
                 .filter(form -> form.getCreatedOrg() != null)
-                .filter(form -> isLocationMatch(form.getCreatedOrg(), code))
+                .filter(form -> isLocationMatch(
+                        form.getCreatedOrg(),
+                        normalizedLocationCode
+                ))
                 .toList();
     }
 
-    private boolean isLocationMatch(Organization organization, String code) {
-        if (organization == null || !hasText(code)) {
+    private boolean matchesRegion(
+            Form058 form,
+            String regionCode
+    ) {
+        if (form == null
+                || form.getCreatedOrg() == null
+                || !hasText(regionCode)) {
             return false;
         }
 
-        String stateCode = normalizeCode(organization.getStateCode());
-        String cityCode = normalizeCode(organization.getCityCode());
+        Organization organization = form.getCreatedOrg();
 
-        if (code.equals(stateCode)) {
+        String stateCode = normalizeCode(
+                organization.getStateCode()
+        );
+
+        String cityCode = normalizeCode(
+                organization.getCityCode()
+        );
+
+        if (regionCode.equals(stateCode)) {
             return true;
         }
 
-        if (code.equals(cityCode)) {
+        /*
+         * Legacy yozuvlarda stateCode bo‘sh bo‘lsa,
+         * cityCode prefiksi orqali region aniqlanadi.
+         */
+        return !hasText(stateCode)
+                && hasText(cityCode)
+                && cityCode.startsWith(regionCode);
+    }
+
+    private boolean matchesDistrict(
+            Form058 form,
+            String stateCode,
+            String districtCode
+    ) {
+        if (form == null
+                || form.getCreatedOrg() == null
+                || !hasText(districtCode)) {
+            return false;
+        }
+
+        Organization organization = form.getCreatedOrg();
+
+        String organizationStateCode = normalizeCode(
+                organization.getStateCode()
+        );
+
+        String organizationCityCode = normalizeCode(
+                organization.getCityCode()
+        );
+
+        /*
+         * Agar tashkilotda stateCode mavjud bo‘lsa,
+         * boshqa viloyatdagi tashkilotlarni chiqarib tashlaymiz.
+         */
+        if (hasText(organizationStateCode)
+                && hasText(stateCode)
+                && !stateCode.equals(organizationStateCode)) {
+            return false;
+        }
+
+        return hasText(organizationCityCode)
+                && (
+                organizationCityCode.equals(districtCode)
+                        || organizationCityCode.startsWith(
+                        districtCode
+                )
+        );
+    }
+
+    private boolean belongsToDistrict(
+            Form058 form,
+            String districtCode
+    ) {
+        if (form == null
+                || form.getCreatedOrg() == null
+                || !hasText(districtCode)) {
+            return false;
+        }
+
+        String organizationCityCode = normalizeCode(
+                form.getCreatedOrg().getCityCode()
+        );
+
+        return hasText(organizationCityCode)
+                && (
+                organizationCityCode.equals(districtCode)
+                        || organizationCityCode.startsWith(
+                        districtCode
+                )
+        );
+    }
+
+    private boolean isLocationMatch(
+            Organization organization,
+            String locationCode
+    ) {
+        if (organization == null || !hasText(locationCode)) {
+            return false;
+        }
+
+        String stateCode = normalizeCode(
+                organization.getStateCode()
+        );
+
+        String cityCode = normalizeCode(
+                organization.getCityCode()
+        );
+
+        if (locationCode.equals(stateCode)) {
             return true;
         }
 
-        return hasText(cityCode) && cityCode.startsWith(code);
+        if (locationCode.equals(cityCode)) {
+            return true;
+        }
+
+        return hasText(cityCode)
+                && cityCode.startsWith(locationCode);
     }
 
-    private String resolveOrganizationKey(Organization organization) {
-        if (organization == null) {
-            return UNKNOWN_ORGANIZATION_NAME;
-        }
+    // ============================================================
+    // ORGANIZATION GROUPING
+    // ============================================================
 
-        if (organization.getId() != null) {
-            return String.valueOf(organization.getId());
-        }
+    private OrganizationKey organizationKey(
+            Organization organization
+    ) {
+        String organizationName = hasText(organization.getName())
+                ? organization.getName().trim()
+                : "Noma’lum tashkilot";
 
-        if (hasText(organization.getName())) {
-            return organization.getName().trim();
-        }
-
-        return UNKNOWN_ORGANIZATION_NAME;
+        return new OrganizationKey(
+                organization.getId(),
+                organizationName,
+                normalizeCode(organization.getCityCode())
+        );
     }
 
-    private CatalogType resolveCatalogType(String type) {
-        try {
-            return CatalogType.valueOf(type.trim());
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    // ============================================================
+    // LOCALIZATION
+    // ============================================================
 
     private String getDisplay(Catalog catalog) {
         if (catalog == null) {
@@ -269,31 +547,110 @@ public class Form4_9ReportHelper {
         }
 
         Locale locale = LocaleContextHolder.getLocale();
-        String lang = locale.getLanguage();
+
+        String language = locale.getLanguage();
         String script = locale.getScript();
 
-        String value = null;
+        String localizedName = null;
 
-        if ("uz".equals(lang) && "Cyrl".equalsIgnoreCase(script)) {
-            value = catalog.getNameUzCyril();
-        } else if ("uz".equals(lang)) {
-            value = catalog.getNameUz();
-        } else if ("ru".equals(lang)) {
-            value = catalog.getNameRu();
-        } else if ("kaa".equals(lang)) {
-            value = catalog.getNameKaa();
+        if ("uz".equalsIgnoreCase(language)
+                && "Cyrl".equalsIgnoreCase(script)) {
+            localizedName = catalog.getNameUzCyril();
+        } else if ("uz".equalsIgnoreCase(language)) {
+            localizedName = catalog.getNameUz();
+        } else if ("ru".equalsIgnoreCase(language)) {
+            localizedName = catalog.getNameRu();
+        } else if ("kaa".equalsIgnoreCase(language)) {
+            localizedName = catalog.getNameKaa();
         }
 
-        return Optional.ofNullable(value)
-                .filter(this::hasText)
-                .orElse("-");
+        return firstNonBlank(
+                localizedName,
+                catalog.getNameUz(),
+                catalog.getNameRu(),
+                catalog.getNameUzCyril(),
+                catalog.getNameKaa(),
+                catalog.getCode(),
+                "-"
+        );
     }
 
-    private String normalizeCode(String code) {
-        return code == null ? "" : code.trim().toUpperCase();
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return "-";
+        }
+
+        for (String value : values) {
+            if (hasText(value)) {
+                return value.trim();
+            }
+        }
+
+        return "-";
     }
 
-    private boolean hasText(String value) {
-        return value != null && !value.trim().isEmpty();
+    // ============================================================
+    // NORMALIZATION
+    // ============================================================
+
+    private String normalizeCode(String value) {
+        if (!hasText(value)) {
+            return "";
+        }
+
+        return value
+                .trim()
+                .toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeCategoryCode(String value) {
+        if (!hasText(value)) {
+            return "";
+        }
+
+        return value
+                .trim()
+                .toUpperCase(Locale.ROOT)
+                .replace('-', '_')
+                .replace(' ', '_');
+    }
+
+    private List<Form058> nullSafeForms(
+            List<Form058> forms
+    ) {
+        return forms == null ? List.of() : forms;
+    }
+
+    private List<Catalog> nullSafeCatalogs(
+            List<Catalog> catalogs
+    ) {
+        return catalogs == null ? List.of() : catalogs;
+    }
+
+    // ============================================================
+    // INTERNAL MODELS
+    // ============================================================
+
+    private record OrganizationKey(
+            Long organizationId,
+            String displayName,
+            String cityCode
+    ) {
+    }
+
+    private record CategoryStatistics(
+            long unorganized,
+            long organized,
+            long pupils,
+            long secondaryInstitutions,
+            long institutions,
+            long employee,
+            long medEmployee,
+            long unEmployee,
+            long pensioners,
+            long homelessPeople,
+            long total,
+            long staff
+    ) {
     }
 }
