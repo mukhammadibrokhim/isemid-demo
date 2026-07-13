@@ -97,7 +97,7 @@ public class Form058ServiceImpl implements Form058Service {
         FilterType effectiveFilterType = filterType == null ? FilterType.SENDER : filterType;
 
         Specification<Form058> specification = Specification
-                .where(Form058Specification.build(filterRequest))
+                .where(Form058Specification.build(filterRequest, effectiveFilterType))
                 .and(form058AccessSpecification.byScope(
                         effectiveFilterType,
                         scope,
