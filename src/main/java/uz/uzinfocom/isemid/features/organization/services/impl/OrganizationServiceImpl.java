@@ -58,7 +58,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public Organization updateUserFromMis(UUID uuid, User currentUser, String token) {
+    public Organization updateFromMis(UUID uuid, User currentUser, String token) {
         Organization existingOrganization = organizationRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
 

@@ -44,6 +44,10 @@ public final class ApiPaths {
         public static final String ROOT = BASE_PATH + "/form058";
     }
 
+    public static class Form0581 {
+        public static final String ROOT = BASE_PATH + "/form058-1";
+    }
+
     public static class PatientRegistry {
         public static final String ROOT = BASE_PATH + "/patient-registry";
     }

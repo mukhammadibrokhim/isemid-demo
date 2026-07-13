@@ -76,7 +76,7 @@ public class OrganizationController {
             @CurrentUser User currentUser,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
     ) {
-        return ApiResponse.success(messageUtil, organizationMapper.toResponse(organizationService.updateUserFromMis(uuid, currentUser, token)));
+        return ApiResponse.success(messageUtil, organizationMapper.toResponse(organizationService.updateFromMis(uuid, currentUser, token)));
     }
     @Operation(summary = "Обновить организацию", description = "Обновляет данные организации по UUID с новыми данными из тела запроса.")
     @PutMapping("/{uuid}/update")

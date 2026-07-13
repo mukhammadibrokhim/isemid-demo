@@ -96,6 +96,12 @@ public class CardController {
         return ApiResponse.success(messageUtil, mapper.toCardResponse(cardService.acceptCard(cardId, currentUser)));
     }
 
+    @Operation(summary = "Начать работу с картой", description = "Отмечает карту как 'IN_PROGRESS', указывая, что назначенный пользователь начал работу с картой. Соответствующая форма (058 или 058-1) переходит в статус 'APPROVED_PENDING'.")
+    @PatchMapping("/{cardId}/start")
+    public ApiResponse<?> startWorkingOnCard(@PathVariable Long cardId, @CurrentUser User currentUser) {
+        return ApiResponse.success(messageUtil, mapper.toCardResponse(cardService.startWorkingOnCard(cardId, currentUser)));
+    }
+
     @Operation(summary = "Отклонить входящую карту", description = "Отмечает карту как 'REJECTED_BY_USER', указывая, что назначенный пользователь отклонил карту. Требуется указать причину отклонения.")
     @PutMapping("/{cardId}/reject")
     public ApiResponse<?> rejectCard(

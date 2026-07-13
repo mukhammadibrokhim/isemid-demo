@@ -19,7 +19,7 @@ public interface OrganizationService {
 
     Organization getById(long id);
 
-    Organization updateUserFromMis(UUID uuid, User currentUser, String token);
+    Organization updateFromMis(UUID uuid, User currentUser, String token);
 
     Optional<Organization> findById(UUID uuid);
 

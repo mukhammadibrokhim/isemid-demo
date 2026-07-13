@@ -46,14 +46,19 @@ public class Form058Policy {
         //TODO Should add status validation
     }
 
+    private static final EnumSet<FormStatus> APPROVABLE_STATUSES = EnumSet.of(
+            FormStatus.CARD_LINKED,
+            FormStatus.APPROVED_PENDING
+    );
+
     public void assertApprovable(Form058 form058) {
         if (form058 == null) {
             throw new IllegalArgumentException("Form058 must not be null");
         }
 
-        if (form058.getStatus() != FormStatus.CARD_LINKED) {
+        if (!APPROVABLE_STATUSES.contains(form058.getStatus())) {
             throw new ApiException(BAD_REQUEST,
-                    "Form058 can be approved only when status is CARD_LINKED. Current status: "
+                    "Form058 can be approved only when status is CARD_LINKED or APPROVED_PENDING. Current status: "
                             + form058.getStatus()
             );
         }
