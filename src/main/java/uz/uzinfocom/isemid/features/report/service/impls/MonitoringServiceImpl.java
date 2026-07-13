@@ -1,25 +1,24 @@
 package uz.uzinfocom.isemid.features.report.service.impls;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.isemid.features.classifier.repositories.Mkb10Repository;
+import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
+import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.report.dtos.MonitoringResponse;
+import uz.uzinfocom.isemid.features.report.dtos.request.MonitoringFilter;
+import uz.uzinfocom.isemid.features.report.mapper.MonitoringResponseMapper;
+import uz.uzinfocom.isemid.features.report.projection.MonitoringDiseaseRow;
+import uz.uzinfocom.isemid.features.report.projection.MonitoringLocationRow;
+import uz.uzinfocom.isemid.features.report.repository.MonitoringQueryRepository;
 import uz.uzinfocom.isemid.features.report.service.MonitoringService;
 
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Locale;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -31,6 +30,8 @@ public class MonitoringServiceImpl implements MonitoringService {
     private final Form058Repository form058Repository;
     private final Mkb10Repository mkb10Repository;
     private final CatalogService catalogService;
+    private final MonitoringQueryRepository monitoringQueryRepository;
+    private final MonitoringResponseMapper monitoringResponseMapper;
 
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("dd.MM.yyyy");
