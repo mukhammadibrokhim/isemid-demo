@@ -22,6 +22,7 @@ import uz.uzinfocom.isemid.features.card.strategy.impls.UpdateCardService;
 import uz.uzinfocom.isemid.features.card.utils.CardValidationUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
+import uz.uzinfocom.isemid.features.form0581.models.Form0581;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.services.UserService;
 
@@ -82,6 +83,26 @@ public class CardServiceImpl implements CardService {
 
     @Override
     @Transactional
+    public Card startWorkingOnCard(Long cardId, User currentUser) {
+        Card card = cardValidationUtil.validateAndGetCard(cardId, currentUser);
+        if (card.getStatus() != CardStatus.NEW) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.invalid_card_status", card.getStatus()));
+        }
+        card.setStatus(CardStatus.IN_PROGRESS);
+
+        Form058 form058 = card.getForm058();
+        Form0581 form0581 = card.getForm0581();
+        if (form058 != null) {
+            form058.setStatus(FormStatus.APPROVED_PENDING);
+        } else if (form0581 != null) {
+            form0581.setStatus(FormStatus.APPROVED_PENDING);
+        }
+
+        return cardRepository.save(card);
+    }
+
+    @Override
+    @Transactional
     public Card rejectCard(Long cardId, User currentUser, CardRejectRequest rejectCard) {
         Card card = cardValidationUtil.validateAndGetCard(cardId, currentUser);
         if (card.getStatus() == CardStatus.COMPLETED) {
@@ -134,7 +155,12 @@ public class CardServiceImpl implements CardService {
         }
 
         Form058 form058 = card.getForm058();
-        form058.setStatus(FormStatus.CARD_REJECTED);
+        Form0581 form0581 = card.getForm0581();
+        if (form058 != null) {
+            form058.setStatus(FormStatus.CARD_REJECTED);
+        } else if (form0581 != null) {
+            form0581.setStatus(FormStatus.CARD_REJECTED);
+        }
         card.setStatus(CardStatus.REJECTED);
         card.setSupervisorComment(rejectCard.getComment());
         return cardRepository.save(card);

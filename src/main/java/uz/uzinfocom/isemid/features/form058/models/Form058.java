@@ -85,7 +85,7 @@ public class Form058 extends AbsEntity {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "form058", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    @JsonManagedReference
+    @JsonManagedReference("form058-cards")
     private List<Card> cards = new ArrayList<>();
 
     private String cardByFullName;

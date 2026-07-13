@@ -17,6 +17,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 import uz.uzinfocom.isemid.commons.configs.logging.RestClientLoggingInterceptor;
 import uz.uzinfocom.isemid.features.integrations.dmed.DmedClient;
+import uz.uzinfocom.isemid.features.integrations.dmed.DmedForm0581Client;
 
 @Configuration
 public class DmedClientConfig {
@@ -25,6 +26,7 @@ public class DmedClientConfig {
     public static final int CONNECT_TIMEOUT = 5_000;
     private static final String DMED_FORM058_CHANGE_PUSH_API_BASE_URL="https://bane-backend.mis.2112.uz";
     private static final String DMED_FORM058_CHANGE_PUSH_API_PATH="/api/integrations/v1/058/{formId}";
+    private static final String DMED_FORM0581_CHANGE_PUSH_API_PATH="/api/integrations/v1/058-1/{formId}";
     public static final String TN = "Bearer 66258|cbMcnaUQfO1fB5zNcH4PMhwlxD4oiXC6lb8ZlJzz9776b081";
 
 
@@ -69,5 +71,38 @@ public class DmedClientConfig {
                 .builderFor(RestClientAdapter.create(restClient))
                 .build();
         return factory.createClient(DmedClient.class);
+    }
+
+    @Bean
+    public DmedForm0581Client dmedForm0581Client(RestClientLoggingInterceptor loggingInterceptor) {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(CONNECT_TIMEOUT))
+            .build();
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setDefaultConnectionConfig(connectionConfig);
+
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setResponseTimeout(Timeout.ofMilliseconds(READ_TIMEOUT))
+            .build();
+        CloseableHttpClient httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build();
+        HttpComponentsClientHttpRequestFactory httpRequestFactory =
+            new HttpComponentsClientHttpRequestFactory(httpClient);
+
+        RestClient restClient = RestClient.builder()
+                .requestFactory(httpRequestFactory)
+                .defaultHeaders(httpHeaders -> httpHeaders.add(HttpHeaders.AUTHORIZATION,TN))
+                .uriBuilderFactory(new DefaultUriBuilderFactory(UriComponentsBuilder
+                    .fromUriString(DMED_FORM058_CHANGE_PUSH_API_BASE_URL)
+                    .path(DMED_FORM0581_CHANGE_PUSH_API_PATH)))
+                .requestInterceptor(loggingInterceptor)
+                .build();
+
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory
+                .builderFor(RestClientAdapter.create(restClient))
+                .build();
+        return factory.createClient(DmedForm0581Client.class);
     }
 }
