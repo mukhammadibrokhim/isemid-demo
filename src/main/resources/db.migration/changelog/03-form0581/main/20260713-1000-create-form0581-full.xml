@@ -1,0 +1,362 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/03-form0581/main/20260713-1000-create-form0581-full.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      Full, consolidated schema for the form058-1 feature (dog/wild animal bite,
+      suspected rabies) - fully matches the current (final) state of the
+      Form0581 entity.
+
+      Every changeset is guarded by preConditions: if the corresponding
+      table/column/index/constraint already exists (e.g. created earlier in
+      this environment via the previous step-by-step migrations), Liquibase
+      simply marks it as ran (MARK_RAN) without error. On a fresh (empty)
+      database, everything is created from scratch.
+    -->
+
+    <!-- ============================================================= -->
+    <!-- form058_1 - main table                                         -->
+    <!-- ============================================================= -->
+
+    <changeSet author="uzinfocom" id="20260713-1000-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="form058_1"/>
+            </not>
+        </preConditions>
+        <createTable tableName="form058_1">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="form058_1_pkey"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="created_org_uuid" type="UUID"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="updated_org_uuid" type="UUID"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mkb10code" type="VARCHAR(255)"/>
+            <column name="mkb10name" type="VARCHAR(255)"/>
+            <column name="mkb10usage_limit" type="INTEGER"/>
+            <column name="final_mkb10code" type="VARCHAR(255)"/>
+            <column name="final_mkb10name" type="VARCHAR(255)"/>
+            <column name="injury_localization" type="VARCHAR(255)"/>
+            <column name="med_record_id" type="VARCHAR(255)"/>
+            <column name="patient_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sender_organization_id" type="BIGINT"/>
+            <column name="receiver_organization_id" type="BIGINT"/>
+            <column name="injury_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="visit_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="injury_state_code" type="VARCHAR(255)"/>
+            <column name="injury_city_code" type="VARCHAR(255)"/>
+            <column name="injury_address" type="VARCHAR(255)"/>
+            <column name="animal_owner_id" type="BIGINT"/>
+            <column name="animal_category_code" type="VARCHAR(255)"/>
+            <column name="animal_color" type="VARCHAR(255)"/>
+            <column name="animal_type" type="VARCHAR(255)"/>
+            <column name="animal_breed" type="VARCHAR(255)"/>
+            <column name="other_people_bitten" type="BOOLEAN"/>
+            <column name="hospitalized_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="hospital_place_id" type="BIGINT"/>
+            <column name="antirabic_aid_info" type="VARCHAR(1000)"/>
+            <column name="notifier_full_name" type="VARCHAR(255)"/>
+            <column name="receiver_full_name" type="VARCHAR(255)"/>
+            <column name="initial_report_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="source" type="VARCHAR(20)"/>
+            <column name="cancel_reason" type="VARCHAR(255)"/>
+            <column name="canceled_by" type="BIGINT"/>
+            <column name="approved_full_name" type="VARCHAR(255)"/>
+            <column name="approved_org_uuid" type="UUID"/>
+            <column name="not_approve_comment" type="VARCHAR(1000)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_form0581_status" tableName="form058_1"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_form0581_status" tableName="form058_1">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_form0581_patient_id" tableName="form058_1"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_form0581_patient_id" tableName="form058_1">
+            <column name="patient_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-4">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_form0581_sender_org_id" tableName="form058_1"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_form0581_sender_org_id" tableName="form058_1">
+            <column name="sender_organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-5">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_form0581_receiver_org_id" tableName="form058_1"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_form0581_receiver_org_id" tableName="form058_1">
+            <column name="receiver_organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-6">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_form0581_created_at" tableName="form058_1"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_form0581_created_at" tableName="form058_1">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-7">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_form0581_mkb10_code" tableName="form058_1"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_form0581_mkb10_code" tableName="form058_1">
+            <column name="mkb10code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-8">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="form058_1" constraintName="uk_form058_1_uuid"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_form058_1_uuid" tableName="form058_1"/>
+    </changeSet>
+
+    <!-- ============================================================= -->
+    <!-- fm0581_animal_owner - animal owner (one-to-one, optional)      -->
+    <!-- ============================================================= -->
+
+    <changeSet author="uzinfocom" id="20260713-1000-9">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="fm0581_animal_owner"/>
+            </not>
+        </preConditions>
+        <createTable tableName="fm0581_animal_owner">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="fm0581_animal_owner_pkey"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="middle_name" type="VARCHAR(255)"/>
+            <column name="state_code" type="VARCHAR(255)"/>
+            <column name="city_code" type="VARCHAR(255)"/>
+            <column name="neighborhood_code" type="VARCHAR(255)"/>
+            <column name="street_address" type="VARCHAR(255)"/>
+            <column name="house_number" type="VARCHAR(255)"/>
+            <column name="apartment_number" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-10">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="fm0581_animal_owner" constraintName="uk_fm0581_animal_owner_uuid"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_fm0581_animal_owner_uuid" tableName="fm0581_animal_owner"/>
+    </changeSet>
+
+    <!-- ============================================================= -->
+    <!-- fm0581_bitten_person - other bitten persons (one-to-many)      -->
+    <!-- ============================================================= -->
+
+    <changeSet author="uzinfocom" id="20260713-1000-11">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="fm0581_bitten_person"/>
+            </not>
+        </preConditions>
+        <createTable tableName="fm0581_bitten_person">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="fm0581_bitten_person_pkey"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="form0581_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="middle_name" type="VARCHAR(255)"/>
+            <column name="state_code" type="VARCHAR(255)"/>
+            <column name="city_code" type="VARCHAR(255)"/>
+            <column name="neighborhood_code" type="VARCHAR(255)"/>
+            <column name="street_address" type="VARCHAR(255)"/>
+            <column name="house_number" type="VARCHAR(255)"/>
+            <column name="apartment_number" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-12">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="fm0581_bitten_person" constraintName="uk_fm0581_bitten_person_uuid"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_fm0581_bitten_person_uuid" tableName="fm0581_bitten_person"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-13">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_fm0581_bitten_person_form" tableName="fm0581_bitten_person"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_fm0581_bitten_person_form" tableName="fm0581_bitten_person">
+            <column name="form0581_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ============================================================= -->
+    <!-- Foreign keys (after all required tables have been created)     -->
+    <!-- ============================================================= -->
+
+    <changeSet author="uzinfocom" id="20260713-1000-14">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_form058_1_patient" foreignKeyTableName="form058_1"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="patient_id" baseTableName="form058_1"
+                                  constraintName="fk_form058_1_patient" onDelete="NO ACTION" onUpdate="NO ACTION"
+                                  referencedColumnNames="id" referencedTableName="patient" validate="true"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-15">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_form058_1_created_org" foreignKeyTableName="form058_1"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="created_org_uuid" baseTableName="form058_1"
+                                  constraintName="fk_form058_1_created_org" onDelete="NO ACTION" onUpdate="NO ACTION"
+                                  referencedColumnNames="uuid" referencedTableName="organization" validate="true"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-16">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_form058_1_updated_org" foreignKeyTableName="form058_1"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="updated_org_uuid" baseTableName="form058_1"
+                                  constraintName="fk_form058_1_updated_org" onDelete="NO ACTION" onUpdate="NO ACTION"
+                                  referencedColumnNames="uuid" referencedTableName="organization" validate="true"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-17">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_form058_1_animal_owner" foreignKeyTableName="form058_1"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="animal_owner_id" baseTableName="form058_1"
+                                  constraintName="fk_form058_1_animal_owner" onDelete="NO ACTION" onUpdate="NO ACTION"
+                                  referencedColumnNames="id" referencedTableName="fm0581_animal_owner" validate="true"/>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-18">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_fm0581_bitten_person_form" foreignKeyTableName="fm0581_bitten_person"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="form0581_id" baseTableName="fm0581_bitten_person"
+                                  constraintName="fk_fm0581_bitten_person_form" onDelete="NO ACTION" onUpdate="NO ACTION"
+                                  referencedColumnNames="id" referencedTableName="form058_1" validate="true"/>
+    </changeSet>
+
+    <!-- ============================================================= -->
+    <!-- Add form058_1_id FK to the card table                          -->
+    <!-- ============================================================= -->
+
+    <changeSet author="uzinfocom" id="20260713-1000-19">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="card" columnName="form058_1_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="card">
+            <column name="form058_1_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-20">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_card_form0581" tableName="card"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_card_form0581" tableName="card">
+            <column name="form058_1_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260713-1000-21">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_card_form058_1" foreignKeyTableName="card"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="form058_1_id" baseTableName="card"
+                                  constraintName="fk_card_form058_1" onDelete="NO ACTION" onUpdate="NO ACTION"
+                                  referencedColumnNames="id" referencedTableName="form058_1" validate="true"/>
+    </changeSet>
+</databaseChangeLog>
