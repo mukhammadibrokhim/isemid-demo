@@ -7,6 +7,8 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
+import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form0581.dtos.requests.Form0581FilterRequest;
 import uz.uzinfocom.isemid.features.form0581.models.Form0581;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
@@ -28,6 +30,10 @@ import static org.springframework.util.StringUtils.hasText;
 public class Form0581Specification {
 
     public static Specification<Form0581> build(Form0581FilterRequest filterRequest) {
+        return build(filterRequest, FilterType.SENDER);
+    }
+
+    public static Specification<Form0581> build(Form0581FilterRequest filterRequest, FilterType filterType) {
         if (filterRequest == null) {
             return Specification.where(null);
         }
@@ -59,7 +65,7 @@ public class Form0581Specification {
                 predicates.add(cb.equal(root.get("mkb10Code"), filterRequest.mkb10Code()));
             }
             if (filterRequest.status() != null) {
-                predicates.add(cb.equal(root.get("status"), filterRequest.status()));
+                predicates.add(cb.equal(root.get("status"), resolveDbStatus(filterRequest.status(), filterType)));
             }
 
             if (hasText(filterRequest.source())) {
@@ -67,7 +73,8 @@ public class Form0581Specification {
             }
 
             if (filterRequest.organizationId() != null) {
-                predicates.add(cb.equal(root.get("senderOrganizationId"), filterRequest.organizationId()));
+                String orgColumn = filterType == FilterType.RECEIVER ? "receiverOrganizationId" : "senderOrganizationId";
+                predicates.add(cb.equal(root.get(orgColumn), filterRequest.organizationId()));
             }
 
             if (hasText(filterRequest.patientDocValue())) {
@@ -136,5 +143,17 @@ public class Form0581Specification {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * The receiver view remaps a stored SENT status to NEW for display (see Form0581ResponseAdapter),
+     * since the receiver hasn't acted on the form yet. When filtering by NEW as a receiver, the
+     * actual DB status to match against is therefore SENT, not the literal NEW value.
+     */
+    private static FormStatus resolveDbStatus(FormStatus requestedStatus, FilterType filterType) {
+        if (filterType == FilterType.RECEIVER && requestedStatus == FormStatus.NEW) {
+            return FormStatus.SENT;
+        }
+        return requestedStatus;
     }
 }
