@@ -73,7 +73,8 @@ public class Form0581Specification {
             }
 
             if (filterRequest.organizationId() != null) {
-                predicates.add(cb.equal(root.get("senderOrganizationId"), filterRequest.organizationId()));
+                String orgColumn = filterType == FilterType.RECEIVER ? "receiverOrganizationId" : "senderOrganizationId";
+                predicates.add(cb.equal(root.get(orgColumn), filterRequest.organizationId()));
             }
 
             if (hasText(filterRequest.patientDocValue())) {
