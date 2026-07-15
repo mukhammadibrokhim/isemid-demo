@@ -28,6 +28,7 @@ public class Form058Facade {
           new Form058ChangeEvent(
               form058.getUuid(),
               form058.getStatus(),
+                  null,
               currentUser.getCurrentOrganization().getName(),
               currentUser.getFullName()
           )
@@ -35,12 +36,7 @@ public class Form058Facade {
     });
 
     assert result != null;
-    if(result.form().getSource().equalsIgnoreCase(FORM_ORIGIN_SOURCE)){
-      dmedClient.pushFormStatusChangeEvent(
-          result.form().getId(),
-          result.event()
-      );
-    }
+    pushToDmedIfEnabled(result);
     return result.form();
   }
 
@@ -53,6 +49,7 @@ public class Form058Facade {
           new Form058ChangeEvent(
               form058.getUuid(),
               form058.getStatus(),
+                  reason,
               currentUser.getCurrentOrganization().getName(),
               currentUser.getFullName()
           )
@@ -60,17 +57,29 @@ public class Form058Facade {
     });
 
     assert result != null;
-    if(result.form().getSource().equalsIgnoreCase(FORM_ORIGIN_SOURCE)){
-      dmedClient.pushFormStatusChangeEvent(
-          result.form().getId(),
-          result.event()
-      );
-    }
+    pushToDmedIfEnabled(result);
 
     return result.form();
   }
 
-  private record CardStatusChangeResult(Form058 form, Form058ChangeEvent event) {}
+  /**
+   * Pushes the status-change event to DMED when the form originated there. This is a
+   * best-effort side notification: the card assignment/cancel has already committed by
+   * this point, so a DMED-side failure (e.g. the form is unknown to DMED, network issue)
+   * must not turn an already-successful operation into a reported failure for the caller.
+   */
+  private void pushToDmedIfEnabled(CardStatusChangeResult result) {
+    if (!result.form().getSource().equalsIgnoreCase(FORM_ORIGIN_SOURCE)) {
+      return;
+    }
 
+    try {
+      dmedClient.pushFormStatusChangeEvent(result.form().getId(), result.event());
+    } catch (Exception e) {
+      log.error("form058.dmedPush.fail formId={} reason={}", result.form().getId(), e.getMessage(), e);
+    }
+  }
+
+  private record CardStatusChangeResult(Form058 form, Form058ChangeEvent event) {}
 
 }

@@ -36,6 +36,7 @@ public class Form0581Facade {
           new Form058ChangeEvent(
               form0581.getUuid(),
               form0581.getStatus(),
+              null,
               currentUser.getCurrentOrganization().getName(),
               currentUser.getFullName()
           )
@@ -56,6 +57,7 @@ public class Form0581Facade {
           new Form058ChangeEvent(
               form0581.getUuid(),
               form0581.getStatus(),
+              reason,
               currentUser.getCurrentOrganization().getName(),
               currentUser.getFullName()
           )
@@ -72,11 +74,14 @@ public class Form0581Facade {
       return;
     }
 
-    if (result.form().getSource().equalsIgnoreCase(FORM_ORIGIN_SOURCE)) {
-      dmedForm0581Client.pushFormStatusChangeEvent(
-          result.form().getId(),
-          result.event()
-      );
+    if (!result.form().getSource().equalsIgnoreCase(FORM_ORIGIN_SOURCE)) {
+      return;
+    }
+
+    try {
+      dmedForm0581Client.pushFormStatusChangeEvent(result.form().getId(), result.event());
+    } catch (Exception e) {
+      log.error("form0581.dmedPush.fail formId={} reason={}", result.form().getId(), e.getMessage(), e);
     }
   }
 
