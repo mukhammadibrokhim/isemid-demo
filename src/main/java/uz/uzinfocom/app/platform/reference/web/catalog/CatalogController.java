@@ -24,9 +24,9 @@ import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.Catalog
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogResponse;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 import java.util.List;
 

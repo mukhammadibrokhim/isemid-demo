@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The "panel_admin" boolean column is replaced by role membership:
+        panel-admin access is now just the well-known "panel_admin" Role,
+        held in the existing user_roles table (see User#isPanelAdmin(),
+        UserSyncService#withPreservedPanelAdminRole). No new table needed.
+    -->
+    <changeSet id="20260715-1000-01-drop-panel-admin-flag" author="codex">
+        <sql dbms="postgresql">
+            ALTER TABLE users DROP COLUMN IF EXISTS panel_admin;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

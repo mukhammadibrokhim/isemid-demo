@@ -17,7 +17,7 @@ import uz.uzinfocom.app.modules.card.web.dto.request.CardRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 /**
  * Exclusively {@code /v1/cards/*} — anything triggered from a Form058 path

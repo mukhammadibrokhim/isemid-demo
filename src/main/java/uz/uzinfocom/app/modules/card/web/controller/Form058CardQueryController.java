@@ -18,8 +18,8 @@ import uz.uzinfocom.app.modules.card.application.query.CardQueryService;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 /**
  * Form058-scoped card listing — lives under {@code /v1/form-058/{id}/...}

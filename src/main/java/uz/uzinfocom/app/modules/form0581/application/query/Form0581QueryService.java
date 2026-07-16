@@ -12,13 +12,13 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.Form0581De
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581DetailResponseMapper;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581TableMapper;
 import uz.uzinfocom.app.modules.form0581.application.query.projection.Form0581TableProjection;
-import uz.uzinfocom.app.modules.form0581.application.security.Form0581AccessGuard;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.specification.Form0581Specification;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
@@ -35,7 +35,7 @@ public class Form0581QueryService {
     private final Form0581Specification form0581Specification;
     private final Form0581DetailResponseMapper form0581DetailResponseMapper;
     private final Form0581TableMapper form0581TableMapper;
-    private final Form0581AccessGuard form0581AccessGuard;
+    private final AdminAccessGuard form0581AccessGuard;
     private final AuditResolver auditResolver;
 
     public Page<Form0581TableResponse> findAll(Form0581Filter filter) {

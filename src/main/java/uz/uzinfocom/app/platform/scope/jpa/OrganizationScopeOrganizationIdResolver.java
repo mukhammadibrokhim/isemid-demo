@@ -33,9 +33,7 @@ public class OrganizationScopeOrganizationIdResolver {
         }
 
         return switch (mode) {
-            case ALL -> List.of();
-
-            case ORGANIZATION -> List.of();
+            case ALL, ORGANIZATION -> List.of();
 
             case REGION -> {
                 String normalizedRegionCode = normalizeRequired(regionCode);

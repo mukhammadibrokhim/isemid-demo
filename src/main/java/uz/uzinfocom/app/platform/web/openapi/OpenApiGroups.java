@@ -25,6 +25,11 @@ public final class OpenApiGroups {
             "/v1/permissions/**"
     };
 
+    private static final String[] ADMIN_PATHS = {
+            "/v1/admin",
+            "/v1/admin/**"
+    };
+
     public static final ApiDocumentationGroup REFERENCES = new ApiDocumentationGroup(
             "references",
             "Справочники",
@@ -41,10 +46,20 @@ public final class OpenApiGroups {
             ACCESS_CONTROL_PATHS
     );
 
+    public static final ApiDocumentationGroup ADMIN = new ApiDocumentationGroup(
+            "admin",
+            "Admin",
+            "Admin",
+            "Административный API: настройки системы, управление локальным административным доступом "
+                    + "и статистика по всем организациям.",
+            ADMIN_PATHS
+    );
+
     public static String[] pathsToExcludeFromMain() {
         return Stream.of(
                         REFERENCES.pathsToMatch(),
-                        ACCESS_CONTROL.pathsToMatch()
+                        ACCESS_CONTROL.pathsToMatch(),
+                        ADMIN.pathsToMatch()
                 )
                 .flatMap(Arrays::stream)
                 .toArray(String[]::new);

@@ -12,7 +12,7 @@ import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.scope.dto.CurrentScopeResponse;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 @Tag(
         name = "Organization Scope",

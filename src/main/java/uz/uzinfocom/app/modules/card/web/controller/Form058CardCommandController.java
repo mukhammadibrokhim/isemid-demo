@@ -16,7 +16,7 @@ import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.modules.card.web.dto.request.AssignCardsRequest;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 /**
  * Form058-triggered card creation — this path lives under

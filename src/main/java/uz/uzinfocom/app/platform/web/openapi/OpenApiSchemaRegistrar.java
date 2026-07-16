@@ -5,8 +5,8 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
 import org.springframework.stereotype.Component;
-import uz.uzinfocom.app.shared.response.ErrorResponse;
-import uz.uzinfocom.app.shared.response.FieldViolationResponse;
+import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
+import uz.uzinfocom.app.shared.dto.response.FieldViolationResponse;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

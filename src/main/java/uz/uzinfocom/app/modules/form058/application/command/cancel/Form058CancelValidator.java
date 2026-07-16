@@ -3,10 +3,10 @@ package uz.uzinfocom.app.modules.form058.application.command.cancel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
-import uz.uzinfocom.app.modules.form058.application.security.Form058AccessGuard;
 import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Objects;
@@ -15,7 +15,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class Form058CancelValidator {
 
-    private final Form058AccessGuard form058AccessGuard;
+    private final AdminAccessGuard form058AccessGuard;
 
     public void validate(Form058 form058) {
         if (!form058.getStatus().isCancellable()) {

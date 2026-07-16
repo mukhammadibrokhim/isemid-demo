@@ -60,6 +60,11 @@ public class OpenApiConfig {
     }
 
     @Bean
+    public GroupedOpenApi adminOpenApi() {
+        return buildGroupedOpenApi(OpenApiGroups.ADMIN);
+    }
+
+    @Bean
     public GroupedOpenApi mainOpenApi() {
         return GroupedOpenApi.builder()
                 .group("main")

@@ -26,8 +26,8 @@ import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
 import uz.uzinfocom.app.shared.exception.AppException;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
-import uz.uzinfocom.app.shared.response.ErrorResponse;
-import uz.uzinfocom.app.shared.response.FieldViolationResponse;
+import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
+import uz.uzinfocom.app.shared.dto.response.FieldViolationResponse;
 
 import java.util.List;
 import java.util.Comparator;

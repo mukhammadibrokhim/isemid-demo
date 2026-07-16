@@ -5,6 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockHttpServletRequest;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.PaginationMetadata;
 
 import java.util.List;
 

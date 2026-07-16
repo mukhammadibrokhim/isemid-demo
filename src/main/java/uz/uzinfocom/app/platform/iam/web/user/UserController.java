@@ -20,9 +20,9 @@ import uz.uzinfocom.app.platform.iam.web.user.dto.request.UserFilterRequest;
 import uz.uzinfocom.app.platform.iam.web.user.dto.response.UserDetailedResponse;
 import uz.uzinfocom.app.platform.iam.web.user.dto.response.UserTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 import java.util.List;
 import java.util.UUID;

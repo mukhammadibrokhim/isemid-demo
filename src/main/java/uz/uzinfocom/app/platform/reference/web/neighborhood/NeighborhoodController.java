@@ -31,9 +31,9 @@ import uz.uzinfocom.app.platform.reference.application.neighborhood.dto.Neighbor
 import uz.uzinfocom.app.platform.reference.application.neighborhood.command.NeighborhoodCommandService;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.NeighborhoodQueryService;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 import java.util.List;
 

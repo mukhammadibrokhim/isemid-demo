@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
@@ -34,7 +35,7 @@ public class OrganizationScopePredicateFactory {
      * - SANEPID_SERVICE + ORGANIZATION -> only own organization
      */
     public <T> Predicate apply(
-            Root<T> root,
+            Path<T> root,
             CriteriaBuilder cb,
             String organizationIdField,
             ResolvedOrganizationScope scope
@@ -144,7 +145,7 @@ public class OrganizationScopePredicateFactory {
     }
 
     private <T> Predicate directOrganization(
-            Root<T> root,
+            Path<T> root,
             CriteriaBuilder cb,
             String organizationIdField,
             Long organizationId
@@ -160,7 +161,7 @@ public class OrganizationScopePredicateFactory {
     }
 
     private <T> Predicate byResolvedOrganizationIds(
-            Root<T> root,
+            Path<T> root,
             CriteriaBuilder cb,
             String organizationIdField,
             List<Long> organizationIds

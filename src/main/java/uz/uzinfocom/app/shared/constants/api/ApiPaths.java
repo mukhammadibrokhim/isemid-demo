@@ -7,6 +7,28 @@ public final class ApiPaths {
 
     public static final String API_V1 = "/v1";
 
+    /**
+     * Root for the entire admin-only API surface — settings, elevated-access
+     * management, and admin-facing (unscoped, cross-organization) statistics.
+     * Kept as one prefix so it can be gated as a single Spring Security
+     * policy rule (see SecurityRouteCatalog) and served as its own Swagger
+     * group (see OpenApiGroups.ADMIN).
+     */
+    public static final class Admin {
+        private Admin() {
+        }
+
+        public static final String ROOT = API_V1 + "/admin";
+    }
+
+    public static final class Dashboard {
+        private Dashboard() {
+        }
+
+        public static final String ROOT = API_V1 + "/dashboard";
+        public static final String HOME = "/home";
+    }
+
     public static final class Organization {
 
         private Organization() {
@@ -93,6 +115,16 @@ public final class ApiPaths {
         public static final String CHILDREN = "/{id}/children";
     }
 
+    public static final class SystemSetting {
+        private SystemSetting() {
+        }
+
+        public static final String ROOT = Admin.ROOT + "/settings";
+        public static final String BY_ID = "/{id}";
+        public static final String BY_KEY = "/by-key/{key}";
+        public static final String RESTORE = "/{id}/restore";
+    }
+
     public static final class Form058 {
         private Form058() {
         }
@@ -107,6 +139,28 @@ public final class ApiPaths {
 
     }
 
+    public static final class Form058Stats {
+        private Form058Stats() {
+        }
+
+        public static final String ROOT = Form058.ROOT + "/stats";
+        public static final String BY_STATUS = "/by-status";
+        public static final String BY_DATE = "/by-date";
+        public static final String TOP_MKB10 = "/top-mkb10";
+    }
+
+    public static final class Form058AdminStats {
+        private Form058AdminStats() {
+        }
+
+        public static final String ROOT = Admin.ROOT + "/form-058/stats";
+        public static final String BY_STATUS = "/by-status";
+        public static final String BY_SENDER_ORGANIZATION = "/by-sender-organization";
+        public static final String BY_RECEIVER_ORGANIZATION = "/by-receiver-organization";
+        public static final String BY_DATE = "/by-date";
+        public static final String TOP_MKB10 = "/top-mkb10";
+    }
+
     public static final class Form0581 {
         private Form0581() {
         }
@@ -117,6 +171,28 @@ public final class ApiPaths {
         public static final String APPROVE = "/{id}/approve";
         public static final String NOT_APPROVE = "/{id}/not-approve";
         public static final String CANCEL = "/{id}/cancel";
+    }
+
+    public static final class Form0581Stats {
+        private Form0581Stats() {
+        }
+
+        public static final String ROOT = Form0581.ROOT + "/stats";
+        public static final String BY_STATUS = "/by-status";
+        public static final String BY_DATE = "/by-date";
+        public static final String TOP_MKB10 = "/top-mkb10";
+    }
+
+    public static final class Form0581AdminStats {
+        private Form0581AdminStats() {
+        }
+
+        public static final String ROOT = Admin.ROOT + "/form-058-1/stats";
+        public static final String BY_STATUS = "/by-status";
+        public static final String BY_SENDER_ORGANIZATION = "/by-sender-organization";
+        public static final String BY_RECEIVER_ORGANIZATION = "/by-receiver-organization";
+        public static final String BY_DATE = "/by-date";
+        public static final String TOP_MKB10 = "/top-mkb10";
     }
 
     public static final class Card {

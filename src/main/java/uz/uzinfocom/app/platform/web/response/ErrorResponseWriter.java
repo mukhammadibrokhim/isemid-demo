@@ -11,8 +11,8 @@ import uz.uzinfocom.app.shared.exception.ErrorCode;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.ObservabilityProperties;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
-import uz.uzinfocom.app.shared.response.ErrorResponse;
-import uz.uzinfocom.app.shared.response.FieldViolationResponse;
+import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
+import uz.uzinfocom.app.shared.dto.response.FieldViolationResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

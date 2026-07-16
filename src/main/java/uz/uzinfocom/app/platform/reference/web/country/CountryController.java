@@ -31,9 +31,9 @@ import uz.uzinfocom.app.platform.reference.application.country.dto.CountryUpdate
 import uz.uzinfocom.app.platform.reference.application.country.command.CountryCommandService;
 import uz.uzinfocom.app.platform.reference.application.country.query.CountryQueryService;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 @Tag(
         name = "Reference - Countries",

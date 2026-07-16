@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLocalizedName;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
@@ -84,5 +85,26 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
             @Param("regionCode") String regionCode,
             @Param("districtCode") String districtCode
     );
+
+    long countByActiveTrue();
+
+    @Query("""
+            select new uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection(
+                o.id, o.districtCode
+            )
+            from Organization o
+            where o.active = true
+              and o.regionCode = :regionCode
+            """)
+    List<OrganizationGeoProjection> findActiveIdAndDistrictCodeByRegionCode(@Param("regionCode") String regionCode);
+
+    @Query("""
+            select new uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection(
+                o.id, o.regionCode
+            )
+            from Organization o
+            where o.active = true
+            """)
+    List<OrganizationGeoProjection> findActiveIdAndRegionCode();
 
 }

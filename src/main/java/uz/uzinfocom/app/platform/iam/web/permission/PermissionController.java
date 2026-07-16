@@ -2,9 +2,6 @@ package uz.uzinfocom.app.platform.iam.web.permission;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -12,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -23,10 +21,9 @@ import uz.uzinfocom.app.platform.iam.application.permission.query.dto.Permission
 import uz.uzinfocom.app.platform.iam.application.permission.query.dto.PermissionFilterRequest;
 import uz.uzinfocom.app.platform.iam.application.permission.query.dto.PermissionTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.ErrorResponse;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 @Tag(
         name = "Permission",
@@ -76,6 +73,7 @@ public class PermissionController {
             description = "Создает новое право доступа для последующего назначения ролям."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Запись успешно создана.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PostMapping
     public ApiResponse<PermissionTableResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -93,6 +91,7 @@ public class PermissionController {
             description = "Обновляет субъект, описания и признак активности права доступа."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PutMapping(ApiPaths.Permission.BY_ID)
     public ApiResponse<PermissionTableResponse> update(
             @Parameter(description = "Уникальный идентификатор права доступа.", required = true)
@@ -112,6 +111,7 @@ public class PermissionController {
             description = "Выполняет мягкое удаление права доступа, после чего оно не используется при авторизации."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @DeleteMapping(ApiPaths.Permission.BY_ID)
     public ApiResponse<Void> deleteById(
             @Parameter(description = "Уникальный идентификатор права доступа.", required = true)
@@ -126,6 +126,7 @@ public class PermissionController {
             description = "Восстанавливает мягко удаленное право доступа и делает его активным."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PatchMapping(ApiPaths.Permission.RESTORE)
     public ApiResponse<Void> restore(
             @Parameter(description = "Уникальный идентификатор права доступа.", required = true)

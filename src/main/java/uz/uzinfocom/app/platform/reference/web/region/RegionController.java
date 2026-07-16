@@ -31,9 +31,9 @@ import uz.uzinfocom.app.platform.reference.application.region.dto.RegionUpdateRe
 import uz.uzinfocom.app.platform.reference.application.region.command.RegionCommandService;
 import uz.uzinfocom.app.platform.reference.application.region.query.RegionQueryService;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 import java.util.List;
 

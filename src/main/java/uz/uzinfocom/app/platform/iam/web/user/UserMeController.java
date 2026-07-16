@@ -12,7 +12,7 @@ import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserMeResponse;
 import uz.uzinfocom.app.platform.security.annotation.CurrentUser;
 import uz.uzinfocom.app.platform.security.principal.PrincipalUser;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 @Tag(
         name = "User Me",

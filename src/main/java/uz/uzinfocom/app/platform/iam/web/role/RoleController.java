@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -22,9 +23,9 @@ import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleFilterReques
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RolePermissionResponse;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
-import uz.uzinfocom.app.shared.response.ApiResponse;
-import uz.uzinfocom.app.shared.response.PagedResponse;
-import uz.uzinfocom.app.shared.response.PagedResponseAssembler;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 import java.util.List;
 
@@ -76,6 +77,7 @@ public class RoleController {
             description = "Создает новую роль пользователя для дальнейшего назначения в рамках организаций."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Запись успешно создана.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PostMapping
     public ApiResponse<RoleDetailResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -93,6 +95,7 @@ public class RoleController {
             description = "Обновляет наименование, описания и признак активности роли."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PutMapping(ApiPaths.Role.BY_ID)
     public ApiResponse<RoleDetailResponse> update(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)
@@ -112,6 +115,7 @@ public class RoleController {
             description = "Выполняет мягкое удаление роли, после чего она не используется при авторизации."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @DeleteMapping(ApiPaths.Role.BY_ID)
     public ApiResponse<Void> delete(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)
@@ -126,6 +130,7 @@ public class RoleController {
             description = "Восстанавливает мягко удаленную роль и делает ее активной."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PatchMapping(ApiPaths.Role.RESTORE)
     public ApiResponse<Void> restore(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)
@@ -154,6 +159,7 @@ public class RoleController {
             description = "Добавляет или объединяет права доступа роли. Если право уже назначено, действия объединяются."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PatchMapping(ApiPaths.Role.PERMISSIONS)
     public ApiResponse<RoleDetailResponse> addPermissions(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)
@@ -173,6 +179,7 @@ public class RoleController {
             description = "Полностью заменяет список прав доступа роли указанным набором."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PutMapping(ApiPaths.Role.PERMISSIONS)
     public ApiResponse<RoleDetailResponse> replacePermissions(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)
@@ -192,6 +199,7 @@ public class RoleController {
             description = "Удаляет указанные действия из прав роли. Если действий не остается, право снимается с роли."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Успешный запрос.")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     @PatchMapping(ApiPaths.Role.REMOVE_PERMISSIONS)
     public ApiResponse<RoleDetailResponse> removePermissions(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)

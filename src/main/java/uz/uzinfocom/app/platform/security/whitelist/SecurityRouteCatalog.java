@@ -66,6 +66,12 @@ public final class SecurityRouteCatalog {
         rules.put("/v1/references/**", new RoutePolicyRule(false, true));
         rules.put("/v1/citizen/**", new RoutePolicyRule(false, true));
         rules.put("/v1/legal-entity/**", new RoutePolicyRule(false, true));
+        // Admin actions (settings, panel-admin grant/revoke, cross-organization
+        // stats) are not tied to any one selected organization — requiring an
+        // org header here would reject otherwise-valid admin requests with
+        // AccessDeniedException("organization.required") before they even
+        // reach the controller. Role validation still applies as normal.
+        rules.put("/v1/admin/**", new RoutePolicyRule(false, true));
 
         POLICY_RULES = Collections.unmodifiableMap(rules);
     }

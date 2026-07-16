@@ -10,6 +10,7 @@ import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopeOrganizationIdResolver;
+import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -38,7 +39,7 @@ public class Form0581Specification {
     private static final String SENDER_ORGANIZATION_ID = "senderOrganizationId";
     private static final String RECEIVER_ORGANIZATION_ID = "receiverOrganizationId";
 
-    private final Form0581ScopePredicateFactory form0581ScopePredicateFactory;
+    private final SenderReceiverScopePredicateFactory scopePredicateFactory;
     private final OrganizationScopeOrganizationIdResolver organizationScopeOrganizationIdResolver;
 
     public Specification<Form0581> table(
@@ -50,7 +51,7 @@ public class Form0581Specification {
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
-            predicates.add(form0581ScopePredicateFactory.applyDirectionScope(root, cb, scope, received));
+            predicates.add(scopePredicateFactory.applyDirectionScope(root, cb, scope, received));
 
             applyFilters(predicates, root, query, cb, filter, received);
 
@@ -96,7 +97,7 @@ public class Form0581Specification {
     private Specification<Form0581> visible(ResolvedOrganizationScope scope) {
         return (root, query, cb) -> cb.and(
                 cb.isFalse(root.get("deleteInfo").get(DELETED)),
-                form0581ScopePredicateFactory.applyDirectionScope(root, cb, scope, null)
+                scopePredicateFactory.applyDirectionScope(root, cb, scope, null)
         );
     }
 

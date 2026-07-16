@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import uz.uzinfocom.app.platform.iam.application.sync.RoleSyncProperties;
 import uz.uzinfocom.app.platform.security.filter.OrganizationContextFilter;
@@ -36,7 +37,7 @@ public class SecurityConfig {
     private final JsonAccessDeniedHandler accessDeniedHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         AuthenticationManagerResolver<HttpServletRequest> resolver = authenticationManagerRegistry.resolver();
 
         http
@@ -53,6 +54,11 @@ public class SecurityConfig {
                                 DispatcherType.ERROR, DispatcherType.FORWARD
                         ).permitAll()
                         .requestMatchers(SecurityRouteCatalog.OPEN_PATTERNS.toArray(String[]::new)).permitAll()
+                        // /loggers lets a caller view/change log levels at runtime — previously fell through to
+                        // plain anyRequest().authenticated(), so ANY authenticated user (any role) could use it.
+                        // Restricted to admins now that AdminAccessGuard exists as a single, reusable check.
+                        .requestMatchers("/v1/actuator/loggers/**")
+                        .access(new WebExpressionAuthorizationManager("@adminAccessGuard.isAdmin()"))
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(resourceServer -> resourceServer
