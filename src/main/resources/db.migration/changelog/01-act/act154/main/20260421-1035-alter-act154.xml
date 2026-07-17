@@ -1,0 +1,194 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260421-1035-alter-act154.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="uzinfocom (generated)" id="1776750148533-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="special_condition_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="special_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776750156533-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="special_sampling_conditions_uz" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="special_sampling_conditions_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776750160718-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="special_sampling_conditions_ru" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="special_sampling_conditions_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776769116715-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="institution_legal_address" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="institution_legal_address" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100000-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="delivery_condition_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="delivery_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100000-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="delivery_conditions_uz" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="delivery_conditions_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100000-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="delivery_conditions_ru" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="delivery_conditions_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100001-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_condition_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="storage_condition_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100001-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_conditions_uz" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="storage_conditions_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100001-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="storage_conditions_ru" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="storage_conditions_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100002-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="package_type_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="package_type_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100002-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="package_type_uz" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="package_type_uz" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100002-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="package_type_ru" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="package_type_ru" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100003-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="purpose_id" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="purpose_id" type="INTEGER"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100003-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sampling_purpose_uz" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="sampling_purpose_uz" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776854100003-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sampling_purpose_ru" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="sampling_purpose_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776770528120-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sampling_purpose_loinc" tableName="act154"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="sampling_purpose_loinc" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+
+
+</databaseChangeLog>

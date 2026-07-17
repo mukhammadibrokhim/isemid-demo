@@ -10,8 +10,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
+import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
@@ -23,6 +23,7 @@ import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
 import uz.uzinfocom.isemid.features.organization.specifications.OrganizationSpecification;
 import uz.uzinfocom.isemid.features.user.models.User;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,6 +39,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final MessageUtil messageUtil;
     private final OrganizationMapper mapper;
+    private final IntegrationUrlFactory integrationUrlFactory;
 
     @Override
     public Page<Organization> filter(int page, int size, String name, String stateCode, String cityCode, User user) {
@@ -56,7 +58,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public Organization updateUserFromMis(UUID uuid, User currentUser, String token) {
+    public Organization updateFromMis(UUID uuid, User currentUser, String token) {
         Organization existingOrganization = organizationRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ApiException(NOT_FOUND, messageUtil.get("error.not_found_by_id", uuid)));
 
@@ -69,7 +71,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 
     private MisOrganizationResponse fetchOrganization(UUID uuid, String token) {
-        String json = makeRequest(String.format(ApiPaths.ExternalApi.ORGANIZATION, uuid), HttpMethod.GET, token, null, String.class, messageUtil);
+        URI uri = integrationUrlFactory.organizationUrl(String.valueOf(uuid));
+        String json = makeRequest(String.valueOf(uri), HttpMethod.GET, token, null, String.class, messageUtil);
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

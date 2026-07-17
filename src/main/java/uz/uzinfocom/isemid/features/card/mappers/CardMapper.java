@@ -106,6 +106,7 @@ public interface CardMapper {
     @Mapping(target = "form058.patient.gender", source = "card.form058.patient.genderCode", qualifiedByName = "toCatalog")
     @Mapping(target = "form058.patient.identifiers", source = "card.form058.patient.identifiers")
     @Mapping(target = "form058.patient.addresses", source = "card.form058.patient.addresses")
+    @Mapping(target = "form0581", source = "card.form0581")
     Card174Response toCard174Response(Card174 card);
 
     @Mapping(target = "id", source = "card.id")
@@ -116,6 +117,7 @@ public interface CardMapper {
     @Mapping(target = "users", source = "card.users")
     @Mapping(target = "form058", source = "card.form058")
     @Mapping(target = "status", source = "card.status")
+    @Mapping(target = "form0581", source = "card.form0581")
     Card175Response toCard175Response(Card175 card);
 
     @Mapping(target = "id", source = "card.id")
@@ -126,6 +128,7 @@ public interface CardMapper {
     @Mapping(target = "users", source = "card.users")
     @Mapping(target = "form058", source = "card.form058")
     @Mapping(target = "status", source = "card.status")
+    @Mapping(target = "form0581", source = "card.form0581")
     Card205Response toCard205Response(Card205 card);
 
     @Mapping(target = "id", source = "card.id")

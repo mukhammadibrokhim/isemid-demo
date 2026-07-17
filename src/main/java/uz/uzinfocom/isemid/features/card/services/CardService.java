@@ -25,6 +25,8 @@ public interface CardService {
 
     Card acceptCard(Long cardId, User currentUser);
 
+    Card startWorkingOnCard(Long cardId, User currentUser);
+
     Card rejectCard(Long cardId, User currentUser, CardRejectRequest rejectCard);
 
     Card saveAndComplete(Long cardId, User user);

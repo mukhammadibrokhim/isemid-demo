@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.report.dtos;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -8,15 +9,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@Getter @Setter
+@Getter
+@Setter
 public class MonitoringResponse {
     private LocalDate toDate;
     private List<Item> data = new ArrayList<>();
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class Item {
-        private String locationCode;
-
+        private String regionCode;
         private int totalCases;
         private int confirmed;
         private int unconfirmed;
@@ -24,12 +26,18 @@ public class MonitoringResponse {
         private int male;
         private int female;
 
-        private AgeGroupCount ageGroups = new AgeGroupCount();
 
-        private Map<String, Integer> diseaseType = new LinkedHashMap<>();
+        private int unknownGender;
+
+        private AgeGroupCount ageGroups =
+                new AgeGroupCount();
+
+        private Map<String, Integer> diseaseType =
+                new LinkedHashMap<>();
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class AgeGroupCount {
         private int age_0_3;
         private int age_3_6;
@@ -39,5 +47,6 @@ public class MonitoringResponse {
         private int age_25_45;
         private int age_45_65;
         private int age_65_plus;
+        private int age_unknown;
     }
 }

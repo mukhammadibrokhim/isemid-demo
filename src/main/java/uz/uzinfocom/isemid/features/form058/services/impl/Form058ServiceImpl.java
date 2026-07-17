@@ -3,11 +3,15 @@ package uz.uzinfocom.isemid.features.form058.services.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
+import uz.uzinfocom.isemid.commons.security.scope.OrganizationAccessScopeResolver;
+import uz.uzinfocom.isemid.commons.security.scope.ResolvedAccessScope;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.card.models.card161.Card161;
@@ -17,10 +21,7 @@ import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
 import uz.uzinfocom.isemid.features.classifier.repositories.CatalogRepository;
 import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
 import uz.uzinfocom.isemid.features.form058.constants.Form058Sources;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058ApproveDiagnosisRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058AssignCardRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058NotApproveRequest;
-import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058Request;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.*;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058ConfirmationStatsResponse;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
@@ -29,6 +30,7 @@ import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.policy.Form058Policy;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
+import uz.uzinfocom.isemid.features.form058.specifications.Form058AccessSpecification;
 import uz.uzinfocom.isemid.features.form058.specifications.Form058Specification;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
@@ -63,13 +65,16 @@ public class Form058ServiceImpl implements Form058Service {
     private final MessageUtil messageUtil;
     private final OrganizationService organizationService;
     private final Form058Policy policy;
-
+    private final Form058AccessSpecification form058AccessSpecification;
+    private final OrganizationAccessScopeResolver organizationAccessScopeResolver;
 
     @Override
     @Transactional
     public Form058 create(Form058Request request, String sourceHeader, User currentUser) {
         Form058 form058 = form058Mapper.toEntity(request);
 
+        Organization currentOrganization = currentUser.getCurrentOrganization();
+        policy.validateCreatPermission(currentOrganization);
         form058.setStatus(FormStatus.SENT);
         form058.setSource(resolveSource(currentUser, sourceHeader));
 
@@ -83,7 +88,31 @@ public class Form058ServiceImpl implements Form058Service {
         return saved;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Form058> getAll(Form058FilterRequest filterRequest, User user, FilterType filterType) {
+        Organization currentOrganization = user.getCurrentOrganization();
+        ResolvedAccessScope scope = organizationAccessScopeResolver.resolve(currentOrganization);
 
+        FilterType effectiveFilterType = filterType == null ? FilterType.SENDER : filterType;
+
+        Specification<Form058> specification = Specification
+                .where(Form058Specification.build(filterRequest, effectiveFilterType))
+                .and(form058AccessSpecification.byScope(
+                        effectiveFilterType,
+                        scope,
+                        currentOrganization == null ? null : currentOrganization.getId(),
+                        filterRequest == null ? null : filterRequest.affiliation()
+                ));
+
+        assert filterRequest != null;
+        return form058Repository.findAll(
+                specification,
+                PageRequest.of(filterRequest.page() - 1, filterRequest.size(), Sort.by(Sort.Direction.DESC, "id"))
+        );
+    }
+
+    @Deprecated
     @Override
     @Transactional(readOnly = true)
     public Page<Form058> filter(int page, int size, LocalDate fromDate, LocalDate toDate, String stateCode,

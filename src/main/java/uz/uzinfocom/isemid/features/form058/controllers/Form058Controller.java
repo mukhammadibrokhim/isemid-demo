@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import uz.uzinfocom.isemid.features.form058.mappers.Form058Mapper;
 import uz.uzinfocom.isemid.features.form058.mappers.Form058ResponseAdapter;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.services.Form058Facade;
 import uz.uzinfocom.isemid.features.form058.services.Form058Service;
 import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.models.annotation.CurrentUser;
@@ -32,7 +34,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.Form058.ROOT)
@@ -40,6 +42,7 @@ import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
 @RequiredArgsConstructor
 public class Form058Controller {
     private final Form058Service form058Service;
+    private final Form058Facade form058Facade;
     private final MessageUtil messageUtil;
     private final Form058Mapper form058Mapper;
     private final Form058ResponseAdapter formAdapter;
@@ -55,51 +58,32 @@ public class Form058Controller {
         return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.create(form058Request, sourceHeader, currentUser)));
     }
 
-    @Operation(summary = "Получение всех форм 058", description = "Возвращает постраничный список всех форм 058 с возможностью фильтрации по дате.")
     @GetMapping("/all")
     public PagedResponse<?> getAll(
-            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
-            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-            @RequestParam(required = false) LocalDate fromDate,
-            @RequestParam(required = false) LocalDate toDate,
-            @RequestParam(required = false) String stateCode,
-            @RequestParam(required = false) String cityCode,
-            @RequestParam(required = false) String mkb10Code,
-            @RequestParam(required = false) Long organizationId,
-            @RequestParam(required = false) String patientDocValue,
+            @Valid @ModelAttribute @ParameterObject Form058FilterRequest filterRequest,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, null, mkb10Code, organizationId,patientDocValue, user, FilterType.ALL);
+        Page<Form058> form058Page = form058Service.getAll(filterRequest, user, FilterType.SENDER);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
-            return formAdapter.adapt(base, form, FilterType.ALL);
+            return formAdapter.adapt(base, form, FilterType.SENDER);
         });
-        return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
+        return PagedResponse.build(filterRequest.page(), adapted, getRequestUrl(request), messageUtil);
     }
 
-    @Operation(summary = "Получение всех полученных форм 058", description = "Возвращает постраничный список всех форм 058, которые были получены, с возможностью фильтрации по дате.")
     @GetMapping("/received/all")
     public PagedResponse<?> getReceivedAll(
-            @RequestParam(defaultValue = DEFAULT_PAGE) int page,
-            @RequestParam(defaultValue = DEFAULT_SIZE) int size,
-            @RequestParam(required = false) LocalDate fromDate,
-            @RequestParam(required = false) LocalDate toDate,
-            @RequestParam(required = false) String stateCode,
-            @RequestParam(required = false) String cityCode,
-            @RequestParam(required = false) Boolean affiliation,
-            @RequestParam(required = false) String mkb10Code,
-            @RequestParam(required = false) Long organizationId,
-            @RequestParam(required = false) String patientDocValue,
+            @Valid @ModelAttribute @ParameterObject Form058FilterRequest filterRequest,
             @CurrentUser User user,
             HttpServletRequest request
     ) {
-        Page<Form058> form058Page = form058Service.filter(page, size, fromDate, toDate, stateCode, cityCode, affiliation, mkb10Code, organizationId, patientDocValue, user, FilterType.RECEIVED);
+        Page<Form058> form058Page = form058Service.getAll(filterRequest, user, FilterType.RECEIVER);
         Page<Form058DetailsResponse> adapted = form058Page.map(form -> {
             Form058DetailsResponse base = form058Mapper.toDetailsResponse(form);
-            return formAdapter.adapt(base, form, FilterType.RECEIVED);
+            return formAdapter.adapt(base, form, FilterType.RECEIVER);
         });
-        return PagedResponse.build(page, adapted, getRequestUrl(request), messageUtil);
+        return PagedResponse.build(filterRequest.page(), adapted, getRequestUrl(request), messageUtil);
     }
 
     @GetMapping("/by-nnuzb")
@@ -138,7 +122,7 @@ public class Form058Controller {
     @Operation(summary = "Назначение карты для формы 058", description = "Позволяет назначить карту (Card) для существующей формы 058.")
     @PostMapping("/assign-card")
     public ApiResponse<Form058Response> assignCard(@Valid @RequestBody Form058AssignCardRequest request, @CurrentUser User user) {
-        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Service.assignCard(request, user)));
+        return ApiResponse.success(messageUtil, form058Mapper.toResponse(form058Facade.assignCard(request, user)));
     }
 
     @Operation(summary = "Изменение организации получателя формы 058", description = "Позволяет изменить только организацию, получившую форму 058, без изменения других данных формы.")
@@ -158,7 +142,7 @@ public class Form058Controller {
     ) {
         return ApiResponse.success(
                 messageUtil,
-                form058Mapper.toResponse(form058Service.cancel(formId, request.getCancelReason(), currentUser))
+                form058Mapper.toResponse(form058Facade.cancel(formId, request.getCancelReason(), currentUser))
         );
     }
 

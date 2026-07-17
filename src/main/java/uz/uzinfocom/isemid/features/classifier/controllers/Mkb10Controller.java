@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
 import uz.uzinfocom.isemid.commons.dtos.ApiResponse;
@@ -18,7 +19,7 @@ import uz.uzinfocom.isemid.features.classifier.services.Mkb10Service;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.Mkb10.ROOT)
@@ -52,6 +53,7 @@ public class Mkb10Controller {
             }
     )
     @GetMapping("/all")
+    @Transactional(readOnly = true)
     public PagedResponse<?> getAllByFilter(
             @RequestParam(defaultValue = DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) int size,

@@ -3,11 +3,12 @@ package uz.uzinfocom.isemid.features.act.mappers.act156;
 import org.mapstruct.*;
 import uz.uzinfocom.isemid.features.act.dtos.requests.act156.Act156Request;
 import uz.uzinfocom.isemid.features.act.dtos.responses.act156.Act156Response;
+import uz.uzinfocom.isemid.features.act.mappers.GenericActMapper;
 import uz.uzinfocom.isemid.features.act.models.act156.Act156;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapperHelper;
 
 @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR, uses = OrganizationMapperHelper.class)
-public interface Act156Mapper {
+public interface Act156Mapper extends GenericActMapper {
 
     @Mapping(target = "id", source = "act.id")
     @Mapping(target = "uuid", source = "act.uuid")

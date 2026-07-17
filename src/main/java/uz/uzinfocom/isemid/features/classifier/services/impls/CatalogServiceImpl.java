@@ -91,7 +91,7 @@ public class CatalogServiceImpl implements CatalogService {
     public List<Catalog> findAllByTypeAndParentCode(CatalogType catalogType, String parentCode) {
         return catalogRepository.findAllByTypeAndParentCode(catalogType.name(), parentCode);
     }
-    @Cacheable(value = "byParentCode", key = "parentCode")
+    @Cacheable(value = "byParentCode", key = "#parentCode")
     @Override
     public List<Catalog> findAllByParentCode(String parentCode) {
         return catalogRepository.findAllByParentCode(parentCode);
@@ -120,7 +120,12 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    @Cacheable(value = "catalogType", key = "catalogType")
+    public List<Catalog> findByTypeAndCodeLike(CatalogType catalogType, String code) {
+        return catalogRepository.findByTypeAndCodeLike(catalogType.name(),code);
+    }
+
+    @Override
+    @Cacheable(value = "catalogType", key = "#catalogType")
     public List<Catalog> finAllByType(CatalogType catalogType) {
         return catalogRepository.findAllByType(catalogType.name());
     }

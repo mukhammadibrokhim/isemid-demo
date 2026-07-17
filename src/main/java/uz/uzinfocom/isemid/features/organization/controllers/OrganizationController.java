@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @Log4j2
 @RestController
@@ -76,7 +76,7 @@ public class OrganizationController {
             @CurrentUser User currentUser,
             @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String token
     ) {
-        return ApiResponse.success(messageUtil, organizationMapper.toResponse(organizationService.updateUserFromMis(uuid, currentUser, token)));
+        return ApiResponse.success(messageUtil, organizationMapper.toResponse(organizationService.updateFromMis(uuid, currentUser, token)));
     }
     @Operation(summary = "Обновить организацию", description = "Обновляет данные организации по UUID с новыми данными из тела запроса.")
     @PutMapping("/{uuid}/update")

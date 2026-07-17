@@ -15,6 +15,7 @@ import uz.uzinfocom.isemid.features.card.dtos.responses.card_tube.CardTubeRespon
 import uz.uzinfocom.isemid.features.card.enums.CardStatus;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.form058.dtos.responses.Form058MiniResponse;
+import uz.uzinfocom.isemid.features.form0581.dtos.responses.Form0581MiniResponse;
 import uz.uzinfocom.isemid.features.user.dtos.responses.UserMiniResponse;
 
 import java.sql.Timestamp;
@@ -46,5 +47,6 @@ public abstract class CardResponse {
     private String attachedUserComment;
     private LocalDate completedDate;
     private Form058MiniResponse form058;
+    private Form0581MiniResponse form0581;
     private List<UserMiniResponse> users;
 }

@@ -71,11 +71,13 @@ public class Mkb10 {
     @JsonIgnore
     private List<Mkb10> children = new ArrayList<>();
 
+
     @Transient
     @JsonProperty("childrenValue")
     public int getChildrenValue() {
         return (children != null) ? children.size() : 0;
     }
+
 
     @PrePersist
     @JsonIgnore

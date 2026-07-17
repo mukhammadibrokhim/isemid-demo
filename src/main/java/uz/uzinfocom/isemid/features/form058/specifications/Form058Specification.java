@@ -1,16 +1,17 @@
 package uz.uzinfocom.isemid.features.form058.specifications;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
-import org.hibernate.boot.model.naming.Identifier;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
+import uz.uzinfocom.isemid.features.form058.dtos.requests.Form058FilterRequest;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.form058.models.enums.FilterType;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.models.Affiliation;
+import uz.uzinfocom.isemid.features.patient.models.Identifier;
 import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.patient.models.enums.AffiliationType;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -62,7 +63,7 @@ public class Form058Specification {
             if (organizationId != null && filterType != null) {
                 switch (filterType) {
                     case ALL -> predicates.add(cb.equal(root.get("senderOrganizationId"), organizationId));
-                    case RECEIVED -> predicates.add(cb.equal(root.get("receiverOrganizationId"), organizationId));
+                    case RECEIVER -> predicates.add(cb.equal(root.get("receiverOrganizationId"), organizationId));
                 }
             }
 
@@ -113,7 +114,7 @@ public class Form058Specification {
 
                     if (filterType == FilterType.ALL) {
                         accessPredicate = createdByOrg;
-                    } else if (filterType == FilterType.RECEIVED) {
+                    } else if (filterType == FilterType.RECEIVER) {
                         accessPredicate = receivedByOrg;
                     } else {
                         accessPredicate = cb.or(createdByOrg, receivedByOrg);
@@ -172,5 +173,95 @@ public class Form058Specification {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * Builds Form058 filter specification from request fields.
+     *
+     * <p>This method applies only request-level filters and must remain independent
+     * of organization access scope resolution.
+     */
+    public static Specification<Form058> build(Form058FilterRequest filterRequest) {
+        return build(filterRequest, FilterType.SENDER);
+    }
+
+    public static Specification<Form058> build(Form058FilterRequest filterRequest, FilterType filterType) {
+        if (filterRequest == null) {
+            return Specification.where(null);
+        }
+
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            SpecificationUtils.fromToDateFilter(filterRequest.fromDate(), filterRequest.toDate(), root, cb, predicates, "createdAt");
+
+            if (hasText(filterRequest.stateCode()) || hasText(filterRequest.cityCode())) {
+                Join<Form058, Organization> createdOrgJoin = root.join("createdOrg", JoinType.INNER);
+
+                if (hasText(filterRequest.stateCode())) {
+                    predicates.add(cb.equal(
+                            createdOrgJoin.get("stateCode"),
+                            filterRequest.stateCode()
+                    ));
+                }
+
+                if (hasText(filterRequest.cityCode())) {
+                    predicates.add(cb.equal(
+                            createdOrgJoin.get("cityCode"),
+                            filterRequest.cityCode()
+                    ));
+                }
+            }
+
+            if (hasText(filterRequest.mkb10Code())) {
+                predicates.add(cb.equal(root.get("mkb10Code"), filterRequest.mkb10Code()));
+            }
+            if (filterRequest.status() != null) {
+                predicates.add(cb.equal(root.get("status"), resolveDbStatus(filterRequest.status(), filterType)));
+            }
+
+            if (hasText(filterRequest.source())) {
+                predicates.add(cb.equal(root.get("source"), filterRequest.source().trim()));
+            }
+
+            if (filterRequest.organizationId() != null) {
+                String orgColumn = filterType == FilterType.RECEIVER ? "receiverOrganizationId" : "senderOrganizationId";
+                predicates.add(cb.equal(root.get(orgColumn), filterRequest.organizationId()));
+            }
+
+            if (hasText(filterRequest.patientDocValue())) {
+                assert query != null;
+                Subquery<Long> identifierExistsSubquery = query.subquery(Long.class);
+                Root<Identifier> identifierRoot = identifierExistsSubquery.from(Identifier.class);
+
+                identifierExistsSubquery.select(cb.literal(1L));
+                identifierExistsSubquery.where(
+                        cb.equal(
+                                identifierRoot.get("patient").get("id"),
+                                root.get("patient").get("id")
+                        ),
+                        cb.equal(
+                                identifierRoot.get("value"),
+                                filterRequest.patientDocValue()
+                        )
+                );
+
+                predicates.add(cb.exists(identifierExistsSubquery));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    /**
+     * The receiver view remaps a stored SENT status to NEW for display (see Form058ResponseAdapter),
+     * since the receiver hasn't acted on the form yet. When filtering by NEW as a receiver, the
+     * actual DB status to match against is therefore SENT, not the literal NEW value.
+     */
+    private static FormStatus resolveDbStatus(FormStatus requestedStatus, FilterType filterType) {
+        if (filterType == FilterType.RECEIVER && requestedStatus == FormStatus.NEW) {
+            return FormStatus.SENT;
+        }
+        return requestedStatus;
     }
 }

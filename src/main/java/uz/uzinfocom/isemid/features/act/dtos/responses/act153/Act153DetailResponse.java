@@ -1,8 +1,14 @@
 package uz.uzinfocom.isemid.features.act.dtos.responses.act153;
 
-import lombok.*;
-
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
+import uz.uzinfocom.isemid.features.act.dtos.SampleVolumeUnit;
+import uz.uzinfocom.isemid.features.act.models.common.ResearchItemTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.SampleTypeInfo;
 
 @Getter
 @Setter
@@ -11,23 +17,18 @@ import java.time.LocalDateTime;
 @Builder
 public class Act153DetailResponse {
     private Long id;
+    private ResearchItemTypeInfo researchItemTypeInfo;
+    private Integer objectTypeId;
     private String objectCode;
-    private String samplingPurpose;
-    private String samplingPurposeLoinc;
     private String address;
     private Double samplingDepth;
+    private LengthUnit depthUnit;
     private Double distanceFromShore;
+    private LengthUnit distanceFromShoreUnit;
     private Double sampleVolume;
+    private SampleVolumeUnit sampleVolumeUnit;
     private String sampleLocation;
     private Double weatherAtSampling;
     private Double waterTemperature;
-    private String sampleType;
-    private LocalDateTime samplingDate;
-    private String specialSamplingConditions;
-    private Long lisOrganizationId;
-    private String laboratoryAddress;
-    private String deliveryConditions;
-    private String storageConditions;
-    private String conservationMethods;
-    private String additionalInfo;
+    private SampleTypeInfo sampleTypeInfo;
 }

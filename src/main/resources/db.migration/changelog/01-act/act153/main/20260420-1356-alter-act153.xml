@@ -1,0 +1,120 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260420-1356-alter-act153.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="uzinfocom (generated)" id="1776689722222-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sample_taken_date_time" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="sample_taken_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776690393547-1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+              <columnExists
+                tableName="act153"
+                columnName="delivered_date"/>
+              <not>
+                  <columnExists
+                    tableName="act153"
+                    columnName="delivered_date_time"/>
+              </not>
+            </and>
+        </preConditions>
+
+        <sql>
+            ALTER TABLE act153
+                RENAME COLUMN delivered_date TO delivered_date_time;
+            ALTER TABLE act153
+            ALTER COLUMN delivered_date_time
+        TYPE TIMESTAMP WITHOUT TIME ZONE
+        USING delivered_date_time::timestamp;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776693433121-1">
+      <preConditions onFail="MARK_RAN">
+        <and>
+          <columnExists
+            tableName="act153"
+            columnName="position_id"/>
+          <not>
+            <columnExists
+              tableName="act153"
+              columnName="sampler_position_id"/>
+          </not>
+        </and>
+      </preConditions>
+        <sql>
+            ALTER TABLE act153
+                RENAME COLUMN position_id TO sampler_position_id;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776693520611-1">
+      <preConditions onFail="MARK_RAN">
+        <and>
+          <columnExists
+            tableName="act153"
+            columnName="position"/>
+          <not>
+            <columnExists
+              tableName="act153"
+              columnName="sampler_position_uz"/>
+          </not>
+        </and>
+      </preConditions>
+        <sql>
+            ALTER TABLE act153
+                RENAME COLUMN position TO sampler_position_uz;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776693565222-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="sampler_position_ru" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="sampler_position_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776693655229-1">
+      <preConditions onFail="MARK_RAN">
+        <and>
+          <columnExists
+            tableName="act153"
+            columnName="participant_position"/>
+          <not>
+            <columnExists
+              tableName="act153"
+              columnName="participant_position_uz"/>
+          </not>
+        </and>
+      </preConditions>
+        <sql>
+            ALTER TABLE act153
+                RENAME COLUMN participant_position TO participant_position_uz;
+        </sql>
+    </changeSet>
+
+    <changeSet author="uzinfocom (generated)" id="1776693692276-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="participant_position_ru" tableName="act153"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="participant_position_ru" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

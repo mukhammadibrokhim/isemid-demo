@@ -3,35 +3,11 @@ package uz.uzinfocom.isemid.commons.utils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.isemid.commons.constants.ApiPaths;
-import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 
 import java.util.Enumeration;
 
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-
 @UtilityClass
 public class HttpUtil {
-
-    public static String getRequestUrl(HttpServletRequest request) {
-        String fullURL = request.getRequestURI();
-        String queryString = request.getQueryString();
-
-        if (queryString != null) {
-            fullURL += "?" + queryString;
-        }
-
-        return ApiPaths.BaseDomain.ROOT + fullURL;
-    }
-
-    public static String extractToken(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
-        }
-        throw new ApiException(UNAUTHORIZED);
-    }
-
-
     /*
      *  Getting header
      * */

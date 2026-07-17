@@ -19,7 +19,7 @@ import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_PAGE;
 import static uz.uzinfocom.isemid.commons.constants.PaginationConstants.DEFAULT_SIZE;
-import static uz.uzinfocom.isemid.commons.utils.HttpUtil.getRequestUrl;
+import static uz.uzinfocom.isemid.commons.utils.RequestUrlUtils.getRequestUrl;
 
 @RestController
 @RequestMapping(ApiPaths.ManualReport.ROOT)
@@ -92,7 +92,6 @@ public class ManualReportController {
     )
     @GetMapping("/{id}")
     public ApiResponse<?> getOne(@PathVariable Long id) {
-        ;
         return ApiResponse.success(messageUtil, manualReportMapper.toResponse(manualReportService.getById(id)));
     }
 

@@ -3,7 +3,22 @@ package uz.uzinfocom.isemid.features.act.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import uz.uzinfocom.isemid.commons.models.AbsEntity;
@@ -15,12 +30,9 @@ import uz.uzinfocom.isemid.features.act.models.act155.Act155;
 import uz.uzinfocom.isemid.features.act.models.act156.Act156;
 import uz.uzinfocom.isemid.features.act.models.act223.Act223;
 import uz.uzinfocom.isemid.features.act.models.act224.Act224;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.user.models.User;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -59,12 +71,14 @@ public abstract class Act extends AbsEntity {
     @Column(name = "card_id")
     private Long cardId;
 
+    @Embedded
+    Institution institution;
+
     @Column(name = "lis_attempt")
     private Integer lisAttempt = 0;
 
-    @Column(columnDefinition = "TEXT")
-    private String lisResponse;
-
     @Column(name = "lis_sent_date")
     private LocalDateTime lisSentDate;
+
+    private Long lisActId;
 }

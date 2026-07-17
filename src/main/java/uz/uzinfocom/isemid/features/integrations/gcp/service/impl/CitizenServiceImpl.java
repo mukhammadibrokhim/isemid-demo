@@ -5,6 +5,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
+import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.integrations.config.OAuthTokenService;
@@ -13,12 +14,11 @@ import uz.uzinfocom.isemid.features.integrations.gcp.dto.CitizenResponse;
 import uz.uzinfocom.isemid.features.integrations.gcp.mappers.CitizenMapper;
 import uz.uzinfocom.isemid.features.integrations.gcp.service.CitizenService;
 
+import java.net.URI;
 import java.time.LocalDate;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
-import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CHILD;
-import static uz.uzinfocom.isemid.commons.constants.ApiPaths.ExternalApi.GCP_CITIZEN;
 import static uz.uzinfocom.isemid.commons.utils.RestClientUtil.makeRequest;
 import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.validateByNnuzb;
 import static uz.uzinfocom.isemid.features.integrations.gcp.util.ValidationUtil.validateChildCertificate;
@@ -30,14 +30,17 @@ public class CitizenServiceImpl implements CitizenService {
     private final OAuthTokenService oAuthTokenService;
     private final MessageUtil messageUtil;
     private final CitizenMapper citizenMapper;
+    private final IntegrationUrlFactory integrationUrlFactory;
 
     @Override
     public Object getCitizenByNnuzb(String nnuzb, LocalDate birthDate, String photo, String token) {
         validateByNnuzb(nnuzb, messageUtil);
 
         try {
+            URI uri = integrationUrlFactory.citizenUrl(nnuzb, birthDate, photo);
+
             CitizenResponse response = makeRequest(
-                    String.format(GCP_CITIZEN, nnuzb, birthDate, photo),
+                    String.format(String.valueOf(uri), nnuzb, birthDate, photo),
                     HttpMethod.GET,
                     token,
                     null,
@@ -71,8 +74,9 @@ public class CitizenServiceImpl implements CitizenService {
         validateChildCertificate(series, number, messageUtil);
 
         try {
+            URI uri = integrationUrlFactory.childUrl(series, number);
             ChildResponse response = makeRequest(
-                    String.format(GCP_CHILD, series, number),
+                    String.format(String.valueOf(uri), series, number),
                     HttpMethod.GET,
                     token,
                     null,

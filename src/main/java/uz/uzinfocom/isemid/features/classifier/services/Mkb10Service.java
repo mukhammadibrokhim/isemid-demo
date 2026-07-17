@@ -1,6 +1,5 @@
 package uz.uzinfocom.isemid.features.classifier.services;
 
-
 import org.springframework.data.domain.Page;
 import uz.uzinfocom.isemid.features.classifier.dtos.Mkb10Projection;
 import uz.uzinfocom.isemid.features.classifier.dtos.requests.Mkb10Request;

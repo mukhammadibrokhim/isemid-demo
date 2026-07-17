@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import uz.uzinfocom.isemid.features.card.enums.CardType;
 import uz.uzinfocom.isemid.features.card.models.Card;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form0581.models.Form0581;
 
 import java.util.Optional;
 
@@ -22,5 +23,8 @@ public interface CardRepository extends JpaRepository<Card, Long>, JpaSpecificat
 
     @Query("select c.form058 from Card c where c.id = :cardId")
     Optional<Form058> findForm058ByCardId(Long cardId);
+
+    @Query("select c.form0581 from Card c where c.id = :cardId")
+    Optional<Form0581> findForm0581ByCardId(Long cardId);
 
 }

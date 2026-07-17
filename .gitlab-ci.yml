@@ -1,4 +1,4 @@
-image: maven:3.9.6-eclipse-temurin-21
+image: maven:3.9.6-eclipse-temurin-21-alpine
 
 variables:
   DEV_SERVER: '10.10.10.104'
@@ -11,9 +11,9 @@ include:
     file: '.global-gitlab-ci.yml'
 
 before_script:
+  - apk add --no-cache openssh-client git curl bash
   - eval $(ssh-agent -s)
   - chmod 600 $MOH_PRIVATE_KEY
-  - apt-get update && apt-get install -y openssh-client
 
 stages:
   - validate-and-check

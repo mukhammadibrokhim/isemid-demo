@@ -5,6 +5,7 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
 import uz.uzinfocom.isemid.features.report.dtos.Form1ReportDto;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
@@ -27,7 +28,9 @@ public class Form058StatisticsUtil {
         long emergencyUnder18 = 0;
         long emergencyFemales = 0;
 
-        LocalDate today = LocalDate.now();
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(2);
+        nf.setMinimumFractionDigits(2);
 
         for (Form058 form : forms) {
             if (form == null || form.getPatient() == null || form.getPatient().getBirthDate() == null) {
@@ -35,7 +38,8 @@ public class Form058StatisticsUtil {
             }
 
             LocalDate birth = form.getPatient().getBirthDate();
-            int age = Period.between(birth, today).getYears();
+            LocalDate formCreationDate = form.getCreatedAt().toLocalDateTime().toLocalDate();
+            int age = Period.between(birth, formCreationDate).getYears();
 
             boolean isUnder14 = age < 14;  // 13y 12m 29d
             boolean isUnder18 = age < 18;  // 17y 12m 29d
@@ -66,8 +70,7 @@ public class Form058StatisticsUtil {
 
         double growthRate = 0.0;
         if (confirmedTotal > 0) {
-            growthRate = ((double) emergencyTotal / confirmedTotal) * 100;
-            growthRate = Math.round(growthRate * 100.0) / 100.0;
+            growthRate = ((double) (emergencyTotal - confirmedTotal) * 100.0) / emergencyTotal;
         }
 
         return Form1ReportDto.builder()
@@ -83,7 +86,7 @@ public class Form058StatisticsUtil {
                 .emergencyUnder18(emergencyUnder18)
                 .emergencyFemales(emergencyFemales)
                 .children(children)
-                .growthRate(growthRate)
+                .growthRate(nf.format(growthRate))
                 .build();
     }
 

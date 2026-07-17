@@ -12,14 +12,14 @@ import java.util.List;
 @Repository
 public interface ManualReportRepository extends JpaRepository<ManualReport, Long>, JpaSpecificationExecutor<ManualReport> {
 
-    @Query(value = """
-                SELECT mr.*
-                FROM cls_manual_report mr
-                JOIN cls_manual_report_types mrt 
-                    ON mr.id = mrt.manual_report_id
-                WHERE mrt.report_type = :type
-                  AND mr.include_in_total = TRUE
-            """, nativeQuery = true)
+    @Query("""
+                SELECT DISTINCT mr
+                FROM ManualReport mr
+                LEFT JOIN FETCH mr.mkb10Codes
+                JOIN mr.reportTypes rt
+                WHERE rt = :type
+                  AND mr.includeInTotal = TRUE
+            """)
     List<ManualReport> findByTypeAndIncludeInTotal(@Param("type") String type);
 
 }
