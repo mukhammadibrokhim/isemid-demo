@@ -47,9 +47,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NeighborhoodController {
 
-    private static final String ADMIN_AUTHORITIES =
-            "hasAnyAuthority('isemid_super_admin', 'isemid_admin', 'ROLE_ISEMID_SUPER_ADMIN', 'ROLE_ISEMID_ADMIN')";
-
     private final NeighborhoodQueryService neighborhoodQueryService;
     private final NeighborhoodCommandService neighborhoodCommandService;
     private final MessageResolver messageResolver;
@@ -143,7 +140,7 @@ public class NeighborhoodController {
             description = "Махалля успешно создана."
     )
     @PostMapping
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<NeighborhoodResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой махалли.",
@@ -163,7 +160,7 @@ public class NeighborhoodController {
             description = "Махалля успешно обновлена."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<NeighborhoodResponse> update(
             @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -185,7 +182,7 @@ public class NeighborhoodController {
             description = "Махалля успешно удалена."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id

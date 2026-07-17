@@ -11,7 +11,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
-import uz.uzinfocom.app.modules.card.web.dto.request.AssignActRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRejectRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
@@ -171,21 +170,5 @@ public class CardCommandController {
     ) {
         cardCommandService.reassignUsers(id, request);
         return ApiResponse.success(messageResolver.resolve("common.reassigned"));
-    }
-
-    @Operation(
-            summary = "Прикрепить акт к карте",
-            description = "Создаёт новую запись акта (лабораторного/процедурного назначения), привязанную "
-                    + "к данной карте."
-    )
-    @PostMapping(ApiPaths.Card.ACTS)
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Void> assignAct(
-            @Parameter(description = "Идентификатор карты.", required = true)
-            @PathVariable @Positive Long id,
-            @Valid @RequestBody AssignActRequest request
-    ) {
-        cardCommandService.assignAct(id, request.actType());
-        return ApiResponse.success(messageResolver.resolve("common.created"));
     }
 }

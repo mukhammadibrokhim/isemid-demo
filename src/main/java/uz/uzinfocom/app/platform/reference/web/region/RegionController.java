@@ -47,9 +47,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RegionController {
 
-    private static final String ADMIN_AUTHORITIES =
-            "hasAnyAuthority('isemid_super_admin', 'isemid_admin', 'ROLE_ISEMID_SUPER_ADMIN', 'ROLE_ISEMID_ADMIN')";
-
     private final RegionQueryService regionQueryService;
     private final RegionCommandService regionCommandService;
     private final MessageResolver messageResolver;
@@ -143,7 +140,7 @@ public class RegionController {
             description = "Регион успешно создан."
     )
     @PostMapping
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<RegionResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемого региона.",
@@ -163,7 +160,7 @@ public class RegionController {
             description = "Регион успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<RegionResponse> update(
             @Parameter(description = "Внутренний идентификатор региона.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -185,7 +182,7 @@ public class RegionController {
             description = "Регион успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор региона.", required = true, example = "1")
             @PathVariable @Positive Long id

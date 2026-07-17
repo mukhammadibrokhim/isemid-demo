@@ -7,7 +7,7 @@ import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationExc
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
-import uz.uzinfocom.app.modules.card.application.shared.CurrentCardUser;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
@@ -47,7 +47,7 @@ class CardCommandServiceAssignCardsTest {
     private Form058JpaRepository form058Repository;
     private UserRepository userRepository;
     private CardTypeHandlerRegistry handlerRegistry;
-    private CurrentCardUser currentCardUser;
+    private CurrentUserProvider currentUserProvider;
     private CardCommandService service;
 
     @BeforeEach
@@ -56,9 +56,9 @@ class CardCommandServiceAssignCardsTest {
         form058Repository = mock(Form058JpaRepository.class);
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
-        currentCardUser = mock(CurrentCardUser.class);
+        currentUserProvider = mock(CurrentUserProvider.class);
 
-        service = new CardCommandService(cardRepository, form058Repository, userRepository, handlerRegistry, currentCardUser);
+        service = new CardCommandService(cardRepository, form058Repository, userRepository, handlerRegistry, currentUserProvider);
 
         when(cardRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(form058Repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -68,7 +68,7 @@ class CardCommandServiceAssignCardsTest {
     void createsOneBlankCardPerDistinctTypeWithSharedUsersAndActorAsSupervisor() {
         Form058 form = formWith(FormStatus.RECEIVED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
-        when(currentCardUser.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
 
         User employee1 = userWithId(1L);
         User employee2 = userWithId(2L);
@@ -97,7 +97,7 @@ class CardCommandServiceAssignCardsTest {
     void deduplicatesRepeatedCardTypesAndUserIds() {
         Form058 form = formWith(FormStatus.RECEIVED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
-        when(currentCardUser.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
 
         stubHandler(CardType.CARD161, new Card161());
@@ -114,7 +114,7 @@ class CardCommandServiceAssignCardsTest {
     void rejectsWhenAnAssignedUserIdDoesNotExist() {
         Form058 form = formWith(FormStatus.RECEIVED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
-        when(currentCardUser.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(userWithId(1L)));
 
         assertThatThrownBy(() -> service.assignCards(FORM_ID, new AssignCardsRequest(
@@ -127,7 +127,7 @@ class CardCommandServiceAssignCardsTest {
     void rejectsAnUnauthenticatedCaller() {
         Form058 form = formWith(FormStatus.RECEIVED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
-        when(currentCardUser.userIdOrNull()).thenReturn(null);
+        when(currentUserProvider.userIdOrNull()).thenReturn(null);
 
         assertThatThrownBy(() -> service.assignCards(FORM_ID, new AssignCardsRequest(
                 List.of(CardType.CARD161),
@@ -149,7 +149,7 @@ class CardCommandServiceAssignCardsTest {
     void doesNotRegressAFormThatIsAlreadyPastCardLinking() {
         Form058 form = formWith(FormStatus.APPROVED_PENDING);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
-        when(currentCardUser.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
         stubHandler(CardType.CARD161, new Card161());
 

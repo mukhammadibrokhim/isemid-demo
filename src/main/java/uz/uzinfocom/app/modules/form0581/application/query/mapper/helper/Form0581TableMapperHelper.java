@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableStat
 import uz.uzinfocom.app.modules.form0581.application.query.projection.Form0581TableProjection;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
+import uz.uzinfocom.app.platform.persistence.mapper.TableStatusMapper;
 
 @Component
 public class Form0581TableMapperHelper {
@@ -16,16 +17,17 @@ public class Form0581TableMapperHelper {
             Form0581TableProjection projection,
             @Context Form0581Direction direction
     ) {
-        if (projection == null || projection.getStatus() == null) {
+        if (projection == null) {
             return null;
         }
 
         Form0581Status status = projection.getStatus();
 
-        if (direction == Form0581Direction.INCOMING && status == Form0581Status.SENT) {
-            return Form0581TableStatus.NEW;
-        }
-
-        return Form0581TableStatus.valueOf(status.name());
+        return TableStatusMapper.deriveTableStatus(
+                status,
+                direction == Form0581Direction.INCOMING && status == Form0581Status.SENT,
+                Form0581TableStatus.NEW,
+                Form0581TableStatus.class
+        );
     }
 }

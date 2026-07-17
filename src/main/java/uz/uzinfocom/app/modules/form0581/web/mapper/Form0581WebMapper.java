@@ -10,7 +10,6 @@ import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm05
 import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm0581Result;
 import uz.uzinfocom.app.modules.form0581.application.command.update.UpdateForm0581Command;
 import uz.uzinfocom.app.modules.form0581.application.command.update.UpdateForm0581Result;
-import uz.uzinfocom.app.modules.form0581.application.shared.Form0581OrganizationMappingHelper;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.ApproveForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.CancelForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.CreateForm0581Request;
@@ -20,9 +19,10 @@ import uz.uzinfocom.app.modules.form0581.web.dto.request.UpdateForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.response.CreateForm0581Response;
 import uz.uzinfocom.app.modules.form0581.web.dto.response.UpdateForm0581Response;
 import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
+import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
-@Mapper(config = CentralMapperConfig.class, uses = {Form0581OrganizationMappingHelper.class, PatientRequestMapper.class})
+@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})
 public interface Form0581WebMapper {
 
     @Mapping(target = "source", source = "source")

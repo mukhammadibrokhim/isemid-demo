@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Extends the previously minimal "act" table (actType/actStatus/card
+        only) with a full Card-like workflow: who it's assigned to, who it's
+        assigned by, the accept/reject/completion comments and date, and a
+        single generic outcome field (resultComment) filled in via update.
+        Named to sort after 20260716-1200-baseline-card-act.xml within this
+        same deliberately-late-sorting folder, since it depends on the "act"
+        table already existing.
+    -->
+    <changeSet id="20260717-1400-01-extend-act-columns" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act" columnName="assigned_by_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act">
+            <column name="assigned_by_id" type="BIGINT"/>
+            <column name="supervisor_comment" type="VARCHAR(1000)"/>
+            <column name="attached_user_comment" type="VARCHAR(1000)"/>
+            <column name="completed_date" type="DATE"/>
+            <column name="result_comment" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260717-1400-02-create-act-users" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act_users"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act_users">
+            <column name="act_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act_users_pkey"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act_users_pkey"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                tableName="act_users"
+                columnNames="act_id, user_id"
+                constraintName="uk_act_users_act_user"/>
+
+        <createIndex indexName="idx_act_users_user_id" tableName="act_users">
+            <column name="user_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint
+                baseTableName="act_users" baseColumnNames="act_id"
+                referencedTableName="act" referencedColumnNames="id"
+                constraintName="fk_act_users_act"/>
+
+        <addForeignKeyConstraint
+                baseTableName="act_users" baseColumnNames="user_id"
+                referencedTableName="users" referencedColumnNames="id"
+                constraintName="fk_act_users_user"/>
+    </changeSet>
+
+    <changeSet id="20260717-1400-03-add-idx-act-status" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_act_status"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_act_status" tableName="act">
+            <column name="act_status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260717-1400-04-add-idx-act-assigned-by" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_act_assigned_by"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_act_assigned_by" tableName="act">
+            <column name="assigned_by_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

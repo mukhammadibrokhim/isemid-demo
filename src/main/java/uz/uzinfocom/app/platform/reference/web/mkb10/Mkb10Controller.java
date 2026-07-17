@@ -49,9 +49,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class Mkb10Controller {
 
-    private static final String ADMIN_AUTHORITIES =
-            "hasAnyAuthority('isemid_super_admin', 'isemid_admin', 'ROLE_ISEMID_SUPER_ADMIN', 'ROLE_ISEMID_ADMIN')";
-
     private final Mkb10QueryService mkb10QueryService;
     private final Mkb10CommandService mkb10CommandService;
     private final MessageResolver messageResolver;
@@ -157,7 +154,7 @@ public class Mkb10Controller {
             description = "Узел МКБ-10 успешно создан."
     )
     @PostMapping
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<Mkb10Response> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемого узла МКБ-10.",
@@ -177,7 +174,7 @@ public class Mkb10Controller {
             description = "Узел МКБ-10 успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<Mkb10Response> update(
             @Parameter(description = "Внешний идентификатор узла МКБ-10.", required = true, example = "1500")
             @PathVariable @Positive Long id,
@@ -199,7 +196,7 @@ public class Mkb10Controller {
             description = "Узел МКБ-10 успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<Void> delete(
             @Parameter(description = "Внешний идентификатор узла МКБ-10.", required = true, example = "1500")
             @PathVariable @Positive Long id

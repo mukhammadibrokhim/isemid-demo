@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Bosqich 1 — dev DB'da allaqachon mavjud, lekin hech qanday Liquibase
+        changelog'da qayd etilmagan 5 ta indeks (ehtimol vaqtida qo'lda yoki
+        boshqa vosita orqali qo'shilgan). Har biri o'z indexExists
+        preCondition'i bilan himoyalangan — shu sababli bu changeset'lar
+        yangi (bo'sh) DB'da haqiqatan yaratadi, dev DB'da esa xavfsiz
+        o'tkazib yuboriladi (MARK_RAN). Bu — Liquibase orqali qurilgan har
+        qanday YANGI muhitning ishlash tezligi dev DB bilan bir xil
+        bo'lishini kafolatlaydi.
+    -->
+    <changeSet id="20260717-1000-01-add-idx-form058-outgoing-created-fast" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_outgoing_created_fast"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_outgoing_created_fast
+                ON form058 (sender_organization_id, created_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-02-add-idx-form058-incoming-created-fast" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_incoming_created_fast"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_incoming_created_fast
+                ON form058 (receiver_organization_id, created_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-03-add-idx-form058-outgoing-table" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_outgoing_table"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_outgoing_table
+                ON form058 (sender_organization_id, status, created_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <!--
+        NOTE: on the dev DB this ended up byte-for-byte identical to
+        idx_form058_incoming_created_fast (same columns, same predicate) —
+        a pre-existing duplicate from before Liquibase tracked this table.
+        Captured here as-is to match current reality; consider dropping one
+        of the two in a follow-up cleanup once confirmed safe.
+    -->
+    <changeSet id="20260717-1000-04-add-idx-form058-incoming-table" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_incoming_table"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_incoming_table
+                ON form058 (receiver_organization_id, status, created_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-05-add-idx-form058-active-patient-id-id" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_active_patient_id_id"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_active_patient_id_id
+                ON form058 (patient_id, id)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <!--
+        Bosqich 2 — yangi indekslar. `source` va `has_linked_cards` bo'yicha
+        filtrlash (boshqa hech qanday tashkilot/sana cheklovisiz, masalan
+        Respublika darajasidagi foydalanuvchi uchun) hech qanday mos indeks
+        bo'lmagani sababli to'liq jadval skaneriga olib kelardi (haqiqiy dev
+        DB'da tasdiqlandi: source='DMED' — 124ms, to'liq parallel seq scan;
+        has_linked_cards=true — 53ms). Ikkalasi ham shu indekslar bilan
+        1ms dan kam bo'ldi.
+    -->
+    <changeSet id="20260717-1000-06-add-idx-form058-source-created-fast" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_source_created_fast"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_source_created_fast
+                ON form058 (source, created_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-07-add-idx-form058-has-linked-cards-created-fast" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_has_linked_cards_created_fast"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_has_linked_cards_created_fast
+                ON form058 (has_linked_cards, created_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <!--
+        Bosqich 3 — diffni tekshirish jarayonida (bo'sh DB'ga to'liq
+        changelog to'plamini qo'llab, natijani haqiqiy dev DB bilan
+        solishtirib) topilgan yana 6 ta indeks: ular ham hech qachon
+        Liquibase orqali emas, balki Form058 entity'sining @Index
+        e'lonlariga mos qilib ddl-auto=update orqali yaratilgan edi.
+        Ayniqsa idx_form058_created_at va ikkita composite
+        (deleted,sender/receiver,created_at) indekssiz — "ALL scope +
+        faqat sana oralig'i, boshqa hech qanday filtrsiz" so'rov (Bosqich
+        1dagi asosiy xato bilan bir xil sabab) yangi (Liquibase orqali
+        qurilgan) muhitda hamon sekin bo'lib qolardi.
+    -->
+    <changeSet id="20260717-1000-08-add-idx-form058-status" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_status"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">CREATE INDEX idx_form058_status ON form058 (status);</sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-09-add-idx-form058-sender-org-id" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_sender_org_id"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">CREATE INDEX idx_form058_sender_org_id ON form058 (sender_organization_id);</sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-10-add-idx-form058-receiver-org-id" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_receiver_org_id"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">CREATE INDEX idx_form058_receiver_org_id ON form058 (receiver_organization_id);</sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-11-add-idx-form058-created-at" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_created_at"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">CREATE INDEX idx_form058_created_at ON form058 (created_at);</sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-12-add-idx-form058-deleted-sender-created" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_deleted_sender_created"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_deleted_sender_created
+                ON form058 (deleted, sender_organization_id, created_at);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260717-1000-13-add-idx-form058-deleted-receiver-created" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_deleted_receiver_created"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_deleted_receiver_created
+                ON form058 (deleted, receiver_organization_id, created_at);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

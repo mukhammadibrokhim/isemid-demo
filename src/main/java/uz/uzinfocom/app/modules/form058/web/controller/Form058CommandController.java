@@ -23,9 +23,9 @@ import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.mapper.Form058WebMapper;
-import uz.uzinfocom.app.modules.form058.web.resolvers.Form058Headers;
 import uz.uzinfocom.app.modules.form058.web.resolvers.Form058SourceResolver;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
+import uz.uzinfocom.app.platform.security.context.SourceHeader;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
@@ -58,7 +58,7 @@ public class Form058CommandController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<CreateForm058Response> create(
             @Parameter(description = "Источник поступления формы (заполняется автоматически по заголовку запроса).")
-            @RequestHeader(value = Form058Headers.X_SOURCE, required = false) String sourceHeader,
+            @RequestHeader(value = SourceHeader.X_SOURCE, required = false) String sourceHeader,
             @Valid @RequestBody CreateForm058Request request
     ) {
         return ApiResponse.success(

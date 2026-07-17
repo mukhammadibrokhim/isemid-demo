@@ -8,6 +8,7 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationE
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.reference.repository.Mkb10Repository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+import uz.uzinfocom.app.shared.validation.ReferenceCodeValidation;
 
 import java.util.Objects;
 
@@ -43,18 +44,11 @@ public class Form058CreateValidator {
         }
     }
 
-    /**
-     * Blank/missing codes are left to bean-validation ({@code @NotBlank}) on
-     * the request DTO — this only rejects a code that was actually supplied
-     * but does not exist in the ICD-10 reference catalog.
-     */
     private void validateMkb10Code(String mkb10Code) {
-        if (mkb10Code == null) {
-            return;
-        }
-
-        if (mkb10Repository.findByCodeAndDeletedFalse(mkb10Code).isEmpty()) {
-            throw new Form058ValidationException("error.form058.mkb10-not-found", mkb10Code);
-        }
+        ReferenceCodeValidation.requireExists(
+                mkb10Code,
+                code -> mkb10Repository.findByCodeAndDeletedFalse(code).isPresent(),
+                () -> new Form058ValidationException("error.form058.mkb10-not-found", mkb10Code)
+        );
     }
 }

@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
-import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
@@ -14,7 +12,7 @@ import uz.uzinfocom.app.modules.card.application.exception.UnsupportedCardTypeEx
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
-import uz.uzinfocom.app.modules.card.application.shared.CurrentCardUser;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
@@ -52,7 +50,7 @@ public class CardCommandService {
     private final Form058JpaRepository form058Repository;
     private final UserRepository userRepository;
     private final CardTypeHandlerRegistry handlerRegistry;
-    private final CurrentCardUser currentCardUser;
+    private final CurrentUserProvider currentUserProvider;
 
     /**
      * Bulk-assigns one blank card per distinct requested type to a form,
@@ -65,14 +63,14 @@ public class CardCommandService {
      * operation. Callers only need to know this succeeded (and that the
      * form is now CARD_LINKED) — the created cards themselves are not
      * returned; each assigned user finds theirs afterwards through
-     * {@code GET /cards/assigned-to-me}.
+     * {@code GET /cards/mine}.
      */
     @Transactional
     public void assignCards(Long formId, AssignCardsRequest request) {
         Form058 form = form058Repository.findByIdAndDeletedFalse(formId)
                 .orElseThrow(() -> new Form058NotFoundException(formId));
 
-        Long assignedById = currentCardUser.userIdOrNull();
+        Long assignedById = currentUserProvider.userIdOrNull();
         if (assignedById == null) {
             throw new CardScopeViolationException();
         }
@@ -237,30 +235,11 @@ public class CardCommandService {
         cardRepository.save(card);
     }
 
-    /**
-     * Attaches a new act to the card. Unlike the status transitions above,
-     * legacy applies no status check here — an act may be assigned
-     * regardless of the card's current state.
-     */
-    @Transactional
-    public void assignAct(Long cardId, String actType) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new CardNotFoundException(cardId));
-
-        Act act = new Act();
-        act.setCard(card);
-        act.setActType(actType);
-        act.setActStatus(ActStatus.NEW);
-        card.getActs().add(act);
-
-        cardRepository.save(card);
-    }
-
     private Card requireAttachedUserCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
 
-        Long userId = currentCardUser.userIdOrNull();
+        Long userId = currentUserProvider.userIdOrNull();
         boolean attached = userId != null && card.getUsers().stream()
                 .anyMatch(user -> userId.equals(user.getId()));
 
@@ -274,7 +253,7 @@ public class CardCommandService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
 
-        Long userId = currentCardUser.userIdOrNull();
+        Long userId = currentUserProvider.userIdOrNull();
         if (userId == null || !userId.equals(card.getAssignedById())) {
             throw new CardScopeViolationException();
         }

@@ -9,7 +9,6 @@ import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Result;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Result;
-import uz.uzinfocom.app.modules.form058.application.shared.OrganizationMappingHelper;
 import uz.uzinfocom.app.modules.form058.web.dto.request.ApproveForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CancelForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CreateForm058Request;
@@ -18,6 +17,7 @@ import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
 import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
+import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 @Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})

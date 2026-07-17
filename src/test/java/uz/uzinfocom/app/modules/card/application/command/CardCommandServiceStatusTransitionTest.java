@@ -7,7 +7,7 @@ import uz.uzinfocom.app.modules.card.application.exception.CardValidationExcepti
 import uz.uzinfocom.app.modules.card.application.exception.InvalidCardStatusException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
-import uz.uzinfocom.app.modules.card.application.shared.CurrentCardUser;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
@@ -38,9 +38,10 @@ import static org.mockito.Mockito.when;
 /**
  * Covers the status-transition rules extracted from the legacy
  * {@code CardServiceImpl} (accept/reject-by-user, complete, supervisor
- * approve/reject) and the assign-act flow, all now expressed through
- * {@link CardStatus}'s predicate methods instead of inline {@code if}
- * chains.
+ * approve/reject), all now expressed through {@link CardStatus}'s predicate
+ * methods instead of inline {@code if} chains. The assign-act flow now
+ * lives on {@code ActCommandService} — see
+ * {@code ActCommandServiceAssignActsTest}.
  */
 class CardCommandServiceStatusTransitionTest {
 
@@ -51,18 +52,18 @@ class CardCommandServiceStatusTransitionTest {
     private CardRepository cardRepository;
     private UserRepository userRepository;
     private CardTypeHandlerRegistry handlerRegistry;
-    private CurrentCardUser currentCardUser;
+    private CurrentUserProvider currentUserProvider;
     private CardCommandService service;
 
     @BeforeEach
     void setUp() {
         cardRepository = mock(CardRepository.class);
-        currentCardUser = mock(CurrentCardUser.class);
+        currentUserProvider = mock(CurrentUserProvider.class);
         Form058JpaRepository form058Repository = mock(Form058JpaRepository.class);
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
 
-        service = new CardCommandService(cardRepository, form058Repository, userRepository, handlerRegistry, currentCardUser);
+        service = new CardCommandService(cardRepository, form058Repository, userRepository, handlerRegistry, currentUserProvider);
 
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         // Other cards still exist for the form, so delete() never needs to
@@ -74,7 +75,7 @@ class CardCommandServiceStatusTransitionTest {
     void acceptByUserSucceedsForAttachedUserOnNewCard() {
         Card card = cardWith(CardStatus.NEW, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         service.acceptByUser(CARD_ID);
 
@@ -85,7 +86,7 @@ class CardCommandServiceStatusTransitionTest {
     void acceptByUserRejectsUnattachedUser() {
         Card card = cardWith(CardStatus.NEW, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(999L);
+        when(currentUserProvider.userIdOrNull()).thenReturn(999L);
 
         assertThatThrownBy(() -> service.acceptByUser(CARD_ID))
                 .isInstanceOf(CardScopeViolationException.class);
@@ -95,7 +96,7 @@ class CardCommandServiceStatusTransitionTest {
     void acceptByUserRejectsAlreadyCompletedCard() {
         Card card = cardWith(CardStatus.COMPLETED, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         assertThatThrownBy(() -> service.acceptByUser(CARD_ID))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -105,7 +106,7 @@ class CardCommandServiceStatusTransitionTest {
     void rejectByUserSetsCommentAndStatus() {
         Card card = cardWith(CardStatus.ACCEPTED_BY_USER, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         service.rejectByUser(CARD_ID, "Wrong data");
 
@@ -117,7 +118,7 @@ class CardCommandServiceStatusTransitionTest {
     void rejectByUserRejectsOnceInProgress() {
         Card card = cardWith(CardStatus.IN_PROGRESS, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         assertThatThrownBy(() -> service.rejectByUser(CARD_ID, "too late"))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -127,7 +128,7 @@ class CardCommandServiceStatusTransitionTest {
     void rejectByUserRejectsCompletedCard() {
         Card card = cardWith(CardStatus.COMPLETED, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         assertThatThrownBy(() -> service.rejectByUser(CARD_ID, "too late"))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -137,7 +138,7 @@ class CardCommandServiceStatusTransitionTest {
     void completeSetsCompletedDateAndStatus() {
         Card card = cardWith(CardStatus.ACCEPTED_BY_USER, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         service.complete(CARD_ID);
 
@@ -149,7 +150,7 @@ class CardCommandServiceStatusTransitionTest {
     void completeRejectsBeforeAcceptance() {
         Card card = cardWith(CardStatus.NEW, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         assertThatThrownBy(() -> service.complete(CARD_ID))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -159,7 +160,7 @@ class CardCommandServiceStatusTransitionTest {
     void completeRejectsAfterUserRejection() {
         Card card = cardWith(CardStatus.REJECTED_BY_USER, attachedUserId(ATTACHED_USER_ID), null);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         assertThatThrownBy(() -> service.complete(CARD_ID))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -169,7 +170,7 @@ class CardCommandServiceStatusTransitionTest {
     void approveBySupervisorSucceedsForAssignedSupervisorOnCompletedCard() {
         Card card = cardWith(CardStatus.COMPLETED, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(SUPERVISOR_ID);
 
         service.approveBySupervisor(CARD_ID);
 
@@ -180,7 +181,7 @@ class CardCommandServiceStatusTransitionTest {
     void approveBySupervisorRejectsWrongSupervisor() {
         Card card = cardWith(CardStatus.COMPLETED, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(999L);
+        when(currentUserProvider.userIdOrNull()).thenReturn(999L);
 
         assertThatThrownBy(() -> service.approveBySupervisor(CARD_ID))
                 .isInstanceOf(CardScopeViolationException.class);
@@ -190,7 +191,7 @@ class CardCommandServiceStatusTransitionTest {
     void approveBySupervisorRejectsNonCompletedCard() {
         Card card = cardWith(CardStatus.IN_PROGRESS, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(SUPERVISOR_ID);
 
         assertThatThrownBy(() -> service.approveBySupervisor(CARD_ID))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -200,7 +201,7 @@ class CardCommandServiceStatusTransitionTest {
     void rejectBySupervisorRequiresNonBlankComment() {
         Card card = cardWith(CardStatus.COMPLETED, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(SUPERVISOR_ID);
 
         assertThatThrownBy(() -> service.rejectBySupervisor(CARD_ID, "   "))
                 .isInstanceOf(CardValidationException.class);
@@ -210,7 +211,7 @@ class CardCommandServiceStatusTransitionTest {
     void rejectBySupervisorSetsCommentAndStatus() {
         Card card = cardWith(CardStatus.COMPLETED, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(SUPERVISOR_ID);
 
         service.rejectBySupervisor(CARD_ID, "Incomplete investigation");
 
@@ -222,7 +223,7 @@ class CardCommandServiceStatusTransitionTest {
     void completeAllowsReworkAfterSupervisorRejection() {
         Card card = cardWith(CardStatus.REJECTED, attachedUserId(ATTACHED_USER_ID), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         service.complete(CARD_ID);
 
@@ -233,7 +234,7 @@ class CardCommandServiceStatusTransitionTest {
     void completeRejectsAlreadyApprovedCard() {
         Card card = cardWith(CardStatus.APPROVED, attachedUserId(ATTACHED_USER_ID), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         assertThatThrownBy(() -> service.complete(CARD_ID))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -243,7 +244,7 @@ class CardCommandServiceStatusTransitionTest {
     void rejectByUserRejectsAlreadyApprovedCard() {
         Card card = cardWith(CardStatus.APPROVED, attachedUserId(ATTACHED_USER_ID), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         assertThatThrownBy(() -> service.rejectByUser(CARD_ID, "too late"))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -343,7 +344,7 @@ class CardCommandServiceStatusTransitionTest {
         card.setAssignedById(SUPERVISOR_ID);
         card.setAttachedUserComment("Wrong data");
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(SUPERVISOR_ID);
 
         User newEmployee = userWithId(99L);
         when(userRepository.findAllById(List.of(99L))).thenReturn(List.of(newEmployee));
@@ -360,7 +361,7 @@ class CardCommandServiceStatusTransitionTest {
     void reassignUsersRejectsWrongSupervisor() {
         Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(999L);
+        when(currentUserProvider.userIdOrNull()).thenReturn(999L);
 
         assertThatThrownBy(() -> service.reassignUsers(CARD_ID, new ReassignCardUsersRequest(List.of(1L))))
                 .isInstanceOf(CardScopeViolationException.class);
@@ -370,7 +371,7 @@ class CardCommandServiceStatusTransitionTest {
     void reassignUsersRejectsCardNotYetRejectedByUser() {
         Card card = cardWith(CardStatus.NEW, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(SUPERVISOR_ID);
 
         assertThatThrownBy(() -> service.reassignUsers(CARD_ID, new ReassignCardUsersRequest(List.of(1L))))
                 .isInstanceOf(InvalidCardStatusException.class);
@@ -380,7 +381,7 @@ class CardCommandServiceStatusTransitionTest {
     void reassignUsersRequiresAnAuthenticatedCaller() {
         Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(null);
+        when(currentUserProvider.userIdOrNull()).thenReturn(null);
 
         assertThatThrownBy(() -> service.reassignUsers(CARD_ID, new ReassignCardUsersRequest(List.of(1L))))
                 .isInstanceOf(CardScopeViolationException.class);
@@ -390,23 +391,11 @@ class CardCommandServiceStatusTransitionTest {
     void reassignUsersRejectsUnknownUserId() {
         Card card = cardWith(CardStatus.REJECTED_BY_USER, Set.of(), SUPERVISOR_ID);
         givenCard(card);
-        when(currentCardUser.userIdOrNull()).thenReturn(SUPERVISOR_ID);
+        when(currentUserProvider.userIdOrNull()).thenReturn(SUPERVISOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of());
 
         assertThatThrownBy(() -> service.reassignUsers(CARD_ID, new ReassignCardUsersRequest(List.of(1L))))
                 .isInstanceOf(CardValidationException.class);
-    }
-
-    @Test
-    void assignActAddsActRegardlessOfStatus() {
-        Card card = cardWith(CardStatus.APPROVED, Set.of(), SUPERVISOR_ID);
-        givenCard(card);
-
-        service.assignAct(CARD_ID, "ACT153");
-
-        assertThat(card.getActs()).hasSize(1);
-        assertThat(card.getActs().getFirst().getActType()).isEqualTo("ACT153");
-        assertThat(card.getActs().getFirst().getCard()).isSameAs(card);
     }
 
     private void givenCard(Card card) {

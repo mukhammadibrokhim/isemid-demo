@@ -295,4 +295,85 @@
 
     </changeSet>
 
+    <!-- MKB-10: audit defaultlari -->
+    <changeSet
+            id="20260716-1000-07-mkb10-default-values"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_mkb10"/>
+            <columnExists tableName="ref_mkb10" columnName="version"/>
+            <columnExists tableName="ref_mkb10" columnName="created_at"/>
+            <columnExists tableName="ref_mkb10" columnName="updated_at"/>
+            <columnExists tableName="ref_mkb10" columnName="deleted"/>
+        </preConditions>
+
+        <sql
+                dbms="postgresql"
+                splitStatements="true"
+                stripComments="true"><![CDATA[
+            ALTER TABLE ref_mkb10
+                ALTER COLUMN version SET DEFAULT 0,
+            ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN deleted SET DEFAULT FALSE;
+            ]]></sql>
+
+    </changeSet>
+
+    <!--
+        MKB-10: jadval bo'sh bo'lsa CSV yuklanadi.
+
+        id/uuid manba tizimidan (JSON eksport) olingan aynan qiymatlar bilan
+        yuklanadi (Mkb10/ExternallyIdentifiedEntity'ning o'zi hujjatlashtirgan
+        niyatga mos — id avtomatik generatsiya qilinmaydi, ota/bola
+        bog'lanishlari qayta-import qilinganda buzilmasligi kerak).
+
+        CSV qatorlari topologik tartiblangan (ota har doim bolasidan oldin
+        keladi) — shuning uchun bitta ketma-ket loadData o'z-o'zidan
+        parent_id FK cheklovini buzmaydi, ikkinchi bosqich yoki alohida
+        UPDATE kerak emas.
+    -->
+    <changeSet
+            id="20260716-1000-08-seed-mkb10"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_mkb10"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_mkb10
+            </sqlCheck>
+        </preConditions>
+
+        <loadData
+                file="base/mkb10_reference.csv"
+                relativeToChangelogFile="false"
+                tableName="ref_mkb10"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="id" name="id" type="NUMERIC"/>
+            <column header="uuid" name="uuid" type="UUID"/>
+            <column header="parent_id" name="parent_id" type="NUMERIC"/>
+            <column header="secondary_id" name="secondary_id" type="NUMERIC"/>
+            <column header="code" name="code" type="STRING"/>
+            <column header="level" name="level" type="NUMERIC"/>
+            <column header="is_last_level" name="is_last_level" type="BOOLEAN"/>
+            <column header="usage_limit" name="usage_limit" type="NUMERIC"/>
+            <column header="name_uz" name="name_uz" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+            <column header="name_kaa" name="name_kaa" type="STRING"/>
+            <column header="comment" name="comment" type="STRING"/>
+
+        </loadData>
+
+    </changeSet>
+
 </databaseChangeLog>

@@ -78,7 +78,7 @@ public abstract class Card extends AbsEntity {
     private Long assignedById;
 
     /**
-     * Indexed on {@code user_id} because {@code GET /cards/assigned-to-me}
+     * Indexed on {@code user_id} because {@code GET /cards/mine}
      * filters this join table by user on every request — without it, that query
      * degrades to a full scan of {@code card_users} as it grows. The
      * unique constraint doubles as the index for the reverse direction
@@ -117,7 +117,7 @@ public abstract class Card extends AbsEntity {
     @Column(name = "completed_date")
     private LocalDate completedDate;
 
-    @OneToMany(mappedBy = "card", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "card", fetch = FetchType.LAZY)
     private List<Act> acts = new ArrayList<>();
 
     protected Card(CardType cardType) {

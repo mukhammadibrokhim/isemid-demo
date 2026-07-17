@@ -3,7 +3,6 @@ package uz.uzinfocom.app.modules.form0581.application.command.update;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form0581.application.command.Form0581OtherInjuredPersonMapper;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
@@ -12,11 +11,10 @@ import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.F
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAddressCommand;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAffiliationCommand;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
-import uz.uzinfocom.app.modules.patient.application.command.CreatePatientIdentifierCommand;
+import uz.uzinfocom.app.modules.patient.application.service.PatientIdentifierSync;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
-import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 
 @Service
@@ -105,28 +103,9 @@ public class UpdateForm0581Service {
             patient.setProfessionCode(patientCommand.professionCode());
         }
 
-        patientCommand.identifiers().forEach(identifier -> upsertIdentifier(patient, identifier));
+        patientCommand.identifiers().forEach(identifier -> PatientIdentifierSync.upsert(patient, identifier));
         patientCommand.addresses().forEach(address -> upsertAddress(patient, address));
         patientCommand.affiliations().forEach(affiliation -> upsertAffiliation(patient, affiliation));
-    }
-
-    private void upsertIdentifier(Patient patient, CreatePatientIdentifierCommand command) {
-        if (command == null || !StringUtils.hasText(command.type()) || !StringUtils.hasText(command.value())) {
-            return;
-        }
-
-        PatientIdentifier identifier = patient.getIdentifiers().stream()
-                .filter(item -> command.type().equals(item.getTypeCode()))
-                .findFirst()
-                .orElseGet(() -> {
-                    PatientIdentifier newIdentifier = new PatientIdentifier();
-                    newIdentifier.setTypeCode(command.type());
-                    patient.addIdentifier(newIdentifier);
-                    return newIdentifier;
-                });
-        identifier.setValue(command.value().trim());
-        identifier.setPeriodStart(command.periodStart());
-        identifier.setPeriodEnd(command.periodEnd());
     }
 
     private void upsertAddress(Patient patient, CreatePatientAddressCommand command) {

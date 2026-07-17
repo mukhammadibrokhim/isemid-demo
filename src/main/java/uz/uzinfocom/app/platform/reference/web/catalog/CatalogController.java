@@ -40,9 +40,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CatalogController {
 
-    private static final String ADMIN_AUTHORITIES =
-            "hasAnyAuthority('isemid_super_admin', 'isemid_admin', 'ROLE_ISEMID_SUPER_ADMIN', 'ROLE_ISEMID_ADMIN')";
-
     private final CatalogQueryService catalogQueryService;
     private final CatalogCommandService catalogCommandService;
     private final MessageResolver messageResolver;
@@ -160,7 +157,7 @@ public class CatalogController {
             description = "Элемент каталога успешно создан."
     )
     @PostMapping
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<CatalogResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемого элемента каталога.",
@@ -180,7 +177,7 @@ public class CatalogController {
             description = "Элемент каталога успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<CatalogResponse> update(
             @Parameter(description = "Внутренний идентификатор элемента каталога.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -202,7 +199,7 @@ public class CatalogController {
             description = "Элемент каталога успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор элемента каталога.", required = true, example = "1")
             @PathVariable @Positive Long id

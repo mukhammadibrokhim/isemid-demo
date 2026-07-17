@@ -45,9 +45,6 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 @RequiredArgsConstructor
 public class CountryController {
 
-    private static final String ADMIN_AUTHORITIES =
-            "hasAnyAuthority('isemid_super_admin', 'isemid_admin', 'ROLE_ISEMID_SUPER_ADMIN', 'ROLE_ISEMID_ADMIN')";
-
     private final CountryQueryService countryQueryService;
     private final CountryCommandService countryCommandService;
     private final MessageResolver messageResolver;
@@ -120,7 +117,7 @@ public class CountryController {
             description = "Страна успешно создана."
     )
     @PostMapping
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<CountryDetailedResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой страны.",
@@ -140,7 +137,7 @@ public class CountryController {
             description = "Страна успешно обновлена."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<CountryDetailedResponse> update(
             @Parameter(description = "Внутренний идентификатор страны.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -162,7 +159,7 @@ public class CountryController {
             description = "Страна успешно удалена."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize(ADMIN_AUTHORITIES)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор страны.", required = true, example = "1")
             @PathVariable @Positive Long id

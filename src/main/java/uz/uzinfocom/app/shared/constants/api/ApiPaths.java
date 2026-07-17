@@ -204,7 +204,10 @@ public final class ApiPaths {
 
         // Personal, server-scoped list view — never trust a client-supplied
         // user id for this, always resolve from the authenticated principal.
-        public static final String ASSIGNED_TO_ME = "/assigned-to-me";
+        // For a broader-scope organization (region/republic level SANEPID),
+        // this widens from "assigned to me" to the whole organization scope
+        // — see CardQueryService.findMine.
+        public static final String MINE = "/mine";
 
         // Attached-employee actions (the user working the card).
         public static final String ACCEPT = "/{id}/accept";
@@ -226,6 +229,21 @@ public final class ApiPaths {
         }
 
         public static final String ROOT = API_V1 + "/acts";
+        public static final String BY_ID = "/{id}";
+
+        // Personal, server-scoped list view — same rule as Card.MINE.
+        public static final String MINE = "/mine";
+
+        // Attached-employee actions (the user working the act).
+        public static final String ACCEPT = "/{id}/accept";
+        public static final String REJECT = "/{id}/reject";
+        public static final String COMPLETE = "/{id}/complete";
+
+        // Supervisor actions (the user the act is assigned to via
+        // assignedById) — nested under /supervisor/ just like Card's.
+        public static final String SUPERVISOR_APPROVE = "/{id}/supervisor/approve";
+        public static final String SUPERVISOR_REJECT = "/{id}/supervisor/reject";
+        public static final String SUPERVISOR_REASSIGN = "/{id}/supervisor/reassign";
     }
 
     public static final class ExternalApi {

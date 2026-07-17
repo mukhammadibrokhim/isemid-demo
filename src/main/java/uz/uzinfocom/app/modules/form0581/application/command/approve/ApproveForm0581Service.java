@@ -8,9 +8,9 @@ import uz.uzinfocom.app.modules.form0581.application.command.update.Form0581Upda
 import uz.uzinfocom.app.modules.form0581.application.command.update.UpdateForm0581Result;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ValidationException;
-import uz.uzinfocom.app.modules.form0581.application.shared.CurrentForm0581User;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +18,7 @@ public class ApproveForm0581Service {
 
     private final Form0581JpaRepository form0581JpaRepository;
     private final Form0581UpdateMapper form0581UpdateMapper;
-    private final CurrentForm0581User currentForm0581User;
+    private final CurrentUserProvider currentUserProvider;
     private final Form0581ApprovalValidator form0581ApprovalValidator;
 
     @Transactional
@@ -32,7 +32,7 @@ public class ApproveForm0581Service {
         form0581.approve(
                 command.finalMkb10Code().trim(),
                 command.finalMkb10Name().trim(),
-                currentForm0581User.userIdOrNull(),
+                currentUserProvider.userIdOrNull(),
                 form0581.getReceiverOrganizationId()
         );
         return form0581UpdateMapper.toResult(form0581JpaRepository.save(form0581));

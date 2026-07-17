@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        SystemSetting's @Version column was added to the entity after
+        20260711-1400-create-system-settings.xml was already run against the
+        dev DB (via ddl-auto=update, not Liquibase); that changeset's own
+        createTable never declared it. Fixing it here as a new changeset
+        rather than editing the original, already-executed/checksummed one.
+    -->
+    <changeSet id="20260716-1300-01-add-system-settings-version" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="system_settings" columnName="version"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="system_settings">
+            <column name="version" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

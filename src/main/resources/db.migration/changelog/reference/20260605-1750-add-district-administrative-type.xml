@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        District.administrativeType (@Column(length=50), platform/reference/domain/District.java)
+        was added to the entity after 20260605-1700-create-reference-address-tables.xml
+        was already run against the dev DB (via ddl-auto=update, not Liquibase);
+        that changeset's own createTable never declared this column, yet
+        20260605-1800-seed-reference-data.xml's district loadData already
+        references it by header name. Fixing it here as a new changeset
+        (dated to run between the two) rather than editing the original,
+        already-executed/checksummed createTable changeset.
+    -->
+    <changeSet id="20260605-1750-01-add-district-administrative-type" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="ref_district" columnName="administrative_type"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="ref_district">
+            <column name="administrative_type" type="VARCHAR(50)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

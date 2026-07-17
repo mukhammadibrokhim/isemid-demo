@@ -9,17 +9,12 @@ import uz.uzinfocom.app.modules.form058.application.query.Form058Filter;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
-import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopeOrganizationIdResolver;
+import uz.uzinfocom.app.platform.scope.jpa.CaseSpecificationSupport;
 import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -30,7 +25,6 @@ public class Form058Specification {
     private static final String PATIENT = "patient";
 
     private static final String CREATED_AT = "createdAt";
-    private static final ZoneId APPLICATION_ZONE = ZoneId.of("Asia/Tashkent");
 
     private static final String STATUS = "status";
     private static final String SOURCE = "source";
@@ -43,7 +37,7 @@ public class Form058Specification {
     private static final String RECEIVER_ORGANIZATION_ID = "receiverOrganizationId";
 
     private final SenderReceiverScopePredicateFactory scopePredicateFactory;
-    private final OrganizationScopeOrganizationIdResolver organizationScopeOrganizationIdResolver;
+    private final CaseSpecificationSupport caseSpecificationSupport;
 
     public Specification<Form058> table(
             Form058Filter filter,
@@ -100,7 +94,7 @@ public class Form058Specification {
     ) {
         return visible(scope)
                 .and((root, query, cb) ->
-                        documentValueExists(root, query, cb, normalizeDocumentValue(nnuzb))
+                        caseSpecificationSupport.documentValueExists(root, query, cb, PATIENT, normalizeDocumentValue(nnuzb))
                 );
     }
 
@@ -154,17 +148,20 @@ public class Form058Specification {
         }
 
         if (filter.dateFrom() != null || filter.dateTo() != null) {
-            applyCreatedAtDateRangeFilter(
+            caseSpecificationSupport.applyCreatedAtDateRangeFilter(
                     predicates,
                     root,
                     cb,
+                    CREATED_AT,
                     filter.dateFrom(),
                     filter.dateTo()
             );
         }
 
         if (StringUtils.hasText(filter.documentValue())) {
-            predicates.add(documentValueExists(root, query, cb, normalizeDocumentValue(filter.documentValue())));
+            predicates.add(caseSpecificationSupport.documentValueExists(
+                    root, query, cb, PATIENT, normalizeDocumentValue(filter.documentValue())
+            ));
         }
 
         if (filter.status() != null) {
@@ -180,7 +177,10 @@ public class Form058Specification {
         }
 
         if (StringUtils.hasText(filter.regionCode()) || StringUtils.hasText(filter.districtCode())) {
-            predicates.add(organizationLocationPredicate(root, cb, received, filter.regionCode(), filter.districtCode()));
+            predicates.add(caseSpecificationSupport.organizationLocationPredicate(
+                    root, cb, received, SENDER_ORGANIZATION_ID, RECEIVER_ORGANIZATION_ID,
+                    filter.regionCode(), filter.districtCode()
+            ));
         }
 
         if (StringUtils.hasText(filter.source())) {
@@ -190,87 +190,6 @@ public class Form058Specification {
         if (filter.hasLinkedCards() != null) {
             predicates.add(cb.equal(root.get(HAS_LINKED_CARDS), filter.hasLinkedCards()));
         }
-    }
-
-    private void applyCreatedAtDateRangeFilter(
-            List<Predicate> predicates,
-            Root<Form058> root,
-            CriteriaBuilder cb,
-            LocalDate dateFrom,
-            LocalDate dateTo
-    ) {
-        if (dateFrom != null) {
-            Instant fromInclusive = dateFrom.atStartOfDay(APPLICATION_ZONE).toInstant();
-
-            predicates.add(cb.greaterThanOrEqualTo(root.get(CREATED_AT), fromInclusive));
-        }
-
-        if (dateTo != null) {
-            Instant toExclusive = dateTo.plusDays(1).atStartOfDay(APPLICATION_ZONE).toInstant();
-
-            predicates.add(cb.lessThan(root.get(CREATED_AT), toExclusive));
-        }
-    }
-
-    /**
-     * Resolves organization ids via a cached, materialized list instead of a
-     * live JPA subquery. Postgres estimates `column IN (:list)` far more
-     * accurately than `column IN (subquery)` — the latter forced a full
-     * backward scan of form058 regardless of indexes (see resolveFilterOrganizationIds).
-     */
-    private Predicate organizationLocationPredicate(
-            Root<Form058> root,
-            CriteriaBuilder cb,
-            Boolean received,
-            String regionCode,
-            String districtCode
-    ) {
-        List<Long> organizationIds = organizationScopeOrganizationIdResolver
-                .resolveFilterOrganizationIds(regionCode, districtCode);
-
-        if (received == null) {
-            return cb.or(
-                    organizationIdPredicate(root, cb, SENDER_ORGANIZATION_ID, organizationIds),
-                    organizationIdPredicate(root, cb, RECEIVER_ORGANIZATION_ID, organizationIds)
-            );
-        }
-
-        String organizationField = Boolean.TRUE.equals(received)
-                ? RECEIVER_ORGANIZATION_ID
-                : SENDER_ORGANIZATION_ID;
-
-        return organizationIdPredicate(root, cb, organizationField, organizationIds);
-    }
-
-    private Predicate organizationIdPredicate(
-            Root<Form058> root,
-            CriteriaBuilder cb,
-            String organizationIdField,
-            List<Long> organizationIds
-    ) {
-        if (organizationIds.isEmpty()) {
-            return cb.disjunction();
-        }
-
-        return root.<Long>get(organizationIdField).in(organizationIds);
-    }
-
-    private Predicate documentValueExists(
-            Root<Form058> root,
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            String documentValue
-    ) {
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<PatientIdentifier> identifier = subquery.from(PatientIdentifier.class);
-
-        subquery.select(cb.literal(1L));
-        subquery.where(
-                cb.equal(identifier.get(PATIENT).get(ID), root.get(PATIENT).get(ID)),
-                cb.equal(identifier.get("value"), documentValue)
-        );
-
-        return cb.exists(subquery);
     }
 
     private Predicate patientAffiliationExists(
@@ -297,10 +216,10 @@ public class Form058Specification {
     }
 
     private String normalizeCode(String value) {
-        return value.trim().toUpperCase(Locale.ROOT);
+        return caseSpecificationSupport.normalizeCode(value);
     }
 
     private String normalizeDocumentValue(String value) {
-        return value.trim().toUpperCase(Locale.ROOT);
+        return caseSpecificationSupport.normalizeCode(value);
     }
 }

@@ -1,0 +1,34 @@
+package uz.uzinfocom.app.platform.iam.application.shared.service;
+
+import lombok.RequiredArgsConstructor;
+import org.mapstruct.Named;
+import org.springframework.stereotype.Component;
+
+import java.util.UUID;
+
+@Component
+@RequiredArgsConstructor
+public class OrganizationMappingHelper {
+
+    private final OrganizationIdResolver organizationIdResolver;
+    private final OrganizationNameResolver organizationNameResolver;
+
+    @Named("activeOrganizationId")
+    public Long activeOrganizationId(UUID uuid) {
+        return organizationIdResolver.resolveActiveId(uuid);
+    }
+
+    @Named("nullableActiveOrganizationId")
+    public Long nullableActiveOrganizationId(UUID uuid) {
+        return uuid == null ? null : organizationIdResolver.resolveActiveId(uuid);
+    }
+
+    @Named("activeOrganizationNameById")
+    public String activeOrganizationNameById(Long id) {
+        if (id == null) {
+            return null;
+        }
+
+        return organizationNameResolver.resolve(organizationIdResolver.resolveActiveNameFields(id));
+    }
+}

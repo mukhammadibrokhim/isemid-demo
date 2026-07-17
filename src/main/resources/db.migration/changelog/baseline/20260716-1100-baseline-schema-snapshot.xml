@@ -1,0 +1,801 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Liquibase generateChangeLog orqali (bo'sh DB va haqiqiy dev DB
+        isemid2 orasidagi farqdan) avtomatik yaratildi.
+
+        Sabab: Card/Act/Patient modullari va IAM bazaviy jadvallari (users,
+        organization, role, permission va bog'lovchi jadvallar) hech qachon
+        Liquibase orqali emas, balki ddl-auto=update orqali yaratilgan edi —
+        shu sababli ular uchun hech qanday changelog fayli yo'q edi. Mavjud
+        9 ta qo'lda yozilgan fayl allaqachon qamrab olgan jadvallar
+        (ref_country, ref_region, ref_district, ref_neighborhood, form058,
+        fm058_location, form058_1, form058_1_other_injured_person,
+        system_settings) bu fayldan ataylab chiqarib tashlangan.
+
+        catalogName/schemaName atributlari olib tashlandi (avtomatik
+        generatsiya paytida joriy DB nomi bilan qattiq bog'langan edi) — bu
+        fayl istalgan nomdagi DB'ga qarshi portable bo'lishi uchun.
+
+        Card/Act jadvallari BU FAYLDA YO'Q — ular form058'ga FK orqali
+        bog'liq (masalan card.form058_id), shuning uchun alohida
+        `changelog/zzz-card-act/` papkasiga chiqarilgan — u alifbo bo'yicha
+        "form058"/"form0581" papkalaridan KEYIN ishga tushishi kerak
+        (`includeAll` papkalarni alifbo tartibida o'qiydi), aks holda
+        "relation form058 does not exist" xatosi bilan barbod bo'ladi.
+    -->
+
+    <changeSet author="uzinfocom" id="20260716-1100-001">
+        <createTable tableName="permission">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="permission_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="active" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="deleted" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="deleted_at" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="description_kaa" type="VARCHAR(1000)" />
+            <column name="description_ru" type="VARCHAR(1000)" />
+            <column name="description_uz" type="VARCHAR(1000)" />
+            <column name="description_uz_cyril" type="VARCHAR(1000)" />
+            <column name="subject" type="VARCHAR(200)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-002">
+        <createTable tableName="role">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="role_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="active" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="deleted" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="deleted_at" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="description_kaa" type="VARCHAR(1000)" />
+            <column name="description_ru" type="VARCHAR(1000)" />
+            <column name="description_uz" type="VARCHAR(1000)" />
+            <column name="description_uz_cyril" type="VARCHAR(1000)" />
+            <column name="name" type="VARCHAR(150)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-003">
+        <createTable tableName="role_permissions">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="role_permissions_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="permission_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-004">
+        <createTable tableName="role_permission_actions">
+            <column name="role_permission_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="role_permission_actions_pkey" />
+            </column>
+            <column name="action" type="VARCHAR(50)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="role_permission_actions_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-005">
+        <createTable tableName="organization">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="organization_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="active" type="BOOLEAN" />
+            <column name="district_code" type="VARCHAR(64)" />
+            <column name="level_type" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="medical_type" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="VARCHAR(500)">
+                <constraints nullable="false" />
+            </column>
+            <column name="phone" type="VARCHAR(50)" />
+            <column name="region_code" type="VARCHAR(64)" />
+            <column name="tin" type="VARCHAR(50)" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="address_line" type="VARCHAR(255)" />
+            <column name="name_kaa" type="VARCHAR(500)" />
+            <column name="name_ru" type="VARCHAR(500)" />
+            <column name="name_uz" type="VARCHAR(500)" />
+            <column name="name_uz_cyril" type="VARCHAR(500)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-006">
+        <createTable tableName="organization_service_types">
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="service_type" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-007">
+        <createTable tableName="users">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="active" type="BOOLEAN" />
+            <column name="birth_date" type="date" />
+            <column name="district_code" type="VARCHAR(20)" />
+            <column name="country_code" type="VARCHAR(20)" />
+            <column name="first_name" type="VARCHAR(200)" />
+            <column name="gender_code" type="VARCHAR(20)" />
+            <column name="last_name" type="VARCHAR(200)" />
+            <column name="line" type="VARCHAR(255)" />
+            <column name="middle_name" type="VARCHAR(200)" />
+            <column name="nnuzb" type="VARCHAR(32)" />
+            <column name="phone_number" type="VARCHAR(20)" />
+            <column name="region_code" type="VARCHAR(20)" />
+            <column name="username" type="VARCHAR(200)" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-008">
+        <createTable tableName="users_organizations">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_organizations_pkey" />
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_organizations_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-009">
+        <createTable tableName="user_roles">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="user_roles_pkey" />
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="user_roles_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-010">
+        <createTable tableName="ref_catalog">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="ref_catalog_pkey" />
+            </column>
+            <column defaultValueNumeric="0" name="version" type="BIGINT" />
+            <column defaultValueComputed="CURRENT_TIMESTAMP" name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column defaultValueComputed="CURRENT_TIMESTAMP" name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column defaultValueBoolean="false" name="deleted" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="name_kaa" type="VARCHAR(255)" />
+            <column name="name_ru" type="VARCHAR(255)" />
+            <column name="name_uz" type="VARCHAR(255)" />
+            <column name="name_uz_cyril" type="VARCHAR(255)" />
+            <column name="parent_code" type="VARCHAR(50)" />
+            <column name="type" type="VARCHAR(100)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-011">
+        <createTable tableName="pt_address">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pt_address_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_org_uuid" type="UUID" />
+            <column name="updated_org_uuid" type="UUID" />
+            <column name="apartment_number" type="VARCHAR(255)" />
+            <column name="district_code" type="VARCHAR(255)" />
+            <column name="house_number" type="VARCHAR(255)" />
+            <column name="neighborhood_code" type="VARCHAR(255)" />
+            <column name="region_code" type="VARCHAR(255)" />
+            <column name="street_address" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(255)" />
+            <column name="patient_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-012">
+        <createTable tableName="pt_affiliation">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pt_affiliation_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_org_uuid" type="UUID" />
+            <column name="updated_org_uuid" type="UUID" />
+            <column name="address" type="VARCHAR(255)" />
+            <column name="district_code" type="VARCHAR(255)" />
+            <column name="last_visited_date" type="date" />
+            <column name="organization_id" type="BIGINT" />
+            <column name="organization_name" type="VARCHAR(255)" />
+            <column name="organization_uuid" type="UUID" />
+            <column name="region_code" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(255)" />
+            <column name="patient_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-013">
+        <createTable tableName="pt_identifier">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pt_identifier_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_org_uuid" type="UUID" />
+            <column name="updated_org_uuid" type="UUID" />
+            <column name="period_end" type="date" />
+            <column name="period_start" type="date" />
+            <column name="type_code" type="VARCHAR(30)">
+                <constraints nullable="false" />
+            </column>
+            <column name="value" type="VARCHAR(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="patient_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-014">
+        <createTable tableName="ref_manual_report">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="ref_manual_report_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="deleted" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="include_in_total" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="name_kaa" type="VARCHAR(255)" />
+            <column name="name_ru" type="VARCHAR(255)" />
+            <column name="name_uz" type="VARCHAR(255)" />
+            <column name="name_uz_cyril" type="VARCHAR(255)" />
+            <column name="short_name" type="VARCHAR(100)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-015">
+        <createTable tableName="ref_manual_report_mkb10_codes">
+            <column name="manual_report_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="mkb10_code" type="VARCHAR(20)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-016">
+        <createTable tableName="ref_manual_report_types">
+            <column name="manual_report_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="report_type" type="VARCHAR(50)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-017">
+        <createTable tableName="ref_mkb10">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="ref_mkb10_pkey" />
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="code" type="VARCHAR(20)">
+                <constraints nullable="false" />
+            </column>
+            <column name="comment" type="VARCHAR(2000)" />
+            <column name="deleted" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_last_level" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="level" type="INTEGER">
+                <constraints nullable="false" />
+            </column>
+            <column name="name_kaa" type="VARCHAR(255)" />
+            <column name="name_ru" type="VARCHAR(255)" />
+            <column name="name_uz" type="VARCHAR(255)" />
+            <column name="name_uz_cyril" type="VARCHAR(255)" />
+            <column name="parent_id" type="BIGINT" />
+            <column name="secondary_id" type="BIGINT" />
+            <column name="usage_limit" type="INTEGER">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-039">
+        <createTable tableName="event_publication">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="event_publication_pkey" />
+            </column>
+            <column name="completion_attempts" type="INTEGER">
+                <constraints nullable="false" />
+            </column>
+            <column name="completion_date" type="TIMESTAMP WITH TIME ZONE" />
+            <column name="event_type" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_resubmission_date" type="TIMESTAMP WITH TIME ZONE" />
+            <column name="listener_id" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="publication_date" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="serialized_event" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-041">
+        <createTable tableName="patient">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="patient_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_org_uuid" type="UUID" />
+            <column name="updated_org_uuid" type="UUID" />
+            <column name="age_months" type="INTEGER" />
+            <column name="age_years" type="INTEGER" />
+            <column name="birth_date" type="date" />
+            <column name="category_code" type="VARCHAR(255)" />
+            <column name="first_name" type="VARCHAR(255)" />
+            <column name="gender_code" type="VARCHAR(255)" />
+            <column name="kinship_degree" type="VARCHAR(255)" />
+            <column name="kinship_full_name" type="VARCHAR(255)" />
+            <column name="last_name" type="VARCHAR(255)" />
+            <column name="marital_status_code" type="VARCHAR(255)" />
+            <column name="middle_name" type="VARCHAR(255)" />
+            <column name="phone_number" type="VARCHAR(255)" />
+            <column name="population_type_code" type="VARCHAR(255)" />
+            <column name="profession_code" type="VARCHAR(255)" />
+            <column name="residential_status_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-042">
+        <createIndex indexName="idx_permission_active_deleted" tableName="permission" using="btree">
+            <column name="active" />
+            <column name="deleted" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-043">
+        <addUniqueConstraint columnNames="subject" constraintName="uk8me3wn6m26u7rgl2h07mxfxsn" tableName="permission" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-044">
+        <createIndex indexName="idx_role_active_deleted" tableName="role" using="btree">
+            <column name="active" />
+            <column name="deleted" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-045">
+        <addUniqueConstraint columnNames="name" constraintName="uk8sewwnpamngi6b1dwaa88askk" tableName="role" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-046">
+        <createIndex indexName="idx_role_permissions_role_id" tableName="role_permissions" using="btree">
+            <column name="role_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-047">
+        <createIndex indexName="idx_role_permissions_permission_id" tableName="role_permissions" using="btree">
+            <column name="permission_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-048">
+        <addUniqueConstraint columnNames="role_id, permission_id" constraintName="uk_role_permissions_role_permission" tableName="role_permissions" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-049">
+        <createIndex indexName="idx_role_permission_actions_role_permission_id" tableName="role_permission_actions" using="btree">
+            <column name="role_permission_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-050">
+        <createIndex indexName="uk_organization_uuid" tableName="organization" unique="true" using="btree">
+            <column name="uuid" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-051">
+        <createIndex indexName="idx_organization_state_city" tableName="organization" using="btree">
+            <column name="region_code" />
+            <column name="district_code" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-052">
+        <createIndex indexName="idx_organization_level_type" tableName="organization" using="btree">
+            <column name="level_type" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-053">
+        <createIndex indexName="idx_organization_medical_type" tableName="organization" using="btree">
+            <column name="medical_type" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-054">
+        <createIndex indexName="idx_organization_active_region" tableName="organization" using="btree">
+            <column name="active" />
+            <column name="region_code" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-055">
+        <createIndex indexName="idx_organization_active_district" tableName="organization" using="btree">
+            <column name="active" />
+            <column name="district_code" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-056">
+        <createIndex indexName="idx_organization_service_types_organization_id" tableName="organization_service_types" using="btree">
+            <column name="organization_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-057">
+        <createIndex indexName="idx_users_active" tableName="users" using="btree">
+            <column name="active" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-058">
+        <createIndex indexName="idx_users_nnuzb" tableName="users" using="btree">
+            <column name="nnuzb" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-059">
+        <createIndex indexName="idx_users_username" tableName="users" using="btree">
+            <column name="username" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-060">
+        <createIndex indexName="idx_users_state_city" tableName="users" using="btree">
+            <column name="region_code" />
+            <column name="district_code" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-061">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk6km2m9i3vjuy36rnvkgj1l61s" tableName="users" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-062">
+        <createIndex indexName="idx_ref_catalog_type_deleted" tableName="ref_catalog" using="btree">
+            <column name="type" />
+            <column defaultValueBoolean="false" name="deleted" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-063">
+        <createIndex indexName="idx_ref_catalog_type_parent_code" tableName="ref_catalog" using="btree">
+            <column name="type" />
+            <column name="parent_code" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-064">
+        <addUniqueConstraint columnNames="type, code" constraintName="uk_ref_catalog_type_code" tableName="ref_catalog" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-065">
+        <createIndex indexName="idx_address_patient" tableName="pt_address" using="btree">
+            <column name="patient_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-066">
+        <createIndex indexName="idx_pt_address_patient_permanent" tableName="pt_address" using="btree">
+            <column name="patient_id" />
+            <column name="region_code" />
+            <column name="district_code" />
+            <column name="neighborhood_code" />
+            <column name="street_address" />
+            <column name="house_number" />
+            <column name="apartment_number" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-067">
+        <createIndex indexName="idx_address_location" tableName="pt_address" using="btree">
+            <column name="region_code" />
+            <column name="district_code" />
+            <column name="neighborhood_code" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-068">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk90m1ki0qxbvmowfwhwviw950m" tableName="pt_address" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-069">
+        <createIndex indexName="idx_value_type" tableName="pt_affiliation" using="btree">
+            <column name="type" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-070">
+        <createIndex indexName="idx_organization_id" tableName="pt_affiliation" using="btree">
+            <column name="organization_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-071">
+        <createIndex indexName="idx_pt_affiliation_patient_id" tableName="pt_affiliation" using="btree">
+            <column name="patient_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-072">
+        <createIndex indexName="idx_pt_affiliation_org_patient_relevant" tableName="pt_affiliation" using="btree">
+            <column name="organization_id" />
+            <column name="patient_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-073">
+        <createIndex indexName="idx_pt_affiliation_patient_org_type" tableName="pt_affiliation" using="btree">
+            <column name="patient_id" />
+            <column name="organization_id" />
+            <column name="type" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-074">
+        <addUniqueConstraint columnNames="uuid" constraintName="uknt528afodjy780noy7lak6nws" tableName="pt_affiliation" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-075">
+        <createIndex indexName="idx_pt_identifier_patient_id" tableName="pt_identifier" using="btree">
+            <column name="patient_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-076">
+        <createIndex indexName="idx_pt_identifier_type_value" tableName="pt_identifier" using="btree">
+            <column name="type_code" />
+            <column name="value" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-077">
+        <createIndex indexName="idx_pt_identifier_value" tableName="pt_identifier" using="btree">
+            <column name="value" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-078">
+        <addUniqueConstraint columnNames="uuid" constraintName="uksp520ppfgfpy88pqg29p2cskn" tableName="pt_identifier" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-079">
+        <createIndex indexName="idx_ref_manual_report_deleted" tableName="ref_manual_report" using="btree">
+            <column name="deleted" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-080">
+        <addUniqueConstraint columnNames="code" constraintName="uk_ref_manual_report_code" tableName="ref_manual_report" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-081">
+        <createIndex indexName="idx_ref_manual_report_mkb10_report_id" tableName="ref_manual_report_mkb10_codes" using="btree">
+            <column name="manual_report_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-082">
+        <createIndex indexName="idx_ref_manual_report_mkb10_code" tableName="ref_manual_report_mkb10_codes" using="btree">
+            <column name="mkb10_code" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-083">
+        <createIndex indexName="idx_ref_manual_report_types_report_id" tableName="ref_manual_report_types" using="btree">
+            <column name="manual_report_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-084">
+        <createIndex indexName="idx_ref_mkb10_parent_id" tableName="ref_mkb10" using="btree">
+            <column name="parent_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-085">
+        <createIndex indexName="idx_ref_mkb10_deleted" tableName="ref_mkb10" using="btree">
+            <column name="deleted" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-086">
+        <addUniqueConstraint columnNames="code" constraintName="uk_ref_mkb10_code" tableName="ref_mkb10" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-087">
+        <addUniqueConstraint columnNames="uuid" constraintName="uke57uj12vm6gqp7cpx9lm7svrn" tableName="ref_mkb10" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-134">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukl21vs5pckfc3y5x0vgob92yu9" tableName="patient" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-151">
+        <createTable tableName="user_local_roles">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="user_local_roles_pkey" />
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="user_local_roles_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-160">
+        <addForeignKeyConstraint baseColumnNames="created_org_uuid" baseTableName="pt_address" constraintName="fk68fbq2tpq5w4cutxnhswmsg1v" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-163">
+        <addForeignKeyConstraint baseColumnNames="patient_id" baseTableName="pt_address" constraintName="fk7bw7aeedsecnc724hqb94u7km" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="patient" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-165">
+        <addForeignKeyConstraint baseColumnNames="manual_report_id" baseTableName="ref_manual_report_types" constraintName="fk7qplgp7n7l3lv2y7xovo5f1np" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ref_manual_report" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-167">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_local_roles" constraintName="fk8ddo8w1hxn680f4awaqf7fiow" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-168">
+        <addForeignKeyConstraint baseColumnNames="created_org_uuid" baseTableName="pt_identifier" constraintName="fk9d1vt4u25o2jgsftwdh17g9dn" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-169">
+        <addForeignKeyConstraint baseColumnNames="role_permission_id" baseTableName="role_permission_actions" constraintName="fk9tqwl87h10wq7fnuxrpfbdi83" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role_permissions" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-190">
+        <addForeignKeyConstraint baseColumnNames="created_org_uuid" baseTableName="patient" constraintName="fkb2xqbe8poeed5140g8joe16sm" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-191">
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="user_local_roles" constraintName="fkbr8lpm1swg7dm3cv3lr5pjjbw" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-194">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="users_organizations" constraintName="fkcx7c5yo5xkeunti8qv07f6gjk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-196">
+        <addForeignKeyConstraint baseColumnNames="updated_org_uuid" baseTableName="pt_identifier" constraintName="fkeh509w2mjn74ww6g6cx89ey28" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-197">
+        <addForeignKeyConstraint baseColumnNames="patient_id" baseTableName="pt_identifier" constraintName="fkfegoaalmw07yov9lg0vjswyfh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="patient" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-200">
+        <addForeignKeyConstraint baseColumnNames="permission_id" baseTableName="role_permissions" constraintName="fkh0v7u4w7mttcu81o8wegayr8e" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="permission" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-201">
+        <addForeignKeyConstraint baseColumnNames="organization_id" baseTableName="users_organizations" constraintName="fkh15vt9mbfbske879dwc4o8ybb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-202">
+        <addForeignKeyConstraint baseColumnNames="organization_id" baseTableName="organization_service_types" constraintName="fkh4dq1jjxphg0ckbbfc9rbkrs1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-204">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_roles" constraintName="fkhfh9dx7w3ubf1co1vdev94g3f" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-205">
+        <addForeignKeyConstraint baseColumnNames="created_org_uuid" baseTableName="pt_affiliation" constraintName="fkib73bboeqcm679ykth3eaqqpm" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-206">
+        <addForeignKeyConstraint baseColumnNames="patient_id" baseTableName="pt_affiliation" constraintName="fkihup43sm4irn2csbt2unb8p7x" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="patient" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-210">
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="role_permissions" constraintName="fklodb7xh4a2xjv39gc3lsop95n" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-212">
+        <addForeignKeyConstraint baseColumnNames="updated_org_uuid" baseTableName="pt_affiliation" constraintName="fkn1bqsda27kxmu190aihdoakwo" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-213">
+        <addForeignKeyConstraint baseColumnNames="manual_report_id" baseTableName="ref_manual_report_mkb10_codes" constraintName="fkopuyirgncd03vpyng2r1jb19" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ref_manual_report" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-215">
+        <addForeignKeyConstraint baseColumnNames="updated_org_uuid" baseTableName="pt_address" constraintName="fkp2k14xk627k141p4u9rhrvdh1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-216">
+        <addForeignKeyConstraint baseColumnNames="parent_id" baseTableName="ref_mkb10" constraintName="fkqcar6h9a0l3535t8whf07pls2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ref_mkb10" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-217">
+        <addForeignKeyConstraint baseColumnNames="updated_org_uuid" baseTableName="patient" constraintName="fkqp3it7buntakk8p0apya22gf1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-218">
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="user_roles" constraintName="fkrhfovtciq1l558cw6udg0h0d3" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true" />
+    </changeSet>
+    </databaseChangeLog>

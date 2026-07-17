@@ -1,0 +1,1307 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        `baseline/20260716-1100-baseline-schema-snapshot.xml`ning davomi —
+        Card/Act moduli jadvallari (jami 37 ta) ataylab shu ALOHIDA papkaga
+        chiqarilgan, chunki ular `form058`ga FK orqali bog'liq
+        (card.form058_id -> form058.id) va `form058` jadvalining o'zi
+        "form058/" papkasida, alifbo bo'yicha "baseline/"dan KEYIN keladi.
+
+        Papka nomi ataylab "zzz-" bilan boshlangan — `includeAll` papkalarni
+        alifbo tartibida o'qiganda bu papka ENG OXIRIDA (barcha
+        form058/form0581/iam/reference/settings'dan keyin) ishga tushishi
+        kafolatlanadi.
+    -->
+
+    <changeSet author="uzinfocom" id="20260716-1100-018">
+        <createTable tableName="act">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_org_uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_org_uuid" type="UUID" />
+            <column name="act_status" type="VARCHAR(32)">
+                <constraints nullable="false" />
+            </column>
+            <column name="act_type" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="card_id" type="BIGINT" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-019">
+        <createTable tableName="card">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_org_uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_org_uuid" type="UUID" />
+            <column name="assigned_by_id" type="BIGINT" />
+            <column name="attached_user_comment" type="VARCHAR(1000)" />
+            <column name="card_type" type="VARCHAR(20)">
+                <constraints nullable="false" />
+            </column>
+            <column name="completed_date" type="date" />
+            <column name="status" type="VARCHAR(32)">
+                <constraints nullable="false" />
+            </column>
+            <column name="supervisor_comment" type="VARCHAR(1000)" />
+            <column name="form058_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-020">
+        <createTable tableName="card161_contact_person">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_contact_person_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="address" type="VARCHAR(500)" />
+            <column name="age" type="VARCHAR(32)" />
+            <column name="full_name" type="VARCHAR(500)" />
+            <column name="immunization_status" type="VARCHAR(255)" />
+            <column name="job_type_and_location" type="VARCHAR(500)" />
+            <column name="restriction_measures" type="VARCHAR(500)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-021">
+        <createTable tableName="card161_environmental_lab_test">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_environmental_lab_test_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="examination_date" type="date" />
+            <column name="material" type="VARCHAR(255)" />
+            <column name="object_arthropods_animals" type="VARCHAR(500)" />
+            <column name="sample_quantity" type="VARCHAR(100)" />
+            <column name="test_type_and_result" type="VARCHAR(500)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-022">
+        <createTable tableName="card161_environmental_source">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_environmental_source_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="collection_location" type="VARCHAR(500)" />
+            <column name="collection_time" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="food_and_water_source_types" type="VARCHAR(500)" />
+            <column name="quality_feedback" type="VARCHAR(1000)" />
+            <column name="storage_conditions" type="VARCHAR(500)" />
+            <column name="usage_location" type="VARCHAR(500)" />
+            <column name="usage_time" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-023">
+        <createTable tableName="card161_infection_source">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_infection_source_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="contact_info_and_donor_residence" type="VARCHAR(500)" />
+            <column name="diagnosis_clinical_form_or_donor_status" type="VARCHAR(500)" />
+            <column name="full_name" type="VARCHAR(500)" />
+            <column name="test_result" type="VARCHAR(500)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-024">
+        <createTable tableName="card161_outbreak_measure">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_outbreak_measure_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="conducted_at" type="VARCHAR(255)" />
+            <column name="conducted_location_code" type="VARCHAR(64)" />
+            <column name="drug_type" type="VARCHAR(255)" />
+            <column name="execution_monitoring_result" type="VARCHAR(500)" />
+            <column name="executors" type="VARCHAR(500)" />
+            <column name="preventive_measures_code" type="VARCHAR(64)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-025">
+        <createTable tableName="card161_prevent_measure">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_prevent_measure_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="dose" type="VARCHAR(100)" />
+            <column name="drug_name" type="VARCHAR(255)" />
+            <column name="lis_result" type="VARCHAR(500)" />
+            <column name="next_disease_time" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="notified_person" type="VARCHAR(500)" />
+            <column name="observation_result" type="VARCHAR(500)" />
+            <column name="received_date" type="date" />
+            <column name="result_time" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="series" type="VARCHAR(100)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-026">
+        <createTable tableName="card161_risk_factors">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_risk_factors_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="address_location" type="VARCHAR(500)" />
+            <column name="risk_factor_code" type="VARCHAR(64)" />
+            <column name="season_time" type="VARCHAR(100)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-027">
+        <createTable tableName="card161_screened_group">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_screened_group_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="contact_count" type="VARCHAR(32)" />
+            <column name="laboratory_test_conducted" type="VARCHAR(500)" />
+            <column name="prophylactic_address" type="VARCHAR(500)" />
+            <column name="required_prophylactic_substance" type="VARCHAR(500)" />
+            <column name="team_name" type="VARCHAR(255)" />
+            <column name="treated_with_prophylactic_substance" type="VARCHAR(500)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-028">
+        <createTable tableName="card161_vaccination">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_vaccination_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="dose_volume" type="INTEGER" />
+            <column name="scheduled" type="BOOLEAN" />
+            <column name="serial_number" type="VARCHAR(100)" />
+            <column name="vaccination_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="vaccination_name" type="VARCHAR(255)" />
+            <column name="vaccination_verified_code" type="VARCHAR(64)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-029">
+        <createTable tableName="card174_infection_monitoring">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card174_infection_monitoring_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="address" type="VARCHAR(500)" />
+            <column name="application_date" type="date" />
+            <column name="birth_date" type="date" />
+            <column name="confirmation_date" type="date" />
+            <column name="first_name" type="VARCHAR(255)" />
+            <column name="gender_code" type="VARCHAR(64)" />
+            <column name="last_name" type="VARCHAR(255)" />
+            <column name="middle_name" type="VARCHAR(255)" />
+            <column name="possible_infection_date" type="date" />
+            <column name="possible_infection_factor" type="VARCHAR(500)" />
+            <column name="possible_infection_location" type="VARCHAR(500)" />
+            <column name="profession" type="VARCHAR(255)" />
+            <column name="sequential_number" type="INTEGER" />
+            <column name="card174_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-030">
+        <createTable tableName="card174_outbreak_control_measure">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card174_outbreak_control_measure_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="event_conducted" type="BOOLEAN" />
+            <column name="lost_animals" type="INTEGER" />
+            <column name="meat_delivered" type="INTEGER" />
+            <column name="processed_area" type="INTEGER" />
+            <column name="processing_method_code" type="VARCHAR(64)" />
+            <column name="vaccinated_animals" type="INTEGER" />
+            <column name="card174_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-031">
+        <createTable tableName="card205_info_about_animal_bitten_people">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card205_info_about_animal_bitten_people_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="address_of_animal_bitten_owner" type="VARCHAR(500)" />
+            <column name="animal_category_code" type="VARCHAR(64)" />
+            <column name="animal_type" type="VARCHAR(255)" />
+            <column name="apartment_number" type="VARCHAR(32)" />
+            <column name="district" type="VARCHAR(64)" />
+            <column name="full_name_of_animal_bitten_owner" type="VARCHAR(255)" />
+            <column name="house_number" type="VARCHAR(32)" />
+            <column name="neighborhood" type="VARCHAR(255)" />
+            <column name="region" type="VARCHAR(64)" />
+            <column name="street" type="VARCHAR(255)" />
+            <column name="card205_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-032">
+        <createTable tableName="card205_info_bitten_animals">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card205_info_bitten_animals_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="bitten_animal_category_code" type="VARCHAR(64)" />
+            <column name="bitten_date_time" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="where_animal_bitten" type="VARCHAR(500)" />
+            <column name="card205_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-033">
+        <createTable tableName="card205_info_bitten_people">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card205_info_bitten_people_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="apartment_number" type="VARCHAR(32)" />
+            <column name="birth_date" type="VARCHAR(32)" />
+            <column name="bitten_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="district" type="VARCHAR(64)" />
+            <column name="first_name" type="VARCHAR(255)" />
+            <column name="gender" type="VARCHAR(32)" />
+            <column name="house_number" type="VARCHAR(32)" />
+            <column name="last_name" type="VARCHAR(255)" />
+            <column name="living_address" type="VARCHAR(500)" />
+            <column name="middle_name" type="VARCHAR(255)" />
+            <column name="neighborhood" type="VARCHAR(255)" />
+            <column name="region" type="VARCHAR(64)" />
+            <column name="street" type="VARCHAR(255)" />
+            <column name="card205_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-034">
+        <createTable tableName="card_tube_contact_monitoring">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_tube_contact_monitoring_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="age" type="INTEGER" />
+            <column name="birth_date" type="date" />
+            <column name="contact_status_code" type="VARCHAR(64)" />
+            <column name="diagnosis_date" type="date" />
+            <column name="full_name" type="VARCHAR(255)" />
+            <column name="notification_receiver" type="VARCHAR(255)" />
+            <column name="relation_code" type="VARCHAR(64)" />
+            <column name="workplace_or_study_place" type="VARCHAR(255)" />
+            <column name="card_tube_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-035">
+        <createTable tableName="card_tube_infection_source">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_tube_infection_source_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="contact_duration" type="VARCHAR(255)" />
+            <column name="full_name" type="VARCHAR(255)" />
+            <column name="relation_degree_code" type="VARCHAR(64)" />
+            <column name="tb_contact_code" type="VARCHAR(64)" />
+            <column name="card_tube_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-036">
+        <createTable tableName="card_tube_tb_history">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_tube_tb_history_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="infection_date" type="date" />
+            <column name="infection_location" type="VARCHAR(255)" />
+            <column name="mkb10_code" type="VARCHAR(64)" />
+            <column name="mkb10_name" type="VARCHAR(500)" />
+            <column name="registration_group" type="VARCHAR(255)" />
+            <column name="card_tube_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-037">
+        <createTable tableName="card_tube_xray">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_tube_xray_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="result" type="VARCHAR(500)" />
+            <column name="xray_date" type="date" />
+            <column name="xray_place" type="VARCHAR(255)" />
+            <column name="card_tube_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-038">
+        <createTable tableName="card_users">
+            <column name="card_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_users_pkey" />
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_users_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-040">
+        <createTable tableName="card161_infection_source_detail">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_infection_source_detail_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="animal_type_code" type="VARCHAR(64)" />
+            <column name="infection_source_disease_period_code" type="VARCHAR(64)" />
+            <column name="infection_source_not_found_code" type="VARCHAR(64)" />
+            <column name="person_full_name" type="VARCHAR(500)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-088">
+        <createIndex indexName="idx_act_card_id" tableName="act" using="btree">
+            <column name="card_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-089">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukg5gawyj5t73ucyno6xvd402t7" tableName="act" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-090">
+        <createIndex indexName="idx_card_type" tableName="card" using="btree">
+            <column name="card_type" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-091">
+        <createIndex indexName="idx_card_status" tableName="card" using="btree">
+            <column name="status" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-092">
+        <createIndex indexName="idx_card_assigned_by" tableName="card" using="btree">
+            <column name="assigned_by_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-093">
+        <createIndex indexName="idx_card_form058_id" tableName="card" using="btree">
+            <column name="form058_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-094">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk8deht7laop47mg720r4qfsbhq" tableName="card" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-095">
+        <createIndex indexName="idx_card161_contact_person_card161_id" tableName="card161_contact_person" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-096">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk6l9fh1547912fl5pmsli8dude" tableName="card161_contact_person" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-097">
+        <createIndex indexName="idx_card161_env_lab_test_card161_id" tableName="card161_environmental_lab_test" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-098">
+        <addUniqueConstraint columnNames="uuid" constraintName="uklqun39oqiv3c5aa2lqmv8cum8" tableName="card161_environmental_lab_test" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-099">
+        <createIndex indexName="idx_card161_env_source_card161_id" tableName="card161_environmental_source" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-100">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk45pjdiqnbk8y293aj6xtdcpe8" tableName="card161_environmental_source" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-101">
+        <createIndex indexName="idx_card161_infection_source_card161_id" tableName="card161_infection_source" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-102">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukovbamqarip2vjtvgu1sns67m7" tableName="card161_infection_source" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-103">
+        <createIndex indexName="idx_card161_outbreak_measure_card161_id" tableName="card161_outbreak_measure" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-104">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk487sf14v363j5si9jdisk2hsw" tableName="card161_outbreak_measure" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-105">
+        <createIndex indexName="idx_card161_prevent_measure_card161_id" tableName="card161_prevent_measure" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-106">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukkqkyn5idptdfwklhmpq2m521y" tableName="card161_prevent_measure" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-107">
+        <createIndex indexName="idx_card161_risk_factor_card161_id" tableName="card161_risk_factors" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-108">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukt3sg8nvo5p2vstqsc8hb4jdf7" tableName="card161_risk_factors" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-109">
+        <createIndex indexName="idx_card161_screened_group_card161_id" tableName="card161_screened_group" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-110">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk9juugxum6uciggko1tr4aiw6x" tableName="card161_screened_group" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-111">
+        <createIndex indexName="idx_card161_vaccination_card161_id" tableName="card161_vaccination" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-112">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukfrhrhmdk1igd8v3en99aopvik" tableName="card161_vaccination" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-113">
+        <createIndex indexName="idx_card174_infection_monitoring_card174_id" tableName="card174_infection_monitoring" using="btree">
+            <column name="card174_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-114">
+        <addUniqueConstraint columnNames="uuid" constraintName="uker6lkhgqsmjtiy4o0wnb1rib" tableName="card174_infection_monitoring" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-115">
+        <createIndex indexName="idx_card174_outbreak_control_measure_card174_id" tableName="card174_outbreak_control_measure" using="btree">
+            <column name="card174_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-116">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukokrdmje1wft1ecjj0gw8xfhmf" tableName="card174_outbreak_control_measure" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-117">
+        <createIndex indexName="idx_card205_info_abt_animal_bitten_people_card205_id" tableName="card205_info_about_animal_bitten_people" using="btree">
+            <column name="card205_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-118">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukbt0ywappyvrdrtu468fic75q5" tableName="card205_info_about_animal_bitten_people" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-119">
+        <createIndex indexName="idx_card205_info_bitten_animals_card205_id" tableName="card205_info_bitten_animals" using="btree">
+            <column name="card205_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-120">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukjpwx7te5yu5md2tic21v8srgj" tableName="card205_info_bitten_animals" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-121">
+        <createIndex indexName="idx_card205_info_bitten_people_card205_id" tableName="card205_info_bitten_people" using="btree">
+            <column name="card205_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-122">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukcjeuw15evgdejnj2oh0ejtisw" tableName="card205_info_bitten_people" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-123">
+        <createIndex indexName="idx_card_tube_contact_monitoring_card_tube_id" tableName="card_tube_contact_monitoring" using="btree">
+            <column name="card_tube_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-124">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukq19gvlie3qqp379clpb88w39l" tableName="card_tube_contact_monitoring" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-125">
+        <createIndex indexName="idx_card_tube_infection_source_card_tube_id" tableName="card_tube_infection_source" using="btree">
+            <column name="card_tube_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-126">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukk40w0kchx86s3995vcogrv4ff" tableName="card_tube_infection_source" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-127">
+        <createIndex indexName="idx_card_tube_tb_history_card_tube_id" tableName="card_tube_tb_history" using="btree">
+            <column name="card_tube_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-128">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukowxelknlig6fmj7d1n4uchash" tableName="card_tube_tb_history" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-129">
+        <createIndex indexName="idx_card_tube_xray_card_tube_id" tableName="card_tube_xray" using="btree">
+            <column name="card_tube_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-130">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukocuhxmuw6i32rbtat1y4sa7g7" tableName="card_tube_xray" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-131">
+        <createIndex indexName="idx_card_users_user_id" tableName="card_users" using="btree">
+            <column name="user_id" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-132">
+        <addUniqueConstraint columnNames="card161_id" constraintName="uk_card161_infection_source_detail" tableName="card161_infection_source_detail" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-133">
+        <addUniqueConstraint columnNames="uuid" constraintName="ukk23rt4rq97a32fk339jqvgls6" tableName="card161_infection_source_detail" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-135">
+        <createTable tableName="card161">
+            <column name="area" type="VARCHAR(64)" />
+            <column name="area_condition_code" type="VARCHAR(64)" />
+            <column name="caller_type" type="VARCHAR(100)" />
+            <column name="case_status_code" type="VARCHAR(64)" />
+            <column name="delivery_method_code" type="VARCHAR(64)" />
+            <column name="densely_populated" type="VARCHAR(64)" />
+            <column name="detected_code" type="VARCHAR(64)" />
+            <column name="diagnosis_verified_code" type="VARCHAR(64)" />
+            <column name="disease_causing_factors" type="VARCHAR(1000)" />
+            <column name="disease_detected_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="district_code" type="VARCHAR(20)" />
+            <column name="epidemiological_exam_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="epidemiologist" type="VARCHAR(255)" />
+            <column name="epidemiologist_assistant" type="VARCHAR(255)" />
+            <column name="estimated_infection_date_from" type="date" />
+            <column name="estimated_infection_date_to" type="date" />
+            <column name="final_diagnosis_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="food_preparation" type="VARCHAR(255)" />
+            <column name="food_storage" type="VARCHAR(255)" />
+            <column name="has_lice" type="BOOLEAN" />
+            <column name="has_other_insects" type="BOOLEAN" />
+            <column name="has_rodents" type="BOOLEAN" />
+            <column name="home_stay_exclusion_reason_code" type="VARCHAR(64)" />
+            <column name="hospital_name" type="VARCHAR(255)" />
+            <column name="important_causes_of_disease_code" type="VARCHAR(64)" />
+            <column name="infection_location_code" type="VARCHAR(64)" />
+            <column name="initial_symptoms" type="VARCHAR(1000)" />
+            <column name="is_infection_source_missing" type="BOOLEAN" />
+            <column name="is_resident" type="BOOLEAN" />
+            <column name="isolation_status" type="VARCHAR(255)" />
+            <column name="late_admission_reason_code" type="VARCHAR(64)" />
+            <column name="liquid_waste_disposal_type_code" type="VARCHAR(64)" />
+            <column name="living_condition_code" type="VARCHAR(64)" />
+            <column name="main_probable_infection_factor_code" type="VARCHAR(64)" />
+            <column name="number_of_people" type="INTEGER" />
+            <column name="number_of_rooms" type="INTEGER" />
+            <column name="observation_end_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="outbreak_infection_code" type="VARCHAR(64)" />
+            <column name="polyclinic_id" type="BIGINT" />
+            <column name="probable_infection_location_code" type="VARCHAR(64)" />
+            <column name="region_code" type="VARCHAR(20)" />
+            <column name="residential_treatment_facility" type="VARCHAR(500)" />
+            <column name="room_condition_code" type="VARCHAR(64)" />
+            <column name="sanitary_maintenance" type="VARCHAR(255)" />
+            <column name="sewerage_status" type="VARCHAR(255)" />
+            <column name="solid_waste_disposal_type_code" type="VARCHAR(64)" />
+            <column name="visited_objects_code" type="VARCHAR(64)" />
+            <column name="water_supply_code" type="VARCHAR(64)" />
+            <column name="water_supply_status" type="VARCHAR(255)" />
+            <column name="yard_condition_code" type="VARCHAR(64)" />
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-136">
+        <createTable tableName="card161_indirection_causing">
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-137">
+        <createTable tableName="card174">
+            <column name="additional_measures_info" type="VARCHAR(1000)" />
+            <column name="affected_animal_count" type="INTEGER" />
+            <column name="affected_animal_type_code" type="VARCHAR(64)" />
+            <column name="affected_humans" type="INTEGER" />
+            <column name="affected_in_outbreak" type="INTEGER" />
+            <column name="animal_disposal_date" type="date" />
+            <column name="animal_disposal_method_code" type="VARCHAR(64)" />
+            <column name="animal_owner" type="VARCHAR(255)" />
+            <column name="animal_ownership_code" type="VARCHAR(64)" />
+            <column name="animal_primary_diagnosis" type="VARCHAR(500)" />
+            <column name="animal_type" type="VARCHAR(255)" />
+            <column name="blood_sucking_arthropods_increase" type="BOOLEAN" />
+            <column name="current_animal_infection_date" type="date" />
+            <column name="data_obtained_date" type="date" />
+            <column name="deratization_area" type="FLOAT8" />
+            <column name="deratization_code" type="VARCHAR(64)" />
+            <column name="disinfected_factor_amount" type="INTEGER" />
+            <column name="disinfection_date" type="date" />
+            <column name="epizootology_existence" type="BOOLEAN" />
+            <column name="execution_control_results" type="VARCHAR(1000)" />
+            <column name="human_primary_diagnosis" type="VARCHAR(500)" />
+            <column name="including_identified" type="INTEGER" />
+            <column name="including_industrial_conditions" type="INTEGER" />
+            <column name="including_who_applied" type="INTEGER" />
+            <column name="inspectors" type="VARCHAR(500)" />
+            <column name="investigation_date" type="date" />
+            <column name="is_area_exotic" type="BOOLEAN" />
+            <column name="isolation" type="VARCHAR(500)" />
+            <column name="last_disease_year" type="date" />
+            <column name="location_of_event" type="VARCHAR(500)" />
+            <column name="measure_taken" type="BOOLEAN" />
+            <column name="meat_submission" type="VARCHAR(500)" />
+            <column name="mkb10_code" type="VARCHAR(64)" />
+            <column name="mkb10_name" type="VARCHAR(500)" />
+            <column name="outbreak_localization" type="VARCHAR(500)" />
+            <column name="owner_address" type="VARCHAR(500)" />
+            <column name="pathogen_type" type="VARCHAR(255)" />
+            <column name="precautionary_measures" type="VARCHAR(1000)" />
+            <column name="quarantine_end_date" type="date" />
+            <column name="quarantine_start_date" type="date" />
+            <column name="quarantine_type_code" type="VARCHAR(64)" />
+            <column name="report_to_veterinary_department_date" type="date" />
+            <column name="rodent_increase" type="BOOLEAN" />
+            <column name="serial_doc_number" type="INTEGER" />
+            <column name="stray_animal_capture" type="VARCHAR(500)" />
+            <column name="synanthropic_rodents_increase" type="BOOLEAN" />
+            <column name="test_date" type="date" />
+            <column name="test_result" type="VARCHAR(500)" />
+            <column name="test_sample_count" type="INTEGER" />
+            <column name="testing_method" type="VARCHAR(255)" />
+            <column name="treated_humans" type="INTEGER" />
+            <column name="treatment" type="VARCHAR(500)" />
+            <column name="vector_increase" type="BOOLEAN" />
+            <column name="wild_animal_culling" type="VARCHAR(500)" />
+            <column name="wild_rodents_increase" type="BOOLEAN" />
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card174_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-138">
+        <createTable tableName="card174_affected_animals">
+            <column name="card174_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-139">
+        <createTable tableName="card174_disease_factors">
+            <column name="card174_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-140">
+        <createTable tableName="card174_disinfection_factors">
+            <column name="card174_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-141">
+        <createTable tableName="card174_elimination_method">
+            <column name="card174_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-142">
+        <createTable tableName="card175">
+            <column name="brief_epidemiological_comment" type="VARCHAR(1000)" />
+            <column name="checking_diagnosis_code" type="VARCHAR(64)" />
+            <column name="clinical_form" type="VARCHAR(255)" />
+            <column name="date_of_diagnosis_of_emergency_day" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="date_of_discharge_from_hospital" type="date" />
+            <column name="date_of_final_diagnosis" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="date_of_illness" type="date" />
+            <column name="date_of_vaccination" type="date" />
+            <column name="diagnosis_confirmed_code" type="VARCHAR(64)" />
+            <column name="disease_spreader_type_code" type="VARCHAR(64)" />
+            <column name="hospital_discharge_status_code" type="VARCHAR(64)" />
+            <column name="information_about_last_vaccination" type="VARCHAR(500)" />
+            <column name="information_about_vaccination_code" type="VARCHAR(64)" />
+            <column name="initial_diagnosis_code" type="VARCHAR(64)" />
+            <column name="name_of_medicine" type="VARCHAR(255)" />
+            <column name="observation_result_of_animals_code" type="VARCHAR(64)" />
+            <column name="owner_of_disease_spreader_code" type="VARCHAR(64)" />
+            <column name="pathogen_type" type="VARCHAR(255)" />
+            <column name="patient_come_code" type="VARCHAR(64)" />
+            <column name="patient_identified_code" type="VARCHAR(64)" />
+            <column name="place_of_application" type="VARCHAR(500)" />
+            <column name="prevention_and_aid_code" type="VARCHAR(64)" />
+            <column name="quantity_of_medicine" type="BIGINT" />
+            <column name="reason_of_late_hospitalization_code" type="VARCHAR(64)" />
+            <column name="reason_of_leaving_home_code" type="VARCHAR(64)" />
+            <column name="relevance_of_disease_to_profession_code" type="VARCHAR(64)" />
+            <column name="serial_number" type="BIGINT" />
+            <column name="severity_of_illness_code" type="VARCHAR(64)" />
+            <column name="time_of_epidemiological_investigation" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="transport_type_code" type="VARCHAR(64)" />
+            <column name="vaccination_count" type="BIGINT" />
+            <column name="where_patient_come_code" type="VARCHAR(64)" />
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card175_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-143">
+        <createTable tableName="card175_disease_transmission_condition">
+            <column name="card175_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-144">
+        <createTable tableName="card175_part_of_injury">
+            <column name="card175_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-145">
+        <createTable tableName="card175_pathogen_main_factor">
+            <column name="card175_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-146">
+        <createTable tableName="card175_taken_measures_from_residence">
+            <column name="card175_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-147">
+        <createTable tableName="card205">
+            <column name="additional_information" type="VARCHAR(1000)" />
+            <column name="address_of_bite_occurrence" type="VARCHAR(500)" />
+            <column name="age_of_animal" type="INTEGER" />
+            <column name="animal_conservation_code" type="VARCHAR(64)" />
+            <column name="animal_type" type="VARCHAR(255)" />
+            <column name="breed_of_animal" type="VARCHAR(255)" />
+            <column name="certificate_number_of_first_vet_results" type="INTEGER" />
+            <column name="certificate_number_of_second_vet_results" type="INTEGER" />
+            <column name="colour_of_animal" type="VARCHAR(255)" />
+            <column name="condition_of_animal_code" type="VARCHAR(64)" />
+            <column name="date_of_bite_occurrence" type="date" />
+            <column name="date_of_treatment_preventive_institution" type="date" />
+            <column name="date_time_of_feather_taken" type="VARCHAR(255)" />
+            <column name="dog_owner_compliance_code" type="VARCHAR(64)" />
+            <column name="epidemiological_observation_date" type="date" />
+            <column name="full_name_of_animal_owner" type="VARCHAR(255)" />
+            <column name="individual_signs_of_animal" type="VARCHAR(500)" />
+            <column name="issue_date_of_first_certificate" type="date" />
+            <column name="issue_date_of_secondary_certificate" type="date" />
+            <column name="mkb10_code" type="VARCHAR(64)" />
+            <column name="mkb10_name" type="VARCHAR(500)" />
+            <column name="name_of_treatment_preventive_institution" type="VARCHAR(255)" />
+            <column name="pet_registered_vet_department" type="VARCHAR(255)" />
+            <column name="position_of_bitten_victim_code" type="VARCHAR(64)" />
+            <column name="veterinary_emergency_information_date" type="date" />
+            <column name="when_animal_appeared" type="VARCHAR(255)" />
+            <column name="where_animal_comes_from" type="VARCHAR(500)" />
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card205_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-148">
+        <createTable tableName="card_tube">
+            <column name="adult_count" type="INTEGER" />
+            <column name="children_under_14_count" type="INTEGER" />
+            <column name="dg_mkb10_code" type="VARCHAR(64)" />
+            <column name="dg_mkb10_name" type="VARCHAR(500)" />
+            <column name="discharge_date" type="date" />
+            <column name="disinfectant_amount_per_month" type="INTEGER" />
+            <column name="disinfectant_provider" type="VARCHAR(255)" />
+            <column name="dismissal_date" type="VARCHAR(64)" />
+            <column name="dispensary_group" type="VARCHAR(255)" />
+            <column name="dispensary_id" type="VARCHAR(64)" />
+            <column name="dose_volume" type="INTEGER" />
+            <column name="end_date" type="date" />
+            <column name="family_budget_code" type="VARCHAR(64)" />
+            <column name="family_room_count" type="INTEGER" />
+            <column name="first_mb_date" type="date" />
+            <column name="floor_count" type="INTEGER" />
+            <column name="follows_cough_precaution" type="BOOLEAN" />
+            <column name="food_childcare_worker_count" type="INTEGER" />
+            <column name="ftb_visit_interval_unit" type="VARCHAR(32)" />
+            <column name="ftb_visit_interval_val" type="INTEGER" />
+            <column name="full_name" type="VARCHAR(255)" />
+            <column name="habitability_code" type="VARCHAR(64)" />
+            <column name="harmful_habit_code" type="VARCHAR(64)" />
+            <column name="has_elevator" type="BOOLEAN" />
+            <column name="has_spittoon" type="BOOLEAN" />
+            <column name="has_ventilation" type="BOOLEAN" />
+            <column name="heating_type_code" type="VARCHAR(64)" />
+            <column name="home_stay_reason_code" type="VARCHAR(64)" />
+            <column name="household_contact" type="INTEGER" />
+            <column name="housing_condition_code" type="VARCHAR(64)" />
+            <column name="housing_improvement_date" type="date" />
+            <column name="info_sent_to_clinic_date" type="date" />
+            <column name="info_sent_to_workplace_date" type="date" />
+            <column name="isolated_room_area_sq_m" type="INTEGER" />
+            <column name="kinship_degree_code" type="VARCHAR(64)" />
+            <column name="mb_detection_method" type="VARCHAR(255)" />
+            <column name="mb_patient_reg_date" type="date" />
+            <column name="mkb10_code" type="VARCHAR(64)" />
+            <column name="mkb10_name" type="VARCHAR(500)" />
+            <column name="needs_renovation_code" type="VARCHAR(64)" />
+            <column name="pregnant_women_count" type="INTEGER" />
+            <column name="previous_housing_difference" type="VARCHAR(500)" />
+            <column name="primary_dispensary_date" type="date" />
+            <column name="received_by" type="VARCHAR(255)" />
+            <column name="receives_disinfectant_code" type="VARCHAR(64)" />
+            <column name="recovery_plan_code" type="VARCHAR(64)" />
+            <column name="retreatment_end_date" type="date" />
+            <column name="retreatment_start_date" type="date" />
+            <column name="room_area_sq_m" type="INTEGER" />
+            <column name="room_count" type="INTEGER" />
+            <column name="roommate_children_count" type="INTEGER" />
+            <column name="roommates_count" type="INTEGER" />
+            <column name="sanitary_hygienic_assessment_code" type="VARCHAR(64)" />
+            <column name="scheduled" type="BOOLEAN" />
+            <column name="serial_number" type="VARCHAR(100)" />
+            <column name="sewerage_type_code" type="VARCHAR(64)" />
+            <column name="spittoon_count" type="INTEGER" />
+            <column name="sputum_disposal_method_code" type="VARCHAR(64)" />
+            <column name="start_date" type="date" />
+            <column name="teenager_count" type="INTEGER" />
+            <column name="total_area_sq_m" type="INTEGER" />
+            <column name="total_contact" type="INTEGER" />
+            <column name="uses_spittoon_at_home" type="BOOLEAN" />
+            <column name="uses_spittoon_at_work" type="BOOLEAN" />
+            <column name="uses_spittoon_in_pub_place" type="BOOLEAN" />
+            <column name="vaccination_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="vaccination_name" type="VARCHAR(255)" />
+            <column name="visit_interval_unit" type="VARCHAR(32)" />
+            <column name="visit_interval_value" type="INTEGER" />
+            <column name="work_condition_code" type="VARCHAR(64)" />
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card_tube_pkey" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-149">
+        <createTable tableName="card_tube_checkup_dates">
+            <column name="card_tube_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="checkup_date" type="date" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-150">
+        <createTable tableName="card_tube_nutrition_type">
+            <column name="card_tube_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-152">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="card_users" constraintName="fk165edc9dvehmxkpn56ko38j0l" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-153">
+        <addForeignKeyConstraint baseColumnNames="card_tube_id" baseTableName="card_tube_checkup_dates" constraintName="fk2osdrme1rwuwbmusr0tgvb8ue" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card_tube" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-154">
+        <addForeignKeyConstraint baseColumnNames="card175_id" baseTableName="card175_part_of_injury" constraintName="fk43gi5s693a1g3kgip65r22gw2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card175" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-155">
+        <addForeignKeyConstraint baseColumnNames="updated_org_uuid" baseTableName="act" constraintName="fk48f2x952dx3aqql5nlnxi47es" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-156">
+        <addForeignKeyConstraint baseColumnNames="card_id" baseTableName="act" constraintName="fk4ffvnf8ispkwntf4ws5dl7hrp" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-157">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="card175" constraintName="fk4he10m5k7m8b85cm2noxu8cu2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-158">
+        <addForeignKeyConstraint baseColumnNames="card174_id" baseTableName="card174_disease_factors" constraintName="fk4l3e5dj3b7h2ltijst9yt4wvg" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card174" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-159">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="card_tube" constraintName="fk5hktiq4e50c92ouls5lw4g3bn" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-161">
+        <addForeignKeyConstraint baseColumnNames="card174_id" baseTableName="card174_elimination_method" constraintName="fk6h2n595dtvkjywq5qj8urfquw" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card174" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-162">
+        <addForeignKeyConstraint baseColumnNames="card_id" baseTableName="card_users" constraintName="fk6klifm72xowltt3s91105y9xe" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-164">
+        <addForeignKeyConstraint baseColumnNames="card_tube_id" baseTableName="card_tube_nutrition_type" constraintName="fk7p8jo8p3rtblb48rp9tlbfp3r" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card_tube" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-166">
+        <addForeignKeyConstraint baseColumnNames="card174_id" baseTableName="card174_affected_animals" constraintName="fk8d157dli6bte9butnv7k31abo" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card174" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-170">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_contact_person" constraintName="fk_card161_contact_person_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-171">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_environmental_lab_test" constraintName="fk_card161_env_lab_test_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-172">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_environmental_source" constraintName="fk_card161_env_source_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-173">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_infection_source" constraintName="fk_card161_infection_source_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-174">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_infection_source_detail" constraintName="fk_card161_infection_source_detail_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-175">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_outbreak_measure" constraintName="fk_card161_outbreak_measure_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-176">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_prevent_measure" constraintName="fk_card161_prevent_measure_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-177">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_risk_factors" constraintName="fk_card161_risk_factor_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-178">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_screened_group" constraintName="fk_card161_screened_group_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-179">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_vaccination" constraintName="fk_card161_vaccination_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-180">
+        <addForeignKeyConstraint baseColumnNames="card174_id" baseTableName="card174_infection_monitoring" constraintName="fk_card174_infection_monitoring_card174" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card174" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-181">
+        <addForeignKeyConstraint baseColumnNames="card174_id" baseTableName="card174_outbreak_control_measure" constraintName="fk_card174_outbreak_control_measure_card174" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card174" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-182">
+        <addForeignKeyConstraint baseColumnNames="card205_id" baseTableName="card205_info_about_animal_bitten_people" constraintName="fk_card205_info_abt_animal_bitten_people_card205" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card205" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-183">
+        <addForeignKeyConstraint baseColumnNames="card205_id" baseTableName="card205_info_bitten_animals" constraintName="fk_card205_info_bitten_animals_card205" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card205" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-184">
+        <addForeignKeyConstraint baseColumnNames="card205_id" baseTableName="card205_info_bitten_people" constraintName="fk_card205_info_bitten_people_card205" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card205" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-185">
+        <addForeignKeyConstraint baseColumnNames="form058_id" baseTableName="card" constraintName="fk_card_form058" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="form058" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-186">
+        <addForeignKeyConstraint baseColumnNames="card_tube_id" baseTableName="card_tube_contact_monitoring" constraintName="fk_card_tube_contact_monitoring_card_tube" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card_tube" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-187">
+        <addForeignKeyConstraint baseColumnNames="card_tube_id" baseTableName="card_tube_infection_source" constraintName="fk_card_tube_infection_source_card_tube" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card_tube" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-188">
+        <addForeignKeyConstraint baseColumnNames="card_tube_id" baseTableName="card_tube_tb_history" constraintName="fk_card_tube_tb_history_card_tube" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card_tube" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-189">
+        <addForeignKeyConstraint baseColumnNames="card_tube_id" baseTableName="card_tube_xray" constraintName="fk_card_tube_xray_card_tube" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card_tube" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-192">
+        <addForeignKeyConstraint baseColumnNames="created_org_uuid" baseTableName="act" constraintName="fkcnbq4bp9dcat7she6lurvlgk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-193">
+        <addForeignKeyConstraint baseColumnNames="updated_org_uuid" baseTableName="card" constraintName="fkct30llfldwcupp6vycce7mm75" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-195">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="card174" constraintName="fke1d6yk68j9sv93kfvklqeonmo" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-198">
+        <addForeignKeyConstraint baseColumnNames="card175_id" baseTableName="card175_taken_measures_from_residence" constraintName="fkfof7kefxv1p1lwv8k3fq6sflx" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card175" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-199">
+        <addForeignKeyConstraint baseColumnNames="polyclinic_id" baseTableName="card161" constraintName="fkg70oq885ypuow1hju0pmrdwxh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-203">
+        <addForeignKeyConstraint baseColumnNames="card175_id" baseTableName="card175_disease_transmission_condition" constraintName="fkh7s1gmwgb2q7q82canhglpdip" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card175" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-207">
+        <addForeignKeyConstraint baseColumnNames="created_org_uuid" baseTableName="card" constraintName="fkim8mdqgkl9fakhv03vipmfps6" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="uuid" referencedTableName="organization" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-208">
+        <addForeignKeyConstraint baseColumnNames="card175_id" baseTableName="card175_pathogen_main_factor" constraintName="fkjpdrkieq2qd9x9sv3vgus202a" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card175" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-209">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="card205" constraintName="fkley3fpvmtdifjr58y7vlohrg" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-211">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_indirection_causing" constraintName="fkma0crx2dkav778cxlrtu6mh1w" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-214">
+        <addForeignKeyConstraint baseColumnNames="card174_id" baseTableName="card174_disinfection_factors" constraintName="fkou2en7wi6boe36d62of867cy2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card174" validate="true" />
+    </changeSet>
+    <changeSet author="uzinfocom" id="20260716-1100-219">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="card161" constraintName="fktbqd4je1dax3miw2ntapygkgn" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card" validate="true" />
+    </changeSet>
+</databaseChangeLog>

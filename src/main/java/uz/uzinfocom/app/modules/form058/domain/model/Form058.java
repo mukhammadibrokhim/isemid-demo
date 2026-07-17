@@ -17,6 +17,15 @@ import java.time.Instant;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
+/*
+ * ddl-auto=validate — the DB schema is owned by Liquibase
+ * (db.migration/changelog/form058/), not by these annotations. The
+ * @Index list below is a best-effort documentation mirror: Hibernate's
+ * columnList syntax can't express the partial (WHERE deleted = false)
+ * or DESC-ordered indexes that actually exist on the table, so several
+ * entries below are listed without those qualifiers. The Liquibase
+ * changelog is the source of truth for the real index definitions.
+ */
 @Table(
         name = "form058",
         indexes = {
@@ -29,7 +38,15 @@ import java.time.Instant;
                 @Index(name = "idx_form058_final_mkb10_code", columnList = "final_mkb10_code"),
                 @Index(name = "idx_form058_deleted", columnList = "deleted"),
                 @Index(name = "idx_form058_deleted_sender_created", columnList = "deleted,sender_organization_id,created_at"),
-                @Index(name = "idx_form058_deleted_receiver_created", columnList = "deleted,receiver_organization_id,created_at")
+                @Index(name = "idx_form058_deleted_receiver_created", columnList = "deleted,receiver_organization_id,created_at"),
+                // partial (WHERE deleted = false) in reality — see Liquibase changelog
+                @Index(name = "idx_form058_outgoing_created_fast", columnList = "sender_organization_id,created_at,id"),
+                @Index(name = "idx_form058_incoming_created_fast", columnList = "receiver_organization_id,created_at,id"),
+                @Index(name = "idx_form058_outgoing_table", columnList = "sender_organization_id,status,created_at,id"),
+                @Index(name = "idx_form058_incoming_table", columnList = "receiver_organization_id,status,created_at,id"),
+                @Index(name = "idx_form058_active_patient_id_id", columnList = "patient_id,id"),
+                @Index(name = "idx_form058_source_created_fast", columnList = "source,created_at,id"),
+                @Index(name = "idx_form058_has_linked_cards_created_fast", columnList = "has_linked_cards,created_at,id")
         }
 )
 public class Form058 extends AbsEntity {

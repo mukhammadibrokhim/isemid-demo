@@ -32,7 +32,7 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(name = ApiPaths.Card.ROOT)
+@RequestMapping(ApiPaths.Card.ROOT)
 @Tag(
         name = "Card",
         description = "Просмотр эпидемиологических карт (CARD161, CARD174, CARD175, CARD205, CARD_TUBE): "
@@ -48,16 +48,19 @@ public class CardQueryController {
             summary = "Мои карты",
             description = "Возвращает постраничный список карт, прикреплённых к текущему авторизованному "
                     + "сотруднику. Область видимости всегда определяется на сервере по авторизованному "
-                    + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно."
+                    + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно. "
+                    + "Для организации более высокого уровня (регионального или республиканского масштаба) "
+                    + "список автоматически расширяется до всех карт в пределах её области видимости, а не "
+                    + "только личных назначений."
     )
-    @GetMapping(ApiPaths.Card.ASSIGNED_TO_ME)
+    @GetMapping(ApiPaths.Card.MINE)
     @PreAuthorize("isAuthenticated()")
-    public PagedResponse<CardTableResponse> findAssignedToMe(
+    public PagedResponse<CardTableResponse> findMine(
             @ParameterObject @Valid CardFilterRequest filter,
             HttpServletRequest httpRequest
     ) {
         return pagedResponseAssembler
-                .toResponse(cardQueryService.findAssignedToMe(filter), messageResolver.resolve("common.success"), httpRequest);
+                .toResponse(cardQueryService.findMine(filter), messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(
