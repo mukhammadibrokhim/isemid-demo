@@ -9,6 +9,8 @@ import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -57,8 +59,43 @@ class CardStatsQueryServiceTest {
     }
 
     @Test
+    void countByMonthResolvesScopeAndDelegates() {
+        CurrentOrganizationContext.set(organization(1L));
+        ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
+        when(organizationScopeResolver.resolve(any())).thenReturn(scope);
+        LocalDate from = LocalDate.of(2026, 2, 1);
+        LocalDate to = LocalDate.of(2026, 7, 18);
+
+        service.countByMonth(from, to);
+
+        verify(cardStatsRepository).countByMonth(scope, from, to);
+    }
+
+    @Test
     void countByStatusThrowsScopeViolationWhenNoOrganizationSelected() {
         assertThatThrownBy(service::countByStatus).isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
+    void countTotalResolvesScopeAndDelegates() {
+        CurrentOrganizationContext.set(organization(1L));
+        ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
+        when(organizationScopeResolver.resolve(any())).thenReturn(scope);
+
+        service.countTotal();
+
+        verify(cardStatsRepository).countTotal(scope);
+    }
+
+    @Test
+    void countActiveResolvesScopeAndDelegates() {
+        CurrentOrganizationContext.set(organization(1L));
+        ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
+        when(organizationScopeResolver.resolve(any())).thenReturn(scope);
+
+        service.countActive();
+
+        verify(cardStatsRepository).countActive(scope);
     }
 
     private Organization organization(Long id) {

@@ -98,6 +98,24 @@ public abstract class AbstractCaseStatsRepository<T> {
     }
 
     /**
+     * Bare {@code COUNT(*)} with an optional caller-supplied filter — no
+     * grouping. For totals that need to be filtered further than just
+     * "grouped by X" (e.g. "everything except one status"), so a caller
+     * never has to fetch a grouped breakdown and sum/subtract it in Java
+     * just to get a single number the database can already produce
+     * directly.
+     */
+    protected long countAll(BiFunction<Root<T>, CriteriaBuilder, Predicate> filterFn) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<T> root = query.from(entityClass);
+
+        query.select(cb.count(root)).where(combinedPredicate(root, cb, filterFn));
+
+        return entityManager.createQuery(query).getSingleResult();
+    }
+
+    /**
      * Count grouped by a {@code date_trunc(unit, createdAt)} bucket
      * ("day", "month", ...), ordered by the bucket ascending, with an
      * optional inclusive {@code [fromDate, toDate]} range and the same

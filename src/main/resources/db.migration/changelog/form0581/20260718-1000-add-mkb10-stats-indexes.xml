@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Mirrors form058/20260718-1000-add-mkb10-stats-indexes.xml exactly —
+        Form0581StatsRepository.topMkb10 has the identical group-by-mkb10_code
+        shape (via the same AbstractCaseStatsRepository base) and would hit
+        the identical missing-index problem once form058_1 grows past its
+        current near-empty state. Added proactively rather than waiting for
+        it to reproduce there too.
+    -->
+    <changeSet id="20260718-1000-01-add-idx-form0581-receiver-mkb10" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_receiver_mkb10"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_receiver_mkb10
+                ON form058_1 (receiver_organization_id, mkb10_code)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260718-1000-02-add-idx-form0581-sender-mkb10" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_sender_mkb10"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_sender_mkb10
+                ON form058_1 (sender_organization_id, mkb10_code)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260718-1000-03-add-idx-form0581-mkb10-not-deleted" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_mkb10_not_deleted"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_mkb10_not_deleted
+                ON form058_1 (mkb10_code)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
+import uz.uzinfocom.app.modules.act.application.query.dto.ActDailyCountResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActStatsRepository;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
@@ -11,6 +12,7 @@ import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -28,6 +30,14 @@ public class ActStatsQueryService {
 
     public List<ActStatusCountResponse> countByStatus() {
         return actStatsRepository.countByStatus(currentScope());
+    }
+
+    public List<ActDailyCountResponse> countByMonth(LocalDate from, LocalDate to) {
+        return actStatsRepository.countByMonth(currentScope(), from, to);
+    }
+
+    public long countTotal() {
+        return actStatsRepository.countTotal(currentScope());
     }
 
     private ResolvedOrganizationScope currentScope() {

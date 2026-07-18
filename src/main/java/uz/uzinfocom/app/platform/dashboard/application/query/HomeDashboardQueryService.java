@@ -1,22 +1,14 @@
 package uz.uzinfocom.app.platform.dashboard.application.query;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.act.application.query.ActStatsQueryService;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.CardStatsQueryService;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTypeCountResponse;
-import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
-import uz.uzinfocom.app.modules.form058.application.stats.query.Form058StatsQueryService;
-import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
-import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058StatusCountResponse;
-import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
-import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQueryService;
-import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
-import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
+import uz.uzinfocom.app.platform.dashboard.application.query.dto.TimeSeriesGranularity;
+import uz.uzinfocom.app.platform.dashboard.application.query.dto.TimeSeriesResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.ActStatsResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.CardStatsResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.CaseSummaryResponse;
@@ -24,15 +16,14 @@ import uz.uzinfocom.app.platform.dashboard.application.query.dto.DashboardScopeR
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.DynamicsPointResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.GeoBreakdownItemResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.HomeDashboardResponse;
+import uz.uzinfocom.app.platform.dashboard.application.query.dto.SourceCountResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.TopDiagnosisResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection;
+import uz.uzinfocom.app.platform.dashboard.infrastructure.persistence.CaseStatsAggregateRepository;
+import uz.uzinfocom.app.platform.dashboard.infrastructure.persistence.dto.CaseSummaryAggregate;
+import uz.uzinfocom.app.platform.dashboard.infrastructure.persistence.dto.GeoCodeCount;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
-import uz.uzinfocom.app.platform.reference.domain.District;
-import uz.uzinfocom.app.platform.reference.domain.Region;
-import uz.uzinfocom.app.platform.reference.repository.DistrictRepository;
-import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
@@ -40,12 +31,13 @@ import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopeOrganizationIdResolv
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 /**
  * Assembles the "everyone" home dashboard — the org-scoped counterpart to the
@@ -54,52 +46,161 @@ import java.util.TreeMap;
  * reports); Card/Act metrics are their own totals, since they represent a
  * different kind of workload (investigation, not case reporting).
  * <p>
+ * Every case statistic (summary, monthly dynamics, top diagnoses, source
+ * breakdown, geo breakdown) is a single native-SQL {@code UNION ALL} query
+ * against form058+form058_1, executed by {@link CaseStatsAggregateRepository}
+ * — the combining happens once, inside Postgres, via one {@code GROUP BY}.
+ * This class never fetches a per-form-type result set and merges it itself
+ * ({@code HashMap}/{@code TreeMap} accumulation over two already-grouped
+ * lists): at real data volumes that Java-side step was never actually a
+ * memory problem, but it was needless duplicate work — two round trips and
+ * two partial aggregations where one now suffices — so it is gone.
+ * <p>
  * This service depends only on each module's public query-service façade
- * ({@code Form058StatsQueryService}, {@code CardStatsQueryService}, etc.),
- * never on another module's repository — the same {@code Controller ->
- * Service -> Repository} boundary every module in this codebase enforces for
- * itself. {@code OrganizationScopeResolver}/{@code OrganizationRepository}/
- * {@code DistrictRepository}/{@code RegionRepository}/{@code
- * ReferenceLookupService} are platform-level shared infrastructure, not a
- * business module's internals, so depending on them directly here is
- * consistent with how they are already used elsewhere in the platform layer.
+ * ({@code CardStatsQueryService}, {@code ActStatsQueryService}) for the
+ * metrics that are NOT cross-table (Card/Act have no sibling form to merge
+ * with), plus platform-level shared infrastructure ({@code
+ * OrganizationScopeResolver}, {@code OrganizationRepository}, {@code
+ * ReferenceLookupService}, {@code CaseStatsAggregateRepository}) — never
+ * another module's repository directly.
+ * <p>
+ * {@code getHome()} fans out its 9 independent aggregations onto the
+ * application's shared task executor instead of running them one after
+ * another — on this dataset the sequential version was dominated entirely by
+ * round-trip latency, since none of the 9 branches depend on each other's
+ * results. Each branch is its own {@code @Transactional} call on its own
+ * thread/connection (Spring starts a fresh transaction per thread since
+ * transactions are ThreadLocal-bound), so this is safe as long as {@link
+ * CurrentOrganizationContext} — also ThreadLocal, and read internally by
+ * {@code CardStatsQueryService}/{@code ActStatsQueryService} to resolve the
+ * caller's scope — is copied onto each worker thread first; {@link
+ * #supplyOrgScoped} does exactly that. The case-statistics branches take the
+ * already-resolved {@link ResolvedOrganizationScope} directly instead, since
+ * {@link CaseStatsAggregateRepository} does not read the ThreadLocal itself.
  */
 @Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class HomeDashboardQueryService {
 
     private static final ZoneId APPLICATION_ZONE = ZoneId.of("Asia/Tashkent");
-    private static final int DYNAMICS_MONTHS = 6;
-    private static final int TOP_DIAGNOSIS_CANDIDATE_LIMIT = 20;
     private static final int TOP_DIAGNOSIS_RESULT_LIMIT = 5;
 
-    private final Form058StatsQueryService form058StatsQueryService;
-    private final Form0581StatsQueryService form0581StatsQueryService;
+    private final CaseStatsAggregateRepository caseStatsAggregateRepository;
     private final CardStatsQueryService cardStatsQueryService;
     private final ActStatsQueryService actStatsQueryService;
     private final OrganizationScopeResolver organizationScopeResolver;
     private final OrganizationScopeOrganizationIdResolver organizationScopeOrganizationIdResolver;
     private final OrganizationRepository organizationRepository;
-    private final DistrictRepository districtRepository;
-    private final RegionRepository regionRepository;
     private final ReferenceLookupService referenceLookupService;
+    private final Executor applicationTaskExecutor;
+
+    /*
+     * Explicit constructor (not @RequiredArgsConstructor) solely so
+     * @Qualifier can land on the executor constructor parameter - Lombok
+     * does not copy arbitrary field annotations onto generated constructor
+     * parameters without a project-wide lombok.config entry, and this is
+     * the only field in the class that needs one.
+     */
+    public HomeDashboardQueryService(
+            CaseStatsAggregateRepository caseStatsAggregateRepository,
+            CardStatsQueryService cardStatsQueryService,
+            ActStatsQueryService actStatsQueryService,
+            OrganizationScopeResolver organizationScopeResolver,
+            OrganizationScopeOrganizationIdResolver organizationScopeOrganizationIdResolver,
+            OrganizationRepository organizationRepository,
+            ReferenceLookupService referenceLookupService,
+            @Qualifier("applicationTaskExecutor") Executor applicationTaskExecutor
+    ) {
+        this.caseStatsAggregateRepository = caseStatsAggregateRepository;
+        this.cardStatsQueryService = cardStatsQueryService;
+        this.actStatsQueryService = actStatsQueryService;
+        this.organizationScopeResolver = organizationScopeResolver;
+        this.organizationScopeOrganizationIdResolver = organizationScopeOrganizationIdResolver;
+        this.organizationRepository = organizationRepository;
+        this.referenceLookupService = referenceLookupService;
+        this.applicationTaskExecutor = applicationTaskExecutor;
+    }
 
     public HomeDashboardResponse getHome() {
+        Instant generatedAt = Instant.now();
         Organization currentOrganization = CurrentOrganizationContext.getOptional()
                 .orElseThrow(() -> new ScopeViolationException("organization.scope_violation"));
         ResolvedOrganizationScope scope = organizationScopeResolver.resolve(currentOrganization);
 
+        CompletableFuture<DashboardScopeResponse> scopeFuture =
+                supplyOrgScoped(currentOrganization, () -> buildScope(scope));
+        CompletableFuture<CaseSummaryResponse> caseSummaryFuture =
+                supplyOrgScoped(currentOrganization, () -> buildCaseSummary(scope));
+        CompletableFuture<TimeSeriesResponse> dynamicsFuture =
+                supplyOrgScoped(currentOrganization, () -> buildDynamics(scope));
+        CompletableFuture<List<TopDiagnosisResponse>> topDiagnosesFuture =
+                supplyOrgScoped(currentOrganization, () -> buildTopDiagnoses(scope));
+        CompletableFuture<List<SourceCountResponse>> sourceBreakdownFuture =
+                supplyOrgScoped(currentOrganization, () -> buildSourceBreakdown(scope));
+        CompletableFuture<List<GeoBreakdownItemResponse>> geoBreakdownFuture =
+                supplyOrgScoped(currentOrganization, () -> buildGeoBreakdown(scope));
+        CompletableFuture<Long> institutionsFuture =
+                supplyOrgScoped(currentOrganization, () -> countMedicalInstitutions(scope));
+        CompletableFuture<CardStatsResponse> cardStatsFuture =
+                supplyOrgScoped(currentOrganization, this::buildCardStats);
+        CompletableFuture<ActStatsResponse> actStatsFuture =
+                supplyOrgScoped(currentOrganization, this::buildActStats);
+
+        CompletableFuture.allOf(
+                scopeFuture, caseSummaryFuture, dynamicsFuture, topDiagnosesFuture, sourceBreakdownFuture,
+                geoBreakdownFuture, institutionsFuture, cardStatsFuture, actStatsFuture
+        ).join();
+
         return new HomeDashboardResponse(
-                buildScope(scope),
-                buildCaseSummary(),
-                buildDynamics(),
-                buildTopDiagnoses(),
-                buildGeoBreakdown(scope),
-                countMedicalInstitutions(scope),
-                buildCardStats(),
-                buildActStats()
+                generatedAt,
+                scopeFuture.join(),
+                caseSummaryFuture.join(),
+                dynamicsFuture.join(),
+                topDiagnosesFuture.join(),
+                sourceBreakdownFuture.join(),
+                geoBreakdownFuture.join(),
+                institutionsFuture.join(),
+                cardStatsFuture.join(),
+                actStatsFuture.join()
         );
+    }
+
+    /**
+     * The shared window every trend in this dashboard uses — case, card,
+     * and act dynamics all cover exactly the same period, so a client can
+     * overlay them without checking each one's range separately: from
+     * January 1st of the current calendar year through today. As the year
+     * progresses the window simply grows month by month (today always
+     * moves forward); on January 1st of the next year it starts over from
+     * that new year's January, since {@code to} is always "today".
+     */
+    private DateWindow dynamicsWindow() {
+        LocalDate to = LocalDate.now(APPLICATION_ZONE);
+        LocalDate from = LocalDate.of(to.getYear(), 1, 1);
+        return new DateWindow(from, to);
+    }
+
+    private record DateWindow(LocalDate from, LocalDate to) {
+    }
+
+    /**
+     * Runs {@code supplier} on {@link #applicationTaskExecutor}, copying
+     * {@link CurrentOrganizationContext}'s value onto that worker thread
+     * first — {@code CardStatsQueryService}/{@code ActStatsQueryService}
+     * resolve the caller's organization scope by reading that ThreadLocal
+     * internally, so without this each parallel branch would fail with a
+     * scope-violation on its worker thread. Exceptions surface through the
+     * returned future exactly as they would from a direct (synchronous)
+     * call, via {@link CompletableFuture#join()}.
+     */
+    private <T> CompletableFuture<T> supplyOrgScoped(Organization organization, Supplier<T> supplier) {
+        return CompletableFuture.supplyAsync(() -> {
+            CurrentOrganizationContext.set(organization);
+            try {
+                return supplier.get();
+            } finally {
+                CurrentOrganizationContext.clear();
+            }
+        }, applicationTaskExecutor);
     }
 
     private DashboardScopeResponse buildScope(ResolvedOrganizationScope scope) {
@@ -111,67 +212,43 @@ public class HomeDashboardQueryService {
         return new DashboardScopeResponse(scope.mode(), scope.regionCode(), regionName, scope.districtCode(), districtName);
     }
 
-    private CaseSummaryResponse buildCaseSummary() {
-        List<Form058StatusCountResponse> form058Statuses = form058StatsQueryService.countByStatus(Form058Direction.INCOMING);
-        List<Form0581StatusCountResponse> form0581Statuses =
-                form0581StatsQueryService.countByStatus(Form0581Direction.INCOMING);
-
-        long form058Total = form058Statuses.stream().mapToLong(Form058StatusCountResponse::count).sum();
-        long form0581Total = form0581Statuses.stream().mapToLong(Form0581StatusCountResponse::count).sum();
-
-        long form058Active = form058Statuses.stream()
-                .filter(item -> item.status().isApprovalDecisionPending())
-                .mapToLong(Form058StatusCountResponse::count)
-                .sum();
-        long form0581Active = form0581Statuses.stream()
-                .filter(item -> item.status().isApprovalDecisionPending())
-                .mapToLong(Form0581StatusCountResponse::count)
-                .sum();
-
+    private CaseSummaryResponse buildCaseSummary(ResolvedOrganizationScope scope) {
         LocalDate today = LocalDate.now(APPLICATION_ZONE);
-        long form058Today = form058StatsQueryService.countByDay(Form058Direction.INCOMING, today, today).stream()
-                .mapToLong(Form058DailyCountResponse::count)
-                .sum();
-        long form0581Today = form0581StatsQueryService.countByDay(Form0581Direction.INCOMING, today, today).stream()
-                .mapToLong(Form0581DailyCountResponse::count)
-                .sum();
+        CaseSummaryAggregate aggregate = caseStatsAggregateRepository.caseSummary(scope, today);
 
         return new CaseSummaryResponse(
-                form058Total + form0581Total,
-                form058Active + form0581Active,
-                form058Today + form0581Today,
-                form058Total,
-                form0581Total
+                aggregate.form058Total() + aggregate.form0581Total(),
+                aggregate.activeTotal(),
+                aggregate.todayTotal(),
+                today,
+                aggregate.form058Total(),
+                aggregate.form0581Total()
         );
     }
 
-    private List<DynamicsPointResponse> buildDynamics() {
-        LocalDate to = LocalDate.now(APPLICATION_ZONE);
-        LocalDate from = to.minusMonths(DYNAMICS_MONTHS - 1L).withDayOfMonth(1);
+    private TimeSeriesResponse buildDynamics(ResolvedOrganizationScope scope) {
+        DateWindow window = dynamicsWindow();
+        List<DynamicsPointResponse> points =
+                caseStatsAggregateRepository.monthlyDynamics(scope, window.from(), window.to());
 
-        Map<LocalDate, Long> merged = new TreeMap<>();
-        form058StatsQueryService.countByMonth(Form058Direction.INCOMING, from, to)
-                .forEach(item -> merged.merge(item.date(), item.count(), Long::sum));
-        form0581StatsQueryService.countByMonth(Form0581Direction.INCOMING, from, to)
-                .forEach(item -> merged.merge(item.date(), item.count(), Long::sum));
-
-        return merged.entrySet().stream()
-                .map(entry -> new DynamicsPointResponse(entry.getKey(), entry.getValue()))
-                .toList();
+        return new TimeSeriesResponse(window.from(), window.to(), TimeSeriesGranularity.MONTH, points);
     }
 
-    private List<TopDiagnosisResponse> buildTopDiagnoses() {
-        Map<String, Long> merged = new HashMap<>();
-        form058StatsQueryService.topMkb10(Form058Direction.INCOMING, TOP_DIAGNOSIS_CANDIDATE_LIMIT)
-                .forEach(item -> merged.merge(item.mkb10Code(), item.count(), Long::sum));
-        form0581StatsQueryService.topMkb10(Form0581Direction.INCOMING, TOP_DIAGNOSIS_CANDIDATE_LIMIT)
-                .forEach(item -> merged.merge(item.mkb10Code(), item.count(), Long::sum));
+    /**
+     * Top 5 diagnosis codes across both form types, ranked by their true
+     * combined count — a single {@code GROUP BY ... ORDER BY ... LIMIT 5}
+     * over the union of both tables, rather than taking each table's own
+     * top-N candidates and re-ranking the merge (which, at a small enough
+     * per-table candidate limit, could in principle exclude a code whose
+     * combined rank belongs in the top 5 but whose per-table share never
+     * individually cracked either table's candidate cutoff).
+     */
+    private List<TopDiagnosisResponse> buildTopDiagnoses(ResolvedOrganizationScope scope) {
+        return caseStatsAggregateRepository.topDiagnoses(scope, TOP_DIAGNOSIS_RESULT_LIMIT);
+    }
 
-        return merged.entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(TOP_DIAGNOSIS_RESULT_LIMIT)
-                .map(entry -> new TopDiagnosisResponse(entry.getKey(), entry.getValue()))
-                .toList();
+    private List<SourceCountResponse> buildSourceBreakdown(ResolvedOrganizationScope scope) {
+        return caseStatsAggregateRepository.sourceBreakdown(scope);
     }
 
     private List<GeoBreakdownItemResponse> buildGeoBreakdown(ResolvedOrganizationScope scope) {
@@ -183,59 +260,27 @@ public class HomeDashboardQueryService {
     }
 
     private List<GeoBreakdownItemResponse> buildDistrictBreakdown(String regionCode) {
-        List<District> districts = districtRepository.findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(regionCode);
-        List<OrganizationGeoProjection> organizations =
-                organizationRepository.findActiveIdAndDistrictCodeByRegionCode(regionCode);
+        List<GeoCodeCount> counts = caseStatsAggregateRepository.districtBreakdown(regionCode);
 
-        Map<String, Long> countsByDistrict = countsByGeoCode(organizations);
-
-        return districts.stream()
-                .map(district -> new GeoBreakdownItemResponse(
-                        district.getCode(),
-                        referenceLookupService.getDistrictName(district.getCode()),
-                        countsByDistrict.getOrDefault(district.getCode(), 0L)
+        return counts.stream()
+                .map(item -> new GeoBreakdownItemResponse(
+                        item.code(),
+                        referenceLookupService.getDistrictName(item.code()),
+                        item.count()
                 ))
                 .toList();
     }
 
     private List<GeoBreakdownItemResponse> buildRegionBreakdown() {
-        List<Region> regions = regionRepository.findAllByDeletedFalseOrderByNameUzAsc();
-        List<OrganizationGeoProjection> organizations = organizationRepository.findActiveIdAndRegionCode();
+        List<GeoCodeCount> counts = caseStatsAggregateRepository.regionBreakdown();
 
-        Map<String, Long> countsByRegion = countsByGeoCode(organizations);
-
-        return regions.stream()
-                .map(region -> new GeoBreakdownItemResponse(
-                        region.getCode(),
-                        referenceLookupService.getRegionName(region.getCode()),
-                        countsByRegion.getOrDefault(region.getCode(), 0L)
+        return counts.stream()
+                .map(item -> new GeoBreakdownItemResponse(
+                        item.code(),
+                        referenceLookupService.getRegionName(item.code()),
+                        item.count()
                 ))
                 .toList();
-    }
-
-    private Map<String, Long> countsByGeoCode(List<OrganizationGeoProjection> organizations) {
-        Map<Long, String> geoCodeByOrgId = new HashMap<>();
-        for (OrganizationGeoProjection organization : organizations) {
-            geoCodeByOrgId.put(organization.id(), organization.code());
-        }
-
-        List<Long> organizationIds = organizations.stream().map(OrganizationGeoProjection::id).toList();
-
-        Map<Long, Long> countsByOrgId = new HashMap<>();
-        form058StatsQueryService.countByReceiverOrganizationWithinIds(organizationIds)
-                .forEach(item -> countsByOrgId.merge(item.organizationId(), item.count(), Long::sum));
-        form0581StatsQueryService.countByReceiverOrganizationWithinIds(organizationIds)
-                .forEach(item -> countsByOrgId.merge(item.organizationId(), item.count(), Long::sum));
-
-        Map<String, Long> countsByGeoCode = new HashMap<>();
-        countsByOrgId.forEach((organizationId, count) -> {
-            String geoCode = geoCodeByOrgId.get(organizationId);
-            if (geoCode != null) {
-                countsByGeoCode.merge(geoCode, count, Long::sum);
-            }
-        });
-
-        return countsByGeoCode;
     }
 
     private long countMedicalInstitutions(ResolvedOrganizationScope scope) {
@@ -254,20 +299,36 @@ public class HomeDashboardQueryService {
     private CardStatsResponse buildCardStats() {
         List<CardStatusCountResponse> byStatus = cardStatsQueryService.countByStatus();
         List<CardTypeCountResponse> byType = cardStatsQueryService.countByType();
+        long total = cardStatsQueryService.countTotal();
+        long active = cardStatsQueryService.countActive();
 
-        long total = byStatus.stream().mapToLong(CardStatusCountResponse::count).sum();
-        long approved = byStatus.stream()
-                .filter(item -> item.status() == CardStatus.APPROVED)
-                .mapToLong(CardStatusCountResponse::count)
-                .sum();
+        return new CardStatsResponse(total, active, byStatus, byType, buildCardDynamics());
+    }
 
-        return new CardStatsResponse(total, total - approved, byStatus, byType);
+    private TimeSeriesResponse buildCardDynamics() {
+        DateWindow window = dynamicsWindow();
+
+        List<DynamicsPointResponse> points = cardStatsQueryService.countByMonth(window.from(), window.to()).stream()
+                .map(item -> new DynamicsPointResponse(item.date(), item.count()))
+                .toList();
+
+        return new TimeSeriesResponse(window.from(), window.to(), TimeSeriesGranularity.MONTH, points);
     }
 
     private ActStatsResponse buildActStats() {
         List<ActStatusCountResponse> byStatus = actStatsQueryService.countByStatus();
-        long total = byStatus.stream().mapToLong(ActStatusCountResponse::count).sum();
+        long total = actStatsQueryService.countTotal();
 
-        return new ActStatsResponse(total, byStatus);
+        return new ActStatsResponse(total, byStatus, buildActDynamics());
+    }
+
+    private TimeSeriesResponse buildActDynamics() {
+        DateWindow window = dynamicsWindow();
+
+        List<DynamicsPointResponse> points = actStatsQueryService.countByMonth(window.from(), window.to()).stream()
+                .map(item -> new DynamicsPointResponse(item.date(), item.count()))
+                .toList();
+
+        return new TimeSeriesResponse(window.from(), window.to(), TimeSeriesGranularity.MONTH, points);
     }
 }

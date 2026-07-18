@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardDailyCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTypeCountResponse;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardStatsRepository;
@@ -12,6 +13,7 @@ import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -35,6 +37,18 @@ public class CardStatsQueryService {
 
     public List<CardTypeCountResponse> countByType() {
         return cardStatsRepository.countByType(currentScope());
+    }
+
+    public List<CardDailyCountResponse> countByMonth(LocalDate from, LocalDate to) {
+        return cardStatsRepository.countByMonth(currentScope(), from, to);
+    }
+
+    public long countTotal() {
+        return cardStatsRepository.countTotal(currentScope());
+    }
+
+    public long countActive() {
+        return cardStatsRepository.countActive(currentScope());
     }
 
     private ResolvedOrganizationScope currentScope() {

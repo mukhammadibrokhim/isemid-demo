@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViol
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581OrganizationCountResponse;
+import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581SourceCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581StatsRepository;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
@@ -38,6 +39,10 @@ public class Form0581StatsQueryService {
 
     public List<Form0581Mkb10CountResponse> topMkb10(Form0581Direction direction, int limit) {
         return form0581StatsRepository.topMkb10(currentScope(), receivedFor(direction), limit);
+    }
+
+    public List<Form0581SourceCountResponse> countBySource(Form0581Direction direction) {
+        return form0581StatsRepository.countBySource(currentScope(), receivedFor(direction));
     }
 
     /**

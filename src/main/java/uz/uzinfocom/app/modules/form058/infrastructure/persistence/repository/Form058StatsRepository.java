@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
+import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058SourceCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058StatusCountResponse;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
@@ -41,6 +42,18 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
                 (root, cb) -> root.<FormStatus>get("status"),
                 (root, cb) -> scopePredicateFactory.applyDirectionScope(root, cb, scope, received),
                 Form058StatusCountResponse::new
+        );
+    }
+
+    /**
+     * Grouped by source (e.g. MANUAL/QR/DMED) — for the home dashboard's
+     * source breakdown.
+     */
+    public List<Form058SourceCountResponse> countBySource(ResolvedOrganizationScope scope, Boolean received) {
+        return countGrouped(
+                (root, cb) -> root.<String>get("source"),
+                (root, cb) -> scopePredicateFactory.applyDirectionScope(root, cb, scope, received),
+                Form058SourceCountResponse::new
         );
     }
 

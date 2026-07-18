@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The home dashboard's TOP-5 diagnosis widget (topMkb10 in
+        Form058StatsRepository/AbstractCaseStatsRepository) groups by
+        mkb10_code with an optional org-scope filter. No existing index
+        covers mkb10_code together with deleted/organization, so Postgres
+        fell back to a full index scan with a per-row heap filter
+        (org-scoped: ~207ms on 100k matching rows) or a full parallel
+        sequential scan (unscoped/republican-level: ~323ms on 600k+ rows) —
+        confirmed via EXPLAIN ANALYZE against the real dev DB. These three
+        partial covering indexes turn both into index-only scans
+        (confirmed via the same method: ~55ms each after adding them).
+    -->
+    <changeSet id="20260718-1000-01-add-idx-form058-receiver-mkb10" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_receiver_mkb10"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_receiver_mkb10
+                ON form058 (receiver_organization_id, mkb10_code)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260718-1000-02-add-idx-form058-sender-mkb10" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_sender_mkb10"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_sender_mkb10
+                ON form058 (sender_organization_id, mkb10_code)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260718-1000-03-add-idx-form058-mkb10-not-deleted" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_mkb10_not_deleted"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_mkb10_not_deleted
+                ON form058 (mkb10_code)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

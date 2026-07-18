@@ -38,7 +38,13 @@ import java.util.List;
                 @Index(name = "idx_form0581_mkb10_code", columnList = "mkb10_code"),
                 @Index(name = "idx_form0581_deleted", columnList = "deleted"),
                 @Index(name = "idx_form0581_deleted_sender_created", columnList = "deleted,sender_organization_id,created_at"),
-                @Index(name = "idx_form0581_deleted_receiver_created", columnList = "deleted,receiver_organization_id,created_at")
+                @Index(name = "idx_form0581_deleted_receiver_created", columnList = "deleted,receiver_organization_id,created_at"),
+                // partial (WHERE deleted = false) in reality — see Liquibase changelog
+                @Index(name = "idx_form0581_receiver_mkb10", columnList = "receiver_organization_id,mkb10_code"),
+                @Index(name = "idx_form0581_sender_mkb10", columnList = "sender_organization_id,mkb10_code"),
+                @Index(name = "idx_form0581_mkb10_not_deleted", columnList = "mkb10_code"),
+                @Index(name = "idx_form0581_receiver_source", columnList = "receiver_organization_id,source"),
+                @Index(name = "idx_form0581_sender_source", columnList = "sender_organization_id,source")
         }
 )
 public class Form0581 extends AbsEntity {

@@ -5,6 +5,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
+import uz.uzinfocom.app.modules.act.application.query.dto.ActDailyCountResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
@@ -12,6 +13,7 @@ import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
 import uz.uzinfocom.app.platform.stats.jpa.AbstractCaseStatsRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -43,6 +45,25 @@ public class ActStatsRepository extends AbstractCaseStatsRepository<Act> {
                 (root, cb) -> root.<ActStatus>get("actStatus"),
                 (root, cb) -> scopePredicateFactory.applyDirectionScope(root.get("card").get("form058"), cb, scope, true),
                 (status, count) -> new ActStatusCountResponse(status, count)
+        );
+    }
+
+    /** Total act count in scope — a direct {@code COUNT(*)}, not a sum over {@link #countByStatus}. */
+    public long countTotal(ResolvedOrganizationScope scope) {
+        return countAll((root, cb) ->
+                scopePredicateFactory.applyDirectionScope(root.get("card").get("form058"), cb, scope, true));
+    }
+
+    /**
+     * Monthly trend — for the home dashboard's act dynamics chart, same
+     * shape/window as {@code Form058StatsRepository.countByMonth}.
+     */
+    public List<ActDailyCountResponse> countByMonth(ResolvedOrganizationScope scope, LocalDate from, LocalDate to) {
+        return countByDateBucket(
+                "month",
+                (root, cb) -> scopePredicateFactory.applyDirectionScope(root.get("card").get("form058"), cb, scope, true),
+                from, to,
+                ActDailyCountResponse::new
         );
     }
 }

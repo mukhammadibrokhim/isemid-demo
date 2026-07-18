@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Mirrors form058/20260719-1000-add-source-stats-indexes.xml exactly —
+        Form0581StatsRepository.countBySource has the identical
+        group-by-source shape (via the same AbstractCaseStatsRepository
+        base) and would hit the identical missing-index problem once
+        form058_1 grows past its current near-empty state.
+    -->
+    <changeSet id="20260719-1000-01-add-idx-form0581-receiver-source" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_receiver_source"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_receiver_source
+                ON form058_1 (receiver_organization_id, source)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260719-1000-02-add-idx-form0581-sender-source" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_sender_source"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_sender_source
+                ON form058_1 (sender_organization_id, source)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

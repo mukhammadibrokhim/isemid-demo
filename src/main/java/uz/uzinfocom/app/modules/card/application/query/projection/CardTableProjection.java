@@ -6,17 +6,14 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import java.time.Instant;
 
 /**
- * Base-{@code Card}-only fields — every getter here maps to a column on the
- * "card" table itself, so Spring Data generates a query against that one
- * table with no subtype joins. {@code form058Id} is exposed via a nested
- * closed projection ({@link Form058Ref}) rather than a flat
- * {@code getForm058Id()} name, which Spring Data's property-path parser
- * would not resolve — this is the standard, safe way to project a
- * to-one association's id. It does not add a join: {@code form058_id} is
- * already a column on this table, and Hibernate resolves an association's
- * own identifier directly from the owning-side FK column without joining to
- * the target table. This is required now that {@code GET /cards/mine} can
- * return cards belonging to more than one form.
+ * Base-{@code Card} fields plus the minimal slice of its owning
+ * {@code Form058}/{@code Patient} needed for the table row — {@code
+ * form058.id}/{@code receiverOrganizationId} are FK/plain columns on
+ * {@code form058} itself (no extra join beyond the one join to
+ * {@code form058}), while {@code patient} pulls in one further join to the
+ * {@code patient} table for just its first/last name. Deliberately still
+ * avoids any Card *subtype* join (Card161/174/...) — that's the join this
+ * projection was originally designed to avoid, and still does.
  */
 public interface CardTableProjection {
 
@@ -34,5 +31,17 @@ public interface CardTableProjection {
 
     interface Form058Ref {
         Long getId();
+
+        Long getReceiverOrganizationId();
+
+        PatientRef getPatient();
+    }
+
+    interface PatientRef {
+        Long getId();
+
+        String getFirstName();
+
+        String getLastName();
     }
 }

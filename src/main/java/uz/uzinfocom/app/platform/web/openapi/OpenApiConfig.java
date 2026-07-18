@@ -8,12 +8,28 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 public class OpenApiConfig {
 
     private static final String API_VERSION = "1.0.0";
     private static final String BEARER_AUTH = "bearerAuth";
+
+    /*
+     * springdoc collects every GroupedOpenApi bean into one list and renders
+     * the Swagger UI dropdown in that list's order. Spring does not
+     * guarantee @Bean declaration order for that collection, so without an
+     * explicit @Order the dropdown's actual order is whatever the
+     * classpath/reflection happens to produce - which put "Admin" first,
+     * the wrong first impression for most API consumers. These constants
+     * pin the order explicitly: main first, admin last.
+     */
+    private static final int ORDER_MAIN = 0;
+    private static final int ORDER_REFERENCES = 1;
+    private static final int ORDER_ACCESS_CONTROL = 2;
+    private static final int ORDER_INTEGRATION = 3;
+    private static final int ORDER_ADMIN = 4;
 
     private final CommonOpenApiCustomizer commonOpenApiCustomizer;
     private final OpenApiSchemaRegistrar schemaRegistrar;
@@ -50,21 +66,31 @@ public class OpenApiConfig {
     }
 
     @Bean
+    @Order(ORDER_REFERENCES)
     public GroupedOpenApi referencesOpenApi() {
         return buildGroupedOpenApi(OpenApiGroups.REFERENCES);
     }
 
     @Bean
+    @Order(ORDER_ACCESS_CONTROL)
     public GroupedOpenApi accessControlOpenApi() {
         return buildGroupedOpenApi(OpenApiGroups.ACCESS_CONTROL);
     }
 
     @Bean
+    @Order(ORDER_ADMIN)
     public GroupedOpenApi adminOpenApi() {
         return buildGroupedOpenApi(OpenApiGroups.ADMIN);
     }
 
     @Bean
+    @Order(ORDER_INTEGRATION)
+    public GroupedOpenApi integrationOpenApi() {
+        return buildGroupedOpenApi(OpenApiGroups.INTEGRATION);
+    }
+
+    @Bean
+    @Order(ORDER_MAIN)
     public GroupedOpenApi mainOpenApi() {
         return GroupedOpenApi.builder()
                 .group("main")

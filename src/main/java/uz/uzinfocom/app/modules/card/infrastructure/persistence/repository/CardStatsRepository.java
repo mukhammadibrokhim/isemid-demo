@@ -5,6 +5,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardDailyCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTypeCountResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
@@ -15,6 +16,7 @@ import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
 import uz.uzinfocom.app.platform.stats.jpa.AbstractCaseStatsRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -55,6 +57,36 @@ public class CardStatsRepository extends AbstractCaseStatsRepository<Card> {
                 (root, cb) -> root.<CardType>get("cardType"),
                 (root, cb) -> scopePredicateFactory.applyDirectionScope(root.get("form058"), cb, scope, true),
                 (type, count) -> new CardTypeCountResponse(type, count)
+        );
+    }
+
+    /** Total card count in scope — a direct {@code COUNT(*)}, not a sum over {@link #countByStatus}. */
+    public long countTotal(ResolvedOrganizationScope scope) {
+        return countAll((root, cb) -> scopePredicateFactory.applyDirectionScope(root.get("form058"), cb, scope, true));
+    }
+
+    /**
+     * Count of cards not yet approved by a supervisor (every status except
+     * {@link CardStatus#APPROVED}) — a direct {@code COUNT(*) WHERE status <> 'APPROVED'},
+     * not a subtraction over {@link #countByStatus}.
+     */
+    public long countActive(ResolvedOrganizationScope scope) {
+        return countAll((root, cb) -> cb.and(
+                scopePredicateFactory.applyDirectionScope(root.get("form058"), cb, scope, true),
+                cb.notEqual(root.get("status"), CardStatus.APPROVED)
+        ));
+    }
+
+    /**
+     * Monthly trend — for the home dashboard's card dynamics chart, same
+     * shape/window as {@code Form058StatsRepository.countByMonth}.
+     */
+    public List<CardDailyCountResponse> countByMonth(ResolvedOrganizationScope scope, LocalDate from, LocalDate to) {
+        return countByDateBucket(
+                "month",
+                (root, cb) -> scopePredicateFactory.applyDirectionScope(root.get("form058"), cb, scope, true),
+                from, to,
+                CardDailyCountResponse::new
         );
     }
 }

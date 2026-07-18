@@ -46,7 +46,13 @@ import java.time.Instant;
                 @Index(name = "idx_form058_incoming_table", columnList = "receiver_organization_id,status,created_at,id"),
                 @Index(name = "idx_form058_active_patient_id_id", columnList = "patient_id,id"),
                 @Index(name = "idx_form058_source_created_fast", columnList = "source,created_at,id"),
-                @Index(name = "idx_form058_has_linked_cards_created_fast", columnList = "has_linked_cards,created_at,id")
+                @Index(name = "idx_form058_has_linked_cards_created_fast", columnList = "has_linked_cards,created_at,id"),
+                // partial (WHERE deleted = false) in reality — see Liquibase changelog
+                @Index(name = "idx_form058_receiver_mkb10", columnList = "receiver_organization_id,mkb10_code"),
+                @Index(name = "idx_form058_sender_mkb10", columnList = "sender_organization_id,mkb10_code"),
+                @Index(name = "idx_form058_mkb10_not_deleted", columnList = "mkb10_code"),
+                @Index(name = "idx_form058_receiver_source", columnList = "receiver_organization_id,source"),
+                @Index(name = "idx_form058_sender_source", columnList = "sender_organization_id,source")
         }
 )
 public class Form058 extends AbsEntity {

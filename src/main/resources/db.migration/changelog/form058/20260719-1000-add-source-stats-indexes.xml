@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The home dashboard's new source breakdown (countBySource in
+        Form058StatsRepository/AbstractCaseStatsRepository) groups by source
+        with an org-scope filter. Confirmed via EXPLAIN ANALYZE against the
+        real dev DB: org-scoped, no covering index existed, so Postgres fell
+        back to idx_form058_receiver_org_id + a per-row heap filter for
+        source/deleted (~214ms on 100k matching rows). This partial
+        covering index turns it into an index-only scan (confirmed: ~44ms).
+        The unscoped/republican-level case was already served reasonably
+        well by the existing idx_form058_source_created_fast (source is
+        already its leading column), so no second index was added there —
+        confirmed empirically that a narrower source-only index gave no
+        further improvement.
+    -->
+    <changeSet id="20260719-1000-01-add-idx-form058-receiver-source" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_receiver_source"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_receiver_source
+                ON form058 (receiver_organization_id, source)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260719-1000-02-add-idx-form058-sender-source" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_sender_source"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_sender_source
+                ON form058 (sender_organization_id, source)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
