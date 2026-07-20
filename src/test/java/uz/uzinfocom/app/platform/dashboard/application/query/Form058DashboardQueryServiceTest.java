@@ -113,12 +113,12 @@ class Form058DashboardQueryServiceTest {
         Form058DashboardResponse response = service.getDashboard();
 
         assertThat(response.topDiagnoses()).hasSize(1);
-        assertThat(response.topDiagnoses().get(0).mkb10Code()).isEqualTo("A82");
-        assertThat(response.topDiagnoses().get(0).count()).isEqualTo(10L);
+        assertThat(response.topDiagnoses().getFirst().mkb10Code()).isEqualTo("A82");
+        assertThat(response.topDiagnoses().getFirst().count()).isEqualTo(10L);
 
         assertThat(response.sourceBreakdown()).hasSize(2);
-        assertThat(response.sourceBreakdown().get(0).source()).isEqualTo("QR");
-        assertThat(response.sourceBreakdown().get(0).count()).isEqualTo(9L);
+        assertThat(response.sourceBreakdown().getFirst().source()).isEqualTo("QR");
+        assertThat(response.sourceBreakdown().getFirst().count()).isEqualTo(9L);
     }
 
     @Test
