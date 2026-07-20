@@ -6,7 +6,7 @@ import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import uz.uzinfocom.isemid.features.integrations.dmed.dto.Form058ChangeEvent;
 
-@HttpExchange(contentType = "application/json")
+@HttpExchange(contentType = "application/json", accept = "application/json")
 public interface DmedForm0581Client {
 
     @PatchExchange
