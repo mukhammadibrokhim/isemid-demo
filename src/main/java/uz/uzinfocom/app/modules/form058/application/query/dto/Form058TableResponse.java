@@ -34,6 +34,12 @@ public record Form058TableResponse(
         @Schema(description = "Наименование организации-отправителя.")
         String senderOrganizationName,
 
+        @Schema(description = "Идентификатор организации-получателя.")
+        Long receiverOrganizationId,
+
+        @Schema(description = "Наименование организации-получателя.")
+        String receiverOrganizationName,
+
         @Schema(description = "Краткие сведения о пациенте.")
         PatientShortResponse patient
 ) {

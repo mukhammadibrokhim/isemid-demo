@@ -45,6 +45,8 @@ public class Form058Specification {
             Boolean received
     ) {
         return (root, query, cb) -> {
+            fetchPatientForTableQuery(root, query);
+
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
@@ -66,6 +68,8 @@ public class Form058Specification {
             ResolvedOrganizationScope scope
     ) {
         return (root, query, cb) -> {
+            fetchPatientForTableQuery(root, query);
+
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
@@ -78,6 +82,19 @@ public class Form058Specification {
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
+    }
+
+    /**
+     * Eagerly joins {@code patient} (a {@code @ManyToOne}, so safe alongside pagination -
+     * unlike a {@code @OneToMany} fetch, it can't multiply/duplicate rows) so the table
+     * projection's {@code patient.firstName/lastName/middleName} no longer triggers a lazy
+     * load per row. Skipped for the COUNT(*) query Spring Data issues for pagination, where a
+     * fetch is meaningless and Hibernate rejects it outright.
+     */
+    private void fetchPatientForTableQuery(Root<Form058> root, CriteriaQuery<?> query) {
+        if (Form058.class.equals(query.getResultType())) {
+            root.fetch(PATIENT, JoinType.LEFT);
+        }
     }
 
     public Specification<Form058> visibleById(
@@ -172,8 +189,10 @@ public class Form058Specification {
             predicates.add(cb.equal(root.get(DIAGNOSIS_INFO).get(MKB10_CODE), normalizeCode(filter.mkb10Code())));
         }
 
-        if (filter.senderOrganizationId() != null) {
-            predicates.add(cb.equal(root.get(SENDER_ORGANIZATION_ID), filter.senderOrganizationId()));
+        if (filter.organizationId() != null) {
+            predicates.add(caseSpecificationSupport.directionalOrganizationIdPredicate(
+                    root, cb, received, SENDER_ORGANIZATION_ID, RECEIVER_ORGANIZATION_ID, filter.organizationId()
+            ));
         }
 
         if (StringUtils.hasText(filter.regionCode()) || StringUtils.hasText(filter.districtCode())) {

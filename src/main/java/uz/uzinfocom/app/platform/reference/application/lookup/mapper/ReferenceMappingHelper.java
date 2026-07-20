@@ -80,4 +80,14 @@ public class ReferenceMappingHelper {
     public String isolationStatusName(String code) {
         return referenceLookupService.getCatalogName("ISOLATION_STATUS", code);
     }
+
+    @Named("maritalStatusName")
+    public String maritalStatusName(String code) {
+        return referenceLookupService.getCatalogName("MARITAL_STATUS", code);
+    }
+
+    @Named("professionName")
+    public String professionName(String code) {
+        return referenceLookupService.getCatalogName("PROFESSION", code);
+    }
 }

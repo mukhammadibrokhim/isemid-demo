@@ -101,22 +101,6 @@ public class PublicKeyEndpointJwtDecoder implements JwtDecoder {
         }
     }
 
-//    private NimbusJwtDecoder buildDecoder() {
-//        if (!StringUtils.hasText(provider.getPublicKeyUri())) {
-//            throw new IllegalStateException(
-//                    "Public key URI is not configured for provider: " + providerKey
-//            );
-//        }
-//
-//        NimbusJwtDecoder decoder = NimbusJwtDecoder
-//                .withPublicKey(remoteRsaPublicKeyClient.fetch(provider.getPublicKeyUri()))
-//                .build();
-//
-//        decoder.setJwtValidator(validatorFactory.create(providerKey, provider));
-//
-//        return decoder;
-//    }
-
     private boolean shouldRefreshPublicKey(JwtException exception) {
         String message = exception.getMessage();
 

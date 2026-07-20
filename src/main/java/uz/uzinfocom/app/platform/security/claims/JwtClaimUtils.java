@@ -57,19 +57,13 @@ public final class JwtClaimUtils {
     }
 
     public static List<?> listValue(Object value) {
-        if (value == null) {
-            return List.of();
-        }
+        return switch (value) {
+            case null -> List.of();
+            case List<?> list -> list;
+            case Collection<?> collection -> new ArrayList<>(collection);
+            default -> List.of(value);
+        };
 
-        if (value instanceof List<?> list) {
-            return list;
-        }
-
-        if (value instanceof Collection<?> collection) {
-            return new ArrayList<>(collection);
-        }
-
-        return List.of(value);
     }
 
     public static UUID requiredUuid(
@@ -81,37 +75,38 @@ public final class JwtClaimUtils {
     }
 
     public static Optional<UUID> uuidFromAny(Object value) {
-        if (value == null) {
-            return Optional.empty();
-        }
-
-        if (value instanceof UUID uuid) {
-            return Optional.of(uuid);
-        }
-
-        if (value instanceof Map<?, ?> map) {
-            Object direct = firstMapValue(
-                    map,
-                    "uuid",
-                    "id",
-                    "value",
-                    "reference",
-                    "ref"
-            );
-
-            return uuidFromAny(direct);
-        }
-
-        if (value instanceof Collection<?> collection) {
-            for (Object item : collection) {
-                Optional<UUID> uuid = uuidFromAny(item);
-
-                if (uuid.isPresent()) {
-                    return uuid;
-                }
+        switch (value) {
+            case null -> {
+                return Optional.empty();
             }
+            case UUID uuid -> {
+                return Optional.of(uuid);
+            }
+            case Map<?, ?> map -> {
+                Object direct = firstMapValue(
+                        map,
+                        "uuid",
+                        "id",
+                        "value",
+                        "reference",
+                        "ref"
+                );
 
-            return Optional.empty();
+                return uuidFromAny(direct);
+            }
+            case Collection<?> collection -> {
+                for (Object item : collection) {
+                    Optional<UUID> uuid = uuidFromAny(item);
+
+                    if (uuid.isPresent()) {
+                        return uuid;
+                    }
+                }
+
+                return Optional.empty();
+            }
+            default -> {
+            }
         }
 
         String text = String.valueOf(value).trim();
@@ -128,7 +123,7 @@ public final class JwtClaimUtils {
 
         try {
             return Optional.of(UUID.fromString(matcher.group()));
-        } catch (Exception ignored) {
+        } catch (IllegalArgumentException malformedUuid) {
             return Optional.empty();
         }
     }

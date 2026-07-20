@@ -24,6 +24,7 @@ public interface Form058TableMapper {
     @Mapping(target = "mkb10Code", source = "diagnosisInfo.mkb10Code")
     @Mapping(target = "mkb10Name", source = "diagnosisInfo.mkb10Name")
     @Mapping(target = "senderOrganizationName",source = "senderOrganizationId",qualifiedByName = "activeOrganizationNameById")
+    @Mapping(target = "receiverOrganizationName", source = "receiverOrganizationId", qualifiedByName = "activeOrganizationNameById")
     Form058TableResponse toTableResponse(Form058TableProjection projection, @Context Form058Direction direction);
 
     @Mapping(target = "permanentRegionName", source = ".", qualifiedByName = "permanentRegionName")

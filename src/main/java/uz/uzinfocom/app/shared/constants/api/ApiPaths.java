@@ -27,6 +27,7 @@ public final class ApiPaths {
 
         public static final String ROOT = API_V1 + "/dashboard";
         public static final String HOME = "/home";
+        public static final String HOME_MODULE = "/home/{module}";
     }
 
     public static final class Organization {
@@ -136,6 +137,7 @@ public final class ApiPaths {
         public static final String CANCEL = "/{id}/cancel";
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
+        public static final String PDF = "/{id}/pdf";
 
     }
 

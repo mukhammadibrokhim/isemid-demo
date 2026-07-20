@@ -1,10 +1,12 @@
 package uz.uzinfocom.app.modules.form058.application.query.dto.detail;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientDetailResponse;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 @Schema(description = "Полные детальные сведения о форме №058.")
@@ -48,8 +50,8 @@ public record Form058DetailResponse(
         @Schema(description = "Признак наличия привязанных к форме карт.")
         Boolean hasLinkedCards,
 
-        @Schema(description = "Идентификатор привязанной карты (устаревшее поле для одиночной привязки).")
-        Long assignedCardId,
+        @Schema(description = "Карты, привязанные к форме (в том же виде, что и табличное представление карт).")
+        List<CardTableResponse> cards,
 
         @Schema(description = "Сведения об аннулировании/отклонении утверждения.")
         Form058CancellationDetailResponse cancellationInfo,

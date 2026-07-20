@@ -11,6 +11,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,14 +53,8 @@ public class GlobalExceptionHandler {
             AppException exception,
             HttpServletRequest request
     ) {
-        ErrorCode code = exception.getErrorCode();
         String message = messages.resolve(exception.getMessageCode(), exception.getArgs());
-
-        attachLogError(request, code.getCode(), exception);
-
-        return ResponseEntity
-                .status(code.getStatus())
-                .body(error(code.getCode(), message, request, List.of()));
+        return respond(exception.getErrorCode(), message, request, exception, List.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -72,18 +67,7 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> violation(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
 
-        attachLogError(
-                request,
-                ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations),
-                exception
-        );
-
-        String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
-
-        return ResponseEntity
-                .badRequest()
-                .body(error(ErrorCode.VALIDATION_FAILED.getCode(), message, request, violations));
+        return respondValidationFailed(request, exception, violations);
     }
 
     @ExceptionHandler(BindException.class)
@@ -96,18 +80,7 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> violation(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
 
-        attachLogError(
-                request,
-                ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations),
-                exception
-        );
-
-        String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
-
-        return ResponseEntity
-                .badRequest()
-                .body(error(ErrorCode.VALIDATION_FAILED.getCode(), message, request, violations));
+        return respondValidationFailed(request, exception, violations);
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
@@ -124,18 +97,7 @@ public class GlobalExceptionHandler {
                 .limit(MAX_VIOLATIONS)
                 .toList();
 
-        attachLogError(
-                request,
-                ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations),
-                exception
-        );
-
-        String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
-
-        return ResponseEntity
-                .badRequest()
-                .body(error(ErrorCode.VALIDATION_FAILED.getCode(), message, request, violations));
+        return respondValidationFailed(request, exception, violations);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -153,18 +115,7 @@ public class GlobalExceptionHandler {
                 ))
                 .toList();
 
-        attachLogError(
-                request,
-                ErrorCode.VALIDATION_FAILED.getCode(),
-                firstViolationMessage(violations),
-                exception
-        );
-
-        String message = messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode());
-
-        return ResponseEntity
-                .badRequest()
-                .body(error(ErrorCode.VALIDATION_FAILED.getCode(), message, request, violations));
+        return respondValidationFailed(request, exception, violations);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -172,13 +123,7 @@ public class GlobalExceptionHandler {
             AccessDeniedException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.FORBIDDEN.getDefaultMessageCode());
-
-        attachLogError(request, ErrorCode.FORBIDDEN.getCode(), exception);
-
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(error(ErrorCode.FORBIDDEN.getCode(), message, request, List.of()));
+        return respond(ErrorCode.FORBIDDEN, request, exception);
     }
 
     /**
@@ -190,13 +135,7 @@ public class GlobalExceptionHandler {
             AuthenticationException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.UNAUTHORIZED.getDefaultMessageCode());
-
-        attachLogError(request, ErrorCode.UNAUTHORIZED.getCode(), exception);
-
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(error(ErrorCode.UNAUTHORIZED.getCode(), message, request, List.of()));
+        return respond(ErrorCode.UNAUTHORIZED, request, exception);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -204,18 +143,18 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve("error.argument_type_mismatch");
-
         List<FieldViolationResponse> violations = List.of(violation(
                 exception.getParameterName(),
                 messages.resolve("validation.required")
         ));
 
-        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
-
-        return ResponseEntity
-                .badRequest()
-                .body(error(ErrorCode.BAD_REQUEST.getCode(), message, request, violations));
+        return respond(
+                ErrorCode.BAD_REQUEST,
+                messages.resolve("error.missing_parameter"),
+                request,
+                exception,
+                violations
+        );
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
@@ -223,18 +162,18 @@ public class GlobalExceptionHandler {
             MissingRequestHeaderException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.BAD_REQUEST.getDefaultMessageCode());
-
         List<FieldViolationResponse> violations = List.of(violation(
                 exception.getHeaderName(),
                 messages.resolve("validation.required")
         ));
 
-        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
-
-        return ResponseEntity
-                .badRequest()
-                .body(error(ErrorCode.BAD_REQUEST.getCode(), message, request, violations));
+        return respond(
+                ErrorCode.BAD_REQUEST,
+                messages.resolve("error.missing_parameter"),
+                request,
+                exception,
+                violations
+        );
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -242,18 +181,18 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.BAD_REQUEST.getDefaultMessageCode());
-
         List<FieldViolationResponse> violations = List.of(violation(
                 exception.getName(),
                 messages.resolve("validation.invalid_value")
         ));
 
-        attachLogError(request, ErrorCode.BAD_REQUEST.getCode(), exception.getMessage(), exception);
-
-        return ResponseEntity
-                .badRequest()
-                .body(error(ErrorCode.BAD_REQUEST.getCode(), message, request, violations));
+        return respond(
+                ErrorCode.BAD_REQUEST,
+                messages.resolve("error.argument_type_mismatch"),
+                request,
+                exception,
+                violations
+        );
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -261,18 +200,7 @@ public class GlobalExceptionHandler {
             NoResourceFoundException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.RESOURCE_NOT_FOUND.getDefaultMessageCode());
-
-        attachLogError(request, ErrorCode.RESOURCE_NOT_FOUND.getCode(), exception);
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(error(
-                        ErrorCode.RESOURCE_NOT_FOUND.getCode(),
-                        message,
-                        request,
-                        List.of()
-                ));
+        return respond(ErrorCode.RESOURCE_NOT_FOUND, request, exception);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -280,18 +208,7 @@ public class GlobalExceptionHandler {
             HttpRequestMethodNotSupportedException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.METHOD_NOT_ALLOWED.getDefaultMessageCode());
-
-        attachLogError(request, ErrorCode.METHOD_NOT_ALLOWED.getCode(), exception);
-
-        return ResponseEntity
-                .status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(error(
-                        ErrorCode.METHOD_NOT_ALLOWED.getCode(),
-                        message,
-                        request,
-                        List.of()
-                ));
+        return respond(ErrorCode.METHOD_NOT_ALLOWED, request, exception);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
@@ -299,18 +216,15 @@ public class GlobalExceptionHandler {
             HttpMediaTypeNotSupportedException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.UNSUPPORTED_MEDIA_TYPE.getDefaultMessageCode());
+        return respond(ErrorCode.UNSUPPORTED_MEDIA_TYPE, request, exception);
+    }
 
-        attachLogError(request, ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode(), exception);
-
-        return ResponseEntity
-                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                .body(error(
-                        ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode(),
-                        message,
-                        request,
-                        List.of()
-                ));
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<ErrorResponse> handleMediaTypeNotAcceptable(
+            HttpMediaTypeNotAcceptableException exception,
+            HttpServletRequest request
+    ) {
+        return respond(ErrorCode.NOT_ACCEPTABLE, request, exception);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -322,13 +236,7 @@ public class GlobalExceptionHandler {
                 ? ErrorCode.REQUEST_BODY_MISSING
                 : ErrorCode.MALFORMED_JSON;
 
-        String message = messages.resolve(code.getDefaultMessageCode());
-
-        attachLogError(request, code.getCode(), exception);
-
-        return ResponseEntity
-                .status(code.getStatus())
-                .body(error(code.getCode(), message, request, List.of()));
+        return respond(code, request, exception);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -336,14 +244,7 @@ public class GlobalExceptionHandler {
             IllegalArgumentException exception,
             HttpServletRequest request
     ) {
-        ErrorCode code = ErrorCode.BAD_REQUEST;
-        String message = messages.resolve(code.getDefaultMessageCode());
-
-        attachLogError(request, code.getCode(), exception);
-
-        return ResponseEntity
-                .status(code.getStatus())
-                .body(error(code.getCode(), message, request, List.of()));
+        return respond(ErrorCode.BAD_REQUEST, request, exception);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -351,13 +252,7 @@ public class GlobalExceptionHandler {
             DataIntegrityViolationException exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.DATA_INTEGRITY.getDefaultMessageCode());
-
-        attachLogError(request, ErrorCode.DATA_INTEGRITY.getCode(), exception);
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(error(ErrorCode.DATA_INTEGRITY.getCode(), message, request, List.of()));
+        return respond(ErrorCode.DATA_INTEGRITY, request, exception);
     }
 
     @ExceptionHandler({RejectedExecutionException.class, TaskRejectedException.class})
@@ -366,16 +261,11 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         ErrorCode code = ErrorCode.ASYNC_EXECUTOR_SATURATED;
-        String message = messages.resolve(code.getDefaultMessageCode());
-        RequestLogErrorContext.attach(
-                request,
-                code.getCode(),
-                "Application async executor rejected the submitted task",
-                exception
-        );
+        attachLogError(request, code.getCode(), "Application async executor rejected the submitted task", exception);
+
         return ResponseEntity
                 .status(code.getStatus())
-                .body(error(code.getCode(), message, request, List.of()));
+                .body(error(code.getCode(), messages.resolve(code.getDefaultMessageCode()), request, List.of()));
     }
 
     @ExceptionHandler(Exception.class)
@@ -383,13 +273,54 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
-        String message = messages.resolve(ErrorCode.INTERNAL_ERROR.getDefaultMessageCode());
+        return respond(ErrorCode.INTERNAL_ERROR, request, exception);
+    }
 
-        attachLogError(request, ErrorCode.INTERNAL_ERROR.getCode(), exception);
+    /**
+     * Common path for handlers that report the exception via its own message and carry no
+     * field violations. Most handlers below resolve to this.
+     */
+    private ResponseEntity<ErrorResponse> respond(
+            ErrorCode code,
+            HttpServletRequest request,
+            Exception exception
+    ) {
+        return respond(code, messages.resolve(code.getDefaultMessageCode()), request, exception, List.of());
+    }
+
+    private ResponseEntity<ErrorResponse> respond(
+            ErrorCode code,
+            String message,
+            HttpServletRequest request,
+            Exception exception,
+            List<FieldViolationResponse> violations
+    ) {
+        attachLogError(request, code.getCode(), exception);
 
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(error(ErrorCode.INTERNAL_ERROR.getCode(), message, request, List.of()));
+                .status(code.getStatus())
+                .body(error(code.getCode(), message, request, violations));
+    }
+
+    /**
+     * Shared path for the four Bean Validation / binding exception types, which all resolve to
+     * {@link ErrorCode#VALIDATION_FAILED} and differ only in how the field violations are extracted.
+     */
+    private ResponseEntity<ErrorResponse> respondValidationFailed(
+            HttpServletRequest request,
+            Exception exception,
+            List<FieldViolationResponse> violations
+    ) {
+        attachLogError(request, ErrorCode.VALIDATION_FAILED.getCode(), firstViolationMessage(violations), exception);
+
+        return ResponseEntity
+                .badRequest()
+                .body(error(
+                        ErrorCode.VALIDATION_FAILED.getCode(),
+                        messages.resolve(ErrorCode.VALIDATION_FAILED.getDefaultMessageCode()),
+                        request,
+                        violations
+                ));
     }
 
     private ErrorResponse error(

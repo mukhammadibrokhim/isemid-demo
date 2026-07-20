@@ -54,7 +54,7 @@ public class SecurityConfig {
                                 DispatcherType.ERROR, DispatcherType.FORWARD
                         ).permitAll()
                         .requestMatchers(SecurityRouteCatalog.OPEN_PATTERNS.toArray(String[]::new)).permitAll()
-                        // /loggers lets a caller view/change log levels at runtime — previously fell through to
+                        // /Loggers lets a caller view/change log levels at runtime — previously fell through to
                         // plain anyRequest().authenticated(), so ANY authenticated user (any role) could use it.
                         // Restricted to admins now that AdminAccessGuard exists as a single, reusable check.
                         .requestMatchers("/v1/actuator/loggers/**")

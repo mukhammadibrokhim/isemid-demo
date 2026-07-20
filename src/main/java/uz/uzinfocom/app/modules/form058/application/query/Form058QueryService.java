@@ -7,11 +7,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.modules.card.application.query.CardFilterRequest;
+import uz.uzinfocom.app.modules.card.application.query.CardQueryService;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058DetailResponse;
+import uz.uzinfocom.app.modules.form058.application.query.dto.pdf.Form058PdfResponse;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058DetailResponseMapper;
+import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058TableMapper;
 import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
@@ -25,6 +30,7 @@ import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -36,9 +42,11 @@ public class Form058QueryService {
     private final OrganizationScopeResolver organizationScopeResolver;
     private final Form058Specification form058Specification;
     private final Form058DetailResponseMapper form058DetailResponseMapper;
+    private final Form058PdfMapper form058PdfMapper;
     private final Form058TableMapper form058TableMapper;
     private final AdminAccessGuard form058AccessGuard;
     private final AuditResolver auditResolver;
+    private final CardQueryService cardQueryService;
 
     public Page<Form058TableResponse> findAll(Form058Filter filter) {
         ResolvedOrganizationScope scope = currentScope();
@@ -141,7 +149,8 @@ public class Form058QueryService {
 
         return form058DetailResponseMapper.toDetailedResponse(
                 form058,
-                auditResolver.resolve(form058)
+                auditResolver.resolve(form058),
+                linkedCards(form058.getId())
         );
     }
 
@@ -154,8 +163,26 @@ public class Form058QueryService {
 
         return form058DetailResponseMapper.toDetailedResponse(
                 form058,
-                auditResolver.resolve(form058)
+                auditResolver.resolve(form058),
+                linkedCards(form058.getId())
         );
+    }
+
+    public Form058PdfResponse getPdf(Long id) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        Form058 form058 = repository
+                .findOne(form058Specification.visibleById(id, scope))
+                .orElseThrow(() -> new Form058NotFoundException(id));
+
+        return form058PdfMapper.toPdfResponse(form058, linkedCards(form058.getId()));
+    }
+
+    private List<CardTableResponse> linkedCards(Long form058Id) {
+        CardFilterRequest filter = new CardFilterRequest(
+                1, 200, null, null, form058Id, null, null, null, null
+        );
+        return cardQueryService.findTable(filter).getContent();
     }
 
     private ResolvedOrganizationScope currentScope() {

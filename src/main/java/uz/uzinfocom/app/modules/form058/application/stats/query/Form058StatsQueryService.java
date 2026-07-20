@@ -45,6 +45,14 @@ public class Form058StatsQueryService {
         return form058StatsRepository.countBySource(currentScope(), receivedFor(direction));
     }
 
+    public long countTotal(Form058Direction direction) {
+        return form058StatsRepository.countTotal(currentScope(), receivedFor(direction));
+    }
+
+    public long countActive(Form058Direction direction) {
+        return form058StatsRepository.countActive(currentScope(), receivedFor(direction));
+    }
+
     /**
      * Same as {@link #countByDay}, bucketed by calendar month — for
      * multi-month trend charts (e.g. the home dashboard).

@@ -29,11 +29,17 @@ public record CurrentScopeResponse(
         @Schema(description = "Код региона, доступного пользователю.")
         String regionCode,
 
+        @Schema(description = "Наименование региона, доступного пользователю (на языке текущего запроса).")
+        String regionName,
+
         @Schema(description = "Код района или города, доступного пользователю.")
-        String districtCode
+        String districtCode,
+
+        @Schema(description = "Наименование района или города, доступного пользователю (на языке текущего запроса).")
+        String districtName
 ) {
 
-        public static CurrentScopeResponse from(ResolvedOrganizationScope scope) {
+        public static CurrentScopeResponse from(ResolvedOrganizationScope scope, String regionName, String districtName) {
                 return new CurrentScopeResponse(
                         scope.mode(),
                         scope.organizationId(),
@@ -41,7 +47,9 @@ public record CurrentScopeResponse(
                         scope.medicalType(),
                         scope.levelType(),
                         scope.regionCode(),
-                        scope.districtCode()
+                        regionName,
+                        scope.districtCode(),
+                        districtName
                 );
         }
 }

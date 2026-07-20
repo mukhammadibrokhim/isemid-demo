@@ -17,6 +17,7 @@ import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
 import uz.uzinfocom.app.platform.stats.jpa.AbstractCaseStatsRepository;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,11 +31,32 @@ import java.util.List;
 @Repository
 public class Form0581StatsRepository extends AbstractCaseStatsRepository<Form0581> {
 
+    private static final List<Form0581Status> PENDING_STATUSES = Arrays.stream(Form0581Status.values())
+            .filter(Form0581Status::isApprovalDecisionPending)
+            .toList();
+
     private final SenderReceiverScopePredicateFactory scopePredicateFactory;
 
     public Form0581StatsRepository(EntityManager entityManager, SenderReceiverScopePredicateFactory scopePredicateFactory) {
         super(entityManager, Form0581.class);
         this.scopePredicateFactory = scopePredicateFactory;
+    }
+
+    /** Total case count in scope — a direct {@code COUNT(*)}, not a sum over {@link #countByStatus}. */
+    public long countTotal(ResolvedOrganizationScope scope, Boolean received) {
+        return countAll((root, cb) -> scopePredicateFactory.applyDirectionScope(root, cb, scope, received));
+    }
+
+    /**
+     * Count of cases without a final approval decision yet ({@link
+     * Form0581Status#isApprovalDecisionPending()}) — a direct {@code COUNT(*)},
+     * not a Java-side filter+sum over {@link #countByStatus}.
+     */
+    public long countActive(ResolvedOrganizationScope scope, Boolean received) {
+        return countAll((root, cb) -> cb.and(
+                scopePredicateFactory.applyDirectionScope(root, cb, scope, received),
+                root.<Form0581Status>get("status").in(PENDING_STATUSES)
+        ));
     }
 
     public List<Form0581StatusCountResponse> countByStatus(ResolvedOrganizationScope scope, Boolean received) {

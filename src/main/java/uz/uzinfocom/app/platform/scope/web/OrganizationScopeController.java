@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
+import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.scope.dto.CurrentScopeResponse;
@@ -25,6 +26,7 @@ public class OrganizationScopeController {
 
     private final OrganizationScopeResolver resolver;
     private final MessageResolver messages;
+    private final ReferenceLookupService referenceLookupService;
 
     @Operation(
             summary = "Получить текущий организационный контекст",
@@ -40,9 +42,14 @@ public class OrganizationScopeController {
                 CurrentOrganizationContext.require()
         );
 
+        String regionName = scope.regionCode() != null ? referenceLookupService.getRegionName(scope.regionCode()) : null;
+        String districtName = scope.districtCode() != null
+                ? referenceLookupService.getDistrictName(scope.districtCode())
+                : null;
+
         return ApiResponse.success(
                 messages.resolve("organization.scope.loaded"),
-                CurrentScopeResponse.from(scope)
+                CurrentScopeResponse.from(scope, regionName, districtName)
         );
     }
 }

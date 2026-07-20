@@ -4,6 +4,7 @@ import tools.jackson.databind.JsonNode;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -186,7 +187,7 @@ public final class RemotePayloadSupport {
 
         try {
             return LocalDate.parse(trimmed.substring(0, 10));
-        } catch (Exception ignored) {
+        } catch (DateTimeParseException malformedDate) {
             return null;
         }
     }

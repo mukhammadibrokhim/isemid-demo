@@ -22,6 +22,8 @@ public interface Form058TableProjection {
 
     Long getSenderOrganizationId();
 
+    Long getReceiverOrganizationId();
+
     PatientProjection getPatient();
 
     interface PatientProjection {

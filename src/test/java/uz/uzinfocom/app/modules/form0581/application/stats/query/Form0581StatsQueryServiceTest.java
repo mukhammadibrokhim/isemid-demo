@@ -142,6 +142,28 @@ class Form0581StatsQueryServiceTest {
     }
 
     @Test
+    void countTotalIncomingResolvesReceivedTrue() {
+        CurrentOrganizationContext.set(organization(1L));
+        ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
+        when(organizationScopeResolver.resolve(any())).thenReturn(scope);
+
+        service.countTotal(Form0581Direction.INCOMING);
+
+        verify(form0581StatsRepository).countTotal(scope, true);
+    }
+
+    @Test
+    void countActiveIncomingResolvesReceivedTrue() {
+        CurrentOrganizationContext.set(organization(1L));
+        ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
+        when(organizationScopeResolver.resolve(any())).thenReturn(scope);
+
+        service.countActive(Form0581Direction.INCOMING);
+
+        verify(form0581StatsRepository).countActive(scope, true);
+    }
+
+    @Test
     void countByReceiverOrganizationWithinIdsRequiresNoAdminCheck() {
         service.countByReceiverOrganizationWithinIds(List.of(1L, 2L));
 

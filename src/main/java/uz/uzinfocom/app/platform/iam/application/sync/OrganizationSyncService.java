@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.platform.iam.application.sync;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrganizationSyncService {
@@ -37,6 +39,9 @@ public class OrganizationSyncService {
         try {
             return organizationRepository.saveAndFlush(entity);
         } catch (DataIntegrityViolationException concurrentInsert) {
+            log.warn("Organization was provisioned concurrently. Trying to reload. organizationUuid={}",
+                    organizationUuid);
+
             return organizationRepository.findByUuid(organizationUuid)
                     .orElseThrow(() -> concurrentInsert);
         }

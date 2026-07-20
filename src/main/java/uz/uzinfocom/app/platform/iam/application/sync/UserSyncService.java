@@ -132,6 +132,9 @@ public class UserSyncService {
             log.debug("IAM user sync provisioned missing user. userId={}", savedUser.getId());
             return UserSyncResult.created(savedUser);
         } catch (DataIntegrityViolationException concurrentInsert) {
+            log.warn("User was provisioned concurrently. Trying to reload. practitionerUuid={}",
+                    payload.practitionerUuid());
+
             return userRepository.findByUuid(payload.practitionerUuid())
                     .map(UserSyncResult::unchanged)
                     .orElseThrow(() -> concurrentInsert);

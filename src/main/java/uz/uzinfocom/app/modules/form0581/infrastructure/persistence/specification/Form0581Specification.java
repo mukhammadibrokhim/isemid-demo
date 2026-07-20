@@ -136,8 +136,10 @@ public class Form0581Specification {
             predicates.add(cb.equal(root.get(DIAGNOSIS_INFO).get(MKB10_CODE), normalizeCode(filter.mkb10Code())));
         }
 
-        if (filter.senderOrganizationId() != null) {
-            predicates.add(cb.equal(root.get(SENDER_ORGANIZATION_ID), filter.senderOrganizationId()));
+        if (filter.organizationId() != null) {
+            predicates.add(caseSpecificationSupport.directionalOrganizationIdPredicate(
+                    root, cb, received, SENDER_ORGANIZATION_ID, RECEIVER_ORGANIZATION_ID, filter.organizationId()
+            ));
         }
 
         if (StringUtils.hasText(filter.regionCode()) || StringUtils.hasText(filter.districtCode())) {

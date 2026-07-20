@@ -5,8 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.MedicalTypeCountProjection;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLevelCountProjection;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLocalizedName;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationNameProjection;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
@@ -88,6 +91,41 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
 
     long countByActiveTrue();
 
+    /**
+     * Grouped organization counts for the home dashboard's medical-institutions
+     * breakdown. {@code regionCode}/{@code districtCode} are independently
+     * nullable so one query serves ALL (both null), REGION (region only), and
+     * DISTRICT (district only) scope modes - ORGANIZATION mode never calls this
+     * at all, since a single organization's own medicalType/levelType is
+     * already known from {@code ResolvedOrganizationScope} without a DB call.
+     */
+    @Query("""
+            select new uz.uzinfocom.app.platform.iam.application.shared.dto.MedicalTypeCountProjection(o.medicalType, count(o))
+            from Organization o
+            where o.active = true
+              and (:regionCode is null or o.regionCode = :regionCode)
+              and (:districtCode is null or o.districtCode = :districtCode)
+            group by o.medicalType
+            """)
+    List<MedicalTypeCountProjection> countActiveByMedicalType(
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode
+    );
+
+    /** Same scope rules as {@link #countActiveByMedicalType}, grouped by levelType instead. */
+    @Query("""
+            select new uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLevelCountProjection(o.levelType, count(o))
+            from Organization o
+            where o.active = true
+              and (:regionCode is null or o.regionCode = :regionCode)
+              and (:districtCode is null or o.districtCode = :districtCode)
+            group by o.levelType
+            """)
+    List<OrganizationLevelCountProjection> countActiveByLevelType(
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode
+    );
+
     @Query("""
             select new uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection(
                 o.id, o.districtCode
@@ -106,5 +144,22 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
             where o.active = true
             """)
     List<OrganizationGeoProjection> findActiveIdAndRegionCode();
+
+    /**
+     * Every active organization in one district, with its id and raw
+     * locale-name fields — for a DISTRICT-scope caller's organization-level
+     * geo breakdown (a district-scoped caller has no sub-district geography
+     * left, so the unit they see next is their own district's
+     * organizations; see {@code Form058DashboardQueryService}).
+     */
+    @Query("""
+            select new uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationNameProjection(
+                o.id, o.name, o.nameUz, o.nameUzCyril, o.nameRu, o.nameKaa
+            )
+            from Organization o
+            where o.active = true
+              and o.districtCode = :districtCode
+            """)
+    List<OrganizationNameProjection> findActiveByDistrictCode(@Param("districtCode") String districtCode);
 
 }

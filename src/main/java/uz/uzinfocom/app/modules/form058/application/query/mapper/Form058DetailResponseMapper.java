@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.form058.application.query.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.detail.*;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058Location;
@@ -12,6 +13,7 @@ import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Mapper(
         config = CentralMapperConfig.class,
@@ -39,7 +41,8 @@ public interface Form058DetailResponseMapper {
 
     @Mapping(target = "patient", source = "form058.patient")
     @Mapping(target = "audit", source = "audit")
-    Form058DetailResponse toDetailedResponse(Form058 form058, AuditResponse audit);
+    @Mapping(target = "cards", source = "cards")
+    Form058DetailResponse toDetailedResponse(Form058 form058, AuditResponse audit, List<CardTableResponse> cards);
 
     Form058DiagnosisDetailResponse toResponse(Form058DiagnosisInfo source);
 

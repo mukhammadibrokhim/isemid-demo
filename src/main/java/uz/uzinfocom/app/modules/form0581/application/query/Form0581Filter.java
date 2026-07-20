@@ -102,10 +102,15 @@ public record Form0581Filter(
         String mkb10Code,
 
         @Schema(
-                description = "Идентификатор организации-отправителя.",
+                description = """
+                        Идентификатор организации для фильтрации.
+                        Сопоставляется с sender- или receiver-организацией формы в зависимости от direction:
+                        OUTGOING — сравнивается с senderOrganizationId, INCOMING — с receiverOrganizationId,
+                        ALL — совпадение по любой из сторон.
+                        """,
                 example = "336"
         )
-        Long senderOrganizationId,
+        Long organizationId,
 
         @Schema(
                 description = "Код региона организации. Например, область или город республиканского значения.",

@@ -67,6 +67,38 @@ public class CaseSpecificationSupport {
         List<Long> organizationIds = organizationScopeOrganizationIdResolver
                 .resolveFilterOrganizationIds(regionCode, districtCode);
 
+        return directionalOrganizationIdPredicate(
+                root, cb, received, senderOrganizationIdField, receiverOrganizationIdField, organizationIds
+        );
+    }
+
+    /**
+     * Filters by a single caller-supplied organization id, choosing the sender or
+     * receiver column based on {@code received} — the same convention as {@link
+     * #organizationLocationPredicate}: INCOMING (true) matches the receiver side,
+     * OUTGOING (false) matches the sender side, ALL (null) matches either.
+     */
+    public <T> Predicate directionalOrganizationIdPredicate(
+            Root<T> root,
+            CriteriaBuilder cb,
+            Boolean received,
+            String senderOrganizationIdField,
+            String receiverOrganizationIdField,
+            Long organizationId
+    ) {
+        return directionalOrganizationIdPredicate(
+                root, cb, received, senderOrganizationIdField, receiverOrganizationIdField, List.of(organizationId)
+        );
+    }
+
+    private <T> Predicate directionalOrganizationIdPredicate(
+            Root<T> root,
+            CriteriaBuilder cb,
+            Boolean received,
+            String senderOrganizationIdField,
+            String receiverOrganizationIdField,
+            List<Long> organizationIds
+    ) {
         if (received == null) {
             return cb.or(
                     organizationIdPredicate(root, cb, senderOrganizationIdField, organizationIds),
