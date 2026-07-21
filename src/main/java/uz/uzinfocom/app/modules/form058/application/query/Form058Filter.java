@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
@@ -149,6 +150,28 @@ public record Form058Filter(
 
         public boolean isAffiliationFilterEnabled() {
                 return Boolean.TRUE.equals(affiliation);
+        }
+
+        /**
+         * True when direction is the only real predicate this filter contributes - i.e. a
+         * bare "give me the list" request with no date range, status, diagnosis, document,
+         * organization, region/district, source, linked-cards or affiliation narrowing.
+         * Used to decide whether the pagination total can safely use a fast planner
+         * estimate instead of an exact COUNT(*): see ExplainRowCountEstimator.
+         */
+        public boolean hasNoAdditionalFilters() {
+                return status == null
+                        && dateFrom == null
+                        && dateTo == null
+                        && id == null
+                        && !StringUtils.hasText(documentValue)
+                        && !StringUtils.hasText(mkb10Code)
+                        && organizationId == null
+                        && !StringUtils.hasText(regionCode)
+                        && !StringUtils.hasText(districtCode)
+                        && !StringUtils.hasText(source)
+                        && hasLinkedCards == null
+                        && !isAffiliationFilterEnabled();
         }
 
         @Schema(hidden = true)

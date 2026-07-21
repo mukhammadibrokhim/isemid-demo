@@ -13,8 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
+import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCacheService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
@@ -31,6 +34,7 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
 
     private final RequestPolicyResolver requestPolicyResolver;
     private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService;
+    private final OrganizationRepository organizationRepository;
 
     @Override
     protected void doFilterInternal(
@@ -47,6 +51,43 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof IntegrationClientAuthenticationToken integrationToken) {
+            // X-Organization-Id is required here too, exactly like the human path below -
+            // not because the client could be bound to more than one organization (it can't,
+            // see IntegrationClient), but so a client can never silently submit for whatever
+            // organization happens to be baked into its token without saying so explicitly.
+            // It must still match that bound organization: a client can state its own
+            // organization, never claim a different one.
+            String requestedOrganizationHeader = resolveOrganizationHeader(request);
+            if (!StringUtils.hasText(requestedOrganizationHeader)) {
+                throw new AccessDeniedException("organization.required");
+            }
+
+            UUID requestedOrganizationUuid = parseUuid(requestedOrganizationHeader);
+            if (!requestedOrganizationUuid.equals(integrationToken.getPrincipal().organizationUuid())) {
+                throw new AccessDeniedException("organization.not_allowed");
+            }
+
+            // findById, not getReferenceById: this filter runs with no active transaction
+            // (open-in-view=false), so a lazy proxy from getReferenceById would be bound to
+            // no session and blow up the moment anything downstream - even inside a later,
+            // unrelated @Transactional method - touches a field beyond the ID. findById
+            // executes its query eagerly (Spring Data wraps each repository call in its own
+            // short transaction) and returns a fully hydrated, genuinely detached entity.
+            Organization organization = organizationRepository.findById(
+                            integrationToken.getPrincipal().organizationId())
+                    .orElseThrow(() -> new AccessDeniedException("organization.not_allowed"));
+
+            try {
+                CurrentOrganizationContext.set(organization);
+                filterChain.doFilter(request, response);
+            } finally {
+                CurrentOrganizationContext.clear();
+            }
+            return;
+        }
+
         if (!(authentication instanceof FederatedAuthenticationToken federatedToken)) {
             filterChain.doFilter(request, response);
             return;

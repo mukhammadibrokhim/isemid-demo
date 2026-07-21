@@ -11,6 +11,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
@@ -19,6 +21,7 @@ import uz.uzinfocom.app.platform.security.filter.OrganizationContextFilter;
 import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
 import uz.uzinfocom.app.platform.security.handler.JsonAuthenticationEntryPoint;
 import uz.uzinfocom.app.platform.security.jwt.ProviderAuthenticationManagerRegistry;
+import uz.uzinfocom.app.platform.security.jwt.properties.IntegrationTokenProperties;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 import uz.uzinfocom.app.platform.security.whitelist.SecurityRouteCatalog;
 
@@ -27,7 +30,8 @@ import uz.uzinfocom.app.platform.security.whitelist.SecurityRouteCatalog;
 @RequiredArgsConstructor
 @EnableConfigurationProperties({
         AuthProvidersProperties.class,
-        RoleSyncProperties.class
+        RoleSyncProperties.class,
+        IntegrationTokenProperties.class
 })
 public class SecurityConfig {
 
@@ -35,6 +39,17 @@ public class SecurityConfig {
     private final OrganizationContextFilter organizationContextFilter;
     private final JsonAuthenticationEntryPoint authenticationEntryPoint;
     private final JsonAccessDeniedHandler accessDeniedHandler;
+
+    /**
+     * Hashes integration-client secrets (see {@code IntegrationClientCommandService}/
+     * {@code IntegrationTokenService}). Nothing else in this codebase hashes a
+     * credential today — human users authenticate exclusively via external
+     * SSO/DHP, never a locally-stored password.
+     */
+    @Bean
+    public PasswordEncoder integrationClientPasswordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {

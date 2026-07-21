@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
@@ -15,6 +16,8 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.security.auth.FederatedJwtAuthenticationConverter;
+import uz.uzinfocom.app.platform.security.auth.IntegrationJwtAuthenticationConverter;
+import uz.uzinfocom.app.platform.security.jwt.properties.IntegrationTokenProperties;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 
 import java.text.ParseException;
@@ -29,9 +32,14 @@ public class ProviderAuthenticationManagerRegistry {
     public static final String REQUEST_PROVIDER_KEY_ATTRIBUTE =
             ProviderAuthenticationManagerRegistry.class.getName() + ".PROVIDER_KEY";
 
+    private static final String INTEGRATION_PROVIDER_KEY = "integration";
+
     private final AuthProvidersProperties properties;
     private final ProviderJwtDecoderFactory decoderFactory;
     private final FederatedJwtAuthenticationConverter converter;
+    private final JwtDecoder integrationJwtDecoder;
+    private final IntegrationJwtAuthenticationConverter integrationJwtAuthenticationConverter;
+    private final IntegrationTokenProperties integrationTokenProperties;
 
     private final BearerTokenResolver bearerTokenResolver = new DefaultBearerTokenResolver();
 
@@ -64,6 +72,16 @@ public class ProviderAuthenticationManagerRegistry {
                     provider.getMissingIssuerMarkerClaim()
             );
         });
+
+        JwtAuthenticationProvider integrationProvider = new JwtAuthenticationProvider(integrationJwtDecoder);
+        integrationProvider.setJwtAuthenticationConverter(integrationJwtAuthenticationConverter);
+        managers.put(INTEGRATION_PROVIDER_KEY, integrationProvider::authenticate);
+
+        log.info(
+                "Authentication provider registered. providerKey={}, issuerUri={}",
+                INTEGRATION_PROVIDER_KEY,
+                integrationTokenProperties.getIssuer()
+        );
 
         this.authenticationManagersByProviderKey = Map.copyOf(managers);
     }
@@ -101,6 +119,10 @@ public class ProviderAuthenticationManagerRegistry {
         JWTClaimsSet claims = parseClaims(token);
 
         String issuer = normalizeIssuer(claims.getIssuer());
+
+        if (integrationTokenProperties.getIssuer().equals(issuer)) {
+            return INTEGRATION_PROVIDER_KEY;
+        }
 
         if (StringUtils.hasText(issuer)) {
             return properties.findProviderKeyByIssuer(issuer)

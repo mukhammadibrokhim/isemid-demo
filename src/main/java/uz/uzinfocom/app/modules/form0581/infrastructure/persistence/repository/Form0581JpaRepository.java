@@ -21,4 +21,13 @@ public interface Form0581JpaRepository extends JpaRepository<Form0581, Long>, Jp
             """)
     Optional<Form0581> findActiveByIdForUpdate(@Param("id") Long id);
 
+    /**
+     * Planner-only row estimate for the unfiltered active-row predicate, used to avoid an
+     * exact COUNT(*) scan over the whole table when a list query has no real narrowing
+     * predicate (see ExplainRowCountEstimator). Table name is a compile-time constant here,
+     * not user input, so this native query carries no injection surface.
+     */
+    @Query(value = "EXPLAIN (FORMAT JSON) SELECT 1 FROM form058_1 WHERE deleted = false", nativeQuery = true)
+    String explainActiveRowCountPlan();
+
 }

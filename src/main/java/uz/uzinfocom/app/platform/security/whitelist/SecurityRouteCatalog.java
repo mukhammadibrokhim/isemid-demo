@@ -33,7 +33,13 @@ public final class SecurityRouteCatalog {
             "/v1/actuator/health/**",
             "/v1/actuator/info",
             "/v1/actuator/prometheus",
-            "/v1/actuator/metrics/**"
+            "/v1/actuator/metrics/**",
+            // The one public endpoint on the inbound-integration surface: a
+            // registered client exchanges its client_id/client_secret for a
+            // short-lived JWT here, before it has any bearer token to
+            // present. Every other /integration/v1/** path requires that
+            // token and is NOT listed here.
+            "/integration/v1/oauth/token"
     );
 
     /**

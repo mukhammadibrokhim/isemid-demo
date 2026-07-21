@@ -102,6 +102,7 @@ public class Form0581 extends AbsEntity {
 
     @OneToMany(mappedBy = "form0581", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
+    @Builder.Default
     private List<Form0581OtherInjuredPerson> otherInjuredPeople = new ArrayList<>();
 
     @Embedded

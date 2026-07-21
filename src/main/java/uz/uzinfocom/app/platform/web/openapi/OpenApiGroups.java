@@ -84,6 +84,27 @@ public final class OpenApiGroups {
             INTEGRATION_PATHS
     );
 
+    /**
+     * The inbound-integration surface itself — {@code /integration/v1/**},
+     * deliberately outside {@link ApiPaths#API_V1} (see {@link ApiPaths.Integration}),
+     * so it needs its own group rather than an entry in {@link #INTEGRATION}
+     * (which only covers {@code /v1/**}-rooted paths and would never match
+     * this surface anyway).
+     */
+    private static final String[] INBOUND_INTEGRATION_PATHS = {
+            ApiPaths.Integration.ROOT,
+            ApiPaths.Integration.ROOT + "/**"
+    };
+
+    public static final ApiDocumentationGroup INBOUND_INTEGRATION = new ApiDocumentationGroup(
+            "inbound-integration",
+            "Входящая интеграция",
+            "Входящая интеграция",
+            "API для внешних систем, напрямую отправляющих данные в платформу (форма №058, №058-1 и т. д.): "
+                    + "получение токена доступа и приём форм от зарегистрированных интеграционных клиентов.",
+            INBOUND_INTEGRATION_PATHS
+    );
+
     public static String[] pathsToExcludeFromMain() {
         return Stream.of(
                         REFERENCES.pathsToMatch(),

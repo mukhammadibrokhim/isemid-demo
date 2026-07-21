@@ -10,13 +10,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
+import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCacheService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
+import uz.uzinfocom.app.platform.security.principal.IntegrationClientPrincipal;
 import uz.uzinfocom.app.platform.security.principal.PrincipalOrganization;
 import uz.uzinfocom.app.platform.security.principal.PrincipalUser;
 import uz.uzinfocom.app.platform.security.route.RequestPolicy;
@@ -24,12 +28,14 @@ import uz.uzinfocom.app.platform.security.route.RequestPolicyResolver;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class OrganizationContextFilterTest {
@@ -37,9 +43,11 @@ class OrganizationContextFilterTest {
     private final RequestPolicyResolver requestPolicyResolver = mock(RequestPolicyResolver.class);
     private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService =
             mock(SelectedOrganizationSecurityCacheService.class);
+    private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
     private final OrganizationContextFilter filter = new OrganizationContextFilter(
             requestPolicyResolver,
-            selectedOrganizationSecurityCacheService
+            selectedOrganizationSecurityCacheService,
+            organizationRepository
     );
 
     @AfterEach
@@ -96,6 +104,79 @@ class OrganizationContextFilterTest {
                 .hasMessage("organization.not_allowed");
 
         verify(selectedOrganizationSecurityCacheService).resolveSelectedOrganization(1L, organizationUuid);
+    }
+
+    @Test
+    void resolvesOrganizationFromIntegrationTokenWhenHeaderMatchesBoundOrganization() throws Exception {
+        Long organizationId = 42L;
+        UUID organizationUuid = UUID.randomUUID();
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+
+        IntegrationClientPrincipal principal =
+                new IntegrationClientPrincipal("ic_test", "dmed", organizationId, organizationUuid);
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "ic_test").build();
+        IntegrationClientAuthenticationToken authentication =
+                new IntegrationClientAuthenticationToken(jwt, principal, Set.of());
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/integration/v1/dmed/form-058");
+        request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
+
+        when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+        when(organizationRepository.findById(organizationId)).thenReturn(Optional.of(organization));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        FilterChain chain = (servletRequest, servletResponse) ->
+                assertThat(CurrentOrganizationContext.require().getId()).isEqualTo(organizationId);
+
+        filter.doFilter(request, new MockHttpServletResponse(), chain);
+
+        assertThat(CurrentOrganizationContext.getOptional()).isEmpty();
+        verifyNoInteractions(selectedOrganizationSecurityCacheService);
+    }
+
+    @Test
+    void rejectsIntegrationTokenRequestMissingOrganizationHeader() {
+        IntegrationClientPrincipal principal =
+                new IntegrationClientPrincipal("ic_test", "dmed", 42L, UUID.randomUUID());
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "ic_test").build();
+        IntegrationClientAuthenticationToken authentication =
+                new IntegrationClientAuthenticationToken(jwt, principal, Set.of());
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/integration/v1/dmed/form-058");
+
+        when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(), mock(FilterChain.class)))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("organization.required");
+
+        verifyNoInteractions(organizationRepository);
+    }
+
+    @Test
+    void rejectsIntegrationTokenRequestWhenHeaderDoesNotMatchBoundOrganization() {
+        IntegrationClientPrincipal principal =
+                new IntegrationClientPrincipal("ic_test", "dmed", 42L, UUID.randomUUID());
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "ic_test").build();
+        IntegrationClientAuthenticationToken authentication =
+                new IntegrationClientAuthenticationToken(jwt, principal, Set.of());
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/integration/v1/dmed/form-058");
+        request.addHeader(SecurityHeaders.ORGANIZATION_ID, UUID.randomUUID().toString());
+
+        when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(), mock(FilterChain.class)))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("organization.not_allowed");
+
+        verifyNoInteractions(organizationRepository);
     }
 
     private CachedSecurityOrganization organization(Long id, UUID uuid) {

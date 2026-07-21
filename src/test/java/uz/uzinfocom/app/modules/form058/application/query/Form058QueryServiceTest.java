@@ -13,6 +13,7 @@ import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification
 import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.platform.scope.jpa.ExplainRowCountEstimator;
 import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 
 import java.util.Iterator;
@@ -31,7 +32,8 @@ class Form058QueryServiceTest {
             mock(Form058TableMapper.class),
             mock(AdminAccessGuard.class),
             mock(AuditResolver.class),
-            mock(CardQueryService.class)
+            mock(CardQueryService.class),
+            mock(ExplainRowCountEstimator.class)
     );
 
     @Test

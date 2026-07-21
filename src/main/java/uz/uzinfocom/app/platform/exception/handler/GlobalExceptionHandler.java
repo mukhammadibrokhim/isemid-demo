@@ -5,7 +5,6 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,13 +24,14 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
-import uz.uzinfocom.app.shared.exception.AppException;
-import uz.uzinfocom.app.shared.exception.ErrorCode;
+import uz.uzinfocom.app.platform.security.handler.AccessDeniedMessageCodeResolver;
 import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
 import uz.uzinfocom.app.shared.dto.response.FieldViolationResponse;
+import uz.uzinfocom.app.shared.exception.AppException;
+import uz.uzinfocom.app.shared.exception.ErrorCode;
 
-import java.util.List;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Pattern;
 
@@ -47,6 +47,7 @@ public class GlobalExceptionHandler {
 
     private final MessageResolver messages;
     private final TraceIdProvider traceIdProvider;
+    private final AccessDeniedMessageCodeResolver accessDeniedMessageCodeResolver;
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppException(
@@ -118,12 +119,27 @@ public class GlobalExceptionHandler {
         return respondValidationFailed(request, exception, violations);
     }
 
+    /**
+     * An {@link AccessDeniedException} thrown from application code inside a
+     * controller method (as opposed to the Spring Security filter chain, which
+     * is instead handled by {@code JsonAccessDeniedHandler}) reaches here via
+     * MVC's own exception resolution. Both paths must apply the identical
+     * message-code validation rule - see
+     * {@link AccessDeniedMessageCodeResolver} - or a validated key thrown from
+     * a filter forwards correctly while the same key thrown from a controller
+     * body silently degrades to the generic forbidden message.
+     */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(
             AccessDeniedException exception,
             HttpServletRequest request
     ) {
-        return respond(ErrorCode.FORBIDDEN, request, exception);
+        String messageCode = accessDeniedMessageCodeResolver.resolve(exception.getMessage());
+        String message = messageCode != null
+                ? messages.resolve(messageCode)
+                : messages.resolve(ErrorCode.FORBIDDEN.getDefaultMessageCode());
+
+        return respond(ErrorCode.FORBIDDEN, message, request, exception, List.of());
     }
 
     /**

@@ -32,6 +32,7 @@ import uz.uzinfocom.app.platform.i18n.I18nConfig;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
+import uz.uzinfocom.app.platform.security.handler.AccessDeniedMessageCodeResolver;
 import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
@@ -63,7 +64,7 @@ class GlobalExceptionHandlerTest {
         MessageResolver messages = new MessageResolver(new I18nConfig().messageSource());
         when(traceIdProvider.getOrCreate(any())).thenReturn(TRACE_ID);
 
-        handler = new GlobalExceptionHandler(messages, traceIdProvider);
+        handler = new GlobalExceptionHandler(messages, traceIdProvider, new AccessDeniedMessageCodeResolver());
         request = new MockHttpServletRequest("GET", "/v1/dashboard/home");
         LocaleContextHolder.setLocale(Locale.ENGLISH);
     }
@@ -116,12 +117,31 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void accessDeniedMapsToForbidden() {
+    void accessDeniedWithFreeTextMessageFallsBackToTheGenericForbiddenMessage() {
+        // "denied" isn't a validated localization key (no dot-separated segments) - the raw
+        // exception message must never leak to the client, so this falls back to the generic
+        // default, exactly like JsonAccessDeniedHandler does for the same kind of message.
         ResponseEntity<ErrorResponse> response =
                 handler.handleAccessDenied(new AccessDeniedException("denied"), request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(response.getBody().code()).isEqualTo("FORBIDDEN");
+        assertThat(response.getBody().message()).isEqualTo("Access denied.");
+    }
+
+    @Test
+    void accessDeniedWithAValidatedMessageCodeForwardsItsLocalizedMessage() {
+        // An AccessDeniedException thrown from application code inside a controller method
+        // (e.g. InboundCallerContext.requireMatchingSourceKey) reaches this handler, not
+        // JsonAccessDeniedHandler (that only catches exceptions from the security filter
+        // chain) - both must resolve a validated message code the same way.
+        ResponseEntity<ErrorResponse> response = handler.handleAccessDenied(
+                new AccessDeniedException("organization.not_allowed"), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody().code()).isEqualTo("FORBIDDEN");
+        assertThat(response.getBody().message())
+                .isEqualTo("Selected organization is not available for the authenticated user.");
     }
 
     @Test

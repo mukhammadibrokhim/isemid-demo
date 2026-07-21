@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form058SortFields.ALLOWED lets a client sort the list endpoint by
+        updatedAt, mkb10Name, visitDate, or initialReportDateTime - none of
+        which had any index, unlike createdAt (see the 20260717 performance
+        migration). Confirmed on the real dev DB (600k+ rows): ALL-scope
+        (no sender/receiver predicate to narrow rows first) sorted by
+        updated_at took 729-1137ms vs 151ms for created_at - a 5-7x
+        regression hiding behind an otherwise-fast-looking endpoint, since
+        region/org-scoped requests stay fast (the sender/receiver composite
+        indexes narrow the row set enough that even an unindexed sort over
+        the remainder is cheap). A single partial index per column, ordered
+        DESC with the same `id` tiebreaker Form058QueryService.resolvePageable
+        always appends, is enough to keep any of these sort choices fast
+        regardless of scope size.
+    -->
+    <changeSet id="20260720-1000-01-add-idx-form058-updated-at-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_updated_at_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_updated_at_sort
+                ON form058 (updated_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260720-1000-02-add-idx-form058-mkb10-name-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_mkb10_name_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_mkb10_name_sort
+                ON form058 (mkb10_name DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260720-1000-03-add-idx-form058-visit-date-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_visit_date_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_visit_date_sort
+                ON form058 (visit_date DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260720-1000-04-add-idx-form058-initial-report-date-time-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_initial_report_date_time_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_initial_report_date_time_sort
+                ON form058 (initial_report_date_time DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

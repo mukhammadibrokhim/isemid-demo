@@ -136,9 +136,9 @@ class Form058DashboardQueryServiceTest {
         Form058DashboardResponse response = service.getDashboard();
 
         assertThat(response.geoBreakdown()).hasSize(1);
-        assertThat(response.geoBreakdown().get(0).code()).isEqualTo("10");
-        assertThat(response.geoBreakdown().get(0).name()).isEqualTo("Поликлиника №10");
-        assertThat(response.geoBreakdown().get(0).count()).isEqualTo(5L);
+        assertThat(response.geoBreakdown().getFirst().code()).isEqualTo("10");
+        assertThat(response.geoBreakdown().getFirst().name()).isEqualTo("Поликлиника №10");
+        assertThat(response.geoBreakdown().getFirst().count()).isEqualTo(5L);
     }
 
     @Test
@@ -194,7 +194,7 @@ class Form058DashboardQueryServiceTest {
         Form058DashboardResponse response = service.getDashboard();
 
         assertThat(response.geoBreakdown()).hasSize(1);
-        assertThat(response.geoBreakdown().get(0).count()).isZero();
+        assertThat(response.geoBreakdown().getFirst().count()).isZero();
     }
 
     private ResolvedOrganizationScope scopeOf(OrganizationScopeMode mode, String regionCode, String districtCode) {

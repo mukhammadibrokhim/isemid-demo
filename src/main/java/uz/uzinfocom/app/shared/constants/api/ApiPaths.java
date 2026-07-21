@@ -126,6 +126,22 @@ public final class ApiPaths {
         public static final String RESTORE = "/{id}/restore";
     }
 
+    /**
+     * Human-facing admin tooling for provisioning inbound-integration clients
+     * (see {@link Integration}) — lives under the existing {@link Admin} root,
+     * not under {@code Integration.ROOT}, since it's authenticated the same
+     * way as every other admin endpoint (human SSO JWT + adminAccessGuard),
+     * not by the machine clients it manages.
+     */
+    public static final class IntegrationClient {
+        private IntegrationClient() {
+        }
+
+        public static final String ROOT = Admin.ROOT + "/integration-clients";
+        public static final String BY_ID = "/{id}";
+        public static final String REVOKE = "/{id}/revoke";
+    }
+
     public static final class Form058 {
         private Form058() {
         }
@@ -255,6 +271,33 @@ public final class ApiPaths {
         public static final String ISEMID_CALLBACK = API_V1 + "/acts/lis/callback/";
         public static final String LIS_ACT_API = "/api/lis/labs/%s/acts/%s?allowedDuplicate=%s";
         public static final String LIS_RESEARCH_TYPE_API = "/api/lis/research-types/%s/template-id";
+    }
+
+    /**
+     * Root for the inbound-integration API surface: external systems
+     * (labs, hospital information systems, other registries) submitting case
+     * data directly, authenticated as a registered {@link IntegrationClient}
+     * rather than a human SSO/DHP user. Deliberately kept OUTSIDE
+     * {@link #API_V1} — a fully separate namespace from the frontend-facing
+     * API, so the two surfaces can never be confused in routing, logging, or
+     * security policy.
+     */
+    public static final class Integration {
+        private Integration() {
+        }
+
+        public static final String ROOT = "/integration/v1";
+        public static final String OAUTH_TOKEN = ROOT + "/oauth/token";
+
+        /**
+         * {source} identifies which system is calling — e.g.
+         * /integration/v1/dmed/form-058 for DMED. For an integration-client
+         * caller it must match the client's own registered sourceKey (see
+         * InboundCallerContext); it is not a free-form value a caller can
+         * pick per request.
+         */
+        public static final String FORM058 = ROOT + "/{source}/form-058";
+        public static final String FORM0581 = ROOT + "/{source}/form-058-1";
     }
 
 }

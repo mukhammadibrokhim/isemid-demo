@@ -8,13 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.web.response.ErrorResponseWriter;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
 
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
@@ -23,23 +21,8 @@ public class JsonAccessDeniedHandler implements AccessDeniedHandler {
     private static final String TECHNICAL_MESSAGE =
             "The authenticated principal does not have permission to access the requested resource";
 
-    /**
-     * Accepts localization keys such as:
-     * error.organization_required
-     * error.organization_not_allowed
-     * security.permission_denied
-     */
-    private static final Pattern MESSAGE_CODE_PATTERN = Pattern.compile(
-            "^[a-z][a-z0-9_]*(?:\\.[a-z0-9_]+)+$"
-    );
-
-    /**
-     * Prevents unexpectedly large exception messages from being treated
-     * as localization keys.
-     */
-    private static final int MAX_MESSAGE_CODE_LENGTH = 200;
-
     private final ErrorResponseWriter errorResponseWriter;
+    private final AccessDeniedMessageCodeResolver messageCodeResolver;
 
     @Override
     public void handle(
@@ -48,7 +31,7 @@ public class JsonAccessDeniedHandler implements AccessDeniedHandler {
             @NonNull AccessDeniedException accessDeniedException
     ) throws IOException {
 
-        String messageCode = resolveMessageCode(
+        String messageCode = messageCodeResolver.resolve(
                 accessDeniedException.getMessage()
         );
 
@@ -101,23 +84,5 @@ public class JsonAccessDeniedHandler implements AccessDeniedHandler {
                 HttpStatus.FORBIDDEN,
                 ErrorCode.FORBIDDEN
         );
-    }
-
-    private String resolveMessageCode(String message) {
-        if (!StringUtils.hasText(message)) {
-            return null;
-        }
-
-        String normalized = message.trim();
-
-        if (normalized.length() > MAX_MESSAGE_CODE_LENGTH) {
-            return null;
-        }
-
-        return MESSAGE_CODE_PATTERN
-                .matcher(normalized)
-                .matches()
-                ? normalized
-                : null;
     }
 }

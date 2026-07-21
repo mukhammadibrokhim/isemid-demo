@@ -2,9 +2,12 @@ package uz.uzinfocom.app.modules.form058.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.card.application.query.CardFilterRequest;
@@ -24,7 +27,9 @@ import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Fo
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.platform.scope.jpa.ExplainRowCountEstimator;
 import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
@@ -47,6 +52,7 @@ public class Form058QueryService {
     private final AdminAccessGuard form058AccessGuard;
     private final AuditResolver auditResolver;
     private final CardQueryService cardQueryService;
+    private final ExplainRowCountEstimator explainRowCountEstimator;
 
     public Page<Form058TableResponse> findAll(Form058Filter filter) {
         ResolvedOrganizationScope scope = currentScope();
@@ -64,19 +70,12 @@ public class Form058QueryService {
             Boolean received
     ) {
         Pageable pageable = resolvePageable(filter);
+        Specification<Form058> spec = form058Specification.table(filter, scope, received);
 
-        Page<Form058TableProjection> page = Objects.requireNonNull(
-                repository.findBy(
-                        form058Specification.table(filter, scope, received),
-                        query -> query
-                                .as(Form058TableProjection.class)
-                                .page(pageable)
-                ),
-                "Form058 table page returned null"
-        );
+        boolean canEstimateTotal = scope.mode() == OrganizationScopeMode.ALL
+                && filter.hasNoAdditionalFilters();
 
-        return page.map(projection -> form058TableMapper
-                .toTableResponse(projection, filter.direction()));
+        return assemblePage(spec, pageable, filter, canEstimateTotal);
     }
 
     /**
@@ -91,19 +90,49 @@ public class Form058QueryService {
         form058AccessGuard.requireSuperAdmin();
 
         Pageable pageable = resolvePageable(filter);
+        Specification<Form058> spec = form058Specification.tableUnscoped(filter, scope);
 
-        Page<Form058TableProjection> page = Objects.requireNonNull(
+        return assemblePage(spec, pageable, filter, filter.hasNoAdditionalFilters());
+    }
+
+    /**
+     * Fetches the page content via a count-free {@code slice()} and resolves the
+     * pagination total separately - either the exact {@code COUNT(*)} (fast already for
+     * any real predicate, since it hits one of the composite sender/receiver indexes), or,
+     * when the caller confirms the predicate is effectively unfiltered (broad SANEPID
+     * scope, no additional filter fields), a fast planner row estimate instead. An exact
+     * COUNT(*) over an unfiltered 600k+ row table costs tens of milliseconds on its own
+     * (confirmed via EXPLAIN ANALYZE) for no benefit: nobody reads "exactly 600,010" as
+     * meaningfully different from "about 600,000" in a paginated list's total.
+     */
+    private Page<Form058TableResponse> assemblePage(
+            Specification<Form058> spec,
+            Pageable pageable,
+            Form058Filter filter,
+            boolean canEstimateTotal
+    ) {
+        Slice<Form058TableProjection> slice = Objects.requireNonNull(
                 repository.findBy(
-                        form058Specification.tableUnscoped(filter, scope),
+                        spec,
                         query -> query
                                 .as(Form058TableProjection.class)
-                                .page(pageable)
+                                .sortBy(pageable.getSort())
+                                .slice(pageable)
                 ),
-                "Form058 table page returned null"
+                "Form058 table slice returned null"
         );
 
-        return page.map(projection -> form058TableMapper
-                .toTableResponse(projection, filter.direction()));
+        long total = canEstimateTotal
+                ? explainRowCountEstimator.estimate(
+                        repository.explainActiveRowCountPlan(),
+                        () -> repository.count(spec))
+                : repository.count(spec);
+
+        List<Form058TableResponse> content = slice.getContent().stream()
+                .map(projection -> form058TableMapper.toTableResponse(projection, filter.direction()))
+                .toList();
+
+        return new PageImpl<>(content, pageable, total);
     }
 
     /**

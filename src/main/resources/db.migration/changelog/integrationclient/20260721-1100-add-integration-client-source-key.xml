@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The fixed URL path segment this client is known by, e.g. "dmed" for
+        POST /integration/dmed/form-058 - one external system, one source
+        key, one registered client. Backfilled from client_id for any row
+        that predates this column (none in production yet, but keeps the
+        NOT NULL + UNIQUE constraints satisfiable if this ever runs against
+        a DB that already has rows).
+    -->
+    <changeSet id="20260721-1100-01-add-integration-client-source-key" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="source_key" type="VARCHAR(64)"/>
+        </addColumn>
+
+        <sql>UPDATE integration_client SET source_key = upper(client_id) WHERE source_key IS NULL</sql>
+
+        <addNotNullConstraint tableName="integration_client" columnName="source_key" columnDataType="VARCHAR(64)"/>
+
+        <addUniqueConstraint tableName="integration_client" columnNames="source_key"
+                              constraintName="uk_integration_client_source_key"/>
+    </changeSet>
+</databaseChangeLog>

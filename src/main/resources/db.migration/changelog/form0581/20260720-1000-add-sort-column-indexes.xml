@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Mirrors the same fix applied to form058 in
+        20260720-1000-add-sort-column-indexes.xml (see that file's comment
+        for the measured before/after numbers). Form0581SortFields.ALLOWED
+        lets a client sort by updatedAt, mkb10Name, injuryDateTime, or
+        dpuVisitDateTime - none of which had any index, unlike createdAt.
+    -->
+    <changeSet id="20260720-1000-01-add-idx-form0581-updated-at-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_updated_at_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_updated_at_sort
+                ON form058_1 (updated_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260720-1000-02-add-idx-form0581-mkb10-name-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_mkb10_name_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_mkb10_name_sort
+                ON form058_1 (mkb10_name DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260720-1000-03-add-idx-form0581-injury-date-time-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_injury_date_time_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_injury_date_time_sort
+                ON form058_1 (injury_date_time DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260720-1000-04-add-idx-form0581-dpu-visit-date-time-sort" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_dpu_visit_date_time_sort"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_dpu_visit_date_time_sort
+                ON form058_1 (dpu_visit_date_time DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

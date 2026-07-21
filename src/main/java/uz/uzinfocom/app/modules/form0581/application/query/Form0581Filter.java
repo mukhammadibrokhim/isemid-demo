@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
@@ -140,5 +141,25 @@ public record Form0581Filter(
                 }
 
                 return !dateFrom.isAfter(dateTo);
+        }
+
+        /**
+         * True when direction is the only real predicate this filter contributes - i.e. a
+         * bare "give me the list" request with no date range, status, diagnosis, document,
+         * organization, region/district or source narrowing. Used to decide whether the
+         * pagination total can safely use a fast planner estimate instead of an exact
+         * COUNT(*): see ExplainRowCountEstimator.
+         */
+        public boolean hasNoAdditionalFilters() {
+                return status == null
+                        && dateFrom == null
+                        && dateTo == null
+                        && id == null
+                        && !StringUtils.hasText(documentValue)
+                        && !StringUtils.hasText(mkb10Code)
+                        && organizationId == null
+                        && !StringUtils.hasText(regionCode)
+                        && !StringUtils.hasText(districtCode)
+                        && !StringUtils.hasText(source);
         }
 }

@@ -28,7 +28,6 @@
         <springdoc.version>3.0.3</springdoc.version>
 
         <datasource-micrometer.version>2.2.1</datasource-micrometer.version>
-        <spring-modulith.version>2.0.6</spring-modulith.version>
 
         <!-- Structured JSON console logging in production (see logback-spring.xml) -->
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
@@ -97,16 +96,6 @@
             <artifactId>datasource-micrometer-spring-boot</artifactId>
         </dependency>
 
-        <!-- Spring Modulith -->
-        <dependency>
-            <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-starter-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-starter-jpa</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -138,16 +127,6 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-actuator</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-observability</artifactId>
             <scope>runtime</scope>
         </dependency>
 
@@ -218,11 +197,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
         </dependency>
@@ -240,13 +214,6 @@
                 <groupId>net.ttddyy.observation</groupId>
                 <artifactId>datasource-micrometer-bom</artifactId>
                 <version>${datasource-micrometer.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.modulith</groupId>
-                <artifactId>spring-modulith-bom</artifactId>
-                <version>${spring-modulith.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
