@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.features.report.service.impls;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,6 +15,8 @@ import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
 import uz.uzinfocom.isemid.features.patient.enums.Gender;
+import uz.uzinfocom.isemid.features.patient.models.Address;
+import uz.uzinfocom.isemid.features.patient.models.Patient;
 import uz.uzinfocom.isemid.features.report.dtos.Form12ReportDto;
 import uz.uzinfocom.isemid.features.report.service.Form12ReportService;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -22,6 +26,8 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 @RequiredArgsConstructor
@@ -36,11 +42,13 @@ public class Form12ReportServiceImpl implements Form12ReportService {
             LocalDate birthDate,
             String mkb10Code,
             Gender gender,
+            String stateCode,
+            String cityCode,
             User currentUser
     ) {
 
         List<Form058> form058List = form058Repository.findAll(
-                filterByCriteria(fromDate, toDate, birthDate, gender, currentUser)
+                filterByCriteria(fromDate, toDate, birthDate, gender, stateCode, cityCode, currentUser)
         );
 
         List<ManualReport> manualReports = manualReportService.getManualReportsForForm(ReportType.FORM_12.name());
@@ -90,10 +98,14 @@ public class Form12ReportServiceImpl implements Form12ReportService {
             LocalDate toDate,
             LocalDate birthDate,
             Gender gender,
+            String stateCode,
+            String cityCode,
             User currentUser
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            Join<Form058, Patient> patientJoin = root.join("patient", JoinType.LEFT);
+            Join<Patient, Address> addressesJoin = patientJoin.join("addresses", JoinType.LEFT);
 
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
 
@@ -103,6 +115,14 @@ public class Form12ReportServiceImpl implements Form12ReportService {
 
             if (gender != null) {
                 predicates.add(cb.equal(root.get("patient").get("genderCode"), gender.name()));
+            }
+
+            if (hasText(stateCode)) {
+                predicates.add(cb.equal(addressesJoin.get("stateCode"), stateCode));
+            }
+
+            if (hasText(cityCode)) {
+                predicates.add(cb.equal(addressesJoin.get("cityCode"), cityCode));
             }
 
             Organization userOrg = currentUser != null ? currentUser.getCurrentOrganization() : null;
