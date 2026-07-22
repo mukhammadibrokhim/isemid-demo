@@ -5,7 +5,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.integration.api2.citizen.application.CitizenLookupService;
@@ -13,11 +15,13 @@ import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupRequest;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
+import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 
 import java.time.LocalDate;
 
 @Tag(name = "API2 Citizen", description = "Поиск сведений о физическом лице через внешнюю систему API2.")
 @RestController
+@RequestMapping(ApiPaths.Citizen.ROOT)
 @RequiredArgsConstructor
 public class CitizenLookupController {
 
@@ -28,7 +32,8 @@ public class CitizenLookupController {
             summary = "Найти сведения о физическом лице через API2",
             description = "Выполняет поиск физического лица во внешней системе API2 по ПИНФЛ, паспортным данным или свидетельству о рождении — в зависимости от указанного типа поиска."
     )
-    @GetMapping("/v1/citizen")
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public CitizenLookupResponse lookupCitizen(
             @Parameter(description = "Тип поиска: NNUZB (ПИНФЛ), PPN (паспорт) или CZ (свидетельство о рождении).", required = true)
             @RequestParam CitizenLookupType type,

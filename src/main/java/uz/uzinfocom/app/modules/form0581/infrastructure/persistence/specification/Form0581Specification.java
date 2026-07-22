@@ -88,6 +88,38 @@ public class Form0581Specification {
                 );
     }
 
+    /**
+     * For outbound-integration lookups (e.g. an integration client asking
+     * "what's the latest form058-1 for this identifier"): visible only if
+     * the caller's own organization was sender or receiver on it - the same
+     * either-side rule {@link #visible} applies via
+     * {@code applyDirectionScope(..., received=null)}, just against a
+     * single organization id already resolved by the caller rather than a
+     * full {@link ResolvedOrganizationScope}.
+     * <p>
+     * Matches on identifier value only, like {@link #visibleByDocumentValue} -
+     * patient records are not deduplicated across separate submissions in
+     * this system (the same real person's PINFL can be attached to several
+     * distinct {@code Patient} rows), so resolving one "canonical" patient
+     * first and then looking up their forms would silently miss forms
+     * attached to any other duplicate. Matching the form directly by
+     * identifier value, the same way the existing document-value lookups
+     * already do, finds every form regardless of which patient row it
+     * happens to reference.
+     */
+    public Specification<Form0581> visibleByDocumentValueAndOrganization(
+            String documentValue,
+            Long organizationId
+    ) {
+        return (root, query, cb) -> cb.and(
+                cb.isFalse(root.get("deleteInfo").get(DELETED)),
+                caseSpecificationSupport.documentValueExists(root, query, cb, PATIENT, normalizeDocumentValue(documentValue)),
+                caseSpecificationSupport.directionalOrganizationIdPredicate(
+                        root, cb, null, SENDER_ORGANIZATION_ID, RECEIVER_ORGANIZATION_ID, organizationId
+                )
+        );
+    }
+
     private Specification<Form0581> visible(ResolvedOrganizationScope scope) {
         return (root, query, cb) -> cb.and(
                 cb.isFalse(root.get("deleteInfo").get(DELETED)),

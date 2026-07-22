@@ -91,6 +91,30 @@ public final class ApiPaths {
         public static final String CURRENT = "/current";
     }
 
+    /**
+     * Outbound API2 lookup: we call out to the external API2 system to fetch
+     * citizen data on a caller's behalf. More lookup types (beyond
+     * NNUZB/PPN/CZ) are expected to land under this same root later - see
+     * {@code CitizenLookupType}.
+     */
+    public static final class Citizen {
+        private Citizen() {
+        }
+
+        public static final String ROOT = API_V1 + "/citizen";
+    }
+
+    /**
+     * Outbound API2 lookup: we call out to the external API2 system to fetch
+     * legal-entity (TIN) data on a caller's behalf.
+     */
+    public static final class LegalEntity {
+        private LegalEntity() {
+        }
+
+        public static final String ROOT = API_V1 + "/legal-entity";
+    }
+
     public static final class Reference {
         private Reference() {
         }
@@ -308,6 +332,19 @@ public final class ApiPaths {
          * contract that isn't meant to generalize.
          */
         public static final String DMED_FORM058 = ROOT + "/DMED/form-058";
+
+        /**
+         * Outbound side of the same integration surface: instead of an
+         * external system pushing case data to us ({@link #FORM058}/
+         * {@link #FORM0581}), this is where a registered integration client
+         * pulls data back out - a patient's basic info plus their most
+         * recently submitted form058/form058-1 (see
+         * {@code PatientCaseLookupService}). Requires the
+         * {@code patient-case:read} scope (see {@code IntegrationScope}) and
+         * is scoped to the client's own bound organization, exactly like the
+         * inbound side.
+         */
+        public static final String PATIENT_CASE = ROOT + "/{source}/patients/case";
     }
 
 }

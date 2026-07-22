@@ -2,6 +2,7 @@ package uz.uzinfocom.app.integration.api2.legalentity.api;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import tools.jackson.databind.JsonNode;
+import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupSource;
 
 @Schema(description = "Результат поиска юридического лица через внешнюю систему API2.")
 public record LegalEntityLookupResponse(
@@ -20,4 +21,14 @@ public record LegalEntityLookupResponse(
         @Schema(description = "Сырые данные о юридическом лице, полученные от API2.")
         JsonNode data
 ) {
+
+    public LegalEntityLookupResponse(
+            boolean success,
+            String message,
+            LegalEntityLookupSource source,
+            int status,
+            JsonNode data
+    ) {
+        this(success, message, source == null ? null : source.name(), status, data);
+    }
 }

@@ -24,7 +24,7 @@ class InboundForm058ValidatorTest {
                 LocalDateTime.of(2026, 5, 1, 8, 0),
                 LocalDateTime.of(2026, 5, 1, 10, 0),
                 LocalDateTime.of(2026, 5, 1, 12, 0),
-                patientWithPinfl("12345678901234")
+                patientWithPinfl("51506123456785")
         ))).doesNotThrowAnyException();
     }
 
@@ -34,7 +34,7 @@ class InboundForm058ValidatorTest {
                 LocalDateTime.of(2026, 5, 2, 8, 0),
                 LocalDateTime.of(2026, 5, 1, 10, 0),
                 LocalDateTime.of(2026, 5, 1, 12, 0),
-                patientWithPinfl("12345678901234")
+                patientWithPinfl("51506123456785")
         ))).isInstanceOf(InboundValidationException.class);
     }
 
@@ -44,7 +44,7 @@ class InboundForm058ValidatorTest {
                 LocalDateTime.of(2026, 5, 1, 8, 0),
                 LocalDateTime.of(2026, 5, 1, 12, 0),
                 LocalDateTime.of(2026, 5, 1, 10, 0),
-                patientWithPinfl("12345678901234")
+                patientWithPinfl("51506123456785")
         ))).isInstanceOf(InboundValidationException.class);
     }
 

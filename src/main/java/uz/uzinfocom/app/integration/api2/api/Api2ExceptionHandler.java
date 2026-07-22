@@ -18,6 +18,7 @@ import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodySanitize
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
+import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -214,7 +215,7 @@ public class Api2ExceptionHandler {
 
     private boolean isLegalEntityRequest(HttpServletRequest request) {
         return request.getRequestURI() != null
-                && request.getRequestURI().contains("/v1/legal-entity");
+                && request.getRequestURI().startsWith(ApiPaths.LegalEntity.ROOT);
     }
 
     private record Api2RequestContext(

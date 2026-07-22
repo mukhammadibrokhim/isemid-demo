@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
@@ -37,6 +39,7 @@ import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -81,7 +84,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ErrorResponse> response = handler.handleAppException(exception, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(response.getBody().code()).isEqualTo("SCOPE_VIOLATION");
+        assertThat(Objects.requireNonNull(response.getBody()).code()).isEqualTo("SCOPE_VIOLATION");
         assertThat(response.getBody().message()).isEqualTo("Unknown dashboard module: unknown.");
         assertThat(response.getBody().traceId()).isEqualTo(TRACE_ID);
         assertThat(response.getBody().path()).isEqualTo("/v1/dashboard/home");
@@ -243,6 +246,36 @@ class GlobalExceptionHandlerTest {
 
         assertThat(missingBodyResponse.getBody().code()).isEqualTo("REQUEST_BODY_MISSING");
         assertThat(malformedResponse.getBody().code()).isEqualTo("MALFORMED_JSON");
+    }
+
+    @Test
+    void httpMessageNotReadableExtractsTheFailingFieldPathFromJacksonWhenAvailable() {
+        JsonMapper jsonMapper = JsonMapper.builder().build();
+        JacksonException jacksonException = null;
+
+        try {
+            jsonMapper.readValue("{\"inner\":{\"count\":\"not-a-number\"}}", Outer.class);
+        } catch (JacksonException exception) {
+            jacksonException = exception;
+        }
+
+        assertThat(jacksonException).isNotNull();
+
+        HttpMessageNotReadableException malformed = new HttpMessageNotReadableException(
+                "JSON parse error", jacksonException, null);
+
+        ResponseEntity<ErrorResponse> response = handler.handleHttpMessageNotReadable(malformed, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().code()).isEqualTo("MALFORMED_JSON");
+        assertThat(response.getBody().violations()).hasSize(1);
+        assertThat(response.getBody().violations().get(0).field()).isEqualTo("inner.count");
+    }
+
+    private record Inner(Integer count) {
+    }
+
+    private record Outer(Inner inner) {
     }
 
     @Test

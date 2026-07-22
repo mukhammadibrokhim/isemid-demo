@@ -26,7 +26,7 @@ class DmedForm058ValidatorTest {
                 LocalDateTime.of(2026, 5, 1, 8, 0),
                 LocalDateTime.of(2026, 5, 1, 10, 0),
                 LocalDateTime.of(2026, 5, 1, 12, 0),
-                patientWithPinfl("12345678901234")
+                patientWithPinfl("51506123456785")
         ))).doesNotThrowAnyException();
     }
 
@@ -36,7 +36,7 @@ class DmedForm058ValidatorTest {
                 LocalDateTime.of(2026, 5, 2, 8, 0),
                 LocalDateTime.of(2026, 5, 1, 10, 0),
                 LocalDateTime.of(2026, 5, 1, 12, 0),
-                patientWithPinfl("12345678901234")
+                patientWithPinfl("51506123456785")
         ))).isInstanceOf(InboundValidationException.class);
     }
 
@@ -46,7 +46,7 @@ class DmedForm058ValidatorTest {
                 LocalDateTime.of(2026, 5, 1, 8, 0),
                 LocalDateTime.of(2026, 5, 1, 12, 0),
                 LocalDateTime.of(2026, 5, 1, 10, 0),
-                patientWithPinfl("12345678901234")
+                patientWithPinfl("51506123456785")
         ))).isInstanceOf(InboundValidationException.class);
     }
 
@@ -65,9 +65,47 @@ class DmedForm058ValidatorTest {
         PatientRequest patient = new PatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
-                List.of(new CreatePatientIdentifierRequest("PINFL", "12345678901234", null, null)),
+                List.of(new CreatePatientIdentifierRequest("PINFL", "51506123456785", null, null)),
                 List.of(new CreatePatientAddressRequest(
                         AddressType.TEMPORARY, "UZ-TK", "TK-283", null, null, null, null)),
+                List.of()
+        );
+
+        assertThatThrownBy(() -> validator.validate(request(
+                LocalDateTime.of(2026, 5, 1, 8, 0),
+                LocalDateTime.of(2026, 5, 1, 10, 0),
+                LocalDateTime.of(2026, 5, 1, 12, 0),
+                patient
+        ))).isInstanceOf(InboundValidationException.class);
+    }
+
+    @Test
+    void rejectsAPatientWithNoNationalIdIdentifier() {
+        PatientRequest patient = new PatientRequest(
+                "First", "Last", null, null, null, null,
+                null, null, null, null, null, null, null,
+                List.of(new CreatePatientIdentifierRequest("PPN", "AB1234567", null, null)),
+                List.of(new CreatePatientAddressRequest(
+                        AddressType.PERMANENT, "UZ-TK", "TK-283", null, null, null, null)),
+                List.of()
+        );
+
+        assertThatThrownBy(() -> validator.validate(request(
+                LocalDateTime.of(2026, 5, 1, 8, 0),
+                LocalDateTime.of(2026, 5, 1, 10, 0),
+                LocalDateTime.of(2026, 5, 1, 12, 0),
+                patient
+        ))).isInstanceOf(InboundValidationException.class);
+    }
+
+    @Test
+    void rejectsAPatientWithNoPassportIdentifier() {
+        PatientRequest patient = new PatientRequest(
+                "First", "Last", null, null, null, null,
+                null, null, null, null, null, null, null,
+                List.of(new CreatePatientIdentifierRequest("NNUZB", "51506123456785", null, null)),
+                List.of(new CreatePatientAddressRequest(
+                        AddressType.PERMANENT, "UZ-TK", "TK-283", null, null, null, null)),
                 List.of()
         );
 
@@ -83,7 +121,10 @@ class DmedForm058ValidatorTest {
         return new PatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
-                List.of(new CreatePatientIdentifierRequest("PINFL", value, null, null)),
+                List.of(
+                        new CreatePatientIdentifierRequest("PINFL", value, null, null),
+                        new CreatePatientIdentifierRequest("PPN", "AB1234567", null, null)
+                ),
                 List.of(new CreatePatientAddressRequest(
                         AddressType.PERMANENT, "UZ-TK", "TK-283", null, null, null, null)),
                 List.of()

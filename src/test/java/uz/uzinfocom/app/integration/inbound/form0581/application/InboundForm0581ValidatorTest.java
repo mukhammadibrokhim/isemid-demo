@@ -39,7 +39,7 @@ class InboundForm0581ValidatorTest {
         return new PatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
-                List.of(new CreatePatientIdentifierRequest("PINFL", "12345678901234", null, null)),
+                List.of(new CreatePatientIdentifierRequest("PINFL", "51506123456785", null, null)),
                 List.of(),
                 List.of()
         );

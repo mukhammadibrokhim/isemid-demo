@@ -7,8 +7,13 @@ import uz.uzinfocom.app.integration.inbound.common.validation.PatientIdentifierF
 import uz.uzinfocom.app.integration.inbound.dmed.form058.web.DmedCreateForm058Request;
 import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
 import uz.uzinfocom.app.modules.patient.web.request.CreatePatientAddressRequest;
+import uz.uzinfocom.app.modules.patient.web.request.CreatePatientIdentifierRequest;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Additional validation applied only to the DMED form058 submission path, on
@@ -21,12 +26,21 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class DmedForm058Validator {
 
+    // Same NNUZB/PINFL naming equivalence PatientIdentifierFormatValidator already
+    // applies when checking format - a national ID identifier may arrive under either
+    // type code, so presence is checked against both, not just the one DMED itself uses.
+    private static final Set<String> NATIONAL_ID_TYPES = Set.of("NNUZB", "PINFL", "JSHSHIR");
+
+    // Same PASSPORT/PPN equivalence Form058PdfMapper already applies.
+    private static final Set<String> PASSPORT_TYPES = Set.of("PPN", "PASSPORT");
+
     private final PatientIdentifierFormatValidator patientIdentifierFormatValidator;
 
     public void validate(DmedCreateForm058Request request) {
         validateDateOrdering(request);
         patientIdentifierFormatValidator.validate(request.patient());
         requirePermanentAddress(request);
+        requireNationalIdAndPassportIdentifiers(request);
     }
 
     private void requirePermanentAddress(DmedCreateForm058Request request) {
@@ -36,6 +50,22 @@ public class DmedForm058Validator {
 
         if (!hasPermanentAddress) {
             throw new InboundValidationException("integration.patient.address.permanent-required");
+        }
+    }
+
+    private void requireNationalIdAndPassportIdentifiers(DmedCreateForm058Request request) {
+        Set<String> identifierTypes = request.patient().identifiers().stream()
+                .map(CreatePatientIdentifierRequest::type)
+                .filter(Objects::nonNull)
+                .map(type -> type.toUpperCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+
+        if (identifierTypes.stream().noneMatch(NATIONAL_ID_TYPES::contains)) {
+            throw new InboundValidationException("integration.patient.identifier.nnuzb-required");
+        }
+
+        if (identifierTypes.stream().noneMatch(PASSPORT_TYPES::contains)) {
+            throw new InboundValidationException("integration.patient.identifier.ppn-required");
         }
     }
 

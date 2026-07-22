@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import tools.jackson.core.JacksonException;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
@@ -248,11 +249,17 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException exception,
             HttpServletRequest request
     ) {
-        ErrorCode code = isMissingBody(exception)
-                ? ErrorCode.REQUEST_BODY_MISSING
-                : ErrorCode.MALFORMED_JSON;
+        if (isMissingBody(exception)) {
+            return respond(ErrorCode.REQUEST_BODY_MISSING, request, exception);
+        }
 
-        return respond(code, request, exception);
+        return respond(
+                ErrorCode.MALFORMED_JSON,
+                messages.resolve(ErrorCode.MALFORMED_JSON.getDefaultMessageCode()),
+                request,
+                exception,
+                jacksonPathViolation(exception)
+        );
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -445,5 +452,44 @@ public class GlobalExceptionHandler {
     private boolean isMissingBody(HttpMessageNotReadableException exception) {
         return exception.getMessage() != null
                 && exception.getMessage().contains("Required request body is missing");
+    }
+
+    /**
+     * Jackson reports exactly which field it was deserializing when a request
+     * body fails to parse - e.g. a date string in the wrong format, or a
+     * string where a number was expected - via {@link JacksonException#getPath()}.
+     * Surfacing that as a normal field violation turns "the JSON is malformed"
+     * into "field X has an invalid value", without needing the client to grep
+     * a raw Jackson exception message for the field name themselves.
+     */
+    private List<FieldViolationResponse> jacksonPathViolation(HttpMessageNotReadableException exception) {
+        if (!(exception.getCause() instanceof JacksonException jacksonException)) {
+            return List.of();
+        }
+
+        List<JacksonException.Reference> path = jacksonException.getPath();
+        if (path.isEmpty()) {
+            return List.of();
+        }
+
+        return List.of(violation(describeJacksonPath(path), messages.resolve("validation.invalid_value")));
+    }
+
+    private String describeJacksonPath(List<JacksonException.Reference> path) {
+        StringBuilder description = new StringBuilder();
+
+        for (JacksonException.Reference reference : path) {
+            String propertyName = reference.getPropertyName();
+            if (propertyName != null) {
+                if (!description.isEmpty()) {
+                    description.append('.');
+                }
+                description.append(propertyName);
+            } else {
+                description.append('[').append(reference.getIndex()).append(']');
+            }
+        }
+
+        return description.isEmpty() ? "request" : description.toString();
     }
 }

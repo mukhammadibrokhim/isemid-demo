@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.modules.patient.web.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
@@ -23,7 +24,9 @@ public record CreatePatientAffiliationRequest(
         @Size(max = 500, message = "{patient.affiliation.organization_name.size}")
         String organizationName,
 
+        // stateCode - DMED's own naming for the same field.
         @Schema(description = "Код региона расположения организации.")
+        @JsonAlias("stateCode")
         @Size(max = 64, message = "{patient.affiliation.region_code.size}")
         String regionCode,
 

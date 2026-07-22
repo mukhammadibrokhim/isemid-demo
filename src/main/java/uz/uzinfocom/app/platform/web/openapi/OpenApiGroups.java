@@ -42,10 +42,10 @@ public final class OpenApiGroups {
      * main business-API group.
      */
     private static final String[] INTEGRATION_PATHS = {
-            "/v1/citizen",
-            "/v1/citizen/**",
-            "/v1/legal-entity",
-            "/v1/legal-entity/**",
+            ApiPaths.Citizen.ROOT,
+            ApiPaths.Citizen.ROOT + "/**",
+            ApiPaths.LegalEntity.ROOT,
+            ApiPaths.LegalEntity.ROOT + "/**",
             ApiPaths.ExternalApi.ISEMID_CALLBACK,
             ApiPaths.ExternalApi.ISEMID_CALLBACK + "**"
     };

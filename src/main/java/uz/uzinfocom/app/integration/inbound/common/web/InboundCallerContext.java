@@ -9,27 +9,32 @@ import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationTo
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 /**
- * This is a resource server, not a gate exclusive to one token type: the
- * inbound-integration endpoints accept a caller authenticated through ANY
+ * This is a resource server, not a gate exclusive to one token type or one
+ * data direction: both the inbound submission endpoints ({@code
+ * InboundForm058Controller}/{@code InboundForm0581Controller}/{@code
+ * DmedForm058Controller}) and the outbound lookup endpoints ({@code
+ * PatientCaseController}) accept a caller authenticated through ANY
  * registered provider — a self-issued integration-client token (external
  * systems provisioned via the admin API), or a human/service SSO or DHP
  * token (our own internal systems, already holding one of those). Both are
- * handled uniformly here.
+ * handled uniformly here, for either direction.
  * <p>
- * Sender organization resolution is identical for both caller types by the
- * time a controller runs: {@code OrganizationContextFilter} already requires
- * and validates an {@code X-Organization-Id} header for either token type
- * (for an integration-client token, validated against the organization
- * baked into the token at issuance — a client can state its own
- * organization, never claim a different one), populating
- * {@link CurrentOrganizationContext} the same way for both.
+ * Organization resolution is identical for both caller types by the time a
+ * controller runs: {@code OrganizationContextFilter} already requires and
+ * validates an {@code X-Organization-Id} header for either token type (for
+ * an integration-client token, validated against the organization baked
+ * into the token at issuance — a client can state its own organization,
+ * never claim a different one), populating {@link CurrentOrganizationContext}
+ * the same way for both.
  * <p>
- * Scope gating ({@code form058:submit}/{@code form0581:submit}) and source-key
- * matching only apply to integration-client tokens, since only those carry a
- * fixed, per-client scope/source identity at all — an SSO/DHP-authenticated
- * caller is gated the same way the frontend already is, by
- * {@code Form058CreateValidator}'s existing sender-organization-must-match-
- * current-organization check.
+ * Scope gating ({@code form058:submit}/{@code form0581:submit}/
+ * {@code patient-case:read}) and source-key matching only apply to
+ * integration-client tokens, since only those carry a fixed, per-client
+ * scope/source identity at all — an SSO/DHP-authenticated caller is gated
+ * the same way the frontend already is, by {@code Form058CreateValidator}'s
+ * existing sender-organization-must-match-current-organization check (for
+ * writes) or the outbound query's own organization-scoped specification
+ * (for reads).
  */
 public final class InboundCallerContext {
 

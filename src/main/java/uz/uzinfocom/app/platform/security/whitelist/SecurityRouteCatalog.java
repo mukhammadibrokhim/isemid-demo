@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.platform.security.whitelist;
 
+import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,8 +53,8 @@ public final class SecurityRouteCatalog {
             "/v1/users/me",
             "/v1/users/me/**",
             "/v1/references/**",
-            "/v1/citizen/**",
-            "/v1/legal-entity/**"
+            ApiPaths.Citizen.ROOT + "/**",
+            ApiPaths.LegalEntity.ROOT + "/**"
     );
 
     /**
@@ -70,8 +72,8 @@ public final class SecurityRouteCatalog {
         rules.put("/v1/users/me", new RoutePolicyRule(false, false));
         rules.put("/v1/users/me/**", new RoutePolicyRule(false, false));
         rules.put("/v1/references/**", new RoutePolicyRule(false, true));
-        rules.put("/v1/citizen/**", new RoutePolicyRule(false, true));
-        rules.put("/v1/legal-entity/**", new RoutePolicyRule(false, true));
+        rules.put(ApiPaths.Citizen.ROOT + "/**", new RoutePolicyRule(false, true));
+        rules.put(ApiPaths.LegalEntity.ROOT + "/**", new RoutePolicyRule(false, true));
         // Admin actions (settings, panel-admin grant/revoke, cross-organization
         // stats) are not tied to any one selected organization — requiring an
         // org header here would reject otherwise-valid admin requests with

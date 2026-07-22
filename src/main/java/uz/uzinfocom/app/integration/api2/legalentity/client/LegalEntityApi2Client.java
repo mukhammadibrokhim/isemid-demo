@@ -6,7 +6,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2MalformedResponseException;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
@@ -14,6 +13,7 @@ import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBody;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodyReader;
 import uz.uzinfocom.app.integration.api2.common.support.Api2UpstreamError;
 import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupResult;
+import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupSource;
 
 import java.io.IOException;
 
@@ -21,7 +21,7 @@ import java.io.IOException;
 public class LegalEntityApi2Client {
 
     private static final String OPERATION = "LEGAL_ENTITY_TIN_LOOKUP";
-    private static final String SOURCE = "SOLIQ";
+    private static final LegalEntityLookupSource SOURCE = LegalEntityLookupSource.SOLIQ;
 
     private final RestClient restClient;
     private final Api2Properties properties;
@@ -48,8 +48,6 @@ public class LegalEntityApi2Client {
                             .queryParam("tin", tin)
                             .build())
                     .exchange((request, response) -> handleResponse(response));
-        } catch (Api2Exception exception) {
-            throw exception;
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(OPERATION, exception);
         }
