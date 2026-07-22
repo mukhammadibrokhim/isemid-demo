@@ -291,13 +291,23 @@ public final class ApiPaths {
 
         /**
          * {source} identifies which system is calling — e.g.
-         * /integration/v1/dmed/form-058 for DMED. For an integration-client
-         * caller it must match the client's own registered sourceKey (see
+         * /integration/v1/lab-x/form-058. For an integration-client caller it
+         * must match the client's own registered sourceKey (see
          * InboundCallerContext); it is not a free-form value a caller can
          * pick per request.
          */
         public static final String FORM058 = ROOT + "/{source}/form-058";
         public static final String FORM0581 = ROOT + "/{source}/form-058-1";
+
+        /**
+         * DMED-specific form058 endpoint, kept separate from {@link #FORM058}
+         * because DMED already integrates against a fixed, flat request
+         * shape ({@code DmedCreateForm058Request}) that must not shift to the
+         * generic endpoint's entity-mirroring nested structure. A literal
+         * path, not a {@code {source}} pattern — this is the one form058
+         * contract that isn't meant to generalize.
+         */
+        public static final String DMED_FORM058 = ROOT + "/DMED/form-058";
     }
 
 }

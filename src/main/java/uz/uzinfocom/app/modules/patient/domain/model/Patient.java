@@ -3,7 +3,6 @@ package uz.uzinfocom.app.modules.patient.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.time.LocalDate;
@@ -112,17 +111,6 @@ public class Patient extends AbsEntity {
         address.setPatient(this);
     }
 
-    public PatientAddress getPermanentAddress() {
-        if (addresses == null || addresses.isEmpty()) {
-            return null;
-        }
-
-        return addresses.stream()
-                .filter(address -> address.getType() == AddressType.PERMANENT)
-                .findFirst()
-                .orElse(null);
-    }
-
     public void addAffiliation(PatientAffiliation affiliation) {
         if (affiliation == null) {
             return;
@@ -132,21 +120,4 @@ public class Patient extends AbsEntity {
         affiliation.setPatient(this);
     }
 
-    public void removeIdentifier(PatientIdentifier identifier) {
-        if (identifier != null && identifiers.remove(identifier)) {
-            identifier.setPatient(null);
-        }
-    }
-
-    public void removeAddress(PatientAddress address) {
-        if (address != null && addresses.remove(address)) {
-            address.setPatient(null);
-        }
-    }
-
-    public void removeAffiliation(PatientAffiliation affiliation) {
-        if (affiliation != null && affiliations.remove(affiliation)) {
-            affiliation.setPatient(null);
-        }
-    }
 }
