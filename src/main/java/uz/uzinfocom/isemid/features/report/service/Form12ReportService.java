@@ -12,6 +12,8 @@ public interface Form12ReportService {
             LocalDate birthDate,
             String mkb10Code,
             Gender gender,
+            String stateCode,
+            String cityCode,
             User currentUser
     );
 }

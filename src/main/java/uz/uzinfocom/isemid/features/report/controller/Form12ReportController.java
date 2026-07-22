@@ -60,8 +60,10 @@ public class Form12ReportController {
             @RequestParam(required = false) LocalDate birthDate,
             @RequestParam(required = false) String mkb10Code,
             @RequestParam(required = false) Gender gender,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
             @CurrentUser User currentUser
     ) {
-        return ApiResponse.success(messageUtil, form12ReportService.getReport(fromDate, toDate, birthDate, mkb10Code, gender, currentUser));
+        return ApiResponse.success(messageUtil, form12ReportService.getReport(fromDate, toDate, birthDate, mkb10Code, gender, stateCode, cityCode, currentUser));
     }
 }
