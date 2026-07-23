@@ -44,7 +44,7 @@ public class ActStatsRepository extends AbstractCaseStatsRepository<Act> {
         return countGrouped(
                 (root, cb) -> root.<ActStatus>get("actStatus"),
                 (root, cb) -> scopePredicateFactory.applyDirectionScope(root.get("card").get("form058"), cb, scope, true),
-                (status, count) -> new ActStatusCountResponse(status, count)
+                ActStatusCountResponse::new
         );
     }
 

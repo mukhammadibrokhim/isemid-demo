@@ -8,17 +8,16 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import uz.uzinfocom.app.shared.exception.ErrorCode;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
 import uz.uzinfocom.app.platform.security.handler.JsonAuthenticationEntryPoint;
 import uz.uzinfocom.app.platform.web.response.ErrorResponseWriter;
+import uz.uzinfocom.app.shared.exception.ErrorCode;
 
 import java.io.IOException;
 import java.util.concurrent.RejectedExecutionException;
@@ -47,8 +46,7 @@ public class ErrorResponseFilter extends OncePerRequestFilter {
 
             Throwable rootCause = rootCause(exception);
 
-            if (rootCause instanceof RejectedExecutionException
-                    || rootCause instanceof TaskRejectedException) {
+            if (rootCause instanceof RejectedExecutionException) {
                 writeServiceUnavailable(request, response, rootCause);
                 return;
             }
