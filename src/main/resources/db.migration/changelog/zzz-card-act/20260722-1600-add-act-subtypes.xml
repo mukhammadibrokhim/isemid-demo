@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Migrates the legacy act153/154/155/156/223/224 structured data model
+        onto the "act" table introduced in 20260716-1200/20260717-1400: "act"
+        becomes the JOINED-inheritance root (institution + LIS transmission
+        tracking added here), one child table per subtype holds its own
+        structured fields (PK is also an FK to act.id, per JOINED strategy),
+        and each subtype's "detail" child table is a normal
+        UuidAuditableEntity-shaped table (its own id/version/audit/uuid
+        columns) with a FK back to its parent subtype row.
+    -->
+
+    <changeSet id="20260722-1600-01-extend-act-institution-and-lis" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act" columnName="lis_status"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act">
+            <column name="subject_type" type="VARCHAR(50)"/>
+            <column name="tin" type="INTEGER"/>
+            <column name="institution_name" type="TEXT"/>
+            <column name="institution_address" type="TEXT"/>
+            <column name="institution_legal_address" type="TEXT"/>
+            <column name="lis_status" type="VARCHAR(32)" defaultValue="NOT_SENT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lis_attempt" type="INTEGER" defaultValueNumeric="0"/>
+            <column name="lis_sent_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="lis_act_id" type="BIGINT"/>
+            <column name="lis_response" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260722-1600-02-create-act153" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act153"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act153">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act153_pkey"/>
+            </column>
+            <column name="act_number" type="BIGINT"/>
+            <column name="activity_type_code" type="VARCHAR(255)"/>
+            <column name="sampling_documents" type="TEXT"/>
+            <column name="goal" type="VARCHAR(500)"/>
+            <column name="sample_taken_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="delivered_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="purpose_id" type="INTEGER"/>
+            <column name="sampling_purpose_uz" type="VARCHAR(500)"/>
+            <column name="sampling_purpose_ru" type="VARCHAR(500)"/>
+            <column name="sampling_purpose_loinc" type="VARCHAR(100)"/>
+            <column name="sampler_full_name" type="VARCHAR(255)"/>
+            <column name="sampler_position_id" type="INTEGER"/>
+            <column name="sampler_position_uz" type="VARCHAR(255)"/>
+            <column name="sampler_position_ru" type="VARCHAR(255)"/>
+            <column name="participant_full_name" type="VARCHAR(255)"/>
+            <column name="participant_position_id" type="INTEGER"/>
+            <column name="participant_position_uz" type="VARCHAR(255)"/>
+            <column name="participant_position_ru" type="VARCHAR(255)"/>
+            <column name="special_condition_id" type="INTEGER"/>
+            <column name="special_sampling_conditions_uz" type="TEXT"/>
+            <column name="special_sampling_conditions_ru" type="TEXT"/>
+            <column name="storage_delivery_condition_id" type="INTEGER"/>
+            <column name="storage_delivery_conditions_uz" type="TEXT"/>
+            <column name="storage_delivery_conditions_ru" type="TEXT"/>
+            <column name="lis_organization_id" type="BIGINT"/>
+            <column name="laboratory_address" type="VARCHAR(500)"/>
+            <column name="package_type_id" type="INTEGER"/>
+            <column name="package_type_uz" type="VARCHAR(255)"/>
+            <column name="package_type_ru" type="VARCHAR(255)"/>
+            <column name="conservation_method_id" type="INTEGER"/>
+            <column name="conservation_methods_uz" type="VARCHAR(255)"/>
+            <column name="conservation_methods_ru" type="VARCHAR(255)"/>
+            <column name="additional_info" type="TEXT"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="act153" baseColumnNames="id"
+                referencedTableName="act" referencedColumnNames="id"
+                constraintName="fk_act153_act"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-03-create-act153-detail" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act153_detail"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act153_detail">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act153_detail_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="act153_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="research_type_id" type="INTEGER"/>
+            <column name="research_type_name_uz" type="VARCHAR(255)"/>
+            <column name="research_type_name_ru" type="VARCHAR(255)"/>
+            <column name="category_id" type="INTEGER"/>
+            <column name="category_name_uz" type="VARCHAR(255)"/>
+            <column name="category_name_ru" type="VARCHAR(255)"/>
+            <column name="item_type_id" type="INTEGER"/>
+            <column name="item_type_name_uz" type="VARCHAR(255)"/>
+            <column name="item_type_name_ru" type="VARCHAR(255)"/>
+            <column name="object_type_id" type="INTEGER"/>
+            <column name="object_code" type="VARCHAR(255)"/>
+            <column name="address" type="TEXT"/>
+            <column name="sampling_depth" type="DOUBLE PRECISION"/>
+            <column name="depth_unit" type="VARCHAR(20)"/>
+            <column name="distance_from_shore" type="DOUBLE PRECISION"/>
+            <column name="distance_from_shore_unit" type="VARCHAR(20)"/>
+            <column name="sample_volume" type="DOUBLE PRECISION"/>
+            <column name="sample_volume_unit" type="VARCHAR(20)"/>
+            <column name="sample_qt_unit" type="VARCHAR(20)"/>
+            <column name="sample_location" type="TEXT"/>
+            <column name="weather_at_sampling" type="DOUBLE PRECISION"/>
+            <column name="water_temperature" type="DOUBLE PRECISION"/>
+            <column name="sample_type_id" type="INTEGER"/>
+            <column name="sample_type_uz" type="VARCHAR(255)"/>
+            <column name="sample_type_ru" type="VARCHAR(255)"/>
+        </createTable>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_act153_detail_uuid" tableName="act153_detail"/>
+        <createIndex indexName="idx_act153_detail_act153_id" tableName="act153_detail">
+            <column name="act153_id"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="act153_detail" baseColumnNames="act153_id"
+                referencedTableName="act153" referencedColumnNames="id"
+                constraintName="fk_act153_detail_act153"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-04-create-act154" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act154"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act154">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act154_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="act_number" type="BIGINT"/>
+            <column name="activity_type_code" type="VARCHAR(255)"/>
+            <column name="sample_taken_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="delivered_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="document_confirm_sampling" type="VARCHAR(500)"/>
+            <column name="goal" type="VARCHAR(500)"/>
+            <column name="purpose_id" type="INTEGER"/>
+            <column name="sampling_purpose_uz" type="VARCHAR(500)"/>
+            <column name="sampling_purpose_ru" type="VARCHAR(500)"/>
+            <column name="sampling_purpose_loinc" type="VARCHAR(100)"/>
+            <column name="sampler_full_name" type="VARCHAR(255)"/>
+            <column name="sampler_position_id" type="INTEGER"/>
+            <column name="sampler_position_uz" type="VARCHAR(255)"/>
+            <column name="sampler_position_ru" type="VARCHAR(255)"/>
+            <column name="participant_full_name" type="VARCHAR(255)"/>
+            <column name="participant_position_id" type="INTEGER"/>
+            <column name="participant_position_uz" type="VARCHAR(255)"/>
+            <column name="participant_position_ru" type="VARCHAR(255)"/>
+            <column name="manufacturing_company" type="VARCHAR(255)"/>
+            <column name="manufacture_date" type="DATE"/>
+            <column name="doc_number_of_taken_object" type="VARCHAR(255)"/>
+            <column name="special_condition_id" type="INTEGER"/>
+            <column name="special_sampling_conditions_uz" type="TEXT"/>
+            <column name="special_sampling_conditions_ru" type="TEXT"/>
+            <column name="storage_delivery_condition_id" type="INTEGER"/>
+            <column name="storage_delivery_conditions_uz" type="TEXT"/>
+            <column name="storage_delivery_conditions_ru" type="TEXT"/>
+            <column name="lis_organization_id" type="BIGINT"/>
+            <column name="laboratory_address" type="VARCHAR(500)"/>
+            <column name="package_type_id" type="INTEGER"/>
+            <column name="package_type_uz" type="VARCHAR(255)"/>
+            <column name="package_type_ru" type="VARCHAR(255)"/>
+            <column name="additional_info" type="TEXT"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="act154" baseColumnNames="id"
+                referencedTableName="act" referencedColumnNames="id"
+                constraintName="fk_act154_act"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-05-create-act154-detail" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act154_detail"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act154_detail">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act154_detail_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="act154_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="research_type_id" type="INTEGER"/>
+            <column name="research_type_name_uz" type="VARCHAR(255)"/>
+            <column name="research_type_name_ru" type="VARCHAR(255)"/>
+            <column name="category_id" type="INTEGER"/>
+            <column name="category_name_uz" type="VARCHAR(255)"/>
+            <column name="category_name_ru" type="VARCHAR(255)"/>
+            <column name="item_type_id" type="INTEGER"/>
+            <column name="item_type_name_uz" type="VARCHAR(255)"/>
+            <column name="item_type_name_ru" type="VARCHAR(255)"/>
+            <column name="shift_code" type="VARCHAR(100)"/>
+            <column name="sample_name" type="VARCHAR(255)"/>
+            <column name="group_size" type="BIGINT"/>
+            <column name="serial_number_of_group" type="BIGINT"/>
+            <column name="sample_weight" type="DOUBLE PRECISION"/>
+            <column name="sample_qt_unit" type="VARCHAR(20)"/>
+            <column name="sample_volume" type="DOUBLE PRECISION"/>
+            <column name="sample_volume_unit" type="VARCHAR(20)"/>
+            <column name="note" type="TEXT"/>
+        </createTable>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_act154_detail_uuid" tableName="act154_detail"/>
+        <createIndex indexName="idx_act154_detail_act154_id" tableName="act154_detail">
+            <column name="act154_id"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="act154_detail" baseColumnNames="act154_id"
+                referencedTableName="act154" referencedColumnNames="id"
+                constraintName="fk_act154_detail_act154"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-06-create-act155" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act155"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act155">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act155_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="tin" type="INTEGER"/>
+            <column name="institution_name" type="VARCHAR(255)"/>
+            <column name="institution_address" type="VARCHAR(500)"/>
+            <column name="activity_type_code" type="VARCHAR(255)"/>
+            <column name="selected_date" type="DATE"/>
+            <column name="sampler_full_name" type="VARCHAR(255)"/>
+            <column name="sampler_position" type="VARCHAR(255)"/>
+            <column name="object_representative_full_name" type="VARCHAR(255)"/>
+            <column name="object_representative_position" type="VARCHAR(255)"/>
+            <column name="additional_info" type="TEXT"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="act155" baseColumnNames="id"
+                referencedTableName="act" referencedColumnNames="id"
+                constraintName="fk_act155_act"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-07-create-act155-detail" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act155_detail"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act155_detail">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act155_detail_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="act155_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_name" type="VARCHAR(255)"/>
+            <column name="purpose_of_testing" type="VARCHAR(500)"/>
+            <column name="purpose_of_testing_loinc" type="VARCHAR(100)"/>
+            <column name="lis_organization_id" type="BIGINT"/>
+            <column name="laboratory_address" type="VARCHAR(500)"/>
+            <column name="sample_taken_location" type="VARCHAR(500)"/>
+            <column name="sample_quantity" type="BIGINT"/>
+            <column name="product_batch_quantity" type="BIGINT"/>
+            <column name="applied_pesticides" type="VARCHAR(500)"/>
+            <column name="manufacturer" type="VARCHAR(255)"/>
+            <column name="sample_document_justifying" type="VARCHAR(500)"/>
+        </createTable>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_act155_detail_uuid" tableName="act155_detail"/>
+        <createIndex indexName="idx_act155_detail_act155_id" tableName="act155_detail">
+            <column name="act155_id"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="act155_detail" baseColumnNames="act155_id"
+                referencedTableName="act155" referencedColumnNames="id"
+                constraintName="fk_act155_detail_act155"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-08-create-act156" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act156"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act156">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act156_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="tin" type="INTEGER"/>
+            <column name="institution_name" type="VARCHAR(255)"/>
+            <column name="institution_address" type="VARCHAR(500)"/>
+            <column name="activity_type_code" type="VARCHAR(255)"/>
+            <column name="sample_taken_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="lis_organization_id" type="BIGINT"/>
+            <column name="laboratory_address" type="VARCHAR(500)"/>
+            <column name="sample_delivery_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="full_name_of_sampler" type="VARCHAR(255)"/>
+            <column name="position_of_sampler" type="VARCHAR(255)"/>
+            <column name="full_name_of_object_representative" type="VARCHAR(255)"/>
+            <column name="position_of_object_representative" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="act156" baseColumnNames="id"
+                referencedTableName="act" referencedColumnNames="id"
+                constraintName="fk_act156_act"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-09-create-act156-group-detail" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act156_group_detail"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act156_group_detail">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act156_group_detail_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="act156_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="full_name_of_educator" type="VARCHAR(255)"/>
+            <column name="hands_of_educator" type="BOOLEAN"/>
+            <column name="first_food_bowl" type="BOOLEAN"/>
+            <column name="second_food_bowl" type="BOOLEAN"/>
+            <column name="tables" type="BOOLEAN"/>
+            <column name="chairs" type="BOOLEAN"/>
+            <column name="window_sill" type="BOOLEAN"/>
+            <column name="door_handles" type="BOOLEAN"/>
+            <column name="toys" type="BOOLEAN"/>
+            <column name="toy_shelf" type="BOOLEAN"/>
+            <column name="carpets" type="BOOLEAN"/>
+            <column name="clothes_rack" type="BOOLEAN"/>
+            <column name="full_name_of_place_owner" type="VARCHAR(255)"/>
+            <column name="bed_clothes" type="BOOLEAN"/>
+            <column name="bathroom_wall" type="BOOLEAN"/>
+            <column name="towels" type="BOOLEAN"/>
+            <column name="towel_rack" type="BOOLEAN"/>
+            <column name="water_tap_faucet" type="BOOLEAN"/>
+            <column name="wc_seats" type="BOOLEAN"/>
+        </createTable>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_act156_group_detail_uuid" tableName="act156_group_detail"/>
+        <createIndex indexName="idx_act156_group_detail_act156_id" tableName="act156_group_detail">
+            <column name="act156_id"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="act156_group_detail" baseColumnNames="act156_id"
+                referencedTableName="act156" referencedColumnNames="id"
+                constraintName="fk_act156_group_detail_act156"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-10-create-act156-kitchen-utensil" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act156_kitchen_utensil"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act156_kitchen_utensil">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act156_kitchen_utensil_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="act156_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="knife_for_bread" type="BOOLEAN"/>
+            <column name="fruit_cutting_board" type="BOOLEAN"/>
+            <column name="distribution_table" type="BOOLEAN"/>
+            <column name="container_for_finished_products" type="BOOLEAN"/>
+            <column name="full_name_of_chef" type="VARCHAR(255)"/>
+            <column name="hands_of_chef" type="BOOLEAN"/>
+            <column name="clothes_of_chef" type="BOOLEAN"/>
+        </createTable>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_act156_kitchen_utensil_uuid" tableName="act156_kitchen_utensil"/>
+        <createIndex indexName="idx_act156_kitchen_utensil_act156_id" tableName="act156_kitchen_utensil">
+            <column name="act156_id"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="act156_kitchen_utensil" baseColumnNames="act156_id"
+                referencedTableName="act156" referencedColumnNames="id"
+                constraintName="fk_act156_kitchen_utensil_act156"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-11-create-act223" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act223"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act223">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act223_pkey"/>
+            </column>
+            <column name="act_number" type="BIGINT"/>
+            <column name="supporting_documents_for_sampling" type="VARCHAR(500)"/>
+            <column name="goal" type="VARCHAR(500)"/>
+            <column name="activity_type_code" type="VARCHAR(255)"/>
+            <column name="sampler_full_name" type="VARCHAR(255)"/>
+            <column name="sampler_position_id" type="INTEGER"/>
+            <column name="sampler_position_uz" type="VARCHAR(255)"/>
+            <column name="sampler_position_ru" type="VARCHAR(255)"/>
+            <column name="participant_full_name" type="VARCHAR(255)"/>
+            <column name="participant_position_id" type="INTEGER"/>
+            <column name="participant_position_uz" type="VARCHAR(255)"/>
+            <column name="participant_position_ru" type="VARCHAR(255)"/>
+            <column name="purpose_id" type="INTEGER"/>
+            <column name="sampling_purpose_uz" type="VARCHAR(500)"/>
+            <column name="sampling_purpose_ru" type="VARCHAR(500)"/>
+            <column name="sampling_purpose_loinc" type="VARCHAR(100)"/>
+            <column name="sample_taken_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="delivered_date_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="special_condition_id" type="INTEGER"/>
+            <column name="special_sampling_conditions_uz" type="TEXT"/>
+            <column name="special_sampling_conditions_ru" type="TEXT"/>
+            <column name="storage_delivery_condition_id" type="INTEGER"/>
+            <column name="storage_delivery_conditions_uz" type="TEXT"/>
+            <column name="storage_delivery_conditions_ru" type="TEXT"/>
+            <column name="lis_organization_id" type="BIGINT"/>
+            <column name="laboratory_address" type="VARCHAR(500)"/>
+            <column name="package_type_id" type="INTEGER"/>
+            <column name="package_type_uz" type="VARCHAR(255)"/>
+            <column name="package_type_ru" type="VARCHAR(255)"/>
+            <column name="additional_info" type="TEXT"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="act223" baseColumnNames="id"
+                referencedTableName="act" referencedColumnNames="id"
+                constraintName="fk_act223_act"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-12-create-act223-detail" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act223_detail"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act223_detail">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act223_detail_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="act223_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="research_type_id" type="INTEGER"/>
+            <column name="research_type_name_uz" type="VARCHAR(255)"/>
+            <column name="research_type_name_ru" type="VARCHAR(255)"/>
+            <column name="category_id" type="INTEGER"/>
+            <column name="category_name_uz" type="VARCHAR(255)"/>
+            <column name="category_name_ru" type="VARCHAR(255)"/>
+            <column name="item_type_id" type="INTEGER"/>
+            <column name="item_type_name_uz" type="VARCHAR(255)"/>
+            <column name="item_type_name_ru" type="VARCHAR(255)"/>
+            <column name="exact_location_point_sampling" type="VARCHAR(255)"/>
+            <column name="amount" type="DOUBLE PRECISION"/>
+            <column name="depth_of_obtained_area" type="DOUBLE PRECISION"/>
+            <column name="depth_unit" type="VARCHAR(20)"/>
+        </createTable>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_act223_detail_uuid" tableName="act223_detail"/>
+        <createIndex indexName="idx_act223_detail_act223_id" tableName="act223_detail">
+            <column name="act223_id"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="act223_detail" baseColumnNames="act223_id"
+                referencedTableName="act223" referencedColumnNames="id"
+                constraintName="fk_act223_detail_act223"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-13-create-act224" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act224"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act224">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act224_pkey"/>
+            </column>
+            <column name="tin" type="INTEGER"/>
+            <column name="institution_name" type="VARCHAR(255)"/>
+            <column name="institution_address" type="VARCHAR(500)"/>
+            <column name="activity_type_code" type="VARCHAR(255)"/>
+            <column name="full_name_of_epid_staff" type="VARCHAR(255)"/>
+            <column name="position_of_epid_staff" type="VARCHAR(255)"/>
+            <column name="full_name_of_participant_epid" type="VARCHAR(255)"/>
+            <column name="position_of_participant_epid" type="VARCHAR(255)"/>
+            <column name="name_of_institution" type="VARCHAR(255)"/>
+            <column name="address_of_institution" type="VARCHAR(500)"/>
+            <column name="name_of_regulatory_acts" type="VARCHAR(500)"/>
+            <column name="checking_fulfillment_of_requirements" type="TEXT"/>
+            <column name="full_name_of_participant" type="VARCHAR(255)"/>
+            <column name="additional_info" type="TEXT"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="act224" baseColumnNames="id"
+                referencedTableName="act" referencedColumnNames="id"
+                constraintName="fk_act224_act"/>
+    </changeSet>
+
+    <changeSet id="20260722-1600-14-create-act224-detail" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="act224_detail"/>
+            </not>
+        </preConditions>
+        <createTable tableName="act224_detail">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="act224_detail_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="act224_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recommended_activities" type="TEXT"/>
+            <column name="execution_period" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </createTable>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_act224_detail_uuid" tableName="act224_detail"/>
+        <createIndex indexName="idx_act224_detail_act224_id" tableName="act224_detail">
+            <column name="act224_id"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="act224_detail" baseColumnNames="act224_id"
+                referencedTableName="act224" referencedColumnNames="id"
+                constraintName="fk_act224_detail_act224"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        One status now covers the act's entire lifecycle (NEW -> SENT ->
+        RECEIVED, see ActStatus): lis_status and completed_date - both tied
+        to workflow steps that no longer exist (a separate LIS-transmission
+        status, and a standalone "mark complete" action) - are dropped.
+    -->
+    <changeSet id="20260723-1100-01-drop-act-lis-status-and-completed-date" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act" columnName="lis_status"/>
+        </preConditions>
+        <dropColumn tableName="act" columnName="lis_status"/>
+        <dropColumn tableName="act" columnName="completed_date"/>
+    </changeSet>
+
+</databaseChangeLog>

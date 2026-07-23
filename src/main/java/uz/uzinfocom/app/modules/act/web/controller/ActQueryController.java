@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.act.application.query.ActFilterRequest;
 import uz.uzinfocom.app.modules.act.application.query.ActQueryService;
-import uz.uzinfocom.app.modules.act.application.query.dto.ActDetailResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.ActDetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActTableResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -72,6 +72,23 @@ public class ActQueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 actQueryService.getById(id)
+        );
+    }
+
+    @Operation(
+            summary = "Данные акта для печатной формы (далолатнома)",
+            description = "Возвращает те же полные сведения по акту в формате JSON, которые фронтенд использует "
+                    + "для отрисовки печатной формы (далолатномы) в PDF."
+    )
+    @GetMapping(ApiPaths.Act.PDF)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<ActDetailResponse> pdf(
+            @Parameter(description = "Идентификатор акта.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                actQueryService.getPdf(id)
         );
     }
 }

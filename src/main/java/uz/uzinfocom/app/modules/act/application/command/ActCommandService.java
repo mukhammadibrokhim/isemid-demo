@@ -3,19 +3,21 @@ package uz.uzinfocom.app.modules.act.application.command;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
 import uz.uzinfocom.app.modules.act.application.exception.ActNotFoundException;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
 import uz.uzinfocom.app.modules.act.application.exception.ActValidationException;
 import uz.uzinfocom.app.modules.act.application.exception.InvalidActStatusException;
-import uz.uzinfocom.app.modules.act.application.query.dto.ActDetailResponse;
-import uz.uzinfocom.app.modules.act.application.query.mapper.ActMapper;
+import uz.uzinfocom.app.modules.act.application.exception.UnsupportedActTypeException;
+import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandler;
+import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandlerRegistry;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.ActDetailResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
+import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
+import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.ReassignActUsersRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.UpdateActRequest;
 import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
@@ -23,7 +25,6 @@ import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +33,24 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Mirrors {@link uz.uzinfocom.app.modules.card.application.command.CardCommandService}'s
- * structure and status-transition rules exactly (see {@link ActStatus}) —
- * the same "assign blank shell(s), fill in later via update, supervisor
- * approves or rejects" pattern, applied to acts attached to a card instead
- * of cards attached to a form.
+ * Transaction boundary and dispatch only — every type-specific decision
+ * (which fields exist, how child sample/detail collections are synced) is
+ * delegated to the {@link ActTypeHandler} resolved from the registry, the
+ * same split {@code CardCommandService} uses for {@code Card}.
+ * <p>
+ * The act's status ({@link ActStatus}) moves forward through {@link #update}
+ * (NEW/READY/SEND_FAILED -> IN_PROGRESS), {@link #markReady}
+ * (IN_PROGRESS/SEND_FAILED -> READY), {@link #markSendingToLis}
+ * (READY/SEND_FAILED -> SENT), and {@link #receiveLisResponse}
+ * (SENT -> COMPLETED, called back by LIS once it has processed the act).
+ * {@link #recordLisSendFailure} is the one step back
+ * (SENT -> SEND_FAILED), taken when the send itself failed.
+ * <p>
+ * {@link #markSendingToLis}/{@link #recordLisSendSuccess}/
+ * {@link #recordLisSendFailure} are deliberately three separate transactions
+ * rather than one — the actual HTTP call to LIS happens between the first
+ * and the other two, in {@code ActLisSendService}, and must not run inside
+ * an open database transaction (see that class's javadoc).
  */
 @Service
 @RequiredArgsConstructor
@@ -45,14 +59,15 @@ public class ActCommandService {
     private final ActRepository actRepository;
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
-    private final ActMapper actMapper;
+    private final ActTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
 
     /**
      * Bulk-assigns one blank act per distinct requested {@code actType} to a
      * card, all sharing the same set of attached employees, with
-     * {@code assignedById} set to whoever is calling this. Mirrors
-     * {@code CardCommandService.assignCards} exactly.
+     * {@code assignedById} recording whoever assigned it. This is the only
+     * way acts get created — the actual field data is filled in afterwards
+     * via {@link #update}.
      */
     @Transactional
     public void assignActs(Long cardId, AssignActsRequest request) {
@@ -65,11 +80,11 @@ public class ActCommandService {
         }
 
         Map<Long, User> userMap = resolveUsers(request.assignUserIds());
-        List<String> actTypes = request.actTypes().stream().filter(Objects::nonNull).distinct().toList();
+        List<ActType> actTypes = request.actTypes().stream().filter(Objects::nonNull).distinct().toList();
 
         List<Act> acts = actTypes.stream()
                 .map(actType -> {
-                    Act act = new Act();
+                    Act act = handlerRegistry.get(actType).handleCreateBlank();
                     act.setActType(actType);
                     act.setActStatus(ActStatus.NEW);
                     act.setCard(card);
@@ -83,118 +98,145 @@ public class ActCommandService {
     }
 
     /**
-     * Only allowed while the attached user actually has the ball (accepted,
-     * already in progress, or reworking after a supervisor rejection). Every
-     * successful save moves the status to {@link ActStatus#IN_PROGRESS}.
+     * Only the act's attached employee(s) may save it, and only before it
+     * has been sent to LIS — freely, any number of times, regardless of
+     * whether it's still {@link ActStatus#NEW}, already
+     * {@link ActStatus#IN_PROGRESS}, or has been marked {@link ActStatus#READY}
+     * (saving again moves it back to {@code IN_PROGRESS}, since it's no
+     * longer exactly what was marked ready).
      */
     @Transactional
-    public ActDetailResponse update(Long actId, UpdateActRequest request) {
-        Act act = actRepository.findById(actId)
-                .orElseThrow(() -> new ActNotFoundException(actId));
+    public ActDetailResponse update(Long actId, ActRequest request) {
+        Act act = requireAttachedUserAct(actId);
 
-        requireTransition(act.getActStatus().canBeUpdated(), act.getActStatus());
+        requireTransition(canBeUpdated(act.getActStatus()), act.getActStatus());
 
-        act.setResultComment(request.resultComment());
+        if (act.getActType() != request.type()) {
+            throw new UnsupportedActTypeException(request.type());
+        }
+
+        ActTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
+        handler.handleUpdate(act, request);
         act.setActStatus(ActStatus.IN_PROGRESS);
         Act saved = actRepository.save(act);
-        return actMapper.toDetailResponse(saved);
+        return handler.handleToResponse(saved);
     }
 
     /**
-     * Only the supervisor an act is already assigned to may hand it to
-     * different employee(s) — replaces the users entirely and resets the
-     * act to NEW so they go through the normal accept/reject cycle
-     * themselves.
+     * The attached employee marks the act as finished filling in — the next
+     * step is sending it to LIS. Also reachable straight from
+     * {@link ActStatus#SEND_FAILED} for a plain retry (nothing to fix, e.g.
+     * a network blip) without a redundant no-op edit first.
      */
     @Transactional
-    public void reassignUsers(Long actId, ReassignActUsersRequest request) {
-        Act act = requireAssignedSupervisorAct(actId);
-
-        requireTransition(act.getActStatus().canBeReassigned(), act.getActStatus());
-
-        Map<Long, User> userMap = resolveUsers(request.assignUserIds());
-
-        act.setUsers(new HashSet<>(userMap.values()));
-        act.setAttachedUserComment(null);
-        act.setActStatus(ActStatus.NEW);
+    public void markReady(Long actId) {
+        Act act = requireAttachedUserAct(actId);
+        requireTransition(
+                act.getActStatus() == ActStatus.IN_PROGRESS || act.getActStatus() == ActStatus.SEND_FAILED,
+                act.getActStatus()
+        );
+        act.setActStatus(ActStatus.READY);
         actRepository.save(act);
     }
 
     /**
-     * Only safe before any real data exists on the act.
+     * First of the three LIS-send transactions: validates the caller and
+     * status, records the attempt (bumping {@code lisInfo.attempt}, stamping
+     * {@code lisInfo.sentDate}, clearing any previous
+     * {@code lisInfo.lastError}), and optimistically moves the act to
+     * {@link ActStatus#SENT} — before the actual HTTP call, so a second
+     * concurrent send request is rejected by the status check instead of
+     * racing this one. {@link #recordLisSendFailure} is the way back out if
+     * the call that follows this doesn't succeed.
+     *
+     * <p>Returns the loaded act (full JOINED-inheritance subtype, with its
+     * child collections) so the caller can build the LIS payload from it
+     * without a second fetch.
+     */
+    @Transactional
+    public Act markSendingToLis(Long actId) {
+        Act act = requireAttachedUserAct(actId);
+        requireTransition(
+                act.getActStatus() == ActStatus.READY || act.getActStatus() == ActStatus.SEND_FAILED,
+                act.getActStatus()
+        );
+        act.getLisInfo().markSendAttempt();
+        act.setActStatus(ActStatus.SENT);
+        return actRepository.save(act);
+    }
+
+    /**
+     * Records LIS's own id for the act once it has accepted the submission.
+     * The status is already {@link ActStatus#SENT} from
+     * {@link #markSendingToLis} — this just attaches the correlation id.
+     */
+    @Transactional
+    public void recordLisSendSuccess(Long actId, Long lisActId) {
+        Act act = actRepository.findById(actId)
+                .orElseThrow(() -> new ActNotFoundException(actId));
+        act.getLisInfo().setActId(lisActId);
+        actRepository.save(act);
+    }
+
+    /**
+     * The send itself failed (network, upstream rejection, malformed
+     * response) — moves the act back out of {@link ActStatus#SENT} into
+     * {@link ActStatus#SEND_FAILED} and records why, so the attached
+     * employee can fix the act (via {@link #update}) and try again.
+     */
+    @Transactional
+    public void recordLisSendFailure(Long actId, String errorDescription) {
+        Act act = actRepository.findById(actId)
+                .orElseThrow(() -> new ActNotFoundException(actId));
+        act.setActStatus(ActStatus.SEND_FAILED);
+        act.getLisInfo().setLastError(errorDescription);
+        actRepository.save(act);
+    }
+
+    /**
+     * Called back by LIS once it has processed a sent act — stores its raw
+     * response and moves the act to {@link ActStatus#COMPLETED}, which
+     * concludes the act's lifecycle.
+     */
+    @Transactional
+    public void receiveLisResponse(Long actId, Long lisActId, Map<String, Object> response) {
+        Act act = actRepository.findById(actId)
+                .orElseThrow(() -> new ActNotFoundException(actId));
+        requireTransition(act.getActStatus() == ActStatus.SENT, act.getActStatus());
+
+        act.getLisInfo().setActId(lisActId);
+        act.getLisInfo().setResponse(response);
+        act.setActStatus(ActStatus.COMPLETED);
+        actRepository.save(act);
+    }
+
+    /**
+     * Blocked once the act has already been sent to LIS — deleting it at
+     * that point would leave the external system referencing a record that
+     * no longer exists on our side.
      */
     @Transactional
     public void delete(Long actId) {
         Act act = actRepository.findById(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
 
-        requireTransition(act.getActStatus().canBeDeleted(), act.getActStatus());
+        if (act.getActStatus() == ActStatus.SENT || act.getActStatus() == ActStatus.COMPLETED) {
+            throw new ActAlreadySentToLisException("error.act.already-sent-to-lis");
+        }
 
         actRepository.delete(act);
     }
 
     /**
-     * The attached user marks the act as reviewed/correct.
+     * NEW, IN_PROGRESS, READY, and SEND_FAILED all still precede a
+     * successful send to LIS, so saving is allowed from any of them; once
+     * SENT or COMPLETED, the act has left our hands.
      */
-    @Transactional
-    public void acceptByUser(Long actId) {
-        Act act = requireAttachedUserAct(actId);
-        requireTransition(act.getActStatus().canBeAcceptedByUser(), act.getActStatus());
-        act.setActStatus(ActStatus.ACCEPTED_BY_USER);
-        actRepository.save(act);
-    }
-
-    /**
-     * The attached user flags the act as incorrect.
-     */
-    @Transactional
-    public void rejectByUser(Long actId, String comment) {
-        Act act = requireAttachedUserAct(actId);
-        requireTransition(act.getActStatus().canBeRejectedByUser(), act.getActStatus());
-        act.setActStatus(ActStatus.REJECTED_BY_USER);
-        act.setAttachedUserComment(comment);
-        actRepository.save(act);
-    }
-
-    /**
-     * The attached user marks the act as finished, ready for supervisor
-     * review.
-     */
-    @Transactional
-    public void complete(Long actId) {
-        Act act = requireAttachedUserAct(actId);
-        requireTransition(act.getActStatus().canBeUpdated(), act.getActStatus());
-        act.setCompletedDate(LocalDate.now());
-        act.setActStatus(ActStatus.COMPLETED);
-        actRepository.save(act);
-    }
-
-    /**
-     * Only the supervisor the act was assigned to may approve it, and only
-     * once it is completed.
-     */
-    @Transactional
-    public void approveBySupervisor(Long actId) {
-        Act act = requireAssignedSupervisorAct(actId);
-        requireTransition(act.getActStatus().canBeApprovedBySupervisor(), act.getActStatus());
-        act.setActStatus(ActStatus.APPROVED);
-        actRepository.save(act);
-    }
-
-    /**
-     * Only the supervisor the act was assigned to may reject it, only once
-     * it is completed, and only with a non-blank reason.
-     */
-    @Transactional
-    public void rejectBySupervisor(Long actId, String comment) {
-        Act act = requireAssignedSupervisorAct(actId);
-        requireTransition(act.getActStatus().canBeRejectedBySupervisor(), act.getActStatus());
-        if (!StringUtils.hasText(comment)) {
-            throw new ActValidationException("error.act.rejection-reason-required");
-        }
-        act.setActStatus(ActStatus.REJECTED);
-        act.setSupervisorComment(comment);
-        actRepository.save(act);
+    private boolean canBeUpdated(ActStatus status) {
+        return switch (status) {
+            case NEW, IN_PROGRESS, READY, SEND_FAILED -> true;
+            case SENT, COMPLETED -> false;
+        };
     }
 
     private Act requireAttachedUserAct(Long actId) {
@@ -211,17 +253,6 @@ public class ActCommandService {
         return act;
     }
 
-    private Act requireAssignedSupervisorAct(Long actId) {
-        Act act = actRepository.findById(actId)
-                .orElseThrow(() -> new ActNotFoundException(actId));
-
-        Long userId = currentUserProvider.userIdOrNull();
-        if (userId == null || !userId.equals(act.getAssignedById())) {
-            throw new ActScopeViolationException();
-        }
-        return act;
-    }
-
     private void requireTransition(boolean allowed, ActStatus current) {
         if (!allowed) {
             throw new InvalidActStatusException("error.act.invalid-status-transition", current);
@@ -230,8 +261,7 @@ public class ActCommandService {
 
     /**
      * Resolves distinct, non-null user ids into their entities, rejecting
-     * the whole operation if any id doesn't exist — shared by
-     * {@link #assignActs} and {@link #reassignUsers}.
+     * the whole operation if any id doesn't exist.
      */
     private Map<Long, User> resolveUsers(List<Long> rawUserIds) {
         List<Long> userIds = rawUserIds.stream().filter(Objects::nonNull).distinct().toList();

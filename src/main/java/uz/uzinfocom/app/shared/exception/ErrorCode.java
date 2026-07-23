@@ -22,6 +22,12 @@ public enum ErrorCode {
     UNSUPPORTED_MEDIA_TYPE("UNSUPPORTED_MEDIA_TYPE", HttpStatus.UNSUPPORTED_MEDIA_TYPE, "error.unsupported_media_type"),
     NOT_ACCEPTABLE("NOT_ACCEPTABLE", HttpStatus.NOT_ACCEPTABLE, "error.not_acceptable"),
 
+    // An external system we depend on (LIS, API2, ...) failed or did not
+    // answer. Distinct from INTERNAL_ERROR so callers can tell "we broke"
+    // apart from "the system behind us broke", and retry accordingly.
+    UPSTREAM_ERROR("UPSTREAM_ERROR", HttpStatus.BAD_GATEWAY, "error.upstream"),
+    UPSTREAM_TIMEOUT("UPSTREAM_TIMEOUT", HttpStatus.GATEWAY_TIMEOUT, "error.upstream_timeout"),
+
     BAD_REQUEST("BAD_REQUEST", HttpStatus.BAD_REQUEST, "error.bad_request"),
     REQUEST_BODY_MISSING("REQUEST_BODY_MISSING", HttpStatus.BAD_REQUEST, "error.request_body_missing"),
     MALFORMED_JSON("MALFORMED_JSON", HttpStatus.BAD_REQUEST, "error.malformed_json");

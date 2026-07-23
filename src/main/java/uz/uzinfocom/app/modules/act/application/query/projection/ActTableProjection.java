@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.act.application.query.projection;
 
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
+import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 
 import java.time.Instant;
 
@@ -15,7 +16,7 @@ public interface ActTableProjection {
 
     Long getId();
 
-    String getActType();
+    ActType getActType();
 
     ActStatus getActStatus();
 

@@ -33,21 +33,23 @@ public final class OpenApiGroups {
     };
 
     /**
-     * Every endpoint whose data comes from (or is pushed by) an external
-     * system rather than being native ISEMID business data — API2's
-     * citizen/legal-entity lookups today, plus the LIS results callback
-     * path reserved in {@link ApiPaths.ExternalApi} for when that
-     * integration is wired up. Kept in one group so a consumer integrating
-     * with an outside system never has to go hunting for these across the
-     * main business-API group.
+     * Every endpoint whose data comes from an external system rather than
+     * being native ISEMID business data — API2's citizen/legal-entity
+     * lookups. Kept in one group so a consumer integrating with an outside
+     * system never has to go hunting for these across the main business-API
+     * group.
+     *
+     * <p>The LIS results callback ({@link ApiPaths.Act#LIS_CALLBACK}) is
+     * deliberately <em>not</em> here: it's an ordinary {@code /v1/acts/**}
+     * endpoint, authenticated the same way as the rest of the Act API, so it
+     * belongs in the main group alongside the rest of Act, not a
+     * special-cased one.
      */
     private static final String[] INTEGRATION_PATHS = {
             ApiPaths.Citizen.ROOT,
             ApiPaths.Citizen.ROOT + "/**",
             ApiPaths.LegalEntity.ROOT,
-            ApiPaths.LegalEntity.ROOT + "/**",
-            ApiPaths.ExternalApi.ISEMID_CALLBACK,
-            ApiPaths.ExternalApi.ISEMID_CALLBACK + "**"
+            ApiPaths.LegalEntity.ROOT + "/**"
     };
 
     public static final ApiDocumentationGroup REFERENCES = new ApiDocumentationGroup(

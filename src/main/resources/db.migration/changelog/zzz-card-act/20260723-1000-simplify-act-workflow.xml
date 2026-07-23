@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The accept/reject/supervisor-approve/reject workflow was dropped:
+        an act is filled in freely by its attached employee(s), any number
+        of times, with no accept/reject gate, and sending it to LIS is
+        independent of that too. supervisor_comment/attached_user_comment
+        only ever held rejection reasons for the removed steps.
+    -->
+    <changeSet id="20260723-1000-01-drop-act-comment-columns" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act" columnName="supervisor_comment"/>
+        </preConditions>
+        <dropColumn tableName="act" columnName="supervisor_comment"/>
+        <dropColumn tableName="act" columnName="attached_user_comment"/>
+    </changeSet>
+
+</databaseChangeLog>

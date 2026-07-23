@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Sending an act to LIS can fail (network, upstream rejection, malformed
+        response), which is now its own ActStatus.SEND_FAILED rather than being
+        silently indistinguishable from a successful SENT. This column carries
+        the reason so the attached employee sees why without reading server
+        logs; it is cleared on every new send attempt (see LisInfo.markSendAttempt).
+    -->
+    <changeSet id="20260723-1500-01-add-act-lis-last-error" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act" columnName="lis_last_error"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act">
+            <column name="lis_last_error" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

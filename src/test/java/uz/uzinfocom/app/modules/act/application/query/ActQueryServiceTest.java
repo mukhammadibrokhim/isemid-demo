@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
+import uz.uzinfocom.app.modules.act.application.query.mapper.ActDetailMapper;
 import uz.uzinfocom.app.modules.act.application.query.mapper.ActMapper;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
+import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.function.Function;
@@ -34,9 +36,11 @@ class ActQueryServiceTest {
     void setUp() {
         actRepository = mock(ActRepository.class);
         ActMapper actMapper = mock(ActMapper.class);
+        ActDetailMapper actDetailMapper = mock(ActDetailMapper.class);
+        AuditResolver auditResolver = mock(AuditResolver.class);
         currentUserProvider = mock(CurrentUserProvider.class);
 
-        service = new ActQueryService(actRepository, actMapper, currentUserProvider);
+        service = new ActQueryService(actRepository, actMapper, actDetailMapper, auditResolver, currentUserProvider);
 
         when(actRepository.findBy(any(Specification.class), any(Function.class)))
                 .thenReturn(Page.empty());

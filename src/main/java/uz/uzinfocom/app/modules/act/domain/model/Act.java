@@ -1,11 +1,14 @@
 package uz.uzinfocom.app.modules.act.domain.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -13,27 +16,31 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
+import uz.uzinfocom.app.modules.act.domain.enums.ActType;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * The Act workflow deliberately mirrors {@link Card}'s: a supervisor assigns
- * one or more blank acts (via {@code assignActs}) to a set of employees, who
- * accept/reject, fill it in through {@code resultComment}, complete it, and
- * a supervisor approves or rejects it. The legacy module's 6 act subtypes
- * (act153/154/155/156/223/224, each with their own fields) remain out of
- * scope — this stays a single, generic entity with one free-text outcome
- * field until a full Act module is designed separately.
+ * A supervisor assigns one or more blank acts (via {@code assignActs}) to a
+ * card and a set of employees, who fill it in and re-save it freely, any
+ * number of times; the act is then sent to the external LIS (Laboratory
+ * Information System, {@link #lisInfo}) and its response is received back.
+ * That is the entire lifecycle — one status ({@link ActStatus}), no
+ * accept/reject or supervisor-approval gate, unlike {@link Card}. The 6
+ * concrete subtypes (act153/154/155/156/223/224, one {@code @Entity} each
+ * under this package's sibling packages) carry the type-specific structured
+ * data; JOINED inheritance keeps each subtype's ~15-30 fields out of a
+ * single sprawling table.
  */
 @Getter
 @Setter
@@ -46,16 +53,23 @@ import java.util.Set;
                 @Index(name = "idx_act_assigned_by", columnList = "assigned_by_id")
         }
 )
+@Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor
-@AllArgsConstructor
-public class Act extends AbsEntity {
+public abstract class Act extends AbsEntity {
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "act_type", nullable = false, length = 50)
-    private String actType;
+    private ActType actType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "act_status", nullable = false, length = 32)
     private ActStatus actStatus = ActStatus.NEW;
+
+    @Embedded
+    private Institution institution;
+
+    @Embedded
+    private LisInfo lisInfo = new LisInfo();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
@@ -64,9 +78,6 @@ public class Act extends AbsEntity {
             foreignKey = @ForeignKey(name = "fk_act_card")
     )
     private Card card;
-
-    @Column(name = "card_id", insertable = false, updatable = false)
-    private Long cardId;
 
     @Column(name = "assigned_by_id")
     private Long assignedById;
@@ -87,18 +98,10 @@ public class Act extends AbsEntity {
     )
     private Set<User> users = new HashSet<>();
 
-    @Column(name = "supervisor_comment", length = 1000)
-    private String supervisorComment;
-
-    @Column(name = "attached_user_comment", length = 1000)
-    private String attachedUserComment;
-
-    @Column(name = "completed_date")
-    private LocalDate completedDate;
-
     /**
-     * The single generic outcome/finding field filled in via {@code update}
-     * while the legacy per-subtype data model remains out of scope.
+     * Free-text fallback outcome field from before the per-subtype data
+     * model existed; the concrete subtypes' structured fields are now the
+     * source of truth for what was actually found.
      */
     @Column(name = "result_comment", columnDefinition = "text")
     private String resultComment;

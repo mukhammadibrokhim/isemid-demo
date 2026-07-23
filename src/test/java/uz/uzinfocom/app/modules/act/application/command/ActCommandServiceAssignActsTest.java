@@ -5,10 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
 import uz.uzinfocom.app.modules.act.application.exception.ActValidationException;
+import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandler;
+import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
+import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
+import uz.uzinfocom.app.modules.act.domain.model.act153.Act153;
+import uz.uzinfocom.app.modules.act.domain.model.act154.Act154;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
-import uz.uzinfocom.app.modules.act.application.query.mapper.ActMapper;
 import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
 import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
@@ -24,6 +28,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,7 +37,10 @@ import static org.mockito.Mockito.when;
  * Covers the bulk "assign acts" flow — mirrors
  * {@code CardCommandServiceAssignCardsTest} exactly: one blank act per
  * distinct requested type, all sharing the same set of attached employees,
- * with {@code assignedById} set to whoever performed the assignment.
+ * with {@code assignedById} set to whoever performed the assignment. Each
+ * blank act now comes from the type's {@link ActTypeHandler#handleCreateBlank()}
+ * via {@link ActTypeHandlerRegistry}, mirroring how {@code CardCommandService}
+ * creates blank cards.
  */
 class ActCommandServiceAssignActsTest {
 
@@ -43,19 +51,29 @@ class ActCommandServiceAssignActsTest {
     private CardRepository cardRepository;
     private UserRepository userRepository;
     private CurrentUserProvider currentUserProvider;
+    private ActTypeHandlerRegistry handlerRegistry;
     private ActCommandService service;
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     void setUp() {
         actRepository = mock(ActRepository.class);
         cardRepository = mock(CardRepository.class);
         userRepository = mock(UserRepository.class);
         currentUserProvider = mock(CurrentUserProvider.class);
-        ActMapper actMapper = mock(ActMapper.class);
+        handlerRegistry = mock(ActTypeHandlerRegistry.class);
 
-        service = new ActCommandService(actRepository, cardRepository, userRepository, actMapper, currentUserProvider);
+        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider);
 
         when(actRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ActTypeHandler<?, ?, ?> act153Handler = mock(ActTypeHandler.class);
+        when(act153Handler.handleCreateBlank()).thenAnswer(invocation -> new Act153());
+        doReturn(act153Handler).when(handlerRegistry).get(ActType.ACT153);
+
+        ActTypeHandler<?, ?, ?> act154Handler = mock(ActTypeHandler.class);
+        when(act154Handler.handleCreateBlank()).thenAnswer(invocation -> new Act154());
+        doReturn(act154Handler).when(handlerRegistry).get(ActType.ACT154);
     }
 
     @Test
@@ -69,7 +87,7 @@ class ActCommandServiceAssignActsTest {
         when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(employee1, employee2));
 
         service.assignActs(CARD_ID, new AssignActsRequest(
-                List.of("ACT153", "ACT154"),
+                List.of(ActType.ACT153, ActType.ACT154),
                 List.of(1L, 2L)
         ));
 
@@ -81,7 +99,7 @@ class ActCommandServiceAssignActsTest {
             assertThat(act.getActStatus()).isEqualTo(ActStatus.NEW);
             assertThat(act.getUsers()).containsExactlyInAnyOrder(employee1, employee2);
         }
-        assertThat(saved.stream().map(Act::getActType)).containsExactlyInAnyOrder("ACT153", "ACT154");
+        assertThat(saved.stream().map(Act::getActType)).containsExactlyInAnyOrder(ActType.ACT153, ActType.ACT154);
     }
 
     @Test
@@ -92,7 +110,7 @@ class ActCommandServiceAssignActsTest {
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
 
         service.assignActs(CARD_ID, new AssignActsRequest(
-                List.of("ACT153", "ACT153"),
+                List.of(ActType.ACT153, ActType.ACT153),
                 List.of(1L, 1L)
         ));
 
@@ -107,7 +125,7 @@ class ActCommandServiceAssignActsTest {
         when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(userWithId(1L)));
 
         assertThatThrownBy(() -> service.assignActs(CARD_ID, new AssignActsRequest(
-                List.of("ACT153"),
+                List.of(ActType.ACT153),
                 List.of(1L, 2L)
         ))).isInstanceOf(ActValidationException.class);
     }
@@ -119,7 +137,7 @@ class ActCommandServiceAssignActsTest {
         when(currentUserProvider.userIdOrNull()).thenReturn(null);
 
         assertThatThrownBy(() -> service.assignActs(CARD_ID, new AssignActsRequest(
-                List.of("ACT153"),
+                List.of(ActType.ACT153),
                 List.of(1L)
         ))).isInstanceOf(ActScopeViolationException.class);
     }
@@ -129,7 +147,7 @@ class ActCommandServiceAssignActsTest {
         when(cardRepository.findById(CARD_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.assignActs(CARD_ID, new AssignActsRequest(
-                List.of("ACT153"),
+                List.of(ActType.ACT153),
                 List.of(1L)
         ))).isInstanceOf(CardNotFoundException.class);
     }

@@ -272,29 +272,21 @@ public final class ApiPaths {
 
         public static final String ROOT = API_V1 + "/acts";
         public static final String BY_ID = "/{id}";
+        public static final String PDF = "/{id}/pdf";
+
+        // Attached employee marks a filled-in act as finished / sends it to LIS.
+        public static final String READY = "/{id}/ready";
+        public static final String SEND_TO_LIS = "/{id}/send-to-lis";
+
+        // LIS posts its result here once it has finished processing the act —
+        // the URL we hand LIS as the payload's redirectUrl (see LisUrlFactory).
+        // An ordinary authenticated /v1/acts/** endpoint like any other, not a
+        // separate integration surface: see the user's explicit call — LIS
+        // calls back with the same SSO-token-based auth as everything else.
+        public static final String LIS_CALLBACK = "/{id}/lis/callback";
 
         // Personal, server-scoped list view — same rule as Card.MINE.
         public static final String MINE = "/mine";
-
-        // Attached-employee actions (the user working the act).
-        public static final String ACCEPT = "/{id}/accept";
-        public static final String REJECT = "/{id}/reject";
-        public static final String COMPLETE = "/{id}/complete";
-
-        // Supervisor actions (the user the act is assigned to via
-        // assignedById) — nested under /supervisor/ just like Card's.
-        public static final String SUPERVISOR_APPROVE = "/{id}/supervisor/approve";
-        public static final String SUPERVISOR_REJECT = "/{id}/supervisor/reject";
-        public static final String SUPERVISOR_REASSIGN = "/{id}/supervisor/reassign";
-    }
-
-    public static final class ExternalApi {
-        private ExternalApi() {
-        }
-
-        public static final String ISEMID_CALLBACK = API_V1 + "/acts/lis/callback/";
-        public static final String LIS_ACT_API = "/api/lis/labs/%s/acts/%s?allowedDuplicate=%s";
-        public static final String LIS_RESEARCH_TYPE_API = "/api/lis/research-types/%s/template-id";
     }
 
     /**

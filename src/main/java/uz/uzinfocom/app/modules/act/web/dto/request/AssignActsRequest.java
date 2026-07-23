@@ -1,11 +1,10 @@
 package uz.uzinfocom.app.modules.act.web.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ import java.util.List;
 public record AssignActsRequest(
         @Schema(description = "Список типов актов, которые необходимо создать (по одному пустому акту на каждый уникальный тип).",
                 requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotEmpty List<@NotBlank @Size(max = 50) String> actTypes,
+        @NotEmpty List<@NotNull ActType> actTypes,
 
         @Schema(description = "Список идентификаторов сотрудников, прикрепляемых ко всем создаваемым актам.",
                 requiredMode = Schema.RequiredMode.REQUIRED)
