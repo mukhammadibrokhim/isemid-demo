@@ -77,7 +77,7 @@ public class ActQueryService {
     }
 
     private Act findAct(Long id) {
-        return actRepository.findById(id)
+        return actRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ActNotFoundException(id));
     }
 

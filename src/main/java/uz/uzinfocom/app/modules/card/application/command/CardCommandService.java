@@ -150,20 +150,24 @@ public class CardCommandService {
      * {@link CardStatus#canBeDeleted()}. Once the attached user has saved
      * at least once (IN_PROGRESS) or the card has moved further along,
      * deleting it would destroy real work or a real supervisor decision.
+     * Soft delete only (mirrors {@code DeleteForm058Service}/
+     * {@code ActCommandService.delete}): the row stays, marked via
+     * {@code deleteInfo}, so {@code existsByForm058_IdAndDeleteInfoDeletedFalse}
+     * below excludes it rather than relying on the row being physically gone.
      */
     @Transactional
-    public void delete(Long cardId) {
-        Card card = cardRepository.findById(cardId)
+    public void delete(Long cardId, String reason) {
+        Card card = cardRepository.findActiveByIdForUpdate(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
 
         requireTransition(card.getStatus().canBeDeleted(), card.getStatus());
 
         Long formId = card.getForm058().getId();
 
-        cardRepository.delete(card);
+        card.softDelete(currentUserProvider.userIdOrNull(), reason);
         cardRepository.flush();
 
-        if (!cardRepository.existsByForm058_Id(formId)) {
+        if (!cardRepository.existsByForm058_IdAndDeleteInfoDeletedFalse(formId)) {
             Form058 form = form058Repository.findByIdAndDeletedFalse(formId)
                     .orElseThrow(() -> new Form058NotFoundException(formId));
             form.markCardsUnlinked();

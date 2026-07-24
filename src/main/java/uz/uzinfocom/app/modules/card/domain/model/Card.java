@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.card.domain.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -24,6 +25,7 @@ import lombok.Setter;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+import uz.uzinfocom.app.modules.card.domain.model.embedded.CardDeleteInfo;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
@@ -62,7 +64,8 @@ import java.util.Set;
                 @Index(name = "idx_card_type", columnList = "card_type"),
                 @Index(name = "idx_card_status", columnList = "status"),
                 @Index(name = "idx_card_assigned_by", columnList = "assigned_by_id"),
-                @Index(name = "idx_card_form058_id", columnList = "form058_id")
+                @Index(name = "idx_card_form058_id", columnList = "form058_id"),
+                @Index(name = "idx_card_deleted", columnList = "deleted")
         }
 )
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -120,7 +123,35 @@ public abstract class Card extends AbsEntity {
     @OneToMany(mappedBy = "card", fetch = FetchType.LAZY)
     private List<Act> acts = new ArrayList<>();
 
+    /**
+     * Soft delete state.
+     * Columns remain in card table:
+     * deleted, deleted_at, deleted_by_id, delete_reason.
+     */
+    @Embedded
+    private CardDeleteInfo deleteInfo = new CardDeleteInfo();
+
     protected Card(CardType cardType) {
         this.cardType = cardType;
+    }
+
+    public void softDelete(Long deletedBy, String reason) {
+        ensureDeleteInfo();
+        this.deleteInfo.softDelete(deletedBy, reason);
+    }
+
+    public void restore() {
+        ensureDeleteInfo();
+        this.deleteInfo.restore();
+    }
+
+    public boolean isDeleted() {
+        return this.deleteInfo != null && this.deleteInfo.isDeleted();
+    }
+
+    private void ensureDeleteInfo() {
+        if (this.deleteInfo == null) {
+            this.deleteInfo = new CardDeleteInfo();
+        }
     }
 }

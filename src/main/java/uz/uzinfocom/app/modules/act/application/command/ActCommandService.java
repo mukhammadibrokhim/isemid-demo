@@ -213,18 +213,21 @@ public class ActCommandService {
     /**
      * Blocked once the act has already been sent to LIS — deleting it at
      * that point would leave the external system referencing a record that
-     * no longer exists on our side.
+     * no longer exists on our side. Soft delete only (mirrors
+     * {@code DeleteForm058Service}): the row stays, marked via
+     * {@code deleteInfo}, and {@link ActRepository#findActiveByIdForUpdate}
+     * plus {@code ActSpecification} keep it out of further lookups/listings.
      */
     @Transactional
-    public void delete(Long actId) {
-        Act act = actRepository.findById(actId)
+    public void delete(Long actId, String reason) {
+        Act act = actRepository.findActiveByIdForUpdate(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
 
         if (act.getActStatus() == ActStatus.SENT || act.getActStatus() == ActStatus.COMPLETED) {
             throw new ActAlreadySentToLisException("error.act.already-sent-to-lis");
         }
 
-        actRepository.delete(act);
+        act.softDelete(currentUserProvider.userIdOrNull(), reason);
     }
 
     /**

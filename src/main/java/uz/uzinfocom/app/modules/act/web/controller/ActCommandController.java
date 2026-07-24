@@ -14,6 +14,7 @@ import uz.uzinfocom.app.modules.act.application.command.ActCommandService;
 import uz.uzinfocom.app.modules.act.application.command.ActLisSendService;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.ActDetailResponse;
 import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
+import uz.uzinfocom.app.modules.act.web.dto.request.DeleteActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.SendActToLisRequest;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -129,15 +130,16 @@ public class ActCommandController {
     @Operation(
             summary = "Удалить акт",
             description = "Удаление возможно только пока акт ещё не отправлен в LIS (статусы NEW, IN_PROGRESS, "
-                    + "READY, SEND_FAILED)."
+                    + "READY, SEND_FAILED). Это мягкое удаление — запись остаётся в базе с отметкой об удалении."
     )
     @DeleteMapping(ApiPaths.Act.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор акта.", required = true)
-            @PathVariable @Positive Long id
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody DeleteActRequest request
     ) {
-        actCommandService.delete(id);
+        actCommandService.delete(id, request.reason());
         return ApiResponse.success(messageResolver.resolve("common.deleted"));
     }
 }

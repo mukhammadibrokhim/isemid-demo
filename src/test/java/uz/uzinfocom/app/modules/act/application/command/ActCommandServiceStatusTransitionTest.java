@@ -247,7 +247,9 @@ class ActCommandServiceStatusTransitionTest {
         Act act = actWith(ActStatus.SEND_FAILED, Set.of());
         givenAct(act);
 
-        service.delete(ACT_ID);
+        service.delete(ACT_ID, "no longer needed");
+
+        assertThat(act.isDeleted()).isTrue();
     }
 
     @Test
@@ -276,7 +278,9 @@ class ActCommandServiceStatusTransitionTest {
         Act act = actWith(ActStatus.NEW, Set.of());
         givenAct(act);
 
-        service.delete(ACT_ID);
+        service.delete(ACT_ID, "no longer needed");
+
+        assertThat(act.isDeleted()).isTrue();
     }
 
     @Test
@@ -284,7 +288,9 @@ class ActCommandServiceStatusTransitionTest {
         Act act = actWith(ActStatus.READY, Set.of());
         givenAct(act);
 
-        service.delete(ACT_ID);
+        service.delete(ACT_ID, "no longer needed");
+
+        assertThat(act.isDeleted()).isTrue();
     }
 
     @Test
@@ -292,8 +298,10 @@ class ActCommandServiceStatusTransitionTest {
         Act act = actWith(ActStatus.SENT, Set.of());
         givenAct(act);
 
-        assertThatThrownBy(() -> service.delete(ACT_ID))
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
                 .isInstanceOf(ActAlreadySentToLisException.class);
+
+        assertThat(act.isDeleted()).isFalse();
     }
 
     @Test
@@ -301,12 +309,15 @@ class ActCommandServiceStatusTransitionTest {
         Act act = actWith(ActStatus.COMPLETED, Set.of());
         givenAct(act);
 
-        assertThatThrownBy(() -> service.delete(ACT_ID))
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
                 .isInstanceOf(ActAlreadySentToLisException.class);
+
+        assertThat(act.isDeleted()).isFalse();
     }
 
     private void givenAct(Act act) {
         when(actRepository.findById(ACT_ID)).thenReturn(Optional.of(act));
+        when(actRepository.findActiveByIdForUpdate(ACT_ID)).thenReturn(Optional.of(act));
     }
 
     private Act actWith(ActStatus status, Set<User> users) {

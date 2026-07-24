@@ -1,9 +1,6 @@
 package uz.uzinfocom.app.modules.card.infrastructure.persistence.repository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardDailyCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
@@ -26,8 +23,8 @@ import java.util.List;
  * reusing {@link SenderReceiverScopePredicateFactory} verbatim, exactly as the
  * regular Form058 stats queries do. Cards only ever exist on the receiving
  * (investigating) side of a case, so {@code received} is always {@code true}.
- * Card has no soft-delete flag, unlike Form058/Form0581, hence the
- * {@link #notDeleted} override.
+ * Card is soft-deletable via {@code deleteInfo.deleted} like Form058/Form0581,
+ * so the base class's default {@code notDeleted} applies unmodified.
  */
 @Repository
 public class CardStatsRepository extends AbstractCaseStatsRepository<Card> {
@@ -37,11 +34,6 @@ public class CardStatsRepository extends AbstractCaseStatsRepository<Card> {
     public CardStatsRepository(EntityManager entityManager, SenderReceiverScopePredicateFactory scopePredicateFactory) {
         super(entityManager, Card.class);
         this.scopePredicateFactory = scopePredicateFactory;
-    }
-
-    @Override
-    protected Predicate notDeleted(Root<Card> root, CriteriaBuilder cb) {
-        return cb.conjunction();
     }
 
     public List<CardStatusCountResponse> countByStatus(ResolvedOrganizationScope scope) {

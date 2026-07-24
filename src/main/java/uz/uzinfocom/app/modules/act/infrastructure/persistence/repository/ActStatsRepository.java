@@ -1,9 +1,6 @@
 package uz.uzinfocom.app.modules.act.infrastructure.persistence.repository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActDailyCountResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
@@ -23,7 +20,8 @@ import java.util.List;
  * act -> card -> form058 and reusing {@link SenderReceiverScopePredicateFactory}
  * verbatim. {@code received} is always {@code true} for the same reason as
  * {@link uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardStatsRepository}.
- * Act has no soft-delete flag either, hence the {@link #notDeleted} override.
+ * Act is soft-deletable via {@code deleteInfo.deleted} like Form058/Form0581,
+ * so the base class's default {@code notDeleted} applies unmodified.
  */
 @Repository
 public class ActStatsRepository extends AbstractCaseStatsRepository<Act> {
@@ -33,11 +31,6 @@ public class ActStatsRepository extends AbstractCaseStatsRepository<Act> {
     public ActStatsRepository(EntityManager entityManager, SenderReceiverScopePredicateFactory scopePredicateFactory) {
         super(entityManager, Act.class);
         this.scopePredicateFactory = scopePredicateFactory;
-    }
-
-    @Override
-    protected Predicate notDeleted(Root<Act> root, CriteriaBuilder cb) {
-        return cb.conjunction();
     }
 
     public List<ActStatusCountResponse> countByStatus(ResolvedOrganizationScope scope) {

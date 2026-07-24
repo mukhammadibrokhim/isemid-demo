@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -68,7 +67,7 @@ class CardCommandServiceStatusTransitionTest {
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         // Other cards still exist for the form, so delete() never needs to
         // touch form058Repository (kept out of scope for these tests).
-        when(cardRepository.existsByForm058_Id(any())).thenReturn(true);
+        when(cardRepository.existsByForm058_IdAndDeleteInfoDeletedFalse(any())).thenReturn(true);
     }
 
     @Test
@@ -318,8 +317,10 @@ class CardCommandServiceStatusTransitionTest {
             card.setStatus(status);
             givenCard(card);
 
-            assertThatThrownBy(() -> service.delete(CARD_ID))
+            assertThatThrownBy(() -> service.delete(CARD_ID, "no longer needed"))
                     .isInstanceOf(InvalidCardStatusException.class);
+
+            assertThat(card.isDeleted()).isFalse();
         }
     }
 
@@ -331,9 +332,9 @@ class CardCommandServiceStatusTransitionTest {
             card.setForm058(formWithId(500L));
             givenCard(card);
 
-            service.delete(CARD_ID);
+            service.delete(CARD_ID, "no longer needed");
 
-            verify(cardRepository).delete(card);
+            assertThat(card.isDeleted()).isTrue();
         }
     }
 
@@ -400,6 +401,7 @@ class CardCommandServiceStatusTransitionTest {
 
     private void givenCard(Card card) {
         when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
+        when(cardRepository.findActiveByIdForUpdate(CARD_ID)).thenReturn(Optional.of(card));
     }
 
     private Card cardWith(CardStatus status, Set<User> users, Long assignedById) {

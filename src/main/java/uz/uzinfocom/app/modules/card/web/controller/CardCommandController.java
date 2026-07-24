@@ -13,6 +13,7 @@ import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRejectRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRequest;
+import uz.uzinfocom.app.modules.card.web.dto.request.DeleteCardRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -60,15 +61,17 @@ public class CardCommandController {
             summary = "Удалить карту",
             description = "Удаление возможно только до появления реальных данных по карте — в статусах "
                     + "NEW, ACCEPTED_BY_USER или REJECTED_BY_USER. После начала заполнения (IN_PROGRESS) "
-                    + "и далее по жизненному циклу удаление запрещено."
+                    + "и далее по жизненному циклу удаление запрещено. Это мягкое удаление — запись остаётся "
+                    + "в базе с отметкой об удалении."
     )
     @DeleteMapping(ApiPaths.Card.BY_ID)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор карты.", required = true)
-            @PathVariable @Positive Long id
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody DeleteCardRequest request
     ) {
-        cardCommandService.delete(id);
+        cardCommandService.delete(id, request.reason());
         return ApiResponse.success(messageResolver.resolve("common.deleted"));
     }
 

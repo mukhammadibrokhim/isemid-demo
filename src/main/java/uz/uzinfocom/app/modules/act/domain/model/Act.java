@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActDeleteInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
@@ -50,7 +51,8 @@ import java.util.Set;
         indexes = {
                 @Index(name = "idx_act_card_id", columnList = "card_id"),
                 @Index(name = "idx_act_status", columnList = "act_status"),
-                @Index(name = "idx_act_assigned_by", columnList = "assigned_by_id")
+                @Index(name = "idx_act_assigned_by", columnList = "assigned_by_id"),
+                @Index(name = "idx_act_deleted", columnList = "deleted")
         }
 )
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -105,4 +107,32 @@ public abstract class Act extends AbsEntity {
      */
     @Column(name = "result_comment", columnDefinition = "text")
     private String resultComment;
+
+    /**
+     * Soft delete state.
+     * Columns remain in act table:
+     * deleted, deleted_at, deleted_by_id, delete_reason.
+     */
+    @Embedded
+    private ActDeleteInfo deleteInfo = new ActDeleteInfo();
+
+    public void softDelete(Long deletedBy, String reason) {
+        ensureDeleteInfo();
+        this.deleteInfo.softDelete(deletedBy, reason);
+    }
+
+    public void restore() {
+        ensureDeleteInfo();
+        this.deleteInfo.restore();
+    }
+
+    public boolean isDeleted() {
+        return this.deleteInfo != null && this.deleteInfo.isDeleted();
+    }
+
+    private void ensureDeleteInfo() {
+        if (this.deleteInfo == null) {
+            this.deleteInfo = new ActDeleteInfo();
+        }
+    }
 }

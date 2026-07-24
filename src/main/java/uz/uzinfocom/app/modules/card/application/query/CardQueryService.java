@@ -101,7 +101,7 @@ public class CardQueryService {
 
     @Transactional(readOnly = true)
     public CardDetailResponse getById(Long id) {
-        Card card = cardRepository.findById(id)
+        Card card = cardRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new CardNotFoundException(id));
 
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
@@ -118,7 +118,7 @@ public class CardQueryService {
      */
     @Transactional(readOnly = true)
     public CardPdfResponse getPdf(Long id) {
-        Card card = cardRepository.findById(id)
+        Card card = cardRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new CardNotFoundException(id));
 
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
