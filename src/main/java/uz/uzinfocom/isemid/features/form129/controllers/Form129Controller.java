@@ -71,6 +71,12 @@ public class Form129Controller {
         return ApiResponse.success(messageUtil, form129Mapper.toResponse(form129Service.getById(id)));
     }
 
+    @Operation(summary = "Данные формы 129 для PDF", description = "Возвращает полные данные формы 129 по ID для генерации PDF на фронтенде.")
+    @GetMapping("/{id}/pdf")
+    public ApiResponse<Form129Response> getPdf(@PathVariable long id) {
+        return ApiResponse.success(messageUtil, form129Mapper.toResponse(form129Service.getById(id)));
+    }
+
     @Operation(summary = "Обновление формы 129", description = "Обновляет данные существующей формы 129 по заданному идентификатору.")
     @PutMapping("/{id}")
     public ApiResponse<Form129Response> update(

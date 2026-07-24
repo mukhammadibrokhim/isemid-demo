@@ -13,6 +13,21 @@ import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin;
 
 public class OrganizationSpecification {
+
+    // o', g' kabi so'zlarda ishlatiladigan tutuq belgisining turli xil unicode variantlari
+    private static final String APOSTROPHE_CHARS = "'ʻʼ‘’`´";
+
+    private static String stripApostrophes(String value) {
+        StringBuilder sb = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (APOSTROPHE_CHARS.indexOf(c) < 0) {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
     public static Specification<Organization> build(
             String name,
             String stateCode,
@@ -22,7 +37,15 @@ public class OrganizationSpecification {
         return (root, query, criteriaBuilder) -> {
             var predicates = new java.util.ArrayList<>(Stream.of(
                     criteriaBuilder.isNull(root.get("parent")),
-                    hasText(name) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%") : null,
+                    hasText(name) ? criteriaBuilder.like(
+                            criteriaBuilder.function(
+                                    "translate", String.class,
+                                    criteriaBuilder.lower(root.get("name")),
+                                    criteriaBuilder.literal(APOSTROPHE_CHARS),
+                                    criteriaBuilder.literal("")
+                            ),
+                            "%" + stripApostrophes(name.toLowerCase()) + "%"
+                    ) : null,
                     hasText(stateCode) ? criteriaBuilder.equal(root.get("stateCode"), stateCode) : null,
                     hasText(cityCode) ? criteriaBuilder.equal(root.get("cityCode"), cityCode) : null
             ).filter(Objects::nonNull).toList());
