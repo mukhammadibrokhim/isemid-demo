@@ -137,7 +137,10 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public List<Organization> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name) {
         String normalizedName = name != null ? TextNormalizationUtils.stripApostrophes(name.toLowerCase()) : null;
-        return organizationRepository.searchByFilter(stateCode, cityCode, medicalType != null ? medicalType.name() : null, normalizedName);
+        return organizationRepository.searchByFilter(
+                stateCode, cityCode, medicalType != null ? medicalType.name() : null,
+                normalizedName, TextNormalizationUtils.APOSTROPHE_CHARS
+        );
     }
 
     @Override
