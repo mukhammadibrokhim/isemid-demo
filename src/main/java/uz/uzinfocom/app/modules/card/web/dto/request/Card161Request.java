@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ContactPersonRequest;
+import uz.uzinfocom.app.modules.card.web.dto.request.card161.EmergencyProphylaxisRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.EnvironmentalLabTestRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.EnvironmentalSourceRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.HomePreventiveMeasureRequest;
@@ -202,7 +203,38 @@ public record Card161Request(
         @Size(max = 255) String epidemiologist,
 
         @Schema(description = "ФИО помощника врача-эпидемиолога.")
-        @Size(max = 255) String epidemiologistAssistant
+        @Size(max = 255) String epidemiologistAssistant,
+
+        // Поля листа-приложения №178 (зоонозное заболевание) — заполняются только для случаев зоонозного заболевания.
+        @Schema(description = "Признак того, что пациенту оказана экстренная профилактическая/антирабическая помощь.")
+        Boolean emergencyProphylaxisGiven,
+
+        @Schema(description = "Список сведений о проведении экстренной профилактической/антирабической помощи.")
+        @Valid List<EmergencyProphylaxisRequest> emergencyProphylaxisTreatments,
+
+        @Schema(description = "Клиническая форма заболевания.")
+        @Size(max = 255) String clinicalForm,
+
+        @Schema(description = "Коды локализации повреждения (укуса), может быть несколько (по справочнику).")
+        List<String> injuryLocationCodes,
+
+        @Schema(description = "Код степени тяжести течения заболевания (по справочнику).")
+        @Size(max = 64) String diseaseSeverityCode,
+
+        @Schema(description = "Признак профессиональной принадлежности заболевания.")
+        Boolean isOccupationalDisease,
+
+        @Schema(description = "Сведения об источнике заболевания.")
+        @Size(max = 1000) String diseaseSourceInfo,
+
+        @Schema(description = "Код принадлежности животного (по справочнику).")
+        @Size(max = 64) String animalOwnershipCode,
+
+        @Schema(description = "Код результата наблюдения за животным (по справочнику).")
+        @Size(max = 64) String animalObservationResultCode,
+
+        @Schema(description = "Код результата лабораторного исследования животного (по справочнику).")
+        @Size(max = 64) String animalLabTestResultCode
 ) implements CardRequest {
 
     public Card161Request {
@@ -216,6 +248,8 @@ public record Card161Request(
         homePreventiveMeasures = immutableCopy(homePreventiveMeasures);
         outbreakDisinfectionMeasures = immutableCopy(outbreakDisinfectionMeasures);
         infectionCausingConditionCode = immutableCopy(infectionCausingConditionCode);
+        emergencyProphylaxisTreatments = immutableCopy(emergencyProphylaxisTreatments);
+        injuryLocationCodes = immutableCopy(injuryLocationCodes);
     }
 
     @Override

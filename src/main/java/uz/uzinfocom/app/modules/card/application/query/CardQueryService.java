@@ -12,11 +12,13 @@ import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.pdf.CardPdfResponse;
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapper;
 import uz.uzinfocom.app.modules.card.application.query.projection.CardTableProjection;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.specification.CardSpecification;
+import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
@@ -26,6 +28,7 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -38,6 +41,7 @@ public class CardQueryService {
     private final CurrentUserProvider currentUserProvider;
     private final OrganizationScopeResolver organizationScopeResolver;
     private final SenderReceiverScopePredicateFactory scopePredicateFactory;
+    private final Form058PdfMapper form058PdfMapper;
 
     @Transactional(readOnly = true)
     public Page<CardTableResponse> findTable(CardFilterRequest filter) {
@@ -102,6 +106,30 @@ public class CardQueryService {
 
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
         return handler.handleToResponse(card);
+    }
+
+    /**
+     * Same per-type card fields as {@link #getById} (raw catalog codes - each
+     * card type has its own frontend print template that already knows how to
+     * resolve them), plus the linked Form058 in its print-oriented shape
+     * ({@link Form058PdfMapper}) - every card's print form has a header with
+     * the patient's identity, address and workplace/school, none of which
+     * live on the card itself.
+     */
+    @Transactional(readOnly = true)
+    public CardPdfResponse getPdf(Long id) {
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new CardNotFoundException(id));
+
+        CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
+        CardDetailResponse cardResponse = handler.handleToResponse(card);
+
+        CardFilterRequest linkedCardsFilter = new CardFilterRequest(
+                1, 200, null, null, card.getForm058().getId(), null, null, null, null
+        );
+        List<CardTableResponse> linkedCards = findTable(linkedCardsFilter).getContent();
+
+        return new CardPdfResponse(cardResponse, form058PdfMapper.toPdfResponse(card.getForm058(), linkedCards));
     }
 
     private Long requireCurrentUserId() {

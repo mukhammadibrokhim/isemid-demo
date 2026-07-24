@@ -6,5 +6,4 @@ import uz.uzinfocom.app.modules.act.domain.model.Act;
 
 public interface ActRepository extends JpaRepository<Act, Long>, JpaSpecificationExecutor<Act> {
 
-    boolean existsByCard_Id(Long cardId);
 }

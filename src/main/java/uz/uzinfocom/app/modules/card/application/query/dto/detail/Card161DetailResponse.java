@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.card.application.query.dto.detail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.Card161RiskFactorResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.ContactPersonResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EmergencyProphylaxisResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EnvironmentalLabTestResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EnvironmentalSourceResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.HomePreventiveMeasureResponse;
@@ -225,6 +226,36 @@ public record Card161DetailResponse(
         String epidemiologist,
 
         @Schema(description = "ФИО помощника врача-эпидемиолога.")
-        String epidemiologistAssistant
+        String epidemiologistAssistant,
+
+        @Schema(description = "Признак того, что пациенту оказана экстренная профилактическая/антирабическая помощь.")
+        Boolean emergencyProphylaxisGiven,
+
+        @Schema(description = "Список сведений о проведении экстренной профилактической/антирабической помощи.")
+        List<EmergencyProphylaxisResponse> emergencyProphylaxisTreatments,
+
+        @Schema(description = "Клиническая форма заболевания.")
+        String clinicalForm,
+
+        @Schema(description = "Коды локализации повреждения (укуса), может быть несколько (по справочнику).")
+        List<String> injuryLocationCodes,
+
+        @Schema(description = "Код степени тяжести течения заболевания (по справочнику).")
+        String diseaseSeverityCode,
+
+        @Schema(description = "Признак профессиональной принадлежности заболевания.")
+        Boolean isOccupationalDisease,
+
+        @Schema(description = "Сведения об источнике заболевания.")
+        String diseaseSourceInfo,
+
+        @Schema(description = "Код принадлежности животного (по справочнику).")
+        String animalOwnershipCode,
+
+        @Schema(description = "Код результата наблюдения за животным (по справочнику).")
+        String animalObservationResultCode,
+
+        @Schema(description = "Код результата лабораторного исследования животного (по справочнику).")
+        String animalLabTestResultCode
 ) implements CardDetailResponse {
 }

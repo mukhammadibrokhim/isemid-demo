@@ -12,6 +12,7 @@ import uz.uzinfocom.app.modules.card.mapper.card161.Card161MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ContactPersonRequest;
+import uz.uzinfocom.app.modules.card.web.dto.request.card161.EmergencyProphylaxisRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.EnvironmentalLabTestRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.EnvironmentalSourceRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.HomePreventiveMeasureRequest;
@@ -207,7 +208,15 @@ class Card161HandlerTest {
                 infectionSourceDetail,
                 "MAINFACTOR1",
                 List.of("COND1", "COND2"),
-                "OUTBREAK1", "CASESTATUS1", "EPIDEMIOLOGIST1", "ASSISTANT1"
+                "OUTBREAK1", "CASESTATUS1", "EPIDEMIOLOGIST1", "ASSISTANT1",
+                false,
+                List.<EmergencyProphylaxisRequest>of(),
+                "CLINICALFORM1",
+                List.of("INJURY1"),
+                "SEVERITY1",
+                false,
+                "SOURCEINFO1",
+                "OWNERSHIP1", "OBSERVATION1", "LABTEST1"
         );
     }
 }

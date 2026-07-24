@@ -243,6 +243,7 @@ public final class ApiPaths {
 
         public static final String ROOT = API_V1 + "/cards";
         public static final String BY_ID = "/{id}";
+        public static final String PDF = "/{id}/pdf";
 
         // Personal, server-scoped list view — never trust a client-supplied
         // user id for this, always resolve from the authenticated principal.

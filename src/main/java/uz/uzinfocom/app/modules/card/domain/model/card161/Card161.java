@@ -264,4 +264,47 @@ public class Card161 extends Card {
 
     @Column(name = "epidemiologist_assistant", length = 255)
     private String epidemiologistAssistant;
+
+    /**
+     * The following fields belong to the "Ilova varag'i №178" — the
+     * zoonotic-disease attachment sheet filled in alongside this card's main
+     * form when the underlying case is a zoonotic disease (e.g. a
+     * rabies/animal-bite exposure).
+     */
+    @Column(name = "emergency_prophylaxis_given")
+    private Boolean emergencyProphylaxisGiven;
+
+    @OneToMany(mappedBy = "card161", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id DESC")
+    private List<EmergencyProphylaxis> emergencyProphylaxisTreatments = new ArrayList<>();
+
+    @Column(name = "clinical_form", length = 255)
+    private String clinicalForm;
+
+    @ElementCollection
+    @CollectionTable(name = "card161_injury_location", joinColumns = @JoinColumn(name = "card161_id"))
+    @Column(name = "catalog_code")
+    private List<String> injuryLocationCodes = new ArrayList<>();
+
+    @CatalogCode("card161-disease-severity")
+    @Column(name = "disease_severity_code", length = 64)
+    private String diseaseSeverityCode;
+
+    @Column(name = "is_occupational_disease")
+    private Boolean isOccupationalDisease;
+
+    @Column(name = "disease_source_info", length = 1000)
+    private String diseaseSourceInfo;
+
+    @CatalogCode("card161-animal-ownership")
+    @Column(name = "animal_ownership_code", length = 64)
+    private String animalOwnershipCode;
+
+    @CatalogCode("card161-animal-observation-result")
+    @Column(name = "animal_observation_result_code", length = 64)
+    private String animalObservationResultCode;
+
+    @CatalogCode("card161-animal-lab-test-result")
+    @Column(name = "animal_lab_test_result_code", length = 64)
+    private String animalLabTestResultCode;
 }

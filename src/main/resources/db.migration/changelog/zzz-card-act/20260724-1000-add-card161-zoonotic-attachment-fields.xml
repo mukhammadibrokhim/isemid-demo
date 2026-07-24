@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Card161's "Ilova varag'i №178" — the zoonotic-disease attachment sheet
+        filled in alongside the main card161 form when the case is a zoonotic
+        disease (e.g. rabies/animal-bite exposure). These fields have no
+        equivalent anywhere else in card161's existing schema.
+    -->
+
+    <changeSet author="uzinfocom" id="20260724-1000-001">
+        <addColumn tableName="card161">
+            <column name="emergency_prophylaxis_given" type="BOOLEAN" />
+            <column name="clinical_form" type="VARCHAR(255)" />
+            <column name="disease_severity_code" type="VARCHAR(64)" />
+            <column name="is_occupational_disease" type="BOOLEAN" />
+            <column name="disease_source_info" type="VARCHAR(1000)" />
+            <column name="animal_ownership_code" type="VARCHAR(64)" />
+            <column name="animal_observation_result_code" type="VARCHAR(64)" />
+            <column name="animal_lab_test_result_code" type="VARCHAR(64)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260724-1000-002">
+        <createTable tableName="card161_injury_location">
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="catalog_code" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260724-1000-003">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_injury_location" constraintName="fk_card161_injury_location_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260724-1000-004">
+        <createTable tableName="card161_emergency_prophylaxis">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card161_emergency_prophylaxis_pkey" />
+            </column>
+            <column name="version" type="BIGINT" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by_id" type="BIGINT" />
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_by_id" type="BIGINT" />
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="treatment_date" type="TIMESTAMP WITHOUT TIME ZONE" />
+            <column name="drug_name" type="VARCHAR(255)" />
+            <column name="dose" type="VARCHAR(100)" />
+            <column name="serial_number" type="VARCHAR(100)" />
+            <column name="administration_schedule" type="VARCHAR(255)" />
+            <column name="card161_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260724-1000-005">
+        <createIndex indexName="idx_card161_emergency_prophylaxis_card161_id" tableName="card161_emergency_prophylaxis" using="btree">
+            <column name="card161_id" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260724-1000-006">
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_card161_emergency_prophylaxis_uuid" tableName="card161_emergency_prophylaxis" />
+    </changeSet>
+
+    <changeSet author="uzinfocom" id="20260724-1000-007">
+        <addForeignKeyConstraint baseColumnNames="card161_id" baseTableName="card161_emergency_prophylaxis" constraintName="fk_card161_emergency_prophylaxis_card161" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="card161" validate="true" />
+    </changeSet>
+
+</databaseChangeLog>

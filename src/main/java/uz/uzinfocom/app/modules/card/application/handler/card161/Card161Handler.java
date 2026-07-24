@@ -10,6 +10,7 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161RiskFactor;
 import uz.uzinfocom.app.modules.card.domain.model.card161.ContactPerson;
+import uz.uzinfocom.app.modules.card.domain.model.card161.EmergencyProphylaxis;
 import uz.uzinfocom.app.modules.card.domain.model.card161.EnvironmentalLabTest;
 import uz.uzinfocom.app.modules.card.domain.model.card161.EnvironmentalSource;
 import uz.uzinfocom.app.modules.card.domain.model.card161.HomePreventiveMeasure;
@@ -70,6 +71,7 @@ public class Card161Handler implements CardTypeHandler<Card161, Card161Request, 
         ChildCollectionSync.sync(card161, card161.getScreenedGroups(), request.screenedGroups(), mapper::toEntity, mapper::update, ScreenedGroup::setCard161);
         ChildCollectionSync.sync(card161, card161.getHomePreventiveMeasures(), request.homePreventiveMeasures(), mapper::toEntity, mapper::update, HomePreventiveMeasure::setCard161);
         ChildCollectionSync.sync(card161, card161.getOutbreakDisinfectionMeasures(), request.outbreakDisinfectionMeasures(), mapper::toEntity, mapper::update, OutbreakDisinfectionMeasure::setCard161);
+        ChildCollectionSync.sync(card161, card161.getEmergencyProphylaxisTreatments(), request.emergencyProphylaxisTreatments(), mapper::toEntity, mapper::update, EmergencyProphylaxis::setCard161);
 
         applyInfectionSourceDetail(card161, request.infectionSourceDetail());
     }

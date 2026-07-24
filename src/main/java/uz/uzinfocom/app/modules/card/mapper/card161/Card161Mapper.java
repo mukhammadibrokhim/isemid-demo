@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card161DetailResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.Card161RiskFactorResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.ContactPersonResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EmergencyProphylaxisResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EnvironmentalLabTestResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.EnvironmentalSourceResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.HomePreventiveMeasureResponse;
@@ -17,6 +18,7 @@ import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.Vaccin
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161RiskFactor;
 import uz.uzinfocom.app.modules.card.domain.model.card161.ContactPerson;
+import uz.uzinfocom.app.modules.card.domain.model.card161.EmergencyProphylaxis;
 import uz.uzinfocom.app.modules.card.domain.model.card161.EnvironmentalLabTest;
 import uz.uzinfocom.app.modules.card.domain.model.card161.EnvironmentalSource;
 import uz.uzinfocom.app.modules.card.domain.model.card161.HomePreventiveMeasure;
@@ -28,6 +30,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card161.Vaccination;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ContactPersonRequest;
+import uz.uzinfocom.app.modules.card.web.dto.request.card161.EmergencyProphylaxisRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.EnvironmentalLabTestRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.EnvironmentalSourceRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.HomePreventiveMeasureRequest;
@@ -68,6 +71,16 @@ public interface Card161Mapper {
     void update(@MappingTarget ContactPerson entity, ContactPersonRequest request);
 
     ContactPersonResponse toResponse(ContactPerson entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    EmergencyProphylaxis toEntity(EmergencyProphylaxisRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card161", ignore = true)
+    void update(@MappingTarget EmergencyProphylaxis entity, EmergencyProphylaxisRequest request);
+
+    EmergencyProphylaxisResponse toResponse(EmergencyProphylaxis entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
@@ -182,5 +195,6 @@ public interface Card161Mapper {
     @Mapping(target = "homePreventiveMeasures", ignore = true)
     @Mapping(target = "outbreakDisinfectionMeasures", ignore = true)
     @Mapping(target = "infectionSourceDetail", ignore = true)
+    @Mapping(target = "emergencyProphylaxisTreatments", ignore = true)
     void copyOwnFields(@MappingTarget Card161 target, Card161Request request);
 }

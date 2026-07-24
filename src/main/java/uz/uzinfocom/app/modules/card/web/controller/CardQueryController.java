@@ -18,6 +18,7 @@ import uz.uzinfocom.app.modules.card.application.query.CardFilterRequest;
 import uz.uzinfocom.app.modules.card.application.query.CardQueryService;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.pdf.CardPdfResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -77,6 +78,24 @@ public class CardQueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 cardQueryService.getById(id)
+        );
+    }
+
+    @Operation(
+            summary = "Данные карты для печатной формы",
+            description = "Возвращает те же детальные сведения по карте, что и /{id}, вместе со сведениями "
+                    + "формы №058, к которой карта привязана (данные пациента, адрес, место работы/учёбы), "
+                    + "в формате JSON, который фронтенд использует для отрисовки печатной формы карты в PDF."
+    )
+    @GetMapping(ApiPaths.Card.PDF)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<CardPdfResponse> pdf(
+            @Parameter(description = "Идентификатор карты.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                cardQueryService.getPdf(id)
         );
     }
 }
