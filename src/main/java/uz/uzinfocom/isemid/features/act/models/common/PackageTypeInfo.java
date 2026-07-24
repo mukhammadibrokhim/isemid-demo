@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class PackageTypeInfo {
-
   private Integer packageTypeId;
   private String packageTypeUz;
   private String packageTypeRu;

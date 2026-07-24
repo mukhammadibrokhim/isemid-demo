@@ -121,7 +121,7 @@ public class Form0581Policy {
 
     public void validateCreatPermission(Organization currentOrganization) {
         if (currentOrganization == null) {
-            throw new ApiException(FORBIDDEN, "error.organization.current.not_found");
+            throw new ApiException(FORBIDDEN, messageUtil.get("error.organization.current.not_found"));
         }
 
         boolean isRepublicanOrRegional =
@@ -132,7 +132,7 @@ public class Form0581Policy {
                 MedicalType.SANEPID_SERVICE == currentOrganization.getMedicalType();
 
         if (isRepublicanOrRegional && isSanepidService) {
-            throw new ApiException(FORBIDDEN, "error.create.not_allowed_for_republican_or_regional_sanepid");
+            throw new ApiException(FORBIDDEN, messageUtil.get("error.create.not_allowed_for_republican_or_regional_sanepid"));
         }
     }
 }
