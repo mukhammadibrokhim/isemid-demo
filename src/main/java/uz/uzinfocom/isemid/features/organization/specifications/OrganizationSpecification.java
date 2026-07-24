@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.organization.specifications;
 
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import uz.uzinfocom.isemid.commons.utils.TextNormalizationUtils;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -13,6 +14,7 @@ import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin;
 
 public class OrganizationSpecification {
+
     public static Specification<Organization> build(
             String name,
             String stateCode,
@@ -22,7 +24,15 @@ public class OrganizationSpecification {
         return (root, query, criteriaBuilder) -> {
             var predicates = new java.util.ArrayList<>(Stream.of(
                     criteriaBuilder.isNull(root.get("parent")),
-                    hasText(name) ? criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%") : null,
+                    hasText(name) ? criteriaBuilder.like(
+                            criteriaBuilder.function(
+                                    "translate", String.class,
+                                    criteriaBuilder.lower(root.get("name")),
+                                    criteriaBuilder.literal(TextNormalizationUtils.APOSTROPHE_CHARS),
+                                    criteriaBuilder.literal("")
+                            ),
+                            "%" + TextNormalizationUtils.stripApostrophes(name.toLowerCase()) + "%"
+                    ) : null,
                     hasText(stateCode) ? criteriaBuilder.equal(root.get("stateCode"), stateCode) : null,
                     hasText(cityCode) ? criteriaBuilder.equal(root.get("cityCode"), cityCode) : null
             ).filter(Objects::nonNull).toList());

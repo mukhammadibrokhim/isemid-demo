@@ -1,7 +1,5 @@
 package uz.uzinfocom.isemid.features.form129.specifications;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
@@ -36,27 +34,32 @@ public class Form129Specification {
 
             SpecificationUtils.fromToDateFilter(filterRequest.fromDate(), filterRequest.toDate(), root, cb, predicates, "createdAt");
 
+            String orgIdField = filterType == FilterType.RECEIVER ? "receiverOrganizationId" : "senderOrganizationId";
+
+            if (filterRequest.organizationId() != null) {
+                predicates.add(cb.equal(root.get(orgIdField), filterRequest.organizationId()));
+            }
+
             if (hasText(filterRequest.stateCode()) || hasText(filterRequest.cityCode())) {
-                Join<Form129, Organization> createdOrgJoin = root.join("createdOrg", JoinType.INNER);
+                assert query != null;
+                Subquery<Long> orgSubquery = query.subquery(Long.class);
+                Root<Organization> orgRoot = orgSubquery.from(Organization.class);
+
+                List<Predicate> orgPredicates = new ArrayList<>();
+                orgPredicates.add(cb.equal(orgRoot.get("id"), root.get(orgIdField)));
 
                 if (hasText(filterRequest.stateCode())) {
-                    predicates.add(cb.equal(
-                            createdOrgJoin.get("stateCode"),
-                            filterRequest.stateCode()
-                    ));
+                    orgPredicates.add(cb.equal(orgRoot.get("stateCode"), filterRequest.stateCode()));
                 }
 
                 if (hasText(filterRequest.cityCode())) {
-                    predicates.add(cb.equal(
-                            createdOrgJoin.get("cityCode"),
-                            filterRequest.cityCode()
-                    ));
+                    orgPredicates.add(cb.equal(orgRoot.get("cityCode"), filterRequest.cityCode()));
                 }
-            }
 
-            if (filterRequest.organizationId() != null) {
-                String orgColumn = filterType == FilterType.RECEIVER ? "receiverOrganizationId" : "senderOrganizationId";
-                predicates.add(cb.equal(root.get(orgColumn), filterRequest.organizationId()));
+                orgSubquery.select(orgRoot.get("id"));
+                orgSubquery.where(orgPredicates.toArray(new Predicate[0]));
+
+                predicates.add(cb.exists(orgSubquery));
             }
 
             if (hasText(filterRequest.patientDocValue())) {
