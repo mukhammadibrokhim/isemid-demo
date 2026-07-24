@@ -24,7 +24,7 @@ public class DmedClientConfig {
 
     public static final int READ_TIMEOUT = 5_000;
     public static final int CONNECT_TIMEOUT = 5_000;
-    private static final String DMED_FORM058_CHANGE_PUSH_API_BASE_URL="https://bane-backend.mis.2112.uz";
+    private static final String DMED_FORM058_CHANGE_PUSH_API_BASE_URL="https://zordoc.uz";
     private static final String DMED_FORM058_CHANGE_PUSH_API_PATH="/api/integrations/v1/058/{formId}";
     private static final String DMED_FORM0581_CHANGE_PUSH_API_PATH="/api/integrations/v1/058-1/{formId}";
     public static final String TN = "Bearer 64597308|oVsp0wrYokxirnyKq3RHaEE3xbzEagC0nPpgEthG1273abf7";
