@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.organization.specifications;
 
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import uz.uzinfocom.isemid.commons.utils.TextNormalizationUtils;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
 import uz.uzinfocom.isemid.features.user.models.User;
@@ -13,20 +14,6 @@ import static org.springframework.util.StringUtils.hasText;
 import static uz.uzinfocom.isemid.commons.configs.security.util.SecurityUtils.isSuperAdmin;
 
 public class OrganizationSpecification {
-
-    // o', g' kabi so'zlarda ishlatiladigan tutuq belgisining turli xil unicode variantlari
-    private static final String APOSTROPHE_CHARS = "'ʻʼ‘’`´";
-
-    private static String stripApostrophes(String value) {
-        StringBuilder sb = new StringBuilder(value.length());
-        for (int i = 0; i < value.length(); i++) {
-            char c = value.charAt(i);
-            if (APOSTROPHE_CHARS.indexOf(c) < 0) {
-                sb.append(c);
-            }
-        }
-        return sb.toString();
-    }
 
     public static Specification<Organization> build(
             String name,
@@ -41,10 +28,10 @@ public class OrganizationSpecification {
                             criteriaBuilder.function(
                                     "translate", String.class,
                                     criteriaBuilder.lower(root.get("name")),
-                                    criteriaBuilder.literal(APOSTROPHE_CHARS),
+                                    criteriaBuilder.literal(TextNormalizationUtils.APOSTROPHE_CHARS),
                                     criteriaBuilder.literal("")
                             ),
-                            "%" + stripApostrophes(name.toLowerCase()) + "%"
+                            "%" + TextNormalizationUtils.stripApostrophes(name.toLowerCase()) + "%"
                     ) : null,
                     hasText(stateCode) ? criteriaBuilder.equal(root.get("stateCode"), stateCode) : null,
                     hasText(cityCode) ? criteriaBuilder.equal(root.get("cityCode"), cityCode) : null

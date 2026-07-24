@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
+import uz.uzinfocom.isemid.commons.utils.TextNormalizationUtils;
 import uz.uzinfocom.isemid.features.organization.dtos.requests.OrgRequest;
 import uz.uzinfocom.isemid.features.organization.dtos.responses.MisOrganizationResponse;
 import uz.uzinfocom.isemid.features.organization.mappers.OrganizationMapper;
@@ -135,7 +136,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Cacheable(value = "organizationSearchCache", key = "#stateCode + '-' + #cityCode + '-' + (#medicalType != null ? #medicalType.name() : 'null') + '-' + #name")
     @Override
     public List<Organization> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name) {
-        return organizationRepository.searchByFilter(stateCode, cityCode, medicalType != null ? medicalType.name() : null, name);
+        String normalizedName = name != null ? TextNormalizationUtils.stripApostrophes(name.toLowerCase()) : null;
+        return organizationRepository.searchByFilter(stateCode, cityCode, medicalType != null ? medicalType.name() : null, normalizedName);
     }
 
     @Override
