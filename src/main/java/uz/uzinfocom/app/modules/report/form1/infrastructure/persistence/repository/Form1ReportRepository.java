@@ -47,20 +47,27 @@ import java.util.stream.Collectors;
  * the way the report defines "under 14"/"under 18" (e.g. 13 years, 11
  * months, 29 days is still under 14).
  * <p>
- * {@code organizationIds} is spliced into the SQL text as literal integers
- * (safe: every element is a {@code Long} produced by our own scope
- * resolution, never user-supplied text — there is nothing to inject), not
- * bound as a query parameter. Two parameter-binding approaches were tried
- * and rejected: a Hibernate {@code IN (?,?,?...)} expansion (thousands of
- * placeholders for a republic-wide caller, repeated across 4 UNION
- * branches, made Postgres unable to type-infer some of them); and {@code =
- * any(:param)} with an array (a plain {@code Long[]} executed but silently
- * matched nothing — Hibernate's own guess at the array's SQL element type
- * wasn't {@code bigint} — and a real {@code java.sql.Array} from the JDBC
- * driver failed with "No JDBC mapping could be inferred"). Inlining removes
- * every one of those failure modes at once, and the filter still sits
- * inside each branch's own {@code WHERE}, so the existing composite indexes
- * are used exactly as before.
+ * {@code organizationIds} is spliced into the SQL text as a literal {@code
+ * VALUES} list joined against — {@code join (values (6),(7),...) as
+ * scope_org(id) on scope_org.id = f.sender_organization_id} — not bound as a
+ * query parameter, and not filtered via {@code IN}/{@code = any(...)}
+ * either. Every element is a {@code Long} produced by our own scope
+ * resolution, never user-supplied text, so there is nothing to inject.
+ * Three earlier approaches were tried and rejected for a republic-wide
+ * caller's list (~1000 organizations, ~95% of the whole table): a Hibernate
+ * {@code IN (?,?,?...)} parameter expansion made Postgres unable to
+ * type-infer some of the resulting thousands of placeholders; {@code =
+ * any(:param)} array binds either silently matched nothing (a plain {@code
+ * Long[]}, wrong inferred element type) or failed outright ({@code
+ * java.sql.Array}, "No JDBC mapping could be inferred"); and even a
+ * correctly-typed inlined {@code sender_organization_id in (id1,id2,...)}
+ * or {@code = any('{id1,id2,...}'::bigint[])} condition made Postgres
+ * choose an index scan over ~85% of the table (necessarily almost as slow
+ * as scanning it outright) instead of recognizing this as "basically
+ * everyone." Joining against a tiny {@code VALUES} list instead lets the
+ * planner do what it already does well — hash the small side, scan the
+ * big table once — cutting this query from ~6s to ~0.1s in testing against
+ * ~600k rows.
  * <p>
  * The two "blocks" this report needs, confirmed by the report's author:
  * CONFIRMED = {@code status = 'APPROVED'}, PRIMARY = {@code status NOT IN
@@ -86,9 +93,9 @@ public class Form1ReportRepository {
                    'CONFIRMED' as metric
             from form058 f
             join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status = 'APPROVED'
-              and f.sender_organization_id in (%1$s)
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
             union all
@@ -97,9 +104,9 @@ public class Form1ReportRepository {
                    p.gender_code, false, 'PRIMARY'
             from form058 f
             join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
-              and f.sender_organization_id in (%1$s)
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
             union all
@@ -109,9 +116,9 @@ public class Form1ReportRepository {
                    (f.final_mkb10_code is not null and f.final_mkb10_code <> f.mkb10_code), 'CONFIRMED'
             from form058_1 f
             join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status = 'APPROVED'
-              and f.sender_organization_id in (%1$s)
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
             union all
@@ -120,9 +127,9 @@ public class Form1ReportRepository {
                    p.gender_code, false, 'PRIMARY'
             from form058_1 f
             join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
-              and f.sender_organization_id in (%1$s)
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
             """;
@@ -188,8 +195,8 @@ public class Form1ReportRepository {
     }
 
     private String unionSource(List<Long> organizationIds) {
-        String idList = organizationIds.stream().map(String::valueOf).collect(Collectors.joining(","));
-        return UNION_SOURCE_TEMPLATE.formatted(idList);
+        String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
+        return UNION_SOURCE_TEMPLATE.formatted(valuesList);
     }
 
     private String groupedSql(List<Long> organizationIds) {

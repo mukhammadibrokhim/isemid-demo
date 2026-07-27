@@ -33,12 +33,12 @@ import java.util.stream.Collectors;
  * count instead of only the SES branch. See {@code Form1ReportRepository}
  * for the full rationale.
  * <p>
- * {@code organizationIds} is spliced into the SQL text as literal integers
- * (safe — every element is a {@code Long} from our own scope resolution,
- * never user-supplied text), not bound as a query parameter. See {@code
- * Form1ReportRepository} for why: both a Hibernate {@code IN (?,?,?...)}
- * expansion and a {@code = any(:param)} array bind turned out to be dead
- * ends for a list this size, repeated across multiple UNION branches.
+ * {@code organizationIds} is spliced into the SQL text as a literal {@code
+ * VALUES} list joined against, not filtered via {@code IN}/{@code =
+ * any(...)} and not bound as a query parameter — see {@code
+ * Form1ReportRepository} for why (every earlier alternative either broke or
+ * made Postgres treat "basically every organization" as if it were a
+ * selective index condition, ~60x slower in testing).
  * <p>
  * Only PRIMARY (not yet resolved) notifications are counted here — {@code
  * status NOT IN ('APPROVED', 'CANCELED')} — matching the report's own title
@@ -60,18 +60,18 @@ public class Form2ReportRepository {
             select f.sender_organization_id, p.category_code
             from form058 f
             join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
-              and f.sender_organization_id in (%1$s)
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id, p.category_code
             from form058_1 f
             join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
-              and f.sender_organization_id in (%1$s)
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
             """;
@@ -135,8 +135,8 @@ public class Form2ReportRepository {
     }
 
     private String unionSource(List<Long> organizationIds) {
-        String idList = organizationIds.stream().map(String::valueOf).collect(Collectors.joining(","));
-        return UNION_SOURCE_TEMPLATE.formatted(idList);
+        String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
+        return UNION_SOURCE_TEMPLATE.formatted(valuesList);
     }
 
     private String groupedSql(List<Long> organizationIds) {
