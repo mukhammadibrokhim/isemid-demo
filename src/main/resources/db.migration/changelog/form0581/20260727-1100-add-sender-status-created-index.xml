@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        form058 already has idx_form058_outgoing_table
+        (sender_organization_id, status, created_at, id), which fully
+        covers the report modules' (modules.report.form1/form2/form3)
+        per-branch WHERE clause — all three group/filter by
+        sender_organization_id ("createdOrg", the institution that created
+        the case), not receiver_organization_id, so a per-institution
+        breakdown shows every medical facility instead of only the
+        SANEPID_SERVICE branch that received the case. form058_1 has no
+        equivalent composite — only separate sender_organization_id, status
+        and created_at indexes — so the reports' UNION branches against
+        form058_1 would otherwise fall back to a broader index scan.
+    -->
+    <changeSet id="20260727-1100-01-add-idx-form0581-sender-status-created" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_sender_status_created"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_sender_status_created
+                ON form058_1 (sender_organization_id, status, created_at)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

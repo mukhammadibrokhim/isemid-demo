@@ -33,6 +33,17 @@ public final class OpenApiGroups {
     };
 
     /**
+     * Every organization-hierarchy report under {@code modules.report}
+     * (Form 1, Form 2, Form 3, ...) — drill-down tables meant to be
+     * printed/exported, kept in their own group so they never get lost
+     * among the rest of the main business API as more reports are added.
+     */
+    private static final String[] REPORT_PATHS = {
+            ApiPaths.Report.ROOT,
+            ApiPaths.Report.ROOT + "/**"
+    };
+
+    /**
      * Every endpoint whose data comes from an external system rather than
      * being native ISEMID business data — API2's citizen/legal-entity
      * lookups. Kept in one group so a consumer integrating with an outside
@@ -77,6 +88,15 @@ public final class OpenApiGroups {
             ADMIN_PATHS
     );
 
+    public static final ApiDocumentationGroup REPORT = new ApiDocumentationGroup(
+            "report",
+            "Отчёты",
+            "Отчёты",
+            "API отчётов по организационной иерархии (республика→регион→район→организация): Form 1, "
+                    + "Form 2, Form 3 и последующие — на основе форм №058 и №058-1.",
+            REPORT_PATHS
+    );
+
     public static final ApiDocumentationGroup INTEGRATION = new ApiDocumentationGroup(
             "integration",
             "Внешние интеграции",
@@ -112,6 +132,7 @@ public final class OpenApiGroups {
                         REFERENCES.pathsToMatch(),
                         ACCESS_CONTROL.pathsToMatch(),
                         ADMIN.pathsToMatch(),
+                        REPORT.pathsToMatch(),
                         INTEGRATION.pathsToMatch()
                 )
                 .flatMap(Arrays::stream)

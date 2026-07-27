@@ -28,9 +28,10 @@ public class OpenApiConfig {
     private static final int ORDER_MAIN = 0;
     private static final int ORDER_REFERENCES = 1;
     private static final int ORDER_ACCESS_CONTROL = 2;
-    private static final int ORDER_INTEGRATION = 3;
-    private static final int ORDER_INBOUND_INTEGRATION = 4;
-    private static final int ORDER_ADMIN = 5;
+    private static final int ORDER_REPORT = 3;
+    private static final int ORDER_INTEGRATION = 4;
+    private static final int ORDER_INBOUND_INTEGRATION = 5;
+    private static final int ORDER_ADMIN = 6;
 
     private final CommonOpenApiCustomizer commonOpenApiCustomizer;
     private final OpenApiSchemaRegistrar schemaRegistrar;
@@ -82,6 +83,12 @@ public class OpenApiConfig {
     @Order(ORDER_ADMIN)
     public GroupedOpenApi adminOpenApi() {
         return buildGroupedOpenApi(OpenApiGroups.ADMIN);
+    }
+
+    @Bean
+    @Order(ORDER_REPORT)
+    public GroupedOpenApi reportOpenApi() {
+        return buildGroupedOpenApi(OpenApiGroups.REPORT);
     }
 
     @Bean

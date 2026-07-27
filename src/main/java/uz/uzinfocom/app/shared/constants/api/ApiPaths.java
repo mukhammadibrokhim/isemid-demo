@@ -237,6 +237,74 @@ public final class ApiPaths {
         public static final String TOP_MKB10 = "/top-mkb10";
     }
 
+    /**
+     * Root for the report module — dedicated home for cross-form,
+     * organization-hierarchy reports (many of them built from the same
+     * form058/form0581 data). Each report gets its own nested {@code
+     * ApiPaths} class and its own {@code modules.report.formN} package so
+     * adding another report never collides with an existing one. Every
+     * report shares the same drill-down shape — root node (whole access
+     * scope) + one hierarchy level per {@code children} call (republic→
+     * region→district→organization) — via {@code
+     * report.shared.ReportHierarchyService}; each report only supplies its
+     * own counting SQL. Kept separate from {@link Dashboard}: dashboard
+     * endpoints are single-organization summary widgets, report endpoints
+     * are drill-down tables meant to be printed/exported.
+     */
+    public static final class Report {
+        private Report() {
+        }
+
+        public static final String ROOT = API_V1 + "/reports";
+    }
+
+    /**
+     * "Form 1" — «Мониторинг инфекционных и паразитарных заболеваний»
+     * (confirmed/primary case counts, age/gender cut), form058 + form0581
+     * combined, organization-hierarchy drill-down (republic→region→district
+     * →organization), one level per call, over an arbitrary caller-supplied
+     * date range — see {@code Form1ReportController} under {@code
+     * modules.report.form1}.
+     */
+    public static final class Form1Report {
+        private Form1Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-1";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
+     * "Form 2" — social/occupation composition of primary (not yet
+     * resolved) case notifications, form058 + form0581 combined, same
+     * organization-hierarchy drill-down as {@link Form1Report} — see
+     * {@code Form2ReportController} under {@code modules.report.form2}.
+     */
+    public static final class Form2Report {
+        private Form2Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-2";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
+     * "Form 3" — year-over-year comparison (current period vs. the same
+     * calendar dates one year earlier) of primary case notifications, same
+     * organization-hierarchy drill-down as {@link Form1Report} — see
+     * {@code Form3ReportController} under {@code modules.report.form3}.
+     */
+    public static final class Form3Report {
+        private Form3Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-3";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
     public static final class Card {
         private Card() {
         }

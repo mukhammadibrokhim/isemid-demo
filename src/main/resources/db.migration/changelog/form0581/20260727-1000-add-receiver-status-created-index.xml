@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        form058 already has idx_form058_incoming_table
+        (receiver_organization_id, status, created_at, id). This composite
+        is used by receiver-scoped queries elsewhere (e.g.
+        Form0581StatsRepository, Form0581Specification) — NOT by the
+        modules.report.form1/form2/form3 reports, which group/filter by
+        sender_organization_id instead (see
+        20260727-1100-add-sender-status-created-index.xml). form058_1 had no
+        equivalent receiver-side composite — only separate
+        receiver_organization_id, status and created_at indexes — so
+        receiver-scoped queries against form058_1 would otherwise fall back
+        to a broader index scan.
+    -->
+    <changeSet id="20260727-1000-01-add-idx-form0581-receiver-status-created" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form0581_receiver_status_created"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form0581_receiver_status_created
+                ON form058_1 (receiver_organization_id, status, created_at)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
