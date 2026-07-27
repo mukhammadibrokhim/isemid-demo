@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Scope-aware "walk one level of the republic→region→district→organization
@@ -83,12 +82,22 @@ public class ReportHierarchyService {
      * children(regionCode=...)} for a region's districts, {@code
      * children(districtCode=...)} for a district's organizations.
      * <p>
+     * The "Jami" row is folded from the breakdown's own counts ({@code
+     * countSource.merge}), never from a second {@link #loadRoot} database
+     * round-trip — for a republic-wide caller {@code loadRoot}'s total query
+     * re-scans essentially the same rows the breakdown query already
+     * touched (the "in scope" org-id list is ~95% of all organizations at
+     * that level, so it barely narrows anything), doubling an already
+     * multi-second query for no benefit: summing 14-1000 already-aggregated
+     * per-node rows in memory is arithmetically identical and free.
+     * <p>
      * An ORGANIZATION-scope caller (a single non-SANEPID organization, or a
      * SANEPID branch with no level configured) has no breakdown to show —
      * {@link #loadChildren} returns an empty list for that scope — so this
      * falls back to the single row {@link #loadRoot} already produces for
-     * that case (the caller's own totals), matching what the caller could
-     * see before this method existed.
+     * that case (the caller's own totals, a cheap single-organization
+     * query), matching what the caller could see before this method
+     * existed.
      */
     public <C> List<ReportHierarchyNode<C>> loadRootBreakdown(
             Organization currentOrganization,
@@ -103,15 +112,12 @@ public class ReportHierarchyService {
             return List.of(loadRoot(currentOrganization, countSource, range, diagnosisCode));
         }
 
-        ReportHierarchyNode<C> total = loadRoot(currentOrganization, countSource, range, diagnosisCode);
+        C total = breakdown.stream()
+                .map(ReportHierarchyNode::counts)
+                .reduce(countSource.empty(), countSource::merge);
 
         List<ReportHierarchyNode<C>> result = new ArrayList<>(breakdown);
-        result.add(new ReportHierarchyNode<>(
-                "TOTAL",
-                messageResolver.resolve("report.scope.total"),
-                false,
-                total.counts()
-        ));
+        result.add(new ReportHierarchyNode<>("TOTAL", messageResolver.resolve("report.scope.total"), false, total));
         return result;
     }
 

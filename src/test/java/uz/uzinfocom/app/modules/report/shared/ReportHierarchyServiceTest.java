@@ -197,7 +197,8 @@ class ReportHierarchyServiceTest {
         assertThat(root.get(2).code()).isEqualTo("TOTAL");
         assertThat(root.get(2).name()).isEqualTo("Jami");
         assertThat(root.get(2).hasChildren()).isFalse();
-        assertThat(root.get(2).counts()).isEqualTo(20L);
+        // Folded from the two regions' own counts (5L + 7L), not a separate total query.
+        assertThat(root.get(2).counts()).isEqualTo(12L);
     }
 
     @Test
