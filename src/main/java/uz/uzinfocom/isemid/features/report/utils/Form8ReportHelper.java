@@ -41,6 +41,38 @@ public class Form8ReportHelper {
         return toDto(name, calculateStatisticsFromCounts(countsByCategoryCode));
     }
 
+    /**
+     * Berilgan nom uchun barcha ustunlari 0 bo‘lgan Form8ReportDto — ikkinchi
+     * davrda mavjud bo‘lib, birinchisida (yoki aksincha) bo‘lmagan hudud/shahar uchun.
+     */
+    public Form8ReportDto zero(String name) {
+        return toDto(name, calculateStatisticsFromCounts(null));
+    }
+
+    /**
+     * Ikki davr statistikasi orasidagi farqni (second - first) hisoblaydi.
+     * Musbat qiymat — o‘sish, manfiy qiymat — pasayishni bildiradi.
+     */
+    public Form8ReportDto diff(Form8ReportDto first, Form8ReportDto second) {
+        String name = hasText(second.getName()) ? second.getName() : first.getName();
+
+        return Form8ReportDto.builder()
+                .name(name)
+                .unorganized(second.getUnorganized() - first.getUnorganized())
+                .organized(second.getOrganized() - first.getOrganized())
+                .pupils(second.getPupils() - first.getPupils())
+                .secondaryInstitutions(second.getSecondaryInstitutions() - first.getSecondaryInstitutions())
+                .institutions(second.getInstitutions() - first.getInstitutions())
+                .employee(second.getEmployee() - first.getEmployee())
+                .medEmployee(second.getMedEmployee() - first.getMedEmployee())
+                .unEmployee(second.getUnEmployee() - first.getUnEmployee())
+                .pensioners(second.getPensioners() - first.getPensioners())
+                .homelessPeople(second.getHomelessPeople() - first.getHomelessPeople())
+                .total(second.getTotal() - first.getTotal())
+                .staff(second.getStaff() - first.getStaff())
+                .build();
+    }
+
     private Form8ReportDto toDto(String name, CategoryStatistics statistics) {
         return Form8ReportDto.builder()
                 .name(hasText(name) ? name : "-")

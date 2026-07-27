@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.isemid.commons.constants.ApiPaths;
-import uz.uzinfocom.isemid.features.report.dtos.Form8RegionSummaryDto;
+import uz.uzinfocom.isemid.features.report.dtos.Form8RegionComparisonDto;
 import uz.uzinfocom.isemid.features.report.service.Form8ReportService;
 import uz.uzinfocom.isemid.features.user.models.User;
 
@@ -25,12 +25,13 @@ public class Form8ReportController {
     private final Form8ReportService form8ReportService;
 
     /**
-     * GET /api/report/form-8/region-summary
-     * Viloyat kesimida umumiy son va shahar/tuman kesimidagi taqsimot.
+     * GET /api/report/form-8/
+     * Ikki davrni solishtirish: viloyat/shahar kesimida 1-davr, 2-davr va
+     * ular orasidagi farq (o‘sish/pasayish) qiymatlari qaytariladi.
      * Filter:
-     * - fromDate, toDate (ixtiyoriy, ikkalasi ham berilishi kerak - biri berilib biri bo'sh qolsa natija bo'sh qaytadi)
+     * - fromDate1, toDate1 (1-davr, majburiy)
+     * - fromDate2, toDate2 (2-davr, majburiy)
      * - mkb10Code (ixtiyoriy)
-     * - lang (ixtiyoriy: uz, Cyrl, ru, kaa)
      * - stateCode, cityCode (ixtiyoriy)
      */
     @GetMapping
@@ -39,11 +40,19 @@ public class Form8ReportController {
 
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate fromDate,
+            LocalDate fromDate1,
 
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate toDate,
+            LocalDate toDate1,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate2,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate2,
 
             @RequestParam(required = false)
             String mkb10Code,
@@ -54,9 +63,11 @@ public class Form8ReportController {
             @RequestParam(required = false)
             String cityCode
     ) {
-        List<Form8RegionSummaryDto> result = form8ReportService.getRegionCitySummary(
-                fromDate,
-                toDate,
+        List<Form8RegionComparisonDto> result = form8ReportService.getRegionCitySummary(
+                fromDate1,
+                toDate1,
+                fromDate2,
+                toDate2,
                 mkb10Code,
                 currentUser,
                 stateCode,
