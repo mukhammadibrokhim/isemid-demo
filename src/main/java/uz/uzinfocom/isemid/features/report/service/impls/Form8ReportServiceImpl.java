@@ -65,15 +65,18 @@ public class Form8ReportServiceImpl implements Form8ReportService {
                 ? null
                 : organization.getStateCode();
 
-        Map<String, Long> firstPeriodCounts = fetchAggregatedCounts(
+        List<Form058Repository.RegionCitySummaryProjection> firstRows = fetchRows(
                 fromDate1, toDate1, mkb10Code, lang, accessFilter, enumerationStateCode, stateCode, cityCode
         );
 
-        Map<String, Long> secondPeriodCounts = fetchAggregatedCounts(
+        List<Form058Repository.RegionCitySummaryProjection> secondRows = fetchRows(
                 fromDate2, toDate2, mkb10Code, lang, accessFilter, enumerationStateCode, stateCode, cityCode
         );
 
-        String name = resolveOrganizationDisplayName(organization);
+        Map<String, Long> firstPeriodCounts = aggregateCounts(firstRows);
+        Map<String, Long> secondPeriodCounts = aggregateCounts(secondRows);
+
+        String name = resolveDisplayName(organization, stateCode, cityCode, firstRows, secondRows);
 
         Form8ReportDto firstStats = helper.buildReportFromCategoryCounts(name, firstPeriodCounts);
         Form8ReportDto secondStats = helper.buildReportFromCategoryCounts(name, secondPeriodCounts);
@@ -85,12 +88,7 @@ public class Form8ReportServiceImpl implements Form8ReportService {
                 .build();
     }
 
-    /**
-     * Berilgan davr uchun barcha hudud/shaharlar bo‘yicha (mavjud access
-     * cheklovlari doirasida) qaytgan qatorlarni bitta categoryCode -> son
-     * xaritasiga birlashtiradi.
-     */
-    private Map<String, Long> fetchAggregatedCounts(
+    private List<Form058Repository.RegionCitySummaryProjection> fetchRows(
             LocalDate fromDate,
             LocalDate toDate,
             String mkb10Code,
@@ -103,7 +101,7 @@ public class Form8ReportServiceImpl implements Form8ReportService {
         Timestamp startDate = fromDate != null ? Timestamp.valueOf(fromDate.atStartOfDay()) : null;
         Timestamp endDate = toDate != null ? Timestamp.valueOf(toDate.atTime(LocalTime.MAX)) : null;
 
-        List<Form058Repository.RegionCitySummaryProjection> rows = form058Repository.findRegionCitySummary(
+        return form058Repository.findRegionCitySummary(
                 normalizeCode(mkb10Code),
                 startDate,
                 endDate,
@@ -115,7 +113,14 @@ public class Form8ReportServiceImpl implements Form8ReportService {
                 accessFilter.levelTypes(),
                 enumerationStateCode
         );
+    }
 
+    /**
+     * Berilgan davr uchun barcha hudud/shaharlar bo‘yicha (mavjud access
+     * cheklovlari doirasida) qaytgan qatorlarni bitta categoryCode -> son
+     * xaritasiga birlashtiradi.
+     */
+    private Map<String, Long> aggregateCounts(List<Form058Repository.RegionCitySummaryProjection> rows) {
         Map<String, Long> counts = new HashMap<>();
 
         for (Form058Repository.RegionCitySummaryProjection row : rows) {
@@ -128,7 +133,62 @@ public class Form8ReportServiceImpl implements Form8ReportService {
     }
 
     /**
-     * Natijadagi umumlashtirilgan hisobotning nomi — joriy foydalanuvchi
+     * Natijadagi umumlashtirilgan hisobotning nomi.
+     * Foydalanuvchi cityCode bo‘yicha filtr bergan bo‘lsa — o‘sha shahar/tuman nomi,
+     * faqat stateCode bergan bo‘lsa — o‘sha viloyat nomi qaytadi. Hech qanday filtr
+     * berilmagan bo‘lsa (standart holat), joriy tashkilot darajasiga mos hudud nomi
+     * (respublika/viloyat/shahar-tuman) ishlatiladi.
+     */
+    private String resolveDisplayName(
+            Organization organization,
+            String stateCode,
+            String cityCode,
+            List<Form058Repository.RegionCitySummaryProjection> firstRows,
+            List<Form058Repository.RegionCitySummaryProjection> secondRows
+    ) {
+        if (hasText(cityCode)) {
+            String resolvedCityName = resolveCityName(firstRows);
+
+            if (!hasText(resolvedCityName)) {
+                resolvedCityName = resolveCityName(secondRows);
+            }
+
+            if (hasText(resolvedCityName)) {
+                return resolvedCityName;
+            }
+        } else if (hasText(stateCode)) {
+            String resolvedStateName = resolveStateName(firstRows);
+
+            if (!hasText(resolvedStateName)) {
+                resolvedStateName = resolveStateName(secondRows);
+            }
+
+            if (hasText(resolvedStateName)) {
+                return resolvedStateName;
+            }
+        }
+
+        return resolveOrganizationDisplayName(organization);
+    }
+
+    private String resolveStateName(List<Form058Repository.RegionCitySummaryProjection> rows) {
+        return rows.isEmpty() ? null : rows.get(0).getStateName();
+    }
+
+    private String resolveCityName(List<Form058Repository.RegionCitySummaryProjection> rows) {
+        for (Form058Repository.RegionCitySummaryProjection row : rows) {
+            for (Form8CitySummaryDto cityCategoryRow : parseCities(row.getCities())) {
+                if (hasText(cityCategoryRow.getCityName())) {
+                    return cityCategoryRow.getCityName();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Natijadagi umumlashtirilgan hisobotning standart nomi — joriy foydalanuvchi
      * tashkilotining darajasiga mos hudud nomi (respublika/viloyat/shahar-tuman).
      */
     private String resolveOrganizationDisplayName(Organization organization) {
