@@ -92,6 +92,7 @@ public final class ApiPaths {
         public static final String FORM_3_1 = ROOT + "/form-3-1";
         public static final String FORM_3_2 = ROOT + "/form-3-2";
         public static final String FORM_4 = ROOT + "/form-4";
+        public static final String FORM_8 = ROOT + "/form-8";
         public static final String FORM6= ROOT + "/form-6";
         public static final String FORM7= ROOT + "/form-7";
         public static final String FORM9 = ROOT + "/form-9";
