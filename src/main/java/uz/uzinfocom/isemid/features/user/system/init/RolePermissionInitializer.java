@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 //@ConditionalOnProperty(name = "runner.role_permission.init", havingValue = "true")
 public class RolePermissionInitializer implements ModuleDataInitializer {
+
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 
