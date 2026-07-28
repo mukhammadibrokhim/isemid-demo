@@ -5,13 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.commons.seed.ModuleDataInitializer;
-import uz.uzinfocom.isemid.features.user.models.Permission;
-import uz.uzinfocom.isemid.features.user.models.Role;
 import uz.uzinfocom.isemid.features.user.reposiotries.PermissionRepository;
 import uz.uzinfocom.isemid.features.user.reposiotries.RoleRepository;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
