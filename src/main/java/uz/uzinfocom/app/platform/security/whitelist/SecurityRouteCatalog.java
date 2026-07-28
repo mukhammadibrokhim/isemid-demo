@@ -54,7 +54,11 @@ public final class SecurityRouteCatalog {
             "/v1/users/me/**",
             "/v1/references/**",
             ApiPaths.Citizen.ROOT + "/**",
-            ApiPaths.LegalEntity.ROOT + "/**"
+            ApiPaths.LegalEntity.ROOT + "/**",
+            // Listing which organizations a user belongs to is how a caller
+            // discovers what to put in the org header in the first place -
+            // requiring the header here would be circular.
+            ApiPaths.User.ROOT + ApiPaths.User.ORGANIZATIONS
     );
 
     /**

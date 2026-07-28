@@ -21,6 +21,23 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/admin";
     }
 
+    /**
+     * Login-proxy surface: exchanges an end user's credentials for a token
+     * by calling an external authentication provider's token endpoint on the
+     * caller's behalf (see platform.auth) - one endpoint regardless of which
+     * OAuth2 grant the resolved provider speaks. Public - see
+     * SecurityRouteCatalog.OPEN_PATTERNS.
+     */
+    public static final class Auth {
+        private Auth() {
+        }
+
+        public static final String ROOT = API_V1 + "/auth";
+        public static final String LOGIN = "/login/{provider}";
+        public static final String REFRESH = "/refresh/{provider}";
+        public static final String PROVIDER = "provider";
+    }
+
     public static final class Dashboard {
         private Dashboard() {
         }

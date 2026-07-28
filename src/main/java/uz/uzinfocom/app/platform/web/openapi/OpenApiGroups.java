@@ -10,6 +10,11 @@ public final class OpenApiGroups {
     private OpenApiGroups() {
     }
 
+    private static final String[] AUTH_PATHS = {
+            ApiPaths.Auth.ROOT,
+            ApiPaths.Auth.ROOT + "/**"
+    };
+
     private static final String[] REFERENCES_PATHS = {
             "/v1/references",
             "/v1/references/**"
@@ -62,6 +67,16 @@ public final class OpenApiGroups {
             ApiPaths.LegalEntity.ROOT,
             ApiPaths.LegalEntity.ROOT + "/**"
     };
+
+    public static final ApiDocumentationGroup AUTH = new ApiDocumentationGroup(
+            "auth",
+            "Аутентификация",
+            "Аутентификация",
+            "Login-proxy: обмен логина/пароля пользователя на токен доступа через внешнего провайдера "
+                    + "аутентификации (SSO и т. п.). Не путать с проверкой уже выданных токенов — она "
+                    + "происходит на уровне resource-server и не является частью REST API.",
+            AUTH_PATHS
+    );
 
     public static final ApiDocumentationGroup REFERENCES = new ApiDocumentationGroup(
             "references",
@@ -129,6 +144,7 @@ public final class OpenApiGroups {
 
     public static String[] pathsToExcludeFromMain() {
         return Stream.of(
+                        AUTH.pathsToMatch(),
                         REFERENCES.pathsToMatch(),
                         ACCESS_CONTROL.pathsToMatch(),
                         ADMIN.pathsToMatch(),

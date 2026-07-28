@@ -26,12 +26,13 @@ public class OpenApiConfig {
      * pin the order explicitly: main first, admin last.
      */
     private static final int ORDER_MAIN = 0;
-    private static final int ORDER_REFERENCES = 1;
-    private static final int ORDER_ACCESS_CONTROL = 2;
-    private static final int ORDER_REPORT = 3;
-    private static final int ORDER_INTEGRATION = 4;
-    private static final int ORDER_INBOUND_INTEGRATION = 5;
-    private static final int ORDER_ADMIN = 6;
+    private static final int ORDER_AUTH = 1;
+    private static final int ORDER_REFERENCES = 2;
+    private static final int ORDER_ACCESS_CONTROL = 3;
+    private static final int ORDER_REPORT = 4;
+    private static final int ORDER_INTEGRATION = 5;
+    private static final int ORDER_INBOUND_INTEGRATION = 6;
+    private static final int ORDER_ADMIN = 7;
 
     private final CommonOpenApiCustomizer commonOpenApiCustomizer;
     private final OpenApiSchemaRegistrar schemaRegistrar;
@@ -65,6 +66,12 @@ public class OpenApiConfig {
                         .version(API_VERSION))
                 .components(components)
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH));
+    }
+
+    @Bean
+    @Order(ORDER_AUTH)
+    public GroupedOpenApi authOpenApi() {
+        return buildGroupedOpenApi(OpenApiGroups.AUTH);
     }
 
     @Bean

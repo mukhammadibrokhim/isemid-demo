@@ -1,0 +1,26 @@
+package uz.uzinfocom.app.platform.auth.application;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
+import uz.uzinfocom.app.platform.auth.properties.LoginGrantType;
+import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties.ProviderProperties;
+
+@Component
+public class AuthorizationCodeGrantLoginProviderFactory implements LoginProviderFactory {
+
+    @Override
+    public LoginGrantType supportedGrantType() {
+        return LoginGrantType.AUTHORIZATION_CODE;
+    }
+
+    @Override
+    public LoginProvider create(
+            String providerKey,
+            ProviderProperties properties,
+            RestClient restClient,
+            JsonMapper jsonMapper
+    ) {
+        return new AuthorizationCodeGrantLoginProvider(providerKey, properties, restClient, jsonMapper);
+    }
+}
