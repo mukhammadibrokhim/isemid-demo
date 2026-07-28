@@ -12,6 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerMapping;
+import uz.uzinfocom.app.platform.devmonitoring.application.DevErrorLogWriter;
 import uz.uzinfocom.app.platform.http.SensitiveLoggingSanitizer;
 
 import java.io.IOException;
@@ -28,15 +29,18 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     private final ObservabilityProperties properties;
     private final SensitiveLoggingSanitizer sanitizer;
     private final TraceIdProvider traceIdProvider;
+    private final DevErrorLogWriter devErrorLogWriter;
 
     public RequestLoggingFilter(
             ObservabilityProperties properties,
             SensitiveLoggingSanitizer sanitizer,
-            TraceIdProvider traceIdProvider
+            TraceIdProvider traceIdProvider,
+            DevErrorLogWriter devErrorLogWriter
     ) {
         this.properties = properties;
         this.sanitizer = sanitizer;
         this.traceIdProvider = traceIdProvider;
+        this.devErrorLogWriter = devErrorLogWriter;
     }
 
     @Override
@@ -208,6 +212,19 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             append(event, "message", sanitize(message, config.getMaxTextLength()));
             if (config.isIncludeUserAgent()) {
                 append(event, "userAgent", sanitize(request.getHeader("User-Agent"), config.getMaxUserAgentLength()));
+            }
+
+            if (status >= 400) {
+                devErrorLogWriter.record(
+                        traceId,
+                        details == null ? null : details.errorCode(),
+                        status,
+                        failure == null ? null : failure.getClass().getName(),
+                        sanitizer.sanitizePath(request.getRequestURI(), config.isMaskPathIdentifiers(), config.getMaxTextLength()),
+                        request.getMethod(),
+                        principal == null ? null : principal.getName(),
+                        message
+                );
             }
 
             if (serverFailure) {

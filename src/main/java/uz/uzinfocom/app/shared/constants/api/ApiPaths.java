@@ -183,6 +183,43 @@ public final class ApiPaths {
         public static final String REVOKE = "/{id}/revoke";
     }
 
+    /**
+     * Developer monitoring panel - login/error history and system metrics for
+     * ops/dev accounts. Deliberately NOT under {@link Admin}: these accounts
+     * authenticate via their own local {@code DevUser} credentials (HTTP Basic
+     * on a dedicated {@code SecurityFilterChain}, see
+     * {@code DevPanelSecurityConfig}), not the external SSO/DHP bearer JWT
+     * every other endpoint in this app requires - so this whole subtree is
+     * intentionally outside the {@code isemid_admin}/{@code isemid_super_admin}
+     * authorization model.
+     */
+    public static final class Dev {
+        private Dev() {
+        }
+
+        public static final String ROOT = API_V1 + "/dev";
+        public static final String ERRORS = "/errors";
+        public static final String ERROR_BY_ID = "/errors/{id}";
+        public static final String LOGINS = "/logins";
+        public static final String METRICS_SYSTEM = "/metrics/system";
+        public static final String METRICS_HTTP = "/metrics/http";
+    }
+
+    /**
+     * Human-facing admin tooling for provisioning {@link Dev} panel accounts -
+     * lives under {@link Admin} since it's provisioned by an SSO-authenticated
+     * admin, exactly like {@link IntegrationClient}, not by the dev-panel
+     * accounts it manages.
+     */
+    public static final class DevUser {
+        private DevUser() {
+        }
+
+        public static final String ROOT = Admin.ROOT + "/dev-users";
+        public static final String BY_ID = "/{id}";
+        public static final String REVOKE = "/{id}/revoke";
+    }
+
     public static final class Form058 {
         private Form058() {
         }

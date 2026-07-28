@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.auth.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,9 +39,10 @@ public class LoginController {
     @PostMapping(ApiPaths.Auth.LOGIN)
     public LoginResponse login(
             @PathVariable(ApiPaths.Auth.PROVIDER) String provider,
-            @RequestBody LoginRequest request
+            @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest
     ) {
-        return loginService.login(provider, request);
+        return loginService.login(provider, request, httpRequest.getRemoteAddr(), httpRequest.getHeader("User-Agent"));
     }
 
     @Operation(

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260728-1020-01-create-dev-login-history" author="codex">
+        <createTable tableName="dev_login_history">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_dev_login_history" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+
+            <column name="provider" type="VARCHAR(50)"/>
+            <column name="username" type="VARCHAR(255)"/>
+            <column name="success" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="failure_reason" type="VARCHAR(255)"/>
+            <column name="ip" type="VARCHAR(64)"/>
+            <column name="user_agent" type="VARCHAR(300)"/>
+            <column name="trace_id" type="VARCHAR(64)"/>
+            <column name="occurred_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="dev_login_history" indexName="idx_dev_login_history_username">
+            <column name="username"/>
+        </createIndex>
+        <createIndex tableName="dev_login_history" indexName="idx_dev_login_history_provider">
+            <column name="provider"/>
+        </createIndex>
+        <createIndex tableName="dev_login_history" indexName="idx_dev_login_history_occurred_at">
+            <column name="occurred_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

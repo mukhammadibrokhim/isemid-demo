@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -42,10 +43,13 @@ public class SecurityConfig {
 
     /**
      * Hashes integration-client secrets (see {@code IntegrationClientCommandService}/
-     * {@code IntegrationTokenService}). Nothing else in this codebase hashes a
-     * credential today — human users authenticate exclusively via external
-     * SSO/DHP, never a locally-stored password.
+     * {@code IntegrationTokenService}). {@code @Primary} because it's the encoder every
+     * pre-existing unqualified {@code PasswordEncoder} injection point in this codebase
+     * was written against - the dev-panel's separate {@code devUserPasswordEncoder}
+     * (see {@code DevPanelSecurityConfig}) is newer and always injected by explicit
+     * {@code @Qualifier}, so it must not become the ambiguous default.
      */
+    @Primary
     @Bean
     public PasswordEncoder integrationClientPasswordEncoder() {
         return new BCryptPasswordEncoder();

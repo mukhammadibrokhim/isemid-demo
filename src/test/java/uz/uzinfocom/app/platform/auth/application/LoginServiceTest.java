@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginResponse;
 import uz.uzinfocom.app.platform.auth.web.dto.RefreshTokenRequest;
+import uz.uzinfocom.app.platform.devmonitoring.application.LoginHistoryRecorder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -12,7 +13,8 @@ import static org.mockito.Mockito.when;
 class LoginServiceTest {
 
     private final LoginProviderRegistry loginProviderRegistry = mock(LoginProviderRegistry.class);
-    private final LoginService loginService = new LoginService(loginProviderRegistry);
+    private final LoginHistoryRecorder loginHistoryRecorder = mock(LoginHistoryRecorder.class);
+    private final LoginService loginService = new LoginService(loginProviderRegistry, loginHistoryRecorder);
 
     @Test
     void resolvesTheProviderAndMapsItsResultToTheResponse() {
@@ -22,7 +24,7 @@ class LoginServiceTest {
         when(provider.login(request)).thenReturn(
                 new LoginResult("access-token", "refresh-token", "Bearer", 300L, "openid"));
 
-        LoginResponse response = loginService.login("dhp-web", request);
+        LoginResponse response = loginService.login("dhp-web", request, "127.0.0.1", "junit-agent");
 
         assertThat(response.accessToken()).isEqualTo("access-token");
         assertThat(response.refreshToken()).isEqualTo("refresh-token");

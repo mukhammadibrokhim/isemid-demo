@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260728-1010-01-create-dev-error-log" author="codex">
+        <createTable tableName="dev_error_log">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_dev_error_log" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+
+            <column name="trace_id" type="VARCHAR(64)"/>
+            <column name="error_code" type="VARCHAR(100)"/>
+            <column name="http_status" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="exception_type" type="VARCHAR(255)"/>
+            <column name="path" type="VARCHAR(500)"/>
+            <column name="method" type="VARCHAR(16)"/>
+            <column name="principal" type="VARCHAR(255)"/>
+            <column name="message" type="VARCHAR(500)"/>
+            <column name="occurred_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="OPEN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resolved_by" type="BIGINT"/>
+            <column name="resolved_at" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+
+        <createIndex tableName="dev_error_log" indexName="idx_dev_error_log_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="dev_error_log" indexName="idx_dev_error_log_occurred_at">
+            <column name="occurred_at"/>
+        </createIndex>
+        <createIndex tableName="dev_error_log" indexName="idx_dev_error_log_error_code">
+            <column name="error_code"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
