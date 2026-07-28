@@ -15,7 +15,6 @@ import uz.uzinfocom.isemid.features.report.service.Form8ReportService;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping(ApiPaths.Report.FORM_8)
@@ -63,7 +62,7 @@ public class Form8ReportController {
             @RequestParam(required = false)
             String cityCode
     ) {
-        List<Form8RegionComparisonDto> result = form8ReportService.getRegionCitySummary(
+        Form8RegionComparisonDto result = form8ReportService.getRegionCitySummary(
                 fromDate1,
                 toDate1,
                 fromDate2,

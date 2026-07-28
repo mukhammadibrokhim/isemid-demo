@@ -4,10 +4,9 @@ import uz.uzinfocom.isemid.features.report.dtos.Form8RegionComparisonDto;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public interface Form8ReportService {
-    List<Form8RegionComparisonDto> getRegionCitySummary(
+    Form8RegionComparisonDto getRegionCitySummary(
             LocalDate fromDate1,
             LocalDate toDate1,
             LocalDate fromDate2,
