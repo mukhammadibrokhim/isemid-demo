@@ -38,6 +38,20 @@ public final class OpenApiGroups {
     };
 
     /**
+     * The developer monitoring panel itself ({@code /v1/dev/**}) -
+     * authenticated via a separate local {@code DevUser} HTTP Basic chain
+     * (see {@code DevPanelSecurityConfig}), not the SSO/DHP bearer JWT the
+     * rest of the API requires. Kept out of {@link #ADMIN_PATHS}: account
+     * provisioning ({@code POST /v1/admin/dev-users}) stays in the Admin
+     * group since it IS SSO-admin-authenticated, but the panel's own
+     * read/resolve endpoints are not.
+     */
+    private static final String[] DEV_MONITORING_PATHS = {
+            ApiPaths.Dev.ROOT,
+            ApiPaths.Dev.ROOT + "/**"
+    };
+
+    /**
      * Every organization-hierarchy report under {@code modules.report}
      * (Form 1, Form 2, Form 3, ...) — drill-down tables meant to be
      * printed/exported, kept in their own group so they never get lost
@@ -103,6 +117,16 @@ public final class OpenApiGroups {
             ADMIN_PATHS
     );
 
+    public static final ApiDocumentationGroup DEV_MONITORING = new ApiDocumentationGroup(
+            "dev-monitoring",
+            "Dev Monitoring",
+            "Dev Monitoring",
+            "Панель разработчика: история неудачных запросов, попытки входа и метрики CPU/RAM/диска/HTTP. "
+                    + "Аутентификация через отдельную локальную учётную запись DevUser (HTTP Basic), а не "
+                    + "через SSO/DHP bearer-токен, как весь остальной API.",
+            DEV_MONITORING_PATHS
+    );
+
     public static final ApiDocumentationGroup REPORT = new ApiDocumentationGroup(
             "report",
             "Отчёты",
@@ -149,7 +173,8 @@ public final class OpenApiGroups {
                         ACCESS_CONTROL.pathsToMatch(),
                         ADMIN.pathsToMatch(),
                         REPORT.pathsToMatch(),
-                        INTEGRATION.pathsToMatch()
+                        INTEGRATION.pathsToMatch(),
+                        DEV_MONITORING.pathsToMatch()
                 )
                 .flatMap(Arrays::stream)
                 .toArray(String[]::new);

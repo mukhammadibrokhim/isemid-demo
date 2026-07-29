@@ -24,6 +24,7 @@ import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.time.LocalDate;
@@ -33,6 +34,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +55,7 @@ class Form058DashboardQueryServiceTest {
     private final RegionRepository regionRepository = mock(RegionRepository.class);
     private final ReferenceLookupService referenceLookupService = mock(ReferenceLookupService.class);
     private final OrganizationNameResolver organizationNameResolver = mock(OrganizationNameResolver.class);
+    private final SystemSettingResolver systemSettingResolver = mock(SystemSettingResolver.class);
 
     private final Form058DashboardQueryService service = new Form058DashboardQueryService(
             form058StatsQueryService,
@@ -61,8 +65,14 @@ class Form058DashboardQueryServiceTest {
             regionRepository,
             referenceLookupService,
             organizationNameResolver,
-            Runnable::run
+            Runnable::run,
+            systemSettingResolver
     );
+
+    {
+        when(systemSettingResolver.resolveLong(anyString(), anyLong()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
+    }
 
     @AfterEach
     void tearDown() {

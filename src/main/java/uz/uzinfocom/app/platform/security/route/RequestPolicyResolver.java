@@ -1,63 +1,19 @@
 package uz.uzinfocom.app.platform.security.route;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.server.PathContainer;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.pattern.PathPattern;
-import org.springframework.web.util.pattern.PathPatternParser;
-import uz.uzinfocom.app.platform.security.whitelist.SecurityRouteCatalog;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import uz.uzinfocom.app.platform.settings.application.RouteAccessPolicyResolver;
 
 @Component
+@RequiredArgsConstructor
 public class RequestPolicyResolver {
 
-    private final PathPatternParser parser = new PathPatternParser();
-    private final Map<String, PathPattern> patternCache = new ConcurrentHashMap<>();
+    private final RouteAccessPolicyResolver routeAccessPolicyResolver;
 
     public RequestPolicy resolve(HttpServletRequest request) {
-        String requestPath = normalize(request);
-
-        Optional<Map.Entry<String, SecurityRouteCatalog.RoutePolicyRule>> explicitRule =
-                SecurityRouteCatalog.POLICY_RULES.entrySet().stream()
-                        .filter(entry -> matches(entry.getKey(), requestPath))
-                        .findFirst();
-
-        if (explicitRule.isPresent()) {
-            Map.Entry<String, SecurityRouteCatalog.RoutePolicyRule> match = explicitRule.get();
-            SecurityRouteCatalog.RoutePolicyRule rule = match.getValue();
-            boolean publicRoute = SecurityRouteCatalog.OPEN_PATTERNS.stream()
-                    .anyMatch(pattern -> matches(pattern, requestPath));
-            return new RequestPolicy(
-                    publicRoute,
-                    rule.organizationHeaderRequired(),
-                    rule.roleValidationRequired(),
-                    match.getKey()
-            );
-        }
-
-        Optional<String> openPattern = SecurityRouteCatalog.OPEN_PATTERNS.stream()
-                .filter(pattern -> matches(pattern, requestPath))
-                .findFirst();
-
-        if (openPattern.isPresent()) {
-            return RequestPolicy.publicRoute(openPattern.get());
-        }
-
-        Optional<String> noOrgPattern = SecurityRouteCatalog.NO_ORG_HEADER_PATTERNS.stream()
-                .filter(pattern -> matches(pattern, requestPath))
-                .findFirst();
-
-        return noOrgPattern.map(s -> new RequestPolicy(false, false, true, s)).orElseGet(RequestPolicy::defaultProtectedRoute);
-
-    }
-
-    private boolean matches(String pattern, String requestPath) {
-        PathPattern compiled = patternCache.computeIfAbsent(pattern, parser::parse);
-        return compiled.matches(PathContainer.parsePath(requestPath));
+        return routeAccessPolicyResolver.resolve(normalize(request));
     }
 
     private String normalize(HttpServletRequest request) {

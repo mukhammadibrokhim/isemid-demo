@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import uz.uzinfocom.app.platform.iam.application.shared.cache.AuditCacheConfig;
 import uz.uzinfocom.app.platform.iam.application.shared.cache.OrganizationCacheConfig;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.settings.config.SettingsCacheConfig;
 
 import java.time.Duration;
 import java.util.List;
@@ -65,7 +66,15 @@ public class ApplicationCacheConfig {
                 cache(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_MKB10_CODE, 20_000, Duration.ofHours(1)),
 
                 cache(ReferenceCacheConfig.REF_MKB10_BY_CODE, 50_000, Duration.ofHours(2)),
-                cache(ReferenceCacheConfig.REF_MKB10_CHILDREN_BY_PARENT_ID, 20_000, Duration.ofHours(2))
+                cache(ReferenceCacheConfig.REF_MKB10_CHILDREN_BY_PARENT_ID, 20_000, Duration.ofHours(2)),
+
+                // Short TTL by design: these back runtime-editable configuration
+                // (see SystemSettingResolver/RouteAccessPolicyResolver) - a write
+                // evicts the affected entry immediately, but the short TTL is a
+                // safety net so a value never goes stale for more than ~30s even
+                // if an eviction is ever missed.
+                cache(SettingsCacheConfig.SYSTEM_SETTING_BY_KEY, 2_000, Duration.ofSeconds(30)),
+                cache(SettingsCacheConfig.ROUTE_ACCESS_POLICIES, 4, Duration.ofSeconds(30))
         ));
 
         return manager;

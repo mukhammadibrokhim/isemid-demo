@@ -15,6 +15,7 @@ import java.util.List;
 public class OpenApiSecurityEnricher {
 
     private static final String BEARER_AUTH = "bearerAuth";
+    private static final String BASIC_AUTH = "basicAuth";
 
     private static final String ORGANIZATION_HEADER_DESCRIPTION =
             "Идентификатор выбранной организации пользователя. Используется для определения прав доступа в рамках организации.";
@@ -49,25 +50,30 @@ public class OpenApiSecurityEnricher {
             return;
         }
 
-        addBearerSecurity(operation);
+        if (routePolicyResolver.isDevPanelRoute(path)) {
+            addSecurityScheme(operation, BASIC_AUTH);
+            return;
+        }
+
+        addSecurityScheme(operation, BEARER_AUTH);
 
         if (routePolicyResolver.isOrganizationHeaderRequired(path)) {
             addOrganizationHeader(operation);
         }
     }
 
-    private void addBearerSecurity(Operation operation) {
+    private void addSecurityScheme(Operation operation, String schemeName) {
         List<SecurityRequirement> security = operation.getSecurity();
 
-        if (security != null && security.stream().anyMatch(this::hasBearerAuth)) {
+        if (security != null && security.stream().anyMatch(requirement -> hasScheme(requirement, schemeName))) {
             return;
         }
 
-        operation.addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH));
+        operation.addSecurityItem(new SecurityRequirement().addList(schemeName));
     }
 
-    private boolean hasBearerAuth(SecurityRequirement requirement) {
-        return requirement != null && requirement.containsKey(BEARER_AUTH);
+    private boolean hasScheme(SecurityRequirement requirement, String schemeName) {
+        return requirement != null && requirement.containsKey(schemeName);
     }
 
     private void addOrganizationHeader(Operation operation) {

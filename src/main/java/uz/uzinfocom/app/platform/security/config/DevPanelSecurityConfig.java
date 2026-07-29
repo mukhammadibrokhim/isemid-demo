@@ -60,7 +60,7 @@ public class DevPanelSecurityConfig {
     public SecurityFilterChain devPanelSecurityFilterChain(
             HttpSecurity http,
             DaoAuthenticationProvider devUserAuthenticationProvider
-    ) throws Exception {
+    ) {
         http
                 .securityMatcher("/v1/dev/**")
                 .csrf(AbstractHttpConfigurer::disable)

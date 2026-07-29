@@ -15,6 +15,7 @@ public class OpenApiConfig {
 
     private static final String API_VERSION = "1.0.0";
     private static final String BEARER_AUTH = "bearerAuth";
+    private static final String BASIC_AUTH = "basicAuth";
 
     /*
      * springdoc collects every GroupedOpenApi bean into one list and renders
@@ -32,7 +33,8 @@ public class OpenApiConfig {
     private static final int ORDER_REPORT = 4;
     private static final int ORDER_INTEGRATION = 5;
     private static final int ORDER_INBOUND_INTEGRATION = 6;
-    private static final int ORDER_ADMIN = 7;
+    private static final int ORDER_DEV_MONITORING = 7;
+    private static final int ORDER_ADMIN = 8;
 
     private final CommonOpenApiCustomizer commonOpenApiCustomizer;
     private final OpenApiSchemaRegistrar schemaRegistrar;
@@ -52,7 +54,11 @@ public class OpenApiConfig {
                         .name(BEARER_AUTH)
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
-                        .bearerFormat("JWT"));
+                        .bearerFormat("JWT"))
+                .addSecuritySchemes(BASIC_AUTH, new SecurityScheme()
+                        .name(BASIC_AUTH)
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("basic"));
 
         schemaRegistrar.registerCommonSchemas(components);
 
@@ -90,6 +96,12 @@ public class OpenApiConfig {
     @Order(ORDER_ADMIN)
     public GroupedOpenApi adminOpenApi() {
         return buildGroupedOpenApi(OpenApiGroups.ADMIN);
+    }
+
+    @Bean
+    @Order(ORDER_DEV_MONITORING)
+    public GroupedOpenApi devMonitoringOpenApi() {
+        return buildGroupedOpenApi(OpenApiGroups.DEV_MONITORING);
     }
 
     @Bean

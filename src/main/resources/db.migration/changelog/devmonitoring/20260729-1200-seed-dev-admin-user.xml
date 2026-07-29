@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Bootstrap dev-panel account (/v1/dev/**), created once per database if it
+        doesn't already exist - username "dev-admin", password "DevPanel-2026!"
+        (bcrypt hash below). Skipped (MARK_RAN) if a row with this username is
+        already present, so this never overwrites credentials someone rotated
+        afterward via POST /v1/admin/dev-users or a direct update.
+
+        SECURITY NOTE: this seeds the same known credential into every
+        environment this changelog runs against, including production, since
+        Liquibase contexts are not used anywhere else in this project either.
+        Rotate or revoke this account (PATCH /v1/admin/dev-users/{id}/revoke)
+        before relying on it anywhere the password's value matters.
+    -->
+    <changeSet id="20260729-1200-01-seed-dev-admin-user" author="codex" runInTransaction="true">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="dev_user"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM dev_user WHERE username = 'dev-admin'
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="dev_user">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="username" value="dev-admin"/>
+            <column name="password_hash" value="$2a$10$ZyShvvDc5dsyA3EK8h5/9etsWHeJkAp1z1RmtCitYUI5hM58uuDlC"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

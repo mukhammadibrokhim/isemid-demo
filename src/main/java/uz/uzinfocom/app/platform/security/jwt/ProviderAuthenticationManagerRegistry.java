@@ -19,6 +19,7 @@ import uz.uzinfocom.app.platform.security.auth.FederatedJwtAuthenticationConvert
 import uz.uzinfocom.app.platform.security.auth.IntegrationJwtAuthenticationConverter;
 import uz.uzinfocom.app.platform.security.jwt.properties.IntegrationTokenProperties;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.text.ParseException;
 import java.util.LinkedHashMap;
@@ -40,18 +41,29 @@ public class ProviderAuthenticationManagerRegistry {
     private final JwtDecoder integrationJwtDecoder;
     private final IntegrationJwtAuthenticationConverter integrationJwtAuthenticationConverter;
     private final IntegrationTokenProperties integrationTokenProperties;
+    private final SystemSettingResolver systemSettingResolver;
 
     private final BearerTokenResolver bearerTokenResolver = new DefaultBearerTokenResolver();
 
     private Map<String, AuthenticationManager> authenticationManagersByProviderKey = Map.of();
 
+    /**
+     * Only configured providers get an entry here - their enabled/disabled state can be
+     * overridden at runtime via {@code app.auth.providers.<key>.enabled} (see
+     * {@link #resolver()}), so a provider is no longer excluded from
+     * {@code authenticationManagersByProviderKey} just because it starts disabled - that
+     * check now happens dynamically, per request, without needing a restart to flip it.
+     */
+    private Map<String, Boolean> defaultEnabledByProviderKey = Map.of();
+
     @PostConstruct
     void initialize() {
         LinkedHashMap<String, AuthenticationManager> managers = new LinkedHashMap<>();
+        LinkedHashMap<String, Boolean> defaultEnabled = new LinkedHashMap<>();
 
         properties.getProviders().forEach((providerKey, provider) -> {
-            if (provider == null || !provider.isEnabled()) {
-                log.info("Authentication provider skipped. providerKey={}, reason=disabled", providerKey);
+            if (provider == null) {
+                log.info("Authentication provider skipped. providerKey={}, reason=no configuration", providerKey);
                 return;
             }
 
@@ -62,14 +74,16 @@ public class ProviderAuthenticationManagerRegistry {
             authenticationProvider.setJwtAuthenticationConverter(converter);
 
             managers.put(providerKey, authenticationProvider::authenticate);
+            defaultEnabled.put(providerKey, provider.isEnabled());
 
             log.info(
-                    "Authentication provider registered. providerKey={}, issuerUri={}, signatureMode={}, validateIssuer={}, missingIssuerMarkerClaim={}",
+                    "Authentication provider registered. providerKey={}, issuerUri={}, signatureMode={}, validateIssuer={}, missingIssuerMarkerClaim={}, enabledByDefault={}",
                     providerKey,
                     provider.getIssuerUri(),
                     provider.getSignatureMode(),
                     provider.isValidateIssuer(),
-                    provider.getMissingIssuerMarkerClaim()
+                    provider.getMissingIssuerMarkerClaim(),
+                    provider.isEnabled()
             );
         });
 
@@ -84,6 +98,7 @@ public class ProviderAuthenticationManagerRegistry {
         );
 
         this.authenticationManagersByProviderKey = Map.copyOf(managers);
+        this.defaultEnabledByProviderKey = Map.copyOf(defaultEnabled);
     }
 
     public AuthenticationManagerResolver<HttpServletRequest> resolver() {
@@ -100,6 +115,15 @@ public class ProviderAuthenticationManagerRegistry {
 
             if (authenticationManager == null) {
                 throw new InvalidBearerTokenException("Authentication provider is not registered: " + providerKey);
+            }
+
+            Boolean defaultEnabled = defaultEnabledByProviderKey.get(providerKey);
+            if (defaultEnabled != null) {
+                boolean enabled = systemSettingResolver.resolveBoolean(
+                        "app.auth.providers." + providerKey + ".enabled", defaultEnabled);
+                if (!enabled) {
+                    throw new InvalidBearerTokenException("Authentication provider is disabled: " + providerKey);
+                }
             }
 
             request.setAttribute(REQUEST_PROVIDER_KEY_ATTRIBUTE, providerKey);

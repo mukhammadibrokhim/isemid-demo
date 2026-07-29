@@ -11,8 +11,8 @@ public final class ApiPaths {
      * Root for the entire admin-only API surface — settings, elevated-access
      * management, and admin-facing (unscoped, cross-organization) statistics.
      * Kept as one prefix so it can be gated as a single Spring Security
-     * policy rule (see SecurityRouteCatalog) and served as its own Swagger
-     * group (see OpenApiGroups.ADMIN).
+     * policy rule (see RouteAccessPolicy/RouteAccessPolicyResolver) and
+     * served as its own Swagger group (see OpenApiGroups.ADMIN).
      */
     public static final class Admin {
         private Admin() {
@@ -26,7 +26,7 @@ public final class ApiPaths {
      * by calling an external authentication provider's token endpoint on the
      * caller's behalf (see platform.auth) - one endpoint regardless of which
      * OAuth2 grant the resolved provider speaks. Public - see
-     * SecurityRouteCatalog.OPEN_PATTERNS.
+     * the {@code /v1/auth/**} row in {@code RouteAccessPolicy}.
      */
     public static final class Auth {
         private Auth() {
@@ -168,6 +168,20 @@ public final class ApiPaths {
     }
 
     /**
+     * Runtime-editable route-access rules — replaces the old, restart-only
+     * {@code SecurityRouteCatalog}. Lives under {@link Admin} (SSO-admin
+     * authenticated), mirrored read/write under {@link Dev} for the
+     * dev-monitoring panel (see {@code DevRoutePolicyController}).
+     */
+    public static final class RouteAccessPolicy {
+        private RouteAccessPolicy() {
+        }
+
+        public static final String ROOT = Admin.ROOT + "/route-policies";
+        public static final String BY_ID = "/{id}";
+    }
+
+    /**
      * Human-facing admin tooling for provisioning inbound-integration clients
      * (see {@link Integration}) — lives under the existing {@link Admin} root,
      * not under {@code Integration.ROOT}, since it's authenticated the same
@@ -203,6 +217,12 @@ public final class ApiPaths {
         public static final String LOGINS = "/logins";
         public static final String METRICS_SYSTEM = "/metrics/system";
         public static final String METRICS_HTTP = "/metrics/http";
+        public static final String SETTINGS = "/settings";
+        public static final String SETTINGS_BY_ID = "/settings/{id}";
+        public static final String SETTINGS_BY_KEY = "/settings/by-key/{key}";
+        public static final String SETTINGS_RESTORE = "/settings/{id}/restore";
+        public static final String ROUTE_POLICIES = "/settings/route-policies";
+        public static final String ROUTE_POLICY_BY_ID = "/settings/route-policies/{id}";
     }
 
     /**

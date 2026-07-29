@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerMapping;
 import uz.uzinfocom.app.platform.devmonitoring.application.DevErrorLogWriter;
 import uz.uzinfocom.app.platform.http.SensitiveLoggingSanitizer;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -24,23 +25,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Order(Ordered.HIGHEST_PRECEDENCE + 20)
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
+    private static final String HTTP_LOGGING_ENABLED_KEY = "app.observability.http-logging.enabled";
+
     private static final Logger HTTP_LOG = LoggerFactory.getLogger("HTTP_REQUEST");
 
     private final ObservabilityProperties properties;
     private final SensitiveLoggingSanitizer sanitizer;
     private final TraceIdProvider traceIdProvider;
     private final DevErrorLogWriter devErrorLogWriter;
+    private final SystemSettingResolver systemSettingResolver;
 
     public RequestLoggingFilter(
             ObservabilityProperties properties,
             SensitiveLoggingSanitizer sanitizer,
             TraceIdProvider traceIdProvider,
-            DevErrorLogWriter devErrorLogWriter
+            DevErrorLogWriter devErrorLogWriter,
+            SystemSettingResolver systemSettingResolver
     ) {
         this.properties = properties;
         this.sanitizer = sanitizer;
         this.traceIdProvider = traceIdProvider;
         this.devErrorLogWriter = devErrorLogWriter;
+        this.systemSettingResolver = systemSettingResolver;
     }
 
     @Override
@@ -56,7 +62,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         ObservabilityProperties.HttpLogging config = properties.getHttpLogging();
-        if (!config.isEnabled() || request.getDispatcherType() != DispatcherType.REQUEST) {
+        boolean enabled = systemSettingResolver.resolveBoolean(HTTP_LOGGING_ENABLED_KEY, config.isEnabled());
+        if (!enabled || request.getDispatcherType() != DispatcherType.REQUEST) {
             return true;
         }
         String path = request.getRequestURI();

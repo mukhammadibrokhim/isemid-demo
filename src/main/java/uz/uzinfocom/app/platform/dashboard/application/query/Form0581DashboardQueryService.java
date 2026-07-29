@@ -29,6 +29,7 @@ import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.time.Instant;
@@ -51,6 +52,7 @@ public class Form0581DashboardQueryService {
 
     private static final ZoneId APPLICATION_ZONE = ZoneId.of("Asia/Tashkent");
     private static final int TOP_DIAGNOSIS_RESULT_LIMIT = 5;
+    private static final String TOP_DIAGNOSIS_RESULT_LIMIT_KEY = "form0581.dashboard.top-diagnosis-limit";
 
     private final Form0581StatsQueryService form0581StatsQueryService;
     private final OrganizationScopeResolver organizationScopeResolver;
@@ -60,6 +62,7 @@ public class Form0581DashboardQueryService {
     private final ReferenceLookupService referenceLookupService;
     private final OrganizationNameResolver organizationNameResolver;
     private final Executor applicationTaskExecutor;
+    private final SystemSettingResolver systemSettingResolver;
 
     public Form0581DashboardQueryService(
             Form0581StatsQueryService form0581StatsQueryService,
@@ -69,7 +72,8 @@ public class Form0581DashboardQueryService {
             RegionRepository regionRepository,
             ReferenceLookupService referenceLookupService,
             OrganizationNameResolver organizationNameResolver,
-            @Qualifier("applicationTaskExecutor") Executor applicationTaskExecutor
+            @Qualifier("applicationTaskExecutor") Executor applicationTaskExecutor,
+            SystemSettingResolver systemSettingResolver
     ) {
         this.form0581StatsQueryService = form0581StatsQueryService;
         this.organizationScopeResolver = organizationScopeResolver;
@@ -79,6 +83,7 @@ public class Form0581DashboardQueryService {
         this.referenceLookupService = referenceLookupService;
         this.organizationNameResolver = organizationNameResolver;
         this.applicationTaskExecutor = applicationTaskExecutor;
+        this.systemSettingResolver = systemSettingResolver;
     }
 
     public Form0581DashboardResponse getDashboard() {
@@ -178,7 +183,8 @@ public class Form0581DashboardQueryService {
     }
 
     private List<TopDiagnosisResponse> buildTopDiagnoses() {
-        return form0581StatsQueryService.topMkb10(Form0581Direction.INCOMING, TOP_DIAGNOSIS_RESULT_LIMIT).stream()
+        int limit = (int) systemSettingResolver.resolveLong(TOP_DIAGNOSIS_RESULT_LIMIT_KEY, TOP_DIAGNOSIS_RESULT_LIMIT);
+        return form0581StatsQueryService.topMkb10(Form0581Direction.INCOMING, limit).stream()
                 .map(item -> new TopDiagnosisResponse(item.mkb10Code(), item.count()))
                 .toList();
     }

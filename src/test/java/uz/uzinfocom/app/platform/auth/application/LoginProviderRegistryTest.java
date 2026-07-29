@@ -7,6 +7,7 @@ import uz.uzinfocom.app.platform.auth.application.exception.UnknownLoginProvider
 import uz.uzinfocom.app.platform.auth.properties.LoginGrantType;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties.ProviderProperties;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +15,10 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class LoginProviderRegistryTest {
 
@@ -22,6 +27,15 @@ class LoginProviderRegistryTest {
 
     private final List<LoginProviderFactory> factories =
             List.of(new AuthorizationCodeGrantLoginProviderFactory());
+
+    // No DB override in these tests - always fall through to the caller-supplied default,
+    // exactly as if the system_settings table were empty.
+    private final SystemSettingResolver systemSettingResolver = mock(SystemSettingResolver.class);
+
+    {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
+    }
 
     private ProviderProperties provider(boolean enabled, String tokenUrl) {
         ProviderProperties properties = new ProviderProperties();
@@ -41,8 +55,8 @@ class LoginProviderRegistryTest {
             List<LoginProvider> customProviders,
             List<LoginProviderFactory> providerFactories
     ) {
-        LoginProviderRegistry registry =
-                new LoginProviderRegistry(properties, restClient, jsonMapper, customProviders, providerFactories);
+        LoginProviderRegistry registry = new LoginProviderRegistry(
+                properties, restClient, jsonMapper, customProviders, providerFactories, systemSettingResolver);
         registry.initialize();
         return registry;
     }

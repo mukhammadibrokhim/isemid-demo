@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 import uz.uzinfocom.app.platform.settings.application.dto.SystemSettingCreateRequest;
 import uz.uzinfocom.app.platform.settings.application.dto.SystemSettingUpdateRequest;
 import uz.uzinfocom.app.platform.settings.application.query.dto.SystemSettingResponse;
@@ -22,6 +23,7 @@ public class SystemSettingCommandService {
     private final SystemSettingRepository systemSettingRepository;
     private final SystemSettingMapper systemSettingMapper;
     private final AuditResolver auditResolver;
+    private final SystemSettingResolver systemSettingResolver;
 
     @Transactional
     public SystemSettingResponse create(SystemSettingCreateRequest request) {
@@ -41,6 +43,7 @@ public class SystemSettingCommandService {
                 .build();
 
         SystemSetting saved = systemSettingRepository.save(systemSetting);
+        systemSettingResolver.evict(settingKey);
         log.debug("System setting created. id={}, key={}", saved.getId(), saved.getSettingKey());
 
         return systemSettingMapper.toResponse(saved, auditResolver.resolve(saved));
@@ -58,6 +61,7 @@ public class SystemSettingCommandService {
         }
 
         SystemSetting saved = systemSettingRepository.save(systemSetting);
+        systemSettingResolver.evict(saved.getSettingKey());
         log.debug("System setting updated. id={}, key={}", saved.getId(), saved.getSettingKey());
 
         return systemSettingMapper.toResponse(saved, auditResolver.resolve(saved));
@@ -69,6 +73,7 @@ public class SystemSettingCommandService {
 
         systemSetting.setDeleted(true);
         systemSettingRepository.save(systemSetting);
+        systemSettingResolver.evict(systemSetting.getSettingKey());
 
         log.debug("System setting soft-deleted. id={}, key={}", systemSetting.getId(), systemSetting.getSettingKey());
     }
@@ -80,6 +85,7 @@ public class SystemSettingCommandService {
 
         systemSetting.setDeleted(false);
         systemSettingRepository.save(systemSetting);
+        systemSettingResolver.evict(systemSetting.getSettingKey());
 
         log.debug("System setting restored. id={}, key={}", systemSetting.getId(), systemSetting.getSettingKey());
     }

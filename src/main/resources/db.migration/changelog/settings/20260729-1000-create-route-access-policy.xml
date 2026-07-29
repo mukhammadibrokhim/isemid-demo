@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260729-1000-01-create-route-access-policy" author="codex">
+        <createTable tableName="security_route_policy">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_security_route_policy" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_by_id" type="BIGINT"/>
+
+            <column name="pattern" type="VARCHAR(200)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_security_route_policy_pattern"/>
+            </column>
+            <column name="display_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="open" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_header_required" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_validation_required" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+        </createTable>
+
+        <createIndex tableName="security_route_policy" indexName="idx_security_route_policy_enabled_order">
+            <column name="enabled"/>
+            <column name="display_order"/>
+        </createIndex>
+    </changeSet>
+
+    <!--
+        Seed data reproducing today's exact SecurityRouteCatalog resolution behavior,
+        1:1, in the same precedence order (explicit POLICY_RULES entries first, then
+        the remaining OPEN_PATTERNS entries, then the remaining NO_ORG_HEADER_PATTERNS
+        entry) - see the plan's Design section B for the derivation. SecurityRouteCatalog
+        itself is deleted once this migration lands; this is now the sole source of truth.
+    -->
+    <changeSet id="20260729-1000-02-seed-route-access-policy" author="codex">
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/auth/**"/>
+            <column name="display_order" valueNumeric="1"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+            <column name="description" value="Login-proxy surface - public, no org header, no role validation."/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/user/me"/>
+            <column name="display_order" valueNumeric="2"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/user/me/**"/>
+            <column name="display_order" valueNumeric="3"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/users/me"/>
+            <column name="display_order" valueNumeric="4"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/users/me/**"/>
+            <column name="display_order" valueNumeric="5"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/references/**"/>
+            <column name="display_order" valueNumeric="6"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="true"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/citizen/**"/>
+            <column name="display_order" valueNumeric="7"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="true"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/legal-entity/**"/>
+            <column name="display_order" valueNumeric="8"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="true"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/admin/**"/>
+            <column name="display_order" valueNumeric="9"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="true"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/swagger-ui/**"/>
+            <column name="display_order" valueNumeric="10"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/swagger-ui.html"/>
+            <column name="display_order" valueNumeric="11"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v3/api-docs/**"/>
+            <column name="display_order" valueNumeric="12"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/api-docs/**"/>
+            <column name="display_order" valueNumeric="13"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/log/**"/>
+            <column name="display_order" valueNumeric="14"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/actuator/health/**"/>
+            <column name="display_order" valueNumeric="15"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/actuator/info"/>
+            <column name="display_order" valueNumeric="16"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/actuator/prometheus"/>
+            <column name="display_order" valueNumeric="17"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/actuator/metrics/**"/>
+            <column name="display_order" valueNumeric="18"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/integration/v1/oauth/token"/>
+            <column name="display_order" valueNumeric="19"/>
+            <column name="open" valueBoolean="true"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="false"/>
+            <column name="description" value="Inbound-integration token endpoint - the one public entry point on that surface."/>
+        </insert>
+        <insert tableName="security_route_policy">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="pattern" value="/v1/users/{id}/organizations"/>
+            <column name="display_order" valueNumeric="20"/>
+            <column name="open" valueBoolean="false"/>
+            <column name="organization_header_required" valueBoolean="false"/>
+            <column name="role_validation_required" valueBoolean="true"/>
+            <column name="description" value="Discovering which org to put in the org header is how a caller learns what to select in the first place - requiring the header here would be circular."/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

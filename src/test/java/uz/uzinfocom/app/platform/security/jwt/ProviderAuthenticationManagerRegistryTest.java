@@ -16,6 +16,7 @@ import uz.uzinfocom.app.platform.security.jwt.integration.IntegrationTokenIssuer
 import uz.uzinfocom.app.platform.security.jwt.integration.IntegrationTokenSigningKey;
 import uz.uzinfocom.app.platform.security.jwt.properties.IntegrationTokenProperties;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.util.Set;
 import java.util.UUID;
@@ -45,7 +46,8 @@ class ProviderAuthenticationManagerRegistryTest {
             mock(FederatedJwtAuthenticationConverter.class),
             decoderConfig.integrationJwtDecoder(),
             new IntegrationJwtAuthenticationConverter(),
-            integrationTokenProperties
+            integrationTokenProperties,
+            mock(SystemSettingResolver.class)
     );
 
     @Test

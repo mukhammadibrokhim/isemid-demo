@@ -19,7 +19,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
         name = "Auth",
         description = "Обмен учётных данных пользователя на токен доступа через внешнего провайдера "
                 + "аутентификации (SSO, DHP и т.п.), независимо от того, какой OAuth2-грант использует "
-                + "конкретный провайдер. Публичные (без Bearer-токена) эндпоинты - см. SecurityRouteCatalog."
+                + "конкретный провайдер. Публичные (без Bearer-токена) эндпоинты - см. RouteAccessPolicy."
 )
 @RestController
 @RequestMapping(ApiPaths.Auth.ROOT)
