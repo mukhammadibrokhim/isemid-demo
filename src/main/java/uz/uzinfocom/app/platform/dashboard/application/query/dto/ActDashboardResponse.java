@@ -14,10 +14,10 @@ public record ActDashboardResponse(
         @Schema(description = "Область видимости, применённая к этому ответу.")
         DashboardScopeResponse scope,
 
-        @Schema(description = "Общее количество актов за всё время.")
+        @Schema(description = "Общее количество актов с начала текущего календарного года.")
         long total,
 
-        @Schema(description = "Разбивка по статусу акта, за всё время.")
+        @Schema(description = "Разбивка по статусу акта, с начала текущего календарного года.")
         List<ActStatusCountResponse> byStatus,
 
         @Schema(description = "Динамика назначения актов по месяцам, с 1 января текущего календарного года по сегодняшний день.")

@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.card.application.query.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserMiniResponse;
 
 import java.time.Instant;
@@ -37,9 +38,14 @@ public record CardTableResponse(
         @Schema(description = "Наименование ответственной организации на текущем языке интерфейса.")
         String organizationName,
 
-        @Schema(description = "Идентификатор формы №058, к которой привязана карта — важно при просмотре "
-                + "списка карт, охватывающего несколько форм (например \"Мои карты\").")
+        @Schema(description = "Идентификатор формы (№058 или №058-1), к которой привязана карта — важно при "
+                + "просмотре списка карт, охватывающего несколько форм (например \"Мои карты\"). Смотрите "
+                + "также formType, чтобы понять, к какой именно форме относится этот идентификатор.")
         Long formId,
+
+        @Schema(description = "Тип формы, к которой привязана карта — FORM058 или FORM0581. Определяет, как "
+                + "интерпретировать formId (в какой раздел вести пользователя).")
+        CaseFormType formType,
 
         @Schema(description = "Краткие сведения о пациенте.")
         PatientShortResponse patient

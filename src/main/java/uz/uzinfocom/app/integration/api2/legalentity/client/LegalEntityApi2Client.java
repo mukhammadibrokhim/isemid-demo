@@ -1,11 +1,13 @@
 package uz.uzinfocom.app.integration.api2.legalentity.client;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2MalformedResponseException;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
@@ -14,6 +16,8 @@ import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodyReader;
 import uz.uzinfocom.app.integration.api2.common.support.Api2UpstreamError;
 import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupResult;
 import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupSource;
+import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
 
 import java.io.IOException;
 
@@ -27,27 +31,34 @@ public class LegalEntityApi2Client {
     private final Api2Properties properties;
     private final Api2ErrorDecoder errorDecoder;
     private final Api2ResponseBodyReader responseBodyReader;
+    private final DynamicCircuitBreakerLookup circuitBreakerLookup;
 
     public LegalEntityApi2Client(
             @Qualifier("api2RestClient") RestClient restClient,
             Api2Properties properties,
             Api2ErrorDecoder errorDecoder,
-            Api2ResponseBodyReader responseBodyReader
+            Api2ResponseBodyReader responseBodyReader,
+            DynamicCircuitBreakerLookup circuitBreakerLookup
     ) {
         this.restClient = restClient;
         this.properties = properties;
         this.errorDecoder = errorDecoder;
         this.responseBodyReader = responseBodyReader;
+        this.circuitBreakerLookup = circuitBreakerLookup;
     }
 
     public LegalEntityLookupResult lookupByTin(String tin) {
         try {
-            return restClient.get()
+            return circuitBreakerLookup.forName(CircuitBreakerNames.API2).executeSupplier(() -> restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path(properties.endpoints().legalEntity())
                             .queryParam("tin", tin)
                             .build())
-                    .exchange((request, response) -> handleResponse(response));
+                    .exchange((request, response) -> handleResponse(response)));
+        } catch (Api2Exception exception) {
+            throw exception;
+        } catch (CallNotPermittedException exception) {
+            throw errorDecoder.decodeCircuitBreakerOpen(OPERATION, exception);
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(OPERATION, exception);
         }

@@ -1,11 +1,14 @@
 package uz.uzinfocom.app.platform.iam.infrastructure.remote;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import uz.uzinfocom.app.platform.iam.infrastructure.remote.payload.RemoteOrganizationPayload;
 import uz.uzinfocom.app.platform.iam.infrastructure.remote.payload.RemotePractitionerPayload;
+import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 
 import java.util.UUID;
@@ -15,13 +18,16 @@ public class ProviderIamRemoteClient {
 
     private final RestClient restClient;
     private final AuthProvidersProperties properties;
+    private final DynamicCircuitBreakerLookup circuitBreakerLookup;
 
     public ProviderIamRemoteClient(
             RestClient restClient,
-            AuthProvidersProperties properties
+            AuthProvidersProperties properties,
+            DynamicCircuitBreakerLookup circuitBreakerLookup
     ) {
         this.restClient = restClient;
         this.properties = properties;
+        this.circuitBreakerLookup = circuitBreakerLookup;
     }
 
     public RemoteOrganizationPayload fetchOrganization(String providerKey, UUID organizationUuid, String rawToken) {
@@ -31,11 +37,7 @@ public class ProviderIamRemoteClient {
                 "organization"
         );
 
-        RemoteOrganizationPayload response = restClient.get()
-                .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, bearer(rawToken))
-                .retrieve()
-                .body(RemoteOrganizationPayload.class);
+        RemoteOrganizationPayload response = executeGet(providerKey, url, rawToken, RemoteOrganizationPayload.class);
 
         if (response == null) {
             throw new IllegalStateException("Remote organization response is empty: " + organizationUuid);
@@ -50,16 +52,27 @@ public class ProviderIamRemoteClient {
                 "practitioner"
         );
 
-        RemotePractitionerPayload response = restClient.get()
-                .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, bearer(rawToken))
-                .retrieve()
-                .body(RemotePractitionerPayload.class);
+        RemotePractitionerPayload response = executeGet(providerKey, url, rawToken, RemotePractitionerPayload.class);
 
         if (response == null) {
             throw new IllegalStateException("Remote practitioner response is empty: " + practitionerUuid);
         }
         return response;
+    }
+
+    private <T> T executeGet(String providerKey, String url, String rawToken, Class<T> responseType) {
+        try {
+            return circuitBreakerLookup
+                    .forProvider(CircuitBreakerNames.IAM_REMOTE, providerKey)
+                    .executeSupplier(() -> restClient.get()
+                            .uri(url)
+                            .header(HttpHeaders.AUTHORIZATION, bearer(rawToken))
+                            .retrieve()
+                            .body(responseType));
+        } catch (CallNotPermittedException exception) {
+            throw new IllegalStateException(
+                    "IAM provider circuit breaker is open: " + providerKey, exception);
+        }
     }
 
     private String expandUuidTemplate(String template, UUID uuid, String resourceName) {

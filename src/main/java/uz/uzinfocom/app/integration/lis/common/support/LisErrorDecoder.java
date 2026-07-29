@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.integration.lis.common.support;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
@@ -46,6 +47,19 @@ public class LisErrorDecoder {
         LisException decoded = containsTimeout(exception)
                 ? new LisTimeoutException(operation, null)
                 : new LisUnavailableException(operation, null, exception.getMessage());
+        decoded.initCause(exception);
+        return decoded;
+    }
+
+    /**
+     * The "lis" circuit breaker is open - LIS is already known to be
+     * unhealthy, so this call was rejected without ever going out. Reported
+     * the same way a real transport failure would be, for the same reason
+     * {@code decodeTransport} exists: one typed failure shape for every
+     * caller of {@link uz.uzinfocom.app.integration.lis.client.LisActClient}.
+     */
+    public LisException decodeCircuitBreakerOpen(String operation, CallNotPermittedException exception) {
+        LisException decoded = new LisUnavailableException(operation, null, "Circuit breaker open");
         decoded.initCause(exception);
         return decoded;
     }

@@ -209,7 +209,7 @@ public class Form058QueryService {
 
     private List<CardTableResponse> linkedCards(Long form058Id) {
         CardFilterRequest filter = new CardFilterRequest(
-                1, 200, null, null, form058Id, null, null, null, null
+                1, 200, null, null, form058Id, null, null, null, null, null
         );
         return cardQueryService.findTable(filter).getContent();
     }

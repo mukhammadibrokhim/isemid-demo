@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActStatsRepository;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
@@ -44,7 +45,7 @@ class ActStatsQueryServiceTest {
 
         service.countByStatus();
 
-        verify(actStatsRepository).countByStatus(scope);
+        verify(actStatsRepository).countByStatus(scope, CaseFormType.ANY);
     }
 
     @Test
@@ -73,7 +74,7 @@ class ActStatsQueryServiceTest {
 
         service.countTotal();
 
-        verify(actStatsRepository).countTotal(scope);
+        verify(actStatsRepository).countTotal(scope, CaseFormType.ANY);
     }
 
     private Organization organization(Long id) {

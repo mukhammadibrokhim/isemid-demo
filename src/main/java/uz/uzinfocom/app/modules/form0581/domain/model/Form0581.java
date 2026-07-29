@@ -17,9 +17,11 @@ import java.util.List;
  * "Form 058-1" — emergency notification of suspected rabies on an animal
  * bite/scratch/saliva-contact case. Sibling of {@link uz.uzinfocom.app.modules.form058.domain.model.Form058},
  * built to the same create/update/approve/notApprove/cancel/delete lifecycle,
- * but deliberately not sharing {@code FormStatus} (no CARD_LINKED concept
- * here) or the {@code Form058} entity itself — these are independent
- * sibling forms, not a subtype relationship.
+ * and deliberately not sharing {@code FormStatus} or the {@code Form058}
+ * entity itself — these are independent sibling forms, not a subtype
+ * relationship. Unlike {@code Form058}, assigning cards here never advances
+ * {@link Form0581Status} (there is no {@code CARD_LINKED} equivalent) — only
+ * the {@link #hasLinkedCards} bookkeeping flag changes; see {@link #linkCards()}.
  */
 @Getter
 @Setter
@@ -118,12 +120,34 @@ public class Form0581 extends AbsEntity {
     private Form0581ApprovalInfo approvalInfo;
 
     /**
+     * Denormalized flag for fast table filtering — mirrors {@code Form058.hasLinkedCards}.
+     */
+    @Column(name = "has_linked_cards", nullable = false)
+    @Builder.Default
+    private boolean hasLinkedCards = false;
+
+    /**
      * Soft delete state. Columns remain in the form058_1 table: deleted,
      * deleted_at, deleted_by_id, delete_reason.
      */
     @Embedded
     @Builder.Default
     private Form0581DeleteInfo deleteInfo = new Form0581DeleteInfo();
+
+    /**
+     * Called once one or more cards exist on this form (see
+     * {@code CardCommandService.assignCardsToForm0581}). Unlike {@code Form058.linkCards()},
+     * this never changes {@link #status} — {@link Form0581Status} has no
+     * CARD_LINKED-equivalent value — it only flips the bookkeeping flag.
+     */
+    public void linkCards() {
+        ensureEditable();
+        this.hasLinkedCards = true;
+    }
+
+    public void markCardsUnlinked() {
+        this.hasLinkedCards = false;
+    }
 
     public void ensureEditable() {
         if (isCanceled() || isApproved() || isDeleted()) {

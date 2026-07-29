@@ -23,6 +23,9 @@ public record CardFilterRequest(
         @Schema(description = "Идентификатор формы №058 для фильтрации карт.")
         Long formId,
 
+        @Schema(description = "Идентификатор формы №058-1 для фильтрации карт.")
+        Long form0581Id,
+
         @Schema(description = "Тип карты для фильтрации.")
         CardType cardType,
 
@@ -43,6 +46,6 @@ public record CardFilterRequest(
      * the authenticated attached employee, never a client-chosen id.
      */
     public CardFilterRequest scopedToAttachedUser(Long userId) {
-        return new CardFilterRequest(page, size, sortBy, sortDir, formId, cardType, status, userId, null);
+        return new CardFilterRequest(page, size, sortBy, sortDir, formId, form0581Id, cardType, status, userId, null);
     }
 }

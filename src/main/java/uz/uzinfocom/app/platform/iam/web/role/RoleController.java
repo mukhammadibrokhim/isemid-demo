@@ -77,7 +77,7 @@ public class RoleController {
             description = "Создает новую роль пользователя для дальнейшего назначения в рамках организаций."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Запись успешно создана.")
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
     @PostMapping
     public ApiResponse<RoleDetailResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -115,7 +115,7 @@ public class RoleController {
             description = "Выполняет мягкое удаление роли, после чего она не используется при авторизации."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
     @DeleteMapping(ApiPaths.Role.BY_ID)
     public ApiResponse<Void> delete(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)
@@ -130,7 +130,7 @@ public class RoleController {
             description = "Восстанавливает мягко удаленную роль и делает ее активной."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
     @PatchMapping(ApiPaths.Role.RESTORE)
     public ApiResponse<Void> restore(
             @Parameter(description = "Уникальный идентификатор роли.", required = true)

@@ -2,10 +2,12 @@ package uz.uzinfocom.app.modules.card.application.handler.card205;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card205DetailResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card205.Card205;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card205.Card205MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card205Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationAboutAnimaBittenPeopleRequest;
@@ -33,7 +35,9 @@ class Card205HandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new Card205Handler(new Card205MapperImpl());
+        Card205MapperImpl mapper = new Card205MapperImpl();
+        ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        handler = new Card205Handler(mapper);
 
         form = mock(Form058.class);
         when(form.getId()).thenReturn(11L);

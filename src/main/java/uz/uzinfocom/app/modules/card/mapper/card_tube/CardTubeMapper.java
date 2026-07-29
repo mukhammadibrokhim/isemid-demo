@@ -13,6 +13,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card_tube.ContactMonitoring;
 import uz.uzinfocom.app.modules.card.domain.model.card_tube.InfectionSource;
 import uz.uzinfocom.app.modules.card.domain.model.card_tube.TBHistory;
 import uz.uzinfocom.app.modules.card.domain.model.card_tube.XRay;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardTubeRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.ContactMonitoringRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.InfectionSourceRequest;
@@ -23,10 +24,11 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.XRayRequest;
  * Field-level mapping only. Wiring a child's back-reference to its parent
  * is the handler's job.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
 public interface CardTubeMapper {
 
-    @Mapping(target = "formId", source = "form058.id")
+    @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
+    @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
     @Mapping(target = "type", source = "cardType")
     CardTubeDetailResponse toResponse(CardTube cardTube);
 
@@ -91,6 +93,7 @@ public interface CardTubeMapper {
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "form058", ignore = true)
+    @Mapping(target = "form0581", ignore = true)
     @Mapping(target = "supervisorComment", ignore = true)
     @Mapping(target = "attachedUserComment", ignore = true)
     @Mapping(target = "completedDate", ignore = true)

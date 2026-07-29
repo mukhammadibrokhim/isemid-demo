@@ -11,6 +11,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card205.Card205;
 import uz.uzinfocom.app.modules.card.domain.model.card205.InformationAboutAnimaBittenPeople;
 import uz.uzinfocom.app.modules.card.domain.model.card205.InformationOtherBittenAnimals;
 import uz.uzinfocom.app.modules.card.domain.model.card205.InformationOtherBittenPeople;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card205Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationAboutAnimaBittenPeopleRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationOtherBittenAnimalsRequest;
@@ -20,10 +21,11 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationOtherBit
  * Field-level mapping only. Wiring a child's back-reference to its parent
  * is the handler's job.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
 public interface Card205Mapper {
 
-    @Mapping(target = "formId", source = "form058.id")
+    @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
+    @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
     @Mapping(target = "type", source = "cardType")
     Card205DetailResponse toResponse(Card205 card205);
 
@@ -114,6 +116,7 @@ public interface Card205Mapper {
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "form058", ignore = true)
+    @Mapping(target = "form0581", ignore = true)
     @Mapping(target = "supervisorComment", ignore = true)
     @Mapping(target = "attachedUserComment", ignore = true)
     @Mapping(target = "completedDate", ignore = true)

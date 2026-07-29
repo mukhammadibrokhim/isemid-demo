@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Seeds one system_settings row per DynamicHttpTuningInterceptor knob
+        (see platform.http), so every outbound HTTP client's timeout/pool
+        tuning is visible/editable in the dev panel (/v1/dev/settings), the
+        same treatment already given to circuit breaker thresholds.
+
+        "platform" values (app.security.http.* in application.properties)
+        are plain hardcoded literals with no env-var indirection anywhere in
+        this repo, so seeding them ACTIVE is a safe no-op: it can never
+        diverge from what's actually configured.
+
+        "api2"/"lis" connect-timeout/read-timeout are different: application-
+        dev.properties drives them via ${API2_CONNECT_TIMEOUT:3s} etc., so a
+        real deployment could legitimately have a different value via env
+        var. Seeding a guessed number as ACTIVE here would silently override
+        that the moment this migration runs, in violation of "an untouched/
+        newly-seeded table never changes behavior". Those four rows are
+        therefore seeded INACTIVE (active=false) - visible and pre-filled as
+        a starting point, but inert until an operator deliberately reviews
+        and activates them with a value they've confirmed matches (or
+        intentionally changes) the real deployment.
+
+        api2/lis max-connections/max-connections-per-route are safe to seed
+        ACTIVE: neither client sets these explicitly today, so both already
+        run on Apache HttpClient5's own built-in defaults (confirmed via
+        PoolingHttpClientConnectionManager.DEFAULT_MAX_TOTAL_CONNECTIONS=25 /
+        DEFAULT_MAX_CONNECTIONS_PER_ROUTE=5) - seeding those exact numbers
+        changes nothing.
+
+        Same WHERE NOT EXISTS guard per row as the circuit-breaker seed
+        changesets.
+    -->
+    <changeSet id="20260729-1400-01-seed-http-client-tuning-settings" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.platform.connect-timeout-millis', '3000', 'NUMBER', 'Connect timeout (ms) - general-purpose platform HTTP client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.platform.connect-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.platform.read-timeout-millis', '5000', 'NUMBER', 'Read/response timeout (ms) - general-purpose platform HTTP client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.platform.read-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.platform.connection-request-timeout-millis', '2000', 'NUMBER', 'Wait time (ms) for a pooled connection - general-purpose platform HTTP client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.platform.connection-request-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.platform.connection-time-to-live-seconds', '300', 'NUMBER', 'Max lifetime (sec) of a pooled connection - general-purpose platform HTTP client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.platform.connection-time-to-live-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.platform.max-connections', '100', 'NUMBER', 'Total pooled-connection cap - general-purpose platform HTTP client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.platform.max-connections');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.platform.max-connections-per-route', '50', 'NUMBER', 'Per-route pooled-connection cap - general-purpose platform HTTP client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.platform.max-connections-per-route');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.api2.connect-timeout-millis', '3000', 'NUMBER', 'Connect timeout (ms) - API2 client. Inactive by default: the real deployed value may come from API2_CONNECT_TIMEOUT - confirm before activating.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.api2.connect-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.api2.read-timeout-millis', '15000', 'NUMBER', 'Read/response timeout (ms) - API2 client. Inactive by default: the real deployed value may come from API2_READ_TIMEOUT - confirm before activating.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.api2.read-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.api2.max-connections', '25', 'NUMBER', 'Total pooled-connection cap - API2 client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.api2.max-connections');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.api2.max-connections-per-route', '5', 'NUMBER', 'Per-route pooled-connection cap - API2 client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.api2.max-connections-per-route');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.lis.connect-timeout-millis', '3000', 'NUMBER', 'Connect timeout (ms) - LIS client. Inactive by default: the real deployed value may come from LIS_CONNECT_TIMEOUT - confirm before activating.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.lis.connect-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.lis.read-timeout-millis', '15000', 'NUMBER', 'Read/response timeout (ms) - LIS client. Inactive by default: the real deployed value may come from LIS_READ_TIMEOUT - confirm before activating.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.lis.read-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.lis.max-connections', '25', 'NUMBER', 'Total pooled-connection cap - LIS client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.lis.max-connections');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.lis.max-connections-per-route', '5', 'NUMBER', 'Per-route pooled-connection cap - LIS client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.lis.max-connections-per-route');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key LIKE 'http-client.%';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

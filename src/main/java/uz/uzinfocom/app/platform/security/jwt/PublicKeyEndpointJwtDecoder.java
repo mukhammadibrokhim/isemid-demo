@@ -85,7 +85,7 @@ public class PublicKeyEndpointJwtDecoder implements JwtDecoder {
             );
 
             NimbusJwtDecoder decoder = NimbusJwtDecoder
-                    .withPublicKey(remoteRsaPublicKeyClient.fetch(provider.getPublicKeyUri()))
+                    .withPublicKey(remoteRsaPublicKeyClient.fetch(providerKey, provider.getPublicKeyUri()))
                     .build();
 
             decoder.setJwtValidator(validatorFactory.create(providerKey, provider));

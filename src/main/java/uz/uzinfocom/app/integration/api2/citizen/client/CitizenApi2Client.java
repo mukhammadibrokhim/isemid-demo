@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.integration.api2.citizen.client;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
@@ -17,6 +18,8 @@ import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBody;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodyReader;
 import uz.uzinfocom.app.integration.api2.common.support.Api2UpstreamError;
+import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,17 +37,20 @@ public class CitizenApi2Client {
     private final Api2Properties properties;
     private final Api2ErrorDecoder errorDecoder;
     private final Api2ResponseBodyReader responseBodyReader;
+    private final DynamicCircuitBreakerLookup circuitBreakerLookup;
 
     public CitizenApi2Client(
             @Qualifier("api2RestClient") RestClient restClient,
             Api2Properties properties,
             Api2ErrorDecoder errorDecoder,
-            Api2ResponseBodyReader responseBodyReader
+            Api2ResponseBodyReader responseBodyReader,
+            DynamicCircuitBreakerLookup circuitBreakerLookup
     ) {
         this.restClient = restClient;
         this.properties = properties;
         this.errorDecoder = errorDecoder;
         this.responseBodyReader = responseBodyReader;
+        this.circuitBreakerLookup = circuitBreakerLookup;
     }
 
     public CitizenLookupResult lookupByNnuzb(String nnuzb, LocalDate birthDate) {
@@ -89,11 +95,13 @@ public class CitizenApi2Client {
             Function<UriBuilder, URI> uri
     ) {
         try {
-            return restClient.get()
+            return circuitBreakerLookup.forName(CircuitBreakerNames.API2).executeSupplier(() -> restClient.get()
                     .uri(uri)
-                    .exchange((request, response) -> handleResponse(operation, type, response));
+                    .exchange((request, response) -> handleResponse(operation, type, response)));
         } catch (Api2Exception exception) {
             throw exception;
+        } catch (CallNotPermittedException exception) {
+            throw errorDecoder.decodeCircuitBreakerOpen(operation, exception);
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(operation, exception);
         }

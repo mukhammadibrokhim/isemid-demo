@@ -23,14 +23,20 @@ import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
+import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
+import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
+import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,8 +52,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CardCommandService {
 
+    /**
+     * Only the zoonotic/animal-bite investigation card types make sense for
+     * a form0581 (rabies/animal-bite) case — CARD161 (general infectious
+     * disease) and CARD_TUBE (TB dispensary) stay form058-only.
+     */
+    private static final Set<CardType> FORM0581_ALLOWED_TYPES = EnumSet.of(CardType.CARD174, CardType.CARD175, CardType.CARD205);
+
     private final CardRepository cardRepository;
     private final Form058JpaRepository form058Repository;
+    private final Form0581JpaRepository form0581Repository;
     private final UserRepository userRepository;
     private final CardTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
@@ -70,6 +84,45 @@ public class CardCommandService {
         Form058 form = form058Repository.findByIdAndDeletedFalse(formId)
                 .orElseThrow(() -> new Form058NotFoundException(formId));
 
+        List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
+        cardRepository.saveAll(cards);
+
+        form.linkCards();
+        form058Repository.save(form);
+    }
+
+    /**
+     * Same shape as {@link #assignCards}, but for a form0581 (rabies/animal-bite)
+     * case — restricted to {@link #FORM0581_ALLOWED_TYPES}, and advances only
+     * {@code Form0581.hasLinkedCards} rather than a {@code FormStatus}-style
+     * status (form0581 has no CARD_LINKED-equivalent status).
+     */
+    @Transactional
+    public void assignCardsToForm0581(Long form0581Id, AssignCardsRequest request) {
+        Form0581 form = form0581Repository.findByIdAndDeletedFalse(form0581Id)
+                .orElseThrow(() -> new Form0581NotFoundException(form0581Id));
+
+        for (CardType cardType : request.cardTypes()) {
+            if (cardType != null && !FORM0581_ALLOWED_TYPES.contains(cardType)) {
+                throw new CardValidationException("error.card.unsupported-type-for-form0581", cardType);
+            }
+        }
+
+        List<Card> cards = createBlankCards(request, card -> card.setForm0581(form));
+        cardRepository.saveAll(cards);
+
+        form.linkCards();
+        form0581Repository.save(form);
+    }
+
+    /**
+     * Shared "one blank card per distinct requested type, all sharing the
+     * same attached employees" creation logic used by both {@link #assignCards}
+     * and {@link #assignCardsToForm0581} — {@code attachToCase} is the only
+     * difference between the two (which of {@code form058}/{@code form0581}
+     * gets set on each created card).
+     */
+    private List<Card> createBlankCards(AssignCardsRequest request, Consumer<Card> attachToCase) {
         Long assignedById = currentUserProvider.userIdOrNull();
         if (assignedById == null) {
             throw new CardScopeViolationException();
@@ -78,20 +131,15 @@ public class CardCommandService {
         Map<Long, User> userMap = resolveUsers(request.assignUserIds());
         List<CardType> cardTypes = request.cardTypes().stream().filter(Objects::nonNull).distinct().toList();
 
-        List<Card> cards = cardTypes.stream()
+        return cardTypes.stream()
                 .map(cardType -> {
                     Card card = handlerRegistry.get(cardType).handleCreateBlank();
-                    card.setForm058(form);
+                    attachToCase.accept(card);
                     card.setUsers(new HashSet<>(userMap.values()));
                     card.setAssignedById(assignedById);
                     return card;
                 })
                 .toList();
-
-        cardRepository.saveAll(cards);
-
-        form.linkCards();
-        form058Repository.save(form);
     }
 
     /**
@@ -162,16 +210,22 @@ public class CardCommandService {
 
         requireTransition(card.getStatus().canBeDeleted(), card.getStatus());
 
-        Long formId = card.getForm058().getId();
+        Long formId = card.getForm058() != null ? card.getForm058().getId() : null;
+        Long form0581Id = card.getForm0581() != null ? card.getForm0581().getId() : null;
 
         card.softDelete(currentUserProvider.userIdOrNull(), reason);
         cardRepository.flush();
 
-        if (!cardRepository.existsByForm058_IdAndDeleteInfoDeletedFalse(formId)) {
+        if (formId != null && !cardRepository.existsByForm058_IdAndDeleteInfoDeletedFalse(formId)) {
             Form058 form = form058Repository.findByIdAndDeletedFalse(formId)
                     .orElseThrow(() -> new Form058NotFoundException(formId));
             form.markCardsUnlinked();
             form058Repository.save(form);
+        } else if (form0581Id != null && !cardRepository.existsByForm0581_IdAndDeleteInfoDeletedFalse(form0581Id)) {
+            Form0581 form = form0581Repository.findByIdAndDeletedFalse(form0581Id)
+                    .orElseThrow(() -> new Form0581NotFoundException(form0581Id));
+            form.markCardsUnlinked();
+            form0581Repository.save(form);
         }
     }
 

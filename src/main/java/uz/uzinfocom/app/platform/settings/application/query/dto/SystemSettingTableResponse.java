@@ -17,6 +17,9 @@ public record SystemSettingTableResponse(
         @Schema(description = "Тип значения настройки.", example = "STRING")
         SystemSettingValueType valueType,
 
+        @Schema(description = "Описание назначения настройки (для администратора).")
+        String description,
+
         @Schema(description = "Признак активности настройки.", example = "true")
         Boolean active
 ) {

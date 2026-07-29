@@ -12,12 +12,17 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
 import uz.uzinfocom.app.modules.card.domain.model.card174.Card174;
+import uz.uzinfocom.app.modules.card.domain.model.card175.Card175;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.card.web.dto.request.AssignCardsRequest;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
+import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
+import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
+import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
+import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 
@@ -45,6 +50,7 @@ class CardCommandServiceAssignCardsTest {
 
     private CardRepository cardRepository;
     private Form058JpaRepository form058Repository;
+    private Form0581JpaRepository form0581Repository;
     private UserRepository userRepository;
     private CardTypeHandlerRegistry handlerRegistry;
     private CurrentUserProvider currentUserProvider;
@@ -54,14 +60,18 @@ class CardCommandServiceAssignCardsTest {
     void setUp() {
         cardRepository = mock(CardRepository.class);
         form058Repository = mock(Form058JpaRepository.class);
+        form0581Repository = mock(Form0581JpaRepository.class);
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
         currentUserProvider = mock(CurrentUserProvider.class);
 
-        service = new CardCommandService(cardRepository, form058Repository, userRepository, handlerRegistry, currentUserProvider);
+        service = new CardCommandService(
+                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry, currentUserProvider
+        );
 
         when(cardRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(form058Repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(form0581Repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -157,6 +167,46 @@ class CardCommandServiceAssignCardsTest {
 
         assertThat(form.getStatus()).isEqualTo(FormStatus.APPROVED_PENDING);
         assertThat(form.isHasLinkedCards()).isTrue();
+    }
+
+    @Test
+    void assignCardsToForm0581CreatesCardsRestrictedToAllowedTypes() {
+        Form0581 form = form0581With(Form0581Status.RECEIVED);
+        when(form0581Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
+
+        stubHandler(CardType.CARD175, new Card175());
+
+        service.assignCardsToForm0581(FORM_ID, new AssignCardsRequest(List.of(CardType.CARD175), List.of(1L)));
+
+        assertThat(form.isHasLinkedCards()).isTrue();
+        verify(cardRepository).saveAll(any());
+    }
+
+    @Test
+    void assignCardsToForm0581RejectsDisallowedCardType() {
+        Form0581 form = form0581With(Form0581Status.RECEIVED);
+        when(form0581Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+
+        assertThatThrownBy(() -> service.assignCardsToForm0581(FORM_ID, new AssignCardsRequest(
+                List.of(CardType.CARD161), List.of(1L)
+        ))).isInstanceOf(CardValidationException.class);
+    }
+
+    @Test
+    void assignCardsToForm0581FailsWhenFormDoesNotExist() {
+        when(form0581Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.assignCardsToForm0581(FORM_ID, new AssignCardsRequest(
+                List.of(CardType.CARD175), List.of(1L)
+        ))).isInstanceOf(Form0581NotFoundException.class);
+    }
+
+    private Form0581 form0581With(Form0581Status status) {
+        Form0581 form = Form0581.builder().status(status).build();
+        form.setId(FORM_ID);
+        return form;
     }
 
     @SuppressWarnings("unchecked")

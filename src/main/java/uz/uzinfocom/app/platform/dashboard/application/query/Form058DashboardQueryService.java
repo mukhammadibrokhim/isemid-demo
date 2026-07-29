@@ -4,6 +4,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContext;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.app.modules.act.application.query.ActStatsQueryService;
+import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
+import uz.uzinfocom.app.modules.card.application.query.CardStatsQueryService;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.form058.application.stats.query.Form058StatsQueryService;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
@@ -67,6 +72,8 @@ public class Form058DashboardQueryService {
     private static final String TOP_DIAGNOSIS_RESULT_LIMIT_KEY = "form058.dashboard.top-diagnosis-limit";
 
     private final Form058StatsQueryService form058StatsQueryService;
+    private final CardStatsQueryService cardStatsQueryService;
+    private final ActStatsQueryService actStatsQueryService;
     private final OrganizationScopeResolver organizationScopeResolver;
     private final OrganizationRepository organizationRepository;
     private final DistrictRepository districtRepository;
@@ -78,6 +85,8 @@ public class Form058DashboardQueryService {
 
     public Form058DashboardQueryService(
             Form058StatsQueryService form058StatsQueryService,
+            CardStatsQueryService cardStatsQueryService,
+            ActStatsQueryService actStatsQueryService,
             OrganizationScopeResolver organizationScopeResolver,
             OrganizationRepository organizationRepository,
             DistrictRepository districtRepository,
@@ -88,6 +97,8 @@ public class Form058DashboardQueryService {
             SystemSettingResolver systemSettingResolver
     ) {
         this.form058StatsQueryService = form058StatsQueryService;
+        this.cardStatsQueryService = cardStatsQueryService;
+        this.actStatsQueryService = actStatsQueryService;
         this.organizationScopeResolver = organizationScopeResolver;
         this.organizationRepository = organizationRepository;
         this.districtRepository = districtRepository;
@@ -117,9 +128,18 @@ public class Form058DashboardQueryService {
                 supplyOrgScoped(currentOrganization, locale, this::buildSourceBreakdown);
         CompletableFuture<List<GeoBreakdownItemResponse>> geoBreakdownFuture =
                 supplyOrgScoped(currentOrganization, locale, () -> buildGeoBreakdown(scope));
+        CompletableFuture<Long> cardsTotalFuture =
+                supplyOrgScoped(currentOrganization, locale, () -> cardStatsQueryService.countTotal(CaseFormType.FORM058));
+        CompletableFuture<List<CardStatusCountResponse>> cardsByStatusFuture =
+                supplyOrgScoped(currentOrganization, locale, () -> cardStatsQueryService.countByStatus(CaseFormType.FORM058));
+        CompletableFuture<Long> actsTotalFuture =
+                supplyOrgScoped(currentOrganization, locale, () -> actStatsQueryService.countTotal(CaseFormType.FORM058));
+        CompletableFuture<List<ActStatusCountResponse>> actsByStatusFuture =
+                supplyOrgScoped(currentOrganization, locale, () -> actStatsQueryService.countByStatus(CaseFormType.FORM058));
 
         CompletableFuture.allOf(
-                scopeFuture, summaryFuture, dynamicsFuture, topDiagnosesFuture, sourceBreakdownFuture, geoBreakdownFuture
+                scopeFuture, summaryFuture, dynamicsFuture, topDiagnosesFuture, sourceBreakdownFuture, geoBreakdownFuture,
+                cardsTotalFuture, cardsByStatusFuture, actsTotalFuture, actsByStatusFuture
         ).join();
 
         SummaryBundle summary = summaryFuture.join();
@@ -134,7 +154,11 @@ public class Form058DashboardQueryService {
                 dynamicsFuture.join(),
                 topDiagnosesFuture.join(),
                 sourceBreakdownFuture.join(),
-                geoBreakdownFuture.join()
+                geoBreakdownFuture.join(),
+                cardsTotalFuture.join(),
+                cardsByStatusFuture.join(),
+                actsTotalFuture.join(),
+                actsByStatusFuture.join()
         );
     }
 

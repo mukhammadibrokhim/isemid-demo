@@ -27,6 +27,7 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.embedded.CardDeleteInfo;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
@@ -51,6 +52,14 @@ import java.util.Set;
  *   <li>{@code form058} was nullable — a card cannot exist without a form,
  *       enforced at both the Java and DB level.</li>
  * </ul>
+ * A card belongs to exactly one case — either {@link #form058} or {@link
+ * #form0581}, never both, never neither. Both associations are therefore
+ * nullable at the Java/JPA level; the DB enforces "exactly one set" via the
+ * {@code chk_card_exactly_one_form} check constraint (see
+ * {@code zzz-card-act/20260729-1000-add-card-form0581-support.xml}). Card
+ * type is restricted for form0581 cases (only {@code CARD174}/{@code CARD175}/{@code CARD205}
+ * — the zoonotic/animal-bite types) at the {@code CardCommandService}
+ * validation level, not by the schema itself.
  * Polymorphism (the JSON "type" discriminator) lives entirely in the DTO
  * layer ({@code CardRequest}/{@code CardDetailResponse}) — this entity has
  * no Jackson annotations.
@@ -65,6 +74,7 @@ import java.util.Set;
                 @Index(name = "idx_card_status", columnList = "status"),
                 @Index(name = "idx_card_assigned_by", columnList = "assigned_by_id"),
                 @Index(name = "idx_card_form058_id", columnList = "form058_id"),
+                @Index(name = "idx_card_form058_1_id", columnList = "form058_1_id"),
                 @Index(name = "idx_card_deleted", columnList = "deleted")
         }
 )
@@ -103,13 +113,28 @@ public abstract class Card extends AbsEntity {
     @Column(name = "status", nullable = false, length = 32)
     private CardStatus status = CardStatus.NEW;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(
             name = "form058_id",
-            nullable = false,
+            nullable = true,
             foreignKey = @ForeignKey(name = "fk_card_form058")
     )
     private Form058 form058;
+
+    /**
+     * Column is {@code form058_1_id} (not {@code form0581_id}) — the
+     * form0581 module's table is named {@code form058_1}
+     * (form0581/20260710-1000-create-form0581.xml), matching that so the FK
+     * naming stays consistent with {@link #form058}'s own {@code
+     * form058_id}/{@code fk_card_form058} pair.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(
+            name = "form058_1_id",
+            nullable = true,
+            foreignKey = @ForeignKey(name = "fk_card_form058_1")
+    )
+    private Form0581 form0581;
 
     @Column(name = "supervisor_comment", length = 1000)
     private String supervisorComment;
@@ -147,6 +172,10 @@ public abstract class Card extends AbsEntity {
 
     public boolean isDeleted() {
         return this.deleteInfo != null && this.deleteInfo.isDeleted();
+    }
+
+    public boolean isAttachedToForm0581() {
+        return this.form0581 != null;
     }
 
     private void ensureDeleteInfo() {

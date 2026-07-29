@@ -21,6 +21,14 @@ public interface Form0581JpaRepository extends JpaRepository<Form0581, Long>, Jp
             """)
     Optional<Form0581> findActiveByIdForUpdate(@Param("id") Long id);
 
+    @Query("""
+            SELECT f
+            FROM Form0581 f
+            WHERE f.id = :id
+              AND f.deleteInfo.deleted = false
+            """)
+    Optional<Form0581> findByIdAndDeletedFalse(@Param("id") Long id);
+
     /**
      * Planner-only row estimate for the unfiltered active-row predicate, used to avoid an
      * exact COUNT(*) scan over the whole table when a list query has no real narrowing

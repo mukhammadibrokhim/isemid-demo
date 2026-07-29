@@ -27,6 +27,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card161.InfectionSourceDetail;
 import uz.uzinfocom.app.modules.card.domain.model.card161.OutbreakDisinfectionMeasure;
 import uz.uzinfocom.app.modules.card.domain.model.card161.ScreenedGroup;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Vaccination;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ContactPersonRequest;
@@ -45,10 +46,11 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card161.VaccinationRequest;
  * (e.g. {@code Card161RiskFactor.card161}) is the handler's job — a mapper
  * invoked on a single child in isolation has no parent to wire it to.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
 public interface Card161Mapper {
 
-    @Mapping(target = "formId", source = "form058.id")
+    @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
+    @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
     @Mapping(target = "type", source = "cardType")
     Card161DetailResponse toResponse(Card161 card161);
 
@@ -179,6 +181,7 @@ public interface Card161Mapper {
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "form058", ignore = true)
+    @Mapping(target = "form0581", ignore = true)
     @Mapping(target = "supervisorComment", ignore = true)
     @Mapping(target = "attachedUserComment", ignore = true)
     @Mapping(target = "completedDate", ignore = true)

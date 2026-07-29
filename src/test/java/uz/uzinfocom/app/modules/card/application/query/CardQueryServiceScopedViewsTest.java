@@ -140,6 +140,6 @@ class CardQueryServiceScopedViewsTest {
     }
 
     private CardFilterRequest emptyFilter() {
-        return new CardFilterRequest(1, 20, null, null, null, null, null, null, null);
+        return new CardFilterRequest(1, 20, null, null, null, null, null, null, null, null);
     }
 }

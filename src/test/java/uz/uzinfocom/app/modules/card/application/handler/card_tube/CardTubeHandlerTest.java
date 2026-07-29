@@ -2,10 +2,12 @@ package uz.uzinfocom.app.modules.card.application.handler.card_tube;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardTubeDetailResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card_tube.CardTube;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card_tube.CardTubeMapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardTubeRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.ContactMonitoringRequest;
@@ -34,7 +36,9 @@ class CardTubeHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new CardTubeHandler(new CardTubeMapperImpl());
+        CardTubeMapperImpl mapper = new CardTubeMapperImpl();
+        ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        handler = new CardTubeHandler(mapper);
 
         form = mock(Form058.class);
         when(form.getId()).thenReturn(21L);

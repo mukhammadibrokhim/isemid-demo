@@ -1,10 +1,17 @@
 # Card module
 
 Package: `uz.uzinfocom.app.modules.card`. Five epidemiological investigation
-card types, each attached to exactly one `Form058`. Rebuilt from the legacy
+card types, each attached to exactly one owning case — either a `Form058` or
+a `Form0581` (never both, never neither; enforced by the
+`chk_card_exactly_one_form` DB check constraint). Rebuilt from the legacy
 `uz.uzinfocom.isemid.features.card` module, used purely as a field/domain
 specification — legacy architecture defects were not carried over (see
 "Legacy fixes" below).
+
+Only `CARD174`/`CARD175`/`CARD205` (the zoonotic/animal-bite types) may be
+attached to a `Form0581` case — enforced in `CardCommandService.assignCardsToForm0581`,
+not at the schema level. All five types remain assignable to `Form058` via
+the original, unrestricted `assignCards`/`Form058CardCommandController` path.
 
 ## Card types
 
@@ -30,9 +37,13 @@ card/
 │                              + ChildCollectionSync (shared child-upsert utility)
 │                              + one XxxHandler per card type
 ├── mapper/                  one MapStruct XxxMapper per card type
+│                              + CardCaseFieldMapperHelper (resolves formId/formType,
+│                                whichever of form058/form0581 owns the card)
 └── web/
     ├── controller/           CardCommandController, CardQueryController (/v1/cards/*)
     │                          + Form058CardCommandController/QueryController (Form058-scoped paths)
+    │                          + Form0581CardCommandController/QueryController (Form0581-scoped paths,
+    │                            type-restricted — see above)
     └── dto/request, response
 ```
 
@@ -140,8 +151,11 @@ nested entity shape without changing the JSON contract.
 - `Card.cardType` was freely settable and no builder exists on the
   hierarchy — a builder would have let a caller set the discriminator
   independently of the concrete subclass.
-- `Card.form058` was nullable; now `optional = false` at both the Java and
-  DB level.
+- `Card.form058` was nullable; made `optional = false` at both the Java and
+  DB level — **since superseded**: `form058`/`form0581` are both nullable
+  again now that a card can belong to either case, with a
+  `chk_card_exactly_one_form` DB check constraint replacing the single
+  NOT NULL as the "exactly one owner" guarantee.
 - Every primitive `boolean`/`int` optional field (`hasLice`,
   `doseVolume`, ...) is now a boxed `Boolean`/`Integer`.
 - `InfectionSourceDetail.card161_id` had no unique constraint despite being
@@ -156,8 +170,14 @@ nested entity shape without changing the JSON contract.
 ## Testing notes
 
 - MapStruct-generated mapper implementations (`Card161MapperImpl`, ...) are
-  plain, dependency-free classes — tests instantiate and use them directly
-  for real round trips instead of mocking them.
+  otherwise dependency-free classes — tests instantiate and use them
+  directly for real round trips instead of mocking them. Since they now
+  `uses = CardCaseFieldMapperHelper.class` to resolve the formId/formType
+  fields, tests constructing a mapper directly (`new Card175MapperImpl()`)
+  must wire that one dependency in via `ReflectionTestUtils.setField(mapper,
+  "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper())` — MapStruct's
+  default field-injection strategy has no public setter, so this is the only
+  way to populate it outside a Spring context.
 - Mockito's inline mock maker cannot mock the sealed `CardRequest`/
   `CardDetailResponse` interfaces. Tests that need a concrete instance
   construct a real permitted subclass (`Card175Request`, chosen for having

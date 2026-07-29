@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.platform.auth.application;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,6 +14,11 @@ import uz.uzinfocom.app.platform.auth.application.exception.LoginProviderMisconf
 import uz.uzinfocom.app.platform.auth.properties.LoginGrantType;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties.ProviderProperties;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginRequest;
+import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
+import uz.uzinfocom.app.platform.resilience.TestCircuitBreakerLookups;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,11 +45,16 @@ class AuthorizationCodeGrantLoginProviderTest {
     }
 
     private final RestClient.Builder builder = RestClient.builder();
+    // Mirrors the "oauth2-login" config template registered in
+    // application.properties in production - AuthorizationCodeGrantLoginProvider
+    // looks it up by that exact name via CircuitBreakerNames.OAUTH2_LOGIN.
+    private final DynamicCircuitBreakerLookup circuitBreakerLookup = TestCircuitBreakerLookups.withDefaults(
+            CircuitBreakerRegistry.of(Map.of(CircuitBreakerNames.OAUTH2_LOGIN, CircuitBreakerConfig.ofDefaults())));
 
     @Test
     void reportsAuthorizationCodeAsItsGrantType() {
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), builder.build(), jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), builder.build(), jsonMapper, circuitBreakerLookup);
         assertThat(provider.grantType()).isEqualTo(LoginGrantType.AUTHORIZATION_CODE);
     }
 
@@ -66,7 +78,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                 ));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         LoginResult result = provider.login(new LoginRequest(
                 "auth-code-123", "verifier-abc", "https://app.example/callback"));
@@ -86,7 +98,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                 .andRespond(withUnauthorizedRequest());
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.login(new LoginRequest(
                 "expired-or-reused-code", "verifier-abc", "https://app.example/callback")))
@@ -105,7 +117,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                         .body("{\"error\":\"invalid_grant\",\"error_description\":\"code expired\"}"));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.login(new LoginRequest(
                 "expired-code", "verifier-abc", "https://app.example/callback")))
@@ -124,7 +136,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                         .body("{\"error\":\"invalid_client\",\"error_description\":\"Client authentication failed\"}"));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.login(new LoginRequest(
                 "code", "verifier-abc", "https://app.example/callback")))
@@ -143,7 +155,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                         .body("{\"error\":\"invalid_request\",\"hint\":\"Cannot decrypt the authorization code\"}"));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.login(new LoginRequest(
                 "junk-code", "verifier-abc", "https://app.example/callback")))
@@ -166,7 +178,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                         .body("{\"success\":false,\"errors\":[\"The request is missing a required parameter\"]}"));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.login(new LoginRequest(
                 "code", "verifier-abc", "https://app.example/callback")))
@@ -177,7 +189,7 @@ class AuthorizationCodeGrantLoginProviderTest {
     @Test
     void rejectsAMissingRedirectUriBeforeCallingUpstreamAtAll() {
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), builder.build(), jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), builder.build(), jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.login(new LoginRequest(
                 "code", "verifier", " ")))
@@ -205,7 +217,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                 .andRespond(withSuccess("{\"access_token\":\"sso-web-token\"}", MediaType.APPLICATION_JSON));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("sso-web", publicClientProperties, restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("sso-web", publicClientProperties, restClient, jsonMapper, circuitBreakerLookup);
 
         LoginResult result = provider.login(new LoginRequest(
                 "SSO_CODE_123", "d4e5f6", "http://localhost:3000/auth/callback"));
@@ -220,7 +232,7 @@ class AuthorizationCodeGrantLoginProviderTest {
         propertiesWithoutSecret.setClientSecret(null);
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", propertiesWithoutSecret, builder.build(), jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", propertiesWithoutSecret, builder.build(), jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.login(new LoginRequest(
                 "code", "verifier", "https://app.example/callback")))
@@ -246,7 +258,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                 ));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         LoginResult result = provider.refresh("old-refresh-token");
 
@@ -268,7 +280,7 @@ class AuthorizationCodeGrantLoginProviderTest {
                         .body("{\"error\":\"invalid_grant\",\"error_description\":\"refresh token revoked\"}"));
 
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), restClient, jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.refresh("revoked-refresh-token"))
                 .isInstanceOf(InvalidLoginCredentialsException.class);
@@ -278,7 +290,7 @@ class AuthorizationCodeGrantLoginProviderTest {
     @Test
     void rejectsAMissingRefreshTokenBeforeCallingUpstreamAtAll() {
         AuthorizationCodeGrantLoginProvider provider =
-                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), builder.build(), jsonMapper);
+                new AuthorizationCodeGrantLoginProvider("dhp-web", properties(), builder.build(), jsonMapper, circuitBreakerLookup);
 
         assertThatThrownBy(() -> provider.refresh(" "))
                 .isInstanceOf(InvalidLoginRequestException.class);

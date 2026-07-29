@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.integration.lis.client;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,8 @@ import uz.uzinfocom.app.integration.lis.common.exception.LisException;
 import uz.uzinfocom.app.integration.lis.common.exception.LisMalformedResponseException;
 import uz.uzinfocom.app.integration.lis.common.support.LisErrorDecoder;
 import uz.uzinfocom.app.integration.lis.common.support.LisUrlFactory;
+import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
 
 import java.io.IOException;
 import java.net.URI;
@@ -57,16 +60,20 @@ public class LisActClient {
      */
     private final Map<LisResearchCode, Integer> actTemplateIdCache = new ConcurrentHashMap<>();
 
+    private final DynamicCircuitBreakerLookup circuitBreakerLookup;
+
     public LisActClient(
             @Qualifier("lisRestClient") RestClient restClient,
             LisUrlFactory urlFactory,
             LisErrorDecoder errorDecoder,
-            CurrentBearerTokenProvider bearerTokenProvider
+            CurrentBearerTokenProvider bearerTokenProvider,
+            DynamicCircuitBreakerLookup circuitBreakerLookup
     ) {
         this.restClient = restClient;
         this.urlFactory = urlFactory;
         this.errorDecoder = errorDecoder;
         this.bearerTokenProvider = bearerTokenProvider;
+        this.circuitBreakerLookup = circuitBreakerLookup;
     }
 
     /**
@@ -146,10 +153,12 @@ public class LisActClient {
             java.util.function.Supplier<RestClient.RequestHeadersSpec<?>> requestSupplier
     ) {
         try {
-            return requestSupplier.get()
-                    .exchange((request, response) -> handleResponse(operation, response, responseType));
+            return circuitBreakerLookup.forName(CircuitBreakerNames.LIS).executeSupplier(() -> requestSupplier.get()
+                    .exchange((request, response) -> handleResponse(operation, response, responseType)));
         } catch (LisException exception) {
             throw exception;
+        } catch (CallNotPermittedException exception) {
+            throw errorDecoder.decodeCircuitBreakerOpen(operation, exception);
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(operation, exception);
         }

@@ -50,6 +50,21 @@ public abstract class AbstractCaseStatsRepository<T> {
     }
 
     /**
+     * Midnight of January 1st of the current year, in {@link #APPLICATION_ZONE}
+     * — computed fresh on every call (never stored), so a query made on
+     * January 1st of a new year automatically starts counting from that new
+     * year with no code change needed.
+     */
+    protected static Instant startOfCurrentYear() {
+        return LocalDate.now(APPLICATION_ZONE).withDayOfYear(1).atStartOfDay(APPLICATION_ZONE).toInstant();
+    }
+
+    /** {@code createdAt >= from} — composed into a caller's {@code filterFn} via {@code cb.and(...)}. */
+    protected Predicate createdAtSince(Root<T> root, CriteriaBuilder cb, Instant from) {
+        return cb.greaterThanOrEqualTo(root.get("createdAt"), from);
+    }
+
+    /**
      * Group-by-dimension row count, with an optional caller-supplied filter
      * (organization scope, an id restriction, or {@code null} for none).
      */

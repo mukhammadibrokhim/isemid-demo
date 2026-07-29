@@ -18,7 +18,7 @@ class CardFilterRequestTest {
 
     @Test
     void scopedToAttachedUserOverridesAssignedToUserIdAndClearsAssignedById() {
-        CardFilterRequest clientFilter = new CardFilterRequest(1, 20, "id", "asc", 5L, null, CardStatus.NEW, 999L, 888L);
+        CardFilterRequest clientFilter = new CardFilterRequest(1, 20, "id", "asc", 5L, null, null, CardStatus.NEW, 999L, 888L);
 
         CardFilterRequest scoped = clientFilter.scopedToAttachedUser(42L);
 

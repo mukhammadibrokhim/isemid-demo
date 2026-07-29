@@ -2,10 +2,12 @@ package uz.uzinfocom.app.modules.card.application.handler.card174;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card174DetailResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card174.Card174;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card174.Card174MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card174Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.InfectionMonitoringRequest;
@@ -34,7 +36,9 @@ class Card174HandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new Card174Handler(new Card174MapperImpl());
+        Card174MapperImpl mapper = new Card174MapperImpl();
+        ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        handler = new Card174Handler(mapper);
 
         form = mock(Form058.class);
         when(form.getId()).thenReturn(99L);

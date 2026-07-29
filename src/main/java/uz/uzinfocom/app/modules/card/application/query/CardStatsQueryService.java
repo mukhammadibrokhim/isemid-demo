@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationExc
 import uz.uzinfocom.app.modules.card.application.query.dto.CardDailyCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTypeCountResponse;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardStatsRepository;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
@@ -31,8 +32,14 @@ public class CardStatsQueryService {
     private final CardStatsRepository cardStatsRepository;
     private final OrganizationScopeResolver organizationScopeResolver;
 
+    /** Year-to-date, across both form058- and form0581-owned cards — the standalone card dashboard's breakdown. */
     public List<CardStatusCountResponse> countByStatus() {
-        return cardStatsRepository.countByStatus(currentScope());
+        return countByStatus(CaseFormType.ANY);
+    }
+
+    /** Year-to-date, restricted to cards owned by one case type — used to embed a per-form breakdown in that form's own dashboard. */
+    public List<CardStatusCountResponse> countByStatus(CaseFormType formType) {
+        return cardStatsRepository.countByStatus(currentScope(), formType);
     }
 
     public List<CardTypeCountResponse> countByType() {
@@ -43,12 +50,24 @@ public class CardStatsQueryService {
         return cardStatsRepository.countByMonth(currentScope(), from, to);
     }
 
+    /** Year-to-date, across both form058- and form0581-owned cards. */
     public long countTotal() {
-        return cardStatsRepository.countTotal(currentScope());
+        return countTotal(CaseFormType.ANY);
     }
 
+    /** Year-to-date, restricted to cards owned by one case type. */
+    public long countTotal(CaseFormType formType) {
+        return cardStatsRepository.countTotal(currentScope(), formType);
+    }
+
+    /** Year-to-date, across both form058- and form0581-owned cards. */
     public long countActive() {
-        return cardStatsRepository.countActive(currentScope());
+        return countActive(CaseFormType.ANY);
+    }
+
+    /** Year-to-date, restricted to cards owned by one case type. */
+    public long countActive(CaseFormType formType) {
+        return cardStatsRepository.countActive(currentScope(), formType);
     }
 
     private ResolvedOrganizationScope currentScope() {

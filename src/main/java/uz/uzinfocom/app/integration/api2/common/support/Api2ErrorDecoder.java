@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.integration.api2.common.support;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -69,6 +70,16 @@ public class Api2ErrorDecoder {
             return new Api2TimeoutException(operation, exception);
         }
 
+        return new Api2UnavailableException(operation, exception);
+    }
+
+    /**
+     * The "api2" circuit breaker is open - API2 is already known to be
+     * unhealthy, so this call was rejected without ever going out. Reported
+     * the same way a real transport failure would be, since callers of the
+     * API2 clients shouldn't need a separate branch for it.
+     */
+    public Api2Exception decodeCircuitBreakerOpen(String operation, CallNotPermittedException exception) {
         return new Api2UnavailableException(operation, exception);
     }
 

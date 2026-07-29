@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.auth.application;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -18,6 +19,8 @@ import uz.uzinfocom.app.platform.auth.application.exception.InvalidLoginRequestE
 import uz.uzinfocom.app.platform.auth.application.exception.LoginProviderMisconfiguredException;
 import uz.uzinfocom.app.platform.auth.application.exception.LoginUpstreamException;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties.ProviderProperties;
+import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -63,7 +66,8 @@ final class OAuth2TokenExchangeClient {
             RestClient restClient,
             JsonMapper jsonMapper,
             ProviderProperties properties,
-            MultiValueMap<String, String> form
+            MultiValueMap<String, String> form,
+            DynamicCircuitBreakerLookup circuitBreakerLookup
     ) {
         attachClientCredentials(form, properties);
         properties.getExtraParams().forEach(form::set);
@@ -78,26 +82,34 @@ final class OAuth2TokenExchangeClient {
                     basicAuthHeader(properties.getClientId(), properties.getClientSecret()));
         }
 
+        RestClient.RequestBodySpec finalRequest = request;
         UpstreamTokenResponse response;
         try {
-            response = request
-                    .body(form)
-                    .retrieve()
-                    .onStatus(
-                            status -> status.value() == 400 || status.value() == 401,
-                            (req, res) -> handleCredentialOrRequestError(providerKey, res, jsonMapper)
-                    )
-                    .onStatus(
-                            HttpStatusCode::isError,
-                            (req, res) -> {
-                                log.warn("Login provider returned an unexpected upstream error. "
-                                                + "providerKey={}, status={}, upstreamError={}",
-                                        providerKey, res.getStatusCode().value(),
-                                        upstreamErrorCode(providerKey, res, jsonMapper));
-                                throw new LoginUpstreamException(providerKey, res.getStatusCode().value());
-                            }
-                    )
-                    .body(UpstreamTokenResponse.class);
+            response = circuitBreakerLookup
+                    .forProvider(CircuitBreakerNames.OAUTH2_LOGIN, providerKey)
+                    .executeSupplier(() -> finalRequest
+                            .body(form)
+                            .retrieve()
+                            .onStatus(
+                                    status -> status.value() == 400 || status.value() == 401,
+                                    (req, res) -> handleCredentialOrRequestError(providerKey, res, jsonMapper)
+                            )
+                            .onStatus(
+                                    HttpStatusCode::isError,
+                                    (req, res) -> {
+                                        log.warn("Login provider returned an unexpected upstream error. "
+                                                        + "providerKey={}, status={}, upstreamError={}",
+                                                providerKey, res.getStatusCode().value(),
+                                                upstreamErrorCode(providerKey, res, jsonMapper));
+                                        throw new LoginUpstreamException(providerKey, res.getStatusCode().value());
+                                    }
+                            )
+                            .body(UpstreamTokenResponse.class));
+        } catch (CallNotPermittedException exception) {
+            log.warn("Login provider circuit breaker is open - token exchange rejected without a call. "
+                            + "providerKey={}",
+                    providerKey);
+            throw new LoginUpstreamException(providerKey, exception);
         } catch (RestClientException exception) {
             log.warn("Login provider token exchange failed before a response was received. "
                             + "providerKey={}, errorType={}",

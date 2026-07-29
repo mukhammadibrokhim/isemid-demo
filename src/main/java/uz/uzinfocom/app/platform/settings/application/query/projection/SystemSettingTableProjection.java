@@ -12,5 +12,7 @@ public interface SystemSettingTableProjection {
 
     SystemSettingValueType getValueType();
 
+    String getDescription();
+
     Boolean getActive();
 }

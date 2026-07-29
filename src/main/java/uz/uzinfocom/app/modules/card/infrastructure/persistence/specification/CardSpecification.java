@@ -29,6 +29,10 @@ public final class CardSpecification {
                 predicates.add(cb.equal(root.get("form058").get("id"), filter.formId()));
             }
 
+            if (filter.form0581Id() != null) {
+                predicates.add(cb.equal(root.get("form0581").get("id"), filter.form0581Id()));
+            }
+
             if (filter.cardType() != null) {
                 predicates.add(cb.equal(root.get("cardType"), filter.cardType()));
             }

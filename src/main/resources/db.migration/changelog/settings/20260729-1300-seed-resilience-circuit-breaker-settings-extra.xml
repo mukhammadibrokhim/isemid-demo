@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Follow-up to 20260729-1200-seed-resilience-circuit-breaker-settings.xml:
+        DynamicCircuitBreakerLookup now also makes slow-call-rate-threshold,
+        slow-call-duration-threshold, permitted-number-of-calls-in-half-open-state,
+        and automatic-transition-from-open-to-half-open-state dynamic (in
+        addition to the original 4 knobs), so this seeds one row per knob per
+        integration with the same value application.properties already
+        applies - purely so every knob is visible/editable in the dev panel,
+        no behavior change on an untouched table.
+
+        Same WHERE NOT EXISTS guard per row as the original seed changeset.
+    -->
+    <changeSet id="20260729-1300-01-seed-resilience-circuit-breaker-settings-extra" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.slow-call-rate-threshold', '50', 'NUMBER', 'Порог доли медленных вызовов (%) — circuit breaker api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.slow-call-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.slow-call-duration-threshold-seconds', '4', 'NUMBER', 'Порог длительности «медленного» вызова (сек) — circuit breaker api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.slow-call-duration-threshold-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.permitted-number-of-calls-in-half-open-state', '5', 'NUMBER', 'Число пробных вызовов в полуоткрытом состоянии — circuit breaker api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.permitted-number-of-calls-in-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.automatic-transition-from-open-to-half-open-state', 'true', 'BOOLEAN', 'Автоматический переход из открытого в полуоткрытое состояние — circuit breaker api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.automatic-transition-from-open-to-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.slow-call-rate-threshold', '50', 'NUMBER', 'Порог доли медленных вызовов (%) — circuit breaker lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.slow-call-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.slow-call-duration-threshold-seconds', '4', 'NUMBER', 'Порог длительности «медленного» вызова (сек) — circuit breaker lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.slow-call-duration-threshold-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.permitted-number-of-calls-in-half-open-state', '5', 'NUMBER', 'Число пробных вызовов в полуоткрытом состоянии — circuit breaker lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.permitted-number-of-calls-in-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.automatic-transition-from-open-to-half-open-state', 'true', 'BOOLEAN', 'Автоматический переход из открытого в полуоткрытое состояние — circuit breaker lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.automatic-transition-from-open-to-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.slow-call-rate-threshold', '50', 'NUMBER', 'Порог доли медленных вызовов (%) — circuit breaker iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.slow-call-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.slow-call-duration-threshold-seconds', '4', 'NUMBER', 'Порог длительности «медленного» вызова (сек) — circuit breaker iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.slow-call-duration-threshold-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.permitted-number-of-calls-in-half-open-state', '5', 'NUMBER', 'Число пробных вызовов в полуоткрытом состоянии — circuit breaker iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.permitted-number-of-calls-in-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.automatic-transition-from-open-to-half-open-state', 'true', 'BOOLEAN', 'Автоматический переход из открытого в полуоткрытое состояние — circuit breaker iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.automatic-transition-from-open-to-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.slow-call-rate-threshold', '50', 'NUMBER', 'Порог доли медленных вызовов (%) — circuit breaker oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.slow-call-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.slow-call-duration-threshold-seconds', '4', 'NUMBER', 'Порог длительности «медленного» вызова (сек) — circuit breaker oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.slow-call-duration-threshold-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.permitted-number-of-calls-in-half-open-state', '5', 'NUMBER', 'Число пробных вызовов в полуоткрытом состоянии — circuit breaker oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.permitted-number-of-calls-in-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.automatic-transition-from-open-to-half-open-state', 'true', 'BOOLEAN', 'Автоматический переход из открытого в полуоткрытое состояние — circuit breaker oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.automatic-transition-from-open-to-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.slow-call-rate-threshold', '50', 'NUMBER', 'Порог доли медленных вызовов (%) — circuit breaker rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.slow-call-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.slow-call-duration-threshold-seconds', '4', 'NUMBER', 'Порог длительности «медленного» вызова (сек) — circuit breaker rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.slow-call-duration-threshold-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.permitted-number-of-calls-in-half-open-state', '5', 'NUMBER', 'Число пробных вызовов в полуоткрытом состоянии — circuit breaker rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.permitted-number-of-calls-in-half-open-state');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.automatic-transition-from-open-to-half-open-state', 'true', 'BOOLEAN', 'Автоматический переход из открытого в полуоткрытое состояние — circuit breaker rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.automatic-transition-from-open-to-half-open-state');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key LIKE 'resilience.circuitbreaker.%.slow-call-%'
+                   OR setting_key LIKE 'resilience.circuitbreaker.%.permitted-number-of-calls-in-half-open-state'
+                   OR setting_key LIKE 'resilience.circuitbreaker.%.automatic-transition-from-open-to-half-open-state';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

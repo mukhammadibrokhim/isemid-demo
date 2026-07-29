@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.platform.auth.application;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
@@ -7,6 +8,7 @@ import uz.uzinfocom.app.platform.auth.application.exception.UnknownLoginProvider
 import uz.uzinfocom.app.platform.auth.properties.LoginGrantType;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties.ProviderProperties;
+import uz.uzinfocom.app.platform.resilience.TestCircuitBreakerLookups;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.util.LinkedHashMap;
@@ -26,7 +28,8 @@ class LoginProviderRegistryTest {
     private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
     private final List<LoginProviderFactory> factories =
-            List.of(new AuthorizationCodeGrantLoginProviderFactory());
+            List.of(new AuthorizationCodeGrantLoginProviderFactory(
+                    TestCircuitBreakerLookups.withDefaults(CircuitBreakerRegistry.ofDefaults())));
 
     // No DB override in these tests - always fall through to the caller-supplied default,
     // exactly as if the system_settings table were empty.

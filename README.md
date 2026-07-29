@@ -59,7 +59,7 @@ convention.
 | Module | What it represents | REST root | Docs |
 |---|---|---|---|
 | `form058` | The epidemiological notification form itself — the aggregate root the other modules attach to. Approval/cancellation workflow (`NOT_APPROVED → SENT → RECEIVED → CARD_LINKED → APPROVED_PENDING → APPROVED/CANCELED`). | `/v1/form-058` | [docs/form058-module.md](docs/form058-module.md) |
-| `card` | The five epidemiological investigation card types (CARD161, CARD174, CARD175, CARD205, CARD_TUBE), each attached to one `form058`. Full accept/reject/complete/supervisor-approval lifecycle. | `/v1/cards`, plus `/v1/form-058/{id}/cards*` | [docs/card-module.md](docs/card-module.md) |
+| `card` | The five epidemiological investigation card types (CARD161, CARD174, CARD175, CARD205, CARD_TUBE), each attached to exactly one case — `form058` or `form0581` (CARD174/175/205 only for form0581). Full accept/reject/complete/supervisor-approval lifecycle. | `/v1/cards`, plus `/v1/form-058/{id}/cards*` and `/v1/form-058-1/{id}/cards*` | [docs/card-module.md](docs/card-module.md) |
 | `patient` | Patient/person record (demographics, national ID, addresses, workplace/school affiliation), created as a side effect of registering a `form058`. No REST surface of its own. | — | [docs/patient-module.md](docs/patient-module.md) |
 | `act` | Lab/procedure order attached to a card. Deliberately a minimal placeholder — the legacy system's 6 act subtypes are out of scope for this build. | — | [docs/act-module.md](docs/act-module.md) |
 

@@ -2,6 +2,13 @@ package uz.uzinfocom.app.platform.dashboard.application.query;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import uz.uzinfocom.app.modules.act.application.query.ActStatsQueryService;
+import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
+import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
+import uz.uzinfocom.app.modules.card.application.query.CardStatsQueryService;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
+import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQueryService;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
@@ -47,6 +54,8 @@ import static org.mockito.Mockito.when;
 class Form0581DashboardQueryServiceTest {
 
     private final Form0581StatsQueryService form0581StatsQueryService = mock(Form0581StatsQueryService.class);
+    private final CardStatsQueryService cardStatsQueryService = mock(CardStatsQueryService.class);
+    private final ActStatsQueryService actStatsQueryService = mock(ActStatsQueryService.class);
     private final OrganizationScopeResolver organizationScopeResolver = mock(OrganizationScopeResolver.class);
     private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
     private final DistrictRepository districtRepository = mock(DistrictRepository.class);
@@ -57,6 +66,8 @@ class Form0581DashboardQueryServiceTest {
 
     private final Form0581DashboardQueryService service = new Form0581DashboardQueryService(
             form0581StatsQueryService,
+            cardStatsQueryService,
+            actStatsQueryService,
             organizationScopeResolver,
             organizationRepository,
             districtRepository,
@@ -203,6 +214,27 @@ class Form0581DashboardQueryServiceTest {
 
         assertThat(response.geoBreakdown()).hasSize(1);
         assertThat(response.geoBreakdown().get(0).count()).isZero();
+    }
+
+    @Test
+    void cardAndActBreakdownsAreScopedToForm0581Only() {
+        CurrentOrganizationContext.set(organization());
+        when(organizationScopeResolver.resolve(any()))
+                .thenReturn(scopeOf(OrganizationScopeMode.ORGANIZATION, null, null));
+
+        when(cardStatsQueryService.countTotal(CaseFormType.FORM0581)).thenReturn(2L);
+        when(cardStatsQueryService.countByStatus(CaseFormType.FORM0581))
+                .thenReturn(List.of(new CardStatusCountResponse(CardStatus.NEW, 2L)));
+        when(actStatsQueryService.countTotal(CaseFormType.FORM0581)).thenReturn(1L);
+        when(actStatsQueryService.countByStatus(CaseFormType.FORM0581))
+                .thenReturn(List.of(new ActStatusCountResponse(ActStatus.NEW, 1L)));
+
+        Form0581DashboardResponse response = service.getDashboard();
+
+        assertThat(response.cardsTotal()).isEqualTo(2L);
+        assertThat(response.cardsByStatus()).containsExactly(new CardStatusCountResponse(CardStatus.NEW, 2L));
+        assertThat(response.actsTotal()).isEqualTo(1L);
+        assertThat(response.actsByStatus()).containsExactly(new ActStatusCountResponse(ActStatus.NEW, 1L));
     }
 
     private ResolvedOrganizationScope scopeOf(OrganizationScopeMode mode, String regionCode, String districtCode) {

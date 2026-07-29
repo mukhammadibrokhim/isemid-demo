@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.card.application.query.dto.detail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,8 +20,11 @@ public record Card175DetailResponse(
         @Schema(description = "Текущий статус карты в её жизненном цикле.")
         CardStatus status,
 
-        @Schema(description = "Идентификатор формы №058, к которой привязана карта.")
+        @Schema(description = "Идентификатор формы (№058 или №058-1), к которой привязана карта.")
         Long formId,
+
+        @Schema(description = "Тип формы, к которой привязана карта — FORM058 или FORM0581.")
+        CaseFormType formType,
 
         @Schema(description = "Идентификатор супервайзера, назначившего карту.")
         Long assignedById,

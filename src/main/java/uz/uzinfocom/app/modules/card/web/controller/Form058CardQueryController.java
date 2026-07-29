@@ -56,6 +56,7 @@ public class Form058CardQueryController {
                 filter.sortBy(),
                 filter.sortDir(),
                 id,
+                null,
                 filter.cardType(),
                 filter.status(),
                 filter.assignedToUserId(),

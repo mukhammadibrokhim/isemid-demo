@@ -4,6 +4,7 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,8 +17,10 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import uz.uzinfocom.app.integration.lis.common.properties.LisProperties;
+import uz.uzinfocom.app.platform.http.DynamicHttpTuningInterceptor;
 import uz.uzinfocom.app.platform.http.RestClientLoggingInterceptor;
 import uz.uzinfocom.app.platform.observability.TraceIdClientHttpRequestInterceptor;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 /**
  * Dedicated {@code RestClient} for LIS, built the same way
@@ -34,8 +37,8 @@ import uz.uzinfocom.app.platform.observability.TraceIdClientHttpRequestIntercept
 @EnableConfigurationProperties(LisProperties.class)
 public class LisRestClientConfiguration {
 
-    @Bean(name = "lisCloseableHttpClient", destroyMethod = "close")
-    public CloseableHttpClient lisCloseableHttpClient(LisProperties properties) {
+    @Bean(name = "lisConnectionManager")
+    public PoolingHttpClientConnectionManager lisConnectionManager(LisProperties properties) {
         if (properties.connectTimeout().isZero() || properties.connectTimeout().isNegative()
                 || properties.readTimeout().isZero() || properties.readTimeout().isNegative()) {
             throw new IllegalStateException("LIS connect and read timeouts must be positive");
@@ -46,11 +49,17 @@ public class LisRestClientConfiguration {
                 .setSocketTimeout(Timeout.ofMilliseconds(properties.readTimeout().toMillis()))
                 .build();
 
-        var connectionManager = PoolingHttpClientConnectionManagerBuilder
+        return PoolingHttpClientConnectionManagerBuilder
                 .create()
                 .setDefaultConnectionConfig(connectionConfig)
                 .build();
+    }
 
+    @Bean(name = "lisCloseableHttpClient", destroyMethod = "close")
+    public CloseableHttpClient lisCloseableHttpClient(
+            LisProperties properties,
+            @Qualifier("lisConnectionManager") PoolingHttpClientConnectionManager connectionManager
+    ) {
         RequestConfig requestConfig = RequestConfig.custom()
                 .setResponseTimeout(Timeout.ofMilliseconds(properties.readTimeout().toMillis()))
                 .build();
@@ -63,10 +72,29 @@ public class LisRestClientConfiguration {
     }
 
     @Bean(name = "lisClientHttpRequestFactory")
-    public ClientHttpRequestFactory lisClientHttpRequestFactory(
+    public HttpComponentsClientHttpRequestFactory lisClientHttpRequestFactory(
             @Qualifier("lisCloseableHttpClient") CloseableHttpClient closeableHttpClient
     ) {
         return new HttpComponentsClientHttpRequestFactory(closeableHttpClient);
+    }
+
+    @Bean(name = "lisHttpTuningInterceptor")
+    public DynamicHttpTuningInterceptor lisHttpTuningInterceptor(
+            LisProperties properties,
+            @Qualifier("lisConnectionManager") PoolingHttpClientConnectionManager connectionManager,
+            @Qualifier("lisClientHttpRequestFactory") HttpComponentsClientHttpRequestFactory requestFactory,
+            SystemSettingResolver systemSettingResolver
+    ) {
+        return new DynamicHttpTuningInterceptor(
+                "lis",
+                connectionManager,
+                requestFactory,
+                systemSettingResolver,
+                properties.connectTimeout().toMillis(),
+                properties.readTimeout().toMillis(),
+                null,
+                null
+        );
     }
 
     @Bean(name = "lisRestClient")
@@ -74,7 +102,8 @@ public class LisRestClientConfiguration {
             RestClient.Builder builder,
             @Qualifier("lisClientHttpRequestFactory") ClientHttpRequestFactory requestFactory,
             TraceIdClientHttpRequestInterceptor traceIdInterceptor,
-            RestClientLoggingInterceptor loggingInterceptor
+            RestClientLoggingInterceptor loggingInterceptor,
+            @Qualifier("lisHttpTuningInterceptor") DynamicHttpTuningInterceptor httpTuningInterceptor
     ) {
         return builder.clone()
                 .requestFactory(requestFactory)
@@ -82,7 +111,9 @@ public class LisRestClientConfiguration {
                 .requestInterceptors(interceptors -> {
                     interceptors.removeIf(interceptor ->
                             interceptor instanceof TraceIdClientHttpRequestInterceptor
-                                    || interceptor instanceof RestClientLoggingInterceptor);
+                                    || interceptor instanceof RestClientLoggingInterceptor
+                                    || interceptor instanceof DynamicHttpTuningInterceptor);
+                    interceptors.add(httpTuningInterceptor);
                     interceptors.add(traceIdInterceptor);
                     interceptors.add(loggingInterceptor);
                 })

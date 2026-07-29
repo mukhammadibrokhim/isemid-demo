@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
+import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
@@ -15,8 +16,10 @@ import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResp
 import uz.uzinfocom.app.modules.card.application.query.dto.pdf.CardPdfResponse;
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapper;
 import uz.uzinfocom.app.modules.card.application.query.projection.CardTableProjection;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
+import uz.uzinfocom.app.modules.card.infrastructure.persistence.specification.CardCaseScopeSpecification;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.specification.CardSpecification;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
@@ -65,7 +68,8 @@ public class CardQueryService {
 
         Specification<Card> spec = isBroaderScope(scope)
                 ? CardSpecification.byFilter(filter)
-                        .and((root, query, cb) -> scopePredicateFactory.applyDirectionScope(root.get("form058"), cb, scope, true))
+                        .and((root, query, cb) -> CardCaseScopeSpecification.scopePredicate(
+                                root, cb, scopePredicateFactory, scope, CaseFormType.ANY))
                 : CardSpecification.byFilter(filter.scopedToAttachedUser(requireCurrentUserId()));
 
         return queryTable(spec, PageableUtils.of(filter, CardSortFields.ALLOWED));
@@ -121,11 +125,17 @@ public class CardQueryService {
         Card card = cardRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new CardNotFoundException(id));
 
+        if (card.isAttachedToForm0581()) {
+            // PDF export for form0581-owned cards isn't built yet — Form0581PdfMapper
+            // doesn't exist (see Card.java javadoc); left as a follow-up.
+            throw new CardValidationException("error.card.pdf-not-supported-for-form0581");
+        }
+
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
         CardDetailResponse cardResponse = handler.handleToResponse(card);
 
         CardFilterRequest linkedCardsFilter = new CardFilterRequest(
-                1, 200, null, null, card.getForm058().getId(), null, null, null, null
+                1, 200, null, null, card.getForm058().getId(), null, null, null, null, null
         );
         List<CardTableResponse> linkedCards = findTable(linkedCardsFilter).getContent();
 

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Cards (and transitively acts, via card_id) can now attach to either
+        a form058 OR a form058_1 case, not just form058. card.form058_id
+        becomes nullable, a new nullable card.form058_1_id is added, and a
+        check constraint enforces that exactly one of the two is set per
+        row. Note: the form0581 module's table is named "form058_1" (see
+        form0581/20260710-1000-create-form0581.xml), not "form0581" — the
+        column/constraint/index names here follow that actual table name,
+        matching the existing form058_id/fk_card_form058 convention. The
+        Java entity/field remain named Form0581/form0581 (mirroring the
+        table-name-vs-class-name split the form0581 module already has).
+        See Card.java (form058/form0581 fields) and
+        CardCommandService.assignCardsToForm0581.
+    -->
+
+    <changeSet id="20260729-1000-01-drop-card-form058-not-null" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card" columnName="form058_id"/>
+        </preConditions>
+        <dropNotNullConstraint tableName="card" columnName="form058_id" columnDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="20260729-1000-02-add-card-form058-1-id" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="card" columnName="form058_1_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="card">
+            <column name="form058_1_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260729-1000-03-index-card-form058-1-id" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists tableName="card" indexName="idx_card_form058_1_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_card_form058_1_id" tableName="card" using="btree">
+            <column name="form058_1_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260729-1000-04-fk-card-form058-1" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="card" foreignKeyName="fk_card_form058_1"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="form058_1_id" baseTableName="card"
+                                  constraintName="fk_card_form058_1" deferrable="false" initiallyDeferred="false"
+                                  onDelete="NO ACTION" onUpdate="NO ACTION"
+                                  referencedColumnNames="id" referencedTableName="form058_1" validate="true"/>
+    </changeSet>
+
+    <!--
+        Exactly one of form058_id/form058_1_id must be set — a card always
+        belongs to exactly one case. Existing rows all satisfy this
+        trivially (form058_id was NOT NULL before this changelog and
+        form058_1_id is a brand-new column, so it's NULL everywhere), so
+        this validates cleanly with no backfill needed.
+    -->
+    <changeSet id="20260729-1000-05-check-card-exactly-one-form" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM pg_constraint WHERE conname = 'chk_card_exactly_one_form'
+            </sqlCheck>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE card ADD CONSTRAINT chk_card_exactly_one_form
+                CHECK ((form058_id IS NOT NULL) &lt;&gt; (form058_1_id IS NOT NULL));
+        </sql>
+    </changeSet>
+
+    <!--
+        Mirrors form058.has_linked_cards (form058/20260616-1500-create-form058.xml,
+        form058/20260717-1000-add-performance-indexes.xml) — same bookkeeping
+        flag, now needed on form058_1 too since cards can attach to it. No new
+        Form0581Status enum value is introduced; this is purely the same
+        boolean flag Form058 already carries alongside its own status.
+    -->
+    <changeSet id="20260729-1000-06-add-form058-1-has-linked-cards" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="form058_1" columnName="has_linked_cards"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="form058_1">
+            <column name="has_linked_cards" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260729-1000-07-index-form058-1-has-linked-cards-created-fast" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists indexName="idx_form058_1_has_linked_cards_created_fast"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            CREATE INDEX idx_form058_1_has_linked_cards_created_fast
+                ON form058_1 (has_linked_cards, created_at DESC, id DESC)
+                WHERE deleted = false;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

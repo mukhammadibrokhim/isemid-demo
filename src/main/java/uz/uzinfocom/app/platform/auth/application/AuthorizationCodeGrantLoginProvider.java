@@ -7,6 +7,7 @@ import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.platform.auth.properties.LoginGrantType;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties.ProviderProperties;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginRequest;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
 
 /**
  * OAuth2 "authorization_code" (+ PKCE) grant login: exchanges a {@code code}
@@ -28,17 +29,20 @@ public class AuthorizationCodeGrantLoginProvider implements LoginProvider {
     private final ProviderProperties properties;
     private final RestClient restClient;
     private final JsonMapper jsonMapper;
+    private final DynamicCircuitBreakerLookup circuitBreakerLookup;
 
     public AuthorizationCodeGrantLoginProvider(
             String providerKey,
             ProviderProperties properties,
             RestClient restClient,
-            JsonMapper jsonMapper
+            JsonMapper jsonMapper,
+            DynamicCircuitBreakerLookup circuitBreakerLookup
     ) {
         this.providerKey = providerKey;
         this.properties = properties;
         this.restClient = restClient;
         this.jsonMapper = jsonMapper;
+        this.circuitBreakerLookup = circuitBreakerLookup;
     }
 
     @Override
@@ -65,7 +69,8 @@ public class AuthorizationCodeGrantLoginProvider implements LoginProvider {
         form.add("redirect_uri", redirectUri);
         form.add("code_verifier", codeVerifier);
 
-        return OAuth2TokenExchangeClient.exchange(providerKey, restClient, jsonMapper, properties, form);
+        return OAuth2TokenExchangeClient.exchange(
+                providerKey, restClient, jsonMapper, properties, form, circuitBreakerLookup);
     }
 
     @Override
@@ -76,6 +81,7 @@ public class AuthorizationCodeGrantLoginProvider implements LoginProvider {
         form.add("grant_type", REFRESH_GRANT_TYPE);
         form.add("refresh_token", token);
 
-        return OAuth2TokenExchangeClient.exchange(providerKey, restClient, jsonMapper, properties, form);
+        return OAuth2TokenExchangeClient.exchange(
+                providerKey, restClient, jsonMapper, properties, form, circuitBreakerLookup);
     }
 }

@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.card.application.query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
+import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardStatsRepository;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
@@ -44,7 +45,7 @@ class CardStatsQueryServiceTest {
 
         service.countByStatus();
 
-        verify(cardStatsRepository).countByStatus(scope);
+        verify(cardStatsRepository).countByStatus(scope, CaseFormType.ANY);
     }
 
     @Test
@@ -84,7 +85,7 @@ class CardStatsQueryServiceTest {
 
         service.countTotal();
 
-        verify(cardStatsRepository).countTotal(scope);
+        verify(cardStatsRepository).countTotal(scope, CaseFormType.ANY);
     }
 
     @Test
@@ -95,7 +96,7 @@ class CardStatsQueryServiceTest {
 
         service.countActive();
 
-        verify(cardStatsRepository).countActive(scope);
+        verify(cardStatsRepository).countActive(scope, CaseFormType.ANY);
     }
 
     private Organization organization(Long id) {

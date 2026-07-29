@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.integration.api2;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -11,14 +13,19 @@ import uz.uzinfocom.app.integration.api2.citizen.client.CitizenApi2Client;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2MalformedResponseException;
+import uz.uzinfocom.app.integration.api2.common.exception.Api2UnavailableException;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodyReader;
 import uz.uzinfocom.app.integration.api2.legalentity.client.LegalEntityApi2Client;
 import uz.uzinfocom.app.integration.api2.legalentity.domain.LegalEntityLookupResult;
+import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
+import uz.uzinfocom.app.platform.resilience.TestCircuitBreakerLookups;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,9 +62,12 @@ class Api2ClientResponseHandlingTest {
         RestClient.Builder builder = RestClient.builder().baseUrl(BASE_URL);
         server = MockRestServiceServer.bindTo(builder).build();
         RestClient restClient = builder.build();
+        DynamicCircuitBreakerLookup circuitBreakerLookup =
+                TestCircuitBreakerLookups.withDefaults(CircuitBreakerNames.API2);
 
-        citizenClient = new CitizenApi2Client(restClient, properties, decoder, bodyReader);
-        legalEntityClient = new LegalEntityApi2Client(restClient, properties, decoder, bodyReader);
+        citizenClient = new CitizenApi2Client(restClient, properties, decoder, bodyReader, circuitBreakerLookup);
+        legalEntityClient =
+                new LegalEntityApi2Client(restClient, properties, decoder, bodyReader, circuitBreakerLookup);
     }
 
     @Test
@@ -165,5 +175,25 @@ class Api2ClientResponseHandlingTest {
                 .hasFieldOrPropertyWithValue("errorCode", "API2_UPSTREAM_BAD_REQUEST");
 
         server.verify();
+    }
+
+    @Test
+    void openCircuitBreakerFailsFastWithoutCallingApi2() {
+        CircuitBreakerRegistry openRegistry = CircuitBreakerRegistry.of(
+                Map.of(CircuitBreakerNames.API2, CircuitBreakerConfig.ofDefaults()));
+        openRegistry.circuitBreaker(CircuitBreakerNames.API2, CircuitBreakerNames.API2).transitionToOpenState();
+
+        RestClient.Builder builder = RestClient.builder().baseUrl(BASE_URL);
+        server = MockRestServiceServer.bindTo(builder).build();
+        CitizenApi2Client openCitizenClient = new CitizenApi2Client(
+                builder.build(), properties, decoder, bodyReader, TestCircuitBreakerLookups.withDefaults(openRegistry));
+
+        // No expectation is registered on the mock server: if the breaker
+        // failed to short-circuit, MockRestServiceServer would itself fail
+        // the test with an "unexpected request" error instead of this
+        // assertion ever being reached.
+        assertThatThrownBy(() -> openCitizenClient.lookupByNnuzb("12345678901234", LocalDate.of(2020, 1, 1)))
+                .isInstanceOf(Api2UnavailableException.class)
+                .hasFieldOrPropertyWithValue("errorCode", "API2_UNAVAILABLE");
     }
 }

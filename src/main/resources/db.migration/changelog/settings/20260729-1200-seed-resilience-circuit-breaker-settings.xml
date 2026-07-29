@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Seeds one system_settings row per dynamic circuit-breaker knob (see
+        DynamicCircuitBreakerLookup) with the same value application.properties
+        already applies, so an untouched table never changes behavior - this
+        only makes every knob visible/editable in the dev panel
+        (/v1/dev/settings) without an operator having to know the exact key
+        name and POST a brand-new row from scratch.
+
+        Each INSERT is itself guarded by WHERE NOT EXISTS, not just Liquibase's
+        own changeset tracking - so it stays safe even if a row with the same
+        key was already created by hand (e.g. from the dev panel) before this
+        changeset ran.
+    -->
+    <changeSet id="20260729-1200-01-seed-resilience-circuit-breaker-settings" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.failure-rate-threshold', '50', 'NUMBER', 'Порог частоты ошибок (%) для размыкания circuit breaker — api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.failure-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.sliding-window-size', '20', 'NUMBER', 'Размер скользящего окна вызовов circuit breaker — api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.sliding-window-size');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.minimum-number-of-calls', '10', 'NUMBER', 'Минимальное число вызовов перед оценкой частоты ошибок — circuit breaker api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.minimum-number-of-calls');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.api2.wait-duration-in-open-state-seconds', '30', 'NUMBER', 'Время (сек) в открытом состоянии — circuit breaker api2.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.api2.wait-duration-in-open-state-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.failure-rate-threshold', '50', 'NUMBER', 'Порог частоты ошибок (%) для размыкания circuit breaker — lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.failure-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.sliding-window-size', '20', 'NUMBER', 'Размер скользящего окна вызовов circuit breaker — lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.sliding-window-size');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.minimum-number-of-calls', '10', 'NUMBER', 'Минимальное число вызовов перед оценкой частоты ошибок — circuit breaker lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.minimum-number-of-calls');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.lis.wait-duration-in-open-state-seconds', '30', 'NUMBER', 'Время (сек) в открытом состоянии — circuit breaker lis.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.lis.wait-duration-in-open-state-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.failure-rate-threshold', '50', 'NUMBER', 'Порог частоты ошибок (%) для размыкания circuit breaker — iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.failure-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.sliding-window-size', '10', 'NUMBER', 'Размер скользящего окна вызовов circuit breaker — iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.sliding-window-size');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.minimum-number-of-calls', '5', 'NUMBER', 'Минимальное число вызовов перед оценкой частоты ошибок — circuit breaker iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.minimum-number-of-calls');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.iam-remote.wait-duration-in-open-state-seconds', '20', 'NUMBER', 'Время (сек) в открытом состоянии — circuit breaker iam-remote.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.iam-remote.wait-duration-in-open-state-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.failure-rate-threshold', '50', 'NUMBER', 'Порог частоты ошибок (%) для размыкания circuit breaker — oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.failure-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.sliding-window-size', '10', 'NUMBER', 'Размер скользящего окна вызовов circuit breaker — oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.sliding-window-size');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.minimum-number-of-calls', '5', 'NUMBER', 'Минимальное число вызовов перед оценкой частоты ошибок — circuit breaker oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.minimum-number-of-calls');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.oauth2-login.wait-duration-in-open-state-seconds', '20', 'NUMBER', 'Время (сек) в открытом состоянии — circuit breaker oauth2-login.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.oauth2-login.wait-duration-in-open-state-seconds');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.failure-rate-threshold', '50', 'NUMBER', 'Порог частоты ошибок (%) для размыкания circuit breaker — rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.failure-rate-threshold');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.sliding-window-size', '5', 'NUMBER', 'Размер скользящего окна вызовов circuit breaker — rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.sliding-window-size');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.minimum-number-of-calls', '3', 'NUMBER', 'Минимальное число вызовов перед оценкой частоты ошибок — circuit breaker rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.minimum-number-of-calls');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'resilience.circuitbreaker.rsa-public-key.wait-duration-in-open-state-seconds', '15', 'NUMBER', 'Время (сек) в открытом состоянии — circuit breaker rsa-public-key.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'resilience.circuitbreaker.rsa-public-key.wait-duration-in-open-state-seconds');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key LIKE 'resilience.circuitbreaker.%';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

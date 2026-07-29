@@ -287,6 +287,8 @@ public final class ApiPaths {
         public static final String APPROVE = "/{id}/approve";
         public static final String NOT_APPROVE = "/{id}/not-approve";
         public static final String CANCEL = "/{id}/cancel";
+        public static final String CARDS = "/{id}/cards";
+        public static final String ASSIGN_CARDS = "/{id}/cards/assign";
     }
 
     public static final class Form0581Stats {

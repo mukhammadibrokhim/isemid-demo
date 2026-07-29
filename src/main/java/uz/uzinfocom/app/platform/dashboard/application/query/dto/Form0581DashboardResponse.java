@@ -1,6 +1,8 @@
 package uz.uzinfocom.app.platform.dashboard.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,6 +41,22 @@ public record Form0581DashboardResponse(
 
         @Schema(description = "Географический разрез за всё время — та же логика (регион/район/организация "
                 + "в зависимости от области видимости), что и в /v1/dashboard/home.")
-        List<GeoBreakdownItemResponse> geoBreakdown
+        List<GeoBreakdownItemResponse> geoBreakdown,
+
+        @Schema(description = "Количество карт, прикреплённых к случаям формы №058-1, с начала текущего "
+                + "календарного года. Допустимые типы карт для формы №058-1: CARD174, CARD175, CARD205.")
+        long cardsTotal,
+
+        @Schema(description = "Разбивка карт, привязанных к случаям формы №058-1, по статусу, с начала текущего "
+                + "календарного года.")
+        List<CardStatusCountResponse> cardsByStatus,
+
+        @Schema(description = "Количество актов, привязанных к картам случаев формы №058-1, с начала текущего "
+                + "календарного года.")
+        long actsTotal,
+
+        @Schema(description = "Разбивка актов, привязанных к картам случаев формы №058-1, по статусу, с начала "
+                + "текущего календарного года.")
+        List<ActStatusCountResponse> actsByStatus
 ) {
 }

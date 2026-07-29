@@ -1,13 +1,18 @@
 package uz.uzinfocom.app.platform.auth.application;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.platform.auth.properties.LoginGrantType;
 import uz.uzinfocom.app.platform.auth.properties.LoginProvidersProperties.ProviderProperties;
+import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
 
 @Component
+@RequiredArgsConstructor
 public class AuthorizationCodeGrantLoginProviderFactory implements LoginProviderFactory {
+
+    private final DynamicCircuitBreakerLookup circuitBreakerLookup;
 
     @Override
     public LoginGrantType supportedGrantType() {
@@ -21,6 +26,7 @@ public class AuthorizationCodeGrantLoginProviderFactory implements LoginProvider
             RestClient restClient,
             JsonMapper jsonMapper
     ) {
-        return new AuthorizationCodeGrantLoginProvider(providerKey, properties, restClient, jsonMapper);
+        return new AuthorizationCodeGrantLoginProvider(
+                providerKey, properties, restClient, jsonMapper, circuitBreakerLookup);
     }
 }

@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.card.application.command;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.exception.InvalidCardStatusException;
@@ -14,12 +15,14 @@ import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
 import uz.uzinfocom.app.modules.card.domain.model.card175.Card175;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card175.Card175MapperImpl;
 import uz.uzinfocom.app.modules.card.application.handler.card175.Card175Handler;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card175Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
+import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 
@@ -59,10 +62,13 @@ class CardCommandServiceStatusTransitionTest {
         cardRepository = mock(CardRepository.class);
         currentUserProvider = mock(CurrentUserProvider.class);
         Form058JpaRepository form058Repository = mock(Form058JpaRepository.class);
+        Form0581JpaRepository form0581Repository = mock(Form0581JpaRepository.class);
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
 
-        service = new CardCommandService(cardRepository, form058Repository, userRepository, handlerRegistry, currentUserProvider);
+        service = new CardCommandService(
+                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry, currentUserProvider
+        );
 
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         // Other cards still exist for the form, so delete() never needs to
@@ -302,7 +308,9 @@ class CardCommandServiceStatusTransitionTest {
         Card175 card = new Card175();
         card.setStatus(CardStatus.ACCEPTED_BY_USER);
         when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
-        doReturn(new Card175Handler(new Card175MapperImpl())).when(handlerRegistry).get(CardType.CARD175);
+        Card175MapperImpl card175Mapper = new Card175MapperImpl();
+        ReflectionTestUtils.setField(card175Mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        doReturn(new Card175Handler(card175Mapper)).when(handlerRegistry).get(CardType.CARD175);
 
         CardDetailResponse response = service.update(CARD_ID, blankCard175Request());
 

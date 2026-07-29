@@ -3,11 +3,13 @@ package uz.uzinfocom.app.modules.card.application.handler.card161;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card161DetailResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Vaccination;
+import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card161.Card161MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
@@ -51,7 +53,9 @@ class Card161HandlerTest {
     @BeforeEach
     void setUp() {
         entityManager = mock(EntityManager.class);
-        handler = new Card161Handler(new Card161MapperImpl(), entityManager);
+        Card161MapperImpl mapper = new Card161MapperImpl();
+        ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        handler = new Card161Handler(mapper, entityManager);
 
         form = mock(Form058.class);
         when(form.getId()).thenReturn(42L);

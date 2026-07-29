@@ -73,7 +73,7 @@ public class PermissionController {
             description = "Создает новое право доступа для последующего назначения ролям."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Запись успешно создана.")
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
     @PostMapping
     public ApiResponse<PermissionTableResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -111,7 +111,7 @@ public class PermissionController {
             description = "Выполняет мягкое удаление права доступа, после чего оно не используется при авторизации."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
     @DeleteMapping(ApiPaths.Permission.BY_ID)
     public ApiResponse<Void> deleteById(
             @Parameter(description = "Уникальный идентификатор права доступа.", required = true)
@@ -126,7 +126,7 @@ public class PermissionController {
             description = "Восстанавливает мягко удаленное право доступа и делает его активным."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Операция выполнена успешно.")
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
     @PatchMapping(ApiPaths.Permission.RESTORE)
     public ApiResponse<Void> restore(
             @Parameter(description = "Уникальный идентификатор права доступа.", required = true)

@@ -15,16 +15,16 @@ public record CardDashboardResponse(
         @Schema(description = "Область видимости, применённая к этому ответу.")
         DashboardScopeResponse scope,
 
-        @Schema(description = "Общее количество карт за всё время.")
+        @Schema(description = "Общее количество карт с начала текущего календарного года.")
         long total,
 
-        @Schema(description = "Количество карт, которые ещё не утверждены супервайзером (все статусы, кроме APPROVED).")
+        @Schema(description = "Количество карт, которые ещё не утверждены супервайзером (все статусы, кроме APPROVED), с начала текущего календарного года.")
         long active,
 
-        @Schema(description = "Разбивка по статусу карты, за всё время.")
+        @Schema(description = "Разбивка по статусу карты, с начала текущего календарного года.")
         List<CardStatusCountResponse> byStatus,
 
-        @Schema(description = "Разбивка по типу карты, за всё время.")
+        @Schema(description = "Разбивка по типу карты, с начала текущего календарного года.")
         List<CardTypeCountResponse> byType,
 
         @Schema(description = "Динамика назначения карт по месяцам, с 1 января текущего календарного года по сегодняшний день.")
