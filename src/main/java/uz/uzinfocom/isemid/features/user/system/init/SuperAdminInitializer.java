@@ -5,20 +5,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.isemid.commons.seed.ModuleDataInitializer;
-import uz.uzinfocom.isemid.features.organization.models.Organization;
-import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
-import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
-import uz.uzinfocom.isemid.features.organization.models.enums.ServiceType;
 import uz.uzinfocom.isemid.features.organization.services.OrganizationService;
-import uz.uzinfocom.isemid.features.patient.enums.Gender;
-import uz.uzinfocom.isemid.features.user.models.Role;
-import uz.uzinfocom.isemid.features.user.models.User;
 import uz.uzinfocom.isemid.features.user.reposiotries.RoleRepository;
 import uz.uzinfocom.isemid.features.user.reposiotries.UserRepository;
-
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 @Order(4)
 @Component
