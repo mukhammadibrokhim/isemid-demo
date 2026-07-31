@@ -3,10 +3,9 @@ package uz.uzinfocom.app.platform.reference.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import uz.uzinfocom.app.platform.reference.application.lookup.projection.ReferenceItemProjection;
+import uz.uzinfocom.app.platform.reference.application.lookup.projection.GeoReferenceItemProjection;
 import uz.uzinfocom.app.platform.reference.domain.Region;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,8 +14,6 @@ public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecif
     Optional<Region> findByIdAndDeletedFalse(Long id);
 
     Optional<Region> findByCodeAndDeletedFalse(String code);
-
-    List<Region> findAllByCodeInAndDeletedFalse(Collection<String> codes);
 
     boolean existsByCodeAndDeletedFalse(String code);
 
@@ -33,10 +30,11 @@ public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecif
             r.nameUz as nameUz,
             r.nameUzCyril as nameUzCyril,
             r.nameRu as nameRu,
-            r.nameKaa as nameKaa
+            r.nameKaa as nameKaa,
+            r.soatoId as soatoId
         from Region r
         where r.deleted = false
         order by r.nameUz asc
     """)
-    List<ReferenceItemProjection> findAllReferenceItems();
+    List<GeoReferenceItemProjection> findAllReferenceItems();
 }

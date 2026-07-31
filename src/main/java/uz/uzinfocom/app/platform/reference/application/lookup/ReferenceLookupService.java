@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.reference.application.lookup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.platform.reference.application.lookup.dto.GeoReferenceLookupTable;
 import uz.uzinfocom.app.platform.reference.application.lookup.dto.ReferenceItem;
 
 import java.util.Locale;
@@ -19,16 +20,20 @@ public class ReferenceLookupService {
         return find(cacheLoader.loadCountries(), code);
     }
 
-    public ReferenceItem findRegion(String code) {
-        return find(cacheLoader.loadRegions(), code);
+    /**
+     * Resolves a region by its {@code code} (e.g. "UZ-AN") or, if the value is purely numeric,
+     * by its SOATO id (e.g. "1703") instead — whichever an upstream caller happens to send.
+     */
+    public ReferenceItem findRegion(String codeOrSoatoId) {
+        return findGeo(cacheLoader.loadRegions(), codeOrSoatoId);
     }
 
-    public ReferenceItem findDistrict(String code) {
-        return find(cacheLoader.loadDistricts(), code);
+    public ReferenceItem findDistrict(String codeOrSoatoId) {
+        return findGeo(cacheLoader.loadDistricts(), codeOrSoatoId);
     }
 
-    public ReferenceItem findNeighborhood(String code) {
-        return find(cacheLoader.loadNeighborhoods(), code);
+    public ReferenceItem findNeighborhood(String codeOrSoatoId) {
+        return findGeo(cacheLoader.loadNeighborhoods(), codeOrSoatoId);
     }
 
     public ReferenceItem findCatalog(String type, String code) {
@@ -64,6 +69,33 @@ public class ReferenceLookupService {
             return null;
         }
         return items.get(normalizedCode);
+    }
+
+    private ReferenceItem findGeo(GeoReferenceLookupTable table, String codeOrSoatoId) {
+        String normalized = normalize(codeOrSoatoId);
+        if (normalized == null) {
+            return null;
+        }
+
+        ReferenceItem byCode = table.byCode().get(normalized);
+        if (byCode != null) {
+            return byCode;
+        }
+
+        if (isDigits(normalized)) {
+            return table.bySoatoId().get(normalized);
+        }
+
+        return null;
+    }
+
+    private boolean isDigits(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private String nameOrCode(String code, ReferenceItem item) {

@@ -15,6 +15,8 @@ public record ReferenceItem(
         @Schema(description = "Наименование элемента справочника на русском языке.", example = "Узбекистан")
         String nameRu,
         @Schema(description = "Наименование элемента справочника на каракалпакском языке.", example = "Ózbekstan")
-        String nameKaa
+        String nameKaa,
+        @Schema(description = "Числовой код СОАТО элемента справочника (доступен только для region/district/neighborhood).", example = "1703")
+        Integer soatoId
 ) {
 }

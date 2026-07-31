@@ -3,10 +3,9 @@ package uz.uzinfocom.app.platform.reference.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import uz.uzinfocom.app.platform.reference.application.lookup.projection.ReferenceItemProjection;
+import uz.uzinfocom.app.platform.reference.application.lookup.projection.GeoReferenceItemProjection;
 import uz.uzinfocom.app.platform.reference.domain.Neighborhood;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,8 +14,6 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
     Optional<Neighborhood> findByIdAndDeletedFalse(Long id);
 
     Optional<Neighborhood> findByCodeAndDeletedFalse(String code);
-
-    List<Neighborhood> findAllByCodeInAndDeletedFalse(Collection<String> codes);
 
     boolean existsByCodeAndDeletedFalse(String code);
 
@@ -33,10 +30,11 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
             n.nameUz as nameUz,
             n.nameUzCyril as nameUzCyril,
             n.nameRu as nameRu,
-            n.nameKaa as nameKaa
+            n.nameKaa as nameKaa,
+            n.soatoId as soatoId
         from Neighborhood n
         where n.deleted = false
         order by n.nameUz asc
     """)
-    List<ReferenceItemProjection> findAllReferenceItems();
+    List<GeoReferenceItemProjection> findAllReferenceItems();
 }
