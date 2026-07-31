@@ -1,0 +1,162 @@
+image: maven:3.9.6-eclipse-temurin-21-alpine
+
+variables:
+  DEV_SERVER: '10.10.10.104'
+  PROD_SERVER: '10.10.10.133'
+  PRODUCTION_USER: 'runner'
+
+include:
+  - project: 'core/templates/global-ci'
+    ref: 'main'
+    file: '.global-gitlab-ci.yml'
+
+before_script:
+  - apk add --no-cache openssh-client git curl bash
+  - eval $(ssh-agent -s)
+  - chmod 600 $MOH_PRIVATE_KEY
+
+stages:
+  - validate-and-check
+  - check-stage
+  - build_and_push_dev
+  - build_and_push_prod
+  - rollback_dev
+
+check-stage:
+  stage: check-stage
+  needs:
+    - check_gitlab_ci_yml
+  before_script: []
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+      - "${SONAR_USER_HOME}/cache"
+  script:
+    - SONAR_P_KEY=$(grep 'sonar.projectKey' pom.xml | cut -d'=' -f2 | tr -d '\r ' )
+    - SONAR_P_NAME=$(grep 'sonar.projectName' pom.xml | cut -d'=' -f2 | tr -d '\r ' )
+    - SAFE_NAME=$(echo "$SONAR_P_NAME" | sed 's/ /_/g')
+    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -DskipTests
+    - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}" -Dsonar.login="${SONAR_TOKEN_ANALYSIS}" || true
+    - sleep 30
+    - mkdir -p sonar_reports
+    - curl -k -s -u "${SONAR_TOKEN_ANALYSIS}:" "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${SONAR_P_KEY}" -o "sonar_reports/quality_gate.json"
+    - curl -k -s -u "${SONAR_TOKEN_ANALYSIS}:" "${SONAR_HOST_URL}/api/measures/component?component=${SONAR_P_KEY}&metricKeys=ncloc,lines,complexity,violations,coverage,bugs,vulnerabilities,code_smells,duplicated_lines_density,security_hotspots,sqale_index" -o "sonar_reports/metrics.json"
+    - curl -k -s -u "${SONAR_TOKEN_ANALYSIS}:" "${SONAR_HOST_URL}/api/issues/search?componentKeys=${SONAR_P_KEY}&ps=500&resolved=false" -o "sonar_reports/issues.json"
+    - curl -k -s -u "${SONAR_TOKEN_ANALYSIS}:" "${SONAR_HOST_URL}/api/hotspots/search?projectKey=${SONAR_P_KEY}&ps=500" -o "sonar_reports/hotspots.json"
+    - curl -k -s -u "${SONAR_TOKEN_ANALYSIS}:" "${SONAR_HOST_URL}/api/measures/component_tree?component=${SONAR_P_KEY}&metricKeys=ncloc,bugs,code_smells,vulnerabilities,coverage&ps=500" -o "sonar_reports/file_breakdown.json"
+    - curl -k -s -u "${SONAR_TOKEN_ANALYSIS}:" "${SONAR_HOST_URL}/api/measures/search_history?component=${SONAR_P_KEY}&metrics=bugs,vulnerabilities,code_smells,coverage" -o "sonar_reports/history.json"
+    - curl -k -s -u "${SONAR_TOKEN_ANALYSIS}:" "${SONAR_HOST_URL}/api/project_analyses/search?project=${SONAR_P_KEY}" -o "sonar_reports/project_info.json"
+    - ARTIFACT_NAME="sonar_report_${CI_PROJECT_NAME}_${CI_COMMIT_SHORT_SHA}.tar.gz"
+    - tar -czf "$ARTIFACT_NAME" sonar_reports/
+    - "echo DOWNLOAD_URL: ${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/raw/${ARTIFACT_NAME}"
+  artifacts:
+    paths:
+      - "*.tar.gz"
+    expire_in: 20 mins
+    when: always
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+    - if: $CI_COMMIT_BRANCH == 'main'
+      when: manual
+    - if: $CI_COMMIT_BRANCH == 'dev'
+      when: manual
+
+deploy_dev:
+  needs:
+    - check_gitlab_ci_yml
+  stage: build_and_push_dev
+  only:
+    - dev
+  # when: manual
+  script:
+    - echo "Deploying to DEV server"
+    - mvn clean package -U -DskipTests
+
+    - | # Stoping service
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+        sudo systemctl stop backend.service
+        sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
+        sudo chown -R runner:runner /srv/project/backend
+      EOF
+
+    - | # Copying the built binary
+      scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
+        `pwd`/target/app*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
+
+    - | # Start service and check health
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+        sudo chown -R www-data:www-data /srv/project/backend
+        sudo systemctl restart backend.service
+        sleep 10
+        sudo systemctl status backend.service
+      EOF
+    - echo "Deploy finished"
+
+rollback_dev:
+  needs:
+    - check_gitlab_ci_yml
+    - deploy_dev
+  stage: rollback_dev
+  only:
+    - dev
+  when: manual
+  script:
+    - echo "Starting rollback on DEV server..."
+    - |
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER << 'EOF'
+        sudo rm -f /srv/project/backend/app.jar
+        sudo mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
+        echo "Rollback complete. Restarting service with previous version..."
+        sudo chown -R www-data:www-data /srv/project/backend
+        systemctl restart backend.service
+        sleep 30
+        if systemctl is-active --quiet backend.service; then
+          echo "Rollback successful: old version is running."
+        else
+          echo "Rollback failed: service still not running!"
+        fi
+        systemctl status backend.service
+      EOF
+    - echo "Rollback finished"
+
+deploy_prod:
+  needs:
+    - check_gitlab_ci_yml
+  stage: build_and_push_prod
+  only:
+    - main
+  # when: manual
+  script:
+    - echo "Deploying to PROD server"
+    - mvn clean package -DskipTests
+
+    - | # Stoping service
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$PROD_SERVER << 'EOF'
+        sudo systemctl stop backend.service
+
+
+        if [ -f /srv/project/backend/app.jar ]; then
+          sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
+        fi
+        sudo chown -R runner:runner /srv/project/backend
+      EOF
+    - | # Copying the built binary
+      scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
+        `pwd`/target/app*.jar $PRODUCTION_USER@$PROD_SERVER:/srv/project/backend/app.jar
+
+
+    - | # Create privilages & run service
+      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$PROD_SERVER << 'EOF'
+        sudo chown -R nginx:nginx /srv/project/backend
+        sudo systemctl restart backend.service
+        sleep 10
+        sudo systemctl status backend.service
+      EOF
+
+    - echo "Deploy finished"
