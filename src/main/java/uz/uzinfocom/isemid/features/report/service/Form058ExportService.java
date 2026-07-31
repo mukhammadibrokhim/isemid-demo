@@ -21,4 +21,20 @@ public interface Form058ExportService {
             String cityCode,
             User user
     );
+
+    ResponseEntity<?> allExportV2(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            User user
+    );
+
+    ResponseEntity<?> receivedExportV2(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            User user
+    );
 }

@@ -6,24 +6,46 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.isemid.features.classifier.eums.CatalogType;
+import uz.uzinfocom.isemid.features.classifier.models.Catalog;
+import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.organization.models.Organization;
+import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
+import uz.uzinfocom.isemid.features.patient.models.Patient;
+import uz.uzinfocom.isemid.features.patient.reposiotries.PatientRepository;
 import uz.uzinfocom.isemid.features.report.mapper.Form058RowMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.buildDateText;
+import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.catalogCacheKey;
 
 @Component
 @RequiredArgsConstructor
 public class Form058ExcelWriter {
     private static final int HEADER_ROW_INDEX = 9;
+    private static final int BATCH_SIZE = 500;
+    private static final List<CatalogType> ADDRESS_CATALOG_TYPES =
+            List.of(CatalogType.state, CatalogType.city, CatalogType.neighborhood);
+
     private final Form058RowMapper rowMapper;
+    private final PatientRepository patientRepository;
+    private final OrganizationRepository organizationRepository;
+    private final CatalogService catalogService;
 
     public byte[] write(Stream<Form058> formStream, LocalDate fromDate, LocalDate toDate,
                         String name) throws IOException {
@@ -42,6 +64,104 @@ public class Form058ExcelWriter {
             workbook.write(out);
             return out.toByteArray();
         }
+    }
+
+    /**
+     * {@code write}ning N+1'siz varianti. Har qator uchun DB'ga alohida murojaat
+     * qilish o'rniga, streamni {@code BATCH_SIZE} bo'lakларга bo'lib, har bo'lak
+     * uchun bemor/tashkilot ma'lumotlarini bitta so'rov bilan (batch) oldindan
+     * yuklab, keyin qatorlarni yozadi. Katalog (state/city/neighborhood) nomlari
+     * esa export boshida bir marta to'liq keshlanadi.
+     */
+    public byte[] writeV2(Stream<Form058> formStream, LocalDate fromDate, LocalDate toDate,
+                          String name) throws IOException {
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            workbook.setCompressTempFiles(true);
+            Sheet sheet = workbook.createSheet("Юқумли касалликлар");
+            Map<String, CellStyle> styles = createStyles(workbook);
+
+            generateHeader(sheet, workbook, fromDate, toDate, name);
+            setColumnWidths(sheet);
+            writeTableHeader(sheet, styles);
+            writeDataRowsV2(sheet, styles, formStream);
+
+            workbook.write(out);
+            return out.toByteArray();
+        }
+    }
+
+    private void writeDataRowsV2(Sheet sheet, Map<String, CellStyle> styles, Stream<Form058> stream) {
+        AtomicInteger rowIdx = new AtomicInteger(HEADER_ROW_INDEX + 1);
+        Map<String, String> catalogCache = buildCatalogCache();
+
+        Iterator<Form058> iterator = stream.iterator();
+        List<Form058> batch = new ArrayList<>(BATCH_SIZE);
+
+        while (iterator.hasNext()) {
+            batch.add(iterator.next());
+            if (batch.size() == BATCH_SIZE) {
+                writeBatchV2(sheet, styles, batch, catalogCache, rowIdx);
+                batch.clear();
+            }
+        }
+        if (!batch.isEmpty()) {
+            writeBatchV2(sheet, styles, batch, catalogCache, rowIdx);
+        }
+    }
+
+    private void writeBatchV2(Sheet sheet, Map<String, CellStyle> styles, List<Form058> batch,
+                              Map<String, String> catalogCache, AtomicInteger rowIdx) {
+        Set<Long> patientIds = new HashSet<>();
+        Set<Long> orgIds = new HashSet<>();
+        Set<UUID> orgUuids = new HashSet<>();
+
+        for (Form058 form : batch) {
+            if (form.getPatient() != null) {
+                patientIds.add(form.getPatient().getId());
+            }
+            if (form.getHospitalPlaceId() != null) {
+                orgIds.add(form.getHospitalPlaceId());
+            }
+            if (form.getReceiverOrganizationId() != null) {
+                orgIds.add(form.getReceiverOrganizationId());
+            }
+            if (form.getCreatedOrgUuid() != null) {
+                orgUuids.add(form.getCreatedOrgUuid());
+            }
+        }
+
+        Map<Long, Patient> patientCache = patientRepository.findAllWithAddressesByIdIn(patientIds).stream()
+                .collect(Collectors.toMap(Patient::getId, p -> p));
+
+        Map<Long, Organization> orgByIdCache = organizationRepository.findAllById(orgIds).stream()
+                .collect(Collectors.toMap(Organization::getId, o -> o));
+
+        Map<UUID, Organization> orgByUuidCache = organizationRepository.findAllByUuidIn(orgUuids).stream()
+                .collect(Collectors.toMap(Organization::getUuid, o -> o));
+
+        for (Form058 form : batch) {
+            Row row = sheet.createRow(rowIdx.get());
+
+            String[] values = rowMapper.toRowV2(form, patientCache, orgByIdCache, orgByUuidCache, catalogCache);
+            for (int i = 0; i < values.length; i++) {
+                Cell cell = row.createCell(i);
+                cell.setCellValue(values[i]);
+                cell.setCellStyle(styles.get("data"));
+            }
+            rowIdx.incrementAndGet();
+        }
+    }
+
+    private Map<String, String> buildCatalogCache() {
+        Map<String, String> cache = new HashMap<>();
+        for (CatalogType type : ADDRESS_CATALOG_TYPES) {
+            for (Catalog catalog : catalogService.findAllByType(type)) {
+                cache.put(catalogCacheKey(type, catalog.getCode()), catalog.getNameUzCyril());
+            }
+        }
+        return cache;
     }
 
     private void writeTableHeader(Sheet sheet, Map<String, CellStyle> styles) {

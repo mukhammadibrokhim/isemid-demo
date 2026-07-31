@@ -47,4 +47,30 @@ public class Form058ExportController {
     ) {
         return form058ExportService.receivedExport(fromDate, toDate, stateCode, cityCode,user);
     }
+
+    @Operation(summary = "Экспорт всех данных формы 058 в Excel (V2)",
+            description = "N+1 optimallashtirilgan versiya: barcha bog'liq ma'lumotlar batch qilib yuklanadi.")
+    @GetMapping("/all/export/v2")
+    public ResponseEntity<?> exportAllV2(
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
+            @CurrentUser User user
+    ) {
+        return form058ExportService.allExportV2(fromDate, toDate, stateCode, cityCode, user);
+    }
+
+    @Operation(summary = "Экспорт полученных данных формы 058 в Excel (V2)",
+            description = "N+1 optimallashtirilgan versiya: barcha bog'liq ma'lumotlar batch qilib yuklanadi.")
+    @GetMapping("/received/export/v2")
+    public ResponseEntity<?> exportReceivedV2(
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String stateCode,
+            @RequestParam(required = false) String cityCode,
+            @CurrentUser User user
+    ) {
+        return form058ExportService.receivedExportV2(fromDate, toDate, stateCode, cityCode, user);
+    }
 }
