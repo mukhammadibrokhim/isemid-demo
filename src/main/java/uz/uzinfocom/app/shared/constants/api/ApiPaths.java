@@ -365,41 +365,11 @@ public final class ApiPaths {
     }
 
     /**
-     * "Form 2" — social/occupation composition of primary (not yet
-     * resolved) case notifications, form058 + form0581 combined, same
-     * organization-hierarchy drill-down as {@link Form1Report} — see
-     * {@code Form2ReportController} under {@code modules.report.form2}.
-     */
-    public static final class Form2Report {
-        private Form2Report() {
-        }
-
-        public static final String ROOT = Report.ROOT + "/form-2";
-        public static final String ROOT_NODE = "/root";
-        public static final String CHILDREN = "/children";
-    }
-
-    /**
-     * "Form 3" — year-over-year comparison (current period vs. the same
-     * calendar dates one year earlier) of primary case notifications, same
-     * organization-hierarchy drill-down as {@link Form1Report} — see
-     * {@code Form3ReportController} under {@code modules.report.form3}.
-     */
-    public static final class Form3Report {
-        private Form3Report() {
-        }
-
-        public static final String ROOT = Report.ROOT + "/form-3";
-        public static final String ROOT_NODE = "/root";
-        public static final String CHILDREN = "/children";
-    }
-
-    /**
-     * "Shakl №2" manual statistics entry — supplements {@link Form2Report}
-     * with counts that have no source of truth anywhere else in the system
-     * (disinfection, inspections, fines, prosecutor referrals, ...), entered
-     * by hand per creating organization and period. See {@code
-     * Form2ManualEntryController} under {@code modules.report.form2.manual}.
+     * "Shakl №2" manual statistics entry — counts that have no source of
+     * truth anywhere else in the system (disinfection, inspections, fines,
+     * prosecutor referrals, ...), entered by hand per creating organization
+     * and period. See {@code Form2ManualEntryController} under {@code
+     * modules.report.form2.manual}.
      */
     public static final class Form2ManualEntry {
         private Form2ManualEntry() {
@@ -407,6 +377,23 @@ public final class ApiPaths {
 
         public static final String ROOT = Report.ROOT + "/form-2/manual-entries";
         public static final String PREFILL = "/prefill";
+        public static final String BY_ID = "/{id}";
+    }
+
+    /**
+     * "Shakl №3-1" manual statistics entry — weekly ILI/SARI
+     * (influenza-like illness / severe acute respiratory infection)
+     * sentinel surveillance counts plus flu vaccination coverage, entered
+     * by hand per creating organization and period. Unlike {@link
+     * Form2ManualEntry}, none of these counts have any other source of
+     * truth in the system — see {@code Form31EntryController} under
+     * {@code modules.report.form31}.
+     */
+    public static final class Form31Entry {
+        private Form31Entry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-3-1/entries";
         public static final String BY_ID = "/{id}";
     }
 

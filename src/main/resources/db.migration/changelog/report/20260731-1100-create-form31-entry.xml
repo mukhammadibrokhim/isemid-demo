@@ -6,15 +6,15 @@
             http://www.liquibase.org/xml/ns/dbchangelog
             https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="20260731-1000-01-create-form2-manual-entry" author="codex">
+    <changeSet id="20260731-1100-01-create-form31-entry" author="codex">
         <preConditions onFail="MARK_RAN" onError="HALT">
             <not>
-                <tableExists tableName="form2_manual_entry"/>
+                <tableExists tableName="form31_entry"/>
             </not>
         </preConditions>
-        <createTable tableName="form2_manual_entry">
+        <createTable tableName="form31_entry">
             <column name="id" type="BIGSERIAL">
-                <constraints primaryKey="true" primaryKeyName="pk_form2_manual_entry" nullable="false"/>
+                <constraints primaryKey="true" primaryKeyName="pk_form31_entry" nullable="false"/>
             </column>
             <column name="version" type="BIGINT"/>
             <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
@@ -27,7 +27,7 @@
             <column name="updated_by_id" type="BIGINT"/>
 
             <column name="organization_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_form2_manual_entry_organization_id"
+                <constraints nullable="false" foreignKeyName="fk_form31_entry_organization_id"
                              references="organization(id)"/>
             </column>
             <column name="from_date" type="DATE">
@@ -36,42 +36,39 @@
             <column name="to_date" type="DATE">
                 <constraints nullable="false"/>
             </column>
-            <column name="registered_cases_last_year" type="BIGINT">
+            <column name="ili_cases_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="registered_cases_current_year" type="BIGINT">
+            <column name="ari_cases_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="mtm_school_count" type="INT" defaultValueNumeric="0">
+            <column name="pneumonia_cases_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="disinfection_foci_count" type="INT" defaultValueNumeric="0">
+            <column name="sari_total_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="inspected_objects_count" type="INT" defaultValueNumeric="0">
+            <column name="sari_pregnant_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="closed_objects_count" type="INT" defaultValueNumeric="0">
+            <column name="death_total_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="ddu_count" type="INT" defaultValueNumeric="0">
+            <column name="death_pregnant_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="school_count" type="INT" defaultValueNumeric="0">
+            <column name="weekly_vaccination_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="fines_count" type="INT" defaultValueNumeric="0">
-                <constraints nullable="false"/>
-            </column>
-            <column name="prosecutor_referral_count" type="INT" defaultValueNumeric="0">
+            <column name="season_vaccination_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
         </createTable>
 
-        <createIndex tableName="form2_manual_entry" indexName="idx_form2_manual_entry_organization_id">
+        <createIndex tableName="form31_entry" indexName="idx_form31_entry_organization_id">
             <column name="organization_id"/>
         </createIndex>
-        <createIndex tableName="form2_manual_entry" indexName="idx_form2_manual_entry_from_to">
+        <createIndex tableName="form31_entry" indexName="idx_form31_entry_from_to">
             <column name="from_date"/>
             <column name="to_date"/>
         </createIndex>
