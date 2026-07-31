@@ -365,6 +365,44 @@ public final class ApiPaths {
     }
 
     /**
+     * "Form 4" — «Kasallanishning ijtimoiy tarkibi» (social/occupation
+     * composition of illness), confirmed/primary case counts broken down by
+     * {@code patient.category_code} (children, students, workers, medical
+     * staff, pensioners, homeless, ...), form058 + form0581 combined,
+     * organization-hierarchy drill-down (republic→region→district
+     * →organization), one level per call, over an arbitrary caller-supplied
+     * date range — see {@code Form4ReportController} under {@code
+     * modules.report.form4}.
+     */
+    public static final class Form4Report {
+        private Form4Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-4";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
+     * "Form 6" — infectious/parasitic disease age-structure comparison
+     * (primary/not-yet-decided notifications only, form058 + form0581
+     * combined), organization-hierarchy drill-down (republic→region→district
+     * →organization) same as Form 1, each node showing "O'tgan yil"/"Joriy
+     * yil"/"O'sish-Kamayish" (current period vs. the same calendar dates one
+     * year earlier), plus a per-node age-group breakdown — see {@code
+     * Form6ReportController} under {@code modules.report.form6}.
+     */
+    public static final class Form6Report {
+        private Form6Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-6";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String AGE_BREAKDOWN = "/age-breakdown";
+    }
+
+    /**
      * "Shakl №2" manual statistics entry — counts that have no source of
      * truth anywhere else in the system (disinfection, inspections, fines,
      * prosecutor referrals, ...), entered by hand per creating organization
@@ -394,6 +432,23 @@ public final class ApiPaths {
         }
 
         public static final String ROOT = Report.ROOT + "/form-3-1/entries";
+        public static final String BY_ID = "/{id}";
+    }
+
+    /**
+     * "Shakl №3-2" manual statistics entry — sanitary inspection activity
+     * counts (inspected objects, identified deficiencies, officials held
+     * liable, suspended/closed objects), each broken down by object type,
+     * entered by hand per creating organization and period. Same as {@link
+     * Form31Entry}, none of these counts have any other source of truth in
+     * the system — see {@code Form32EntryController} under {@code
+     * modules.report.form32}.
+     */
+    public static final class Form32Entry {
+        private Form32Entry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-3-2/entries";
         public static final String BY_ID = "/{id}";
     }
 

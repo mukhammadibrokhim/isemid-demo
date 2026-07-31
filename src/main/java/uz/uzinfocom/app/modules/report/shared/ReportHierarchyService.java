@@ -155,6 +155,49 @@ public class ReportHierarchyService {
         };
     }
 
+    /**
+     * Resolves an explicit {@code regionCode}/{@code districtCode} (or, with
+     * both omitted, the caller's whole access scope) into a single node
+     * identity plus the flat list of organization ids under it — for a
+     * report that needs one aggregate over a node's whole sub-tree rather
+     * than a one-level-deeper breakdown (e.g. an age-structure drill-down
+     * triggered from a specific row of {@link #loadRootBreakdown}/{@link
+     * #loadChildren}). Reuses the exact same scope validation {@link
+     * #loadChildren} applies to {@code regionCode}/{@code districtCode}, so
+     * a request outside the caller's access scope is rejected the same way.
+     */
+    public ResolvedReportNode resolveNode(
+            Organization currentOrganization, String regionCode, String districtCode
+    ) {
+        ResolvedOrganizationScope scope = organizationScopeResolver.resolve(currentOrganization);
+
+        if (StringUtils.hasText(districtCode)) {
+            String validDistrict = requireInScopeDistrict(scope, districtCode);
+            return new ResolvedReportNode(
+                    validDistrict,
+                    referenceLookupService.getDistrictName(validDistrict),
+                    organizationScopeOrganizationIdResolver.resolveScopeOrganizationIds(
+                            OrganizationScopeMode.DISTRICT, null, validDistrict
+                    )
+            );
+        }
+
+        if (StringUtils.hasText(regionCode)) {
+            String validRegion = requireInScopeRegion(scope, regionCode);
+            return new ResolvedReportNode(
+                    validRegion,
+                    referenceLookupService.getRegionName(validRegion),
+                    organizationScopeOrganizationIdResolver.resolveScopeOrganizationIds(
+                            OrganizationScopeMode.REGION, validRegion, null
+                    )
+            );
+        }
+
+        return new ResolvedReportNode(
+                rootCode(scope), rootName(scope, currentOrganization), rootOrganizationIds(scope)
+        );
+    }
+
     private String requireInScopeRegion(ResolvedOrganizationScope scope, String regionCode) {
         return switch (scope.mode()) {
             case ALL -> regionCode;
