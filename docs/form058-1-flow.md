@@ -15,6 +15,7 @@ bilan bir xil arxitektura va holat mashinasi (state machine) asosida qurilgan.
 
 Forma-specific maydonlar (jarohat, hayvon, kasalxonaga yotqizish ma'lumotlari):
 
+
 | Guruh | Maydonlar |
 |---|---|
 | Tashxis | `mkb10Code`, `mkb10Name`, `mkb10UsageLimit`, `injuryLocalization`, `medRecordId` |

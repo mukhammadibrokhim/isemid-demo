@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +19,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     Optional<Organization> findByUuid(UUID uuid);
 
     Optional<Organization> findByTin(String tin);
+
+    List<Organization> findAllByUuidIn(Collection<UUID> uuids);
 
     @Query(value = """
     SELECT *

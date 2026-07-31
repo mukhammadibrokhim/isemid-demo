@@ -9,6 +9,7 @@ import uz.uzinfocom.isemid.features.form058.models.Form058;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.reposiotries.OrganizationRepository;
 import uz.uzinfocom.isemid.features.patient.models.Address;
+import uz.uzinfocom.isemid.features.patient.models.Patient;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -115,6 +117,56 @@ public class ReportUtil {
                 .collect(Collectors.joining(", "));
     }
 
+    /**
+     * N+1 dan qochish uchun: {@code catalogService} orqali har manzil uchun DB'ga
+     * murojaat qilmasdan, oldindan yuklab olingan {@code catalogCache}
+     * (key = "{CatalogType}:{code}", value = nomi) dan foydalanadi.
+     */
+    public static String resolveAddressesV2(Patient patient, Map<String, String> catalogCache) {
+        if (patient == null || patient.getAddresses() == null) {
+            return "";
+        }
+
+        String permanent = patient.getAddresses().stream()
+                .filter(a -> AddressType.PERMANENT.equals(a.getType()))
+                .findFirst()
+                .map(a -> formatAddressV2(a, catalogCache))
+                .orElse("");
+
+        String temporary = patient.getAddresses().stream()
+                .filter(a -> AddressType.TEMPORARY.equals(a.getType()))
+                .findFirst()
+                .map(a -> formatAddressV2(a, catalogCache))
+                .orElse("");
+
+        StringBuilder sb = new StringBuilder();
+        if (!permanent.isBlank()) {
+            sb.append("Доимий: ").append(permanent).append(".");
+        }
+        if (!temporary.isBlank()) {
+            if (!sb.isEmpty()) sb.append("\n\n");
+            sb.append("Яшаш: ").append(temporary).append(".");
+        }
+        return sb.toString();
+    }
+
+    public static String catalogCacheKey(CatalogType type, String code) {
+        return type.name() + ":" + code;
+    }
+
+    private static String formatAddressV2(Address a, Map<String, String> catalogCache) {
+        return Stream.of(
+                        catalogCache.getOrDefault(catalogCacheKey(CatalogType.state, a.getStateCode()), ""),
+                        catalogCache.getOrDefault(catalogCacheKey(CatalogType.city, a.getCityCode()), ""),
+                        catalogCache.getOrDefault(catalogCacheKey(CatalogType.neighborhood, a.getNeighborhoodCode()), ""),
+                        a.getHouseNumber(),
+                        a.getApartmentNumber()
+                )
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.joining(", "));
+    }
+
     public static String resolveHospitalAndDate(
             Form058 form,
             OrganizationRepository organizationRepository
@@ -125,6 +177,30 @@ public class ReportUtil {
 
         String hospitalName = Optional.ofNullable(form.getHospitalPlaceId())
                 .flatMap(organizationRepository::findById)
+                .map(Organization::getName)
+                .orElse("");
+
+        String admissionDate = form.getAdmissionDate() != null
+                ? formatDate(form.getAdmissionDate())
+                : "";
+
+        return hospitalName + (admissionDate.isBlank() ? "" : ", " + admissionDate);
+    }
+
+    /**
+     * N+1 dan qochish uchun: har qator uchun {@code organizationRepository.findById}
+     * chaqirish o'rniga, oldindan batch bilan yuklab olingan {@code orgByIdCache} dan foydalanadi.
+     */
+    public static String resolveHospitalAndDateV2(
+            Form058 form,
+            Map<Long, Organization> orgByIdCache
+    ) {
+        if (form == null) {
+            return "";
+        }
+
+        String hospitalName = Optional.ofNullable(form.getHospitalPlaceId())
+                .map(orgByIdCache::get)
                 .map(Organization::getName)
                 .orElse("");
 
@@ -148,10 +224,51 @@ public class ReportUtil {
                 .orElse("");
     }
 
+    public static String resolveOrganizationNameV2(
+            Long organizationId,
+            Map<Long, Organization> orgByIdCache
+    ) {
+        if (organizationId == null) {
+            return "";
+        }
+
+        return Optional.ofNullable(orgByIdCache.get(organizationId))
+                .map(Organization::getName)
+                .orElse("");
+    }
+
     public static String resolveCreatedOrgAndDocName(Form058 form) {
         if (form == null) return "";
 
         String orgName = Optional.ofNullable(form.getCreatedOrg())
+                .map(Organization::getName)
+                .orElse("");
+
+        String notifierName = form.getNotifierFullName() != null
+                ? form.getNotifierFullName()
+                : "";
+
+        String createdDate = "";
+        if (form.getCreatedAt() != null) {
+            createdDate = formatDateTime(form.getCreatedAt());
+        }
+
+        return Stream.of(orgName, notifierName, createdDate)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * N+1 dan qochish uchun: {@code form.getCreatedOrg()} (lazy proxy, har chaqiruvda
+     * DB'ga boradi) o'rniga, {@code form.getCreatedOrgUuid()} allaqachon oddiy ustun
+     * sifatida yuklangan, shuning uchun uni batch bilan olingan {@code orgByUuidCache}
+     * bilan solishtiramiz.
+     */
+    public static String resolveCreatedOrgAndDocNameV2(Form058 form, Map<UUID, Organization> orgByUuidCache) {
+        if (form == null) return "";
+
+        String orgName = Optional.ofNullable(form.getCreatedOrgUuid())
+                .map(orgByUuidCache::get)
                 .map(Organization::getName)
                 .orElse("");
 
