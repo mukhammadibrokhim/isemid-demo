@@ -26,6 +26,10 @@ public final class DevErrorLogSpecification {
                 predicates.add(cb.equal(root.get("errorCode"), request.errorCode()));
             }
 
+            if (StringUtils.hasText(request.traceId())) {
+                predicates.add(cb.equal(root.get("traceId"), request.traceId()));
+            }
+
             if (request.from() != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("occurredAt"), request.from()));
             }

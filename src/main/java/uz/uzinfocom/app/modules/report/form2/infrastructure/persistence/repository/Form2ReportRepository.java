@@ -8,6 +8,7 @@ import uz.uzinfocom.app.modules.report.form2.application.query.dto.Form2Organiza
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -89,7 +90,75 @@ public class Form2ReportRepository {
             count(*) filter (where t.category_code = 'NOT_EMPLOYED')       as unemployed
             """;
 
+    /**
+     * Same shape as {@link #UNION_SOURCE_TEMPLATE} but filters by a set of
+     * MKB-10 codes ({@code in (:mkb10Codes)}) instead of a single optional
+     * exact match — used by {@code Form2ManualEntryQueryService} to count
+     * only the diagnoses belonging to whichever {@code ManualReport}
+     * entries are tagged for "Shakl №2". A plain {@code in (:param)} bind is
+     * fine here (unlike {@code organizationIds} above): the set is a
+     * handful of disease codes, never anywhere near the ~1000-row scale
+     * that made {@code = any(...)}/{@code IN} problematic for organization
+     * ids.
+     */
+    private static final String UNION_SOURCE_MKB10_TEMPLATE = """
+            select f.sender_organization_id, p.category_code
+            from form058 f
+            join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            where f.deleted = false
+              and f.status not in ('APPROVED', 'CANCELED')
+              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+              and (f.mkb10_code in (:mkb10Codes) or f.final_mkb10_code in (:mkb10Codes))
+            union all
+            select f.sender_organization_id, p.category_code
+            from form058_1 f
+            join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            where f.deleted = false
+              and f.status not in ('APPROVED', 'CANCELED')
+              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+              and (f.mkb10_code in (:mkb10Codes) or f.final_mkb10_code in (:mkb10Codes))
+            """;
+
     private final EntityManager entityManager;
+
+    /**
+     * A single, unattributed total row across every given organization id,
+     * restricted to cases whose diagnosis is in {@code mkb10Codes} — an
+     * empty/null code set means "nothing to count" (zero), not "no
+     * filter", since an empty set here means no {@code ManualReport} is
+     * configured for the caller yet.
+     */
+    public Form2OrganizationCountProjection countTotalByMkb10Codes(
+            List<Long> organizationIds,
+            Instant fromInclusive,
+            Instant toExclusive,
+            Set<String> mkb10Codes
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty() || mkb10Codes == null || mkb10Codes.isEmpty()) {
+            return Form2OrganizationCountProjection.empty(null);
+        }
+
+        Query query = entityManager.createNativeQuery(totalMkb10Sql(organizationIds))
+                .setParameter("fromInclusive", fromInclusive)
+                .setParameter("toExclusive", toExclusive)
+                .setParameter("mkb10Codes", mkb10Codes);
+
+        List<?> rows = query.getResultList();
+        return rows.isEmpty()
+                ? Form2OrganizationCountProjection.empty(null)
+                : toProjection((Object[]) rows.get(0), false);
+    }
+
+    private String totalMkb10Sql(List<Long> organizationIds) {
+        return "select " + AGGREGATE_COLUMNS + " from (" + unionMkb10Source(organizationIds) + ") t";
+    }
+
+    private String unionMkb10Source(List<Long> organizationIds) {
+        String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
+        return UNION_SOURCE_MKB10_TEMPLATE.formatted(valuesList);
+    }
 
     /** One aggregate row per organization id — for a region/district/organization-level breakdown. */
     public List<Form2OrganizationCountProjection> countGroupedByOrganization(

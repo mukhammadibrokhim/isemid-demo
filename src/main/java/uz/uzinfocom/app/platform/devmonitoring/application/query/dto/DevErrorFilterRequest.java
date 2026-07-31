@@ -29,6 +29,9 @@ public record DevErrorFilterRequest(
         @Schema(description = "Filter by error code (see ErrorCode enum).")
         String errorCode,
 
+        @Schema(description = "Filter by trace id (exact match).")
+        String traceId,
+
         @Schema(description = "Only include errors that occurred at or after this instant.")
         Instant from,
 

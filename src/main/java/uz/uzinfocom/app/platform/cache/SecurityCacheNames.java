@@ -4,6 +4,19 @@ public final class SecurityCacheNames {
 
     public static final String JWKS_BY_URI = "security-jwks-by-uri";
     public static final String PUBLIC_KEY_DECODER_BY_PROVIDER = "security-public-key-decoder-by-provider";
+
+    /**
+     * Access/refresh tokens revoked via {@code /v1/auth/logout/{provider}}
+     * (see TokenBlacklistService) - both SSO and DHP tokens are validated
+     * locally by signature only (see ProviderAuthenticationManagerRegistry),
+     * so this cache is what actually makes logout take effect immediately;
+     * neither provider's own logout/revoke call has any effect on whether
+     * this backend still accepts an already-issued token. Entries expire on
+     * a fixed TTL (see ApplicationCacheConfig), not each token's own {@code
+     * exp} - simpler, and safe as long as the TTL is at least as long as the
+     * longest-lived token either provider issues.
+     */
+    public static final String REVOKED_TOKEN_BLACKLIST = "security-revoked-token-blacklist";
     public static final String ORGANIZATION_SYNC_BY_PROVIDER_AND_UUID = "iam-organization-sync-by-provider-and-uuid";
     public static final String ROLE_BY_NAME = "iam-role-by-name";
     public static final String SECURITY_USER_BY_ID = "iam-security-user-by-id";

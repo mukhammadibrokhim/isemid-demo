@@ -2,10 +2,13 @@ package uz.uzinfocom.app.platform.auth.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.app.platform.auth.application.exception.RevokedTokenException;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginResponse;
+import uz.uzinfocom.app.platform.auth.web.dto.LogoutRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.RefreshTokenRequest;
 import uz.uzinfocom.app.platform.devmonitoring.application.LoginHistoryRecorder;
+import uz.uzinfocom.app.platform.security.jwt.TokenBlacklistService;
 
 @Service
 @RequiredArgsConstructor
@@ -13,6 +16,7 @@ public class LoginService {
 
     private final LoginProviderRegistry loginProviderRegistry;
     private final LoginHistoryRecorder loginHistoryRecorder;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public LoginResponse login(String providerKey, LoginRequest request, String clientIp, String userAgent) {
         LoginProvider provider = loginProviderRegistry.resolve(providerKey);
@@ -30,9 +34,29 @@ public class LoginService {
     }
 
     public LoginResponse refresh(String providerKey, RefreshTokenRequest request) {
+        // Checked before the provider is even resolved: without this, a
+        // logged-out caller could mint a fresh, non-blacklisted access token
+        // from the very refresh token /logout was supposed to invalidate -
+        // see TokenBlacklistService and RevokedTokenException.
+        if (tokenBlacklistService.isRevoked(request.refreshToken())) {
+            throw new RevokedTokenException(providerKey);
+        }
+
         LoginProvider provider = loginProviderRegistry.resolve(providerKey);
 
         return toResponse(provider.refresh(request.refreshToken()));
+    }
+
+    public void logout(String providerKey, LogoutRequest request) {
+        LoginProvider provider = loginProviderRegistry.resolve(providerKey);
+
+        // The blacklist is what actually enforces logout on this backend (see
+        // TokenBlacklistService); provider.logout(...) below is best-effort
+        // upstream cleanup on top of that, not a substitute for it.
+        tokenBlacklistService.revoke(request.accessToken());
+        tokenBlacklistService.revoke(request.refreshToken());
+
+        provider.logout(request.accessToken(), request.refreshToken());
     }
 
     private LoginResponse toResponse(LoginResult result) {

@@ -31,6 +31,12 @@ public class ApplicationCacheConfig {
                 // 23h is safer than 24h because it leaves a small rotation buffer.
                 cache(SecurityCacheNames.PUBLIC_KEY_DECODER_BY_PROVIDER, 32, Duration.ofHours(23)),
 
+                // 6h TTL: long enough to outlive any SSO/DHP-issued token's own
+                // lifetime (so a blacklisted token is never accepted again before
+                // it would have expired anyway), short enough to bound cache size
+                // without a separate cleanup job - see SecurityCacheNames javadoc.
+                cache(SecurityCacheNames.REVOKED_TOKEN_BLACKLIST, 100_000, Duration.ofHours(6)),
+
                 cache(SecurityCacheNames.ORGANIZATION_SYNC_BY_PROVIDER_AND_UUID, 20_000, Duration.ofMinutes(30)),
                 cache(SecurityCacheNames.ROLE_BY_NAME, 1_000, Duration.ofHours(2)),
                 cache(SecurityCacheNames.SECURITY_USER_BY_ID, 20_000, Duration.ofMinutes(15)),

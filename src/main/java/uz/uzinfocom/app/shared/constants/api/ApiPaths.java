@@ -35,6 +35,7 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/auth";
         public static final String LOGIN = "/login/{provider}";
         public static final String REFRESH = "/refresh/{provider}";
+        public static final String LOGOUT = "/logout/{provider}";
         public static final String PROVIDER = "provider";
     }
 
@@ -233,6 +234,8 @@ public final class ApiPaths {
         public static final String SETTINGS_RESTORE = "/settings/{id}/restore";
         public static final String ROUTE_POLICIES = "/settings/route-policies";
         public static final String ROUTE_POLICY_BY_ID = "/settings/route-policies/{id}";
+        public static final String FILES = "/files";
+        public static final String FILES_DOWNLOAD = "/files/download";
     }
 
     /**
@@ -389,6 +392,22 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-3";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+    }
+
+    /**
+     * "Shakl №2" manual statistics entry — supplements {@link Form2Report}
+     * with counts that have no source of truth anywhere else in the system
+     * (disinfection, inspections, fines, prosecutor referrals, ...), entered
+     * by hand per creating organization and period. See {@code
+     * Form2ManualEntryController} under {@code modules.report.form2.manual}.
+     */
+    public static final class Form2ManualEntry {
+        private Form2ManualEntry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-2/manual-entries";
+        public static final String PREFILL = "/prefill";
+        public static final String BY_ID = "/{id}";
     }
 
     public static final class Card {

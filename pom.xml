@@ -27,6 +27,11 @@
 
         <springdoc.version>3.0.3</springdoc.version>
 
+        <!-- Security patch overrides for CVEs flagged in dependencies inherited from spring-boot-starter-parent -->
+        <postgresql.version>42.7.12</postgresql.version>
+        <logback.version>1.5.34</logback.version>
+        <jackson-databind.version>2.21.5</jackson-databind.version>
+
         <datasource-micrometer.version>2.2.1</datasource-micrometer.version>
 
         <!-- Structured JSON console logging in production (see logback-spring.xml) -->
@@ -220,6 +225,16 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- logstash-logback-encoder and springdoc pull the Jackson 2.x line (not managed by
+                 Spring Boot 4's Jackson 3 BOM), so pin the whole family via its own BOM to a
+                 patched version instead of individual modules drifting out of sync. -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson-databind.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>net.ttddyy.observation</groupId>
                 <artifactId>datasource-micrometer-bom</artifactId>

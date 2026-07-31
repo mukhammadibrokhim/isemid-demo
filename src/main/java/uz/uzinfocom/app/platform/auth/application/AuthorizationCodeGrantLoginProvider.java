@@ -84,4 +84,11 @@ public class AuthorizationCodeGrantLoginProvider implements LoginProvider {
         return OAuth2TokenExchangeClient.exchange(
                 providerKey, restClient, jsonMapper, properties, form, circuitBreakerLookup);
     }
+
+    @Override
+    public void logout(String accessToken, String refreshToken) {
+        OAuth2RevocationClient.revoke(providerKey, restClient, properties, accessToken, "access_token");
+        OAuth2RevocationClient.revoke(providerKey, restClient, properties, refreshToken, "refresh_token");
+        OAuth2RevocationClient.endSession(providerKey, restClient, properties);
+    }
 }

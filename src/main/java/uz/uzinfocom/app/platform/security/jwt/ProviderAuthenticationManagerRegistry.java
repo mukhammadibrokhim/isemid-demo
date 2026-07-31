@@ -42,6 +42,7 @@ public class ProviderAuthenticationManagerRegistry {
     private final IntegrationJwtAuthenticationConverter integrationJwtAuthenticationConverter;
     private final IntegrationTokenProperties integrationTokenProperties;
     private final SystemSettingResolver systemSettingResolver;
+    private final TokenBlacklistService tokenBlacklistService;
 
     private final BearerTokenResolver bearerTokenResolver = new DefaultBearerTokenResolver();
 
@@ -107,6 +108,14 @@ public class ProviderAuthenticationManagerRegistry {
 
             if (!StringUtils.hasText(token)) {
                 throw new InvalidBearerTokenException("Bearer token is missing");
+            }
+
+            // Rejects a token that was blacklisted via /v1/auth/logout/{provider}
+            // before it ever reaches a provider's own JwtDecoder - see
+            // TokenBlacklistService for why this check, not the provider's own
+            // logout/revoke call, is what actually enforces logout here.
+            if (tokenBlacklistService.isRevoked(token)) {
+                throw new InvalidBearerTokenException("Token has been revoked");
             }
 
             String providerKey = resolveProviderKey(token);

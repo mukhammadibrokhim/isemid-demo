@@ -5,6 +5,7 @@ import uz.uzinfocom.app.platform.auth.web.dto.LoginRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginResponse;
 import uz.uzinfocom.app.platform.auth.web.dto.RefreshTokenRequest;
 import uz.uzinfocom.app.platform.devmonitoring.application.LoginHistoryRecorder;
+import uz.uzinfocom.app.platform.security.jwt.TokenBlacklistService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -14,7 +15,9 @@ class LoginServiceTest {
 
     private final LoginProviderRegistry loginProviderRegistry = mock(LoginProviderRegistry.class);
     private final LoginHistoryRecorder loginHistoryRecorder = mock(LoginHistoryRecorder.class);
-    private final LoginService loginService = new LoginService(loginProviderRegistry, loginHistoryRecorder);
+    private final TokenBlacklistService tokenBlacklistService = mock(TokenBlacklistService.class);
+    private final LoginService loginService =
+            new LoginService(loginProviderRegistry, loginHistoryRecorder, tokenBlacklistService);
 
     @Test
     void resolvesTheProviderAndMapsItsResultToTheResponse() {

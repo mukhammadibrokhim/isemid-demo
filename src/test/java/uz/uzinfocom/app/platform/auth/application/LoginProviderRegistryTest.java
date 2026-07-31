@@ -131,6 +131,11 @@ class LoginProviderRegistryTest {
             public LoginResult refresh(String refreshToken) {
                 return new LoginResult("refreshed-custom-token", null, "Bearer", null, null);
             }
+
+            @Override
+            public void logout(String accessToken, String refreshToken) {
+                // no-op for this test double
+            }
         };
 
         LoginProviderRegistry registry = registry(properties, List.of(customDhpProvider));

@@ -26,4 +26,13 @@ public interface LoginProvider {
     LoginResult login(LoginRequest request);
 
     LoginResult refresh(String refreshToken);
+
+    /**
+     * Best-effort cleanup on the provider's own side during logout (RFC 7009
+     * revoke, end-session, ...) - never the thing that actually enforces
+     * logout on this backend, see {@code TokenBlacklistService} for why.
+     * Either argument may be blank if the caller only has one of the two
+     * tokens.
+     */
+    void logout(String accessToken, String refreshToken);
 }

@@ -42,6 +42,27 @@ public class LoginProvidersProperties {
 
         private String tokenUrl;
 
+        /**
+         * OAuth2 revocation endpoint (RFC 7009). If configured, {@code
+         * /v1/auth/logout/{provider}} calls it once per non-blank token
+         * (access + refresh) with the matching {@code token_type_hint}, using
+         * the same client_id/client_secret as the token exchange - best
+         * effort, a failure here never fails the logout call itself, since
+         * the local blacklist (see {@code TokenBlacklistService}) is what
+         * actually enforces logout on this backend. Left blank for a provider
+         * with no revocation endpoint (e.g. SSO today) - logout then relies
+         * entirely on the blacklist for that provider.
+         */
+        private String revokeUrl;
+
+        /**
+         * Provider's end-session/logout endpoint, called (best effort, POST
+         * client_id) in addition to {@link #revokeUrl} during logout - some
+         * providers require ending the upstream session separately from
+         * revoking the token itself. Left blank when the provider has none.
+         */
+        private String logoutUrl;
+
         private String clientId;
 
         private String clientSecret;

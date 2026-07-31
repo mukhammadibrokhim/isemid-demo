@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.auth.application.LoginService;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginResponse;
+import uz.uzinfocom.app.platform.auth.web.dto.LogoutRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.RefreshTokenRequest;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 
@@ -59,5 +60,23 @@ public class LoginController {
             @RequestBody RefreshTokenRequest request
     ) {
         return loginService.refresh(provider, request);
+    }
+
+    @Operation(
+            summary = "Выйти через провайдера",
+            description = "Заносит переданные access/refresh-токены в локальный чёрный список - "
+                    + "проверяется на каждом аутентифицированном запросе и в /refresh - и, если у "
+                    + "провайдера (path-параметр {provider}) настроен revoke-url/logout-url, лучшим "
+                    + "образом отзывает их и там же. Чёрный список - это то, что реально прекращает "
+                    + "действие токена на этом бэкенде: и SSO, и DHP валидируются локально по подписи, "
+                    + "поэтому один только вызов provider logout/revoke не помешал бы уже выданному "
+                    + "токену остаться рабочим здесь до истечения его срока."
+    )
+    @PostMapping(ApiPaths.Auth.LOGOUT)
+    public void logout(
+            @PathVariable(ApiPaths.Auth.PROVIDER) String provider,
+            @RequestBody LogoutRequest request
+    ) {
+        loginService.logout(provider, request);
     }
 }

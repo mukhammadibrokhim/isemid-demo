@@ -22,4 +22,11 @@ public interface ManualReportRepository extends JpaRepository<ManualReport, Long
         where :mkb10Code member of m.mkb10Codes and m.deleted = false
     """)
     List<ManualReport> findAllByMkb10CodeAndDeletedFalse(@Param("mkb10Code") String mkb10Code);
+
+    @Query("""
+        select distinct m from ManualReport m
+        join m.reportTypes rt
+        where lower(rt) = lower(:reportType) and m.deleted = false
+    """)
+    List<ManualReport> findAllByReportTypeAndDeletedFalse(@Param("reportType") String reportType);
 }
