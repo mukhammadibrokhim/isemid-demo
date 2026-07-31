@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058MonthlyOutcomeCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058SourceCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058StatusCountResponse;
@@ -59,6 +60,11 @@ public class Form058StatsQueryService {
      */
     public List<Form058DailyCountResponse> countByMonth(Form058Direction direction, LocalDate from, LocalDate to) {
         return form058StatsRepository.countByMonth(currentScope(), receivedFor(direction), from, to);
+    }
+
+    /** Same as {@link #countByMonth}, plus a CANCELED/APPROVED breakdown per month — for the dashboard's dynamics chart. */
+    public List<Form058MonthlyOutcomeCountResponse> countByMonthWithOutcomes(Form058Direction direction, LocalDate from, LocalDate to) {
+        return form058StatsRepository.countByMonthWithOutcomes(currentScope(), receivedFor(direction), from, to);
     }
 
     /**

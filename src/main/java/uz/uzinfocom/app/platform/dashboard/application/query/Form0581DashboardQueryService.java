@@ -198,9 +198,10 @@ public class Form0581DashboardQueryService {
 
     private TimeSeriesResponse buildDynamics() {
         DateWindow window = dynamicsWindow();
-        List<DynamicsPointResponse> points = form0581StatsQueryService.countByMonth(Form0581Direction.INCOMING, window.from(), window.to())
+        List<DynamicsPointResponse> points = form0581StatsQueryService
+                .countByMonthWithOutcomes(Form0581Direction.INCOMING, window.from(), window.to())
                 .stream()
-                .map(item -> new DynamicsPointResponse(item.date(), item.count()))
+                .map(item -> new DynamicsPointResponse(item.periodStart(), item.total(), item.canceledCount(), item.approvedCount()))
                 .toList();
 
         return new TimeSeriesResponse(window.from(), window.to(), TimeSeriesGranularity.MONTH, points);

@@ -100,6 +100,16 @@ public final class ApiPaths {
         public static final String RESTORE = "/{id}/restore";
     }
 
+    public static final class Action {
+        private Action() {
+        }
+
+        public static final String ROOT = API_V1 + "/actions";
+
+        public static final String BY_ID = "/{id}";
+        public static final String RESTORE = "/{id}/restore";
+    }
+
     public static final class Scope {
         private Scope() {
         }

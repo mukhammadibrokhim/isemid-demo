@@ -12,6 +12,8 @@ import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQueryService;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581MonthlyOutcomeCountResponse;
+import uz.uzinfocom.app.platform.dashboard.application.query.dto.DynamicsPointResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581SourceCountResponse;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
@@ -43,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,6 +116,27 @@ class Form0581DashboardQueryServiceTest {
         assertThat(response.active()).isEqualTo(4L);
         assertThat(response.newCasesToday()).isEqualTo(2L);
         assertThat(response.asOfDate()).isEqualTo(today);
+    }
+
+    @Test
+    void dynamicsMapsMonthlyOutcomeBreakdownIncludingCanceledAndApproved() {
+        CurrentOrganizationContext.set(organization());
+        when(organizationScopeResolver.resolve(any()))
+                .thenReturn(scopeOf(OrganizationScopeMode.ORGANIZATION, null, null));
+
+        LocalDate periodStart = LocalDate.of(2026, 7, 1);
+        when(form0581StatsQueryService.countByMonthWithOutcomes(eq(Form0581Direction.INCOMING), any(), any())).thenReturn(List.of(
+                new Form0581MonthlyOutcomeCountResponse(periodStart, 10L, 3L, 5L)
+        ));
+
+        Form0581DashboardResponse response = service.getDashboard();
+
+        assertThat(response.dynamics().points()).hasSize(1);
+        DynamicsPointResponse point = response.dynamics().points().getFirst();
+        assertThat(point.periodStart()).isEqualTo(periodStart);
+        assertThat(point.count()).isEqualTo(10L);
+        assertThat(point.canceledCount()).isEqualTo(3L);
+        assertThat(point.approvedCount()).isEqualTo(5L);
     }
 
     @Test

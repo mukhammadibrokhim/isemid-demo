@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        "Action" (READ/CREATE/UPDATE/... ) o'tgacha faqat Java enum (PermissionAction)
+        edi, endi DB-driven resurs bo'ladi: Super Admin yangi custom action'larni
+        (masalan "karta biriktirish") kod o'zgarishisiz qo'sha oladi.
+
+        role_permission_actions jadvali oldin (role_permission_id, action varchar)
+        composite PK bilan ElementCollection edi. Endi u haqiqiy join table:
+        (role_permission_id, action_id) -> action.id.
+    -->
+    <changeSet id="20260730-1100-01-create-action-table" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <not>
+                <tableExists tableName="action"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="action">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="action_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="description_kaa" type="VARCHAR(1000)"/>
+            <column name="description_ru" type="VARCHAR(1000)"/>
+            <column name="description_uz" type="VARCHAR(1000)"/>
+            <column name="description_uz_cyril" type="VARCHAR(1000)"/>
+            <column name="code" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_action_code" tableName="action" using="btree">
+            <column name="code"/>
+        </createIndex>
+        <createIndex indexName="idx_action_active_deleted" tableName="action" using="btree">
+            <column name="active"/>
+            <column name="deleted"/>
+        </createIndex>
+        <addUniqueConstraint columnNames="code" constraintName="uk_action_code" tableName="action"/>
+    </changeSet>
+
+    <!--
+        Eski PermissionAction enum qiymatlari (READ/CREATE/UPDATE/DELETE/MANAGE/
+        EXPORT/IMPORT/ASSIGN/APPROVE) endi "action" jadvalidagi qatorlar sifatida
+        seed qilinadi - shu bilan mavjud role_permission_actions ma'lumotlari
+        (agar mavjud bo'lsa) action_id orqali migratsiya qilinishi mumkin bo'ladi.
+    -->
+    <changeSet id="20260730-1100-02-seed-legacy-actions" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO action (code, active, deleted, version, created_at, updated_at,
+                                 description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('READ', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Ma''lumotlarni ko''rish huquqi.',
+                 'Право просмотра данных.',
+                 'Маълумотларни кўриш ҳуқуқи.',
+                 'Maǵlıwmatlardı kóriw huqıqı.'),
+                ('CREATE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Yangi yozuv qo''shish huquqi.',
+                 'Право создания новой записи.',
+                 'Янги ёзув қўшиш ҳуқуқи.',
+                 'Jańa jazba qosıw huqıqı.'),
+                ('UPDATE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Mavjud yozuvni tahrirlash huquqi.',
+                 'Право редактирования существующей записи.',
+                 'Мавжуд ёзувни таҳрирлаш ҳуқуқи.',
+                 'Bar jazbanı redaktorlaw huqıqı.'),
+                ('DELETE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Yozuvni o''chirish huquqi.',
+                 'Право удаления записи.',
+                 'Ёзувни ўчириш ҳуқуқи.',
+                 'Jazbanı óshiriw huqıqı.'),
+                ('MANAGE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Subyekt bo''yicha barcha amallarga to''liq huquq (boshqa amallarni qamrab oladi).',
+                 'Полное право на все действия по субъекту (охватывает остальные действия).',
+                 'Субъект бўйича барча амалларга тўлиқ ҳуқуқ (бошқа амалларни қамраб олади).',
+                 'Subekt boyınsha barlıq ámellerge tolıq huqıq (basqa ámellerdi óz ishine aladı).'),
+                ('EXPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Ma''lumotlarni eksport qilish huquqi.',
+                 'Право экспорта данных.',
+                 'Маълумотларни экспорт қилиш ҳуқуқи.',
+                 'Maǵlıwmatlardı eksport etiw huqıqı.'),
+                ('IMPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Ma''lumotlarni import qilish huquqi.',
+                 'Право импорта данных.',
+                 'Маълумотларни импорт қилиш ҳуқуқи.',
+                 'Maǵlıwmatlardı import etiw huqıqı.'),
+                ('ASSIGN', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Biriktirish (masalan, karta yoki resursni biriktirish) huquqi.',
+                 'Право назначения/привязки (например, привязки карты или ресурса).',
+                 'Бириктириш (масалан, карта ёки ресурсни бириктириш) ҳуқуқи.',
+                 'Biriktiriw (mısalı, karta yamasa resurstı biriktiriw) huqıqı.'),
+                ('APPROVE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tasdiqlash huquqi.',
+                 'Право утверждения/подтверждения.',
+                 'Тасдиқлаш ҳуқуқи.',
+                 'Tastıyıqlaw huqıqı.')
+            ON CONFLICT (code) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        role_permission_actions: (role_permission_id, action varchar) ->
+        (role_permission_id, action_id bigint FK -> action.id).
+        Qadamlar: ustun qo'shish -> mavjud qatorlarni action.code orqali
+        action_id bilan to'ldirish -> eski ustun/PK'ni olib tashlash ->
+        yangi PK/FK/index qo'shish.
+    -->
+    <changeSet id="20260730-1100-03-add-action-id-column" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role_permission_actions"/>
+            <columnExists tableName="role_permission_actions" columnName="action"/>
+            <not>
+                <columnExists tableName="role_permission_actions" columnName="action_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="role_permission_actions">
+            <column name="action_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260730-1100-04-backfill-action-id" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <columnExists tableName="role_permission_actions" columnName="action_id"/>
+            <columnExists tableName="role_permission_actions" columnName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE role_permission_actions rpa
+            SET action_id = a.id
+            FROM action a
+            WHERE a.code = rpa.action
+              AND rpa.action_id IS NULL;
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="20260730-1100-05-finalize-role-permission-actions-schema" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <columnExists tableName="role_permission_actions" columnName="action_id"/>
+            <columnExists tableName="role_permission_actions" columnName="action"/>
+        </preConditions>
+
+        <addNotNullConstraint tableName="role_permission_actions" columnName="action_id" columnDataType="BIGINT"/>
+
+        <dropPrimaryKey tableName="role_permission_actions" constraintName="role_permission_actions_pkey"/>
+
+        <dropColumn tableName="role_permission_actions" columnName="action"/>
+
+        <addPrimaryKey tableName="role_permission_actions"
+                        columnNames="role_permission_id, action_id"
+                        constraintName="role_permission_actions_pkey"/>
+
+        <addForeignKeyConstraint baseTableName="role_permission_actions"
+                                  baseColumnNames="action_id"
+                                  constraintName="fk_role_permission_actions_action_id"
+                                  referencedTableName="action"
+                                  referencedColumnNames="id"
+                                  onDelete="NO ACTION"
+                                  onUpdate="NO ACTION"/>
+
+        <createIndex indexName="idx_role_permission_actions_action_id" tableName="role_permission_actions" using="btree">
+            <column name="action_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

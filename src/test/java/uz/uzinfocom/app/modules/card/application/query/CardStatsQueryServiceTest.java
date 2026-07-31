@@ -43,9 +43,9 @@ class CardStatsQueryServiceTest {
         ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
         when(organizationScopeResolver.resolve(any())).thenReturn(scope);
 
-        service.countByStatus();
+        service.countByStatus(CaseFormType.FORM058);
 
-        verify(cardStatsRepository).countByStatus(scope, CaseFormType.ANY);
+        verify(cardStatsRepository).countByStatus(scope, CaseFormType.FORM058);
     }
 
     @Test
@@ -74,7 +74,7 @@ class CardStatsQueryServiceTest {
 
     @Test
     void countByStatusThrowsScopeViolationWhenNoOrganizationSelected() {
-        assertThatThrownBy(service::countByStatus).isInstanceOf(CardScopeViolationException.class);
+        assertThatThrownBy(() -> service.countByStatus(CaseFormType.ANY)).isInstanceOf(CardScopeViolationException.class);
     }
 
     @Test
@@ -83,9 +83,9 @@ class CardStatsQueryServiceTest {
         ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
         when(organizationScopeResolver.resolve(any())).thenReturn(scope);
 
-        service.countTotal();
+        service.countTotal(CaseFormType.FORM058);
 
-        verify(cardStatsRepository).countTotal(scope, CaseFormType.ANY);
+        verify(cardStatsRepository).countTotal(scope, CaseFormType.FORM058);
     }
 
     @Test
@@ -94,9 +94,9 @@ class CardStatsQueryServiceTest {
         ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
         when(organizationScopeResolver.resolve(any())).thenReturn(scope);
 
-        service.countActive();
+        service.countActive(CaseFormType.FORM058);
 
-        verify(cardStatsRepository).countActive(scope, CaseFormType.ANY);
+        verify(cardStatsRepository).countActive(scope, CaseFormType.FORM058);
     }
 
     private Organization organization(Long id) {

@@ -29,7 +29,12 @@ public final class OpenApiGroups {
             "/v1/permission",
             "/v1/permission/**",
             "/v1/permissions",
-            "/v1/permissions/**"
+            "/v1/permissions/**",
+
+            "/v1/action",
+            "/v1/action/**",
+            "/v1/actions",
+            "/v1/actions/**"
     };
 
     private static final String[] ADMIN_PATHS = {

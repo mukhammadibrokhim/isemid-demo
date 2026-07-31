@@ -43,9 +43,9 @@ class ActStatsQueryServiceTest {
         ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
         when(organizationScopeResolver.resolve(any())).thenReturn(scope);
 
-        service.countByStatus();
+        service.countByStatus(CaseFormType.FORM058);
 
-        verify(actStatsRepository).countByStatus(scope, CaseFormType.ANY);
+        verify(actStatsRepository).countByStatus(scope, CaseFormType.FORM058);
     }
 
     @Test
@@ -63,7 +63,7 @@ class ActStatsQueryServiceTest {
 
     @Test
     void countByStatusThrowsScopeViolationWhenNoOrganizationSelected() {
-        assertThatThrownBy(service::countByStatus).isInstanceOf(ActScopeViolationException.class);
+        assertThatThrownBy(() -> service.countByStatus(CaseFormType.ANY)).isInstanceOf(ActScopeViolationException.class);
     }
 
     @Test
@@ -72,9 +72,9 @@ class ActStatsQueryServiceTest {
         ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
         when(organizationScopeResolver.resolve(any())).thenReturn(scope);
 
-        service.countTotal();
+        service.countTotal(CaseFormType.FORM058);
 
-        verify(actStatsRepository).countTotal(scope, CaseFormType.ANY);
+        verify(actStatsRepository).countTotal(scope, CaseFormType.FORM058);
     }
 
     private Organization organization(Long id) {

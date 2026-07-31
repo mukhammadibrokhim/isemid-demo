@@ -106,11 +106,23 @@ public class DynamicCircuitBreakerLookup {
                     .filter(name -> name.equals(configName) || name.startsWith(configName + "-"))
                     .forEach(circuitBreakerRegistry::remove);
 
-            log.info("event=circuit_breaker_config_updated configName={} {}", configName, resolved);
+            log.info("event=circuit_breaker_config_updated configName={} failureRateThreshold={} "
+                            + "slidingWindowSize={} minimumNumberOfCalls={} waitDurationInOpenStateSeconds={} "
+                            + "slowCallRateThreshold={} slowCallDurationThresholdSeconds={} "
+                            + "permittedNumberOfCallsInHalfOpenState={} automaticTransitionFromOpenToHalfOpen={}",
+                    configName,
+                    resolved.failureRateThreshold(),
+                    resolved.slidingWindowSize(),
+                    resolved.minimumNumberOfCalls(),
+                    resolved.waitDurationInOpenStateSeconds(),
+                    resolved.slowCallRateThreshold(),
+                    resolved.slowCallDurationThresholdSeconds(),
+                    resolved.permittedNumberOfCallsInHalfOpenState(),
+                    resolved.automaticTransitionFromOpenToHalfOpen());
         } catch (IllegalArgumentException invalidThresholds) {
-            log.warn("event=circuit_breaker_config_update_rejected configName={} reason={} - "
+            log.warn("event=circuit_breaker_config_update_rejected configName={} failureType={} message={} - "
                             + "keeping the previously applied thresholds",
-                    configName, invalidThresholds.getMessage());
+                    configName, invalidThresholds.getClass().getSimpleName(), invalidThresholds.getMessage());
         }
     }
 

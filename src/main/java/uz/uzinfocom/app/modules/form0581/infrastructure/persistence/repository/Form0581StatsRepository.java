@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581MonthlyOutcomeCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581SourceCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
@@ -117,6 +118,27 @@ public class Form0581StatsRepository extends AbstractCaseStatsRepository<Form058
                 (root, cb) -> scopePredicateFactory.applyDirectionScope(root, cb, scope, received),
                 fromDate, toDate,
                 Form0581DailyCountResponse::new
+        );
+    }
+
+    /**
+     * Same as {@link #countByMonth}, plus a CANCELED/APPROVED breakdown per
+     * month — one {@code GROUP BY} query via {@link #countByDateBucketWithOutcomes},
+     * not two extra filtered queries or a Java-side count.
+     */
+    public List<Form0581MonthlyOutcomeCountResponse> countByMonthWithOutcomes(
+            ResolvedOrganizationScope scope,
+            Boolean received,
+            LocalDate fromDate,
+            LocalDate toDate
+    ) {
+        return countByDateBucketWithOutcomes(
+                "month",
+                (root, cb) -> scopePredicateFactory.applyDirectionScope(root, cb, scope, received),
+                fromDate, toDate,
+                (root, cb) -> cb.equal(root.get("status"), Form0581Status.CANCELED),
+                (root, cb) -> cb.equal(root.get("status"), Form0581Status.APPROVED),
+                Form0581MonthlyOutcomeCountResponse::new
         );
     }
 

@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import uz.uzinfocom.app.platform.iam.domain.enums.PermissionAction;
 
 import java.util.Set;
 
@@ -16,8 +15,8 @@ public record RolePermissionItemRequest(
         @Positive(message = "{permission.id.must_be_positive}")
         Long permissionId,
 
-        @Schema(description = "Список разрешенных действий для права доступа.", example = "[\"VIEW\", \"CREATE\"]")
+        @Schema(description = "Идентификаторы действий, разрешенных для права доступа.", example = "[1, 2]")
         @NotEmpty(message = "{permission.actions.required}")
-        Set<PermissionAction> actions
+        Set<Long> actionIds
 ) {
 }

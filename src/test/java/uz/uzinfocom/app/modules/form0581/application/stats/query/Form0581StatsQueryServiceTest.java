@@ -131,6 +131,19 @@ class Form0581StatsQueryServiceTest {
     }
 
     @Test
+    void countByMonthWithOutcomesIncomingResolvesReceivedTrue() {
+        CurrentOrganizationContext.set(organization(1L));
+        ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);
+        when(organizationScopeResolver.resolve(any())).thenReturn(scope);
+        LocalDate from = LocalDate.of(2026, 1, 1);
+        LocalDate to = LocalDate.of(2026, 6, 30);
+
+        service.countByMonthWithOutcomes(Form0581Direction.INCOMING, from, to);
+
+        verify(form0581StatsRepository).countByMonthWithOutcomes(scope, true, from, to);
+    }
+
+    @Test
     void countBySourceIncomingResolvesReceivedTrue() {
         CurrentOrganizationContext.set(organization(1L));
         ResolvedOrganizationScope scope = mock(ResolvedOrganizationScope.class);

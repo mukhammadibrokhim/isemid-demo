@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        ISEMID rollari (RoleSyncService#APP_ROLE_PREFIX = "isemid_") IAM tokenidagi
+        rol nomlariga qarab dinamik ravishda (birinchi marta faol bo'lmagan holatda)
+        yaratiladi, shuning uchun ularning tavsiflari uchun alohida seed topilmadi.
+        Ushbu changeSet mavjud "well-known" ISEMID rollari uchun 4 tildagi
+        (uz, ru, uz_cyril, kaa) tavsiflarni to'ldiradi: agar rol allaqachon mavjud
+        bo'lsa (masalan, placeholder sifatida), faqat description_* ustunlari
+        yangilanadi; active/deleted holati o'zgartirilmaydi.
+    -->
+    <changeSet id="20260730-1000-01-seed-role-descriptions" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role"/>
+            <columnExists tableName="role" columnName="name"/>
+            <columnExists tableName="role" columnName="description_uz"/>
+            <columnExists tableName="role" columnName="description_ru"/>
+            <columnExists tableName="role" columnName="description_uz_cyril"/>
+            <columnExists tableName="role" columnName="description_kaa"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO role (name, active, deleted, version, created_at, updated_at,
+                               description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES ('isemid_super_admin', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                    'Tizimning barcha modullariga, sozlamalariga hamda foydalanuvchi, rol va tashkilotlarni boshqarish imkoniyatlariga to''liq kirish huquqiga ega yuqori darajadagi administrator.',
+                    'Администратор высшего уровня с полным доступом ко всем модулям, настройкам системы, а также к управлению пользователями, ролями и организациями.',
+                    'Тизимнинг барча модулларига, созламаларига ҳамда фойдаланувчи, рол ва ташкилотларни бошқариш имкониятларига тўлиқ кириш ҳуқуқига эга юқори даражадаги администратор.',
+                    'Sistemanıń barlıq modulleri men sazlamalarına, sonday-aq paydalanıwshı, rol hám shólkemlerdi basqarıw múmkinshiligine tolıq kirisiw huqıqına iye eń joqarı dárejedegi administrator.')
+            ON CONFLICT (name) DO UPDATE SET
+                description_uz = EXCLUDED.description_uz,
+                description_ru = EXCLUDED.description_ru,
+                description_uz_cyril = EXCLUDED.description_uz_cyril,
+                description_kaa = EXCLUDED.description_kaa;
+
+            INSERT INTO role (name, active, deleted, version, created_at, updated_at,
+                               description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES ('isemid_admin', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                    'Foydalanuvchilar, tashkilotlar va tizim sozlamalarining bir qismini boshqaradigan, ammo super administratordan farqli ravishda cheklangan huquqlarga ega bo''lgan administrator.',
+                    'Администратор, управляющий пользователями, организациями и частью настроек системы, но обладающий ограниченными, в отличие от супер-администратора, правами.',
+                    'Фойдаланувчилар, ташкилотлар ва тизим созламаларининг бир қисмини бошқарадиган, аммо супер администратордан фарқли равишда чекланган ҳуқуқларга эга бўлган администратор.',
+                    'Paydalanıwshılar, shólkemler hám sistema sazlamalarınıń bir bólegin basqaratuǵın, biraq super administratordan parıqlı túrde sheklengen huqıqlarǵa iye administrator.')
+            ON CONFLICT (name) DO UPDATE SET
+                description_uz = EXCLUDED.description_uz,
+                description_ru = EXCLUDED.description_ru,
+                description_uz_cyril = EXCLUDED.description_uz_cyril,
+                description_kaa = EXCLUDED.description_kaa;
+
+            INSERT INTO role (name, active, deleted, version, created_at, updated_at,
+                               description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES ('isemid_user', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                    'Tizimning asosiy funksiyalaridan (hujjatlarni ko''rish va o''z tashkiloti doirasida kundalik ish jarayonlarini yuritish) foydalanadigan oddiy (bazaviy) foydalanuvchi.',
+                    'Обычный (базовый) пользователь, использующий основные функции системы: просмотр документов и ведение повседневной работы в рамках своей организации.',
+                    'Тизимнинг асосий функцияларидан (ҳужжатларни кўриш ва ўз ташкилоти доирасида кундалик иш жараёнларини юритиш) фойдаланадиган оддий (базавий) фойдаланувчи.',
+                    'Sistemanıń tiykarǵı funksiyaların (hújjetlerdi kóriw hám óz shólkemi sheńberinde kúndelik jumıs processlerin júrgiziw) paydalanatuǵın ápiwayı (baza) paydalanıwshı.')
+            ON CONFLICT (name) DO UPDATE SET
+                description_uz = EXCLUDED.description_uz,
+                description_ru = EXCLUDED.description_ru,
+                description_uz_cyril = EXCLUDED.description_uz_cyril,
+                description_kaa = EXCLUDED.description_kaa;
+
+            INSERT INTO role (name, active, deleted, version, created_at, updated_at,
+                               description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES ('isemid_doctor', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                    'Bemorlar bilan bevosita ishlaydigan, tibbiy kartalar, aktlar va yuqumli kasalliklar to''g''risidagi bildirishnomalarni (058/0581-shakl) tizimga kiritadigan shifokor.',
+                    'Врач, работающий непосредственно с пациентами и вносящий в систему медицинские карты, акты и извещения об инфекционных заболеваниях (формы 058/0581).',
+                    'Беморлар билан бевосита ишлайдиган, тиббий карталар, актлар ва юқумли касалликлар тўғрисидаги билдиришномаларни (058/0581-шакл) тизимга киритадиган шифокор.',
+                    'Naw qaslar menen tikkeley islep, medicinalıq kartalardı, aktlerdi hám juqpalı keselliklar haqqındaǵı xabarlamalardı (058/0581-forma) sistemaǵa kirgizetuǵın dári-ger.')
+            ON CONFLICT (name) DO UPDATE SET
+                description_uz = EXCLUDED.description_uz,
+                description_ru = EXCLUDED.description_ru,
+                description_uz_cyril = EXCLUDED.description_uz_cyril,
+                description_kaa = EXCLUDED.description_kaa;
+
+            INSERT INTO role (name, active, deleted, version, created_at, updated_at,
+                               description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES ('isemid_epidemiologist', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                    'Yuqumli kasalliklar o''chog''ini epidemiologik tekshirish (akt) o''tkazadigan, statistik hisobotlar va tahlillarni yurituvchi epidemiolog mutaxassis.',
+                    'Специалист-эпидемиолог, проводящий эпидемиологическое обследование очагов инфекционных заболеваний (акт), а также ведущий статистическую отчётность и анализ.',
+                    'Юқумли касалликлар ўчоғини эпидемиологик текшириш (акт) ўтказадиган, статистик ҳисоботлар ва таҳлилларни юритувчи эпидемиолог мутахассис.',
+                    'Juqpalı keselliklerdiń oshaǵın epidemiologiyalıq tekseriw (akt) ótkizetuǵın, statistikalıq esabatlar hám tallawlardı júrgizetuǵın epidemiolog qánigesi.')
+            ON CONFLICT (name) DO UPDATE SET
+                description_uz = EXCLUDED.description_uz,
+                description_ru = EXCLUDED.description_ru,
+                description_uz_cyril = EXCLUDED.description_uz_cyril,
+                description_kaa = EXCLUDED.description_kaa;
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>

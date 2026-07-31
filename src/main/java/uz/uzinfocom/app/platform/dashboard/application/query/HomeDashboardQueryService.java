@@ -30,12 +30,14 @@ import java.util.function.Supplier;
 
 /**
  * The general ("everyone") home dashboard — a lightweight overview: medical
- * institutions and users in scope, nothing case/module-specific. Every
- * module's own statistics (form058, form058-1, card, act, ...) live behind
- * their own {@code /v1/dashboard/home/{module}} endpoint instead ({@link
- * Form058DashboardQueryService}, {@link Form0581DashboardQueryService},
- * {@link CardDashboardQueryService}, {@link ActDashboardQueryService}) - this
- * endpoint intentionally never computes any of that, so it stays cheap
+ * institutions and users in scope, nothing case/module-specific. Each of the
+ * two case modules' own statistics (form058, form058-1 — including their
+ * own cards/acts breakdown) live behind their own {@code
+ * /v1/dashboard/home/{module}} endpoint instead ({@link
+ * Form058DashboardQueryService}, {@link Form0581DashboardQueryService}) -
+ * {@code card}/{@code act} are not valid {@code module} values on their own,
+ * their statistics are embedded in form058/form058-1's response instead -
+ * this endpoint intentionally never computes any of that, so it stays cheap
  * enough to load unconditionally on every dashboard visit regardless of
  * which module the caller actually cares about.
  */

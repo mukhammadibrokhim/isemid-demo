@@ -32,11 +32,6 @@ public class CardStatsQueryService {
     private final CardStatsRepository cardStatsRepository;
     private final OrganizationScopeResolver organizationScopeResolver;
 
-    /** Year-to-date, across both form058- and form0581-owned cards — the standalone card dashboard's breakdown. */
-    public List<CardStatusCountResponse> countByStatus() {
-        return countByStatus(CaseFormType.ANY);
-    }
-
     /** Year-to-date, restricted to cards owned by one case type — used to embed a per-form breakdown in that form's own dashboard. */
     public List<CardStatusCountResponse> countByStatus(CaseFormType formType) {
         return cardStatsRepository.countByStatus(currentScope(), formType);
@@ -50,19 +45,9 @@ public class CardStatsQueryService {
         return cardStatsRepository.countByMonth(currentScope(), from, to);
     }
 
-    /** Year-to-date, across both form058- and form0581-owned cards. */
-    public long countTotal() {
-        return countTotal(CaseFormType.ANY);
-    }
-
     /** Year-to-date, restricted to cards owned by one case type. */
     public long countTotal(CaseFormType formType) {
         return cardStatsRepository.countTotal(currentScope(), formType);
-    }
-
-    /** Year-to-date, across both form058- and form0581-owned cards. */
-    public long countActive() {
-        return countActive(CaseFormType.ANY);
     }
 
     /** Year-to-date, restricted to cards owned by one case type. */

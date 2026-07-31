@@ -3,7 +3,6 @@ package uz.uzinfocom.app.platform.iam.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import uz.uzinfocom.app.platform.iam.domain.enums.PermissionAction;
 import uz.uzinfocom.app.platform.persistence.entity.AuditableEntity;
 
 import java.util.LinkedHashSet;
@@ -39,12 +38,11 @@ public class RolePermission extends AuditableEntity {
     private Permission permission;
 
     @Builder.Default
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
             name = "role_permission_actions",
-            joinColumns = @JoinColumn(name = "role_permission_id")
+            joinColumns = @JoinColumn(name = "role_permission_id"),
+            inverseJoinColumns = @JoinColumn(name = "action_id")
     )
-    @Enumerated(EnumType.STRING)
-    @Column(name = "action", nullable = false, length = 50)
-    private Set<PermissionAction> actions = new LinkedHashSet<>();
+    private Set<Action> actions = new LinkedHashSet<>();
 }

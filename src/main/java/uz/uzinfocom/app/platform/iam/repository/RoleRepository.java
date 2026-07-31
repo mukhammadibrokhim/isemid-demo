@@ -67,14 +67,17 @@ public interface RoleRepository extends JpaRepository<Role, Long>, JpaSpecificat
             'PERMISSION_',
             upper(p.subject),
             '_',
-            upper(cast(rpa.action as text))
+            upper(a.code)
         )
         from role_permissions rp
         join permission p on p.id = rp.permission_id
         join role_permission_actions rpa on rpa.role_permission_id = rp.id
+        join action a on a.id = rpa.action_id
         where rp.role_id in (:roleIds)
           and p.active = true
           and p.deleted_at is null
+          and a.active = true
+          and a.deleted_at is null
         """, nativeQuery = true)
     Set<String> findPermissionAuthorityNamesByRoleIds(@Param("roleIds") Collection<Long> roleIds);
 }

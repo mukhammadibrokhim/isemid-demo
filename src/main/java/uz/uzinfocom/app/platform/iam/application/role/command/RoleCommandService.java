@@ -13,10 +13,11 @@ import uz.uzinfocom.app.platform.iam.application.role.command.dto.RolePermission
 import uz.uzinfocom.app.platform.iam.application.role.command.dto.RoleUpdateRequest;
 import uz.uzinfocom.app.platform.iam.application.role.query.RoleQueryService;
 import uz.uzinfocom.app.platform.iam.application.role.query.dto.RoleDetailResponse;
+import uz.uzinfocom.app.platform.iam.domain.Action;
 import uz.uzinfocom.app.platform.iam.domain.Permission;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.RolePermission;
-import uz.uzinfocom.app.platform.iam.domain.enums.PermissionAction;
+import uz.uzinfocom.app.platform.iam.repository.ActionRepository;
 import uz.uzinfocom.app.platform.iam.repository.PermissionRepository;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
 import uz.uzinfocom.app.shared.exception.ConflictException;
@@ -24,14 +25,18 @@ import uz.uzinfocom.app.shared.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class RoleCommandService {
 
+    private static final String MANAGE_ACTION_CODE = "MANAGE";
+
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final ActionRepository actionRepository;
     private final RoleQueryService roleQueryService;
 
     @Transactional
@@ -150,11 +155,12 @@ public class RoleCommandService {
     public RoleDetailResponse addPermissions(Long roleId, RolePermissionUpdateRequest request) {
         Role role = getAvailableRole(roleId);
 
-        Map<Long, Set<PermissionAction>> requestedPermissions = normalizeRequest(request);
+        Long manageActionId = resolveManageActionId();
+        Map<Long, Set<Long>> requestedPermissions = normalizeRequest(request, manageActionId);
 
-        for (Map.Entry<Long, Set<PermissionAction>> entry : requestedPermissions.entrySet()) {
+        for (Map.Entry<Long, Set<Long>> entry : requestedPermissions.entrySet()) {
             Long permissionId = entry.getKey();
-            Set<PermissionAction> requestedActions = entry.getValue();
+            Set<Long> requestedActionIds = entry.getValue();
 
             Permission permission = getAvailablePermission(permissionId);
 
@@ -163,17 +169,18 @@ public class RoleCommandService {
             if (existingRolePermission.isPresent()) {
                 RolePermission rolePermission = existingRolePermission.get();
 
-                Set<PermissionAction> mergedActions = mergeActions(
-                        rolePermission.getActions(),
-                        requestedActions
-                );
+                Set<Long> existingActionIds = rolePermission.getActions().stream()
+                        .map(Action::getId)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
 
-                rolePermission.setActions(mergedActions);
+                Set<Long> mergedActionIds = mergeActionIds(existingActionIds, requestedActionIds, manageActionId);
+
+                rolePermission.setActions(resolveActions(mergedActionIds));
             } else {
                 RolePermission rolePermission = RolePermission.builder()
                         .role(role)
                         .permission(permission)
-                        .actions(requestedActions)
+                        .actions(resolveActions(requestedActionIds))
                         .build();
 
                 role.getRolePermissions().add(rolePermission);
@@ -200,20 +207,21 @@ public class RoleCommandService {
     public RoleDetailResponse replacePermissions(Long roleId, RolePermissionUpdateRequest request) {
         Role role = getAvailableRole(roleId);
 
-        Map<Long, Set<PermissionAction>> requestedPermissions = normalizeRequest(request);
+        Long manageActionId = resolveManageActionId();
+        Map<Long, Set<Long>> requestedPermissions = normalizeRequest(request, manageActionId);
 
         Set<RolePermission> newRolePermissions = new LinkedHashSet<>();
 
-        for (Map.Entry<Long, Set<PermissionAction>> entry : requestedPermissions.entrySet()) {
+        for (Map.Entry<Long, Set<Long>> entry : requestedPermissions.entrySet()) {
             Long permissionId = entry.getKey();
-            Set<PermissionAction> actions = entry.getValue();
+            Set<Long> actionIds = entry.getValue();
 
             Permission permission = getAvailablePermission(permissionId);
 
             RolePermission rolePermission = RolePermission.builder()
                     .role(role)
                     .permission(permission)
-                    .actions(actions)
+                    .actions(resolveActions(actionIds))
                     .build();
 
             newRolePermissions.add(rolePermission);
@@ -246,11 +254,12 @@ public class RoleCommandService {
     public RoleDetailResponse removePermissions(Long roleId, RolePermissionUpdateRequest request) {
         Role role = getAvailableRole(roleId);
 
-        Map<Long, Set<PermissionAction>> requestedPermissions = normalizeRequest(request);
+        Long manageActionId = resolveManageActionId();
+        Map<Long, Set<Long>> requestedPermissions = normalizeRequest(request, manageActionId);
 
-        for (Map.Entry<Long, Set<PermissionAction>> entry : requestedPermissions.entrySet()) {
+        for (Map.Entry<Long, Set<Long>> entry : requestedPermissions.entrySet()) {
             Long permissionId = entry.getKey();
-            Set<PermissionAction> actionsToRemove = entry.getValue();
+            Set<Long> actionIdsToRemove = entry.getValue();
 
             validatePermissionExists(permissionId);
 
@@ -263,16 +272,19 @@ public class RoleCommandService {
                     continue;
                 }
 
-                if (actionsToRemove.contains(PermissionAction.MANAGE)) {
+                if (manageActionId != null && actionIdsToRemove.contains(manageActionId)) {
                     iterator.remove();
                     break;
                 }
 
-                if (rolePermission.getActions().contains(PermissionAction.MANAGE)) {
+                boolean hasManage = manageActionId != null && rolePermission.getActions().stream()
+                        .anyMatch(action -> Objects.equals(action.getId(), manageActionId));
+
+                if (hasManage) {
                     throw new ConflictException("role.permission.manage_remove_conflict", permissionId);
                 }
 
-                rolePermission.getActions().removeAll(actionsToRemove);
+                rolePermission.getActions().removeIf(action -> actionIdsToRemove.contains(action.getId()));
 
                 if (rolePermission.getActions().isEmpty()) {
                     iterator.remove();
@@ -322,6 +334,33 @@ public class RoleCommandService {
         }
     }
 
+    private Action getAvailableAction(Long actionId) {
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new NotFoundException("action.not_found_by_id", actionId));
+
+        if (!action.isAvailableForAuthorization()) {
+            throw new ConflictException("action.not_available", actionId);
+        }
+
+        return action;
+    }
+
+    private Set<Action> resolveActions(Set<Long> actionIds) {
+        Set<Action> actions = new LinkedHashSet<>();
+
+        for (Long actionId : actionIds) {
+            actions.add(getAvailableAction(actionId));
+        }
+
+        return actions;
+    }
+
+    private Long resolveManageActionId() {
+        return actionRepository.findByCodeIgnoreCase(MANAGE_ACTION_CODE)
+                .map(Action::getId)
+                .orElse(null);
+    }
+
     private Optional<RolePermission> findRolePermission(Role role, Long permissionId) {
         return role.getRolePermissions()
                 .stream()
@@ -335,23 +374,23 @@ public class RoleCommandService {
      * Normalizes request:
      * <p>
      * 1. Duplicate permissionId values are merged.
-     * 2. If MANAGE exists, all other actions are ignored.
+     * 2. If the MANAGE action is present, all other actions are ignored.
      * <p>
      * Example:
-     * permissionId=1 actions=[READ]
-     * permissionId=1 actions=[UPDATE]
-     * Result: permissionId=1 actions=[READ, UPDATE]
+     * permissionId=1 actionIds=[readId]
+     * permissionId=1 actionIds=[updateId]
+     * Result: permissionId=1 actionIds=[readId, updateId]
      * <p>
      * Example:
-     * permissionId=1 actions=[READ, MANAGE]
-     * Result: permissionId=1 actions=[MANAGE]
+     * permissionId=1 actionIds=[readId, manageId]
+     * Result: permissionId=1 actionIds=[manageId]
      */
-    private Map<Long, Set<PermissionAction>> normalizeRequest(RolePermissionUpdateRequest request) {
+    private Map<Long, Set<Long>> normalizeRequest(RolePermissionUpdateRequest request, Long manageActionId) {
         if (request == null || request.permissions() == null || request.permissions().isEmpty()) {
             throw new ConflictException("permission.actions.required");
         }
 
-        Map<Long, Set<PermissionAction>> normalized = new LinkedHashMap<>();
+        Map<Long, Set<Long>> normalized = new LinkedHashMap<>();
 
         for (RolePermissionItemRequest item : request.permissions()) {
             Long permissionId = item.permissionId();
@@ -360,42 +399,43 @@ public class RoleCommandService {
                 throw new ConflictException("permission.id.required");
             }
 
-            Set<PermissionAction> actions = normalizeActions(item.actions());
+            Set<Long> actionIds = normalizeActions(item.actionIds(), manageActionId);
 
-            normalized.merge(permissionId, actions, this::mergeActions);
+            normalized.merge(permissionId, actionIds, (existing, incoming) -> mergeActionIds(existing, incoming, manageActionId));
         }
 
         return normalized;
     }
 
-    private Set<PermissionAction> normalizeActions(Set<PermissionAction> actions) {
-        if (actions == null || actions.isEmpty()) {
+    private Set<Long> normalizeActions(Set<Long> actionIds, Long manageActionId) {
+        if (actionIds == null || actionIds.isEmpty()) {
             throw new ConflictException("permission.actions.required");
         }
 
-        if (actions.contains(PermissionAction.MANAGE)) {
-            return new LinkedHashSet<>(Set.of(PermissionAction.MANAGE));
+        if (manageActionId != null && actionIds.contains(manageActionId)) {
+            return new LinkedHashSet<>(Set.of(manageActionId));
         }
 
-        return new LinkedHashSet<>(actions);
+        return new LinkedHashSet<>(actionIds);
     }
 
-    private Set<PermissionAction> mergeActions(
-            Set<PermissionAction> existingActions,
-            Set<PermissionAction> requestedActions
+    private Set<Long> mergeActionIds(
+            Set<Long> existingActionIds,
+            Set<Long> requestedActionIds,
+            Long manageActionId
     ) {
-        Set<PermissionAction> result = new LinkedHashSet<>();
+        Set<Long> result = new LinkedHashSet<>();
 
-        if (existingActions != null) {
-            result.addAll(existingActions);
+        if (existingActionIds != null) {
+            result.addAll(existingActionIds);
         }
 
-        if (requestedActions != null) {
-            result.addAll(requestedActions);
+        if (requestedActionIds != null) {
+            result.addAll(requestedActionIds);
         }
 
-        if (result.contains(PermissionAction.MANAGE)) {
-            return new LinkedHashSet<>(Set.of(PermissionAction.MANAGE));
+        if (manageActionId != null && result.contains(manageActionId)) {
+            return new LinkedHashSet<>(Set.of(manageActionId));
         }
 
         return result;

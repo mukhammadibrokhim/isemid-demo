@@ -29,11 +29,6 @@ public class ActStatsQueryService {
     private final ActStatsRepository actStatsRepository;
     private final OrganizationScopeResolver organizationScopeResolver;
 
-    /** Year-to-date, across both form058- and form0581-owned acts — the standalone act dashboard's breakdown. */
-    public List<ActStatusCountResponse> countByStatus() {
-        return countByStatus(CaseFormType.ANY);
-    }
-
     /** Year-to-date, restricted to acts whose card is owned by one case type — used to embed a per-form breakdown in that form's own dashboard. */
     public List<ActStatusCountResponse> countByStatus(CaseFormType formType) {
         return actStatsRepository.countByStatus(currentScope(), formType);
@@ -41,11 +36,6 @@ public class ActStatsQueryService {
 
     public List<ActDailyCountResponse> countByMonth(LocalDate from, LocalDate to) {
         return actStatsRepository.countByMonth(currentScope(), from, to);
-    }
-
-    /** Year-to-date, across both form058- and form0581-owned acts. */
-    public long countTotal() {
-        return countTotal(CaseFormType.ANY);
     }
 
     /** Year-to-date, restricted to acts whose card is owned by one case type. */

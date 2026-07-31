@@ -180,6 +180,73 @@ public abstract class AbstractCaseStatsRepository<T> {
                 .toList();
     }
 
+    /**
+     * Same shape as {@link #countByDateBucket}, plus two extra conditional
+     * counts per bucket (e.g. "how many of this month's rows are CANCELED",
+     * "... are APPROVED") — a single {@code GROUP BY} query computing
+     * {@code SUM(CASE WHEN <condition> THEN 1 ELSE 0 END)} per condition
+     * alongside the plain {@code COUNT(*)}, so a caller never has to run one
+     * query per outcome or filter+count in Java.
+     */
+    protected <R> List<R> countByDateBucketWithOutcomes(
+            String unit,
+            BiFunction<Root<T>, CriteriaBuilder, Predicate> filterFn,
+            LocalDate fromDate,
+            LocalDate toDate,
+            BiFunction<Root<T>, CriteriaBuilder, Predicate> outcome1Predicate,
+            BiFunction<Root<T>, CriteriaBuilder, Predicate> outcome2Predicate,
+            DateBucketOutcomeMapper<R> mapper
+    ) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+        Root<T> root = query.from(entityClass);
+
+        Expression<Instant> bucket = cb.function(
+                "date_trunc", Instant.class, cb.literal(unit), root.get("createdAt")
+        );
+        Expression<Long> outcome1Count = cb.sum(
+                cb.<Long>selectCase().when(outcome1Predicate.apply(root, cb), 1L).otherwise(0L)
+        );
+        Expression<Long> outcome2Count = cb.sum(
+                cb.<Long>selectCase().when(outcome2Predicate.apply(root, cb), 1L).otherwise(0L)
+        );
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(notDeleted(root, cb));
+        if (filterFn != null) {
+            predicates.add(filterFn.apply(root, cb));
+        }
+        if (fromDate != null) {
+            predicates.add(cb.greaterThanOrEqualTo(
+                    root.get("createdAt"), fromDate.atStartOfDay(APPLICATION_ZONE).toInstant()
+            ));
+        }
+        if (toDate != null) {
+            predicates.add(cb.lessThan(
+                    root.get("createdAt"), toDate.plusDays(1).atStartOfDay(APPLICATION_ZONE).toInstant()
+            ));
+        }
+
+        query.select(cb.tuple(bucket, cb.count(root), outcome1Count, outcome2Count))
+                .where(cb.and(predicates.toArray(Predicate[]::new)))
+                .groupBy(bucket)
+                .orderBy(cb.asc(bucket));
+
+        return entityManager.createQuery(query).getResultList().stream()
+                .map(tuple -> mapper.apply(
+                        ((Instant) tuple.get(0)).atZone(APPLICATION_ZONE).toLocalDate(),
+                        (Long) tuple.get(1),
+                        (Long) tuple.get(2),
+                        (Long) tuple.get(3)
+                ))
+                .toList();
+    }
+
+    @FunctionalInterface
+    protected interface DateBucketOutcomeMapper<R> {
+        R apply(LocalDate periodStart, long total, long outcome1Count, long outcome2Count);
+    }
+
     private Predicate combinedPredicate(
             Root<T> root,
             CriteriaBuilder cb,

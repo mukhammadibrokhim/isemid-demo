@@ -1,7 +1,6 @@
 package uz.uzinfocom.app.platform.iam.application.role.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.domain.enums.PermissionAction;
 
 import java.util.Set;
 
@@ -27,9 +26,8 @@ public record RolePermissionResponse(
         String description,
 
         @Schema(
-                description = "Действия, назначенные разрешению.",
-                example = "[\"READ\", \"CREATE\"]"
+                description = "Действия, назначенные разрешению."
         )
-        Set<PermissionAction> actions
+        Set<RolePermissionActionResponse> actions
 ) {
 }

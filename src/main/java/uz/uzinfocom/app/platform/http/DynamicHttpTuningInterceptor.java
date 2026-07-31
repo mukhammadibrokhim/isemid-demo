@@ -102,11 +102,20 @@ public class DynamicHttpTuningInterceptor implements ClientHttpRequestIntercepto
         try {
             applyToClient(resolved);
             applied.set(resolved);
-            log.info("event=http_client_tuning_updated name={} {}", name, resolved);
+            log.info("event=http_client_tuning_updated name={} connectTimeoutMillis={} readTimeoutMillis={} "
+                            + "connectionRequestTimeoutMillis={} timeToLiveSeconds={} maxConnections={} "
+                            + "maxConnectionsPerRoute={}",
+                    name,
+                    resolved.connectTimeoutMillis(),
+                    resolved.readTimeoutMillis(),
+                    resolved.connectionRequestTimeoutMillis(),
+                    resolved.timeToLiveSeconds(),
+                    resolved.maxConnections(),
+                    resolved.maxConnectionsPerRoute());
         } catch (IllegalArgumentException invalidTuning) {
-            log.warn("event=http_client_tuning_update_rejected name={} reason={} - "
+            log.warn("event=http_client_tuning_update_rejected name={} failureType={} message={} - "
                             + "keeping the previously applied values",
-                    name, invalidTuning.getMessage());
+                    name, invalidTuning.getClass().getSimpleName(), invalidTuning.getMessage());
         }
     }
 
