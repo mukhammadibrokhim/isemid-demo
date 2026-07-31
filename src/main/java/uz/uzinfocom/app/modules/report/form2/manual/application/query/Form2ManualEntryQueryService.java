@@ -19,8 +19,6 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationName
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
-import uz.uzinfocom.app.platform.reference.domain.ManualReport;
-import uz.uzinfocom.app.platform.reference.repository.ManualReportRepository;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
@@ -28,10 +26,8 @@ import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,27 +38,17 @@ import java.util.stream.Collectors;
  * dates one year earlier" math (the same pattern {@code
  * Form3ReportQueryService} uses) instead of re-deriving either.
  * <p>
- * "Registered cases" is not every form058/form0581 primary notification —
- * only the ones whose diagnosis falls under a {@link ManualReport} tagged
- * with {@link #MANUAL_REPORT_TYPE_TAG}. An administrator groups whichever
- * MKB-10 codes belong to "Shakl №2" into one or more {@code ManualReport}
- * entries (see {@code ManualReportController}) and tags each with {@code
- * "FORM2"} in {@code reportTypes}; this class unions all of their {@code
- * mkb10Codes} at read time. No {@code ManualReport} tagged this way yet
- * means zero, not "count everything".
+ * "Registered cases" is every form058/form0581 primary notification created
+ * by the current organization in the given period — no diagnosis filtering.
  */
 @Service
 @RequiredArgsConstructor
 public class Form2ManualEntryQueryService {
 
-    /** {@code ManualReport.reportTypes} tag whose {@code mkb10Codes} count toward Shakl №2. */
-    public static final String MANUAL_REPORT_TYPE_TAG = "FORM2";
-
     private final Form2ManualEntryRepository form2ManualEntryRepository;
     private final Form2ManualEntrySpecification form2ManualEntrySpecification;
     private final Form2ManualEntryMapper form2ManualEntryMapper;
     private final Form2ReportRepository form2ReportRepository;
-    private final ManualReportRepository manualReportRepository;
     private final ReportDateRangeResolver reportDateRangeResolver;
     private final OrganizationRepository organizationRepository;
     private final OrganizationScopeResolver organizationScopeResolver;
@@ -121,28 +107,17 @@ public class Form2ManualEntryQueryService {
      */
     public RegisteredCaseCounts registeredCaseCounts(Long organizationId, LocalDate from, LocalDate to) {
         List<Long> organizationIds = List.of(organizationId);
-        Set<String> mkb10Codes = manualReportMkb10Codes();
 
-        long currentYear = countTotal(organizationIds, mkb10Codes, from, to, 0);
-        long lastYear = countTotal(organizationIds, mkb10Codes, from, to, 1);
+        long currentYear = countTotal(organizationIds, from, to, 0);
+        long lastYear = countTotal(organizationIds, from, to, 1);
 
         return new RegisteredCaseCounts(lastYear, currentYear);
     }
 
-    /** Unions {@code mkb10Codes} across every non-deleted {@link ManualReport} tagged {@link #MANUAL_REPORT_TYPE_TAG}. */
-    private Set<String> manualReportMkb10Codes() {
-        return manualReportRepository.findAllByReportTypeAndDeletedFalse(MANUAL_REPORT_TYPE_TAG)
-                .stream()
-                .flatMap(manualReport -> manualReport.getMkb10Codes().stream())
-                .collect(Collectors.toCollection(HashSet::new));
-    }
-
-    private long countTotal(
-            List<Long> organizationIds, Set<String> mkb10Codes, LocalDate from, LocalDate to, long yearsAgo
-    ) {
+    private long countTotal(List<Long> organizationIds, LocalDate from, LocalDate to, long yearsAgo) {
         ReportDateRange range = reportDateRangeResolver.resolve(from, to, yearsAgo);
         return form2ReportRepository
-                .countTotalByMkb10Codes(organizationIds, range.fromInclusive(), range.toExclusive(), mkb10Codes)
+                .countTotal(organizationIds, range.fromInclusive(), range.toExclusive())
                 .total();
     }
 

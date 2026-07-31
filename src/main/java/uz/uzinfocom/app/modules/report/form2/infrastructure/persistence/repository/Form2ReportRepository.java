@@ -8,13 +8,12 @@ import uz.uzinfocom.app.modules.report.form2.application.query.dto.Form2Organiza
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * "Form 2" — native SQL aggregation across {@code form058} and {@code
- * form058_1}, filtered by a caller-supplied set of MKB-10 codes over an
- * arbitrary {@code [fromInclusive, toExclusive)} range. Mirrors {@code
+ * form058_1} over an arbitrary {@code [fromInclusive, toExclusive)} range,
+ * with no diagnosis filtering. Mirrors {@code
  * Form1ReportRepository}: a single Criteria-API query can't span two
  * unrelated entity roots, so this UNIONs both tables' rows first — each
  * branch pre-filtered on sender/status/created_at so the planner can use
@@ -67,15 +66,13 @@ public class Form2ReportRepository {
             """;
 
     /**
-     * Filters by a set of MKB-10 codes ({@code in (:mkb10Codes)}) — used by
-     * {@code Form2ManualEntryQueryService} to count only the diagnoses
-     * belonging to whichever {@code ManualReport} entries are tagged for
-     * "Shakl №2". A plain {@code in (:param)} bind is fine here (unlike
-     * {@code organizationIds} above): the set is a handful of disease
-     * codes, never anywhere near the ~1000-row scale that made {@code =
-     * any(...)}/{@code IN} problematic for organization ids.
+     * Every PRIMARY (not yet resolved) form058/form058_1 notification
+     * created in {@code [fromInclusive, toExclusive)} for the given
+     * organizations — no diagnosis filtering, used by {@code
+     * Form2ManualEntryQueryService} for the "Shakl №2" registered-case
+     * counts.
      */
-    private static final String UNION_SOURCE_MKB10_TEMPLATE = """
+    private static final String UNION_SOURCE_TEMPLATE = """
             select f.sender_organization_id, p.category_code
             from form058 f
             join patient p on p.id = f.patient_id
@@ -83,7 +80,6 @@ public class Form2ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and (f.mkb10_code in (:mkb10Codes) or f.final_mkb10_code in (:mkb10Codes))
             union all
             select f.sender_organization_id, p.category_code
             from form058_1 f
@@ -92,32 +88,23 @@ public class Form2ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and (f.mkb10_code in (:mkb10Codes) or f.final_mkb10_code in (:mkb10Codes))
             """;
 
     private final EntityManager entityManager;
 
-    /**
-     * A single, unattributed total row across every given organization id,
-     * restricted to cases whose diagnosis is in {@code mkb10Codes} — an
-     * empty/null code set means "nothing to count" (zero), not "no
-     * filter", since an empty set here means no {@code ManualReport} is
-     * configured for the caller yet.
-     */
-    public Form2OrganizationCountProjection countTotalByMkb10Codes(
+    /** A single, unattributed total row across every given organization id. */
+    public Form2OrganizationCountProjection countTotal(
             List<Long> organizationIds,
             Instant fromInclusive,
-            Instant toExclusive,
-            Set<String> mkb10Codes
+            Instant toExclusive
     ) {
-        if (organizationIds == null || organizationIds.isEmpty() || mkb10Codes == null || mkb10Codes.isEmpty()) {
+        if (organizationIds == null || organizationIds.isEmpty()) {
             return Form2OrganizationCountProjection.empty(null);
         }
 
-        Query query = entityManager.createNativeQuery(totalMkb10Sql(organizationIds))
+        Query query = entityManager.createNativeQuery(totalSql(organizationIds))
                 .setParameter("fromInclusive", fromInclusive)
-                .setParameter("toExclusive", toExclusive)
-                .setParameter("mkb10Codes", mkb10Codes);
+                .setParameter("toExclusive", toExclusive);
 
         List<?> rows = query.getResultList();
         return rows.isEmpty()
@@ -125,13 +112,13 @@ public class Form2ReportRepository {
                 : toProjection((Object[]) rows.getFirst(), false);
     }
 
-    private String totalMkb10Sql(List<Long> organizationIds) {
-        return "select " + AGGREGATE_COLUMNS + " from (" + unionMkb10Source(organizationIds) + ") t";
+    private String totalSql(List<Long> organizationIds) {
+        return "select " + AGGREGATE_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
     }
 
-    private String unionMkb10Source(List<Long> organizationIds) {
+    private String unionSource(List<Long> organizationIds) {
         String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
-        return UNION_SOURCE_MKB10_TEMPLATE.formatted(valuesList);
+        return UNION_SOURCE_TEMPLATE.formatted(valuesList);
     }
 
     private Form2OrganizationCountProjection toProjection(Object[] row, boolean hasOrganizationId) {
