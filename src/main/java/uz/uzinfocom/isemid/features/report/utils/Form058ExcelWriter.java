@@ -38,7 +38,7 @@ import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.catalogCacheK
 @RequiredArgsConstructor
 public class Form058ExcelWriter {
     private static final int HEADER_ROW_INDEX = 9;
-    private static final int BATCH_SIZE = 500;
+    private static final int BATCH_SIZE = 2000;
     private static final List<CatalogType> ADDRESS_CATALOG_TYPES =
             List.of(CatalogType.state, CatalogType.city, CatalogType.neighborhood);
 
