@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.form0581.application.command.update;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form0581.application.command.Form0581OtherInjuredPersonMapper;
@@ -15,7 +16,12 @@ import uz.uzinfocom.app.modules.patient.application.service.PatientIdentifierSyn
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.OrganizationReassignedEvent;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -25,11 +31,14 @@ public class UpdateForm0581Service {
     private final Form0581UpdateMapper form0581UpdateMapper;
     private final Form0581UpdateValidator form0581UpdateValidator;
     private final Form0581OtherInjuredPersonMapper otherInjuredPersonMapper;
+    private final CurrentUserProvider currentUserProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UpdateForm0581Result update(UpdateForm0581Command command) {
         Form0581 form0581 = findRequired(command.id());
         form0581UpdateValidator.validate(form0581, command);
+        Long oldReceiverOrganizationId = form0581.getReceiverOrganizationId();
         form0581UpdateMapper.update(command, form0581);
 
         if (command.otherInjuredPeople() != null) {
@@ -44,7 +53,18 @@ public class UpdateForm0581Service {
         }
 
         updatePatient(command.patient(), form0581.getPatient());
-        return form0581UpdateMapper.toResult(form0581Repository.save(form0581));
+        UpdateForm0581Result result = form0581UpdateMapper.toResult(form0581Repository.save(form0581));
+
+        Long newReceiverOrganizationId = form0581.getReceiverOrganizationId();
+        if (!Objects.equals(oldReceiverOrganizationId, newReceiverOrganizationId)) {
+            eventPublisher.publishEvent(new OrganizationReassignedEvent(
+                    AuditEntityType.FORM0581, form0581.getId(),
+                    oldReceiverOrganizationId, newReceiverOrganizationId,
+                    currentUserProvider.userIdOrNull()
+            ));
+        }
+
+        return result;
     }
 
     private Form0581 findRequired(Long id) {

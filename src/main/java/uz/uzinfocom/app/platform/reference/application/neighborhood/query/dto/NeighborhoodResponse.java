@@ -10,6 +10,8 @@ public record NeighborhoodResponse(
         String code,
         @Schema(description = "Код родительского района для данной махалли.", example = "AN-202")
         String parentCode,
+        @Schema(description = "ИНН (TIN) махалли.", example = "202853324")
+        String tin,
         @Schema(description = "Наименование махалли на узбекском языке (латиница).", example = "Dalvarzin")
         String nameUz,
         @Schema(description = "Наименование махалли на узбекском языке (кириллица).", example = "Далварзин")

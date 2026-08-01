@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.act.application.command;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
@@ -21,6 +22,9 @@ import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
 import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
@@ -61,6 +65,7 @@ public class ActCommandService {
     private final UserRepository userRepository;
     private final ActTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Bulk-assigns one blank act per distinct requested {@code actType} to a
@@ -94,7 +99,10 @@ public class ActCommandService {
                 })
                 .toList();
 
-        actRepository.saveAll(acts);
+        List<Act> saved = actRepository.saveAll(acts);
+        saved.forEach(act -> eventPublisher.publishEvent(
+                new EntityCreatedEvent(AuditEntityType.ACT, act.getId(), assignedById)
+        ));
     }
 
     /**
@@ -115,10 +123,12 @@ public class ActCommandService {
             throw new UnsupportedActTypeException(request.type());
         }
 
+        String oldStatus = act.getActStatus().name();
         ActTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
         handler.handleUpdate(act, request);
         act.setActStatus(ActStatus.IN_PROGRESS);
         Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
         return handler.handleToResponse(saved);
     }
 
@@ -135,8 +145,10 @@ public class ActCommandService {
                 act.getActStatus() == ActStatus.IN_PROGRESS || act.getActStatus() == ActStatus.SEND_FAILED,
                 act.getActStatus()
         );
+        String oldStatus = act.getActStatus().name();
         act.setActStatus(ActStatus.READY);
-        actRepository.save(act);
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
     }
 
     /**
@@ -160,9 +172,12 @@ public class ActCommandService {
                 act.getActStatus() == ActStatus.READY || act.getActStatus() == ActStatus.SEND_FAILED,
                 act.getActStatus()
         );
+        String oldStatus = act.getActStatus().name();
         act.getLisInfo().markSendAttempt();
         act.setActStatus(ActStatus.SENT);
-        return actRepository.save(act);
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
+        return saved;
     }
 
     /**
@@ -188,9 +203,11 @@ public class ActCommandService {
     public void recordLisSendFailure(Long actId, String errorDescription) {
         Act act = actRepository.findById(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
+        String oldStatus = act.getActStatus().name();
         act.setActStatus(ActStatus.SEND_FAILED);
         act.getLisInfo().setLastError(errorDescription);
-        actRepository.save(act);
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
     }
 
     /**
@@ -204,10 +221,19 @@ public class ActCommandService {
                 .orElseThrow(() -> new ActNotFoundException(actId));
         requireTransition(act.getActStatus() == ActStatus.SENT, act.getActStatus());
 
+        String oldStatus = act.getActStatus().name();
         act.getLisInfo().setActId(lisActId);
         act.getLisInfo().setResponse(response);
         act.setActStatus(ActStatus.COMPLETED);
-        actRepository.save(act);
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
+    }
+
+    private void publishStatusChange(Act act, String oldStatus) {
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.ACT, act.getId(), oldStatus, act.getActStatus().name(),
+                currentUserProvider.userIdOrNull(), null
+        ));
     }
 
     /**

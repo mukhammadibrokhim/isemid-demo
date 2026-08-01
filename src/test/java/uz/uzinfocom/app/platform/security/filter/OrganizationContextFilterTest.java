@@ -14,6 +14,8 @@ import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
+import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
@@ -44,10 +46,12 @@ class OrganizationContextFilterTest {
     private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService =
             mock(SelectedOrganizationSecurityCacheService.class);
     private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
+    private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
     private final OrganizationContextFilter filter = new OrganizationContextFilter(
             requestPolicyResolver,
             selectedOrganizationSecurityCacheService,
-            organizationRepository
+            organizationRepository,
+            integrationClientRepository
     );
 
     @AfterEach
@@ -123,6 +127,8 @@ class OrganizationContextFilterTest {
         request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
 
         when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+        when(integrationClientRepository.findByClientId("ic_test"))
+                .thenReturn(Optional.of(integrationClient(organizationId, null)));
         when(organizationRepository.findById(organizationId)).thenReturn(Optional.of(organization));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -134,6 +140,47 @@ class OrganizationContextFilterTest {
 
         assertThat(CurrentOrganizationContext.getOptional()).isEmpty();
         verifyNoInteractions(selectedOrganizationSecurityCacheService);
+    }
+
+    @Test
+    void rejectsIntegrationTokenRequestWhenCallerIpIsNotOnTheClientsAllowList() {
+        Long organizationId = 42L;
+        UUID organizationUuid = UUID.randomUUID();
+
+        IntegrationClientPrincipal principal =
+                new IntegrationClientPrincipal("ic_test", "dmed", organizationId, organizationUuid);
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "ic_test").build();
+        IntegrationClientAuthenticationToken authentication =
+                new IntegrationClientAuthenticationToken(jwt, principal, Set.of());
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/integration/v1/dmed/form-058");
+        request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
+        request.setRemoteAddr("203.0.113.5");
+
+        when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+        when(integrationClientRepository.findByClientId("ic_test"))
+                .thenReturn(Optional.of(integrationClient(organizationId, "10.0.0.0/24")));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(), mock(FilterChain.class)))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("integration.ip.not_allowed");
+
+        verifyNoInteractions(organizationRepository);
+    }
+
+    private IntegrationClient integrationClient(Long organizationId, String allowedIps) {
+        return IntegrationClient.builder()
+                .clientId("ic_test")
+                .clientSecretHash("hash")
+                .organizationId(organizationId)
+                .sourceKey("dmed")
+                .name("Test Client")
+                .scopes("form058:submit")
+                .allowedIps(allowedIps)
+                .active(true)
+                .build();
     }
 
     @Test

@@ -36,6 +36,17 @@ public final class NeighborhoodSpecification {
                 predicates.add(cb.equal(root.get("soatoId"), request.soatoId()));
             }
 
+            if (StringUtils.hasText(request.parentCode())) {
+                predicates.add(cb.equal(
+                        cb.upper(root.get("parentCode")),
+                        request.parentCode().trim().toUpperCase(Locale.ROOT)
+                ));
+            }
+
+            if (request.parentSoatoId() != null) {
+                predicates.add(cb.equal(root.get("parentSoatoId"), request.parentSoatoId()));
+            }
+
             if (StringUtils.hasText(request.name())) {
                 String name = like(request.name());
                 predicates.add(cb.or(

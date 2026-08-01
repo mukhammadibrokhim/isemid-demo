@@ -36,6 +36,11 @@ public record IntegrationClientCreateRequest(
 
         @Schema(description = "Права доступа, предоставляемые клиенту.", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotEmpty(message = "{integration-client.scopes.required}")
-        List<IntegrationScope> scopes
+        List<IntegrationScope> scopes,
+
+        @Schema(description = "IPv4-адреса или CIDR-блоки, с которых разрешено обращаться этому клиенту "
+                + "(например, \"10.0.5.0/24\"). Не указано или пусто — ограничений нет.",
+                example = "10.0.5.0/24", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        List<@NotBlank(message = "{integration-client.allowed-ips.invalid}") String> allowedIps
 ) {
 }

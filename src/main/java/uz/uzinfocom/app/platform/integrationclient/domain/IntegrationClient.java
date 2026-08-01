@@ -58,6 +58,15 @@ public class IntegrationClient extends AuditableEntity {
     @Column(nullable = false, length = 500)
     private String scopes;
 
+    /**
+     * Comma-separated IPv4 literals/CIDR blocks this client may call from,
+     * e.g. {@code "10.0.5.0/24,10.0.6.7"}. Null or blank means unrestricted -
+     * every existing client predates this column and must keep working
+     * unchanged until an admin opts it into a whitelist.
+     */
+    @Column(name = "allowed_ips", length = 1000)
+    private String allowedIps;
+
     @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;

@@ -44,6 +44,22 @@ public class ActQueryController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
+            summary = "Список актов",
+            description = "Возвращает постраничный список актов в пределах области видимости организации "
+                    + "текущего пользователя (см. заголовок X-Organization-Id), независимо от того, на кого "
+                    + "акт назначен."
+    )
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public PagedResponse<ActTableResponse> findAll(
+            @ParameterObject @Valid ActFilterRequest filter,
+            HttpServletRequest httpRequest
+    ) {
+        return pagedResponseAssembler
+                .toResponse(actQueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @Operation(
             summary = "Мои акты",
             description = "Возвращает постраничный список актов, прикреплённых к текущему авторизованному "
                     + "сотруднику. Область видимости всегда определяется на сервере по авторизованному "

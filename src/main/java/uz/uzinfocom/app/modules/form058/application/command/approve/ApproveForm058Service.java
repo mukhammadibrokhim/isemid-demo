@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.form058.application.command.approve;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -11,6 +12,8 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolat
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
@@ -25,6 +28,7 @@ public class ApproveForm058Service {
     private final Form058UpdateMapper form058UpdateMapper;
     private final CurrentUserProvider currentUserProvider;
     private final Form058ApprovalValidator form058ApprovalValidator;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UpdateForm058Result approve(ApproveForm058Command command) {
@@ -34,21 +38,38 @@ public class ApproveForm058Service {
 
         Form058 form058 = findRequired(command.formId());
         form058ApprovalValidator.validateApprove(form058);
+        String oldStatus = form058.getStatus().name();
+        Long actorUserId = currentUserProvider.userIdOrNull();
         form058.approve(
                 command.finalMkb10Code().trim(),
                 command.finalMkb10Name().trim(),
-                currentUserProvider.userIdOrNull(),
+                actorUserId,
                 form058.getReceiverOrganizationId()
         );
-        return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+        UpdateForm058Result result = form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(), actorUserId, null
+        ));
+
+        return result;
     }
 
     @Transactional
     public UpdateForm058Result notApprove(NotApproveForm058Command command) {
         Form058 form058 = findRequired(command.formId());
         form058ApprovalValidator.validateNotApprove(form058);
-        form058.notApprove(StringUtils.hasText(command.reason()) ? command.reason().trim() : null);
-        return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+        String oldStatus = form058.getStatus().name();
+        String reason = StringUtils.hasText(command.reason()) ? command.reason().trim() : null;
+        form058.notApprove(reason);
+        UpdateForm058Result result = form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(),
+                currentUserProvider.userIdOrNull(), reason
+        ));
+
+        return result;
     }
 
     @Transactional

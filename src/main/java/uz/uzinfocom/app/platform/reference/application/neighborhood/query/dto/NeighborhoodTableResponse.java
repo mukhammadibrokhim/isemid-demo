@@ -14,6 +14,8 @@ public record NeighborhoodTableResponse(
         Integer soatoId,
         @Schema(description = "Идентификатор СОАТО родительского района.", example = "1703202")
         Integer parentSoatoId,
+        @Schema(description = "ИНН (TIN) махалли.", example = "202853324")
+        String tin,
         @Schema(description = "Наименование махалли на узбекском языке (латиница).", example = "Dalvarzin")
         String nameUz,
         @Schema(description = "Наименование махалли на узбекском языке (кириллица).", example = "Далварзин")

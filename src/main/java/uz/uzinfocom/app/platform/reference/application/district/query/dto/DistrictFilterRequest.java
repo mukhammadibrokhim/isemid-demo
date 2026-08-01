@@ -53,6 +53,14 @@ public record DistrictFilterRequest(
 
         @Schema(description = "Фильтр по точному идентификатору СОАТО района.", example = "1703202")
         @Positive(message = "{validation.must_be_positive}")
-        Integer soatoId
+        Integer soatoId,
+
+        @Schema(description = "Фильтр по точному коду родительского региона.", example = "UZ-AN")
+        @Size(max = 50, message = "{reference.code.max_length}")
+        String parentCode,
+
+        @Schema(description = "Фильтр по точному идентификатору СОАТО родительского региона.", example = "1700000")
+        @Positive(message = "{validation.must_be_positive}")
+        Integer parentSoatoId
 ) implements PageableRequest {
 }

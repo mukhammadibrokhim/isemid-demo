@@ -5,12 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
+import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidAllowedIpException;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
+import uz.uzinfocom.app.platform.security.ip.IpAllowlistMatcher;
 import uz.uzinfocom.app.shared.exception.ConflictException;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 
@@ -48,6 +52,8 @@ public class IntegrationClientCommandService {
                 .map(IntegrationScope::getClaim)
                 .collect(Collectors.joining(","));
 
+        String allowedIps = normalizeAllowedIps(request.allowedIps());
+
         IntegrationClient client = IntegrationClient.builder()
                 .clientId(clientId)
                 .clientSecretHash(passwordEncoder.encode(clientSecret))
@@ -55,6 +61,7 @@ public class IntegrationClientCommandService {
                 .sourceKey(sourceKey)
                 .name(request.name().trim())
                 .scopes(scopes)
+                .allowedIps(allowedIps)
                 .active(true)
                 .build();
 
@@ -69,7 +76,8 @@ public class IntegrationClientCommandService {
                 saved.getName(),
                 saved.getSourceKey(),
                 saved.getOrganizationId(),
-                List.of(saved.getScopes().split(","))
+                List.of(saved.getScopes().split(",")),
+                toAllowedIpsList(saved.getAllowedIps())
         );
     }
 
@@ -82,6 +90,40 @@ public class IntegrationClientCommandService {
         integrationClientRepository.save(client);
 
         log.info("Integration client revoked. id={}, clientId={}", client.getId(), client.getClientId());
+    }
+
+    @Transactional
+    public void updateAllowedIps(Long id, IntegrationClientAllowedIpsUpdateRequest request) {
+        IntegrationClient client = integrationClientRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("integration-client.not-found", id));
+
+        client.setAllowedIps(normalizeAllowedIps(request.allowedIps()));
+        integrationClientRepository.save(client);
+
+        log.info("Integration client allow-list updated. id={}, clientId={}", client.getId(), client.getClientId());
+    }
+
+    private static String normalizeAllowedIps(List<String> allowedIps) {
+        if (allowedIps == null || allowedIps.isEmpty()) {
+            return null;
+        }
+
+        List<String> trimmed = allowedIps.stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .toList();
+
+        for (String entry : trimmed) {
+            if (!IpAllowlistMatcher.isValidEntry(entry)) {
+                throw new InvalidAllowedIpException(entry);
+            }
+        }
+
+        return trimmed.isEmpty() ? null : String.join(",", trimmed);
+    }
+
+    private static List<String> toAllowedIpsList(String allowedIps) {
+        return StringUtils.hasText(allowedIps) ? List.of(allowedIps.split(",")) : List.of();
     }
 
     private static String generateRandomToken() {

@@ -33,7 +33,7 @@ public class NeighborhoodQueryService {
     @Transactional(readOnly = true)
     public Page<NeighborhoodTableResponse> findTable(NeighborhoodFilterRequest request) {
         NeighborhoodFilterRequest filter = request == null
-                ? new NeighborhoodFilterRequest(null, null, null, null, null, null, null)
+                ? new NeighborhoodFilterRequest(null, null, null, null, null, null, null, null, null)
                 : request;
         Pageable pageable = PageableUtils.of(filter, NeighborhoodSortFields.ALLOWED_SORT_FIELDS);
 

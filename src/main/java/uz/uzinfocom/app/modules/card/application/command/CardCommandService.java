@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.card.application.command;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +27,8 @@ import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Fo
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 
@@ -65,6 +68,7 @@ public class CardCommandService {
     private final UserRepository userRepository;
     private final CardTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Bulk-assigns one blank card per distinct requested type to a form,
@@ -87,8 +91,14 @@ public class CardCommandService {
         List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
         cardRepository.saveAll(cards);
 
+        String oldStatus = form.getStatus().name();
         form.linkCards();
         form058Repository.save(form);
+
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.FORM058, form.getId(), oldStatus, form.getStatus().name(),
+                currentUserProvider.userIdOrNull(), null
+        ));
     }
 
     /**

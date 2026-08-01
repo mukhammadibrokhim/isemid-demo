@@ -46,13 +46,26 @@ public class CardQueryController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
+            summary = "Список карт",
+            description = "Возвращает постраничный список карт в пределах области видимости организации "
+                    + "текущего пользователя (см. заголовок X-Organization-Id), независимо от того, на кого "
+                    + "карта назначена."
+    )
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public PagedResponse<CardTableResponse> findAll(
+            @ParameterObject @Valid CardFilterRequest filter,
+            HttpServletRequest httpRequest
+    ) {
+        return pagedResponseAssembler
+                .toResponse(cardQueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @Operation(
             summary = "Мои карты",
             description = "Возвращает постраничный список карт, прикреплённых к текущему авторизованному "
                     + "сотруднику. Область видимости всегда определяется на сервере по авторизованному "
-                    + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно. "
-                    + "Для организации более высокого уровня (регионального или республиканского масштаба) "
-                    + "список автоматически расширяется до всех карт в пределах её области видимости, а не "
-                    + "только личных назначений."
+                    + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно."
     )
     @GetMapping(ApiPaths.Card.MINE)
     @PreAuthorize("isAuthenticated()")

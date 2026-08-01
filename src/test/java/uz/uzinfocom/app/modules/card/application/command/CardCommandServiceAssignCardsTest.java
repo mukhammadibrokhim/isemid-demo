@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.card.application.command;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
@@ -64,9 +65,11 @@ class CardCommandServiceAssignCardsTest {
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
         currentUserProvider = mock(CurrentUserProvider.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
         service = new CardCommandService(
-                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry, currentUserProvider
+                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
+                currentUserProvider, eventPublisher
         );
 
         when(cardRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));

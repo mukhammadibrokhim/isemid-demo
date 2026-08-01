@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        ref_neighborhood ga "tin" (STIR) ustuni qo'shiladi — mahalla fuqarolar
+        yig'ini uchun soliq to'lovchi identifikatsion raqami. Manba: rasmiy
+        uzcad kadastr eksporti (uzcad_code = bizdagi soato_id).
+    -->
+    <changeSet
+            id="20260801-1230-01-add-ref-neighborhood-tin-column"
+            author="uzinfocom">
+
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_neighborhood"/>
+            <not>
+                <columnExists tableName="ref_neighborhood" columnName="tin"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="ref_neighborhood">
+            <column name="tin" type="VARCHAR(20)"/>
+        </addColumn>
+
+    </changeSet>
+
+    <!--
+        Barcha qatorlarni to'ldirish: tin (yangi ustun) va name_ru (rasmiy
+        kadastr eksportidagi to'g'ri ruscha nom bilan). Faqat uzcad_code
+        (=soato_id) rasmiy ro'yxatda topilgan qatorlar (8990 ta) yangilanadi;
+        soato_id = 0 bo'lgan qatorlarga tegilmaydi.
+
+        20260605-1800-04-seed-neighborhood o'zgartirilmadi (allaqachon ishlab
+        chiqilgan changeset — checksum buzilmasin uchun), shu sababli u
+        "tin" ustunini ham, to'g'irlangan name_ru'ni ham yuklamaydi. Shu
+        sababli bu backfill YANGI (bo'sh) bazalarda ham ishlaydi — CSV seed
+        va bu changeset birgalikda to'liq holatni beradi.
+    -->
+    <changeSet
+            id="20260801-1300-01-backfill-neighborhood-tin-and-name"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <columnExists tableName="ref_neighborhood" columnName="tin"/>
+        </preConditions>
+
+        <loadUpdateData
+                file="20260801-1300-neighborhood-tin-patch.csv"
+                relativeToChangelogFile="true"
+                tableName="ref_neighborhood"
+                primaryKey="code"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="code" name="code" type="STRING"/>
+            <column header="tin" name="tin" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+
+        </loadUpdateData>
+
+    </changeSet>
+
+</databaseChangeLog>

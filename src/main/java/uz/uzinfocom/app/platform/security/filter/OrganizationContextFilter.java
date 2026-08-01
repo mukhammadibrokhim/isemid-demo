@@ -15,12 +15,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
+import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
 import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCacheService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
+import uz.uzinfocom.app.platform.security.ip.IpAllowlistMatcher;
 import uz.uzinfocom.app.platform.security.route.RequestPolicy;
 import uz.uzinfocom.app.platform.security.route.RequestPolicyResolver;
 
@@ -35,6 +38,7 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
     private final RequestPolicyResolver requestPolicyResolver;
     private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService;
     private final OrganizationRepository organizationRepository;
+    private final IntegrationClientRepository integrationClientRepository;
 
     @Override
     protected void doFilterInternal(
@@ -67,6 +71,17 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
             UUID requestedOrganizationUuid = parseUuid(requestedOrganizationHeader);
             if (!requestedOrganizationUuid.equals(integrationToken.getPrincipal().organizationUuid())) {
                 throw new AccessDeniedException("organization.not_allowed");
+            }
+
+            // Re-checked per request against the client's current allow-list (not baked
+            // into the token at issuance) so revoking/narrowing it takes effect immediately,
+            // without waiting for every already-issued token to expire.
+            IntegrationClient integrationClient = integrationClientRepository
+                    .findByClientId(integrationToken.getPrincipal().clientId())
+                    .orElseThrow(() -> new AccessDeniedException("integration.ip.not_allowed"));
+
+            if (!IpAllowlistMatcher.isAllowed(request.getRemoteAddr(), integrationClient.getAllowedIps())) {
+                throw new AccessDeniedException("integration.ip.not_allowed");
             }
 
             // findById, not getReferenceById: this filter runs with no active transaction

@@ -12,11 +12,14 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uz.uzinfocom.app.modules.form058.application.export.Form058ExcelExportSource;
 import uz.uzinfocom.app.modules.form058.application.query.Form058Filter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058QueryService;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058DetailResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.pdf.Form058PdfResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -37,6 +40,8 @@ public class Form058QueryController {
     private final Form058QueryService form058QueryService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
+    private final ExportJobService exportJobService;
+    private final Form058ExcelExportSource form058ExcelExportSource;
 
     @Operation(
             summary = "Список форм №058",
@@ -102,6 +107,23 @@ public class Form058QueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 form058QueryService.getPdf(id)
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт списка форм №058 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по тем же фильтрам, что и список "
+                    + "форм. Прогресс и скачивание готового файла — через /v1/exports (см. соответствующие "
+                    + "методы)."
+    )
+    @PostMapping(ApiPaths.Form058.EXPORT)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<ExportJobResponse> export(
+            @ParameterObject @Valid Form058Filter filter
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(form058ExcelExportSource, filter)
         );
     }
 }

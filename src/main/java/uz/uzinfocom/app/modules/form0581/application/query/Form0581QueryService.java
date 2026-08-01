@@ -45,6 +45,25 @@ public class Form0581QueryService {
     private final AuditResolver auditResolver;
     private final ExplainRowCountEstimator explainRowCountEstimator;
 
+    /**
+     * Same direction-based scope switch as {@link #findAll} (including the super-admin
+     * guard for {@code ALL}), exposed for callers that only need the {@code Specification}
+     * itself - e.g. {@code Form0581ExcelExportSource}, which streams every matching row
+     * rather than a single page of them.
+     */
+    public Specification<Form0581> resolveSpecification(Form0581Filter filter) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        return switch (filter.direction()) {
+            case OUTGOING -> form0581Specification.table(filter, scope, false);
+            case INCOMING -> form0581Specification.table(filter, scope, true);
+            case ALL -> {
+                form0581AccessGuard.requireSuperAdmin();
+                yield form0581Specification.tableUnscoped(filter);
+            }
+        };
+    }
+
     public Page<Form0581TableResponse> findAll(Form0581Filter filter) {
         ResolvedOrganizationScope scope = currentScope();
 

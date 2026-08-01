@@ -159,6 +159,17 @@
             author="uzinfocom"
             runInTransaction="true">
 
+        <!--
+            base/district_reference.csv 2026-08-01 da SOATO manba (035-1-002.xlsx)
+            asosida to'g'irlandi (AN-209/AN-237 kod almashtirish, imlo xatolari,
+            excel doirasidan chiqmagan qatorlarni soft-delete qilish). Bu
+            changeset allaqachon ishga tushirilgan bazalarda checksum
+            o'zgarishini keltirib chiqaradi — shu sababli eski va yangi
+            checksumlar ikkalasi ham qabul qilinadi.
+        -->
+        <validCheckSum>9:6819bbe3049e7e5cde9ebe659d6f8e6c</validCheckSum>
+        <validCheckSum>9:7a90f76ba97e06e2ec75cf04beb07dc1</validCheckSum>
+
         <preConditions onFail="MARK_RAN" onError="HALT">
             <dbms type="postgresql"/>
             <tableExists tableName="ref_district"/>
@@ -198,6 +209,19 @@
             id="20260605-1800-04-seed-neighborhood"
             author="uzinfocom"
             runInTransaction="true">
+
+        <!--
+            base/neighborhood_reference.csv 2026-08-01 da uzcad manba
+            (035-3-004.json) asosida to'g'irlandi ("tin" ustuni qo'shildi,
+            name_ru transliteratsiya xatolari tuzatildi, json doirasidan
+            chiqmagan qatorlar soft-delete qilindi). Bu changeset allaqachon
+            ishga tushirilgan bazalarda checksum o'zgarishini keltirib
+            chiqaradi — shu sababli eski va yangi checksumlar ikkalasi ham
+            qabul qilinadi. ("tin" ustuni bu loadData'da map qilinmaydi —
+            u 20260801-1230-add-neighborhood-tin.xml orqali qo'shiladi.)
+        -->
+        <validCheckSum>9:e49de3e1fe043e2f21459b283feedd0d</validCheckSum>
+        <validCheckSum>9:be55207ff7db1f051d3659f19335e94b</validCheckSum>
 
         <preConditions onFail="MARK_RAN" onError="HALT">
             <dbms type="postgresql"/>

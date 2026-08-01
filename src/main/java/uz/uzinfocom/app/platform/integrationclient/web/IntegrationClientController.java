@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.integrationclient.application.command.IntegrationClientCommandService;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.IntegrationClientQueryService;
@@ -85,6 +86,22 @@ public class IntegrationClientController {
             @PathVariable @Positive Long id
     ) {
         integrationClientCommandService.revoke(id);
+        return ApiResponse.success(messageResolver.resolve("common.updated"), null);
+    }
+
+    @Operation(
+            summary = "Обновить список разрешённых IP-адресов",
+            description = "Заменяет список IPv4-адресов/CIDR-блоков, с которых разрешено обращаться этому "
+                    + "клиенту. Пустой список или null снимает ограничение."
+    )
+    @PutMapping(ApiPaths.IntegrationClient.ALLOWED_IPS)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    public ApiResponse<Void> updateAllowedIps(
+            @Parameter(description = "Внутренний идентификатор клиента.", required = true)
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody IntegrationClientAllowedIpsUpdateRequest request
+    ) {
+        integrationClientCommandService.updateAllowedIps(id, request);
         return ApiResponse.success(messageResolver.resolve("common.updated"), null);
     }
 }

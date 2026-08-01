@@ -17,6 +17,10 @@ public record IntegrationClientResponse(
         List<String> scopes,
         boolean active,
 
+        @Schema(description = "IPv4-адреса/CIDR-блоки, с которых разрешено обращаться клиенту. Пусто — "
+                + "ограничений нет.")
+        List<String> allowedIps,
+
         @Schema(description = "Дата и время последнего успешного обмена токена этим клиентом.", nullable = true)
         Instant lastUsedAt,
 

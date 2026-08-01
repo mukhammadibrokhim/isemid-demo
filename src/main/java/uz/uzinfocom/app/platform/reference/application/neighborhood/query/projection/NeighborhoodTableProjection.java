@@ -12,6 +12,8 @@ public interface NeighborhoodTableProjection {
 
     Integer getParentSoatoId();
 
+    String getTin();
+
     String getNameUz();
 
     String getNameUzCyril();

@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.integrationclient.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientResponse;
@@ -45,6 +46,7 @@ public class IntegrationClientQueryService {
                 organizationMappingHelper.activeOrganizationNameById(client.getOrganizationId()),
                 List.of(client.getScopes().split(",")),
                 client.isActive(),
+                StringUtils.hasText(client.getAllowedIps()) ? List.of(client.getAllowedIps().split(",")) : List.of(),
                 client.getLastUsedAt(),
                 auditResolver.resolve(client)
         );

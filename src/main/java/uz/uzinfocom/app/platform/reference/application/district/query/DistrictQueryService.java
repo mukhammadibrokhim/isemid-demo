@@ -33,7 +33,7 @@ public class DistrictQueryService {
     @Transactional(readOnly = true)
     public Page<DistrictTableResponse> findTable(DistrictFilterRequest request) {
         DistrictFilterRequest filter = request == null
-                ? new DistrictFilterRequest(null, null, null, null, null, null, null)
+                ? new DistrictFilterRequest(null, null, null, null, null, null, null, null, null)
                 : request;
         Pageable pageable = PageableUtils.of(filter, DistrictSortFields.ALLOWED_SORT_FIELDS);
 

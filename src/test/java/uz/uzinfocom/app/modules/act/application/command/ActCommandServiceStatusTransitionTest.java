@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.act.application.command;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
 import uz.uzinfocom.app.modules.act.application.exception.InvalidActStatusException;
@@ -66,8 +67,9 @@ class ActCommandServiceStatusTransitionTest {
         currentUserProvider = mock(CurrentUserProvider.class);
         handlerRegistry = mock(ActTypeHandlerRegistry.class);
         act153Handler = mock(ActTypeHandler.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider);
+        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider, eventPublisher);
 
         when(actRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         doReturn(act153Handler).when(handlerRegistry).get(ActType.ACT153);

@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.card.application.command;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
@@ -65,9 +66,11 @@ class CardCommandServiceStatusTransitionTest {
         Form0581JpaRepository form0581Repository = mock(Form0581JpaRepository.class);
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
         service = new CardCommandService(
-                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry, currentUserProvider
+                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
+                currentUserProvider, eventPublisher
         );
 
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

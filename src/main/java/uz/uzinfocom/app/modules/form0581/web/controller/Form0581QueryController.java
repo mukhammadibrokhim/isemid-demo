@@ -12,14 +12,18 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
+import uz.uzinfocom.app.modules.form0581.application.export.Form0581ExcelExportSource;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581Filter;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581QueryService;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.Form0581DetailResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -40,6 +44,8 @@ public class Form0581QueryController {
     private final Form0581QueryService form0581QueryService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
+    private final ExportJobService exportJobService;
+    private final Form0581ExcelExportSource form0581ExcelExportSource;
 
     @Operation(
             summary = "Список форм №058-1",
@@ -87,6 +93,23 @@ public class Form0581QueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 form0581QueryService.getById(id)
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт списка форм №058-1 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по тем же фильтрам, что и список "
+                    + "форм. Прогресс и скачивание готового файла — через /v1/exports (см. соответствующие "
+                    + "методы)."
+    )
+    @PostMapping(ApiPaths.Form0581.EXPORT)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<ExportJobResponse> export(
+            @ParameterObject @Valid Form0581Filter filter
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(form0581ExcelExportSource, filter)
         );
     }
 }

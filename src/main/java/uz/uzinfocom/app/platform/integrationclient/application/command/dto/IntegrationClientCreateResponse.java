@@ -19,6 +19,10 @@ public record IntegrationClientCreateResponse(
         String sourceKey,
 
         Long organizationId,
-        List<String> scopes
+        List<String> scopes,
+
+        @Schema(description = "IPv4-адреса/CIDR-блоки, с которых разрешено обращаться клиенту. Пусто — "
+                + "ограничений нет.")
+        List<String> allowedIps
 ) {
 }

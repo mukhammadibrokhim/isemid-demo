@@ -44,6 +44,9 @@ public class Neighborhood extends ReferenceDictionaryEntity {
     @Column(name = "parent_soato_id", nullable = false)
     private Integer parentSoatoId;
 
+    @Column(name = "tin", length = 20)
+    private String tin;
+
     @Column(name = "name_uz")
     private String nameUz;
 

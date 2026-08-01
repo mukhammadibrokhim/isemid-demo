@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Nullable by design: every existing integration client predates this
+        column and must keep calling in unrestricted until an admin opts it
+        into an IPv4 allow-list via PUT .../integration-clients/{id}/allowed-ips.
+    -->
+    <changeSet id="20260801-1500-01-add-integration-client-allowed-ips" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="allowed_ips" type="VARCHAR(1000)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

@@ -5,16 +5,20 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
+import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidAllowedIpException;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -41,11 +45,12 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", "dmed", organizationUuid, List.of(IntegrationScope.FORM058_SUBMIT)));
+                "Test Lab System", "dmed", organizationUuid, List.of(IntegrationScope.FORM058_SUBMIT), null));
 
         assertThat(response.clientSecret()).isNotBlank();
         assertThat(response.organizationId()).isEqualTo(42L);
         assertThat(response.scopes()).containsExactly("form058:submit");
+        assertThat(response.allowedIps()).isEmpty();
 
         ArgumentCaptor<IntegrationClient> savedClient = ArgumentCaptor.forClass(IntegrationClient.class);
         verify(integrationClientRepository).save(savedClient.capture());
@@ -55,6 +60,59 @@ class IntegrationClientCommandServiceTest {
         assertThat(savedClient.getValue().getClientSecretHash()).isNotEqualTo(response.clientSecret());
         assertThat(passwordEncoder.matches(response.clientSecret(), savedClient.getValue().getClientSecretHash()))
                 .isTrue();
+    }
+
+    @Test
+    void createNormalizesAndPersistsAllowedIps() {
+        UUID organizationUuid = UUID.randomUUID();
+        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> {
+                    IntegrationClient client = invocation.getArgument(0);
+                    client.setId(1L);
+                    return client;
+                });
+
+        IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
+                "Test Lab System", "dmed", organizationUuid, List.of(IntegrationScope.FORM058_SUBMIT),
+                List.of(" 10.0.5.0/24 ", "10.0.6.7")));
+
+        assertThat(response.allowedIps()).containsExactly("10.0.5.0/24", "10.0.6.7");
+    }
+
+    @Test
+    void createRejectsAMalformedAllowedIpEntry() {
+        UUID organizationUuid = UUID.randomUUID();
+        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+
+        assertThatThrownBy(() -> service.create(new IntegrationClientCreateRequest(
+                "Test Lab System", "dmed", organizationUuid, List.of(IntegrationScope.FORM058_SUBMIT),
+                List.of("not-an-ip"))))
+                .isInstanceOf(InvalidAllowedIpException.class);
+    }
+
+    @Test
+    void updateAllowedIpsReplacesTheStoredListAndCanClearIt() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test")
+                .clientSecretHash("hash")
+                .organizationId(42L)
+                .sourceKey("dmed")
+                .name("Test Client")
+                .scopes("form058:submit")
+                .allowedIps("10.0.0.0/24")
+                .active(true)
+                .build();
+
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.updateAllowedIps(1L, new IntegrationClientAllowedIpsUpdateRequest(List.of("192.168.1.1")));
+        assertThat(client.getAllowedIps()).isEqualTo("192.168.1.1");
+
+        service.updateAllowedIps(1L, new IntegrationClientAllowedIpsUpdateRequest(null));
+        assertThat(client.getAllowedIps()).isNull();
     }
 
     @Test

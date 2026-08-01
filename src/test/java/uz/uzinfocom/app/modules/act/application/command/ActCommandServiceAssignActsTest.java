@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.act.application.command;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
 import uz.uzinfocom.app.modules.act.application.exception.ActValidationException;
 import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandler;
@@ -62,8 +63,9 @@ class ActCommandServiceAssignActsTest {
         userRepository = mock(UserRepository.class);
         currentUserProvider = mock(CurrentUserProvider.class);
         handlerRegistry = mock(ActTypeHandlerRegistry.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider);
+        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider, eventPublisher);
 
         when(actRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 

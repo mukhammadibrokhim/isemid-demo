@@ -206,6 +206,7 @@ public final class ApiPaths {
         public static final String ROOT = Admin.ROOT + "/integration-clients";
         public static final String BY_ID = "/{id}";
         public static final String REVOKE = "/{id}/revoke";
+        public static final String ALLOWED_IPS = "/{id}/allowed-ips";
     }
 
     /**
@@ -236,6 +237,7 @@ public final class ApiPaths {
         public static final String ROUTE_POLICY_BY_ID = "/settings/route-policies/{id}";
         public static final String FILES = "/files";
         public static final String FILES_DOWNLOAD = "/files/download";
+        public static final String AUDIT = "/audit";
     }
 
     /**
@@ -253,6 +255,36 @@ public final class ApiPaths {
         public static final String REVOKE = "/{id}/revoke";
     }
 
+    /**
+     * Audit trail for business events (creation, status change, receiving-organization
+     * reassignment) on Form058/Form0581/Act — see {@code AuditEventListener}. Read-only
+     * here: {@code isemid_super_admin} and {@code isemid_admin} may both list/inspect
+     * (see {@code @adminAccessGuard.isAdmin()} on {@code AuditQueryController}); the
+     * dev-panel gets the same data, unrestricted, under {@link Dev#AUDIT}.
+     */
+    public static final class Audit {
+        private Audit() {
+        }
+
+        public static final String ROOT = Admin.ROOT + "/audit";
+    }
+
+    /**
+     * Background Excel export jobs (see {@code platform.export}) - one generic surface
+     * shared by every module wired up as an {@code ExcelExportSource}: submission stays
+     * per-module (e.g. {@link Form058#EXPORT}), but "my files" listing, SSE progress and
+     * download are the same three endpoints regardless of which module produced the job.
+     */
+    public static final class Export {
+        private Export() {
+        }
+
+        public static final String ROOT = API_V1 + "/exports";
+        public static final String BY_ID = "/{id}";
+        public static final String PROGRESS = "/{id}/progress";
+        public static final String DOWNLOAD = "/{id}/download";
+    }
+
     public static final class Form058 {
         private Form058() {
         }
@@ -265,6 +297,7 @@ public final class ApiPaths {
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
         public static final String PDF = "/{id}/pdf";
+        public static final String EXPORT = "/export";
 
     }
 
@@ -302,6 +335,7 @@ public final class ApiPaths {
         public static final String CANCEL = "/{id}/cancel";
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
+        public static final String EXPORT = "/export";
     }
 
     public static final class Form0581Stats {
@@ -462,9 +496,9 @@ public final class ApiPaths {
 
         // Personal, server-scoped list view — never trust a client-supplied
         // user id for this, always resolve from the authenticated principal.
-        // For a broader-scope organization (region/republic level SANEPID),
-        // this widens from "assigned to me" to the whole organization scope
-        // — see CardQueryService.findMine.
+        // Always stays personal (assigned-to-me), regardless of organization
+        // scope — see CardQueryService.findMine. The organization-wide view
+        // lives at the root listing (GET /v1/cards, no path suffix) instead.
         public static final String MINE = "/mine";
 
         // Attached-employee actions (the user working the card).

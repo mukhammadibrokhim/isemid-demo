@@ -27,7 +27,7 @@ import java.time.LocalDate;
 @Setter
 @Entity
 @Table(
-        name = "form32_entry",
+        name = "rp_form32_entry",
         indexes = {
                 @Index(name = "idx_form32_entry_organization_id", columnList = "organization_id"),
                 @Index(name = "idx_form32_entry_from_to", columnList = "from_date,to_date")

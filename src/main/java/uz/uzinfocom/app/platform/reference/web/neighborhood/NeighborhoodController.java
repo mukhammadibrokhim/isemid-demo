@@ -57,7 +57,7 @@ public class NeighborhoodController {
             description = """
                     Возвращает активные записи справочника махаллей в виде постраничной таблицы.
 
-                    Поддерживаемые фильтры: code, name, soatoId.
+                    Поддерживаемые фильтры: code, name, soatoId, parentCode, parentSoatoId.
                     Neighborhood.parentCode указывает на код родительского района.
                     Нумерация страниц начинается с 1.
                     Поддерживаемые поля сортировки: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.

@@ -54,6 +54,25 @@ public class Form058QueryService {
     private final CardQueryService cardQueryService;
     private final ExplainRowCountEstimator explainRowCountEstimator;
 
+    /**
+     * Same direction-based scope switch as {@link #findAll} (including the super-admin
+     * guard for {@code ALL}), exposed for callers that only need the {@code Specification}
+     * itself - e.g. {@code Form058ExcelExportSource}, which streams every matching row
+     * rather than a single page of them.
+     */
+    public Specification<Form058> resolveSpecification(Form058Filter filter) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        return switch (filter.direction()) {
+            case OUTGOING -> form058Specification.table(filter, scope, false);
+            case INCOMING -> form058Specification.table(filter, scope, true);
+            case ALL -> {
+                form058AccessGuard.requireSuperAdmin();
+                yield form058Specification.tableUnscoped(filter, scope);
+            }
+        };
+    }
+
     public Page<Form058TableResponse> findAll(Form058Filter filter) {
         ResolvedOrganizationScope scope = currentScope();
 
@@ -149,7 +168,7 @@ public class Form058QueryService {
      * order; id is appended as a stable tiebreaker for rows sharing a
      * timestamp.
      */
-    Pageable resolvePageable(Form058Filter filter) {
+    public Pageable resolvePageable(Form058Filter filter) {
         Pageable pageable = PageableUtils.of(
                 filter,
                 "createdAt",

@@ -57,7 +57,7 @@ public class DistrictController {
             description = """
                     Возвращает активные записи справочника районов в виде постраничной таблицы.
 
-                    Поддерживаемые фильтры: code, name, soatoId.
+                    Поддерживаемые фильтры: code, name, soatoId, parentCode, parentSoatoId.
                     District.parentCode указывает на код родительского региона.
                     Нумерация страниц начинается с 1.
                     Поддерживаемые поля сортировки: id, code, parentCode, soatoId, parentSoatoId, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
