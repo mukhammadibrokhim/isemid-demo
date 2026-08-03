@@ -37,4 +37,20 @@ public interface Form058ExportService {
             String cityCode,
             User user
     );
+
+    ResponseEntity<?> allExportV3(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            User user
+    );
+
+    ResponseEntity<?> receivedExportV3(
+            LocalDate fromDate,
+            LocalDate toDate,
+            String stateCode,
+            String cityCode,
+            User user
+    );
 }

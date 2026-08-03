@@ -48,29 +48,59 @@ public class Form058ExportController {
         return form058ExportService.receivedExport(fromDate, toDate, stateCode, cityCode,user);
     }
 
-    @Operation(summary = "Экспорт всех данных формы 058 в Excel (V2)",
-            description = "N+1 optimallashtirilgan versiya: barcha bog'liq ma'lumotlar batch qilib yuklanadi.")
+//    @Operation(summary = "Экспорт всех данных формы 058 в Excel (V2)",
+//            description = "N+1 optimallashtirilgan versiya: barcha bog'liq ma'lumotlar batch qilib yuklanadi.")
+//    @GetMapping("/all/export/v2")
+//    public ResponseEntity<?> exportAllV2(
+//            @RequestParam(required = false) LocalDate fromDate,
+//            @RequestParam(required = false) LocalDate toDate,
+//            @RequestParam(required = false) String stateCode,
+//            @RequestParam(required = false) String cityCode,
+//            @CurrentUser User user
+//    ) {
+//        return form058ExportService.allExportV2(fromDate, toDate, stateCode, cityCode, user);
+//    }
+//
+//    @Operation(summary = "Экспорт полученных данных формы 058 в Excel (V2)",
+//            description = "N+1 optimallashtirilgan versiya: barcha bog'liq ma'lumotlar batch qilib yuklanadi.")
+//    @GetMapping("/received/export/v2")
+//    public ResponseEntity<?> exportReceivedV2(
+//            @RequestParam(required = false) LocalDate fromDate,
+//            @RequestParam(required = false) LocalDate toDate,
+//            @RequestParam(required = false) String stateCode,
+//            @RequestParam(required = false) String cityCode,
+//            @CurrentUser User user
+//    ) {
+//        return form058ExportService.receivedExportV2(fromDate, toDate, stateCode, cityCode, user);
+//    }
+
+    @Operation(summary = "Экспорт всех данных формы 058 в Excel (V3, асинхронный)",
+            description = "So'rov darhol qabul qilinadi va hisobot fon jarayonida (disk fayl + kesh) tayyorlanadi. " +
+                    "Javob tayyor bo'lmasa 202 IN_PROGRESS qaytadi, tayyor bo'lsa fayl qaytariladi. " +
+                    "Natija filtrlar + tashkilot bo'yicha 5 daqiqa keshlanadi.")
     @GetMapping("/all/export/v2")
-    public ResponseEntity<?> exportAllV2(
+    public ResponseEntity<?> exportAllV3(
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
             @CurrentUser User user
     ) {
-        return form058ExportService.allExportV2(fromDate, toDate, stateCode, cityCode, user);
+        return form058ExportService.allExportV3(fromDate, toDate, stateCode, cityCode, user);
     }
 
-    @Operation(summary = "Экспорт полученных данных формы 058 в Excel (V2)",
-            description = "N+1 optimallashtirilgan versiya: barcha bog'liq ma'lumotlar batch qilib yuklanadi.")
+    @Operation(summary = "Экспорт полученных данных формы 058 в Excel (V3, асинхронный)",
+            description = "So'rov darhol qabul qilinadi va hisobot fon jarayonida (disk fayl + kesh) tayyorlanadi. " +
+                    "Javob tayyor bo'lmasa 202 IN_PROGRESS qaytadi, tayyor bo'lsa fayl qaytariladi. " +
+                    "Natija filtrlar + tashkilot bo'yicha 5 daqiqa keshlanadi.")
     @GetMapping("/received/export/v2")
-    public ResponseEntity<?> exportReceivedV2(
+    public ResponseEntity<?> exportReceivedV3(
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
             @CurrentUser User user
     ) {
-        return form058ExportService.receivedExportV2(fromDate, toDate, stateCode, cityCode, user);
+        return form058ExportService.receivedExportV3(fromDate, toDate, stateCode, cityCode, user);
     }
 }
