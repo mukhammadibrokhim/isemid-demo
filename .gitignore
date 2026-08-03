@@ -35,3 +35,6 @@ build/
 ### log ###
 /logs/
 *.log
+
+### report export (generated at runtime, do not commit) ###
+/export-files/

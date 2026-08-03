@@ -1,6 +1,8 @@
 package uz.uzinfocom.isemid.features.report.utils;
 
+import com.sun.management.OperatingSystemMXBean;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
@@ -18,6 +20,11 @@ import uz.uzinfocom.isemid.features.report.mapper.Form058RowMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,13 +41,18 @@ import java.util.stream.Stream;
 import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.buildDateText;
 import static uz.uzinfocom.isemid.features.report.utils.ReportUtil.catalogCacheKey;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class Form058ExcelWriter {
     private static final int HEADER_ROW_INDEX = 9;
-    private static final int BATCH_SIZE = 2000;
+    private static final int BATCH_SIZE = 500;
     private static final List<CatalogType> ADDRESS_CATALOG_TYPES =
             List.of(CatalogType.state, CatalogType.city, CatalogType.neighborhood);
+
+    private static final MemoryMXBean MEMORY_BEAN = ManagementFactory.getMemoryMXBean();
+    private static final OperatingSystemMXBean OS_BEAN =
+            (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
     private final Form058RowMapper rowMapper;
     private final PatientRepository patientRepository;
@@ -90,6 +102,48 @@ public class Form058ExcelWriter {
             workbook.write(out);
             return out.toByteArray();
         }
+    }
+
+    /**
+     * {@code writeV2}ning disk-yozuvchi varianti (V3 fon jarayoni uchun). Butun faylni
+     * heap'da {@code byte[]} sifatida ushlab turmaydi — {@code workbook.write(...)} to'g'ridan-to'g'ri
+     * berilgan fayl manziliga oqadi, shu bilan RAM sarfini kamaytiradi.
+     */
+    public void writeV3(Stream<Form058> formStream, LocalDate fromDate, LocalDate toDate,
+                        String name, Path targetFile) throws IOException {
+        long startedAt = System.currentTimeMillis();
+        long cpuTimeStartNs = OS_BEAN.getProcessCpuTime();
+        long heapBeforeMb = usedHeapMb();
+
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+             OutputStream out = Files.newOutputStream(targetFile)) {
+
+            workbook.setCompressTempFiles(true);
+            Sheet sheet = workbook.createSheet("Юқумли касалликлар");
+            Map<String, CellStyle> styles = createStyles(workbook);
+
+            generateHeader(sheet, workbook, fromDate, toDate, name);
+            setColumnWidths(sheet);
+            writeTableHeader(sheet, styles);
+            writeDataRowsV2(sheet, styles, formStream);
+
+            workbook.write(out);
+
+            long wallMs = System.currentTimeMillis() - startedAt;
+            long cpuMs = (OS_BEAN.getProcessCpuTime() - cpuTimeStartNs) / 1_000_000;
+            long heapAfterMb = usedHeapMb();
+            double cpuLoadPercent = wallMs > 0
+                    ? (cpuMs * 100.0) / (wallMs * Math.max(1, OS_BEAN.getAvailableProcessors()))
+                    : 0;
+
+            log.info("[PROFILE] Form058ExcelWriter.writeV3 (disk, {}): umumiy={} ms, heap oldin={} MB, heap keyin={} MB, delta={} MB, CPU vaqti={} ms, CPU load={}% ({} core)",
+                    targetFile.getFileName(), wallMs, heapBeforeMb, heapAfterMb, heapAfterMb - heapBeforeMb, cpuMs,
+                    String.format("%.1f", cpuLoadPercent), OS_BEAN.getAvailableProcessors());
+        }
+    }
+
+    private long usedHeapMb() {
+        return MEMORY_BEAN.getHeapMemoryUsage().getUsed() / (1024 * 1024);
     }
 
     private void writeDataRowsV2(Sheet sheet, Map<String, CellStyle> styles, Stream<Form058> stream) {
