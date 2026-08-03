@@ -122,15 +122,15 @@ public class ManualReportController {
             responseCode = "200",
             description = "Ручные отчёты успешно получены."
     )
-    @GetMapping(ApiPaths.Reference.BY_MKB10_CODE)
+    @GetMapping(ApiPaths.Reference.BY_ICD10_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<ManualReportResponse>> getByMkb10Code(
+    public ApiResponse<List<ManualReportResponse>> getByIcd10Code(
             @Parameter(description = "Код диагноза по МКБ-10.", required = true, example = "A15")
             @PathVariable @NotBlank @Size(max = 20) String code
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                manualReportQueryService.getByMkb10Code(code)
+                manualReportQueryService.getByIcd10Code(code)
         );
     }
 

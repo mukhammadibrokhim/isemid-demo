@@ -17,11 +17,11 @@ public abstract class Form0581CreateMapper {
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
     @Mapping(target = "receiverOrganizationId", source = "receiverOrganizationId")
 
-    @Mapping(target = "diagnosisInfo.mkb10Code", source = "mkb10Code")
-    @Mapping(target = "diagnosisInfo.mkb10Name", source = "mkb10Name")
+    @Mapping(target = "diagnosisInfo.icd10Code", source = "icd10Code")
+    @Mapping(target = "diagnosisInfo.icd10Name", source = "icd10Name")
     @Mapping(target = "diagnosisInfo.injuryLocalization", source = "injuryLocalization")
-    @Mapping(target = "diagnosisInfo.finalMkb10Code", source = "mkb10Code")
-    @Mapping(target = "diagnosisInfo.finalMkb10Name", source = "mkb10Name")
+    @Mapping(target = "diagnosisInfo.finalIcd10Code", source = "icd10Code")
+    @Mapping(target = "diagnosisInfo.finalIcd10Name", source = "icd10Name")
 
     @Mapping(target = "incidentInfo.injuryDateTime", source = "injuryDateTime")
     @Mapping(target = "incidentInfo.dpuVisitDateTime", source = "dpuVisitDateTime")

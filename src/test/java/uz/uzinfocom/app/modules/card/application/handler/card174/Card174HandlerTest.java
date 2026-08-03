@@ -54,7 +54,7 @@ class Card174HandlerTest {
 
         assertThat(card174.getForm058()).isSameAs(form);
         assertThat(card174.getCardType()).isEqualTo(CardType.CARD174);
-        assertThat(card174.getMkb10Code()).isEqualTo("MKB-1");
+        assertThat(card174.getIcd10Code()).isEqualTo("MKB-1");
 
         assertThat(card174.getInfectionMonitoring()).hasSize(1);
         assertThat(card174.getInfectionMonitoring().getFirst().getCard174()).isSameAs(card174);
@@ -74,7 +74,7 @@ class Card174HandlerTest {
         Card174Request updated = requestWith("MKB-2", List.of(), List.of());
         handler.update(card174, updated);
 
-        assertThat(card174.getMkb10Code()).isEqualTo("MKB-2");
+        assertThat(card174.getIcd10Code()).isEqualTo("MKB-2");
         assertThat(card174.getInfectionMonitoring()).isSameAs(originalList).isEmpty();
         assertThat(card174.getOutbreakControlMeasures()).isEmpty();
     }
@@ -91,7 +91,7 @@ class Card174HandlerTest {
         assertThat(response.type()).isEqualTo(CardType.CARD174);
         assertThat(response.status()).isEqualTo(CardStatus.NEW);
         assertThat(response.formId()).isEqualTo(99L);
-        assertThat(response.mkb10Code()).isEqualTo("MKB-1");
+        assertThat(response.icd10Code()).isEqualTo("MKB-1");
         assertThat(response.infectionMonitoring()).hasSize(1);
         assertThat(response.infectionMonitoring().getFirst().lastName()).isEqualTo("Doe");
         assertThat(response.outbreakControlMeasures()).hasSize(1);
@@ -106,12 +106,12 @@ class Card174HandlerTest {
     }
 
     private Card174Request requestWith(
-            String mkb10Code,
+            String icd10Code,
             List<InfectionMonitoringRequest> infectionMonitoring,
             List<OutbreakControlMeasureRequest> outbreakControlMeasures
     ) {
         return new Card174Request(
-                1, mkb10Code, "Name", "PathogenType",
+                1, icd10Code, "Name", "PathogenType",
                 LocalDate.now().minusDays(5), LocalDate.now().minusDays(4),
                 "AnimalDx", "HumanDx",
                 LocalDate.now().minusDays(3), LocalDate.now().minusYears(1), LocalDate.now(),

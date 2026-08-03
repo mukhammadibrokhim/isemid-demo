@@ -82,13 +82,13 @@ public record InboundCreateForm0581Request(
     @Schema(description = "Диагноз по МКБ-10.")
     public record DiagnosisInfo(
             @Schema(description = "Код диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-            @NotBlank(message = "{validation.form0581.mkb10-code.required}")
-            @Size(max = 20, message = "{validation.form0581.mkb10-code.size}")
+            @NotBlank(message = "{validation.form0581.icd10-code.required}")
+            @Size(max = 20, message = "{validation.form0581.icd10-code.size}")
             String mkb10Code,
 
             @Schema(description = "Наименование диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-            @NotBlank(message = "{validation.form0581.mkb10-name.required}")
-            @Size(max = 512, message = "{validation.form0581.mkb10-name.size}")
+            @NotBlank(message = "{validation.form0581.icd10-name.required}")
+            @Size(max = 512, message = "{validation.form0581.icd10-name.size}")
             String mkb10Name,
 
             @Schema(description = "Локализация повреждения на теле пациента.")

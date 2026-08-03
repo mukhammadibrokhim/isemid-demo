@@ -8,8 +8,8 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationE
 import uz.uzinfocom.app.modules.form058.application.validator.Form058CreateValidator;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.reference.domain.Mkb10;
-import uz.uzinfocom.app.platform.reference.repository.Mkb10Repository;
+import uz.uzinfocom.app.platform.reference.domain.Icd10;
+import uz.uzinfocom.app.platform.reference.repository.Icd10Repository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Optional;
@@ -21,12 +21,12 @@ import static org.mockito.Mockito.when;
 
 class Form058CreateValidatorTest {
 
-    private final Mkb10Repository mkb10Repository = mock(Mkb10Repository.class);
-    private final Form058CreateValidator validator = new Form058CreateValidator(mkb10Repository);
+    private final Icd10Repository icd10Repository = mock(Icd10Repository.class);
+    private final Form058CreateValidator validator = new Form058CreateValidator(icd10Repository);
 
     @BeforeEach
-    void stubKnownMkb10Code() {
-        when(mkb10Repository.findByCodeAndDeletedFalse("A00")).thenReturn(Optional.of(mock(Mkb10.class)));
+    void stubKnownIcd10Code() {
+        when(icd10Repository.findByCodeAndDeletedFalse("A00")).thenReturn(Optional.of(mock(Icd10.class)));
     }
 
     @AfterEach
@@ -59,27 +59,27 @@ class Form058CreateValidatorTest {
     }
 
     @Test
-    void rejectsUnknownMkb10Code() {
+    void rejectsUnknownIcd10Code() {
         CurrentOrganizationContext.set(organization(100L));
-        when(mkb10Repository.findByCodeAndDeletedFalse("Z99")).thenReturn(Optional.empty());
+        when(icd10Repository.findByCodeAndDeletedFalse("Z99")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> validator.validate(commandWithSender(100L, 200L, "Z99", null)))
                 .isInstanceOf(Form058ValidationException.class);
     }
 
     @Test
-    void rejectsUnknownFinalMkb10CodeWhenDistinctFromPrimary() {
+    void rejectsUnknownFinalIcd10CodeWhenDistinctFromPrimary() {
         CurrentOrganizationContext.set(organization(100L));
-        when(mkb10Repository.findByCodeAndDeletedFalse("B99")).thenReturn(Optional.empty());
+        when(icd10Repository.findByCodeAndDeletedFalse("B99")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> validator.validate(commandWithSender(100L, 200L, "A00", "B99")))
                 .isInstanceOf(Form058ValidationException.class);
     }
 
     @Test
-    void acceptsKnownFinalMkb10CodeDistinctFromPrimary() {
+    void acceptsKnownFinalIcd10CodeDistinctFromPrimary() {
         CurrentOrganizationContext.set(organization(100L));
-        when(mkb10Repository.findByCodeAndDeletedFalse("A01")).thenReturn(Optional.of(mock(Mkb10.class)));
+        when(icd10Repository.findByCodeAndDeletedFalse("A01")).thenReturn(Optional.of(mock(Icd10.class)));
 
         assertThatCode(() -> validator.validate(commandWithSender(100L, 200L, "A00", "A01")))
                 .doesNotThrowAnyException();
@@ -90,7 +90,7 @@ class Form058CreateValidatorTest {
      * leaves {@code senderOrganizationId} unset, which is what the two
      * pre-existing failing tests above ({@code acceptsCurrentSenderOrganization},
      * {@code rejectsSameSenderAndReceiver}) already depend on; not fixed here,
-     * since that bug is unrelated to this validator's mkb10 checks.
+     * since that bug is unrelated to this validator's icd10 checks.
      */
     private CreateForm058Command command(Long receiverOrganizationId) {
         return new CreateForm058Command(
@@ -118,20 +118,20 @@ class Form058CreateValidatorTest {
     }
 
     /**
-     * Used only by the new mkb10-code tests below, which need a valid
-     * sender/receiver pair to actually reach the mkb10 validation branch
+     * Used only by the new icd10-code tests below, which need a valid
+     * sender/receiver pair to actually reach the icd10 validation branch
      * (unlike {@link #command(Long)}, which never sets a sender at all).
      */
     private CreateForm058Command commandWithSender(
             Long senderOrganizationId,
             Long receiverOrganizationId,
-            String mkb10Code,
-            String finalMkb10Code
+            String icd10Code,
+            String finalIcd10Code
     ) {
         return new CreateForm058Command(
-                mkb10Code,
+                icd10Code,
                 "Cholera",
-                finalMkb10Code,
+                finalIcd10Code,
                 null,
                 null,
                 patient(),

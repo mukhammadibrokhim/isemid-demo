@@ -30,8 +30,8 @@ class Form058WorkflowTest {
         form058.approve("A00", "Cholera", 20L, 30L);
 
         assertThat(form058.getStatus()).isEqualTo(FormStatus.APPROVED);
-        assertThat(form058.getDiagnosisInfo().getFinalMkb10Code()).isEqualTo("A00");
-        assertThat(form058.getDiagnosisInfo().getFinalMkb10Name()).isEqualTo("Cholera");
+        assertThat(form058.getDiagnosisInfo().getFinalIcd10Code()).isEqualTo("A00");
+        assertThat(form058.getDiagnosisInfo().getFinalIcd10Name()).isEqualTo("Cholera");
         assertThat(form058.getApprovalInfo().getApprovedBy()).isEqualTo(20L);
         assertThat(form058.getApprovalInfo().getApprovedOrganizationId()).isEqualTo(30L);
         assertThat(form058.getApprovalInfo().getApprovedAt()).isNotNull();

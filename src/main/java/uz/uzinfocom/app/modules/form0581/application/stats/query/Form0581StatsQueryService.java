@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViolationException;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
-import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Icd10CountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581MonthlyOutcomeCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581SourceCountResponse;
@@ -38,8 +38,8 @@ public class Form0581StatsQueryService {
         return form0581StatsRepository.countByDay(currentScope(), receivedFor(direction), from, to);
     }
 
-    public List<Form0581Mkb10CountResponse> topMkb10(Form0581Direction direction, int limit) {
-        return form0581StatsRepository.topMkb10(currentScope(), receivedFor(direction), limit);
+    public List<Form0581Icd10CountResponse> topIcd10(Form0581Direction direction, int limit) {
+        return form0581StatsRepository.topIcd10(currentScope(), receivedFor(direction), limit);
     }
 
     public List<Form0581SourceCountResponse> countBySource(Form0581Direction direction) {
@@ -92,9 +92,9 @@ public class Form0581StatsQueryService {
         return form0581StatsRepository.countByDayUnscoped(from, to);
     }
 
-    public List<Form0581Mkb10CountResponse> adminTopMkb10(int limit) {
+    public List<Form0581Icd10CountResponse> adminTopIcd10(int limit) {
         adminAccessGuard.requireAdmin();
-        return form0581StatsRepository.topMkb10Unscoped(limit);
+        return form0581StatsRepository.topIcd10Unscoped(limit);
     }
 
     /**

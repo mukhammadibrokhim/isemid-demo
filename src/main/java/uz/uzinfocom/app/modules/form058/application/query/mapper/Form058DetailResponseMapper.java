@@ -44,6 +44,10 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "cards", source = "cards")
     Form058DetailResponse toDetailedResponse(Form058 form058, AuditResponse audit, List<CardTableResponse> cards);
 
+    @Mapping(target = "icd10Code", source = "icd10Code")
+    @Mapping(target = "icd10Name", source = "icd10Name")
+    @Mapping(target = "finalIcd10Code", source = "finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "finalIcd10Name")
     Form058DiagnosisDetailResponse toResponse(Form058DiagnosisInfo source);
 
     Form058ClinicalDetailResponse toResponse(Form058ClinicalInfo source);

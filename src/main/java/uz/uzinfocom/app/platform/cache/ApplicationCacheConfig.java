@@ -69,10 +69,12 @@ public class ApplicationCacheConfig {
                 cache(ReferenceCacheConfig.REF_CATALOG_BY_TYPE, 1_000, Duration.ofHours(1)),
 
                 cache(ReferenceCacheConfig.REF_MANUAL_REPORT_BY_CODE, 5_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_MKB10_CODE, 20_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_ICD10_CODE, 20_000, Duration.ofHours(1)),
 
-                cache(ReferenceCacheConfig.REF_MKB10_BY_CODE, 50_000, Duration.ofHours(2)),
-                cache(ReferenceCacheConfig.REF_MKB10_CHILDREN_BY_PARENT_ID, 20_000, Duration.ofHours(2)),
+                cache(ReferenceCacheConfig.REF_ICD10_BY_CODE, 50_000, Duration.ofHours(2)),
+                // Small size: at most one entry per supported locale (uz/uz-Cyrl/ru/kaa).
+                cache(ReferenceCacheConfig.REF_ICD10_ROOTS, 20, Duration.ofHours(2)),
+                cache(ReferenceCacheConfig.REF_ICD10_CHILDREN_BY_PARENT_ID, 20_000, Duration.ofHours(2)),
 
                 // Short TTL by design: these back runtime-editable configuration
                 // (see SystemSettingResolver/RouteAccessPolicyResolver) - a write

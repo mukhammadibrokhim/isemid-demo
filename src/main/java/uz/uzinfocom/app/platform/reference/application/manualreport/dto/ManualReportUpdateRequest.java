@@ -48,7 +48,7 @@ public record ManualReportUpdateRequest(
                 description = "Коды диагнозов МКБ-10, агрегируемые данным отчётом. Требуется хотя бы один код.",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
-        @NotEmpty(message = "{reference.manual_report.mkb10_codes.required}")
-        Set<String> mkb10Codes
+        @NotEmpty(message = "{reference.manual_report.icd10_codes.required}")
+        Set<String> icd10Codes
 ) {
 }

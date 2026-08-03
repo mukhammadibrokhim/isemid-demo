@@ -9,8 +9,8 @@ import java.util.List;
 public record UpdateForm0581Command(
         Long id,
 
-        String mkb10Code,
-        String mkb10Name,
+        String icd10Code,
+        String icd10Name,
         String injuryLocalization,
 
         LocalDateTime injuryDateTime,

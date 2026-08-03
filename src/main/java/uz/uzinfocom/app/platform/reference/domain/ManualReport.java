@@ -73,15 +73,15 @@ public class ManualReport extends ReferenceDictionaryEntity {
     @Builder.Default
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-            name = "ref_manual_report_mkb10_codes",
+            name = "ref_manual_report_icd10_codes",
             joinColumns = @JoinColumn(name = "manual_report_id"),
             indexes = {
-                    @Index(name = "idx_ref_manual_report_mkb10_report_id", columnList = "manual_report_id"),
-                    @Index(name = "idx_ref_manual_report_mkb10_code", columnList = "mkb10_code")
+                    @Index(name = "idx_ref_manual_report_icd10_report_id", columnList = "manual_report_id"),
+                    @Index(name = "idx_ref_manual_report_icd10_code", columnList = "icd10_code")
             }
     )
-    @Column(name = "mkb10_code", length = 20)
-    private Set<String> mkb10Codes = new HashSet<>();
+    @Column(name = "icd10_code", length = 20)
+    private Set<String> icd10Codes = new HashSet<>();
 
     @Builder.Default
     @Column(nullable = false)

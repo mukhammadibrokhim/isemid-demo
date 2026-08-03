@@ -25,7 +25,7 @@ public interface ManualReportCommandMapper {
     @Mapping(target = "code", expression = "java(ReferenceCodeNormalizer.normalizeCode(request.code()))")
     @Mapping(target = "includeInTotal", expression = "java(request.includeInTotal() == null ? Boolean.TRUE : request.includeInTotal())")
     @Mapping(target = "reportTypes", source = "reportTypes", qualifiedByName = "normalizeTags")
-    @Mapping(target = "mkb10Codes", source = "mkb10Codes", qualifiedByName = "normalizeMkb10Codes")
+    @Mapping(target = "icd10Codes", source = "icd10Codes", qualifiedByName = "normalizeIcd10Codes")
     @Mapping(target = "deleted", constant = "false")
     ManualReport toEntity(ManualReportCreateRequest request);
 
@@ -36,12 +36,12 @@ public interface ManualReportCommandMapper {
     @Mapping(target = "code", expression = "java(ReferenceCodeNormalizer.normalizeCode(request.code()))")
     @Mapping(target = "includeInTotal", expression = "java(request.includeInTotal() == null ? Boolean.TRUE : request.includeInTotal())")
     @Mapping(target = "reportTypes", source = "reportTypes", qualifiedByName = "normalizeTags")
-    @Mapping(target = "mkb10Codes", source = "mkb10Codes", qualifiedByName = "normalizeMkb10Codes")
+    @Mapping(target = "icd10Codes", source = "icd10Codes", qualifiedByName = "normalizeIcd10Codes")
     @Mapping(target = "deleted", ignore = true)
     void updateEntity(@MappingTarget ManualReport entity, ManualReportUpdateRequest request);
 
-    @Named("normalizeMkb10Codes")
-    default Set<String> normalizeMkb10Codes(Set<String> codes) {
+    @Named("normalizeIcd10Codes")
+    default Set<String> normalizeIcd10Codes(Set<String> codes) {
         if (codes == null) {
             return new HashSet<>();
         }

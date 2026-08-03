@@ -6,7 +6,7 @@ import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.reference.repository.Mkb10Repository;
+import uz.uzinfocom.app.platform.reference.repository.Icd10Repository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.validation.ReferenceCodeValidation;
 
@@ -16,7 +16,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class Form058CreateValidator {
 
-    private final Mkb10Repository mkb10Repository;
+    private final Icd10Repository icd10Repository;
 
     public void validate(CreateForm058Command command) {
         if (command == null) {
@@ -37,18 +37,18 @@ public class Form058CreateValidator {
             throw new Form058ScopeViolationException();
         }
 
-        validateMkb10Code(command.mkb10Code());
-        String finalMkb10Code = command.resolvedFinalMkb10Code();
-        if (!Objects.equals(command.mkb10Code(), finalMkb10Code)) {
-            validateMkb10Code(finalMkb10Code);
+        validateIcd10Code(command.icd10Code());
+        String finalIcd10Code = command.resolvedFinalIcd10Code();
+        if (!Objects.equals(command.icd10Code(), finalIcd10Code)) {
+            validateIcd10Code(finalIcd10Code);
         }
     }
 
-    private void validateMkb10Code(String mkb10Code) {
+    private void validateIcd10Code(String icd10Code) {
         ReferenceCodeValidation.requireExists(
-                mkb10Code,
-                code -> mkb10Repository.findByCodeAndDeletedFalse(code).isPresent(),
-                () -> new Form058ValidationException("error.form058.mkb10-not-found", mkb10Code)
+                icd10Code,
+                code -> icd10Repository.findByCodeAndDeletedFalse(code).isPresent(),
+                () -> new Form058ValidationException("error.form058.icd10-not-found", icd10Code)
         );
     }
 }

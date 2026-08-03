@@ -14,8 +14,8 @@ import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 public interface InboundForm0581Mapper {
 
     @Mapping(target = "source", source = "source")
-    @Mapping(target = "mkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.diagnosisInfo.mkb10Name")
+    @Mapping(target = "icd10Code", source = "request.diagnosisInfo.mkb10Code")
+    @Mapping(target = "icd10Name", source = "request.diagnosisInfo.mkb10Name")
     @Mapping(target = "injuryLocalization", source = "request.diagnosisInfo.injuryLocalization")
 
     @Mapping(target = "injuryDateTime", source = "request.incidentInfo.injuryDateTime")

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQueryService;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
-import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Icd10CountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -88,9 +88,9 @@ public class Form0581StatsController {
             description = "Возвращает наиболее часто встречающиеся коды диагноза по МКБ-10 в рамках доступа "
                     + "текущей организации."
     )
-    @GetMapping(ApiPaths.Form0581Stats.TOP_MKB10)
+    @GetMapping(ApiPaths.Form0581Stats.TOP_ICD10)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<Form0581Mkb10CountResponse>> topMkb10(
+    public ApiResponse<List<Form0581Icd10CountResponse>> topIcd10(
             @Parameter(description = "Направление: исходящие, входящие или все (только для super-admin).", required = true)
             @RequestParam Form0581Direction direction,
             @Parameter(description = "Максимальное количество кодов в ответе.")
@@ -98,7 +98,7 @@ public class Form0581StatsController {
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                form0581StatsQueryService.topMkb10(direction, limit)
+                form0581StatsQueryService.topIcd10(direction, limit)
         );
     }
 }

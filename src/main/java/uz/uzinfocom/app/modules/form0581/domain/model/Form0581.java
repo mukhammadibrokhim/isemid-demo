@@ -39,14 +39,14 @@ import java.util.List;
                 @Index(name = "idx_form0581_sender_org_id", columnList = "sender_organization_id"),
                 @Index(name = "idx_form0581_receiver_org_id", columnList = "receiver_organization_id"),
                 @Index(name = "idx_form0581_created_at", columnList = "created_at"),
-                @Index(name = "idx_form0581_mkb10_code", columnList = "mkb10_code"),
+                @Index(name = "idx_form0581_icd10_code", columnList = "icd10_code"),
                 @Index(name = "idx_form0581_deleted", columnList = "deleted"),
                 @Index(name = "idx_form0581_deleted_sender_created", columnList = "deleted,sender_organization_id,created_at"),
                 @Index(name = "idx_form0581_deleted_receiver_created", columnList = "deleted,receiver_organization_id,created_at"),
                 // partial (WHERE deleted = false) in reality — see Liquibase changelog
-                @Index(name = "idx_form0581_receiver_mkb10", columnList = "receiver_organization_id,mkb10_code"),
-                @Index(name = "idx_form0581_sender_mkb10", columnList = "sender_organization_id,mkb10_code"),
-                @Index(name = "idx_form0581_mkb10_not_deleted", columnList = "mkb10_code"),
+                @Index(name = "idx_form0581_receiver_icd10", columnList = "receiver_organization_id,icd10_code"),
+                @Index(name = "idx_form0581_sender_icd10", columnList = "sender_organization_id,icd10_code"),
+                @Index(name = "idx_form0581_icd10_not_deleted", columnList = "icd10_code"),
                 @Index(name = "idx_form0581_receiver_source", columnList = "receiver_organization_id,source"),
                 @Index(name = "idx_form0581_sender_source", columnList = "sender_organization_id,source")
         }
@@ -201,8 +201,8 @@ public class Form0581 extends AbsEntity {
     }
 
     public void approve(
-            String finalMkb10Code,
-            String finalMkb10Name,
+            String finalIcd10Code,
+            String finalIcd10Name,
             Long approvedBy,
             Long approvedOrganizationId
     ) {
@@ -210,8 +210,8 @@ public class Form0581 extends AbsEntity {
         ensureApprovalInfo();
 
         this.status = Form0581Status.APPROVED;
-        this.diagnosisInfo.setFinalMkb10Code(finalMkb10Code);
-        this.diagnosisInfo.setFinalMkb10Name(finalMkb10Name);
+        this.diagnosisInfo.setFinalIcd10Code(finalIcd10Code);
+        this.diagnosisInfo.setFinalIcd10Name(finalIcd10Name);
         this.approvalInfo.setApprovedBy(approvedBy);
         this.approvalInfo.setApprovedOrganizationId(approvedOrganizationId);
         this.approvalInfo.setApprovedAt(Instant.now());
@@ -224,10 +224,10 @@ public class Form0581 extends AbsEntity {
         this.cancellationInfo.setNotApprovedReason(reason);
     }
 
-    public void updateFinalDiagnosis(String finalMkb10Code, String finalMkb10Name) {
+    public void updateFinalDiagnosis(String finalIcd10Code, String finalIcd10Name) {
         ensureDiagnosisInfo();
-        this.diagnosisInfo.setFinalMkb10Code(finalMkb10Code);
-        this.diagnosisInfo.setFinalMkb10Name(finalMkb10Name);
+        this.diagnosisInfo.setFinalIcd10Code(finalIcd10Code);
+        this.diagnosisInfo.setFinalIcd10Name(finalIcd10Name);
     }
 
     public void softDelete(Long deletedBy, String reason) {

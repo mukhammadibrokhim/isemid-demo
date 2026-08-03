@@ -6,7 +6,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
-import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Icd10CountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058MonthlyOutcomeCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058SourceCountResponse;
@@ -80,12 +80,12 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
         );
     }
 
-    public List<Form058Mkb10CountResponse> topMkb10(ResolvedOrganizationScope scope, Boolean received, int limit) {
+    public List<Form058Icd10CountResponse> topIcd10(ResolvedOrganizationScope scope, Boolean received, int limit) {
         return topGrouped(
-                this::mkb10Code,
+                this::icd10Code,
                 (root, cb) -> scopePredicateFactory.applyDirectionScope(root, cb, scope, received),
                 limit,
-                Form058Mkb10CountResponse::new
+                Form058Icd10CountResponse::new
         );
     }
 
@@ -175,16 +175,16 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
     }
 
     /**
-     * Unscoped (all organizations) version of {@link #topMkb10} — for the
+     * Unscoped (all organizations) version of {@link #topIcd10} — for the
      * admin dashboard only. Callers must gate this behind an admin-only
      * authorization check themselves.
      */
-    public List<Form058Mkb10CountResponse> topMkb10Unscoped(int limit) {
+    public List<Form058Icd10CountResponse> topIcd10Unscoped(int limit) {
         return topGrouped(
-                this::mkb10Code,
+                this::icd10Code,
                 null,
                 limit,
-                Form058Mkb10CountResponse::new
+                Form058Icd10CountResponse::new
         );
     }
 
@@ -221,7 +221,7 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
         );
     }
 
-    private Path<String> mkb10Code(Root<Form058> root, CriteriaBuilder cb) {
-        return root.get("diagnosisInfo").get("mkb10Code");
+    private Path<String> icd10Code(Root<Form058> root, CriteriaBuilder cb) {
+        return root.get("diagnosisInfo").get("icd10Code");
     }
 }

@@ -155,7 +155,7 @@ public final class ApiPaths {
         public static final String NEIGHBORHOODS = ROOT + "/neighborhood";
         public static final String CATALOGS = ROOT + "/catalogs";
         public static final String MANUAL_REPORTS = ROOT + "/manual-reports";
-        public static final String MKB10 = ROOT + "/mkb10";
+        public static final String ICD10 = ROOT + "/icd10";
 
         public static final String BY_ID = "/{id}";
         public static final String BY_CODE = "/code/{code}";
@@ -163,7 +163,7 @@ public final class ApiPaths {
         public static final String BY_TYPE = "/types/{type}";
         public static final String BY_TYPE_AND_CODE = "/types/{type}/codes/{code}";
         public static final String BY_TYPE_AND_PARENT_CODE = "/types/{type}/parents/{parentCode}";
-        public static final String BY_MKB10_CODE = "/mkb10/{code}";
+        public static final String BY_ICD10_CODE = "/icd10/{code}";
         public static final String ROOTS = "/roots";
         public static final String CHILDREN = "/{id}/children";
     }
@@ -328,7 +328,7 @@ public final class ApiPaths {
         public static final String ROOT = Form058.ROOT + "/stats";
         public static final String BY_STATUS = "/by-status";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     public static final class Form058AdminStats {
@@ -340,7 +340,7 @@ public final class ApiPaths {
         public static final String BY_SENDER_ORGANIZATION = "/by-sender-organization";
         public static final String BY_RECEIVER_ORGANIZATION = "/by-receiver-organization";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     public static final class Form0581 {
@@ -366,7 +366,7 @@ public final class ApiPaths {
         public static final String ROOT = Form0581.ROOT + "/stats";
         public static final String BY_STATUS = "/by-status";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     public static final class Form0581AdminStats {
@@ -378,7 +378,7 @@ public final class ApiPaths {
         public static final String BY_SENDER_ORGANIZATION = "/by-sender-organization";
         public static final String BY_RECEIVER_ORGANIZATION = "/by-receiver-organization";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     /**

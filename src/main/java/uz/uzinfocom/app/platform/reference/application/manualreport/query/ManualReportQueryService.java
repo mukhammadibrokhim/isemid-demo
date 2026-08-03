@@ -72,14 +72,14 @@ public class ManualReportQueryService {
 
     @Transactional(readOnly = true)
     @Cacheable(
-            cacheNames = ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_MKB10_CODE,
-            key = "#mkb10Code.trim().toUpperCase(T(java.util.Locale).ROOT)",
-            condition = "#mkb10Code != null"
+            cacheNames = ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_ICD10_CODE,
+            key = "#icd10Code.trim().toUpperCase(T(java.util.Locale).ROOT)",
+            condition = "#icd10Code != null"
     )
-    public List<ManualReportResponse> getByMkb10Code(String mkb10Code) {
-        String normalizedCode = mkb10Code == null ? null : mkb10Code.trim().toUpperCase(Locale.ROOT);
+    public List<ManualReportResponse> getByIcd10Code(String icd10Code) {
+        String normalizedCode = icd10Code == null ? null : icd10Code.trim().toUpperCase(Locale.ROOT);
 
-        return manualReportRepository.findAllByMkb10CodeAndDeletedFalse(normalizedCode)
+        return manualReportRepository.findAllByIcd10CodeAndDeletedFalse(normalizedCode)
                 .stream()
                 .map(manualReportMapper::toResponse)
                 .toList();

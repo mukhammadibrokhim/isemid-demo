@@ -14,12 +14,12 @@ import java.util.UUID;
         + "передаётся только то, что нужно изменить.")
 public record UpdateForm0581Request(
         @Schema(description = "Код диагноза по МКБ-10.")
-        @Size(max = 20, message = "{validation.form0581.mkb10-code.size}")
-        String mkb10Code,
+        @Size(max = 20, message = "{validation.form0581.icd10-code.size}")
+        String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        @Size(max = 512, message = "{validation.form0581.mkb10-name.size}")
-        String mkb10Name,
+        @Size(max = 512, message = "{validation.form0581.icd10-name.size}")
+        String icd10Name,
 
         @Schema(description = "Локализация повреждения на теле пациента.")
         @Size(max = 500, message = "{validation.form0581.injury-localization.size}")

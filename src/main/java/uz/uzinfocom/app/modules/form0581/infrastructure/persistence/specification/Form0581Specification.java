@@ -28,7 +28,7 @@ public class Form0581Specification {
     private static final String SOURCE = "source";
 
     private static final String DIAGNOSIS_INFO = "diagnosisInfo";
-    private static final String MKB10_CODE = "mkb10Code";
+    private static final String ICD10_CODE = "icd10Code";
 
     private static final String SENDER_ORGANIZATION_ID = "senderOrganizationId";
     private static final String RECEIVER_ORGANIZATION_ID = "receiverOrganizationId";
@@ -164,8 +164,8 @@ public class Form0581Specification {
             predicates.add(cb.equal(root.get(STATUS), filter.status()));
         }
 
-        if (StringUtils.hasText(filter.mkb10Code())) {
-            predicates.add(cb.equal(root.get(DIAGNOSIS_INFO).get(MKB10_CODE), normalizeCode(filter.mkb10Code())));
+        if (StringUtils.hasText(filter.icd10Code())) {
+            predicates.add(cb.equal(root.get(DIAGNOSIS_INFO).get(ICD10_CODE), normalizeCode(filter.icd10Code())));
         }
 
         if (filter.organizationId() != null) {

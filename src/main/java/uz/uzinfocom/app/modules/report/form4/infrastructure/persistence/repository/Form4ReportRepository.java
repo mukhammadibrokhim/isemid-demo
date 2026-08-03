@@ -59,7 +59,7 @@ public class Form4ReportRepository {
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id, p.category_code, 'PRIMARY'
             from form058 f
@@ -68,7 +68,7 @@ public class Form4ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id, p.category_code, 'CONFIRMED'
             from form058_1 f
@@ -77,7 +77,7 @@ public class Form4ReportRepository {
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id, p.category_code, 'PRIMARY'
             from form058_1 f
@@ -86,7 +86,7 @@ public class Form4ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             """;
 
     private static final String AGGREGATE_COLUMNS = """

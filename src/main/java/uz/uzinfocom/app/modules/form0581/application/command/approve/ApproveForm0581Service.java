@@ -27,7 +27,7 @@ public class ApproveForm0581Service {
 
     @Transactional
     public UpdateForm0581Result approve(ApproveForm0581Command command) {
-        if (!StringUtils.hasText(command.finalMkb10Code()) || !StringUtils.hasText(command.finalMkb10Name())) {
+        if (!StringUtils.hasText(command.finalIcd10Code()) || !StringUtils.hasText(command.finalIcd10Name())) {
             throw new Form0581ValidationException("error.form0581.approval-not-allowed");
         }
 
@@ -36,8 +36,8 @@ public class ApproveForm0581Service {
         String oldStatus = form0581.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
         form0581.approve(
-                command.finalMkb10Code().trim(),
-                command.finalMkb10Name().trim(),
+                command.finalIcd10Code().trim(),
+                command.finalIcd10Name().trim(),
                 actorUserId,
                 form0581.getSenderOrganizationId()
         );

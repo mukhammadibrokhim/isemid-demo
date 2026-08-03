@@ -19,9 +19,9 @@ public interface ManualReportRepository extends JpaRepository<ManualReport, Long
 
     @Query("""
         select m from ManualReport m
-        where :mkb10Code member of m.mkb10Codes and m.deleted = false
+        where :icd10Code member of m.icd10Codes and m.deleted = false
     """)
-    List<ManualReport> findAllByMkb10CodeAndDeletedFalse(@Param("mkb10Code") String mkb10Code);
+    List<ManualReport> findAllByIcd10CodeAndDeletedFalse(@Param("icd10Code") String icd10Code);
 
     @Query("""
         select distinct m from ManualReport m

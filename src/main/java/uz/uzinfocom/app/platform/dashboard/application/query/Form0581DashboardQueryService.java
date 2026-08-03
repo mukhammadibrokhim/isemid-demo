@@ -209,8 +209,8 @@ public class Form0581DashboardQueryService {
 
     private List<TopDiagnosisResponse> buildTopDiagnoses() {
         int limit = (int) systemSettingResolver.resolveLong(TOP_DIAGNOSIS_RESULT_LIMIT_KEY, TOP_DIAGNOSIS_RESULT_LIMIT);
-        return form0581StatsQueryService.topMkb10(Form0581Direction.INCOMING, limit).stream()
-                .map(item -> new TopDiagnosisResponse(item.mkb10Code(), item.count()))
+        return form0581StatsQueryService.topIcd10(Form0581Direction.INCOMING, limit).stream()
+                .map(item -> new TopDiagnosisResponse(item.icd10Code(), item.count()))
                 .toList();
     }
 

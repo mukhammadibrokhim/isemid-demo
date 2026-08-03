@@ -7,13 +7,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record CreateForm058Command(
-        String mkb10Code,
-        String mkb10Name,
+        String icd10Code,
+        String icd10Name,
 
-        String finalMkb10Code,
-        String finalMkb10Name,
+        String finalIcd10Code,
+        String finalIcd10Name,
 
-        Integer mkb10UsageLimit,
+        Integer icd10UsageLimit,
 
         CreatePatientCommand patient,
 
@@ -46,15 +46,15 @@ public record CreateForm058Command(
         String location
 ) {
 
-    public String resolvedFinalMkb10Code() {
-        return StringUtils.hasText(finalMkb10Code)
-                ? finalMkb10Code.trim()
-                : mkb10Code;
+    public String resolvedFinalIcd10Code() {
+        return StringUtils.hasText(finalIcd10Code)
+                ? finalIcd10Code.trim()
+                : icd10Code;
     }
 
-    public String resolvedFinalMkb10Name() {
-        return StringUtils.hasText(finalMkb10Name)
-                ? finalMkb10Name.trim()
-                : mkb10Name;
+    public String resolvedFinalIcd10Name() {
+        return StringUtils.hasText(finalIcd10Name)
+                ? finalIcd10Name.trim()
+                : icd10Name;
     }
 }

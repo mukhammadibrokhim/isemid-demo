@@ -54,7 +54,7 @@ class Card205HandlerTest {
 
         assertThat(card205.getForm058()).isSameAs(form);
         assertThat(card205.getCardType()).isEqualTo(CardType.CARD205);
-        assertThat(card205.getMkb10Code()).isEqualTo("MKB-1");
+        assertThat(card205.getIcd10Code()).isEqualTo("MKB-1");
 
         assertThat(card205.getInfoBittenPeople()).hasSize(1);
         assertThat(card205.getInfoBittenPeople().getFirst().getCard205()).isSameAs(card205);
@@ -78,7 +78,7 @@ class Card205HandlerTest {
         Card205Request updated = requestWith("MKB-2", List.of(), List.of(), List.of());
         handler.update(card205, updated);
 
-        assertThat(card205.getMkb10Code()).isEqualTo("MKB-2");
+        assertThat(card205.getIcd10Code()).isEqualTo("MKB-2");
         assertThat(card205.getInfoBittenPeople()).isSameAs(originalList).isEmpty();
         assertThat(card205.getInfoOtherBittenAnimal()).isEmpty();
         assertThat(card205.getInfoAbtAnimalBittenPeople()).isEmpty();
@@ -97,7 +97,7 @@ class Card205HandlerTest {
         assertThat(response.type()).isEqualTo(CardType.CARD205);
         assertThat(response.status()).isEqualTo(CardStatus.NEW);
         assertThat(response.formId()).isEqualTo(11L);
-        assertThat(response.mkb10Code()).isEqualTo("MKB-1");
+        assertThat(response.icd10Code()).isEqualTo("MKB-1");
         assertThat(response.infoBittenPeople()).hasSize(1);
         assertThat(response.infoBittenPeople().getFirst().lastName()).isEqualTo("Doe");
         assertThat(response.infoOtherBittenAnimal()).hasSize(1);
@@ -113,13 +113,13 @@ class Card205HandlerTest {
     }
 
     private Card205Request requestWith(
-            String mkb10Code,
+            String icd10Code,
             List<InformationOtherBittenPeopleRequest> infoBittenPeople,
             List<InformationOtherBittenAnimalsRequest> infoOtherBittenAnimal,
             List<InformationAboutAnimaBittenPeopleRequest> infoAbtAnimalBittenPeople
     ) {
         return new Card205Request(
-                mkb10Code, "Name",
+                icd10Code, "Name",
                 LocalDate.now(), LocalDate.now(),
                 "BiteAddress", LocalDate.now(),
                 "Institution", LocalDate.now(),

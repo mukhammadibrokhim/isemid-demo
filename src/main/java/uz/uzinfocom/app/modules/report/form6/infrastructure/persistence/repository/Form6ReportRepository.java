@@ -44,7 +44,7 @@ public class Form6ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int
@@ -54,7 +54,7 @@ public class Form6ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             """;
 
     private static final String AGE_BREAKDOWN_COLUMNS = """

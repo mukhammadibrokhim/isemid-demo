@@ -11,7 +11,7 @@ import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountRespon
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.form058.application.stats.query.Form058StatsQueryService;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
-import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Icd10CountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058SourceCountResponse;
 import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
@@ -221,8 +221,8 @@ public class Form058DashboardQueryService {
 
     private List<TopDiagnosisResponse> buildTopDiagnoses() {
         int limit = (int) systemSettingResolver.resolveLong(TOP_DIAGNOSIS_RESULT_LIMIT_KEY, TOP_DIAGNOSIS_RESULT_LIMIT);
-        return form058StatsQueryService.topMkb10(Form058Direction.INCOMING, limit).stream()
-                .map(item -> new TopDiagnosisResponse(item.mkb10Code(), item.count()))
+        return form058StatsQueryService.topIcd10(Form058Direction.INCOMING, limit).stream()
+                .map(item -> new TopDiagnosisResponse(item.icd10Code(), item.count()))
                 .toList();
     }
 

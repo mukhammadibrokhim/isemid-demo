@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 
 public record UpdateForm058Command(
         Long id,
-        String mkb10Code,
-        String mkb10Name,
+        String icd10Code,
+        String icd10Name,
         LocalDate diseaseDate,
         LocalDate firstVisitDate,
         LocalDate visitDate,

@@ -100,7 +100,7 @@ public record Form0581Filter(
                 description = "Код диагноза по МКБ-10.",
                 example = "A82"
         )
-        String mkb10Code,
+        String icd10Code,
 
         @Schema(
                 description = """
@@ -156,7 +156,7 @@ public record Form0581Filter(
                         && dateTo == null
                         && id == null
                         && !StringUtils.hasText(documentValue)
-                        && !StringUtils.hasText(mkb10Code)
+                        && !StringUtils.hasText(icd10Code)
                         && organizationId == null
                         && !StringUtils.hasText(regionCode)
                         && !StringUtils.hasText(districtCode)

@@ -35,7 +35,7 @@ public record ManualReportResponse(
         Set<String> reportTypes,
 
         @Schema(description = "Коды диагнозов МКБ-10, агрегируемые данным отчётом.")
-        Set<String> mkb10Codes,
+        Set<String> icd10Codes,
 
         @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted

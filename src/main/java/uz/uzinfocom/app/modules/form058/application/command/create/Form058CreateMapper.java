@@ -22,11 +22,11 @@ public abstract class Form058CreateMapper {
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
     @Mapping(target = "receiverOrganizationId", source = "receiverOrganizationId")
 
-    @Mapping(target = "diagnosisInfo.mkb10Code", source = "mkb10Code")
-    @Mapping(target = "diagnosisInfo.mkb10Name", source = "mkb10Name")
-    @Mapping(target = "diagnosisInfo.finalMkb10Code", expression = "java(createForm058Command.resolvedFinalMkb10Code())")
-    @Mapping(target = "diagnosisInfo.finalMkb10Name", expression = "java(createForm058Command.resolvedFinalMkb10Name())")
-    @Mapping(target = "diagnosisInfo.mkb10UsageLimit", source = "mkb10UsageLimit")
+    @Mapping(target = "diagnosisInfo.icd10Code", source = "icd10Code")
+    @Mapping(target = "diagnosisInfo.icd10Name", source = "icd10Name")
+    @Mapping(target = "diagnosisInfo.finalIcd10Code", expression = "java(createForm058Command.resolvedFinalIcd10Code())")
+    @Mapping(target = "diagnosisInfo.finalIcd10Name", expression = "java(createForm058Command.resolvedFinalIcd10Name())")
+    @Mapping(target = "diagnosisInfo.icd10UsageLimit", source = "icd10UsageLimit")
 
     @Mapping(target = "clinicalInfo.labConfirmation", source = "labConfirmation")
     @Mapping(target = "clinicalInfo.hospitalPlaceId", source = "hospitalPlaceId")

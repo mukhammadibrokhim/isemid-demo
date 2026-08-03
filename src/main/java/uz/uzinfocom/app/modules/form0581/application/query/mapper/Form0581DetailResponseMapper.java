@@ -41,6 +41,10 @@ public interface Form0581DetailResponseMapper {
     @Mapping(target = "audit", source = "audit")
     Form0581DetailResponse toDetailedResponse(Form0581 form0581, AuditResponse audit);
 
+    @Mapping(target = "icd10Code", source = "icd10Code")
+    @Mapping(target = "icd10Name", source = "icd10Name")
+    @Mapping(target = "finalIcd10Code", source = "finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "finalIcd10Name")
     Form0581DiagnosisDetailResponse toResponse(Form0581DiagnosisInfo source);
 
     Form0581IncidentDetailResponse toResponse(Form0581IncidentInfo source);

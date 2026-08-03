@@ -35,11 +35,11 @@ public interface InboundForm058Mapper {
     @Mapping(target = "initialReportDateTime", source = "request.dateInfo.initialReportDateTime")
 
     @Mapping(target = "patient", source = "request.patient")
-    @Mapping(target = "finalMkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.diagnosisInfo.mkb10Name")
-    @Mapping(target = "mkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.diagnosisInfo.mkb10Name")
-    @Mapping(target = "mkb10UsageLimit", source = "request.diagnosisInfo.mkb10UsageLimit")
+    @Mapping(target = "finalIcd10Code", source = "request.diagnosisInfo.mkb10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.diagnosisInfo.mkb10Name")
+    @Mapping(target = "icd10Code", source = "request.diagnosisInfo.mkb10Code")
+    @Mapping(target = "icd10Name", source = "request.diagnosisInfo.mkb10Name")
+    @Mapping(target = "icd10UsageLimit", source = "request.diagnosisInfo.mkb10UsageLimit")
     @Mapping(target = "labConfirmation", source = "request.clinicalInfo.labConfirmation")
     CreateForm058Command toCommand(InboundCreateForm058Request request, String source, Long senderOrganizationId);
 }

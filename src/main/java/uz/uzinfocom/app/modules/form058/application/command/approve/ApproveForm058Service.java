@@ -32,7 +32,7 @@ public class ApproveForm058Service {
 
     @Transactional
     public UpdateForm058Result approve(ApproveForm058Command command) {
-        if (!StringUtils.hasText(command.finalMkb10Code()) || !StringUtils.hasText(command.finalMkb10Name())) {
+        if (!StringUtils.hasText(command.finalIcd10Code()) || !StringUtils.hasText(command.finalIcd10Name())) {
             throw new Form058ValidationException("error.form058.approval-not-allowed");
         }
 
@@ -41,8 +41,8 @@ public class ApproveForm058Service {
         String oldStatus = form058.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
         form058.approve(
-                command.finalMkb10Code().trim(),
-                command.finalMkb10Name().trim(),
+                command.finalIcd10Code().trim(),
+                command.finalIcd10Name().trim(),
                 actorUserId,
                 form058.getReceiverOrganizationId()
         );
@@ -76,7 +76,7 @@ public class ApproveForm058Service {
     public UpdateForm058Result approveDiagnosis(ApproveForm058Command command) {
         Form058 form058 = findRequired(command.formId());
         validateReceiverScope(form058);
-        form058.updateFinalDiagnosis(command.finalMkb10Code(), command.finalMkb10Name());
+        form058.updateFinalDiagnosis(command.finalIcd10Code(), command.finalIcd10Name());
         return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
     }
 

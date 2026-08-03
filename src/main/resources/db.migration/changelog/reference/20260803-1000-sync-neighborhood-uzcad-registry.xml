@@ -214,7 +214,13 @@
                        d.code AS parent_code,
                        ROW_NUMBER() OVER (PARTITION BY d.code ORDER BY s.tin) AS rn
                 FROM stg_neighborhood_uzcad_20260803 s
-                INNER JOIN ref_district d ON d.soato_id = s.district_soato
+                INNER JOIN LATERAL (
+                    SELECT rd.code
+                    FROM ref_district rd
+                    WHERE rd.soato_id = s.district_soato
+                    ORDER BY rd.deleted ASC, rd.id ASC
+                    LIMIT 1
+                ) d ON true
                 WHERE s.uzcad_code IS NOT NULL
                   AND s.code IS NOT NULL
                   AND s.code <> ''
@@ -278,6 +284,190 @@
         </preConditions>
 
         <dropTable tableName="stg_neighborhood_uzcad_20260803"/>
+
+    </changeSet>
+
+    <!--
+        Ushbu changelog birinchi marta (07-bosqichdan oldingi versiyada) ishga
+        tushganda 04-bosqich hali ham uzcad manba "code"sini (masalan
+        "17090021") to'g'ridan-to'g'ri yozar edi. Keyinchalik ma'lum bo'ldiki,
+        ref_neighborhood'da SOF raqamli code'ga ega 8000+ qator bor edi —
+        ularning deyarli barchasi 20260605-1800-seed-reference-data.xml orqali
+        boshlang'ich seed vaqtida (bu changelogdan ancha oldin) qo'shilgan,
+        ya'ni ular bu sinxronizatsiya bag'i emas, balki ilovaning asl
+        ma'lumotlar formatidagi keng tarqalgan konvensiya. Foydalanuvchi
+        talabiga ko'ra ular ham PARENT_CODE+tartib raqami formatiga
+        o'tkaziladi (07-08-bosqichlar), lekin bu code qiymati boshqa
+        jadvallarda (pt_address.neighborhood_code, form058_1
+        .owner_neighborhood_code) haqiqiy FK'siz, oddiy satr sifatida
+        saqlanadi (qarang: 20260801-1220/1400 komentlari) — shuning uchun
+        code o'zgartirilganda o'sha qatorlar ham eski->yangi xaritaga ko'ra
+        yangilanadi (09-10-bosqichlar), aks holda ular saqlangan eski kodga
+        ishora qilib qoladi va UI/eksportda mos mahalla nomi topilmay qoladi.
+
+        07-bosqich: xarita (eski_code -> yangi_code) staging jadvalga
+        hisoblab yoziladi. Ikkita tuzatish avvalgi (xato) urinishga nisbatan:
+          1) LPAD(...,3,'0') Postgres'da qiymat 3 xonadan uzun bo'lsa uni
+             QISQARTIRADI (kesib tashlaydi), nol bilan to'ldirmaydi — shu
+             sabab masalan AN-237 tumanida (bazada 25 ta sof raqamli qator,
+             lekin mavjud eng katta AN-237xxx kod — pastga qarang — 999 edi)
+             999+1=1000 "100" ga qisqarib, keyingi qatorlar bilan
+             to'qnashgan (uk_ref_neighborhood_code xatosi). Endi LPAD kengligi
+             GREATEST(3, raqam uzunligi) qilib hisoblanadi — hech qachon
+             kesib tashlamaydi.
+          2) Har bir tumanda "*999" kodli "Mahalla aniqlanmagan" (noma'lum
+             mahalla) qatori maxsus zaxira/placeholder sifatida mavjud (43 ta
+             tumanda uchraydi, deleted=true) — bu haqiqiy band qilingan
+             tartib raqami emas, shuning uchun band bo'lgan eng katta
+             raqamni hisoblashda (district_max) chiqarib tashlanadi, aks
+             holda barcha yangi kodlar keraksiz ravishda 1000+ dan
+             boshlanib ketardi.
+    -->
+    <changeSet
+            id="20260803-1000-07-stage-neighborhood-code-rename"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <tableExists tableName="ref_district"/>
+            <not>
+                <tableExists tableName="stg_neighborhood_code_rename_20260803"/>
+            </not>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            CREATE TABLE stg_neighborhood_code_rename_20260803 AS
+            WITH bad_rows AS (
+                SELECT n.id, n.code AS old_code, d.code AS parent_code,
+                       ROW_NUMBER() OVER (PARTITION BY d.code ORDER BY n.id) AS rn
+                FROM ref_neighborhood n
+                INNER JOIN LATERAL (
+                    SELECT rd.code
+                    FROM ref_district rd
+                    WHERE rd.soato_id = n.parent_soato_id
+                    ORDER BY rd.deleted ASC, rd.id ASC
+                    LIMIT 1
+                ) d ON true
+                WHERE n.code ~ '^[0-9]+$'
+            ),
+            district_max AS (
+                SELECT br.parent_code,
+                       COALESCE(MAX(NULLIF(substring(n2.code from length(br.parent_code) + 1), '')::INTEGER), 0) AS max_seq
+                FROM (SELECT DISTINCT parent_code FROM bad_rows) br
+                LEFT JOIN ref_neighborhood n2
+                       ON n2.code ~ ('^' || br.parent_code || '[0-9]+$')
+                      AND n2.name_uz NOT ILIKE '%aniqlanmagan%'
+                GROUP BY br.parent_code
+            )
+            SELECT br.old_code,
+                   br.parent_code AS new_parent_code,
+                   br.parent_code || LPAD(
+                       (dm.max_seq + br.rn)::TEXT,
+                       GREATEST(3, LENGTH((dm.max_seq + br.rn)::TEXT)),
+                       '0'
+                   ) AS new_code
+            FROM bad_rows br
+            JOIN district_max dm ON dm.parent_code = br.parent_code;
+
+            ALTER TABLE stg_neighborhood_code_rename_20260803
+                ADD PRIMARY KEY (old_code);
+        ]]></sql>
+
+    </changeSet>
+
+    <changeSet
+            id="20260803-1000-08-apply-neighborhood-code-rename"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <tableExists tableName="stg_neighborhood_code_rename_20260803"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE ref_neighborhood n
+            SET code        = m.new_code,
+                parent_code = m.new_parent_code
+            FROM stg_neighborhood_code_rename_20260803 m
+            WHERE n.code = m.old_code;
+        ]]></sql>
+
+    </changeSet>
+
+    <!--
+        pt_address.neighborhood_code haqiqiy FK emas (oddiy VARCHAR ustun,
+        qarang: 20260716-1100-baseline-schema-snapshot.xml), shuning uchun
+        yuqoridagi rename bu jadvalga avtomatik tarqalmaydi — eski_code'ga
+        ishora qilgan qatorlar shu bosqichda xaritaga ko'ra yangilanadi.
+        Dev bazasida bu ustunda sof raqamli qiymatga ega qator yo'qligi
+        tekshirilgan (0 ta), lekin boshqa muhitlarda bo'lishi mumkin bo'lgani
+        uchun bosqich baribir bajariladi. columnExists bo'lmasa (masalan
+        ustun keyinchalik olib tashlangan bo'lsa) MARK_RAN bilan xavfsiz
+        o'tkazib yuboriladi.
+    -->
+    <changeSet
+            id="20260803-1000-09-apply-neighborhood-code-rename-to-pt-address"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="pt_address"/>
+            <columnExists tableName="pt_address" columnName="neighborhood_code"/>
+            <tableExists tableName="stg_neighborhood_code_rename_20260803"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE pt_address a
+            SET neighborhood_code = m.new_code
+            FROM stg_neighborhood_code_rename_20260803 m
+            WHERE a.neighborhood_code = m.old_code;
+        ]]></sql>
+
+    </changeSet>
+
+    <!--
+        form058_1.owner_neighborhood_code — xuddi pt_address bilan bir xil
+        holat (FK'siz VARCHAR, qarang: form0581/20260710-1000-create
+        -form0581.xml). Dev bazasida ham bu ustunda sof raqamli qiymat
+        topilmadi, lekin xaritaga ko'ra yangilash baribir bajariladi.
+    -->
+    <changeSet
+            id="20260803-1000-10-apply-neighborhood-code-rename-to-form0581"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="form058_1"/>
+            <columnExists tableName="form058_1" columnName="owner_neighborhood_code"/>
+            <tableExists tableName="stg_neighborhood_code_rename_20260803"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE form058_1 f
+            SET owner_neighborhood_code = m.new_code
+            FROM stg_neighborhood_code_rename_20260803 m
+            WHERE f.owner_neighborhood_code = m.old_code;
+        ]]></sql>
+
+    </changeSet>
+
+    <changeSet
+            id="20260803-1000-11-drop-neighborhood-code-rename-staging"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="stg_neighborhood_code_rename_20260803"/>
+        </preConditions>
+
+        <dropTable tableName="stg_neighborhood_code_rename_20260803"/>
 
     </changeSet>
 

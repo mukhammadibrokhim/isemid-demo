@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Renames the MKB-10 (Russian/CIS name for ICD-10) reference classifier to
+        ICD-10 throughout the schema. The seed data itself is untouched — only
+        table/column/index/constraint names change. base/mkb10_reference.csv is
+        NOT renamed; the historical loadData changeSet in
+        20260605-1800-seed-reference-data.xml already ran against that filename.
+    -->
+
+    <changeSet id="20260803-1100-01-rename-ref-mkb10-table" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <tableExists tableName="ref_mkb10"/>
+                <not>
+                    <tableExists tableName="ref_icd10"/>
+                </not>
+            </and>
+        </preConditions>
+        <renameTable oldTableName="ref_mkb10" newTableName="ref_icd10"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-02-rename-ref-icd10-indexes" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="ref_icd10" indexName="idx_ref_mkb10_parent_id"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_ref_mkb10_parent_id RENAME TO idx_ref_icd10_parent_id;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-03-rename-ref-icd10-code-index" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="ref_icd10" indexName="idx_ref_mkb10_code"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_ref_mkb10_code RENAME TO idx_ref_icd10_code;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-04-rename-ref-icd10-deleted-index" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="ref_icd10" indexName="idx_ref_mkb10_deleted"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_ref_mkb10_deleted RENAME TO idx_ref_icd10_deleted;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-05-rename-uk-ref-icd10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="ref_icd10" indexName="uk_ref_mkb10_code"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX uk_ref_mkb10_code RENAME TO uk_ref_icd10_code;</sql>
+    </changeSet>
+
+    <changeSet id="20260803-1100-06-rename-manual-report-mkb10-codes-table" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <tableExists tableName="ref_manual_report_mkb10_codes"/>
+                <not>
+                    <tableExists tableName="ref_manual_report_icd10_codes"/>
+                </not>
+            </and>
+        </preConditions>
+        <renameTable oldTableName="ref_manual_report_mkb10_codes" newTableName="ref_manual_report_icd10_codes"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-07-rename-manual-report-mkb10-code-column" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="ref_manual_report_icd10_codes" columnName="mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="ref_manual_report_icd10_codes" oldColumnName="mkb10_code" newColumnName="icd10_code" columnDataType="VARCHAR(20)"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-08-rename-manual-report-mkb10-report-id-index" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="ref_manual_report_icd10_codes" indexName="idx_ref_manual_report_mkb10_report_id"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_ref_manual_report_mkb10_report_id RENAME TO idx_ref_manual_report_icd10_report_id;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-09-rename-manual-report-mkb10-code-index" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="ref_manual_report_icd10_codes" indexName="idx_ref_manual_report_mkb10_code"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_ref_manual_report_mkb10_code RENAME TO idx_ref_manual_report_icd10_code;</sql>
+    </changeSet>
+
+    <!--
+        The generic `catalog` table stores MKB10-typed rows discriminated by the
+        `type` column (see Icd10Service, formerly Mkb10Service). Fix any existing
+        data so lookups against the renamed ICD10_TYPE constant still resolve.
+        No-op if no such rows exist yet.
+    -->
+    <changeSet id="20260803-1100-10-fix-catalog-mkb10-type-literal" author="codex">
+        <preConditions onFail="MARK_RAN" onError="CONTINUE">
+            <tableExists tableName="catalog"/>
+        </preConditions>
+        <update tableName="catalog">
+            <column name="type" value="ICD10"/>
+            <where>type = 'MKB10'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

@@ -11,7 +11,7 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.form058.application.stats.query.Form058StatsQueryService;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
-import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Icd10CountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058MonthlyOutcomeCountResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.DynamicsPointResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
@@ -147,8 +147,8 @@ class Form058DashboardQueryServiceTest {
         when(organizationScopeResolver.resolve(any()))
                 .thenReturn(scopeOf(OrganizationScopeMode.ORGANIZATION, null, null));
 
-        when(form058StatsQueryService.topMkb10(Form058Direction.INCOMING, 5)).thenReturn(List.of(
-                new Form058Mkb10CountResponse("A82", 10L)
+        when(form058StatsQueryService.topIcd10(Form058Direction.INCOMING, 5)).thenReturn(List.of(
+                new Form058Icd10CountResponse("A82", 10L)
         ));
         when(form058StatsQueryService.countBySource(Form058Direction.INCOMING)).thenReturn(List.of(
                 new Form058SourceCountResponse("MANUAL", 7L),
@@ -158,7 +158,7 @@ class Form058DashboardQueryServiceTest {
         Form058DashboardResponse response = service.getDashboard();
 
         assertThat(response.topDiagnoses()).hasSize(1);
-        assertThat(response.topDiagnoses().getFirst().mkb10Code()).isEqualTo("A82");
+        assertThat(response.topDiagnoses().getFirst().icd10Code()).isEqualTo("A82");
         assertThat(response.topDiagnoses().getFirst().count()).isEqualTo(10L);
 
         assertThat(response.sourceBreakdown()).hasSize(2);

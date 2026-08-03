@@ -212,18 +212,18 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
             return null;
         }
 
-        String codeAndName = joinCodeAndName(row.diagnosisInfo().mkb10Code(), row.diagnosisInfo().mkb10Name());
+        String codeAndName = joinCodeAndName(row.diagnosisInfo().icd10Code(), row.diagnosisInfo().icd10Name());
         LocalDate diagnosisDate = row.dateInfo() == null ? null : row.dateInfo().diagnosisDate();
 
         return joinNonBlank(codeAndName, diagnosisDate == null ? null : DATE_FORMAT.format(diagnosisDate));
     }
 
     private String finalDiagnosis(Form058PdfResponse row) {
-        if (row.diagnosisInfo() == null || !StringUtils.hasText(row.diagnosisInfo().finalMkb10Code())) {
+        if (row.diagnosisInfo() == null || !StringUtils.hasText(row.diagnosisInfo().finalIcd10Code())) {
             return null;
         }
 
-        String codeAndName = joinCodeAndName(row.diagnosisInfo().finalMkb10Code(), row.diagnosisInfo().finalMkb10Name());
+        String codeAndName = joinCodeAndName(row.diagnosisInfo().finalIcd10Code(), row.diagnosisInfo().finalIcd10Name());
         LocalDate diagnosisDate = row.dateInfo() == null ? null : row.dateInfo().diagnosisDate();
 
         return joinNonBlank(codeAndName, diagnosisDate == null ? null : DATE_FORMAT.format(diagnosisDate));

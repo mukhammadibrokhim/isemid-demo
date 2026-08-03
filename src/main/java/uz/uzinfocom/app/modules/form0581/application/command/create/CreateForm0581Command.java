@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record CreateForm0581Command(
-        String mkb10Code,
-        String mkb10Name,
+        String icd10Code,
+        String icd10Name,
         String injuryLocalization,
 
         LocalDateTime injuryDateTime,

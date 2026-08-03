@@ -47,19 +47,19 @@ public interface Form058WebMapper {
     @Mapping(target = "initialReportDateTime", source = "request.dateInfo.initialReportDateTime")
 
     @Mapping(target = "patient", source = "request.patient")
-    @Mapping(target = "mkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.diagnosisInfo.mkb10Name")
-    @Mapping(target = "finalMkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.diagnosisInfo.mkb10Name")
-    @Mapping(target = "mkb10UsageLimit", source = "request.diagnosisInfo.mkb10UsageLimit")
+    @Mapping(target = "icd10Code", source = "request.diagnosisInfo.icd10Code")
+    @Mapping(target = "icd10Name", source = "request.diagnosisInfo.icd10Name")
+    @Mapping(target = "finalIcd10Code", source = "request.diagnosisInfo.icd10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.diagnosisInfo.icd10Name")
+    @Mapping(target = "icd10UsageLimit", source = "request.diagnosisInfo.icd10UsageLimit")
     @Mapping(target = "labConfirmation", source = "request.clinicalInfo.labConfirmation")
     CreateForm058Command toCommand(CreateForm058Request request, String source);
 
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "nullableActiveOrganizationId")
-    @Mapping(target = "mkb10Code", source = "request.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.mkb10Name")
+    @Mapping(target = "icd10Code", source = "request.icd10Code")
+    @Mapping(target = "icd10Name", source = "request.icd10Name")
     @Mapping(target = "diseaseDate", source = "request.diseaseDate")
     @Mapping(target = "firstVisitDate", source = "request.firstVisitDate")
     @Mapping(target = "visitDate", source = "request.visitDate")
@@ -80,8 +80,8 @@ public interface Form058WebMapper {
     UpdateForm058Response toResponse(UpdateForm058Result result);
 
     @Mapping(target = "formId", source = "id")
-    @Mapping(target = "finalMkb10Code", source = "request.finalMkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.finalMkb10Name")
+    @Mapping(target = "finalIcd10Code", source = "request.finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.finalIcd10Name")
     ApproveForm058Command toCommand(Long id, ApproveForm058Request request);
 
     @Mapping(target = "formId", source = "id")

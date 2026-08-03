@@ -43,10 +43,10 @@ public record Card174DetailResponse(
         Integer serialDocNumber,
 
         @Schema(description = "Код диагноза по МКБ-10.")
-        String mkb10Code,
+        String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        String mkb10Name,
+        String icd10Name,
 
         @Schema(description = "Вид возбудителя заболевания.")
         String pathogenType,

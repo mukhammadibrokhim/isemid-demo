@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260803-1100-01-rename-card-tube-tb-history-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card_tube_tb_history" columnName="mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="card_tube_tb_history" oldColumnName="mkb10_code" newColumnName="icd10_code" columnDataType="VARCHAR(64)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-02-rename-card-tube-tb-history-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card_tube_tb_history" columnName="mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="card_tube_tb_history" oldColumnName="mkb10_name" newColumnName="icd10_name" columnDataType="VARCHAR(500)"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-03-rename-card174-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card174" columnName="mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="card174" oldColumnName="mkb10_code" newColumnName="icd10_code" columnDataType="VARCHAR(64)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-04-rename-card174-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card174" columnName="mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="card174" oldColumnName="mkb10_name" newColumnName="icd10_name" columnDataType="VARCHAR(500)"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-05-rename-card205-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card205" columnName="mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="card205" oldColumnName="mkb10_code" newColumnName="icd10_code" columnDataType="VARCHAR(64)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-06-rename-card205-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card205" columnName="mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="card205" oldColumnName="mkb10_name" newColumnName="icd10_name" columnDataType="VARCHAR(500)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-07-rename-card205-dg-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card205" columnName="dg_mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="card205" oldColumnName="dg_mkb10_code" newColumnName="dg_icd10_code" columnDataType="VARCHAR(64)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-08-rename-card205-dg-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card205" columnName="dg_mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="card205" oldColumnName="dg_mkb10_name" newColumnName="dg_icd10_name" columnDataType="VARCHAR(500)"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-09-rename-card-tube-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card_tube" columnName="mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="card_tube" oldColumnName="mkb10_code" newColumnName="icd10_code" columnDataType="VARCHAR(64)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-10-rename-card-tube-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card_tube" columnName="mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="card_tube" oldColumnName="mkb10_name" newColumnName="icd10_name" columnDataType="VARCHAR(500)"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-11-rename-card-tube-dg-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card_tube" columnName="dg_mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="card_tube" oldColumnName="dg_mkb10_code" newColumnName="dg_icd10_code" columnDataType="VARCHAR(64)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-12-rename-card-tube-dg-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card_tube" columnName="dg_mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="card_tube" oldColumnName="dg_mkb10_name" newColumnName="dg_icd10_name" columnDataType="VARCHAR(500)"/>
+    </changeSet>
+
+</databaseChangeLog>

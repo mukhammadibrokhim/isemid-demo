@@ -83,7 +83,7 @@ public class Form0581ExcelExportSource implements ExcelExportSource<Form0581Filt
                 ExcelColumn.of("id", "№", Form0581TableResponse::id),
                 ExcelColumn.of("createdAt", "Рўйхатга олинган сана", Form0581TableResponse::createdAt),
                 ExcelColumn.of("status", "Ҳолати", row -> row.status() == null ? null : row.status().name()),
-                ExcelColumn.of("mkb10", "Ташхис (МКБ-10)", this::diagnosis),
+                ExcelColumn.of("icd10", "Ташхис (МКБ-10)", this::diagnosis),
                 ExcelColumn.of("senderOrg", "Хабар берувчи муассаса", Form0581TableResponse::senderOrganizationName),
                 ExcelColumn.of("receiverOrg", "Хабар қилинган ташкилот", Form0581TableResponse::receiverOrganizationName),
                 ExcelColumn.of("patientFio", "Бемор ФИШ", this::patientFio),
@@ -109,10 +109,10 @@ public class Form0581ExcelExportSource implements ExcelExportSource<Form0581Filt
     }
 
     private String diagnosis(Form0581TableResponse row) {
-        if (!StringUtils.hasText(row.mkb10Code()) && !StringUtils.hasText(row.mkb10Name())) {
+        if (!StringUtils.hasText(row.icd10Code()) && !StringUtils.hasText(row.icd10Name())) {
             return null;
         }
-        return StringUtils.hasText(row.mkb10Name()) ? row.mkb10Code() + "-" + row.mkb10Name() : row.mkb10Code();
+        return StringUtils.hasText(row.icd10Name()) ? row.icd10Code() + "-" + row.icd10Name() : row.icd10Code();
     }
 
     private String patientFio(Form0581TableResponse row) {

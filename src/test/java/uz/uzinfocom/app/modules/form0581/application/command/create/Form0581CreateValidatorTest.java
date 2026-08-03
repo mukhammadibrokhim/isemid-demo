@@ -65,8 +65,8 @@ class Form0581CreateValidatorTest {
 
     private CreateForm0581Command command(Long receiverOrganizationId) {
         return new CreateForm0581Command(
-                "A82",                  // mkb10Code
-                "Rabies",               // mkb10Name
+                "A82",                  // icd10Code
+                "Rabies",               // icd10Name
                 null,                   // injuryLocalization
                 null,                   // injuryDateTime
                 null,                   // dpuVisitDateTime

@@ -26,8 +26,8 @@ import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 public interface Form0581WebMapper {
 
     @Mapping(target = "source", source = "source")
-    @Mapping(target = "mkb10Code", source = "request.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.mkb10Name")
+    @Mapping(target = "icd10Code", source = "request.icd10Code")
+    @Mapping(target = "icd10Name", source = "request.icd10Name")
     @Mapping(target = "injuryLocalization", source = "request.injuryLocalization")
 
     @Mapping(target = "injuryDateTime", source = "request.injuryDateTime")
@@ -73,8 +73,8 @@ public interface Form0581WebMapper {
     CreateForm0581Response toResponse(CreateForm0581Result result);
 
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "mkb10Code", source = "request.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.mkb10Name")
+    @Mapping(target = "icd10Code", source = "request.icd10Code")
+    @Mapping(target = "icd10Name", source = "request.icd10Name")
     @Mapping(target = "injuryLocalization", source = "request.injuryLocalization")
 
     @Mapping(target = "injuryDateTime", source = "request.injuryDateTime")
@@ -117,8 +117,8 @@ public interface Form0581WebMapper {
     UpdateForm0581Response toResponse(UpdateForm0581Result result);
 
     @Mapping(target = "formId", source = "id")
-    @Mapping(target = "finalMkb10Code", source = "request.finalMkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.finalMkb10Name")
+    @Mapping(target = "finalIcd10Code", source = "request.finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.finalIcd10Name")
     ApproveForm0581Command toCommand(Long id, ApproveForm0581Request request);
 
     @Mapping(target = "formId", source = "id")

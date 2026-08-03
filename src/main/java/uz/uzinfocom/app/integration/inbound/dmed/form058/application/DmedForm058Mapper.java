@@ -35,11 +35,11 @@ public interface DmedForm058Mapper {
     @Mapping(target = "initialReportDateTime", source = "request.initialReportDateTime")
 
     @Mapping(target = "patient", source = "request.patient")
-    @Mapping(target = "finalMkb10Code", source = "request.finalMkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.finalMkb10Name")
-    @Mapping(target = "mkb10Code", source = "request.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.mkb10Name")
-    @Mapping(target = "mkb10UsageLimit", source = "request.mkb10UsageLimit")
+    @Mapping(target = "finalIcd10Code", source = "request.finalMkb10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.finalMkb10Name")
+    @Mapping(target = "icd10Code", source = "request.mkb10Code")
+    @Mapping(target = "icd10Name", source = "request.mkb10Name")
+    @Mapping(target = "icd10UsageLimit", source = "request.mkb10UsageLimit")
     @Mapping(target = "labConfirmation", source = "request.labConfirmation")
     CreateForm058Command toCommand(DmedCreateForm058Request request, String source, Long senderOrganizationId);
 }
