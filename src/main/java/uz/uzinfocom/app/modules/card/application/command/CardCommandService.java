@@ -28,9 +28,13 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundE
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -69,6 +73,7 @@ public class CardCommandService {
     private final CardTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
     private final ApplicationEventPublisher eventPublisher;
+    private final AdminAccessGuard adminAccessGuard;
 
     /**
      * Bulk-assigns one blank card per distinct requested type to a form,
@@ -89,7 +94,7 @@ public class CardCommandService {
                 .orElseThrow(() -> new Form058NotFoundException(formId));
 
         List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
-        cardRepository.saveAll(cards);
+        publishCardAssignedEvents(cardRepository.saveAll(cards));
 
         String oldStatus = form.getStatus().name();
         form.linkCards();
@@ -103,14 +108,25 @@ public class CardCommandService {
 
     /**
      * Same shape as {@link #assignCards}, but for a form0581 (rabies/animal-bite)
-     * case — restricted to {@link #FORM0581_ALLOWED_TYPES}, and advances only
-     * {@code Form0581.hasLinkedCards} rather than a {@code FormStatus}-style
-     * status (form0581 has no CARD_LINKED-equivalent status).
+     * case — restricted to {@link #FORM0581_ALLOWED_TYPES}. Only the
+     * receiver organization (the one the form was sent to) may assign cards
+     * — this is its review step, distinct from the sender's later
+     * approve/not-approve decision.
      */
     @Transactional
     public void assignCardsToForm0581(Long form0581Id, AssignCardsRequest request) {
         Form0581 form = form0581Repository.findByIdAndDeletedFalse(form0581Id)
                 .orElseThrow(() -> new Form0581NotFoundException(form0581Id));
+
+        if (!adminAccessGuard.isSuperAdmin()) {
+            Long currentOrganizationId = CurrentOrganizationContext.getOptional()
+                    .map(Organization::getId)
+                    .orElseThrow(CardScopeViolationException::new);
+
+            if (!Objects.equals(currentOrganizationId, form.getReceiverOrganizationId())) {
+                throw new CardScopeViolationException();
+            }
+        }
 
         for (CardType cardType : request.cardTypes()) {
             if (cardType != null && !FORM0581_ALLOWED_TYPES.contains(cardType)) {
@@ -119,10 +135,28 @@ public class CardCommandService {
         }
 
         List<Card> cards = createBlankCards(request, card -> card.setForm0581(form));
-        cardRepository.saveAll(cards);
+        publishCardAssignedEvents(cardRepository.saveAll(cards));
 
+        String oldStatus = form.getStatus().name();
         form.linkCards();
         form0581Repository.save(form);
+
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.FORM0581, form.getId(), oldStatus, form.getStatus().name(),
+                currentUserProvider.userIdOrNull(), null
+        ));
+    }
+
+    /**
+     * Notifies {@code NotificationEventListener} (alongside the audit trail) that each
+     * card now exists with its attached employees set — card creation previously
+     * published nothing per-card, only the parent form's status change.
+     */
+    private void publishCardAssignedEvents(List<Card> savedCards) {
+        Long assignedById = currentUserProvider.userIdOrNull();
+        savedCards.forEach(card -> eventPublisher.publishEvent(
+                new EntityCreatedEvent(AuditEntityType.CARD, card.getId(), assignedById)
+        ));
     }
 
     /**

@@ -285,6 +285,26 @@ public final class ApiPaths {
         public static final String DOWNLOAD = "/{id}/download";
     }
 
+    /**
+     * In-app notifications — no message broker in this deployment, so events
+     * (Form058/Form058-1 received, Card/Act assigned, LIS response) are fanned
+     * out to {@code notification} rows in-process (see {@code platform.notification})
+     * and delivered here: paged list, unread badge, mark-read, and an SSE stream
+     * for live updates. Per-type enablement lives in the existing
+     * {@code system_settings} store, editable from {@link Dev#SETTINGS} — no
+     * separate admin surface for that.
+     */
+    public static final class Notification {
+        private Notification() {
+        }
+
+        public static final String ROOT = API_V1 + "/notifications";
+        public static final String UNREAD_COUNT = "/unread-count";
+        public static final String BY_ID_READ = "/{id}/read";
+        public static final String READ_ALL = "/read-all";
+        public static final String STREAM = "/stream";
+    }
+
     public static final class Form058 {
         private Form058() {
         }
@@ -330,6 +350,7 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/form-058-1";
         public static final String BY_ID = "/{id}";
         public static final String BY_DOCUMENT_VALUE = "/by-document";
+        public static final String RECEIVE = "/{id}/receive";
         public static final String APPROVE = "/{id}/approve";
         public static final String NOT_APPROVE = "/{id}/not-approve";
         public static final String CANCEL = "/{id}/cancel";

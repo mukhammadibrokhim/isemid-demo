@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.export.application;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import uz.uzinfocom.app.platform.export.application.exception.ExportTooLargeExce
 import uz.uzinfocom.app.platform.export.config.ExportProperties;
 import uz.uzinfocom.app.platform.export.domain.ExportJob;
 import uz.uzinfocom.app.platform.export.domain.ExportStatus;
+import uz.uzinfocom.app.platform.export.domain.event.ExportJobCompletedEvent;
 import uz.uzinfocom.app.platform.export.repository.ExportJobRepository;
 import uz.uzinfocom.app.shared.excel.ExcelColumn;
 import uz.uzinfocom.app.shared.excel.ExcelExportWriter;
@@ -68,6 +70,7 @@ public class ExportJobService {
     private final Executor applicationTaskExecutor;
     private final ScheduledExecutorService sseScheduler;
     private final TransactionTemplate requiresNewTransactionTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ExportJobService(
             ExportJobRepository exportJobRepository,
@@ -75,13 +78,15 @@ public class ExportJobService {
             ExcelExportSettingsResolver excelExportSettingsResolver,
             ExportProperties exportProperties,
             @Qualifier("applicationTaskExecutor") Executor applicationTaskExecutor,
-            PlatformTransactionManager transactionManager
+            PlatformTransactionManager transactionManager,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.exportJobRepository = exportJobRepository;
         this.excelExportWriter = excelExportWriter;
         this.excelExportSettingsResolver = excelExportSettingsResolver;
         this.exportProperties = exportProperties;
         this.applicationTaskExecutor = applicationTaskExecutor;
+        this.eventPublisher = eventPublisher;
         this.sseScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "export-progress-sse");
             thread.setDaemon(true);
@@ -214,12 +219,27 @@ public class ExportJobService {
         );
     }
 
+    /**
+     * Runs inside {@link #requiresNewTransactionTemplate} (not a plain repository call, like
+     * {@link #markProcessing}/{@link #failJob}) so {@code eventPublisher.publishEvent} below
+     * participates in a real transaction — {@code NotificationEventListener}'s
+     * {@code @TransactionalEventListener(AFTER_COMMIT)} only fires for events published inside
+     * one. Self-invocation (this method is called from {@link #runExport} on the same instance)
+     * means a plain {@code @Transactional} annotation here would be silently skipped by Spring's
+     * proxy-based AOP — the same reason {@link #updateProgress} already uses this template.
+     */
     private void completeJob(Long jobId, Path file, long fileSizeBytes) {
-        exportJobRepository.findById(jobId).ifPresent(job -> {
-            job.updateProgress(job.getTotalRows() == null ? job.getProcessedRows() : job.getTotalRows());
-            job.markCompleted(file.getFileName().toString(), file.toString(), fileSizeBytes);
-            exportJobRepository.save(job);
-        });
+        requiresNewTransactionTemplate.executeWithoutResult(status ->
+                exportJobRepository.findById(jobId).ifPresent(job -> {
+                    job.updateProgress(job.getTotalRows() == null ? job.getProcessedRows() : job.getTotalRows());
+                    job.markCompleted(file.getFileName().toString(), file.toString(), fileSizeBytes);
+                    exportJobRepository.save(job);
+
+                    eventPublisher.publishEvent(new ExportJobCompletedEvent(
+                            job.getId(), job.getCreatedBy(), job.getExportType(), job.getFileName()
+                    ));
+                })
+        );
     }
 
     private void failJob(Long jobId, String errorMessage) {

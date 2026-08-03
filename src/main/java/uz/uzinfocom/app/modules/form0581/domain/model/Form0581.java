@@ -19,9 +19,11 @@ import java.util.List;
  * built to the same create/update/approve/notApprove/cancel/delete lifecycle,
  * and deliberately not sharing {@code FormStatus} or the {@code Form058}
  * entity itself — these are independent sibling forms, not a subtype
- * relationship. Unlike {@code Form058}, assigning cards here never advances
- * {@link Form0581Status} (there is no {@code CARD_LINKED} equivalent) — only
- * the {@link #hasLinkedCards} bookkeeping flag changes; see {@link #linkCards()}.
+ * relationship. As with {@code Form058}, assigning cards advances
+ * {@link Form0581Status} into {@code CARD_LINKED} (forward-only); see
+ * {@link #linkCards()}. Unlike {@code Form058}, the final approve/not-approve
+ * decision here belongs to the sender organization, not the receiver — see
+ * {@code Form0581ApprovalValidator}.
  */
 @Getter
 @Setter
@@ -136,13 +138,29 @@ public class Form0581 extends AbsEntity {
 
     /**
      * Called once one or more cards exist on this form (see
-     * {@code CardCommandService.assignCardsToForm0581}). Unlike {@code Form058.linkCards()},
-     * this never changes {@link #status} — {@link Form0581Status} has no
-     * CARD_LINKED-equivalent value — it only flips the bookkeeping flag.
+     * {@code CardCommandService.assignCardsToForm0581}). Unlike
+     * {@code Form058.linkCards()}, cards may only be linked after the
+     * receiver has explicitly accepted the form ({@link #receive()} —
+     * {@code RECEIVED}); a still-{@code SENT} (not yet received) or
+     * {@code NOT_APPROVED} form must not have cards linked to it directly.
+     * From {@code RECEIVED} this advances into {@link Form0581Status#CARD_LINKED},
+     * but only forward: a form already past that point (APPROVED_PENDING and
+     * beyond) must not be pushed backwards just because another card was
+     * added to it. {@link #ensureEditable()} already rules out
+     * CANCELED/APPROVED/deleted forms before this is ever reached.
      */
     public void linkCards() {
         ensureEditable();
+
+        if (status == Form0581Status.SENT || status == Form0581Status.NOT_APPROVED) {
+            throw new InvalidForm0581StateException("error.form0581.card-link-not-allowed", this.status);
+        }
+
         this.hasLinkedCards = true;
+
+        if (status == Form0581Status.RECEIVED) {
+            status = Form0581Status.CARD_LINKED;
+        }
     }
 
     public void markCardsUnlinked() {
@@ -156,6 +174,17 @@ public class Form0581 extends AbsEntity {
                     this.status
             );
         }
+    }
+
+    /**
+     * The receiver's acknowledgement of an incoming form — the only path
+     * from {@code SENT} into {@code RECEIVED}. Cards cannot be linked
+     * ({@link #linkCards()}) before this happens; see
+     * {@code Form0581ReceiveValidator} for the status/scope check.
+     */
+    public void receive() {
+        ensureEditable();
+        this.status = Form0581Status.RECEIVED;
     }
 
     public void cancel(String reason, Long canceledBy) {

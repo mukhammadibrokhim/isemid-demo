@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Ko'kdala tumani (QA-240, Qashqadaryo) — 2026-08-01dagi excel manbada
+        (035-1-002.xlsx) qamrab olinmagani uchun soato_id=0 va deleted=true
+        holatida qolgan edi (qarang: 20260605-1800-03-seed-district komenti,
+        NG-401365/NG-401367 bilan bir xil sabab). Yangi uzcad mahalla eksporti
+        (035-3-004 (3).json) bu tumanga tegishli 35 ta mahallani real
+        district_soato=1710240 bilan qamrab olgani sababli, bu tuman haqiqiy
+        va faol ekani tasdiqlanadi — shuning uchun soato_id tiklanadi va
+        deleted=false qilinadi.
+    -->
+    <changeSet
+            id="20260803-1000-01-fix-kokdala-district-soato"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_district"/>
+        </preConditions>
+
+        <update tableName="ref_district">
+            <column name="soato_id" valueNumeric="1710240"/>
+            <column name="deleted" valueBoolean="false"/>
+            <where>code = 'QA-240' AND soato_id = 0</where>
+        </update>
+
+    </changeSet>
+
+    <!--
+        ref_neighborhood ni rasmiy uzcad mahalla eksporti (035-3-004 (3).json,
+        8992 qator) bilan to'liq sinxronlash. Moslashtirish kaliti — "tin"
+        (STIR), chunki "code" vaqt o'tishi bilan qayta raqamlanishi mumkin,
+        tin esa mahalla fuqarolar yig'inining barqaror identifikatori.
+
+        Manba faylida ikkita alohida muammo tuzatilgan (CSV generatsiya
+        qilishda, node skript orqali):
+          1) district_soato=1714365/1714367 (Namangan) — bu qiymatlar
+             noto'g'ri/qisqartirilgan; uzcad_code prefiksi (1714401...) ga
+             ko'ra, aslida 1714401365/1714401367 (Davlatobod/Yangi Namangan
+             tumanlari) ga tegishli — CSVda shu to'g'irlangan qiymat bilan
+             yozilgan.
+          2) code="0" va uzcad_code="0" bo'lgan 2 ta qator (tin=312579214
+             "Yangi Andijon", tin=311818644 "Nurafshon") — bular hali rasmiy
+             kod olmagan yangi mahallalar (placeholder "0"). ref_neighborhood.
+             code UNIQUE bo'lgani uchun ikkalasiga ham "0" qo'yib bo'lmaydi;
+             CSVda bu ikki qatorning code/uzcad_code ustunlari bo'sh
+             qoldirilgan — quyidagi UPDATE/INSERT bosqichlari bunday
+             qatorlarni o'tkazib yuboradi (na kod, na soato_id yangilanadi),
+             lekin tin staging jadvalda borligi uchun pastdagi soft-delete
+             bosqichi ularga tegmaydi.
+
+        Oqim: staging jadval yaratiladi -> CSV yuklanadi -> tin bo'yicha
+        mos kelgan qatorlar to'liq yangilanadi (parent_code ref_district'dan
+        soato_id bo'yicha olinadi) -> jsonda bor, bazada yo'q tin'lar yangi
+        qator sifatida qo'shiladi -> bazada bor (tin mavjud), jsonda yo'q
+        qatorlar soft-delete qilinadi (deleted=true; tin IS NULL bo'lgan
+        qatorlarga tegilmaydi, chunki ular moslashtirib bo'lmaydi).
+
+        Muhim: staging jadvaldagi "code" ustuni (uzcad manba raqami,
+        masalan "23010012") ref_neighborhood.code sifatida ISHLATILMAYDI —
+        u ilova ichidagi "PARENT_CODE + 3 xonali tartib raqami" formatiga
+        (masalan "AN-202027", "NG-401054") mos emas. Shu sababli: mos
+        kelgan (tin bo'yicha mavjud) qatorlarning code'i tegilmay qoladi;
+        yangi qo'shilayotgan qatorlar uchun code shu formatda generatsiya
+        qilinadi, har bir tuman (parent_code) doirasida bazada band bo'lgan
+        eng katta tartib raqamidan davom etib (increment qilib).
+    -->
+    <changeSet
+            id="20260803-1000-02-create-neighborhood-uzcad-staging"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <not>
+                <tableExists tableName="stg_neighborhood_uzcad_20260803"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="stg_neighborhood_uzcad_20260803">
+            <column name="tin" type="VARCHAR(20)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="district_soato" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uzcad_code" type="INTEGER"/>
+            <column name="code" type="VARCHAR(50)"/>
+            <column name="name_uz_latin" type="VARCHAR(255)"/>
+            <column name="name_uz_cyril" type="VARCHAR(255)"/>
+            <column name="name_ru" type="VARCHAR(255)"/>
+        </createTable>
+
+        <loadData
+                file="20260803-1000-neighborhood-uzcad-registry.csv"
+                relativeToChangelogFile="true"
+                tableName="stg_neighborhood_uzcad_20260803"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="tin" name="tin" type="STRING"/>
+            <column header="district_soato" name="district_soato" type="NUMERIC"/>
+            <column header="uzcad_code" name="uzcad_code" type="NUMERIC"/>
+            <column header="code" name="code" type="STRING"/>
+            <column header="name_uz_latin" name="name_uz_latin" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+
+        </loadData>
+
+    </changeSet>
+
+    <changeSet
+            id="20260803-1000-03-update-matched-neighborhoods"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <!--
+            Bu changeset birinchi marta ishga tushganda "0"-placeholder
+            qatorlarni filtrlash uchun faqat "s.code IS NOT NULL" shartidan
+            foydalangan edi. Liquibase loadData bo'sh CSV katakchasini STRING
+            ustunda "" (bo'sh satr) qilib yozadi, NULL emas — shu sababli
+            "0"-placeholder qatorlar filtrdan o'tib ketmagan, lekin ular
+            NUMERIC ustunda (uzcad_code) haqiqiy NULL bo'lgani uchun keyingi
+            INSERT bosqichida soato_id NOT NULL xatosiga olib kelgan. Filtr
+            "s.uzcad_code IS NOT NULL" bilan mustahkamlangan. Ba'zi bazalarda
+            bu changeset eski (xato) SQL bilan allaqachon muvaffaqiyatli
+            ishga tushgani uchun ikkala checksum ham qabul qilinadi.
+        -->
+        <validCheckSum>9:95ccaa30ac6a619f75e49f6fe084e6bf</validCheckSum>
+        <validCheckSum>9:c0af1afb9f2095a2c06f663cb4b372c5</validCheckSum>
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <tableExists tableName="stg_neighborhood_uzcad_20260803"/>
+        </preConditions>
+
+        <!--
+            n.code atayin YANGILANMAYDI: uzcad eksportidagi "code" ustuni
+            (masalan "23010012") manba tizimning o'z raqamlashi bo'lib,
+            ref_neighborhood.code formatiga (parent_code + 3 xonali tartib
+            raqami, masalan "AN-202027", "NG-401054") mos kelmaydi. Mavjud
+            qatorlar tin bo'yicha allaqachon to'g'ri formatdagi code'ga ega,
+            shuning uchun bu yerda unga tegilmaydi — faqat soato/nom/holat
+            maydonlari sinxronlanadi.
+        -->
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE ref_neighborhood n
+            SET parent_code      = COALESCE(d.code, n.parent_code),
+                parent_soato_id  = s.district_soato,
+                soato_id         = s.uzcad_code,
+                name_uz          = s.name_uz_latin,
+                name_uz_cyril    = s.name_uz_cyril,
+                name_ru          = s.name_ru,
+                deleted          = false
+            FROM stg_neighborhood_uzcad_20260803 s
+            LEFT JOIN ref_district d ON d.soato_id = s.district_soato
+            WHERE n.tin = s.tin
+              AND s.uzcad_code IS NOT NULL
+              AND s.code IS NOT NULL
+              AND s.code <> '';
+        ]]></sql>
+
+    </changeSet>
+
+    <changeSet
+            id="20260803-1000-04-insert-new-neighborhoods"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <!--
+            Bu changeset ilgari s.code'ni (uzcad manba raqami) to'g'ridan-to'g'ri
+            ref_neighborhood.code sifatida yozar edi. Bu formatga mos emasligi
+            sababli SQL parent_code+tartib raqami generatsiya qiladigan holatga
+            o'zgartirildi (pastga qarang). Ba'zi bazalarda eski SQL bilan
+            allaqachon ishga tushgani uchun eski checksum ham qabul qilinadi.
+        -->
+        <validCheckSum>9:7adec1be3a50804f00ebddef87103197</validCheckSum>
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <tableExists tableName="stg_neighborhood_uzcad_20260803"/>
+        </preConditions>
+
+        <!--
+            Yangi mahallalar uchun s.code (uzcad manba raqami, masalan
+            "23010012") ishlatilmaydi — u ref_neighborhood.code formatiga
+            mos emas. Buning o'rniga code = parent_code + 3 xonali tartib
+            raqami tarzida generatsiya qilinadi (masalan "AN-202027",
+            "NG-401054"), xuddi mavjud qatorlardagi kabi. Har bir tuman
+            (parent_code) uchun tartib raqami shu tumanda ref_neighborhood'da
+            allaqachon band bo'lgan eng katta raqamdan davom etadi (ya'ni
+            band bo'lsa increment qilinadi), shu bosqichda qo'shilayotgan
+            bir nechta yangi qator orasida ham to'qnashmaydi.
+        -->
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            WITH new_rows AS (
+                SELECT s.tin, s.uzcad_code, s.district_soato,
+                       s.name_uz_latin, s.name_uz_cyril, s.name_ru,
+                       d.code AS parent_code,
+                       ROW_NUMBER() OVER (PARTITION BY d.code ORDER BY s.tin) AS rn
+                FROM stg_neighborhood_uzcad_20260803 s
+                INNER JOIN ref_district d ON d.soato_id = s.district_soato
+                WHERE s.uzcad_code IS NOT NULL
+                  AND s.code IS NOT NULL
+                  AND s.code <> ''
+                  AND NOT EXISTS (
+                      SELECT 1 FROM ref_neighborhood n WHERE n.tin = s.tin
+                  )
+            ),
+            district_max AS (
+                SELECT nr.parent_code,
+                       COALESCE(MAX(NULLIF(substring(n.code from length(nr.parent_code) + 1), '')::INTEGER), 0) AS max_seq
+                FROM (SELECT DISTINCT parent_code FROM new_rows) nr
+                LEFT JOIN ref_neighborhood n
+                       ON n.code ~ ('^' || nr.parent_code || '[0-9]+$')
+                GROUP BY nr.parent_code
+            )
+            INSERT INTO ref_neighborhood
+                (code, parent_code, soato_id, parent_soato_id, tin,
+                 name_uz, name_uz_cyril, name_ru, deleted,
+                 version, created_at, updated_at)
+            SELECT nr.parent_code || LPAD((dm.max_seq + nr.rn)::TEXT, 3, '0'),
+                   nr.parent_code, nr.uzcad_code, nr.district_soato, nr.tin,
+                   nr.name_uz_latin, nr.name_uz_cyril, nr.name_ru, false,
+                   0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM new_rows nr
+            JOIN district_max dm ON dm.parent_code = nr.parent_code;
+        ]]></sql>
+
+    </changeSet>
+
+    <changeSet
+            id="20260803-1000-05-softdelete-out-of-scope-neighborhoods"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <tableExists tableName="stg_neighborhood_uzcad_20260803"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE ref_neighborhood n
+            SET deleted = true
+            WHERE n.tin IS NOT NULL
+              AND n.deleted = false
+              AND NOT EXISTS (
+                  SELECT 1 FROM stg_neighborhood_uzcad_20260803 s WHERE s.tin = n.tin
+              );
+        ]]></sql>
+
+    </changeSet>
+
+    <changeSet
+            id="20260803-1000-06-drop-neighborhood-uzcad-staging"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="stg_neighborhood_uzcad_20260803"/>
+        </preConditions>
+
+        <dropTable tableName="stg_neighborhood_uzcad_20260803"/>
+
+    </changeSet>
+
+</databaseChangeLog>

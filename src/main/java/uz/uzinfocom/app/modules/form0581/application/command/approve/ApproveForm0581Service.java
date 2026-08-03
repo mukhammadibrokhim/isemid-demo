@@ -39,7 +39,7 @@ public class ApproveForm0581Service {
                 command.finalMkb10Code().trim(),
                 command.finalMkb10Name().trim(),
                 actorUserId,
-                form0581.getReceiverOrganizationId()
+                form0581.getSenderOrganizationId()
         );
         UpdateForm0581Result result = form0581UpdateMapper.toResult(form0581JpaRepository.save(form0581));
 

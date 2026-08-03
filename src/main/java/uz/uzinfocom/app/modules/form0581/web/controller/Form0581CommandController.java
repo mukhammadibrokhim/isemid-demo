@@ -21,6 +21,7 @@ import uz.uzinfocom.app.modules.form0581.application.command.approve.ApproveForm
 import uz.uzinfocom.app.modules.form0581.application.command.cancel.CancelForm0581Service;
 import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm0581Service;
 import uz.uzinfocom.app.modules.form0581.application.command.delete.DeleteForm0581Service;
+import uz.uzinfocom.app.modules.form0581.application.command.receive.ReceiveForm0581Service;
 import uz.uzinfocom.app.modules.form0581.application.command.update.UpdateForm0581Service;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.ApproveForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.CancelForm0581Request;
@@ -53,6 +54,7 @@ public class Form0581CommandController {
     private final DeleteForm0581Service deleteForm0581Service;
     private final ApproveForm0581Service approveForm0581Service;
     private final CancelForm0581Service cancelForm0581Service;
+    private final ReceiveForm0581Service receiveForm0581Service;
     private final Form0581WebMapper form0581WebMapper;
     private final Form0581SourceResolver sourceResolver;
     private final MessageResolver messageResolver;
@@ -111,9 +113,26 @@ public class Form0581CommandController {
     }
 
     @Operation(
+            summary = "Принять форму №058-1 (получатель)",
+            description = "Получатель подтверждает приём формы: переводит её из статуса SENT в RECEIVED. "
+                    + "Назначение карт возможно только после этого. Доступно только организации-получателю."
+    )
+    @PatchMapping(ApiPaths.Form0581.RECEIVE)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<UpdateForm0581Response> receive(
+            @Parameter(description = "Идентификатор формы №058-1.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.accepted"),
+                form0581WebMapper.toResponse(receiveForm0581Service.receive(id))
+        );
+    }
+
+    @Operation(
             summary = "Утвердить форму №058-1",
-            description = "Переводит форму в статус APPROVED. Доступно, когда решение получателя ещё не принято "
-                    + "(SENT, RECEIVED, APPROVED_PENDING)."
+            description = "Переводит форму в статус APPROVED. Доступно организации-отправителю, когда решение "
+                    + "ещё не принято (SENT, RECEIVED, CARD_LINKED, APPROVED_PENDING)."
     )
     @PatchMapping(ApiPaths.Form0581.APPROVE)
     @PreAuthorize("isAuthenticated()")
@@ -130,7 +149,7 @@ public class Form0581CommandController {
 
     @Operation(
             summary = "Отклонить утверждение формы №058-1",
-            description = "Отказывает в утверждении формы с указанием причины — форма возвращается на доработку."
+            description = "Отказывает в утверждении формы с указанием причины. Доступно организации-отправителю."
     )
     @PatchMapping(ApiPaths.Form0581.NOT_APPROVE)
     @PreAuthorize("isAuthenticated()")
@@ -147,7 +166,10 @@ public class Form0581CommandController {
 
     @Operation(
             summary = "Аннулировать форму №058-1",
-            description = "Переводит форму в статус CANCELED с обязательным указанием причины аннулирования."
+            description = "Переводит форму в статус CANCELED с обязательным указанием причины. Доступно только "
+                    + "пока форма ещё не принята получателем (статус SENT) — организации-отправителю (отзыв) "
+                    + "или организации-получателю (отклонение новой формы). После приёма формы (RECEIVED и далее) "
+                    + "аннулирование недоступно ни одной из сторон."
     )
     @PatchMapping(ApiPaths.Form0581.CANCEL)
     @PreAuthorize("isAuthenticated()")

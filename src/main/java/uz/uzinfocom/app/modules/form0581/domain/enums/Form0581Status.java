@@ -4,6 +4,7 @@ public enum Form0581Status {
     NOT_APPROVED,
     SENT,
     RECEIVED,
+    CARD_LINKED,
     APPROVED_PENDING,
     APPROVED,
     CANCELED;
@@ -12,6 +13,7 @@ public enum Form0581Status {
         return switch (this) {
             case NOT_APPROVED, SENT -> true;
             case RECEIVED,
+                 CARD_LINKED,
                  APPROVED_PENDING,
                  APPROVED,
                  CANCELED -> false;
@@ -19,26 +21,29 @@ public enum Form0581Status {
     }
 
     /**
-     * True while the receiver's approve/not-approve decision is still open.
+     * True while the sender's approve/not-approve decision is still open.
      * Once a form has been approved, rejected, or canceled, that decision is
      * final and cannot be re-made.
      */
     public boolean isApprovalDecisionPending() {
         return switch (this) {
-            case SENT, RECEIVED, APPROVED_PENDING -> true;
+            case SENT, RECEIVED, CARD_LINKED, APPROVED_PENDING -> true;
             case NOT_APPROVED, APPROVED, CANCELED -> false;
         };
     }
 
     /**
-     * True while the sender is still allowed to withdraw the form. Once the
-     * receiver has formally approved it, or it was already canceled, it can
-     * no longer be canceled.
+     * True only while the form is still {@code SENT} — not yet accepted by
+     * the receiver. In that window either party may cancel it: the sender
+     * withdraws it, or the receiver declines the incoming "NEW" notification.
+     * Once the receiver has accepted it ({@code RECEIVED} and beyond),
+     * cancellation is no longer available to either side — only the
+     * sender's later approve/not-approve decision remains.
      */
     public boolean isCancellable() {
         return switch (this) {
-            case NOT_APPROVED, SENT, RECEIVED, APPROVED_PENDING -> true;
-            case APPROVED, CANCELED -> false;
+            case SENT -> true;
+            case NOT_APPROVED, RECEIVED, CARD_LINKED, APPROVED_PENDING, APPROVED, CANCELED -> false;
         };
     }
 }

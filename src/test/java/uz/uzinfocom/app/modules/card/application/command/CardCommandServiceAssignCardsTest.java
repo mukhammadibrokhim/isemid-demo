@@ -8,6 +8,9 @@ import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationExc
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
@@ -55,6 +58,7 @@ class CardCommandServiceAssignCardsTest {
     private UserRepository userRepository;
     private CardTypeHandlerRegistry handlerRegistry;
     private CurrentUserProvider currentUserProvider;
+    private ApplicationEventPublisher eventPublisher;
     private CardCommandService service;
 
     @BeforeEach
@@ -65,11 +69,13 @@ class CardCommandServiceAssignCardsTest {
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
         currentUserProvider = mock(CurrentUserProvider.class);
-        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        AdminAccessGuard adminAccessGuard = mock(AdminAccessGuard.class);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
 
         service = new CardCommandService(
                 cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
-                currentUserProvider, eventPublisher
+                currentUserProvider, eventPublisher, adminAccessGuard
         );
 
         when(cardRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -104,6 +110,32 @@ class CardCommandServiceAssignCardsTest {
         }
         assertThat(form.getStatus()).isEqualTo(FormStatus.CARD_LINKED);
         assertThat(form.isHasLinkedCards()).isTrue();
+    }
+
+    @Test
+    void publishesAnEntityCreatedEventPerCreatedCard() {
+        Form058 form = formWith(FormStatus.RECEIVED);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
+
+        stubHandler(CardType.CARD161, new Card161());
+
+        service.assignCards(FORM_ID, new AssignCardsRequest(List.of(CardType.CARD161), List.of(1L)));
+
+        List<Card> saved = capturePersistedCards();
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, org.mockito.Mockito.atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        EntityCreatedEvent cardEvent = eventCaptor.getAllValues().stream()
+                .filter(EntityCreatedEvent.class::isInstance)
+                .map(EntityCreatedEvent.class::cast)
+                .filter(event -> event.entityType() == AuditEntityType.CARD)
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(cardEvent.entityId()).isEqualTo(saved.get(0).getId());
+        assertThat(cardEvent.actorUserId()).isEqualTo(ACTOR_ID);
     }
 
     @Test

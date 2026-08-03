@@ -8,6 +8,7 @@ public enum Form0581TableStatus {
     NOT_APPROVED,
     SENT,
     RECEIVED,
+    CARD_LINKED,
     APPROVED_PENDING,
     APPROVED,
     CANCELED

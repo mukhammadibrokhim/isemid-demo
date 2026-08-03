@@ -1,8 +1,9 @@
-package uz.uzinfocom.app.modules.form0581.application.command.cancel;
+package uz.uzinfocom.app.modules.form0581.application.command.receive;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViolationException;
+import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.form0581.domain.exception.InvalidForm0581StateException;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
@@ -12,34 +13,34 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import java.util.Objects;
 
 /**
- * Cancellation is only possible while the form is still {@code SENT} — see
- * {@link uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status#isCancellable()}.
- * In that window either party may act: the sender withdraws it, or the
- * receiver declines the incoming "NEW" notification.
+ * The receiver's acknowledgement of an incoming ({@code SENT}) form —
+ * only the receiver organization may accept it, and only while it is
+ * still {@code SENT} (not yet accepted).
  */
 @Component
 @RequiredArgsConstructor
-public class Form0581CancelValidator {
+public class Form0581ReceiveValidator {
 
     private final AdminAccessGuard form0581AccessGuard;
 
     public void validate(Form0581 form0581) {
-        if (!form0581.getStatus().isCancellable()) {
-            throw new InvalidForm0581StateException("error.form0581.cancel-not-allowed", form0581.getStatus());
+        if (form0581.getStatus() != Form0581Status.SENT) {
+            throw new InvalidForm0581StateException("error.form0581.receive-not-allowed", form0581.getStatus());
         }
 
         if (form0581AccessGuard.isSuperAdmin()) {
             return;
         }
 
+        validateReceiverOrganizationScope(form0581);
+    }
+
+    private void validateReceiverOrganizationScope(Form0581 form0581) {
         Long currentOrganizationId = CurrentOrganizationContext.getOptional()
                 .map(Organization::getId)
                 .orElseThrow(Form0581ScopeViolationException::new);
 
-        boolean isSender = Objects.equals(currentOrganizationId, form0581.getSenderOrganizationId());
-        boolean isReceiver = Objects.equals(currentOrganizationId, form0581.getReceiverOrganizationId());
-
-        if (!isSender && !isReceiver) {
+        if (!Objects.equals(currentOrganizationId, form0581.getReceiverOrganizationId())) {
             throw new Form0581ScopeViolationException();
         }
     }

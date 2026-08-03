@@ -69,4 +69,13 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
             @Param("search") String search,
             Pageable pageable
     );
+
+    @Query("""
+                SELECT u.id
+                FROM User u
+                JOIN u.organizations o
+                WHERE o.id = :organizationId
+                  AND u.active = true
+            """)
+    java.util.List<Long> findActiveIdsByOrganizationId(@Param("organizationId") Long organizationId);
 }

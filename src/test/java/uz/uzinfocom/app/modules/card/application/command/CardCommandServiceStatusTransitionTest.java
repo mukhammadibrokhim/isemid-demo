@@ -26,6 +26,7 @@ import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Fo
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,10 +68,11 @@ class CardCommandServiceStatusTransitionTest {
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+        AdminAccessGuard adminAccessGuard = mock(AdminAccessGuard.class);
 
         service = new CardCommandService(
                 cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
-                currentUserProvider, eventPublisher
+                currentUserProvider, eventPublisher, adminAccessGuard
         );
 
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
