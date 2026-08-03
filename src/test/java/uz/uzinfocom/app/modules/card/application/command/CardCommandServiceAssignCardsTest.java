@@ -134,7 +134,7 @@ class CardCommandServiceAssignCardsTest {
                 .findFirst()
                 .orElseThrow();
 
-        assertThat(cardEvent.entityId()).isEqualTo(saved.get(0).getId());
+        assertThat(cardEvent.entityId()).isEqualTo(saved.getFirst().getId());
         assertThat(cardEvent.actorUserId()).isEqualTo(ACTOR_ID);
     }
 
