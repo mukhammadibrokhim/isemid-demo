@@ -11,6 +11,7 @@ import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.models.enums.ReportType;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.MedicalType;
@@ -108,6 +109,8 @@ public class Form12ReportServiceImpl implements Form12ReportService {
             Join<Patient, Address> addressesJoin = patientJoin.join("addresses", JoinType.LEFT);
 
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+
+            predicates.add(cb.notEqual(root.get("status"), FormStatus.CANCELED));
 
             if (birthDate != null) {
                 predicates.add(cb.equal(root.get("patient").get("birthDate"), birthDate));

@@ -187,10 +187,11 @@ public class Form4_9ReportServiceImpl implements Form4_9ReportService {
         predicates.add(
                 cb.or(
                         cb.isNull(statusPath),
-                        cb.notEqual(
-                                statusPath,
-                                FormStatus.APPROVED
+                        cb.and(
+                                cb.notEqual(statusPath, FormStatus.APPROVED),
+                                cb.notEqual(statusPath, FormStatus.CANCELED)
                         )
+
                 )
         );
     }

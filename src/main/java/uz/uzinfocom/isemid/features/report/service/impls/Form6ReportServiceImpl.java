@@ -78,7 +78,10 @@ public class Form6ReportServiceImpl implements Form6ReportService {
             );
 
             predicates.add(
-                    cb.notEqual(root.get("status"), FormStatus.APPROVED)
+                    cb.and(
+                            cb.notEqual(root.get("status"), FormStatus.APPROVED),
+                            cb.notEqual(root.get("status"), FormStatus.CANCELED)
+                    )
             );
 
             if (hasText(mkb10Code)) {

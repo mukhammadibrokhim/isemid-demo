@@ -18,7 +18,7 @@ public interface Form058Repository extends JpaRepository<Form058, Long>, JpaSpec
 
     @Query(value = """
             with cte as (select f.created_org_uuid, p.category_code from form058 f left join patient p on f.patient_id = p.id
-             where (f.status is null or f.status <> 'APPROVED') and (:mk10code is null or f.mkb10code = :mk10code) and (f.created_at between :start_date and :end_date)),
+             where (f.status is null or (f.status <> 'APPROVED' and f.status <> 'CANCELED')) and (:mk10code is null or f.mkb10code = :mk10code) and (f.created_at between :start_date and :end_date)),
             base_name as (select code,case
                 when :lan = 'uz' then name_uz
                 when :lan = 'Cyrl' then name_uz_cyril
