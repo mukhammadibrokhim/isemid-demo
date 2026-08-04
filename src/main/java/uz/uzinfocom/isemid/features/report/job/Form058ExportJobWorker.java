@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 /**
@@ -46,13 +47,14 @@ public class Form058ExportJobWorker {
             Files.createDirectories(dir);
 
             Path target = dir.resolve("journal_060_" + job.getKey() + ".xlsx");
-
+            System.out.println("start stream -------------------"+ LocalDateTime.now());
             try (Stream<Form058> formStream = form058Repository.streamAll(
                     specFactory.build(fromDate, toDate, stateCode, cityCode, user, filterType))) {
                 String orgName = user.getCurrentOrganization() != null ? user.getCurrentOrganization().getName() : null;
                 excelWriter.writeV3(formStream, fromDate, toDate, orgName, target);
             }
 
+            System.out.println("end stream -------------------"+ LocalDateTime.now());
             job.setFileName("journal_060_" + LocalDate.now() + ".xlsx");
             job.setFilePath(target);
             job.setCompletedAt(Instant.now());

@@ -46,20 +46,6 @@ public class Form058ExportServiceImpl implements Form058ExportService {
         return buildExportResponse(fromDate, toDate, stateCode, cityCode, user, FilterType.RECEIVER);
     }
 
-    @Transactional
-    @Override
-    public ResponseEntity<?> allExportV2(LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode,
-                                         User user) {
-        return buildExportResponseV2(fromDate, toDate, stateCode, cityCode, user, FilterType.ALL);
-    }
-
-    @Transactional
-    @Override
-    public ResponseEntity<?> receivedExportV2(LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode,
-                                              User user) {
-        return buildExportResponseV2(fromDate, toDate, stateCode, cityCode, user, FilterType.RECEIVER);
-    }
-
     @Override
     public ResponseEntity<?> allExportV3(LocalDate fromDate, LocalDate toDate, String stateCode, String cityCode,
                                          User user) {
@@ -112,32 +98,6 @@ public class Form058ExportServiceImpl implements Form058ExportService {
         try (Stream<Form058> formStream = form058Repository.streamAll(specFactory.build(fromDate, toDate, stateCode, cityCode, user, filterType))) {
 
             byte[] excelData = excelWriter.write(formStream, fromDate, toDate, user.getCurrentOrganization().getName());
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment()
-                    .filename("journal_060_" + LocalDate.now() + ".xlsx").build());
-            headers.setContentType(MediaType.parseMediaType(
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-
-            return ResponseEntity.ok().headers(headers).body(excelData);
-
-        } catch (IOException e) {
-            log.error("Excel export error", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while writing to Excel.");
-        }
-    }
-
-    /**
-     * {@code buildExportResponse}ning N+1'siz varianti — {@code excelWriter.writeV2}
-     * chaqiradi, u bemor/tashkilot/katalog ma'lumotlarini har qator uchun alohida
-     * emas, batch qilib yuklaydi.
-     */
-    private ResponseEntity<?> buildExportResponseV2(LocalDate fromDate, LocalDate toDate, String stateCode,
-                                                     String cityCode, User user, FilterType filterType) {
-        try (Stream<Form058> formStream = form058Repository.streamAll(specFactory.build(fromDate, toDate, stateCode, cityCode, user, filterType))) {
-
-            byte[] excelData = excelWriter.writeV2(formStream, fromDate, toDate, user.getCurrentOrganization().getName());
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentDisposition(ContentDisposition.attachment()

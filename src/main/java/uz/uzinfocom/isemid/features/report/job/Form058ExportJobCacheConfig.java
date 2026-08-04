@@ -28,7 +28,7 @@ public class Form058ExportJobCacheConfig {
     @Bean(name = "form058ExportJobCache")
     public Cache<String, Form058ExportJob> form058ExportJobCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(Duration.ofMinutes(5))
+                .expireAfterWrite(Duration.ofHours(1))
                 .scheduler(Scheduler.systemScheduler())
                 .removalListener((String key, Form058ExportJob job, RemovalCause cause) -> {
                     if (job == null || job.getFilePath() == null) {

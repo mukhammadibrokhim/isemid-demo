@@ -79,33 +79,11 @@ public class Form058ExcelWriter {
     }
 
     /**
-     * {@code write}ning N+1'siz varianti. Har qator uchun DB'ga alohida murojaat
-     * qilish o'rniga, streamni {@code BATCH_SIZE} bo'lakларга bo'lib, har bo'lak
-     * uchun bemor/tashkilot ma'lumotlarini bitta so'rov bilan (batch) oldindan
-     * yuklab, keyin qatorlarni yozadi. Katalog (state/city/neighborhood) nomlari
-     * esa export boshida bir marta to'liq keshlanadi.
-     */
-    public byte[] writeV2(Stream<Form058> formStream, LocalDate fromDate, LocalDate toDate,
-                          String name) throws IOException {
-        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-
-            workbook.setCompressTempFiles(true);
-            Sheet sheet = workbook.createSheet("Юқумли касалликлар");
-            Map<String, CellStyle> styles = createStyles(workbook);
-
-            generateHeader(sheet, workbook, fromDate, toDate, name);
-            setColumnWidths(sheet);
-            writeTableHeader(sheet, styles);
-            writeDataRowsV2(sheet, styles, formStream);
-
-            workbook.write(out);
-            return out.toByteArray();
-        }
-    }
-
-    /**
-     * {@code writeV2}ning disk-yozuvchi varianti (V3 fon jarayoni uchun). Butun faylni
+     * {@code write}ning N+1'siz, disk-yozuvchi varianti (V3 fon jarayoni uchun). Har qator
+     * uchun DB'ga alohida murojaat qilish o'rniga, streamni {@code BATCH_SIZE} bo'lakларга
+     * bo'lib, har bo'lak uchun bemor/tashkilot ma'lumotlarini bitta so'rov bilan (batch)
+     * oldindan yuklab, keyin qatorlarni yozadi. Katalog (state/city/neighborhood) nomlari
+     * esa export boshida bir marta to'liq keshlanadi. Butun faylni
      * heap'da {@code byte[]} sifatida ushlab turmaydi — {@code workbook.write(...)} to'g'ridan-to'g'ri
      * berilgan fayl manziliga oqadi, shu bilan RAM sarfini kamaytiradi.
      */

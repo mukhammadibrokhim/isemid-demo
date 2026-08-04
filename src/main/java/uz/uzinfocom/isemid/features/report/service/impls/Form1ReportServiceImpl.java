@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.features.classifier.models.Catalog;
 import uz.uzinfocom.isemid.features.classifier.services.CatalogService;
 import uz.uzinfocom.isemid.features.classifier.utils.CatalogLocaleUtil;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.organization.models.enums.LevelType;
@@ -168,6 +169,7 @@ public class Form1ReportServiceImpl implements Form1ReportService {
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("mkb10Code"), mkb10Code));
             }
+            predicates.add(cb.notEqual(root.get("status"), FormStatus.CANCELED));
 
             if (userOrg != null && userOrg.getMedicalType() == MedicalType.SANEPID_SERVICE) {
                 SpecificationUtils.addSanepidAccessPredicate(root, cb, userOrg, predicates);

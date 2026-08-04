@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.service.Form11ReportService;
@@ -61,7 +62,9 @@ public class Form11ReportServiceImpl implements Form11ReportService {
 
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(cb.notEqual(root.get("status"), FormStatus.CANCELED));
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+
 
             if (currentUser != null && currentUser.getCurrentOrganization() != null) {
                 SpecificationUtils.addSanepidAccessPredicate(root, cb, currentUser.getCurrentOrganization(), predicates);

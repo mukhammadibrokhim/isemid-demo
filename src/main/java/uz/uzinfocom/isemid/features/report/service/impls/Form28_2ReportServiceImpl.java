@@ -12,6 +12,7 @@ import uz.uzinfocom.isemid.features.classifier.models.ManualReport;
 import uz.uzinfocom.isemid.features.classifier.models.enums.ReportType;
 import uz.uzinfocom.isemid.features.classifier.services.ManualReportService;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.dtos.Form28_2ReportDto;
@@ -84,6 +85,8 @@ public class Form28_2ReportServiceImpl implements Form28_2ReportService {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             SpecificationUtils.fromToDateFilter(fromDate, toDate, root, cb, predicates, "createdAt");
+
+            predicates.add(cb.notEqual(root.get("status"), FormStatus.CANCELED));
 
             if (hasText(mkb10Code)) {
                 predicates.add(cb.equal(root.get("finalMkb10Code"), mkb10Code));

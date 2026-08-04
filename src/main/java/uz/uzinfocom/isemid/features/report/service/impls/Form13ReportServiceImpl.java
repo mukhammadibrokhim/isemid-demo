@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.isemid.commons.utils.SpecificationUtils;
 import uz.uzinfocom.isemid.features.form058.models.Form058;
+import uz.uzinfocom.isemid.features.form058.models.enums.FormStatus;
 import uz.uzinfocom.isemid.features.form058.reposiotries.Form058Repository;
 import uz.uzinfocom.isemid.features.organization.models.Organization;
 import uz.uzinfocom.isemid.features.report.service.Form13ReportService;
@@ -72,6 +73,7 @@ public class Form13ReportServiceImpl implements Form13ReportService {
 
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(cb.notEqual(root.get("status"), FormStatus.CANCELED));
             // ---- Date filter ----
             SpecificationUtils.fromToDateFilter(
                     fromDate,
