@@ -2,6 +2,8 @@ package uz.uzinfocom.app.platform.integrationclient.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -42,8 +44,22 @@ public class IntegrationClient extends AuditableEntity {
     @Column(name = "client_id", nullable = false, length = 100)
     private String clientId;
 
-    @Column(name = "client_secret_hash", nullable = false, length = 255)
+    /** Only populated for {@link IntegrationAuthType#CLIENT_CREDENTIALS}. */
+    @Column(name = "client_secret_hash", length = 255)
     private String clientSecretHash;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_type", nullable = false, length = 32)
+    private IntegrationAuthType authType = IntegrationAuthType.CLIENT_CREDENTIALS;
+
+    /** Only populated for {@link IntegrationAuthType#API_KEY}. */
+    @Column(name = "api_key_hash", length = 255)
+    private String apiKeyHash;
+
+    /** Only populated for {@link IntegrationAuthType#BASIC_AUTH}. */
+    @Column(name = "basic_auth_secret_hash", length = 255)
+    private String basicAuthSecretHash;
 
     @Column(name = "organization_id", nullable = false)
     private Long organizationId;

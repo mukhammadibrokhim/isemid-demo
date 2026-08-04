@@ -9,6 +9,10 @@ public record DevUserCreateRequest(
         @Schema(description = "Username for the new dev-panel account.", example = "dev-oncall")
         @NotBlank(message = "{dev-user.username.required}")
         @Size(max = 100, message = "{dev-user.username.size}")
-        String username
+        String username,
+
+        @Schema(description = "Whether the new account may itself manage other dev-panel accounts. "
+                + "Defaults to false when omitted.", defaultValue = "false")
+        Boolean root
 ) {
 }

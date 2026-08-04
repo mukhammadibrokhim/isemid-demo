@@ -170,7 +170,41 @@ class OrganizationContextFilterTest {
         verifyNoInteractions(organizationRepository);
     }
 
+    @Test
+    void rejectsIntegrationTokenRequestWhenTheClientHasBeenDeactivated() {
+        Long organizationId = 42L;
+        UUID organizationUuid = UUID.randomUUID();
+
+        IntegrationClientPrincipal principal =
+                new IntegrationClientPrincipal("ic_test", "dmed", organizationId, organizationUuid);
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "ic_test").build();
+        IntegrationClientAuthenticationToken authentication =
+                new IntegrationClientAuthenticationToken(jwt, principal, Set.of());
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/integration/v1/dmed/form-058");
+        request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
+
+        when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+        when(integrationClientRepository.findByClientId("ic_test"))
+                .thenReturn(Optional.of(integrationClient(organizationId, null, false)));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Rejected here even though this is an already-issued, not-yet-expired Bearer JWT -
+        // deactivation is re-checked against the client's current row on every request, not
+        // just at token issuance.
+        assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(), mock(FilterChain.class)))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("integration.client.inactive");
+
+        verifyNoInteractions(organizationRepository);
+    }
+
     private IntegrationClient integrationClient(Long organizationId, String allowedIps) {
+        return integrationClient(organizationId, allowedIps, true);
+    }
+
+    private IntegrationClient integrationClient(Long organizationId, String allowedIps, boolean active) {
         return IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash("hash")
@@ -179,7 +213,7 @@ class OrganizationContextFilterTest {
                 .name("Test Client")
                 .scopes("form058:submit")
                 .allowedIps(allowedIps)
-                .active(true)
+                .active(active)
                 .build();
     }
 

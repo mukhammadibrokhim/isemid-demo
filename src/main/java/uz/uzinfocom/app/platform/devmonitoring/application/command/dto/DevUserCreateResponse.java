@@ -8,6 +8,7 @@ import java.time.Instant;
 public record DevUserCreateResponse(
         Long id,
         String username,
+        Boolean root,
 
         @Schema(description = "Plaintext password - shown once, never stored or retrievable again.")
         String password,

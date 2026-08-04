@@ -10,9 +10,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uz.uzinfocom.app.platform.persistence.entity.BaseEntity;
 
 import java.time.Instant;
+import java.util.Map;
 
 /**
  * One row per audited business event (creation, status change, or receiving-organization
@@ -59,6 +62,15 @@ public class AuditEvent extends BaseEntity {
 
     @Column(name = "reason", length = 500)
     private String reason;
+
+    /**
+     * Old/new pairs for {@link AuditEventType#FIELD_CHANGED} rows, keyed by
+     * field name — see {@link AuditableFields} and {@link AuditFieldDiff}.
+     * Null for every other event kind.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "changes", columnDefinition = "jsonb")
+    private Map<String, Object> changes;
 
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;

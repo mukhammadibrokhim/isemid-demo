@@ -7,9 +7,12 @@ import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
+import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -55,7 +58,7 @@ import java.time.Instant;
                 @Index(name = "idx_form058_sender_source", columnList = "sender_organization_id,source")
         }
 )
-public class Form058 extends AbsEntity {
+public class Form058 extends AbsEntity implements AuditableFields {
 
     @Embedded
     private Form058DiagnosisInfo diagnosisInfo;
@@ -273,5 +276,35 @@ public class Form058 extends AbsEntity {
         if (this.deleteInfo == null) {
             this.deleteInfo = new Form058DeleteInfo();
         }
+    }
+
+    /**
+     * Flattened, scalar-only snapshot for {@code AuditFieldDiff} to compare
+     * before/after an update — never a reference to {@link #diagnosisInfo}
+     * or {@link #patient} themselves (mutable, and mutated in place by
+     * {@code Form058UpdateMapper}), only their leaf values, and never a
+     * collection.
+     */
+    @Override
+    public Map<String, Object> auditFields() {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("status", status);
+        fields.put("source", source);
+        fields.put("senderOrganizationId", senderOrganizationId);
+        fields.put("receiverOrganizationId", receiverOrganizationId);
+        if (diagnosisInfo != null) {
+            fields.put("icd10Code", diagnosisInfo.getIcd10Code());
+            fields.put("icd10Name", diagnosisInfo.getIcd10Name());
+            fields.put("finalIcd10Code", diagnosisInfo.getFinalIcd10Code());
+            fields.put("finalIcd10Name", diagnosisInfo.getFinalIcd10Name());
+        }
+        fields.put("hasLinkedCards", hasLinkedCards);
+        if (patient != null) {
+            fields.put("patientId", patient.getId());
+            fields.put("patientFirstName", patient.getFirstName());
+            fields.put("patientLastName", patient.getLastName());
+            fields.put("patientMiddleName", patient.getMiddleName());
+        }
+        return fields;
     }
 }

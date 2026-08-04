@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.integrationclient.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationAuthType;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,6 +12,7 @@ public record IntegrationClientResponse(
         Long id,
         String clientId,
         String name,
+        IntegrationAuthType authType,
         String sourceKey,
         Long organizationId,
         String organizationName,

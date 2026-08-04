@@ -28,7 +28,9 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundE
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
@@ -209,10 +211,19 @@ public class CardCommandService {
             throw new UnsupportedCardTypeException(request.type());
         }
 
+        Map<String, Object> before = card.auditFields();
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
         handler.handleUpdate(card, request);
         card.setStatus(CardStatus.IN_PROGRESS);
         Card saved = cardRepository.save(card);
+
+        Map<String, Object> changes = AuditFieldDiff.compute(before, saved.auditFields());
+        if (!changes.isEmpty()) {
+            eventPublisher.publishEvent(new FieldsChangedEvent(
+                    AuditEntityType.CARD, saved.getId(), changes, currentUserProvider.userIdOrNull()
+            ));
+        }
+
         return handler.handleToResponse(saved);
     }
 

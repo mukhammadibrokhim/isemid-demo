@@ -11,6 +11,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import uz.uzinfocom.app.platform.audit.domain.AuditEvent;
 import uz.uzinfocom.app.platform.audit.domain.AuditEventType;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.OrganizationReassignedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.audit.repository.AuditEventRepository;
@@ -68,6 +69,23 @@ public class AuditEventListener {
                 .entityId(event.entityId())
                 .oldOrgId(event.oldOrgId())
                 .newOrgId(event.newOrgId())
+                .actorUserId(event.actorUserId())
+                .occurredAt(event.occurredAt())
+                .build());
+    }
+
+    @Async("applicationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void on(FieldsChangedEvent event) {
+        if (event.changes().isEmpty()) {
+            return;
+        }
+        safeSave(AuditEvent.builder()
+                .eventType(AuditEventType.FIELD_CHANGED)
+                .entityType(event.entityType())
+                .entityId(event.entityId())
+                .changes(event.changes())
                 .actorUserId(event.actorUserId())
                 .occurredAt(event.occurredAt())
                 .build());

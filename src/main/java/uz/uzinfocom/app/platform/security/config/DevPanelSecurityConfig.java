@@ -12,7 +12,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import uz.uzinfocom.app.platform.devmonitoring.security.DevUserDetailsService;
+import uz.uzinfocom.app.platform.security.filter.PrincipalCaptureFilter;
 import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
 import uz.uzinfocom.app.platform.security.handler.JsonAuthenticationEntryPoint;
 
@@ -36,6 +38,7 @@ public class DevPanelSecurityConfig {
     private final DevUserDetailsService devUserDetailsService;
     private final JsonAuthenticationEntryPoint authenticationEntryPoint;
     private final JsonAccessDeniedHandler accessDeniedHandler;
+    private final PrincipalCaptureFilter principalCaptureFilter;
 
     /**
      * Kept separate from {@code SecurityConfig.integrationClientPasswordEncoder} -
@@ -69,7 +72,8 @@ public class DevPanelSecurityConfig {
                 .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint))
                 .authenticationProvider(devUserAuthenticationProvider)
                 .exceptionHandling(exceptions -> exceptions.accessDeniedHandler(accessDeniedHandler))
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+                .addFilterBefore(principalCaptureFilter, AuthorizationFilter.class);
 
         return http.build();
     }

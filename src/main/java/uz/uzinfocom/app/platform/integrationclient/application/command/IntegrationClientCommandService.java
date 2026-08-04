@@ -10,7 +10,10 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdRe
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientUpdateRequest;
+import uz.uzinfocom.app.platform.integrationclient.application.exception.AllowedIpsRequiredException;
 import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidAllowedIpException;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationAuthType;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
@@ -47,16 +50,23 @@ public class IntegrationClientCommandService {
         }
 
         String clientId = "ic_" + generateRandomToken();
-        String clientSecret = generateRandomToken();
         String scopes = request.scopes().stream()
                 .map(IntegrationScope::getClaim)
                 .collect(Collectors.joining(","));
 
         String allowedIps = normalizeAllowedIps(request.allowedIps());
+        if (request.authType() == IntegrationAuthType.IP_ALLOWLIST && allowedIps == null) {
+            throw new AllowedIpsRequiredException();
+        }
+
+        IssuedCredential credential = issueCredential(clientId, request.authType());
 
         IntegrationClient client = IntegrationClient.builder()
                 .clientId(clientId)
-                .clientSecretHash(passwordEncoder.encode(clientSecret))
+                .authType(request.authType())
+                .clientSecretHash(credential.clientSecretHash())
+                .apiKeyHash(credential.apiKeyHash())
+                .basicAuthSecretHash(credential.basicAuthSecretHash())
                 .organizationId(organizationId)
                 .sourceKey(sourceKey)
                 .name(request.name().trim())
@@ -66,19 +76,83 @@ public class IntegrationClientCommandService {
                 .build();
 
         IntegrationClient saved = integrationClientRepository.save(client);
-        log.info("Integration client registered. id={}, clientId={}, sourceKey={}, organizationId={}",
-                saved.getId(), saved.getClientId(), saved.getSourceKey(), saved.getOrganizationId());
+        log.info("Integration client registered. id={}, clientId={}, authType={}, sourceKey={}, organizationId={}",
+                saved.getId(), saved.getClientId(), saved.getAuthType(), saved.getSourceKey(), saved.getOrganizationId());
 
         return new IntegrationClientCreateResponse(
                 saved.getId(),
                 saved.getClientId(),
-                clientSecret,
+                saved.getAuthType(),
+                credential.clientSecret(),
+                credential.apiKey(),
+                credential.basicAuthSecret(),
                 saved.getName(),
                 saved.getSourceKey(),
                 saved.getOrganizationId(),
                 List.of(saved.getScopes().split(",")),
                 toAllowedIpsList(saved.getAllowedIps())
         );
+    }
+
+    /**
+     * Generates and hashes the one-time secret material for the given
+     * {@link IntegrationAuthType}, or none at all for {@code IP_ALLOWLIST},
+     * which is identified purely by {@code allowedIps}.
+     */
+    private IssuedCredential issueCredential(String clientId, IntegrationAuthType authType) {
+        return switch (authType) {
+            case CLIENT_CREDENTIALS -> {
+                String clientSecret = generateRandomToken();
+                yield new IssuedCredential(passwordEncoder.encode(clientSecret), null, null, clientSecret, null, null);
+            }
+            case API_KEY -> {
+                String apiKeyToken = generateRandomToken();
+                String apiKey = clientId + "." + apiKeyToken;
+                yield new IssuedCredential(null, passwordEncoder.encode(apiKeyToken), null, null, apiKey, null);
+            }
+            case BASIC_AUTH -> {
+                String basicAuthSecret = generateRandomToken();
+                yield new IssuedCredential(null, null, passwordEncoder.encode(basicAuthSecret), null, null, basicAuthSecret);
+            }
+            case IP_ALLOWLIST -> new IssuedCredential(null, null, null, null, null, null);
+        };
+    }
+
+    /** Hashes to persist plus plaintext values to return once, paired by {@link IntegrationAuthType}. */
+    private record IssuedCredential(
+            String clientSecretHash,
+            String apiKeyHash,
+            String basicAuthSecretHash,
+            String clientSecret,
+            String apiKey,
+            String basicAuthSecret
+    ) {
+    }
+
+    /**
+     * Updates the caller-editable fields only - name, scopes, and the active
+     * flag. {@code clientId}, {@code authType}, {@code sourceKey},
+     * {@code organizationId} and credentials stay fixed for the client's
+     * lifetime; rotating any of those means revoking this client and
+     * registering a new one. Unlike {@link #revoke}, {@code active} is
+     * reversible here - it can be flipped back to {@code true}.
+     */
+    @Transactional
+    public void update(Long id, IntegrationClientUpdateRequest request) {
+        IntegrationClient client = integrationClientRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("integration-client.not-found", id));
+
+        String scopes = request.scopes().stream()
+                .map(IntegrationScope::getClaim)
+                .collect(Collectors.joining(","));
+
+        client.setName(request.name().trim());
+        client.setScopes(scopes);
+        client.setActive(request.active());
+        integrationClientRepository.save(client);
+
+        log.info("Integration client updated. id={}, clientId={}, active={}",
+                client.getId(), client.getClientId(), client.isActive());
     }
 
     @Transactional
@@ -97,7 +171,14 @@ public class IntegrationClientCommandService {
         IntegrationClient client = integrationClientRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("integration-client.not-found", id));
 
-        client.setAllowedIps(normalizeAllowedIps(request.allowedIps()));
+        String allowedIps = normalizeAllowedIps(request.allowedIps());
+        if (client.getAuthType() == IntegrationAuthType.IP_ALLOWLIST && allowedIps == null) {
+            // allowedIps is the only thing identifying this client - clearing it would
+            // leave it with no way to ever authenticate again.
+            throw new AllowedIpsRequiredException();
+        }
+
+        client.setAllowedIps(allowedIps);
         integrationClientRepository.save(client);
 
         log.info("Integration client allow-list updated. id={}, clientId={}", client.getId(), client.getClientId());

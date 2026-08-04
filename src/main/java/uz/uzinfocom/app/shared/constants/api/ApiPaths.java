@@ -197,7 +197,9 @@ public final class ApiPaths {
      * (see {@link Integration}) — lives under the existing {@link Admin} root,
      * not under {@code Integration.ROOT}, since it's authenticated the same
      * way as every other admin endpoint (human SSO JWT + adminAccessGuard),
-     * not by the machine clients it manages.
+     * not by the machine clients it manages. Mirrored read/write under
+     * {@link Dev} for the dev-monitoring panel (see
+     * {@code DevIntegrationClientController}), same as {@link RouteAccessPolicy}.
      */
     public static final class IntegrationClient {
         private IntegrationClient() {
@@ -238,21 +240,21 @@ public final class ApiPaths {
         public static final String FILES = "/files";
         public static final String FILES_DOWNLOAD = "/files/download";
         public static final String AUDIT = "/audit";
-    }
+        public static final String INTEGRATION_CLIENTS = "/integration-clients";
+        public static final String INTEGRATION_CLIENT_BY_ID = "/integration-clients/{id}";
+        public static final String INTEGRATION_CLIENT_REVOKE = "/integration-clients/{id}/revoke";
+        public static final String INTEGRATION_CLIENT_ALLOWED_IPS = "/integration-clients/{id}/allowed-ips";
 
-    /**
-     * Human-facing admin tooling for provisioning {@link Dev} panel accounts -
-     * lives under {@link Admin} since it's provisioned by an SSO-authenticated
-     * admin, exactly like {@link IntegrationClient}, not by the dev-panel
-     * accounts it manages.
-     */
-    public static final class DevUser {
-        private DevUser() {
-        }
-
-        public static final String ROOT = Admin.ROOT + "/dev-users";
-        public static final String BY_ID = "/{id}";
-        public static final String REVOKE = "/{id}/revoke";
+        /**
+         * Dev-panel account management (list/create/revoke) - deliberately
+         * NOT under {@link Admin}: not even an SSO {@code isemid_super_admin}
+         * may manage these accounts. Gated to {@code ROLE_DEV_ROOT} (see
+         * {@code DevUserController}), a privilege only another root
+         * dev-user can grant.
+         */
+        public static final String DEV_USERS = "/dev-users";
+        public static final String DEV_USER_BY_ID = "/dev-users/{id}";
+        public static final String DEV_USER_REVOKE = "/dev-users/{id}/revoke";
     }
 
     /**
@@ -300,6 +302,7 @@ public final class ApiPaths {
 
         public static final String ROOT = API_V1 + "/notifications";
         public static final String UNREAD_COUNT = "/unread-count";
+        public static final String UNREAD_COUNT_BY_TYPE = "/unread-count/by-type";
         public static final String BY_ID_READ = "/{id}/read";
         public static final String READ_ALL = "/read-all";
         public static final String STREAM = "/stream";

@@ -51,7 +51,7 @@ public class InboundForm058Controller {
             @PathVariable String source,
             @Valid @RequestBody InboundCreateForm058Request request
     ) {
-        InboundCallerContext.requireScopeIfIntegrationClient(IntegrationScope.FORM058_SUBMIT);
+        InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT);
         InboundCallerContext.requireMatchingSourceKey(source);
         inboundForm058Validator.validate(request);
 

@@ -25,10 +25,13 @@ import uz.uzinfocom.app.modules.act.domain.model.embedded.ActDeleteInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldReflector;
+import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -57,7 +60,7 @@ import java.util.Set;
 )
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor
-public abstract class Act extends AbsEntity {
+public abstract class Act extends AbsEntity implements AuditableFields {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "act_type", nullable = false, length = 50)
@@ -134,5 +137,21 @@ public abstract class Act extends AbsEntity {
         if (this.deleteInfo == null) {
             this.deleteInfo = new ActDeleteInfo();
         }
+    }
+
+    /**
+     * Delegates to {@link AuditFieldReflector} rather than hand-listing
+     * fields: each of the 6 subtypes (act153/154/155/156/223/224) has its
+     * own set of scalar columns and {@code @Embeddable} value objects
+     * (e.g. {@code Purpose}, {@code EmployeeInfo}, {@code ConditionInfo}),
+     * and a hand-written list would drift out of sync as those evolve. The
+     * reflector flattens embeddables and excludes collections/child lists
+     * and entity-typed associations (e.g. {@link #card}, {@link #users}) by
+     * their declared type, stopping at {@link AbsEntity} so
+     * version/updatedAt/etc. never pollute the diff.
+     */
+    @Override
+    public Map<String, Object> auditFields() {
+        return AuditFieldReflector.reflect(this, AbsEntity.class);
     }
 }

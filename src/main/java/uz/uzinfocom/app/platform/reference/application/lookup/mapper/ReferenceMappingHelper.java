@@ -26,6 +26,11 @@ public class ReferenceMappingHelper {
         return referenceLookupService.getDistrictName(code);
     }
 
+    @Named("regionNameByDistrictCode")
+    public String regionNameByDistrictCode(String districtCode) {
+        return referenceLookupService.getRegionNameByDistrictCode(districtCode);
+    }
+
     @Named("neighborhoodName")
     public String neighborhoodName(String code) {
         return referenceLookupService.getNeighborhoodName(code);

@@ -53,7 +53,7 @@ public class DmedForm058Controller {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public InboundFormSubmissionResponse create(@Valid @RequestBody DmedCreateForm058Request request) {
-        InboundCallerContext.requireScopeIfIntegrationClient(IntegrationScope.FORM058_SUBMIT);
+        InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT);
         InboundCallerContext.requireMatchingSourceKey(SOURCE);
         dmedForm058Validator.validate(request);
 

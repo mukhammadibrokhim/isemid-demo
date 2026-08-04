@@ -55,6 +55,18 @@ public class ReferenceLookupService {
         return nameOrCode(code, findDistrict(code));
     }
 
+    /**
+     * Resolves the region name for a neighborhood via its district, since Neighborhood only
+     * stores its district code (parentCode) and has no direct region code of its own.
+     */
+    public String getRegionNameByDistrictCode(String districtCode) {
+        ReferenceItem district = findDistrict(districtCode);
+        if (district == null) {
+            return nameOrCode(districtCode, null);
+        }
+        return getRegionName(district.parentCode());
+    }
+
     public String getNeighborhoodName(String code) {
         return nameOrCode(code, findNeighborhood(code));
     }

@@ -23,7 +23,9 @@ import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
@@ -124,11 +126,13 @@ public class ActCommandService {
         }
 
         String oldStatus = act.getActStatus().name();
+        Map<String, Object> before = act.auditFields();
         ActTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
         handler.handleUpdate(act, request);
         act.setActStatus(ActStatus.IN_PROGRESS);
         Act saved = actRepository.save(act);
         publishStatusChange(saved, oldStatus);
+        publishFieldChanges(saved, before);
         return handler.handleToResponse(saved);
     }
 
@@ -234,6 +238,15 @@ public class ActCommandService {
                 AuditEntityType.ACT, act.getId(), oldStatus, act.getActStatus().name(),
                 currentUserProvider.userIdOrNull(), null
         ));
+    }
+
+    private void publishFieldChanges(Act act, Map<String, Object> before) {
+        Map<String, Object> changes = AuditFieldDiff.compute(before, act.auditFields());
+        if (!changes.isEmpty()) {
+            eventPublisher.publishEvent(new FieldsChangedEvent(
+                    AuditEntityType.ACT, act.getId(), changes, currentUserProvider.userIdOrNull()
+            ));
+        }
     }
 
     /**

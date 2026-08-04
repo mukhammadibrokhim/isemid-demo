@@ -17,10 +17,13 @@ import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
+import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.OrganizationReassignedEvent;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -39,6 +42,7 @@ public class UpdateForm0581Service {
         Form0581 form0581 = findRequired(command.id());
         form0581UpdateValidator.validate(form0581, command);
         Long oldReceiverOrganizationId = form0581.getReceiverOrganizationId();
+        Map<String, Object> before = form0581.auditFields();
         form0581UpdateMapper.update(command, form0581);
 
         if (command.otherInjuredPeople() != null) {
@@ -55,12 +59,20 @@ public class UpdateForm0581Service {
         updatePatient(command.patient(), form0581.getPatient());
         UpdateForm0581Result result = form0581UpdateMapper.toResult(form0581Repository.save(form0581));
 
+        Long actorUserId = currentUserProvider.userIdOrNull();
         Long newReceiverOrganizationId = form0581.getReceiverOrganizationId();
         if (!Objects.equals(oldReceiverOrganizationId, newReceiverOrganizationId)) {
             eventPublisher.publishEvent(new OrganizationReassignedEvent(
                     AuditEntityType.FORM0581, form0581.getId(),
                     oldReceiverOrganizationId, newReceiverOrganizationId,
-                    currentUserProvider.userIdOrNull()
+                    actorUserId
+            ));
+        }
+
+        Map<String, Object> changes = AuditFieldDiff.compute(before, form0581.auditFields());
+        if (!changes.isEmpty()) {
+            eventPublisher.publishEvent(new FieldsChangedEvent(
+                    AuditEntityType.FORM0581, form0581.getId(), changes, actorUserId
             ));
         }
 

@@ -107,6 +107,8 @@ public class OrganizationQueryService {
                 request.levelType(),
                 request.medicalType(),
                 request.active(),
+                request.regionCode(),
+                request.districtCode(),
                 pageable
         ).stream()
                 .map(organizationQueryMapper::toLookupResponse)

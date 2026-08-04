@@ -19,7 +19,7 @@ import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
-import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
+import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthentication;
 import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCacheService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
@@ -56,29 +56,35 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication instanceof IntegrationClientAuthenticationToken integrationToken) {
+        if (authentication instanceof IntegrationClientAuthentication integrationAuthentication) {
             // X-Organization-Id is required here too, exactly like the human path below -
             // not because the client could be bound to more than one organization (it can't,
             // see IntegrationClient), but so a client can never silently submit for whatever
-            // organization happens to be baked into its token without saying so explicitly.
-            // It must still match that bound organization: a client can state its own
-            // organization, never claim a different one.
+            // organization happens to be bound to it without saying so explicitly. It must
+            // still match that bound organization: a client can state its own organization,
+            // never claim a different one.
             String requestedOrganizationHeader = resolveOrganizationHeader(request);
             if (!StringUtils.hasText(requestedOrganizationHeader)) {
                 throw new AccessDeniedException("organization.required");
             }
 
             UUID requestedOrganizationUuid = parseUuid(requestedOrganizationHeader);
-            if (!requestedOrganizationUuid.equals(integrationToken.getPrincipal().organizationUuid())) {
+            if (!requestedOrganizationUuid.equals(integrationAuthentication.getPrincipal().organizationUuid())) {
                 throw new AccessDeniedException("organization.not_allowed");
             }
 
-            // Re-checked per request against the client's current allow-list (not baked
-            // into the token at issuance) so revoking/narrowing it takes effect immediately,
-            // without waiting for every already-issued token to expire.
+            // Re-checked per request against the client's current row (not baked into a
+            // JWT at issuance, for credential kinds that even involve one) so revoking,
+            // deactivating, or narrowing the allow-list takes effect immediately on the
+            // very next request - including one carrying an already-issued, not-yet-
+            // expired Bearer JWT - rather than only blocking new token issuance.
             IntegrationClient integrationClient = integrationClientRepository
-                    .findByClientId(integrationToken.getPrincipal().clientId())
+                    .findByClientId(integrationAuthentication.getPrincipal().clientId())
                     .orElseThrow(() -> new AccessDeniedException("integration.ip.not_allowed"));
+
+            if (!integrationClient.isActive()) {
+                throw new AccessDeniedException("integration.client.inactive");
+            }
 
             if (!IpAllowlistMatcher.isAllowed(request.getRemoteAddr(), integrationClient.getAllowedIps())) {
                 throw new AccessDeniedException("integration.ip.not_allowed");
@@ -91,7 +97,7 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
             // executes its query eagerly (Spring Data wraps each repository call in its own
             // short transaction) and returns a fully hydrated, genuinely detached entity.
             Organization organization = organizationRepository.findById(
-                            integrationToken.getPrincipal().organizationId())
+                            integrationAuthentication.getPrincipal().organizationId())
                     .orElseThrow(() -> new AccessDeniedException("organization.not_allowed"));
 
             try {

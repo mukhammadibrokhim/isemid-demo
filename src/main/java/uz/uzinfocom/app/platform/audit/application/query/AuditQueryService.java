@@ -39,6 +39,7 @@ public class AuditQueryService {
                 entity.getNewOrgId(),
                 entity.getActorUserId(),
                 entity.getReason(),
+                entity.getChanges(),
                 entity.getOccurredAt()
         );
     }

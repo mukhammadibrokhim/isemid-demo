@@ -16,7 +16,8 @@ import java.util.List;
  * {@link IntegrationClientPrincipal} instead of a human {@code PrincipalUser}.
  */
 @Getter
-public final class IntegrationClientAuthenticationToken extends AbstractAuthenticationToken {
+public final class IntegrationClientAuthenticationToken extends AbstractAuthenticationToken
+        implements IntegrationClientAuthentication {
 
     private final Jwt jwt;
     private final IntegrationClientPrincipal principal;

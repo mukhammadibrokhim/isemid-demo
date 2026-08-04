@@ -30,8 +30,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * system or human) must be able to reach the inbound endpoints. Sender
  * organization resolution is identical for both (via
  * {@link CurrentOrganizationContext}, already populated by
- * {@code OrganizationContextFilter} for either caller type); scope gating
- * and source-key matching only apply to the integration-client caller.
+ * {@code OrganizationContextFilter} for either caller type). Scope gating
+ * applies to both caller types too — an integration client via its
+ * {@code SCOPE_*} authority, an SSO/DHP caller via the equivalent
+ * {@code PERMISSION_*} authority (see {@code IntegrationScope#permissionAuthority()}).
+ * Source-key matching stays integration-client-only.
  */
 class InboundCallerContextTest {
 
@@ -73,7 +76,7 @@ class InboundCallerContextTest {
         SecurityContextHolder.getContext().setAuthentication(new IntegrationClientAuthenticationToken(
                 jwt, principal, Set.of(new SimpleGrantedAuthority("SCOPE_form058:submit"))));
 
-        assertThatCode(() -> InboundCallerContext.requireScopeIfIntegrationClient(IntegrationScope.FORM058_SUBMIT))
+        assertThatCode(() -> InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT))
                 .doesNotThrowAnyException();
     }
 
@@ -84,21 +87,30 @@ class InboundCallerContextTest {
         SecurityContextHolder.getContext().setAuthentication(new IntegrationClientAuthenticationToken(
                 jwt, principal, Set.of(new SimpleGrantedAuthority("SCOPE_form0581:submit"))));
 
-        assertThatThrownBy(() -> InboundCallerContext.requireScopeIfIntegrationClient(IntegrationScope.FORM058_SUBMIT))
+        assertThatThrownBy(() -> InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("integration.scope.missing");
     }
 
     @Test
-    void doesNotScopeGateAnSsoOrDhpCaller() {
-        // A human/service caller authenticated via SSO or DHP never carries SCOPE_* authorities
-        // (only IntegrationJwtAuthenticationConverter grants those) - the real access control for
-        // this caller type is Form058CreateValidator's existing organization-scope check, not this
-        // scope gate, so no exception should be thrown here regardless of granted authorities.
+    void allowsAnSsoOrDhpCallerWithTheEquivalentPermission() {
+        // No SCOPE_* authority (only IntegrationJwtAuthenticationConverter grants those) - instead
+        // the RBAC-equivalent PERMISSION_* authority, granted through the ordinary Role/Permission/
+        // Action admin CRUD (see IntegrationScope#permissionAuthority()).
+        SecurityContextHolder.getContext().setAuthentication(
+                federatedAuthentication(new SimpleGrantedAuthority("PERMISSION_FORM058_SUBMIT")));
+
+        assertThatCode(() -> InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void rejectsAnSsoOrDhpCallerMissingTheEquivalentPermission() {
         SecurityContextHolder.getContext().setAuthentication(federatedAuthentication());
 
-        assertThatCode(() -> InboundCallerContext.requireScopeIfIntegrationClient(IntegrationScope.FORM058_SUBMIT))
-                .doesNotThrowAnyException();
+        assertThatThrownBy(() -> InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("integration.scope.missing");
     }
 
     @Test
@@ -132,9 +144,9 @@ class InboundCallerContextTest {
                 .doesNotThrowAnyException();
     }
 
-    private FederatedAuthenticationToken federatedAuthentication() {
+    private FederatedAuthenticationToken federatedAuthentication(SimpleGrantedAuthority... authorities) {
         Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "subject").build();
         PrincipalUser principal = new PrincipalUser(1L, UUID.randomUUID(), "doctor", "123456789", true, null);
-        return new FederatedAuthenticationToken(jwt, principal, List.of(), List.of());
+        return new FederatedAuthenticationToken(jwt, principal, List.of(authorities), List.of());
     }
 }

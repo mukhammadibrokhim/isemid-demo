@@ -12,7 +12,11 @@ import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.notification.application.dto.NotificationFilterRequest;
 import uz.uzinfocom.app.platform.notification.application.dto.NotificationResponse;
 import uz.uzinfocom.app.platform.notification.domain.Notification;
+import uz.uzinfocom.app.platform.notification.domain.NotificationType;
 import uz.uzinfocom.app.platform.notification.repository.NotificationRepository;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -39,6 +43,17 @@ public class NotificationQueryService {
 
     public long countUnread(Long currentUserId) {
         return notificationRepository.countByRecipientUserIdAndReadFalse(currentUserId);
+    }
+
+    /** Every {@link NotificationType} is present, defaulted to 0, so badge UIs don't need to special-case absent keys. */
+    public Map<NotificationType, Long> countUnreadByType(Long currentUserId) {
+        Map<NotificationType, Long> counts = new EnumMap<>(NotificationType.class);
+        for (NotificationType type : NotificationType.values()) {
+            counts.put(type, 0L);
+        }
+        notificationRepository.countByRecipientUserIdAndReadFalseGroupedByType(currentUserId)
+                .forEach(row -> counts.put(row.getType(), row.getCount()));
+        return counts;
     }
 
     NotificationResponse toResponse(Notification notification) {

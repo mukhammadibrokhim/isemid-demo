@@ -11,9 +11,12 @@ import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand
 import uz.uzinfocom.app.modules.patient.application.service.PatientIdentifierSync;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
+import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.OrganizationReassignedEvent;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -31,16 +34,25 @@ public class UpdateForm058Service {
         Form058 form058 = findRequired(command.id());
         form058UpdateValidator.validate(form058, command);
         Long oldReceiverOrganizationId = form058.getReceiverOrganizationId();
+        Map<String, Object> before = form058.auditFields();
         form058UpdateMapper.update(command, form058);
         updatePatient(command, form058.getPatient());
         UpdateForm058Result result = form058UpdateMapper.toResult(form058Repository.save(form058));
 
+        Long actorUserId = currentUserProvider.userIdOrNull();
         Long newReceiverOrganizationId = form058.getReceiverOrganizationId();
         if (!Objects.equals(oldReceiverOrganizationId, newReceiverOrganizationId)) {
             eventPublisher.publishEvent(new OrganizationReassignedEvent(
                     AuditEntityType.FORM058, form058.getId(),
                     oldReceiverOrganizationId, newReceiverOrganizationId,
-                    currentUserProvider.userIdOrNull()
+                    actorUserId
+            ));
+        }
+
+        Map<String, Object> changes = AuditFieldDiff.compute(before, form058.auditFields());
+        if (!changes.isEmpty()) {
+            eventPublisher.publishEvent(new FieldsChangedEvent(
+                    AuditEntityType.FORM058, form058.getId(), changes, actorUserId
             ));
         }
 

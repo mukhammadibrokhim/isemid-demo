@@ -23,12 +23,15 @@ import uz.uzinfocom.app.platform.notification.application.NotificationQueryServi
 import uz.uzinfocom.app.platform.notification.application.NotificationStreamService;
 import uz.uzinfocom.app.platform.notification.application.dto.NotificationFilterRequest;
 import uz.uzinfocom.app.platform.notification.application.dto.NotificationResponse;
+import uz.uzinfocom.app.platform.notification.domain.NotificationType;
 import uz.uzinfocom.app.platform.security.annotation.CurrentUser;
 import uz.uzinfocom.app.platform.security.principal.PrincipalUser;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
+
+import java.util.Map;
 
 /**
  * Personal, server-scoped notification surface — never trust a client-supplied user id,
@@ -76,6 +79,21 @@ public class NotificationController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 notificationQueryService.countUnread(principal.id())
+        );
+    }
+
+    @Operation(
+            summary = "Счетчик непрочитанных уведомлений по типам",
+            description = "Количество непрочитанных уведомлений текущего пользователя, "
+                    + "сгруппированное по каждому типу — все типы присутствуют в ответе, "
+                    + "отсутствующие считаются нулём."
+    )
+    @GetMapping(ApiPaths.Notification.UNREAD_COUNT_BY_TYPE)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<Map<NotificationType, Long>> unreadCountByType(@CurrentUser PrincipalUser principal) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                notificationQueryService.countUnreadByType(principal.id())
         );
     }
 

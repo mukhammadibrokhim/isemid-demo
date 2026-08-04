@@ -34,6 +34,26 @@ class DevUserDetailsServiceTest {
         assertThat(userDetails.getPassword()).isEqualTo("hash");
         assertThat(userDetails.isEnabled()).isTrue();
         assertThat(((DevUserPrincipal) userDetails).getDevUserId()).isEqualTo(7L);
+        assertThat(userDetails.getAuthorities())
+                .extracting(Object::toString)
+                .containsExactly("ROLE_DEV_MONITORING");
+    }
+
+    @Test
+    void grantsRoleDevRootOnlyToARootAccount() {
+        DevUser devUser = DevUser.builder()
+                .username("dev-root")
+                .passwordHash("hash")
+                .enabled(true)
+                .root(true)
+                .build();
+        when(devUserRepository.findByUsername("dev-root")).thenReturn(Optional.of(devUser));
+
+        UserDetails userDetails = service.loadUserByUsername("dev-root");
+
+        assertThat(userDetails.getAuthorities())
+                .extracting(Object::toString)
+                .containsExactlyInAnyOrder("ROLE_DEV_MONITORING", "ROLE_DEV_ROOT");
     }
 
     @Test

@@ -17,8 +17,9 @@ platform pieces rather than introducing new infrastructure:
 notification/
 ├── domain/
 │   ├── Notification.java        one row per (event, recipient) — see "Fan-out model" below
-│   └── NotificationType.java    FORM058_RECEIVED, FORM0581_RECEIVED, CARD_ASSIGNED,
-│                                  ACT_ASSIGNED, ACT_LIS_RESPONSE, EXPORT_READY
+│   └── NotificationType.java    FORM058_RECEIVED, FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED,
+│                                  FORM0581_CANCELED, CARD_ASSIGNED, ACT_ASSIGNED,
+│                                  ACT_LIS_RESPONSE, EXPORT_READY
 ├── repository/
 │   └── NotificationRepository.java
 ├── application/
@@ -50,6 +51,8 @@ alongside the audit trail:
 | Card assigned | `EntityCreatedEvent(CARD, id, assignedById)` — `CardCommandService.createBlankCards` (**new** publish call — cards previously fired no per-card event) | `card.getUsers()` |
 | Act assigned | `EntityCreatedEvent(ACT, id, assignedById)` — `ActCommandService.assignActs` | `act.getUsers()` |
 | LIS response received | `StatusChangedEvent(ACT, id, "SENT", "COMPLETED", ...)` — `ActCommandService.receiveLisResponse` | `act.getUsers()` |
+| Form0581 acknowledged | `StatusChangedEvent(FORM0581, id, "SENT", "RECEIVED", ...)` — `ReceiveForm0581Service.receive` | active users of `Form0581.senderOrganizationId` |
+| Form0581 canceled | `StatusChangedEvent(FORM0581, id, oldStatus, "CANCELED", ...)` — `CancelForm0581Service.cancel` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
 | Export ready to download | `ExportJobCompletedEvent(jobId, createdBy, exportType, fileName)` — `ExportJobService.completeJob` | `event.recipientUserId()` only (whoever submitted the export) |
 
 The export-ready trigger is the one exception to "reuse `EntityCreatedEvent`/
@@ -86,6 +89,16 @@ act status transition (NEW→IN_PROGRESS, READY→SENT, SEND_FAILED, ...), not
 just the LIS callback. The listener only reacts when
 `oldStatus == "SENT" && newStatus == "COMPLETED"` — the one transition
 `ActCommandService.receiveLisResponse` produces.
+
+**Form0581 status filtering**: same idea — `StatusChangedEvent(FORM0581, ...)`
+fires for every transition (`CARD_LINKED`, `APPROVED_PENDING`, `APPROVED`,
+`NOT_APPROVED`, ...), but the listener only reacts to `SENT→RECEIVED` (the
+receiver's acknowledgement, see `Form0581ReceiveValidator`) and any
+`→CANCELED` transition. `Form0581CancelValidator` allows *either* the sender
+or the receiver to cancel while still `SENT`, so `handleForm0581Canceled`
+notifies both organizations rather than trying to resolve which side didn't
+act — `excludingActor` already drops the acting user from whichever side's
+recipient list they belong to.
 
 **Ordering pitfall already hit once**: the settings-enabled check must run
 *before* any DB lookup of the source entity, not just before the fan-out —
@@ -133,6 +146,8 @@ read-through over the `system_settings` table):
 
 - `notification.form058-received.enabled`
 - `notification.form0581-received.enabled`
+- `notification.form0581-acknowledged.enabled`
+- `notification.form0581-canceled.enabled`
 - `notification.card-assigned.enabled`
 - `notification.act-assigned.enabled`
 - `notification.act-lis-response.enabled`
@@ -168,6 +183,7 @@ same rule as `Card.MINE`/`Act.MINE`.
 |---|---|---|
 | GET | `/v1/notifications` | Paged list of the caller's own notifications, newest first; `unreadOnly` filter |
 | GET | `/v1/notifications/unread-count` | Badge count |
+| GET | `/v1/notifications/unread-count/by-type` | Unread count per `NotificationType`, every type present (0 if none) |
 | POST | `/v1/notifications/{id}/read` | Mark one as read |
 | POST | `/v1/notifications/read-all` | Mark all as read |
 | GET | `/v1/notifications/stream` | SSE stream, unread count pushed every second |

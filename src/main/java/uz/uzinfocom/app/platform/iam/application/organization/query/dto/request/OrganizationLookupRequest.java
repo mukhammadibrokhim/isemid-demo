@@ -24,6 +24,12 @@ public record OrganizationLookupRequest(
         @Schema(description = "Фильтр по признаку активности записи.", example = "true")
         Boolean active,
 
+        @Schema(description = "Код региона.")
+        String regionCode,
+
+        @Schema(description = "Код района.")
+        String districtCode,
+
         @Schema(description = "Максимальное количество записей в ответе.", example = "20")
         @Min(value = 1, message = "{organization.lookup.limit.min}")
         @Max(value = 50, message = "{organization.lookup.limit.max}")

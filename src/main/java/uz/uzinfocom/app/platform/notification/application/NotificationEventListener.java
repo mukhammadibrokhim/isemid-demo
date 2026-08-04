@@ -56,6 +56,8 @@ public class NotificationEventListener {
 
     private static final String KEY_FORM058_RECEIVED_ENABLED = "notification.form058-received.enabled";
     private static final String KEY_FORM0581_RECEIVED_ENABLED = "notification.form0581-received.enabled";
+    private static final String KEY_FORM0581_ACKNOWLEDGED_ENABLED = "notification.form0581-acknowledged.enabled";
+    private static final String KEY_FORM0581_CANCELED_ENABLED = "notification.form0581-canceled.enabled";
     private static final String KEY_CARD_ASSIGNED_ENABLED = "notification.card-assigned.enabled";
     private static final String KEY_ACT_ASSIGNED_ENABLED = "notification.act-assigned.enabled";
     private static final String KEY_ACT_LIS_RESPONSE_ENABLED = "notification.act-lis-response.enabled";
@@ -86,13 +88,26 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(StatusChangedEvent event) {
-        if (event.entityType() != AuditEntityType.ACT) {
-            return;
+        switch (event.entityType()) {
+            case ACT -> handleActStatusChanged(event);
+            case FORM0581 -> handleForm0581StatusChanged(event);
+            default -> { }
         }
+    }
+
+    private void handleActStatusChanged(StatusChangedEvent event) {
         if (!"SENT".equals(event.oldStatus()) || !"COMPLETED".equals(event.newStatus())) {
             return;
         }
         handleActLisResponse(event);
+    }
+
+    private void handleForm0581StatusChanged(StatusChangedEvent event) {
+        if ("SENT".equals(event.oldStatus()) && "RECEIVED".equals(event.newStatus())) {
+            handleForm0581Acknowledged(event);
+        } else if ("CANCELED".equals(event.newStatus())) {
+            handleForm0581Canceled(event);
+        }
     }
 
     @Async("applicationTaskExecutor")
@@ -142,14 +157,56 @@ public class NotificationEventListener {
     private void notifyReceiverOrganization(
             EntityCreatedEvent event, NotificationType type, String messageKey, Long receiverOrganizationId
     ) {
-        if (receiverOrganizationId == null) {
+        notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
+                type, messageKey, receiverOrganizationId);
+    }
+
+    private void handleForm0581Acknowledged(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_ACKNOWLEDGED_ENABLED, true)) {
+            return;
+        }
+        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
+        if (form0581 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
             return;
         }
 
-        List<Long> recipientIds = userRepository.findActiveIdsByOrganizationId(receiverOrganizationId);
-        fanOut(type, event.entityType(), event.entityId(), receiverOrganizationId,
-                excludingActor(recipientIds, event.actorUserId()), messageKey,
-                new Object[]{event.entityId()});
+        notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                NotificationType.FORM0581_ACKNOWLEDGED, "notification.form0581-acknowledged",
+                form0581.getSenderOrganizationId());
+    }
+
+    private void handleForm0581Canceled(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_CANCELED_ENABLED, true)) {
+            return;
+        }
+        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
+        if (form0581 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
+            return;
+        }
+
+        // Either party can cancel while still SENT (see Form0581CancelValidator) — notify both
+        // organizations, since the actor's own side is already excluded by notifyOrganization.
+        notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                NotificationType.FORM0581_CANCELED, "notification.form0581-canceled",
+                form0581.getSenderOrganizationId());
+        notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                NotificationType.FORM0581_CANCELED, "notification.form0581-canceled",
+                form0581.getReceiverOrganizationId());
+    }
+
+    private void notifyOrganization(
+            AuditEntityType entityType, Long entityId, Long actorUserId,
+            NotificationType type, String messageKey, Long organizationId
+    ) {
+        if (organizationId == null) {
+            return;
+        }
+
+        List<Long> recipientIds = userRepository.findActiveIdsByOrganizationId(organizationId);
+        fanOut(type, entityType, entityId, organizationId,
+                excludingActor(recipientIds, actorUserId), messageKey, new Object[]{entityId});
     }
 
     private void handleCardAssigned(EntityCreatedEvent event) {

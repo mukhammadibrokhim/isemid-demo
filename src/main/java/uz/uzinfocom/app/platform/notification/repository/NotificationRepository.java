@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import uz.uzinfocom.app.platform.notification.domain.Notification;
+import uz.uzinfocom.app.platform.notification.domain.NotificationType;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
@@ -21,6 +23,15 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     long countByRecipientUserIdAndReadFalse(Long recipientUserId);
 
+    @Query("""
+            SELECT n.type as type, COUNT(n) as count
+            FROM Notification n
+            WHERE n.recipientUserId = :recipientUserId
+              AND n.read = false
+            GROUP BY n.type
+            """)
+    List<UnreadCountByType> countByRecipientUserIdAndReadFalseGroupedByType(@Param("recipientUserId") Long recipientUserId);
+
     @Modifying
     @Query("""
             UPDATE Notification n
@@ -28,5 +39,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             WHERE n.recipientUserId = :recipientUserId
               AND n.read = false
             """)
-    int markAllRead(@Param("recipientUserId") Long recipientUserId, @Param("readAt") Instant readAt);
+    void markAllRead(@Param("recipientUserId") Long recipientUserId, @Param("readAt") Instant readAt);
+
+    interface UnreadCountByType {
+        NotificationType getType();
+
+        long getCount();
+    }
 }

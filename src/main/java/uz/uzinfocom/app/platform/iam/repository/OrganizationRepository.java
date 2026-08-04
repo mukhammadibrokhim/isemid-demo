@@ -37,6 +37,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
           and (:levelType is null or o.levelType = :levelType)
           and (:medicalType is null or o.medicalType = :medicalType)
           and (:active is null or o.active = :active)
+          and (:regionCode is null or o.regionCode = :regionCode)
+          and (:districtCode is null or o.districtCode = :districtCode)
         order by o.name asc, o.id desc
         """)
     List<Organization> lookupOrganizations(
@@ -45,6 +47,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
             @Param("levelType") OrganizationLevel levelType,
             @Param("medicalType") MedicalType medicalType,
             @Param("active") Boolean active,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode,
             Pageable pageable
     );
 

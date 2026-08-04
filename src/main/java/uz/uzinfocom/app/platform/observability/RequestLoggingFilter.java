@@ -17,7 +17,6 @@ import uz.uzinfocom.app.platform.http.SensitiveLoggingSanitizer;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -205,8 +204,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             append(event, "status", status);
             append(event, "durationMs", durationMs);
             append(event, "clientIp", sanitize(request.getRemoteAddr(), 64));
-            Principal principal = request.getUserPrincipal();
-            append(event, "principal", principal == null ? null : sanitize(principal.getName(), config.getMaxTextLength()));
+            String principal = RequestPrincipalContext.get(request).orElse(null);
+            append(event, "principal", principal == null ? null : sanitize(principal, config.getMaxTextLength()));
             append(event, "organizationId", sanitize(request.getHeader(config.getOrganizationHeader()), config.getMaxTextLength()));
             append(event, "dispatcherType", request.getDispatcherType());
             append(event, "requestContentType", sanitize(request.getContentType(), 100));
@@ -229,7 +228,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                         failure == null ? null : failure.getClass().getName(),
                         sanitizer.sanitizePath(request.getRequestURI(), config.isMaskPathIdentifiers(), config.getMaxTextLength()),
                         request.getMethod(),
-                        principal == null ? null : principal.getName(),
+                        principal,
                         message
                 );
             }

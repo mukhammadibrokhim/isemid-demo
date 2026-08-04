@@ -10,6 +10,10 @@ public record NeighborhoodTableResponse(
         String code,
         @Schema(description = "Код родительского района для данной махалли.", example = "AN-202")
         String parentCode,
+        @Schema(description = "Наименование региона (локализовано по текущему языку запроса).", example = "Андижанская область")
+        String regionName,
+        @Schema(description = "Наименование района (локализовано по текущему языку запроса).", example = "Алтынкульский район")
+        String districtName,
         @Schema(description = "Идентификатор СОАТО махалли.", example = "1703202001")
         Integer soatoId,
         @Schema(description = "Идентификатор СОАТО родительского района.", example = "1703202")

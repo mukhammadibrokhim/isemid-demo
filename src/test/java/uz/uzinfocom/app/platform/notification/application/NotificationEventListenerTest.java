@@ -9,6 +9,7 @@ import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
+import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
@@ -160,6 +161,66 @@ class NotificationEventListenerTest {
 
         listener.on(new ExportJobCompletedEvent(42L, 7L, "FORM058", "form058_42.xlsx"));
 
+        verify(notificationRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void form0581AcknowledgedNotifiesSenderOrganizationOnlyOnSentToReceivedTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "SENT", "CARD_LINKED", 1L, null));
+        verify(form0581Repository, never()).findById(any());
+
+        Form0581 form0581 = mock(Form0581.class);
+        when(form0581.getSenderOrganizationId()).thenReturn(3L);
+        when(form0581Repository.findById(9L)).thenReturn(Optional.of(form0581));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L, 22L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "SENT", "RECEIVED", 22L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).extracting(Notification::getRecipientUserId).containsExactly(11L);
+        assertThat(saved).allSatisfy(notification -> {
+            assertThat(notification.getType()).isEqualTo(NotificationType.FORM0581_ACKNOWLEDGED);
+            assertThat(notification.getOrganizationId()).isEqualTo(3L);
+        });
+    }
+
+    @Test
+    void form0581CanceledNotifiesBothOrganizationsExcludingTheActor() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Form0581 form0581 = mock(Form0581.class);
+        when(form0581.getSenderOrganizationId()).thenReturn(3L);
+        when(form0581.getReceiverOrganizationId()).thenReturn(5L);
+        when(form0581Repository.findById(9L)).thenReturn(Optional.of(form0581));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L, 22L));
+        when(userRepository.findActiveIdsByOrganizationId(5L)).thenReturn(List.of(33L, 44L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "SENT", "CANCELED", 22L, "reason"));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository, org.mockito.Mockito.times(2)).saveAll(captor.capture());
+
+        List<List<Notification>> allSaved = captor.getAllValues();
+        assertThat(allSaved.get(0)).extracting(Notification::getRecipientUserId).containsExactly(11L);
+        assertThat(allSaved.get(1)).extracting(Notification::getRecipientUserId)
+                .containsExactlyInAnyOrder(33L, 44L);
+        assertThat(allSaved.stream().flatMap(List::stream))
+                .allSatisfy(notification -> assertThat(notification.getType())
+                        .isEqualTo(NotificationType.FORM0581_CANCELED));
+    }
+
+    @Test
+    void form0581CanceledIsSkippedWhenDisabledBySetting() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(false);
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "SENT", "CANCELED", 22L, "reason"));
+
+        verify(form0581Repository, never()).findById(any());
         verify(notificationRepository, never()).saveAll(any());
     }
 }

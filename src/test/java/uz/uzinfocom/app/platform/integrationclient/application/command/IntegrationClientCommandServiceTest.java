@@ -8,7 +8,10 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdRe
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientUpdateRequest;
+import uz.uzinfocom.app.platform.integrationclient.application.exception.AllowedIpsRequiredException;
 import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidAllowedIpException;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationAuthType;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
@@ -45,9 +48,12 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", "dmed", organizationUuid, List.of(IntegrationScope.FORM058_SUBMIT), null));
+                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed", organizationUuid,
+                List.of(IntegrationScope.FORM058_SUBMIT), null));
 
         assertThat(response.clientSecret()).isNotBlank();
+        assertThat(response.apiKey()).isNull();
+        assertThat(response.basicAuthSecret()).isNull();
         assertThat(response.organizationId()).isEqualTo(42L);
         assertThat(response.scopes()).containsExactly("form058:submit");
         assertThat(response.allowedIps()).isEmpty();
@@ -74,8 +80,8 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", "dmed", organizationUuid, List.of(IntegrationScope.FORM058_SUBMIT),
-                List.of(" 10.0.5.0/24 ", "10.0.6.7")));
+                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed", organizationUuid,
+                List.of(IntegrationScope.FORM058_SUBMIT), List.of(" 10.0.5.0/24 ", "10.0.6.7")));
 
         assertThat(response.allowedIps()).containsExactly("10.0.5.0/24", "10.0.6.7");
     }
@@ -86,9 +92,89 @@ class IntegrationClientCommandServiceTest {
         when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
 
         assertThatThrownBy(() -> service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", "dmed", organizationUuid, List.of(IntegrationScope.FORM058_SUBMIT),
-                List.of("not-an-ip"))))
+                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed", organizationUuid,
+                List.of(IntegrationScope.FORM058_SUBMIT), List.of("not-an-ip"))))
                 .isInstanceOf(InvalidAllowedIpException.class);
+    }
+
+    @Test
+    void createIssuesAnApiKeyPrefixedByTheClientIdAndPersistsOnlyItsHash() {
+        UUID organizationUuid = UUID.randomUUID();
+        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> {
+                    IntegrationClient client = invocation.getArgument(0);
+                    client.setId(1L);
+                    return client;
+                });
+
+        IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
+                "Test Lab System", IntegrationAuthType.API_KEY, "dmed", organizationUuid,
+                List.of(IntegrationScope.FORM058_SUBMIT), null));
+
+        assertThat(response.apiKey()).startsWith(response.clientId() + ".");
+        assertThat(response.clientSecret()).isNull();
+        assertThat(response.basicAuthSecret()).isNull();
+
+        ArgumentCaptor<IntegrationClient> savedClient = ArgumentCaptor.forClass(IntegrationClient.class);
+        verify(integrationClientRepository).save(savedClient.capture());
+
+        assertThat(savedClient.getValue().getClientSecretHash()).isNull();
+        String tokenHalf = response.apiKey().substring(response.clientId().length() + 1);
+        assertThat(passwordEncoder.matches(tokenHalf, savedClient.getValue().getApiKeyHash())).isTrue();
+    }
+
+    @Test
+    void createIssuesABasicAuthSecretAndPersistsOnlyItsHash() {
+        UUID organizationUuid = UUID.randomUUID();
+        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> {
+                    IntegrationClient client = invocation.getArgument(0);
+                    client.setId(1L);
+                    return client;
+                });
+
+        IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
+                "Test Lab System", IntegrationAuthType.BASIC_AUTH, "dmed", organizationUuid,
+                List.of(IntegrationScope.FORM058_SUBMIT), null));
+
+        assertThat(response.basicAuthSecret()).isNotBlank();
+        assertThat(response.clientSecret()).isNull();
+        assertThat(response.apiKey()).isNull();
+
+        ArgumentCaptor<IntegrationClient> savedClient = ArgumentCaptor.forClass(IntegrationClient.class);
+        verify(integrationClientRepository).save(savedClient.capture());
+
+        assertThat(passwordEncoder.matches(response.basicAuthSecret(), savedClient.getValue().getBasicAuthSecretHash()))
+                .isTrue();
+    }
+
+    @Test
+    void createAnIpAllowlistClientRequiresAllowedIpsAndIssuesNoSecret() {
+        UUID organizationUuid = UUID.randomUUID();
+        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+
+        assertThatThrownBy(() -> service.create(new IntegrationClientCreateRequest(
+                "Test Lab System", IntegrationAuthType.IP_ALLOWLIST, "dmed", organizationUuid,
+                List.of(IntegrationScope.FORM058_SUBMIT), null)))
+                .isInstanceOf(AllowedIpsRequiredException.class);
+
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> {
+                    IntegrationClient client = invocation.getArgument(0);
+                    client.setId(1L);
+                    return client;
+                });
+
+        IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
+                "Test Lab System", IntegrationAuthType.IP_ALLOWLIST, "dmed", organizationUuid,
+                List.of(IntegrationScope.FORM058_SUBMIT), List.of("10.0.5.0/24")));
+
+        assertThat(response.clientSecret()).isNull();
+        assertThat(response.apiKey()).isNull();
+        assertThat(response.basicAuthSecret()).isNull();
+        assertThat(response.allowedIps()).containsExactly("10.0.5.0/24");
     }
 
     @Test
@@ -113,6 +199,80 @@ class IntegrationClientCommandServiceTest {
 
         service.updateAllowedIps(1L, new IntegrationClientAllowedIpsUpdateRequest(null));
         assertThat(client.getAllowedIps()).isNull();
+    }
+
+    @Test
+    void updateAllowedIpsRejectsClearingItForAnIpAllowlistClient() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test")
+                .authType(IntegrationAuthType.IP_ALLOWLIST)
+                .organizationId(42L)
+                .sourceKey("dmed")
+                .name("Test Client")
+                .scopes("form058:submit")
+                .allowedIps("10.0.0.0/24")
+                .active(true)
+                .build();
+
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateAllowedIps(1L, new IntegrationClientAllowedIpsUpdateRequest(null)))
+                .isInstanceOf(AllowedIpsRequiredException.class);
+        assertThat(client.getAllowedIps()).isEqualTo("10.0.0.0/24");
+    }
+
+    @Test
+    void updateReplacesNameScopesAndActiveButLeavesIdentityAndCredentialsAlone() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test")
+                .authType(IntegrationAuthType.API_KEY)
+                .apiKeyHash("hash")
+                .organizationId(42L)
+                .sourceKey("dmed")
+                .name("Old Name")
+                .scopes("form058:submit")
+                .active(false)
+                .build();
+
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.update(1L, new IntegrationClientUpdateRequest(
+                "New Name", List.of(IntegrationScope.FORM058_SUBMIT, IntegrationScope.FORM0581_SUBMIT), true));
+
+        assertThat(client.getName()).isEqualTo("New Name");
+        assertThat(client.getScopes()).isEqualTo("form058:submit,form0581:submit");
+        assertThat(client.isActive()).isTrue();
+        assertThat(client.getClientId()).isEqualTo("ic_test");
+        assertThat(client.getSourceKey()).isEqualTo("dmed");
+        assertThat(client.getAuthType()).isEqualTo(IntegrationAuthType.API_KEY);
+        assertThat(client.getApiKeyHash()).isEqualTo("hash");
+    }
+
+    @Test
+    void updateCanDeactivateAndLaterReactivateTheSameClient() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test")
+                .clientSecretHash("hash")
+                .organizationId(42L)
+                .sourceKey("dmed")
+                .name("Test Client")
+                .scopes("form058:submit")
+                .active(true)
+                .build();
+
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.update(1L, new IntegrationClientUpdateRequest(
+                "Test Client", List.of(IntegrationScope.FORM058_SUBMIT), false));
+        assertThat(client.isActive()).isFalse();
+
+        service.update(1L, new IntegrationClientUpdateRequest(
+                "Test Client", List.of(IntegrationScope.FORM058_SUBMIT), true));
+        assertThat(client.isActive()).isTrue();
     }
 
     @Test

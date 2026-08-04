@@ -43,16 +43,19 @@ public class DevUserCommandService {
 
         String password = generateRandomPassword();
 
+        boolean root = Boolean.TRUE.equals(request.root());
+
         DevUser devUser = DevUser.builder()
                 .username(username)
                 .passwordHash(devUserPasswordEncoder.encode(password))
                 .enabled(true)
+                .root(root)
                 .build();
 
         DevUser saved = devUserRepository.save(devUser);
-        log.info("Dev-panel account provisioned. id={}, username={}", saved.getId(), saved.getUsername());
+        log.info("Dev-panel account provisioned. id={}, username={}, root={}", saved.getId(), saved.getUsername(), root);
 
-        return new DevUserCreateResponse(saved.getId(), saved.getUsername(), password, saved.getCreatedAt());
+        return new DevUserCreateResponse(saved.getId(), saved.getUsername(), saved.isRoot(), password, saved.getCreatedAt());
     }
 
     @Transactional
