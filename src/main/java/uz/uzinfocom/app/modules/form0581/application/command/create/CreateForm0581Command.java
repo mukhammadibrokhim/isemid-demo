@@ -39,6 +39,8 @@ public record CreateForm0581Command(
         Long senderOrganizationId,
         Long receiverOrganizationId,
 
+        Long sourceIntegrationClientId,
+
         Boolean otherPeopleInjured,
         List<OtherInjuredPersonCommand> otherInjuredPeople,
 

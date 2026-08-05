@@ -31,7 +31,8 @@ public interface DistrictRepository extends JpaRepository<District, Long>, JpaSp
             d.nameUzCyril as nameUzCyril,
             d.nameRu as nameRu,
             d.nameKaa as nameKaa,
-            d.soatoId as soatoId
+            d.soatoId as soatoId,
+            '' as tin
         from District d
         where d.deleted = false
         order by d.nameUz asc

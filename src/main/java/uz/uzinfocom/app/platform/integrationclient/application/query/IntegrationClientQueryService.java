@@ -11,6 +11,7 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMapp
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientFilterRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientTableResponse;
+import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientWebhookResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.specification.IntegrationClientSpecification;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
@@ -74,7 +75,20 @@ public class IntegrationClientQueryService {
                 client.isActive(),
                 StringUtils.hasText(client.getAllowedIps()) ? List.of(client.getAllowedIps().split(",")) : List.of(),
                 client.getLastUsedAt(),
+                toWebhookResponse(client),
                 auditResolver.resolve(client)
+        );
+    }
+
+    private IntegrationClientWebhookResponse toWebhookResponse(IntegrationClient client) {
+        return new IntegrationClientWebhookResponse(
+                client.getWebhookCallbackUrl(),
+                client.getWebhookHttpMethod(),
+                client.getWebhookAuthType(),
+                client.getWebhookAuthUsername(),
+                client.getWebhookAuthHeaderName(),
+                client.isWebhookActive(),
+                StringUtils.hasText(client.getWebhookAuthSecretEncrypted())
         );
     }
 }

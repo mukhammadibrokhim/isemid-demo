@@ -26,6 +26,8 @@ public record IntegrationClientResponse(
         @Schema(description = "Дата и время последнего успешного обмена токена этим клиентом.", nullable = true)
         Instant lastUsedAt,
 
+        IntegrationClientWebhookResponse webhook,
+
         AuditResponse audit
 ) {
 }

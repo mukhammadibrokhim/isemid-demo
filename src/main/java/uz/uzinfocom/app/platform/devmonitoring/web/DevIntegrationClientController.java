@@ -23,6 +23,7 @@ import uz.uzinfocom.app.platform.integrationclient.application.command.dto.Integ
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientUpdateRequest;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientWebhookUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.IntegrationClientQueryService;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientFilterRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientResponse;
@@ -141,6 +142,22 @@ public class DevIntegrationClientController {
             @Valid @RequestBody IntegrationClientAllowedIpsUpdateRequest request
     ) {
         integrationClientCommandService.updateAllowedIps(id, request);
+        return ApiResponse.success(messageResolver.resolve("common.updated"), null);
+    }
+
+    @Operation(
+            summary = "Настроить исходящий webhook клиента",
+            description = "Задаёт URL, HTTP-метод и схему аутентификации, по которым клиент получает "
+                    + "уведомления об изменении статуса поданных им форм. При active=true URL обязателен и "
+                    + "должен быть HTTPS; секрет возвращается только признаком наличия, никогда — значением."
+    )
+    @PutMapping(ApiPaths.Dev.INTEGRATION_CLIENT_WEBHOOK)
+    public ApiResponse<Void> updateWebhook(
+            @Parameter(description = "Внутренний идентификатор клиента.", required = true)
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody IntegrationClientWebhookUpdateRequest request
+    ) {
+        integrationClientCommandService.updateWebhook(id, request);
         return ApiResponse.success(messageResolver.resolve("common.updated"), null);
     }
 }

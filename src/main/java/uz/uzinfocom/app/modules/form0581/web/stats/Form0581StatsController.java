@@ -17,7 +17,7 @@ import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQu
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Icd10CountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581Direction;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;

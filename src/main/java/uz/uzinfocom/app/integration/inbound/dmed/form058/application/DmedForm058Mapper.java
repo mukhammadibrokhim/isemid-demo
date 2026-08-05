@@ -13,6 +13,7 @@ public interface DmedForm058Mapper {
 
     @Mapping(target = "source", source = "source")
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
+    @Mapping(target = "sourceIntegrationClientId", source = "sourceIntegrationClientId")
     @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "activeOrganizationId")
     @Mapping(target = "hospitalPlaceId", source = "request.hospitalPlaceId", qualifiedByName = "nullableActiveOrganizationId")
     @Mapping(target = "diseasePlaceCode", source = "request.diseasePlaceCode")
@@ -41,5 +42,6 @@ public interface DmedForm058Mapper {
     @Mapping(target = "icd10Name", source = "request.mkb10Name")
     @Mapping(target = "icd10UsageLimit", source = "request.mkb10UsageLimit")
     @Mapping(target = "labConfirmation", source = "request.labConfirmation")
-    CreateForm058Command toCommand(DmedCreateForm058Request request, String source, Long senderOrganizationId);
+    CreateForm058Command toCommand(
+            DmedCreateForm058Request request, String source, Long senderOrganizationId, Long sourceIntegrationClientId);
 }

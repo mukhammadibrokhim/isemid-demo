@@ -21,6 +21,8 @@ import uz.uzinfocom.app.platform.reference.application.catalog.dto.CatalogCreate
 import uz.uzinfocom.app.platform.reference.application.catalog.dto.CatalogUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.CatalogQueryService;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogLookupFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogResponse;
 import uz.uzinfocom.app.platform.reference.application.catalog.query.dto.CatalogTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -97,7 +99,7 @@ public class CatalogController {
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE_AND_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<CatalogResponse> getByTypeAndCode(
+    public ApiResponse<CatalogLookupResponse> getByTypeAndCode(
             @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
             @PathVariable @NotNull String type,
             @Parameter(description = "Код элемента каталога.", required = true)
@@ -111,7 +113,12 @@ public class CatalogController {
 
     @Operation(
             summary = "Получить элементы каталога по типу",
-            description = "Возвращает активные элементы каталога указанного типа, отсортированные по порядку и наименованию на узбекском языке."
+            description = """
+                    Возвращает постраничный список активных элементов каталога указанного типа для справочного выбора.
+
+                    Нумерация страниц начинается с 1, размер страницы по умолчанию — 20 (максимум — 200).
+                    Параметр name ищет совпадение по наименованиям сразу на всех локалях (uz, uz-cyril, ru, kaa).
+                    """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
@@ -119,11 +126,14 @@ public class CatalogController {
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<CatalogResponse>> getByType(
+    public PagedResponse<CatalogLookupResponse> getByType(
             @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
-            @PathVariable @NotNull String type
+            @PathVariable @NotNull String type,
+            @ParameterObject @Valid @ModelAttribute CatalogLookupFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
-        return ApiResponse.success(messageResolver.resolve("common.success"), catalogQueryService.getByType(type));
+        Page<CatalogLookupResponse> page = catalogQueryService.getByType(type, request);
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(
@@ -136,7 +146,7 @@ public class CatalogController {
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE_AND_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<CatalogResponse>> getByTypeAndParentCode(
+    public ApiResponse<List<CatalogLookupResponse>> getByTypeAndParentCode(
             @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
             @PathVariable @NotNull String type,
             @Parameter(description = "Код родительского элемента того же типа каталога.", required = true)

@@ -209,6 +209,7 @@ public final class ApiPaths {
         public static final String BY_ID = "/{id}";
         public static final String REVOKE = "/{id}/revoke";
         public static final String ALLOWED_IPS = "/{id}/allowed-ips";
+        public static final String WEBHOOK = "/{id}/webhook";
     }
 
     /**
@@ -244,6 +245,17 @@ public final class ApiPaths {
         public static final String INTEGRATION_CLIENT_BY_ID = "/integration-clients/{id}";
         public static final String INTEGRATION_CLIENT_REVOKE = "/integration-clients/{id}/revoke";
         public static final String INTEGRATION_CLIENT_ALLOWED_IPS = "/integration-clients/{id}/allowed-ips";
+        public static final String INTEGRATION_CLIENT_WEBHOOK = "/integration-clients/{id}/webhook";
+
+        /**
+         * Operational visibility for the outbound status-change webhook queue
+         * (see {@code platform.webhook}) - dev-panel only, no admin-facing
+         * equivalent: this is purely operational (dispatch status, manual
+         * retry), not something an org admin configures.
+         */
+        public static final String WEBHOOK_DISPATCHES = "/webhook-dispatches";
+        public static final String WEBHOOK_DISPATCH_BY_ID = "/webhook-dispatches/{id}";
+        public static final String WEBHOOK_DISPATCH_RETRY = "/webhook-dispatches/{id}/retry";
 
         /**
          * Dev-panel account management (list/create/revoke) - deliberately

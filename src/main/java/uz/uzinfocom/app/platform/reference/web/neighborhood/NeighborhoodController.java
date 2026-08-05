@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.dto.NeighborhoodCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodTableResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.dto.NeighborhoodUpdateRequest;
@@ -104,7 +105,7 @@ public class NeighborhoodController {
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<NeighborhoodResponse> getByCode(
+    public ApiResponse<NeighborhoodLookupResponse> getByCode(
             @Parameter(description = "Код махалли.", required = true, example = "AN-202001")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
@@ -121,7 +122,7 @@ public class NeighborhoodController {
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<NeighborhoodResponse>> getByParentCode(
+    public ApiResponse<List<NeighborhoodLookupResponse>> getByParentCode(
             @Parameter(description = "Код района, хранящийся в Neighborhood.parentCode.", required = true, example = "AN-202")
             @PathVariable @NotBlank @Size(max = 50) String parentCode
     ) {

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundCallerContext;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundIntegrationClientResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundSourceResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.dto.InboundFormSubmissionResponse;
 import uz.uzinfocom.app.integration.inbound.form0581.application.InboundForm0581Mapper;
@@ -35,6 +36,7 @@ public class InboundForm0581Controller {
     private final InboundForm0581Mapper inboundForm0581Mapper;
     private final InboundForm0581Validator inboundForm0581Validator;
     private final InboundSourceResolver inboundSourceResolver;
+    private final InboundIntegrationClientResolver inboundIntegrationClientResolver;
     private final CreateForm0581Service createForm0581Service;
 
     @Operation(
@@ -57,7 +59,9 @@ public class InboundForm0581Controller {
 
         String resolvedSource = inboundSourceResolver.resolve(source);
         Long senderOrganizationId = InboundCallerContext.resolveSenderOrganizationId();
-        CreateForm0581Command command = inboundForm0581Mapper.toCommand(request, resolvedSource, senderOrganizationId);
+        Long sourceIntegrationClientId = inboundIntegrationClientResolver.resolveSourceIntegrationClientId();
+        CreateForm0581Command command = inboundForm0581Mapper.toCommand(
+                request, resolvedSource, senderOrganizationId, sourceIntegrationClientId);
         CreateForm0581Result result = createForm0581Service.create(command);
 
         return new InboundFormSubmissionResponse(result.id(), result.uuid(), result.status().name());

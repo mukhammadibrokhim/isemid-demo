@@ -53,6 +53,7 @@ public interface Form058WebMapper {
     @Mapping(target = "finalIcd10Name", source = "request.diagnosisInfo.icd10Name")
     @Mapping(target = "icd10UsageLimit", source = "request.diagnosisInfo.icd10UsageLimit")
     @Mapping(target = "labConfirmation", source = "request.clinicalInfo.labConfirmation")
+    @Mapping(target = "sourceIntegrationClientId", ignore = true)
     CreateForm058Command toCommand(CreateForm058Request request, String source);
 
 

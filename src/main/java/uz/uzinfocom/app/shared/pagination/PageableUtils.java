@@ -38,8 +38,18 @@ public final class PageableUtils {
             Sort.Direction defaultDirection,
             Map<String, String> allowedSortFields
     ) {
+        return of(request, defaultSortBy, defaultDirection, allowedSortFields, DEFAULT_SIZE);
+    }
+
+    public static Pageable of(
+            PageableRequest request,
+            String defaultSortBy,
+            Sort.Direction defaultDirection,
+            Map<String, String> allowedSortFields,
+            int defaultSize
+    ) {
         int page = normalizePage(request.page());
-        int size = normalizeSize(request.size());
+        int size = normalizeSize(request.size(), defaultSize);
 
         String sortBy = resolveSortBy(
                 request.sortBy(),
@@ -65,8 +75,12 @@ public final class PageableUtils {
     }
 
     private static int normalizeSize(Integer size) {
+        return normalizeSize(size, DEFAULT_SIZE);
+    }
+
+    private static int normalizeSize(Integer size, int defaultSize) {
         if (size == null || size < 1) {
-            return DEFAULT_SIZE;
+            return defaultSize;
         }
 
         return Math.min(size, MAX_SIZE);

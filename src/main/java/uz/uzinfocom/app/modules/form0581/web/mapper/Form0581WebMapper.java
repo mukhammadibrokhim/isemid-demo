@@ -66,6 +66,7 @@ public interface Form0581WebMapper {
     @Mapping(target = "notifierFullName", source = "request.notifierFullName")
     @Mapping(target = "receiverFullName", source = "request.receiverFullName")
     @Mapping(target = "messageSentAt", source = "request.messageSentAt")
+    @Mapping(target = "sourceIntegrationClientId", ignore = true)
     CreateForm0581Command toCommand(CreateForm0581Request request, String source);
 
     OtherInjuredPersonCommand toCommand(OtherInjuredPersonRequest request);

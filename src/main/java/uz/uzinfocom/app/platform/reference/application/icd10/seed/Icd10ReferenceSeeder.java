@@ -16,10 +16,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Bulk-loads the ICD-10 hierarchy from a bundled CSV export the first time
@@ -45,23 +45,29 @@ public class Icd10ReferenceSeeder implements ApplicationRunner {
         }
 
         List<Icd10Row> rows = readRows();
-        Map<Long, Icd10> byId = new HashMap<>();
         List<Icd10> entities = new ArrayList<>();
 
         for (Icd10Row row : rows) {
-            Icd10 entity = row.toEntity();
-            byId.put(row.id(), entity);
-            entities.add(entity);
+            entities.add(row.toEntity());
         }
 
         // First pass: insert every node without its parent link, so no row's
         // insert can ever depend on another row already existing — avoids
         // any FK-ordering assumption about the source file's row order.
-        icd10Repository.saveAllAndFlush(entities);
+        //
+        // ExternallyIdentifiedEntity's @Version field defaults to 0L (not
+        // null), so Spring Data JPA's isNew() check treats every freshly
+        // built entity as "existing" and routes save() through merge()
+        // rather than persist(). merge() returns a *different*, separately
+        // managed instance — mutating the pre-save `entities` objects after
+        // this point would silently never get flushed. The returned list is
+        // the one Hibernate is actually tracking.
+        List<Icd10> saved = icd10Repository.saveAllAndFlush(entities);
+        Map<Long, Icd10> byId = saved.stream().collect(Collectors.toMap(Icd10::getId, entity -> entity));
 
         // Second pass: every id is now a real row, so wire up parent links.
-        // Entities are still managed from the flush above, so this is a
-        // plain dirty-checked UPDATE at transaction commit.
+        // Entities are the managed instances from the flush above, so this
+        // is a plain dirty-checked UPDATE at transaction commit.
         for (Icd10Row row : rows) {
             if (row.parentId() == null) {
                 continue;

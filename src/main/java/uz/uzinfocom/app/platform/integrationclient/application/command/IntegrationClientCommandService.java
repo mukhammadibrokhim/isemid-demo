@@ -7,15 +7,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
+import uz.uzinfocom.app.platform.crypto.WebhookSecretCipher;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientUpdateRequest;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientWebhookUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.exception.AllowedIpsRequiredException;
 import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidAllowedIpException;
+import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidWebhookConfigException;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationAuthType;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
+import uz.uzinfocom.app.platform.integrationclient.domain.OutboundWebhookAuthType;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.ip.IpAllowlistMatcher;
 import uz.uzinfocom.app.shared.exception.ConflictException;
@@ -39,6 +43,7 @@ public class IntegrationClientCommandService {
     private final IntegrationClientRepository integrationClientRepository;
     private final OrganizationIdResolver organizationIdResolver;
     private final PasswordEncoder passwordEncoder;
+    private final WebhookSecretCipher webhookSecretCipher;
 
     @Transactional
     public IntegrationClientCreateResponse create(IntegrationClientCreateRequest request) {
@@ -182,6 +187,84 @@ public class IntegrationClientCommandService {
         integrationClientRepository.save(client);
 
         log.info("Integration client allow-list updated. id={}, clientId={}", client.getId(), client.getClientId());
+    }
+
+    /**
+     * Updates the outbound webhook config an {@link IntegrationClient} uses
+     * for its own status-change callback. {@code active=true} requires an
+     * HTTPS callback URL, an HTTP method, and whichever auth sub-fields
+     * {@code authType} needs - a secret is only required the first time (or
+     * when actually rotating it); leaving {@code secret} blank on a later
+     * update keeps whatever is already encrypted and stored.
+     */
+    @Transactional
+    public void updateWebhook(Long id, IntegrationClientWebhookUpdateRequest request) {
+        IntegrationClient client = integrationClientRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("integration-client.not-found", id));
+
+        if (Boolean.TRUE.equals(request.active())) {
+            validateWebhookConfig(request, client);
+        }
+
+        client.setWebhookCallbackUrl(trimToNull(request.callbackUrl()));
+        client.setWebhookHttpMethod(request.httpMethod());
+        client.setWebhookAuthType(request.authType());
+        client.setWebhookAuthUsername(trimToNull(request.username()));
+        client.setWebhookAuthHeaderName(trimToNull(request.headerName()));
+        if (StringUtils.hasText(request.secret())) {
+            client.setWebhookAuthSecretEncrypted(webhookSecretCipher.encrypt(request.secret().trim()));
+        }
+        client.setWebhookActive(request.active());
+
+        integrationClientRepository.save(client);
+
+        log.info("Integration client webhook updated. id={}, clientId={}, webhookActive={}, webhookAuthType={}",
+                client.getId(), client.getClientId(), client.isWebhookActive(), client.getWebhookAuthType());
+    }
+
+    private void validateWebhookConfig(IntegrationClientWebhookUpdateRequest request, IntegrationClient existing) {
+        if (!StringUtils.hasText(request.callbackUrl())
+                || !request.callbackUrl().trim().toLowerCase(Locale.ROOT).startsWith("https://")) {
+            throw new InvalidWebhookConfigException("integration-client.webhook.callback-url.https-required");
+        }
+        if (request.httpMethod() == null) {
+            throw new InvalidWebhookConfigException("integration-client.webhook.http-method.required");
+        }
+
+        OutboundWebhookAuthType authType = request.authType();
+        boolean hasSecret = StringUtils.hasText(request.secret())
+                || StringUtils.hasText(existing.getWebhookAuthSecretEncrypted());
+
+        switch (authType) {
+            case NONE -> {
+                // no credential to check
+            }
+            case BASIC_AUTH -> {
+                if (!StringUtils.hasText(request.username())) {
+                    throw new InvalidWebhookConfigException("integration-client.webhook.username.required");
+                }
+                if (!hasSecret) {
+                    throw new InvalidWebhookConfigException("integration-client.webhook.secret.required");
+                }
+            }
+            case BEARER_TOKEN -> {
+                if (!hasSecret) {
+                    throw new InvalidWebhookConfigException("integration-client.webhook.secret.required");
+                }
+            }
+            case API_KEY_HEADER -> {
+                if (!StringUtils.hasText(request.headerName())) {
+                    throw new InvalidWebhookConfigException("integration-client.webhook.header-name.required");
+                }
+                if (!hasSecret) {
+                    throw new InvalidWebhookConfigException("integration-client.webhook.secret.required");
+                }
+            }
+        }
+    }
+
+    private static String trimToNull(String value) {
+        return StringUtils.hasText(value) ? value.trim() : null;
     }
 
     private static String normalizeAllowedIps(List<String> allowedIps) {

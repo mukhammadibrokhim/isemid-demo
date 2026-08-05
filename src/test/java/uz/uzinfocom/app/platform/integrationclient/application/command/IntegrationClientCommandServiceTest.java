@@ -4,16 +4,21 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import uz.uzinfocom.app.platform.crypto.WebhookSecretCipher;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientUpdateRequest;
+import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientWebhookUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.exception.AllowedIpsRequiredException;
 import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidAllowedIpException;
+import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidWebhookConfigException;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationAuthType;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
+import uz.uzinfocom.app.platform.integrationclient.domain.OutboundHttpMethod;
+import uz.uzinfocom.app.platform.integrationclient.domain.OutboundWebhookAuthType;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 
 import java.util.List;
@@ -32,9 +37,10 @@ class IntegrationClientCommandServiceTest {
     private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
     private final OrganizationIdResolver organizationIdResolver = mock(OrganizationIdResolver.class);
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final WebhookSecretCipher webhookSecretCipher = mock(WebhookSecretCipher.class);
 
     private final IntegrationClientCommandService service = new IntegrationClientCommandService(
-            integrationClientRepository, organizationIdResolver, passwordEncoder);
+            integrationClientRepository, organizationIdResolver, passwordEncoder, webhookSecretCipher);
 
     @Test
     void createReturnsThePlaintextSecretOnlyOnceAndNeverPersistsIt() {
@@ -293,5 +299,144 @@ class IntegrationClientCommandServiceTest {
 
         assertThat(client.isActive()).isFalse();
         assertThat(client.getClientSecretHash()).isEqualTo("hash");
+    }
+
+    @Test
+    void updateWebhookRejectsANonHttpsCallbackUrlWhenActive() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "http://partner.example.com/callback", OutboundHttpMethod.POST, OutboundWebhookAuthType.NONE,
+                null, null, null, true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @Test
+    void updateWebhookRejectsAMissingCallbackUrlWhenActive() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                null, OutboundHttpMethod.POST, OutboundWebhookAuthType.NONE, null, null, null, true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @Test
+    void updateWebhookRejectsAMissingHttpMethodWhenActive() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "https://partner.example.com/callback", null, OutboundWebhookAuthType.NONE, null, null, null, true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @Test
+    void updateWebhookRejectsBasicAuthWithoutAUsername() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "https://partner.example.com/callback", OutboundHttpMethod.POST, OutboundWebhookAuthType.BASIC_AUTH,
+                null, null, "secret", true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @Test
+    void updateWebhookRejectsBasicAuthWithoutASecretWhenNoneIsStoredYet() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "https://partner.example.com/callback", OutboundHttpMethod.POST, OutboundWebhookAuthType.BASIC_AUTH,
+                "svc-user", null, null, true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @Test
+    void updateWebhookRejectsBearerTokenWithoutASecret() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "https://partner.example.com/callback", OutboundHttpMethod.POST, OutboundWebhookAuthType.BEARER_TOKEN,
+                null, null, null, true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @Test
+    void updateWebhookRejectsApiKeyHeaderWithoutAHeaderName() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "https://partner.example.com/callback", OutboundHttpMethod.POST, OutboundWebhookAuthType.API_KEY_HEADER,
+                null, null, "secret", true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @Test
+    void updateWebhookAcceptsAndEncryptsAValidBasicAuthConfig() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(webhookSecretCipher.encrypt("s3cr3t")).thenReturn("ENCRYPTED(s3cr3t)");
+
+        service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "https://partner.example.com/callback", OutboundHttpMethod.POST, OutboundWebhookAuthType.BASIC_AUTH,
+                "svc-user", null, "s3cr3t", true));
+
+        assertThat(client.getWebhookCallbackUrl()).isEqualTo("https://partner.example.com/callback");
+        assertThat(client.getWebhookHttpMethod()).isEqualTo(OutboundHttpMethod.POST);
+        assertThat(client.getWebhookAuthType()).isEqualTo(OutboundWebhookAuthType.BASIC_AUTH);
+        assertThat(client.getWebhookAuthUsername()).isEqualTo("svc-user");
+        assertThat(client.getWebhookAuthSecretEncrypted()).isEqualTo("ENCRYPTED(s3cr3t)");
+        assertThat(client.isWebhookActive()).isTrue();
+    }
+
+    @Test
+    void updateWebhookKeepsThePreviouslyStoredSecretWhenNoneIsResubmitted() {
+        IntegrationClient client = webhookTestClient();
+        client.setWebhookAuthType(OutboundWebhookAuthType.BEARER_TOKEN);
+        client.setWebhookAuthSecretEncrypted("ALREADY-ENCRYPTED");
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                "https://partner.example.com/callback", OutboundHttpMethod.PATCH, OutboundWebhookAuthType.BEARER_TOKEN,
+                null, null, null, true));
+
+        assertThat(client.getWebhookAuthSecretEncrypted()).isEqualTo("ALREADY-ENCRYPTED");
+        assertThat(client.getWebhookHttpMethod()).isEqualTo(OutboundHttpMethod.PATCH);
+    }
+
+    @Test
+    void updateWebhookSkipsValidationWhenDeactivating() {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(integrationClientRepository.save(any(IntegrationClient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                null, null, OutboundWebhookAuthType.NONE, null, null, null, false));
+
+        assertThat(client.isWebhookActive()).isFalse();
+    }
+
+    private IntegrationClient webhookTestClient() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test")
+                .clientSecretHash("hash")
+                .organizationId(42L)
+                .sourceKey("dmed")
+                .name("Test Client")
+                .scopes("form058:submit")
+                .active(true)
+                .build();
+        client.setId(1L);
+        return client;
     }
 }

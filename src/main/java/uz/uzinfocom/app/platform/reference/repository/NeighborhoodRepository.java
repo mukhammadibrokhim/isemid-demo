@@ -31,7 +31,8 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
             n.nameUzCyril as nameUzCyril,
             n.nameRu as nameRu,
             n.nameKaa as nameKaa,
-            n.soatoId as soatoId
+            n.soatoId as soatoId,
+            n.tin as tin
         from Neighborhood n
         where n.deleted = false
         order by n.nameUz asc

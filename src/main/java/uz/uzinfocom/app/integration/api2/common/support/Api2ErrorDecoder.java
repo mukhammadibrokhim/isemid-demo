@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import tools.jackson.databind.JsonNode;
-import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
+import uz.uzinfocom.app.integration.api2.web.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.citizen.exception.CitizenDataNotFoundException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2AuthenticationException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2AuthorizationException;

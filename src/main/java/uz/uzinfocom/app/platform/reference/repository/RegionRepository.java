@@ -31,7 +31,8 @@ public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecif
             r.nameUzCyril as nameUzCyril,
             r.nameRu as nameRu,
             r.nameKaa as nameKaa,
-            r.soatoId as soatoId
+            r.soatoId as soatoId,
+            '' as tin
         from Region r
         where r.deleted = false
         order by r.nameUz asc

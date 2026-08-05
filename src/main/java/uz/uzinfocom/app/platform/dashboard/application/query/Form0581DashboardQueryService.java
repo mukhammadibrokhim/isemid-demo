@@ -11,7 +11,7 @@ import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountRespon
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQueryService;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581Direction;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.DashboardScopeResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.DynamicsPointResponse;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.Form0581DashboardResponse;

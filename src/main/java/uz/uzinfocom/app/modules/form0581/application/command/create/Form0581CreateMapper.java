@@ -16,6 +16,7 @@ public abstract class Form0581CreateMapper {
 
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
     @Mapping(target = "receiverOrganizationId", source = "receiverOrganizationId")
+    @Mapping(target = "sourceIntegrationClientId", source = "sourceIntegrationClientId")
 
     @Mapping(target = "diagnosisInfo.icd10Code", source = "icd10Code")
     @Mapping(target = "diagnosisInfo.icd10Name", source = "icd10Name")

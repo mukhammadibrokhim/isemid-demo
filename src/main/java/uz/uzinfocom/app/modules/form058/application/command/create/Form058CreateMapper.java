@@ -21,6 +21,7 @@ public abstract class Form058CreateMapper {
 
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
     @Mapping(target = "receiverOrganizationId", source = "receiverOrganizationId")
+    @Mapping(target = "sourceIntegrationClientId", source = "sourceIntegrationClientId")
 
     @Mapping(target = "diagnosisInfo.icd10Code", source = "icd10Code")
     @Mapping(target = "diagnosisInfo.icd10Name", source = "icd10Name")
@@ -43,7 +44,7 @@ public abstract class Form058CreateMapper {
     @Mapping(target = "epidemicInfo.epidemicMeasures", source = "epidemicMeasures")
 
     @Mapping(target = "reportInfo.notifierFullName", source = "notifierFullName")
-    @Mapping(target = "reportInfo.journalFormCode", source = "journalFormCode")
+    @Mapping(target = "reportInfo.journalFormCode", constant = "JOURNAL_060")
     @Mapping(target = "reportInfo.comment", source = "comment")
 
     @Mapping(target = "location", source = ".", qualifiedByName = "toLocation")

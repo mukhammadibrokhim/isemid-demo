@@ -16,7 +16,7 @@ import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Month
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.DynamicsPointResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058SourceCountResponse;
-import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
+import uz.uzinfocom.app.modules.form058.application.query.Form058Direction;
 import uz.uzinfocom.app.platform.dashboard.application.query.dto.Form058DashboardResponse;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLocalizedName;

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodTableResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.mapper.NeighborhoodMapper;
@@ -33,7 +34,7 @@ public class NeighborhoodQueryService {
     @Transactional(readOnly = true)
     public Page<NeighborhoodTableResponse> findTable(NeighborhoodFilterRequest request) {
         NeighborhoodFilterRequest filter = request == null
-                ? new NeighborhoodFilterRequest(null, null, null, null, null, null, null, null, null)
+                ? new NeighborhoodFilterRequest(null, null, null, null, null, null, null, null, null, null)
                 : request;
         Pageable pageable = PageableUtils.of(filter, NeighborhoodSortFields.ALLOWED_SORT_FIELDS);
 
@@ -69,11 +70,11 @@ public class NeighborhoodQueryService {
             key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT)",
             condition = "#code != null"
     )
-    public NeighborhoodResponse getByCode(String code) {
+    public NeighborhoodLookupResponse getByCode(String code) {
         String normalizedCode = ReferenceCodeNormalizer.normalizeCode(code);
 
         return neighborhoodRepository.findByCodeAndDeletedFalse(normalizedCode)
-                .map(neighborhoodMapper::toResponse)
+                .map(neighborhoodMapper::toLookupResponse)
                 .orElseThrow(() -> new NotFoundException("reference.neighborhood.not_found_by_code", normalizedCode));
     }
 
@@ -83,13 +84,13 @@ public class NeighborhoodQueryService {
             key = "#parentCode.trim().toUpperCase(T(java.util.Locale).ROOT)",
             condition = "#parentCode != null"
     )
-    public List<NeighborhoodResponse> getByParentCode(String parentCode) {
+    public List<NeighborhoodLookupResponse> getByParentCode(String parentCode) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
         return neighborhoodRepository
                 .findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(normalizedParentCode)
                 .stream()
-                .map(neighborhoodMapper::toResponse)
+                .map(neighborhoodMapper::toLookupResponse)
                 .toList();
     }
 }

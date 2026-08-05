@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260805-1020-01-create-outbound-webhook-dispatch" author="codex">
+        <createTable tableName="outbound_webhook_dispatch">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_outbound_webhook_dispatch" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_by_id" type="BIGINT"/>
+
+            <column name="integration_client_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_outbound_webhook_dispatch_integration_client"
+                             references="integration_client(id)"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="old_status" type="VARCHAR(32)"/>
+            <column name="new_status" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attempt_count" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="next_attempt_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_attempted_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="last_error" type="VARCHAR(2000)"/>
+            <column name="last_http_status" type="INT"/>
+        </createTable>
+
+        <createIndex tableName="outbound_webhook_dispatch" indexName="idx_outbound_webhook_dispatch_status_next_attempt">
+            <column name="status"/>
+            <column name="next_attempt_at"/>
+        </createIndex>
+        <createIndex tableName="outbound_webhook_dispatch" indexName="idx_outbound_webhook_dispatch_integration_client_id">
+            <column name="integration_client_id"/>
+        </createIndex>
+        <createIndex tableName="outbound_webhook_dispatch" indexName="idx_outbound_webhook_dispatch_entity">
+            <column name="entity_type"/>
+            <column name="entity_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -33,6 +33,8 @@ public record CreateForm058Command(
         Long receiverOrganizationId,
         Long hospitalPlaceId,
 
+        Long sourceIntegrationClientId,
+
         String diseasePlaceCode,
         String diseaseCause,
         String epidemicMeasures,

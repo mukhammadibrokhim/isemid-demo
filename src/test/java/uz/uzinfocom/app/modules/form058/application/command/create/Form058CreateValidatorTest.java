@@ -94,26 +94,33 @@ class Form058CreateValidatorTest {
      */
     private CreateForm058Command command(Long receiverOrganizationId) {
         return new CreateForm058Command(
-                "A00",
-                "Cholera",
-                null,
-                null,
-                null,
-                patient(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                receiverOrganizationId,
-                null,
-                null,
-                null, null,
-                null, null, null, null, null, null
+                "A00",          // icd10Code
+                "Cholera",      // icd10Name
+                null,           // finalIcd10Code
+                null,           // finalIcd10Name
+                null,           // icd10UsageLimit
+                patient(),      // patient
+                null,           // source
+                null,           // labConfirmation
+                null,           // diseaseDate
+                null,           // firstVisitDate
+                null,           // visitDate
+                null,           // admissionDate
+                null,           // diagnosisDate
+                null,           // initialReportDateTime
+                null,           // senderOrganizationId
+                receiverOrganizationId, // receiverOrganizationId
+                null,           // hospitalPlaceId
+                null,           // sourceIntegrationClientId
+                null,           // diseasePlaceCode
+                null,           // diseaseCause
+                null,           // epidemicMeasures
+                null,           // notifierFullName
+                null,           // journalFormCode
+                null,           // comment
+                null,           // locationLatitude
+                null,           // locationLongitude
+                null            // location
         );
     }
 
@@ -129,26 +136,33 @@ class Form058CreateValidatorTest {
             String finalIcd10Code
     ) {
         return new CreateForm058Command(
-                icd10Code,
-                "Cholera",
-                finalIcd10Code,
-                null,
-                null,
-                patient(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                senderOrganizationId,
-                receiverOrganizationId,
-                null,
-                null,
-                null, null,
-                null, null, null, null, null, null
+                icd10Code,      // icd10Code
+                "Cholera",      // icd10Name
+                finalIcd10Code, // finalIcd10Code
+                null,           // finalIcd10Name
+                null,           // icd10UsageLimit
+                patient(),      // patient
+                null,           // source
+                null,           // labConfirmation
+                null,           // diseaseDate
+                null,           // firstVisitDate
+                null,           // visitDate
+                null,           // admissionDate
+                null,           // diagnosisDate
+                null,           // initialReportDateTime
+                senderOrganizationId,   // senderOrganizationId
+                receiverOrganizationId, // receiverOrganizationId
+                null,           // hospitalPlaceId
+                null,           // sourceIntegrationClientId
+                null,           // diseasePlaceCode
+                null,           // diseaseCause
+                null,           // epidemicMeasures
+                null,           // notifierFullName
+                null,           // journalFormCode
+                null,           // comment
+                null,           // locationLatitude
+                null,           // locationLongitude
+                null            // location
         );
     }
 

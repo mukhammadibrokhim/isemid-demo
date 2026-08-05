@@ -7,7 +7,7 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableResp
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.helper.Form0581TableAddressMapperHelper;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.helper.Form0581TableMapperHelper;
 import uz.uzinfocom.app.modules.form0581.application.query.projection.Form0581TableProjection;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581Direction;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 
 @Mapper(

@@ -90,6 +90,16 @@ public class Form0581 extends AbsEntity implements AuditableFields {
     @Column(name = "receiver_organization_id", nullable = false)
     private Long receiverOrganizationId;
 
+    /**
+     * The submitting {@code IntegrationClient}'s numeric id, when this form
+     * was created through the inbound-integration API by a registered
+     * client — null for SSO/DHP-submitted forms. Drives the outbound
+     * status-change webhook: only the client that submitted a form is ever
+     * notified back about it.
+     */
+    @Column(name = "source_integration_client_id")
+    private Long sourceIntegrationClientId;
+
     @Embedded
     private Form0581IncidentInfo incidentInfo;
 

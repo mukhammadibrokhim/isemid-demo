@@ -42,6 +42,7 @@ public interface InboundForm0581Mapper {
     @Mapping(target = "patient", source = "request.patient")
 
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
+    @Mapping(target = "sourceIntegrationClientId", source = "sourceIntegrationClientId")
     @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "activeOrganizationId")
 
     @Mapping(target = "otherPeopleInjured", source = "request.otherPeopleInjured")
@@ -54,7 +55,8 @@ public interface InboundForm0581Mapper {
     @Mapping(target = "notifierFullName", source = "request.reportInfo.notifierFullName")
     @Mapping(target = "receiverFullName", source = "request.reportInfo.receiverFullName")
     @Mapping(target = "messageSentAt", source = "request.reportInfo.messageSentAt")
-    CreateForm0581Command toCommand(InboundCreateForm0581Request request, String source, Long senderOrganizationId);
+    CreateForm0581Command toCommand(
+            InboundCreateForm0581Request request, String source, Long senderOrganizationId, Long sourceIntegrationClientId);
 
     OtherInjuredPersonCommand toCommand(OtherInjuredPersonRequest request);
 }

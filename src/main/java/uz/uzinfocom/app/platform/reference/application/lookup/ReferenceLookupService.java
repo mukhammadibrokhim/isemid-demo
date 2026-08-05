@@ -32,8 +32,12 @@ public class ReferenceLookupService {
         return findGeo(cacheLoader.loadDistricts(), codeOrSoatoId);
     }
 
-    public ReferenceItem findNeighborhood(String codeOrSoatoId) {
-        return findGeo(cacheLoader.loadNeighborhoods(), codeOrSoatoId);
+    /**
+     * Resolves a neighborhood by its {@code code}, its numeric SOATO id, or its {@code tin} —
+     * whichever an upstream caller happens to store as the neighborhood reference value.
+     */
+    public ReferenceItem findNeighborhood(String codeOrSoatoIdOrTin) {
+        return findGeo(cacheLoader.loadNeighborhoods(), codeOrSoatoIdOrTin);
     }
 
     public ReferenceItem findCatalog(String type, String code) {
@@ -83,8 +87,8 @@ public class ReferenceLookupService {
         return items.get(normalizedCode);
     }
 
-    private ReferenceItem findGeo(GeoReferenceLookupTable table, String codeOrSoatoId) {
-        String normalized = normalize(codeOrSoatoId);
+    private ReferenceItem findGeo(GeoReferenceLookupTable table, String codeOrSoatoIdOrTin) {
+        String normalized = normalize(codeOrSoatoIdOrTin);
         if (normalized == null) {
             return null;
         }
@@ -95,10 +99,13 @@ public class ReferenceLookupService {
         }
 
         if (isDigits(normalized)) {
-            return table.bySoatoId().get(normalized);
+            ReferenceItem bySoatoId = table.bySoatoId().get(normalized);
+            if (bySoatoId != null) {
+                return bySoatoId;
+            }
         }
 
-        return null;
+        return table.byTin().get(normalized);
     }
 
     private boolean isDigits(String value) {
