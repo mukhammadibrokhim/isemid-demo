@@ -25,7 +25,7 @@ public interface Form058Mapper {
     @Mapping(source = "hospitalPlaceId", target = "hospitalPlaceId", qualifiedByName = "uuidToLongId")
     @Mapping(source = "senderOrganizationId", target = "senderOrganizationId", qualifiedByName = "uuidToLongId")
     @Mapping(source = "receiverOrganizationId", target = "receiverOrganizationId", qualifiedByName = "uuidToLongId")
-    Form058 toEntity(Form058Request request);
+    Form058 toEntity(Form058Request request,@Context String source);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "finalMkb10Code", source = "finalMkb10Code")

@@ -19,6 +19,7 @@ public interface CatalogService {
     void delete(long id);
 
     Catalog findByCode(String code);
+    Catalog findByInn(String inn);
 
     List<Catalog> findAllByType(CatalogType catalogType);
 

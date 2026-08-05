@@ -40,6 +40,7 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     List<Catalog> findAllByParentCode(String parentCode);
 
     Optional<Catalog> findByCode(String code);
+    Optional<Catalog> findByInn(String inn);
 
     @Query(value = """
     SELECT * FROM cls_catalog c

@@ -33,4 +33,6 @@ public class Catalog extends BaseEntity {
     private String nameUzCyril;
     @Column(length = 1000)
     private String nameKaa; //Karakalpak tili
+    @Column
+    private String inn;
 }
