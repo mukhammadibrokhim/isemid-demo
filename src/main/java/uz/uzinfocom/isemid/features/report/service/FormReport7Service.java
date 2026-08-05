@@ -23,4 +23,6 @@ public interface FormReport7Service {
 
     void delete(Long id);
 
+    FormReport7Request calculate(LocalDate fromDate, LocalDate toDate, User currentUser);
+
 }

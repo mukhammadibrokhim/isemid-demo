@@ -48,6 +48,15 @@ public class FormReport7Controller {
         return PagedResponse.build(page, paged.map(form7ReportMapper::toResponse), buildRequestUrl(request), messageUtil);
     }
 
+    @GetMapping("/calculate")
+    public ApiResponse<FormReport7Request> calculateForm7Report(
+            @RequestParam LocalDate fromDate,
+            @RequestParam LocalDate toDate,
+            @CurrentUser User currentUser
+    ) {
+        return ApiResponse.success(messageUtil, formReport7Service.calculate(fromDate, toDate, currentUser));
+    }
+
     @PostMapping
     public ApiResponse<FormReport7Response> createForm7Report(
             @Valid @RequestBody FormReport7Request request,
