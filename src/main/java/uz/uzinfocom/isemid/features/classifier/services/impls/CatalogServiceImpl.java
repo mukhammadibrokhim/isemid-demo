@@ -74,6 +74,11 @@ public class CatalogServiceImpl implements CatalogService {
         return catalogRepository.findByCode(code).orElse(null);
     }
 
+    @Override
+    public Catalog findByInn(String inn) {
+        return catalogRepository.findByInn(inn).orElse(null);
+    }
+
     @Cacheable(value = "catalogAllType", key = "#catalogType.name()", unless = "#result == null")
     @Override
     public List<Catalog> findAllByType(CatalogType catalogType) {

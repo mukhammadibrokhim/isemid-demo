@@ -1,0 +1,17 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        logicalFilePath="db.migration/changelog/20260415-1307-init.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="uzinfocom (generated)" id="1785926801639-1">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="cls_catalog"/>
+            <not>
+                <columnExists tableName="cls_catalog" columnName="inn"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="cls_catalog">
+            <column name="inn" type="varchar"/>
+        </addColumn>
+
+    </changeSet>
+</databaseChangeLog>

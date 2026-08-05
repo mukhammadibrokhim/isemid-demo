@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.patient.mappers;
 
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uz.uzinfocom.isemid.features.classifier.mappers.CatalogMapperHelper;
@@ -25,7 +26,7 @@ public interface PatientMapper {
     @Mapping(source = "firstName", target = "firstName", qualifiedByName = "toUpperCase")
     @Mapping(source = "lastName", target = "lastName", qualifiedByName = "toUpperCase")
     @Mapping(source = "middleName", target = "middleName", qualifiedByName = "toUpperCase")
-    Patient toEntity(PatientRequest request);
+    Patient toEntity(PatientRequest request, @Context String source);
 
     @Mapping(target = "residentialStatus", source = "residentialStatusCode", qualifiedByName = "toCatalog")
     @Mapping(target = "maritalStatus", source = "maritalStatusCode", qualifiedByName = "toCatalog")
