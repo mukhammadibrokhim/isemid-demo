@@ -26,6 +26,7 @@ import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryDetailedResponse;
+import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryTableResponse;
 import uz.uzinfocom.app.platform.reference.application.country.dto.CountryUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.country.command.CountryCommandService;
@@ -101,7 +102,7 @@ public class CountryController {
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<CountryDetailedResponse> getByCode(
+    public ApiResponse<CountryLookupResponse> getByCode(
             @Parameter(description = "Код страны.", required = true, example = "UZB")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {

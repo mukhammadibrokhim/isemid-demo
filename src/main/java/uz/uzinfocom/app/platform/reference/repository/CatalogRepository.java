@@ -18,10 +18,5 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
 
     boolean existsByTypeAndCode(String type, String code);
 
-    List<Catalog> findAllByTypeAndParentCodeAndDeletedFalseOrderByNameUzAsc(
-            String type,
-            String parentCode
-    );
-
     List<ReferenceItemProjection> findAllProjectedByTypeAndDeletedFalseOrderByNameUzAsc(String type);
 }

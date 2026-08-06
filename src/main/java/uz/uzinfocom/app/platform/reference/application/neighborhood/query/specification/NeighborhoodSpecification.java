@@ -68,6 +68,27 @@ public final class NeighborhoodSpecification {
         };
     }
 
+    public static Specification<Neighborhood> byParentCodeAndName(String parentCode, String name) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("deleted"), false));
+            predicates.add(cb.equal(cb.upper(root.get("parentCode")), parentCode.toUpperCase(Locale.ROOT)));
+
+            if (StringUtils.hasText(name)) {
+                String pattern = like(name);
+                predicates.add(cb.or(
+                        cb.like(cb.lower(cb.coalesce(root.get("nameUz"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameUzCyril"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameRu"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameKaa"), "")), pattern)
+                ));
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
     private static String like(String value) {
         return "%" + value.trim().toLowerCase(Locale.ROOT) + "%";
     }

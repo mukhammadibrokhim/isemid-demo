@@ -44,29 +44,12 @@ public class ApproveForm058Service {
                 command.finalIcd10Code().trim(),
                 command.finalIcd10Name().trim(),
                 actorUserId,
-                form058.getReceiverOrganizationId()
+                form058.getSenderOrganizationId()
         );
         UpdateForm058Result result = form058UpdateMapper.toResult(form058JpaRepository.save(form058));
 
         eventPublisher.publishEvent(new StatusChangedEvent(
                 AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(), actorUserId, null
-        ));
-
-        return result;
-    }
-
-    @Transactional
-    public UpdateForm058Result notApprove(NotApproveForm058Command command) {
-        Form058 form058 = findRequired(command.formId());
-        form058ApprovalValidator.validateNotApprove(form058);
-        String oldStatus = form058.getStatus().name();
-        String reason = StringUtils.hasText(command.reason()) ? command.reason().trim() : null;
-        form058.notApprove(reason);
-        UpdateForm058Result result = form058UpdateMapper.toResult(form058JpaRepository.save(form058));
-
-        eventPublisher.publishEvent(new StatusChangedEvent(
-                AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(),
-                currentUserProvider.userIdOrNull(), reason
         ));
 
         return result;

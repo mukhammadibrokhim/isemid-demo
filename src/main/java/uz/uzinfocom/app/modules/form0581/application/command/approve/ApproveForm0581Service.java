@@ -50,23 +50,6 @@ public class ApproveForm0581Service {
         return result;
     }
 
-    @Transactional
-    public UpdateForm0581Result notApprove(NotApproveForm0581Command command) {
-        Form0581 form0581 = findRequired(command.formId());
-        form0581ApprovalValidator.validateNotApprove(form0581);
-        String oldStatus = form0581.getStatus().name();
-        String reason = StringUtils.hasText(command.reason()) ? command.reason().trim() : null;
-        form0581.notApprove(reason);
-        UpdateForm0581Result result = form0581UpdateMapper.toResult(form0581JpaRepository.save(form0581));
-
-        eventPublisher.publishEvent(new StatusChangedEvent(
-                AuditEntityType.FORM0581, form0581.getId(), oldStatus, form0581.getStatus().name(),
-                currentUserProvider.userIdOrNull(), reason
-        ));
-
-        return result;
-    }
-
     private Form0581 findRequired(Long id) {
         return form0581JpaRepository.findActiveByIdForUpdate(id)
                 .orElseThrow(() -> new Form0581NotFoundException(id));

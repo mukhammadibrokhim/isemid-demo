@@ -85,7 +85,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void createsOneBlankCardPerDistinctTypeWithSharedUsersAndActorAsSupervisor() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
 
@@ -114,7 +114,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void publishesAnEntityCreatedEventPerCreatedCard() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
@@ -140,7 +140,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void deduplicatesRepeatedCardTypesAndUserIds() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
@@ -157,7 +157,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void rejectsWhenAnAssignedUserIdDoesNotExist() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(userWithId(1L)));
@@ -170,7 +170,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void rejectsAnUnauthenticatedCaller() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(null);
 
@@ -191,8 +191,8 @@ class CardCommandServiceAssignCardsTest {
     }
 
     @Test
-    void doesNotRegressAFormThatIsAlreadyPastCardLinking() {
-        Form058 form = formWith(FormStatus.APPROVED_PENDING);
+    void reassigningCardsToAnAlreadyCardLinkedFormStaysCardLinked() {
+        Form058 form = formWith(FormStatus.CARD_LINKED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
@@ -200,13 +200,13 @@ class CardCommandServiceAssignCardsTest {
 
         service.assignCards(FORM_ID, new AssignCardsRequest(List.of(CardType.CARD161), List.of(1L)));
 
-        assertThat(form.getStatus()).isEqualTo(FormStatus.APPROVED_PENDING);
+        assertThat(form.getStatus()).isEqualTo(FormStatus.CARD_LINKED);
         assertThat(form.isHasLinkedCards()).isTrue();
     }
 
     @Test
     void assignCardsToForm0581CreatesCardsRestrictedToAllowedTypes() {
-        Form0581 form = form0581With(Form0581Status.RECEIVED);
+        Form0581 form = form0581With(Form0581Status.ACCEPTED);
         when(form0581Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
@@ -221,7 +221,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void assignCardsToForm0581RejectsDisallowedCardType() {
-        Form0581 form = form0581With(Form0581Status.RECEIVED);
+        Form0581 form = form0581With(Form0581Status.ACCEPTED);
         when(form0581Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
 
         assertThatThrownBy(() -> service.assignCardsToForm0581(FORM_ID, new AssignCardsRequest(

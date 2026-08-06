@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.reference.application.district.dto.DistrictCreateRequest;
 import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictLookupFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictResponse;
 import uz.uzinfocom.app.platform.reference.application.district.query.dto.DistrictTableResponse;
 import uz.uzinfocom.app.platform.reference.application.district.dto.DistrictUpdateRequest;
@@ -34,8 +36,6 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
-
-import java.util.List;
 
 @Tag(
         name = "Reference - Districts",
@@ -104,7 +104,7 @@ public class DistrictController {
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<DistrictResponse> getByCode(
+    public ApiResponse<DistrictLookupResponse> getByCode(
             @Parameter(description = "Код района.", required = true, example = "AN-202")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {
@@ -112,8 +112,14 @@ public class DistrictController {
     }
 
     @Operation(
-            summary = "Получить районы по коду региона",
-            description = "Возвращает активные записи районов, у которых parentCode совпадает с указанным кодом региона."
+            summary = "Получить районы по коду региона (для справочного выбора)",
+            description = """
+                    Возвращает постраничный список активных районов, у которых parentCode совпадает
+                    с указанным кодом региона, для справочного выбора (select).
+
+                    Нумерация страниц начинается с 1, размер страницы по умолчанию — 20 (максимум — 200).
+                    Параметр name ищет совпадение по наименованию сразу на всех локалях (uz, uz-cyril, ru, kaa).
+                    """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
@@ -121,14 +127,14 @@ public class DistrictController {
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<DistrictResponse>> getByParentCode(
+    public PagedResponse<DistrictLookupResponse> getByParentCode(
             @Parameter(description = "Код региона, хранящийся в District.parentCode.", required = true, example = "UZ-AN")
-            @PathVariable @NotBlank @Size(max = 50) String parentCode
+            @PathVariable @NotBlank @Size(max = 50) String parentCode,
+            @ParameterObject @Valid @ModelAttribute DistrictLookupFilterRequest request,
+            HttpServletRequest httpRequest
     ) {
-        return ApiResponse.success(
-                messageResolver.resolve("common.success"),
-                districtQueryService.getByParentCode(parentCode)
-        );
+        Page<DistrictLookupResponse> page = districtQueryService.getByParentCode(parentCode, request);
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(

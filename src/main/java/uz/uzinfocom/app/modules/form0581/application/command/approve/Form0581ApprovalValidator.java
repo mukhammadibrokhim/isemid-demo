@@ -12,11 +12,13 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import java.util.Objects;
 
 /**
- * Shared validation for both approve and not-approve: unlike the sibling
- * {@code Form058}, both are the sender's final decision on a form it sent
- * (made after the receiver has reviewed it and linked its cards), so they
- * share the same scope check and the same "decision still open" status
- * check.
+ * The sender's final approval decision — only reachable once a card has
+ * been linked to the form ({@link uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status#isApprovable()}).
+ * The receiver's earlier accept/reject decision on a freshly {@code SENT}
+ * form is a separate step owned by the receiver organization; see
+ * {@code Form0581AcceptValidator}. Approval itself belongs to the sender —
+ * the institution that originally reported the case — not the receiving
+ * SANEPID_SERVICE organization.
  */
 @Component
 @RequiredArgsConstructor
@@ -25,16 +27,8 @@ public class Form0581ApprovalValidator {
     private final AdminAccessGuard form0581AccessGuard;
 
     public void validateApprove(Form0581 form0581) {
-        validate(form0581, "error.form0581.approve-not-allowed");
-    }
-
-    public void validateNotApprove(Form0581 form0581) {
-        validate(form0581, "error.form0581.not-approve-not-allowed");
-    }
-
-    private void validate(Form0581 form0581, String stateErrorMessageCode) {
-        if (!form0581.getStatus().isApprovalDecisionPending()) {
-            throw new InvalidForm0581StateException(stateErrorMessageCode, form0581.getStatus());
+        if (!form0581.getStatus().isApprovable()) {
+            throw new InvalidForm0581StateException("error.form0581.approve-not-allowed", form0581.getStatus());
         }
 
         if (form0581AccessGuard.isSuperAdmin()) {

@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.distribution.ValueAtPercentile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.HttpEndpointMetricsResponse;
@@ -43,8 +44,7 @@ public class DevMetricsQueryService {
         record Key(String method, String uri) {
         }
 
-        Map<Key, long[]> counts = new LinkedHashMap<>();
-        Map<Key, Timer> representativeTimers = new LinkedHashMap<>();
+        Map<Key, HttpTally> tallies = new LinkedHashMap<>();
 
         for (Meter meter : meterRegistry.find("http.server.requests").meters()) {
             if (!(meter instanceof Timer timer)) {
@@ -56,34 +56,98 @@ public class DevMetricsQueryService {
             String status = meter.getId().getTag("status");
             Key key = new Key(method, uri);
 
-            long[] tally = counts.computeIfAbsent(key, ignored -> new long[2]);
-            tally[0] += timer.count();
-            if (status != null && (status.startsWith("4") || status.startsWith("5"))) {
-                tally[1] += timer.count();
-            }
-
-            representativeTimers.merge(key, timer,
-                    (existing, incoming) -> incoming.max(TimeUnit.MILLISECONDS) > existing.max(TimeUnit.MILLISECONDS)
-                            ? incoming
-                            : existing);
+            tallies.computeIfAbsent(key, ignored -> new HttpTally()).accumulate(status, timer);
         }
 
-        return counts.entrySet().stream()
+        return tallies.entrySet().stream()
                 .map(entry -> {
                     Key key = entry.getKey();
-                    long[] tally = entry.getValue();
-                    Timer representative = representativeTimers.get(key);
+                    HttpTally tally = entry.getValue();
+                    Timer representative = tally.representative;
+                    double[] percentiles = percentiles(representative);
                     return new HttpEndpointMetricsResponse(
                             key.method(),
                             key.uri(),
-                            tally[0],
-                            tally[1],
+                            tally.totalCount(),
+                            tally.count2xx,
+                            tally.count3xx,
+                            tally.count4xx,
+                            tally.count5xx,
+                            tally.errorCount(),
                             representative == null ? 0.0 : representative.mean(TimeUnit.MILLISECONDS),
-                            representative == null ? 0.0 : representative.max(TimeUnit.MILLISECONDS)
+                            tally.maxDurationMs,
+                            percentiles[0],
+                            percentiles[1],
+                            percentiles[2]
                     );
                 })
                 .sorted(Comparator.comparingLong(HttpEndpointMetricsResponse::totalCount).reversed())
                 .toList();
+    }
+
+    /**
+     * Percentiles can't be summed across the per-status-code {@link Timer} instances Micrometer
+     * keeps for a single method+uri, so they're read off the busiest one (by request count) as a
+     * representative sample instead of an exact aggregate.
+     */
+    private double[] percentiles(Timer representative) {
+        double[] result = {0.0, 0.0, 0.0};
+        if (representative == null) {
+            return result;
+        }
+
+        for (ValueAtPercentile value : representative.takeSnapshot().percentileValues()) {
+            double ms = value.value(TimeUnit.MILLISECONDS);
+            if (Math.abs(value.percentile() - 0.5) < 0.001) {
+                result[0] = ms;
+            } else if (Math.abs(value.percentile() - 0.95) < 0.001) {
+                result[1] = ms;
+            } else if (Math.abs(value.percentile() - 0.99) < 0.001) {
+                result[2] = ms;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Per method+uri accumulator across all status-code variants of the
+     * {@code http.server.requests} timer.
+     */
+    private static final class HttpTally {
+        long count2xx;
+        long count3xx;
+        long count4xx;
+        long count5xx;
+        double maxDurationMs;
+        Timer representative;
+        long representativeCount = -1;
+
+        void accumulate(String status, Timer timer) {
+            long count = timer.count();
+            char statusClass = status != null && !status.isEmpty() ? status.charAt(0) : ' ';
+            switch (statusClass) {
+                case '2' -> count2xx += count;
+                case '3' -> count3xx += count;
+                case '4' -> count4xx += count;
+                case '5' -> count5xx += count;
+                default -> {
+                }
+            }
+
+            maxDurationMs = Math.max(maxDurationMs, timer.max(TimeUnit.MILLISECONDS));
+            if (count > representativeCount) {
+                representativeCount = count;
+                representative = timer;
+            }
+        }
+
+        long totalCount() {
+            return count2xx + count3xx + count4xx + count5xx;
+        }
+
+        long errorCount() {
+            return count4xx + count5xx;
+        }
     }
 
     private Double gaugeValue(String name, String areaTag) {

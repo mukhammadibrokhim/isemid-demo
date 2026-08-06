@@ -39,9 +39,12 @@ import java.util.stream.Collectors;
  * selective index condition, ~60x slower in testing).
  * <p>
  * Only PRIMARY (not yet resolved) notifications are counted here — {@code
- * status NOT IN ('APPROVED', 'CANCELED')}. Category buckets are {@code
- * patient.category_code} against the {@code ref_catalog} {@code CATEGORY}
- * type (see {@code Form2OrganizationCountProjection}).
+ * status NOT IN ('APPROVED', 'CANCELED')}. A form058 rejected by the
+ * receiver is stored as {@code CANCELED} (see {@code FormStatus}), so it is
+ * already excluded here — there is no separate "rejected" status to account
+ * for. Category buckets are {@code patient.category_code} against the
+ * {@code ref_catalog} {@code CATEGORY} type (see
+ * {@code Form2OrganizationCountProjection}).
  * <p>
  * Every {@code ::type} cast below wraps its named parameter in parentheses
  * — {@code (:param)::type}, never {@code :param::type} — see {@code

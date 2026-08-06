@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.devmonitoring.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserDetailResponse;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserResponse;
 import uz.uzinfocom.app.platform.devmonitoring.domain.DevUser;
 import uz.uzinfocom.app.platform.devmonitoring.repository.DevUserRepository;
@@ -24,11 +25,11 @@ public class DevUserQueryService {
     }
 
     @Transactional(readOnly = true)
-    public DevUserResponse getById(Long id) {
+    public DevUserDetailResponse getById(Long id) {
         DevUser devUser = devUserRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("dev-user.not-found", id));
 
-        return toResponse(devUser);
+        return toDetailResponse(devUser);
     }
 
     private DevUserResponse toResponse(DevUser devUser) {
@@ -38,6 +39,17 @@ public class DevUserQueryService {
                 devUser.isEnabled(),
                 devUser.isRoot(),
                 devUser.getCreatedAt()
+        );
+    }
+
+    private DevUserDetailResponse toDetailResponse(DevUser devUser) {
+        return new DevUserDetailResponse(
+                devUser.getId(),
+                devUser.getUsername(),
+                devUser.isEnabled(),
+                devUser.isRoot(),
+                devUser.getCreatedAt(),
+                devUser.getUpdatedAt()
         );
     }
 }

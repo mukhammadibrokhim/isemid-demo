@@ -21,8 +21,6 @@ public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecif
 
     List<Region> findAllByDeletedFalseOrderByNameUzAsc();
 
-    List<Region> findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(String parentCode);
-
     @Query("""
         select
             r.code as code,

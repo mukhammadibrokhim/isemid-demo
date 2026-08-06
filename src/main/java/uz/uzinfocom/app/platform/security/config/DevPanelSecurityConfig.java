@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import uz.uzinfocom.app.platform.devmonitoring.security.CachingDevAuthenticationProvider;
 import uz.uzinfocom.app.platform.devmonitoring.security.DevUserDetailsService;
 import uz.uzinfocom.app.platform.security.filter.PrincipalCaptureFilter;
 import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
@@ -62,7 +63,7 @@ public class DevPanelSecurityConfig {
     @Order(1)
     public SecurityFilterChain devPanelSecurityFilterChain(
             HttpSecurity http,
-            DaoAuthenticationProvider devUserAuthenticationProvider
+            CachingDevAuthenticationProvider cachingDevAuthenticationProvider
     ) {
         http
                 .securityMatcher("/v1/dev/**")
@@ -70,7 +71,7 @@ public class DevPanelSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint))
-                .authenticationProvider(devUserAuthenticationProvider)
+                .authenticationProvider(cachingDevAuthenticationProvider)
                 .exceptionHandling(exceptions -> exceptions.accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .addFilterBefore(principalCaptureFilter, AuthorizationFilter.class);

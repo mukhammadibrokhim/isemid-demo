@@ -36,11 +36,13 @@ import java.util.stream.Collectors;
  * <p>
  * The two "blocks" this report needs, same as Form 1: CONFIRMED = {@code
  * status = 'APPROVED'}, PRIMARY = {@code status NOT IN ('APPROVED',
- * 'CANCELED')} — both bucketed by {@code created_at}. Category buckets are
- * {@code patient.category_code} against the {@code ref_catalog} {@code
- * CATEGORY} type (see {@code Form4OrganizationCountProjection}); the seeded
- * {@code TEACHER} category is not broken out but still counts toward each
- * metric's total.
+ * 'CANCELED')} — both bucketed by {@code created_at}. A form058 rejected by
+ * the receiver is stored as {@code CANCELED} (see {@code FormStatus}), so
+ * it is already excluded here — there is no separate "rejected" status to
+ * account for. Category buckets are {@code patient.category_code} against
+ * the {@code ref_catalog} {@code CATEGORY} type (see
+ * {@code Form4OrganizationCountProjection}); the seeded {@code TEACHER}
+ * category is not broken out but still counts toward each metric's total.
  * <p>
  * Every {@code ::type} cast below wraps its named parameter in parentheses
  * — {@code (:param)::type}, never {@code :param::type} — see {@code

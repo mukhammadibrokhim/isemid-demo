@@ -131,7 +131,8 @@ public class Icd10Controller {
 
     @Operation(
             summary = "Получить узел МКБ-10 по коду",
-            description = "Возвращает один активный узел МКБ-10 по его нормализованному коду МКБ-10."
+            description = "Возвращает один активный узел МКБ-10 по его нормализованному коду МКБ-10. " +
+                    "Наименование возвращается одним полем `name`, уже разрешённым под локаль запроса (заголовок Accept-Language)."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
@@ -139,7 +140,7 @@ public class Icd10Controller {
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Icd10Response> getByCode(
+    public ApiResponse<Icd10TreeResponse> getByCode(
             @Parameter(description = "Код МКБ-10.", required = true, example = "A15")
             @PathVariable @NotBlank @Size(max = 20) String code
     ) {

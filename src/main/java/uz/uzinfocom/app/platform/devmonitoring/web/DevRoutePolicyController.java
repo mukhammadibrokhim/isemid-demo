@@ -15,6 +15,7 @@ import uz.uzinfocom.app.platform.settings.application.command.RouteAccessPolicyC
 import uz.uzinfocom.app.platform.settings.application.dto.RouteAccessPolicyCreateRequest;
 import uz.uzinfocom.app.platform.settings.application.dto.RouteAccessPolicyUpdateRequest;
 import uz.uzinfocom.app.platform.settings.application.query.RouteAccessPolicyQueryService;
+import uz.uzinfocom.app.platform.settings.application.query.dto.RouteAccessPolicyDetailResponse;
 import uz.uzinfocom.app.platform.settings.application.query.dto.RouteAccessPolicyFilterRequest;
 import uz.uzinfocom.app.platform.settings.application.query.dto.RouteAccessPolicyResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -63,7 +64,7 @@ public class DevRoutePolicyController {
     }
 
     @GetMapping(ApiPaths.Dev.ROUTE_POLICY_BY_ID)
-    public ApiResponse<RouteAccessPolicyResponse> getById(
+    public ApiResponse<RouteAccessPolicyDetailResponse> getById(
             @Parameter(description = "Internal id of the route-access policy row.", required = true)
             @PathVariable @Positive Long id
     ) {

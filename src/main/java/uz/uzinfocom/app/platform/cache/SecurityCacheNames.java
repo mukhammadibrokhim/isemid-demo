@@ -29,6 +29,17 @@ public final class SecurityCacheNames {
     public static final String SCOPE_ORGANIZATION_IDS = "scopeOrganizationIds";
     public static final String FILTER_ORGANIZATION_IDS_BY_REGION_DISTRICT = "filterOrganizationIdsByRegionDistrict";
 
+    /**
+     * {@code /v1/dev/**} authenticates via HTTP Basic on a stateless filter
+     * chain (see DevPanelSecurityConfig), so every single request would
+     * otherwise re-run a full BCrypt comparison plus a DevUser DB lookup
+     * before the controller even runs. This cache stores the successful
+     * {@code Authentication} result keyed by username+password so repeat
+     * calls with the same credentials skip both. Short TTL bounds how long a
+     * revoked/disabled dev account can still authenticate from cache.
+     */
+    public static final String DEV_PANEL_AUTHENTICATION = "devPanelAuthentication";
+
     private SecurityCacheNames() {
     }
 }

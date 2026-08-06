@@ -63,19 +63,22 @@ public class Icd10QueryService {
         return toResponse(icd10);
     }
 
+    // Cache key includes the request locale for the same reason as REF_ICD10_ROOTS/
+    // REF_ICD10_CHILDREN_BY_PARENT_ID - see the comment on getRoots() below.
     @Transactional(readOnly = true)
     @Cacheable(
             cacheNames = ReferenceCacheConfig.REF_ICD10_BY_CODE,
-            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT)",
+            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT) + '-' + " +
+                    "T(org.springframework.context.i18n.LocaleContextHolder).getLocale().toLanguageTag()",
             condition = "#code != null"
     )
-    public Icd10Response getByCode(String code) {
+    public Icd10TreeResponse getByCode(String code) {
         String normalizedCode = ReferenceCodeNormalizer.normalizeCode(code);
 
         Icd10 icd10 = icd10Repository.findByCodeAndDeletedFalse(normalizedCode)
                 .orElseThrow(() -> new NotFoundException("reference.icd10.not_found_by_code", normalizedCode));
 
-        return toResponse(icd10);
+        return toTreeResponses(List.of(icd10)).get(0);
     }
 
     // Cache key includes the request locale because the response now carries a

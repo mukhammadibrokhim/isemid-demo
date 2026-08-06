@@ -174,18 +174,27 @@ public class Form058 extends AbsEntity implements AuditableFields {
     }
 
     /**
-     * Called once one or more cards exist on this form. Advances the
-     * workflow into {@link FormStatus#CARD_LINKED} — but only forward: a
-     * form already past that point (APPROVED_PENDING and beyond) must not
-     * be pushed backwards just because another card was added to it.
-     * {@link #ensureEditable()} already rules out CANCELED/APPROVED/deleted
-     * forms before this is ever reached.
+     * Called once one or more cards exist on this form. Cards may only be
+     * linked after the receiver has accepted the form ({@link #accept()} —
+     * {@code ACCEPTED}); a still-{@code SENT} (not yet decided) form must
+     * not have cards linked to it directly — see {@code Form058AcceptValidator}
+     * for why that decision has to happen first. From {@code ACCEPTED} this
+     * advances into {@link FormStatus#CARD_LINKED}, but only forward: a form
+     * already at {@code CARD_LINKED} must not be pushed backwards just
+     * because another card was added to it. {@link #ensureEditable()}
+     * already rules out CANCELED/APPROVED/deleted forms before this is ever
+     * reached.
      */
     public void linkCards() {
         ensureEditable();
+
+        if (status == FormStatus.SENT) {
+            throw new InvalidForm058StateException("error.form058.card-link-not-allowed", this.status);
+        }
+
         markCardsLinked();
 
-        if (status == FormStatus.NOT_APPROVED || status == FormStatus.SENT || status == FormStatus.RECEIVED) {
+        if (status == FormStatus.ACCEPTED) {
             status = FormStatus.CARD_LINKED;
         }
     }
@@ -199,6 +208,13 @@ public class Form058 extends AbsEntity implements AuditableFields {
         }
     }
 
+    /**
+     * Closes the form as {@code CANCELED} — shared by both organizations
+     * while the form is still {@code SENT}: the sender withdrawing it, or
+     * the receiver rejecting it (see {@code Form058CancelValidator} for the
+     * status/scope check; {@code canceledBy} is whichever org's user
+     * actually called it).
+     */
     public void cancel(String reason, Long canceledBy) {
         if (isCanceled()) {
             return;
@@ -229,11 +245,29 @@ public class Form058 extends AbsEntity implements AuditableFields {
         this.approvalInfo.setApprovedAt(Instant.now());
     }
 
-    public void notApprove(String reason) {
-        ensureCancellationInfo();
+    /**
+     * The receiver's acknowledgement of an incoming form — the only path
+     * from {@code SENT} into {@code ACCEPTED}. Cards cannot be linked
+     * ({@link #linkCards()}) before this happens; see
+     * {@code Form058AcceptValidator} for the status/scope check.
+     */
+    public void accept() {
+        ensureEditable();
+        this.status = FormStatus.ACCEPTED;
+    }
 
-        this.status = FormStatus.NOT_APPROVED;
-        this.cancellationInfo.setNotApprovedReason(reason);
+    /**
+     * Super-admin-only escape hatch out of {@code CANCELED} — puts the form
+     * back to {@code SENT} regardless of which organization called
+     * {@link #cancel(String, Long)}. See {@code Form058ReopenValidator} for
+     * the {@code requireSuperAdmin()} check; this method only re-asserts the
+     * state precondition.
+     */
+    public void reopen() {
+        if (!status.isReopenable()) {
+            throw new InvalidForm058StateException("error.form058.reopen-not-allowed", this.status);
+        }
+        this.status = FormStatus.SENT;
     }
 
     public void updateFinalDiagnosis(String finalIcd10Code, String finalIcd10Name) {

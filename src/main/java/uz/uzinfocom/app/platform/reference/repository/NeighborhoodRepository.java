@@ -21,8 +21,6 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
 
     List<Neighborhood> findAllByDeletedFalseOrderByNameUzAsc();
 
-    List<Neighborhood> findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(String parentCode);
-
     @Query("""
         select
             n.code as code,

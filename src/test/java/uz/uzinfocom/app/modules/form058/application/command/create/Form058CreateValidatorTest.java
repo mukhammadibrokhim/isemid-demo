@@ -8,6 +8,8 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationE
 import uz.uzinfocom.app.modules.form058.application.validator.Form058CreateValidator;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.reference.domain.Icd10;
 import uz.uzinfocom.app.platform.reference.repository.Icd10Repository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
@@ -22,11 +24,13 @@ import static org.mockito.Mockito.when;
 class Form058CreateValidatorTest {
 
     private final Icd10Repository icd10Repository = mock(Icd10Repository.class);
-    private final Form058CreateValidator validator = new Form058CreateValidator(icd10Repository);
+    private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
+    private final Form058CreateValidator validator = new Form058CreateValidator(icd10Repository, organizationRepository);
 
     @BeforeEach
     void stubKnownIcd10Code() {
         when(icd10Repository.findByCodeAndDeletedFalse("A00")).thenReturn(Optional.of(mock(Icd10.class)));
+        when(organizationRepository.findById(200L)).thenReturn(Optional.of(sanepidOrganization(200L)));
     }
 
     @AfterEach
@@ -190,6 +194,12 @@ class Form058CreateValidatorTest {
     private Organization organization(Long id) {
         Organization organization = new Organization();
         organization.setId(id);
+        return organization;
+    }
+
+    private Organization sanepidOrganization(Long id) {
+        Organization organization = organization(id);
+        organization.setMedicalType(MedicalType.SANEPID_SERVICE);
         return organization;
     }
 }

@@ -21,6 +21,9 @@ import java.util.stream.Collectors;
  * p.birth_date))::int} age calculation) but only ever counts the "primary"
  * bucket — {@code status NOT IN ('APPROVED', 'CANCELED')} — this report has
  * no CONFIRMED counterpart, so the UNION below has 2 branches instead of 4.
+ * A form058 rejected by the receiver is stored as {@code CANCELED} (see
+ * {@code FormStatus}), so it is already excluded here — there is no
+ * separate "rejected" status to account for.
  * <p>
  * Age brackets for {@link #countAgeBreakdown}, all in complete calendar
  * years as of the case's own {@code created_at} (matches how Form 1 already

@@ -230,6 +230,17 @@ public final class ApiPaths {
         public static final String ERRORS = "/errors";
         public static final String ERROR_BY_ID = "/errors/{id}";
         public static final String LOGINS = "/logins";
+
+        /**
+         * Full per-request resource-usage log (every request, not just
+         * failures - see {@link #ERRORS}) captured by {@code RequestLoggingFilter}
+         * into {@code dev_request_log}. {@link #REQUESTS} returns the table/list
+         * view (summary columns); {@link #REQUEST_BY_ID} returns the full
+         * detail (query string, content types, exception/root-cause, message)
+         * for one row.
+         */
+        public static final String REQUESTS = "/requests";
+        public static final String REQUEST_BY_ID = "/requests/{id}";
         public static final String METRICS_SYSTEM = "/metrics/system";
         public static final String METRICS_HTTP = "/metrics/http";
         public static final String SETTINGS = "/settings";
@@ -326,9 +337,10 @@ public final class ApiPaths {
 
         public static final String ROOT = API_V1 + "/form-058";
         public static final String BY_ID = "/{id}";
+        public static final String ACCEPT = "/{id}/accept";
         public static final String APPROVE = "/{id}/approve";
-        public static final String NOT_APPROVE = "/{id}/not-approve";
         public static final String CANCEL = "/{id}/cancel";
+        public static final String REOPEN = "/{id}/reopen";
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
         public static final String PDF = "/{id}/pdf";
@@ -365,10 +377,10 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/form-058-1";
         public static final String BY_ID = "/{id}";
         public static final String BY_DOCUMENT_VALUE = "/by-document";
-        public static final String RECEIVE = "/{id}/receive";
+        public static final String ACCEPT = "/{id}/accept";
         public static final String APPROVE = "/{id}/approve";
-        public static final String NOT_APPROVE = "/{id}/not-approve";
         public static final String CANCEL = "/{id}/cancel";
+        public static final String REOPEN = "/{id}/reopen";
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
         public static final String EXPORT = "/export";

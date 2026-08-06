@@ -6,6 +6,8 @@ import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.reference.repository.Icd10Repository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.validation.ReferenceCodeValidation;
@@ -17,6 +19,7 @@ import java.util.Objects;
 public class Form058CreateValidator {
 
     private final Icd10Repository icd10Repository;
+    private final OrganizationRepository organizationRepository;
 
     public void validate(CreateForm058Command command) {
         if (command == null) {
@@ -35,6 +38,15 @@ public class Form058CreateValidator {
 
         if (!Objects.equals(currentOrganizationId, command.senderOrganizationId())) {
             throw new Form058ScopeViolationException();
+        }
+
+        Organization receiver = organizationRepository.findById(command.receiverOrganizationId())
+                .orElseThrow(() -> new Form058ValidationException(
+                        "error.organization.not-found", command.receiverOrganizationId()
+                ));
+
+        if (receiver.getMedicalType() != MedicalType.SANEPID_SERVICE) {
+            throw new Form058ValidationException("error.form058.receiver-not-sanepid");
         }
 
         validateIcd10Code(command.icd10Code());

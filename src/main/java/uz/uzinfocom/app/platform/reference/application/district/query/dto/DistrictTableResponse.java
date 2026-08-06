@@ -10,6 +10,8 @@ public record DistrictTableResponse(
         String code,
         @Schema(description = "Код родительского региона для данного района.", example = "UZ-AN")
         String parentCode,
+        @Schema(description = "Наименование региона (локализовано по текущему языку запроса).", example = "Андижанская область")
+        String regionName,
         @Schema(description = "Идентификатор СОАТО района.", example = "1703202")
         Integer soatoId,
         @Schema(description = "Идентификатор СОАТО родительского региона.", example = "1703")

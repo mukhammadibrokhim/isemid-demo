@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportResponse;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportTableResponse;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.mapper.ManualReportMapper;
@@ -59,14 +60,15 @@ public class ManualReportQueryService {
     @Transactional(readOnly = true)
     @Cacheable(
             cacheNames = ReferenceCacheConfig.REF_MANUAL_REPORT_BY_CODE,
-            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT)",
+            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT) + '-' + " +
+                    "T(org.springframework.context.i18n.LocaleContextHolder).getLocale().toLanguageTag()",
             condition = "#code != null"
     )
-    public ManualReportResponse getByCode(String code) {
+    public ManualReportLookupResponse getByCode(String code) {
         String normalizedCode = ReferenceCodeNormalizer.normalizeCode(code);
 
         return manualReportRepository.findByCodeAndDeletedFalse(normalizedCode)
-                .map(manualReportMapper::toResponse)
+                .map(manualReportMapper::toLookupResponse)
                 .orElseThrow(() -> new NotFoundException("reference.manual_report.not_found_by_code", normalizedCode));
     }
 

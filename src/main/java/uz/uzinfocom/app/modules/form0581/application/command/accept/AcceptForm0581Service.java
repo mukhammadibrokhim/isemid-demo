@@ -1,4 +1,4 @@
-package uz.uzinfocom.app.modules.form0581.application.command.receive;
+package uz.uzinfocom.app.modules.form0581.application.command.accept;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -15,22 +15,22 @@ import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 @Service
 @RequiredArgsConstructor
-public class ReceiveForm0581Service {
+public class AcceptForm0581Service {
 
     private final Form0581JpaRepository form0581JpaRepository;
     private final Form0581UpdateMapper form0581UpdateMapper;
     private final CurrentUserProvider currentUserProvider;
-    private final Form0581ReceiveValidator form0581ReceiveValidator;
+    private final Form0581AcceptValidator form0581AcceptValidator;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public UpdateForm0581Result receive(Long formId) {
+    public UpdateForm0581Result accept(Long formId) {
         Form0581 form0581 = form0581JpaRepository.findActiveByIdForUpdate(formId)
                 .orElseThrow(() -> new Form0581NotFoundException(formId));
-        form0581ReceiveValidator.validate(form0581);
+        form0581AcceptValidator.validateAccept(form0581);
         String oldStatus = form0581.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
-        form0581.receive();
+        form0581.accept();
         UpdateForm0581Result result = form0581UpdateMapper.toResult(form0581JpaRepository.save(form0581));
 
         eventPublisher.publishEvent(new StatusChangedEvent(

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryDetailedResponse;
+import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.dto.CountryTableResponse;
 import uz.uzinfocom.app.platform.reference.application.country.query.mapper.CountryMapper;
 import uz.uzinfocom.app.platform.reference.application.country.query.projection.CountryTableProjection;
@@ -67,14 +68,15 @@ public class CountryQueryService {
     @Transactional(readOnly = true)
     @Cacheable(
             cacheNames = ReferenceCacheConfig.REF_COUNTRY_BY_CODE,
-            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT)",
+            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT) + '-' + " +
+                    "T(org.springframework.context.i18n.LocaleContextHolder).getLocale().toLanguageTag()",
             condition = "#code != null"
     )
-    public CountryDetailedResponse getByCode(String code) {
+    public CountryLookupResponse getByCode(String code) {
         String normalizedCode = ReferenceCodeNormalizer.normalizeCode(code);
 
         return countryRepository.findByCodeAndDeletedFalse(normalizedCode)
-                .map(countryMapper::toResponse)
+                .map(countryMapper::toLookupResponse)
                 .orElseThrow(() -> new NotFoundException("reference.country.not_found_by_code", normalizedCode));
     }
 }

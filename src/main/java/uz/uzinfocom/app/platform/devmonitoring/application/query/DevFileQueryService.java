@@ -13,6 +13,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -54,9 +55,9 @@ public class DevFileQueryService {
 
         try (Stream<Path> children = Files.list(target)) {
             List<DevFileEntryResponse> entries = children
-                    .sorted(Comparator.<Path>comparingInt(child -> Files.isDirectory(child) ? 0 : 1)
-                            .thenComparing(child -> child.getFileName().toString(), String.CASE_INSENSITIVE_ORDER))
                     .map(child -> toEntry(base, child))
+                    .sorted(Comparator.<DevFileEntryResponse>comparingInt(entry -> entry.directory() ? 0 : 1)
+                            .thenComparing(DevFileEntryResponse::name, String.CASE_INSENSITIVE_ORDER))
                     .toList();
             return new DevFileListResponse(root, relativize(base, target), entries);
         } catch (IOException e) {
@@ -102,13 +103,18 @@ public class DevFileQueryService {
 
     private DevFileEntryResponse toEntry(Path base, Path child) {
         try {
-            boolean directory = Files.isDirectory(child);
+            // A single readAttributes() call replaces what were three separate
+            // stat syscalls (isDirectory + size + getLastModifiedTime), plus
+            // the isDirectory() the old sort comparator re-did on every
+            // comparison - this is now one stat per entry, full stop.
+            BasicFileAttributes attributes = Files.readAttributes(child, BasicFileAttributes.class);
+            boolean directory = attributes.isDirectory();
             return new DevFileEntryResponse(
                     child.getFileName().toString(),
                     relativize(base, child),
                     directory,
-                    directory ? null : Files.size(child),
-                    Files.getLastModifiedTime(child).toInstant()
+                    directory ? null : attributes.size(),
+                    attributes.lastModifiedTime().toInstant()
             );
         } catch (IOException e) {
             throw new UncheckedIOException(e);

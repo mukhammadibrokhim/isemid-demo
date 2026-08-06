@@ -33,7 +33,7 @@ import java.util.List;
 public class Form0581StatsRepository extends AbstractCaseStatsRepository<Form0581> {
 
     private static final List<Form0581Status> PENDING_STATUSES = Arrays.stream(Form0581Status.values())
-            .filter(Form0581Status::isApprovalDecisionPending)
+            .filter(Form0581Status::isPending)
             .toList();
 
     private final SenderReceiverScopePredicateFactory scopePredicateFactory;
@@ -49,9 +49,9 @@ public class Form0581StatsRepository extends AbstractCaseStatsRepository<Form058
     }
 
     /**
-     * Count of cases without a final approval decision yet ({@link
-     * Form0581Status#isApprovalDecisionPending()}) — a direct {@code COUNT(*)},
-     * not a Java-side filter+sum over {@link #countByStatus}.
+     * Count of cases that have not yet reached a final outcome ({@link
+     * Form0581Status#isPending()}) — a direct {@code COUNT(*)}, not a
+     * Java-side filter+sum over {@link #countByStatus}.
      */
     public long countActive(ResolvedOrganizationScope scope, Boolean received) {
         return countAll((root, cb) -> cb.and(

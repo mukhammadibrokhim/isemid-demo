@@ -12,6 +12,8 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class Form0581DeleteValidatorTest {
 
@@ -44,6 +46,34 @@ class Form0581DeleteValidatorTest {
 
         assertThatThrownBy(() -> validator.validate(form(Form0581Status.SENT)))
                 .isInstanceOf(Form0581ScopeViolationException.class);
+    }
+
+    @Test
+    void regularSenderCannotDeleteACanceledForm() {
+        CurrentOrganizationContext.set(organization(10L));
+
+        assertThatThrownBy(() -> validator.validate(form(Form0581Status.CANCELED)))
+                .isInstanceOf(InvalidForm0581StateException.class);
+    }
+
+    @Test
+    void superAdminCanDeleteACanceledFormWithoutOrganizationScope() {
+        AdminAccessGuard superAdminGuard = mock(AdminAccessGuard.class);
+        when(superAdminGuard.isSuperAdmin()).thenReturn(true);
+        Form0581DeleteValidator superAdminValidator = new Form0581DeleteValidator(superAdminGuard);
+
+        assertThatCode(() -> superAdminValidator.validate(form(Form0581Status.CANCELED)))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void superAdminStillCannotDeleteAnApprovedForm() {
+        AdminAccessGuard superAdminGuard = mock(AdminAccessGuard.class);
+        when(superAdminGuard.isSuperAdmin()).thenReturn(true);
+        Form0581DeleteValidator superAdminValidator = new Form0581DeleteValidator(superAdminGuard);
+
+        assertThatThrownBy(() -> superAdminValidator.validate(form(Form0581Status.APPROVED)))
+                .isInstanceOf(InvalidForm0581StateException.class);
     }
 
     private Form0581 form(Form0581Status status) {

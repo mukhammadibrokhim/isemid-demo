@@ -20,7 +20,6 @@ import uz.uzinfocom.app.platform.reference.repository.CatalogRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -85,13 +84,22 @@ public class CatalogQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<CatalogLookupResponse> getByTypeAndParentCode(String type, String parentCode) {
+    public Page<CatalogLookupResponse> getByTypeAndParentCode(String type, String parentCode, CatalogLookupFilterRequest request) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
-        return catalogRepository
-                .findAllByTypeAndParentCodeAndDeletedFalseOrderByNameUzAsc(type, normalizedParentCode)
-                .stream()
-                .map(catalogMapper::toLookupResponse)
-                .toList();
+        Pageable pageable = PageableUtils.of(
+                request,
+                "nameUz",
+                Sort.Direction.ASC,
+                CatalogSortFields.ALLOWED_SORT_FIELDS,
+                DEFAULT_LOOKUP_PAGE_SIZE
+        );
+
+        Page<Catalog> page = catalogRepository.findAll(
+                CatalogSpecification.byTypeAndParentCodeAndName(type, normalizedParentCode, request.name()),
+                pageable
+        );
+
+        return page.map(catalogMapper::toLookupResponse);
     }
 }

@@ -46,6 +46,10 @@ public class ApplicationCacheConfig {
                 cache(SecurityCacheNames.SCOPE_ORGANIZATION_IDS, 5_000, Duration.ofDays(1)),
                 cache(SecurityCacheNames.FILTER_ORGANIZATION_IDS_BY_REGION_DISTRICT, 5_000, Duration.ofDays(1)),
 
+                // Small size: handful of dev-panel accounts. 5m TTL bounds how
+                // long a revoked account keeps authenticating from cache.
+                cache(SecurityCacheNames.DEV_PANEL_AUTHENTICATION, 200, Duration.ofMinutes(5)),
+
                 cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
                 cache(OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID, 20_000, Duration.ofHours(12)),
                 cache(OrganizationCacheConfig.ORGANIZATION_NAME_BY_ID, 20_000, Duration.ofHours(12)),
@@ -54,13 +58,10 @@ public class ApplicationCacheConfig {
                 cache(ReferenceCacheConfig.REF_COUNTRY_BY_CODE, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_REGIONS, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_REGION_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_REGIONS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_DISTRICTS, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_DISTRICT_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_NEIGHBORHOODS, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
 
                 cache(ReferenceCacheConfig.REF_LOOKUP_COUNTRIES, 10, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_LOOKUP_REGIONS, 10, Duration.ofHours(1)),

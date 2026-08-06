@@ -18,6 +18,7 @@ import uz.uzinfocom.app.platform.devmonitoring.application.command.DevUserComman
 import uz.uzinfocom.app.platform.devmonitoring.application.command.dto.DevUserCreateRequest;
 import uz.uzinfocom.app.platform.devmonitoring.application.command.dto.DevUserCreateResponse;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.DevUserQueryService;
+import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserDetailResponse;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -63,7 +64,7 @@ public class DevUserController {
     @Operation(summary = "Get a dev-panel account by id")
     @GetMapping(ApiPaths.Dev.DEV_USER_BY_ID)
     @PreAuthorize("hasRole('DEV_ROOT')")
-    public ApiResponse<DevUserResponse> getById(
+    public ApiResponse<DevUserDetailResponse> getById(
             @Parameter(description = "Internal id of the dev-panel account.", required = true)
             @PathVariable @Positive Long id
     ) {

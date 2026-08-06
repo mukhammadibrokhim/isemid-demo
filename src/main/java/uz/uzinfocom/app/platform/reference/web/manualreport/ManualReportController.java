@@ -28,6 +28,7 @@ import uz.uzinfocom.app.platform.reference.application.manualreport.dto.ManualRe
 import uz.uzinfocom.app.platform.reference.application.manualreport.dto.ManualReportUpdateRequest;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.ManualReportQueryService;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportResponse;
 import uz.uzinfocom.app.platform.reference.application.manualreport.query.dto.ManualReportTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -105,7 +106,7 @@ public class ManualReportController {
     )
     @GetMapping(ApiPaths.Reference.BY_CODE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<ManualReportResponse> getByCode(
+    public ApiResponse<ManualReportLookupResponse> getByCode(
             @Parameter(description = "Код ручного отчёта.", required = true, example = "TUBERCULOSIS")
             @PathVariable @NotBlank @Size(max = 50) String code
     ) {

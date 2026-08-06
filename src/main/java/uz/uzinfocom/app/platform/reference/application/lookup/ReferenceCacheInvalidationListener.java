@@ -34,7 +34,6 @@ public class ReferenceCacheInvalidationListener {
     public void on(RegionChangedEvent event) {
         evictAll(ReferenceCacheConfig.REF_REGIONS);
         evictAll(ReferenceCacheConfig.REF_REGION_BY_CODE);
-        evictAll(ReferenceCacheConfig.REF_REGIONS_BY_PARENT_CODE);
         evictAll(ReferenceCacheConfig.REF_LOOKUP_REGIONS);
     }
 
@@ -42,7 +41,6 @@ public class ReferenceCacheInvalidationListener {
     public void on(DistrictChangedEvent event) {
         evictAll(ReferenceCacheConfig.REF_DISTRICTS);
         evictAll(ReferenceCacheConfig.REF_DISTRICT_BY_CODE);
-        evictAll(ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE);
         evictAll(ReferenceCacheConfig.REF_LOOKUP_DISTRICTS);
     }
 
@@ -50,7 +48,6 @@ public class ReferenceCacheInvalidationListener {
     public void on(NeighborhoodChangedEvent event) {
         evictAll(ReferenceCacheConfig.REF_NEIGHBORHOODS);
         evictAll(ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE);
-        evictAll(ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE);
         evictAll(ReferenceCacheConfig.REF_LOOKUP_NEIGHBORHOODS);
     }
 

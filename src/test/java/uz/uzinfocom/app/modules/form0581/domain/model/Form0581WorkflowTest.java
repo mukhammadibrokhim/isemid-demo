@@ -25,7 +25,7 @@ class Form0581WorkflowTest {
     @Test
     void approveStoresFinalDiagnosisAndAuditFields() {
         Form0581 form0581 = new Form0581();
-        form0581.setStatus(Form0581Status.SENT);
+        form0581.setStatus(Form0581Status.CARD_LINKED);
 
         form0581.approve("A82", "Rabies", 20L, 30L);
 
@@ -38,17 +38,6 @@ class Form0581WorkflowTest {
     }
 
     @Test
-    void notApproveStoresReason() {
-        Form0581 form0581 = new Form0581();
-        form0581.setStatus(Form0581Status.SENT);
-
-        form0581.notApprove("missing MKB-10 code");
-
-        assertThat(form0581.getStatus()).isEqualTo(Form0581Status.NOT_APPROVED);
-        assertThat(form0581.getCancellationInfo().getNotApprovedReason()).isEqualTo("missing MKB-10 code");
-    }
-
-    @Test
     void approvedFormCannotBeEdited() {
         Form0581 form0581 = new Form0581();
         form0581.setStatus(Form0581Status.APPROVED);
@@ -58,11 +47,82 @@ class Form0581WorkflowTest {
     }
 
     @Test
+    void acceptMovesSentFormToAccepted() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.SENT);
+
+        form0581.accept();
+
+        assertThat(form0581.getStatus()).isEqualTo(Form0581Status.ACCEPTED);
+    }
+
+    @Test
+    void receiverRejectingASentFormUsesTheSameCancelAsSender() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.SENT);
+
+        form0581.cancel("wrong receiver", 20L);
+
+        assertThat(form0581.getStatus()).isEqualTo(Form0581Status.CANCELED);
+        assertThat(form0581.getCancellationInfo().getCancelReason()).isEqualTo("wrong receiver");
+        assertThat(form0581.isCanceled()).isTrue();
+    }
+
+    @Test
     void canceledFormCannotBeEdited() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.SENT);
+        form0581.cancel("wrong receiver", 20L);
+
+        assertThatThrownBy(form0581::ensureEditable)
+                .isInstanceOf(InvalidForm0581StateException.class);
+    }
+
+    @Test
+    void cardsCannotBeLinkedBeforeAccept() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.SENT);
+
+        assertThatThrownBy(form0581::linkCards)
+                .isInstanceOf(InvalidForm0581StateException.class);
+    }
+
+    @Test
+    void cardsCannotBeLinkedToACanceledForm() {
         Form0581 form0581 = new Form0581();
         form0581.setStatus(Form0581Status.CANCELED);
 
-        assertThatThrownBy(form0581::ensureEditable)
+        assertThatThrownBy(form0581::linkCards)
+                .isInstanceOf(InvalidForm0581StateException.class);
+    }
+
+    @Test
+    void linkCardsAdvancesAcceptedFormToCardLinked() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.ACCEPTED);
+
+        form0581.linkCards();
+
+        assertThat(form0581.getStatus()).isEqualTo(Form0581Status.CARD_LINKED);
+        assertThat(form0581.isHasLinkedCards()).isTrue();
+    }
+
+    @Test
+    void reopenPutsACanceledFormBackToSent() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.CANCELED);
+
+        form0581.reopen();
+
+        assertThat(form0581.getStatus()).isEqualTo(Form0581Status.SENT);
+    }
+
+    @Test
+    void reopenRejectsANonCanceledForm() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.SENT);
+
+        assertThatThrownBy(form0581::reopen)
                 .isInstanceOf(InvalidForm0581StateException.class);
     }
 

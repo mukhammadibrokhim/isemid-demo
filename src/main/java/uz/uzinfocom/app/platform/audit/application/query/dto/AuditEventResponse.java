@@ -25,18 +25,17 @@ public record AuditEventResponse(
 //
 //        │
 //
-//        ▼ (ixtiyoriy: card biriktirilsa)
-//
-//   linkCards() → status = CARD_LINKED
-//
+//        ├─► accept (receiver tashkilot) → ACCEPTED
+//        │        │
+//        │        ▼ linkCards() (majburiy — approve shundan keyingina) → CARD_LINKED
+//        │        │
+//        │        └─► approve (sender tashkilot, finalIcd10 majburiy) → APPROVED (yakuniy)
 //        │
-//
-//        ├─► approve (receiver tashkilot, finalIcd10 majburiy) → APPROVED (yakuniy)
-//
-//        ├─► not-approve (sabab bilan) → NOT_APPROVED (qayta approve bo'lishi mumkin — pending qayta ochiladi)
-//
-//        └─► cancel (sender, APPROVED bo'lmagunicha) → CANCELED (yakuniy)
+//        └─► cancel (sender YOKI receiver, sabab bilan, faqat SENT bosqichida) →
+//                 CANCELED (yakuniy, qulflangan — accept bo'lgandan keyin
+//                 hech kim bekor qila olmaydi — faqat super_admin reopen
+//                 orqali qayta SENT ga qaytaradi)
 //
 //
 //
-//bu form058 ni asosiy flowi lekin bunday bolmaydi. 
+//        (SENT/ACCEPTED/CARD_LINKED bosqichlarida sender istalgan vaqt cancel qila oladi) 

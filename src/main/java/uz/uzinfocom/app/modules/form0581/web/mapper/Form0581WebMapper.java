@@ -4,7 +4,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.form0581.application.command.OtherInjuredPersonCommand;
 import uz.uzinfocom.app.modules.form0581.application.command.approve.ApproveForm0581Command;
-import uz.uzinfocom.app.modules.form0581.application.command.approve.NotApproveForm0581Command;
 import uz.uzinfocom.app.modules.form0581.application.command.cancel.CancelForm0581Command;
 import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm0581Command;
 import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm0581Result;
@@ -13,7 +12,6 @@ import uz.uzinfocom.app.modules.form0581.application.command.update.UpdateForm05
 import uz.uzinfocom.app.modules.form0581.web.dto.request.ApproveForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.CancelForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.CreateForm0581Request;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.NotApproveForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.OtherInjuredPersonRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.UpdateForm0581Request;
 import uz.uzinfocom.app.modules.form0581.web.dto.response.CreateForm0581Response;
@@ -121,10 +119,6 @@ public interface Form0581WebMapper {
     @Mapping(target = "finalIcd10Code", source = "request.finalIcd10Code")
     @Mapping(target = "finalIcd10Name", source = "request.finalIcd10Name")
     ApproveForm0581Command toCommand(Long id, ApproveForm0581Request request);
-
-    @Mapping(target = "formId", source = "id")
-    @Mapping(target = "reason", source = "request.reason")
-    NotApproveForm0581Command toCommand(Long id, NotApproveForm0581Request request);
 
     @Mapping(target = "formId", source = "id")
     @Mapping(target = "reason", source = "request.reason")

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260806-1100-01-create-dev-request-log" author="codex">
+        <comment>
+            One row per HTTP request handled by the app (not just failures -
+            see dev_error_log), captured from RequestLoggingFilter regardless
+            of the text-log verbosity settings (app.observability.http-logging.*),
+            so "which resources did user X use" is always fully queryable via
+            GET /v1/dev/requests, independent of log-level/log-successful-requests
+            configuration.
+        </comment>
+        <createTable tableName="dev_request_log">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_dev_request_log" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+
+            <column name="trace_id" type="VARCHAR(64)"/>
+            <column name="method" type="VARCHAR(16)"/>
+            <column name="route" type="VARCHAR(500)"/>
+            <column name="path" type="VARCHAR(500)"/>
+            <column name="query" type="VARCHAR(500)"/>
+            <column name="http_status" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome" type="VARCHAR(32)"/>
+            <column name="duration_ms" type="BIGINT"/>
+            <column name="client_ip" type="VARCHAR(64)"/>
+            <column name="principal" type="VARCHAR(255)"/>
+            <column name="organization_id" type="VARCHAR(255)"/>
+            <column name="request_content_type" type="VARCHAR(100)"/>
+            <column name="response_content_type" type="VARCHAR(100)"/>
+            <column name="request_content_length" type="BIGINT"/>
+            <column name="error_code" type="VARCHAR(100)"/>
+            <column name="exception_type" type="VARCHAR(255)"/>
+            <column name="root_cause_type" type="VARCHAR(255)"/>
+            <column name="message" type="VARCHAR(500)"/>
+            <column name="user_agent" type="VARCHAR(300)"/>
+            <column name="occurred_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="dev_request_log" indexName="idx_dev_request_log_principal_occurred_at">
+            <column name="principal"/>
+            <column name="occurred_at"/>
+        </createIndex>
+        <createIndex tableName="dev_request_log" indexName="idx_dev_request_log_occurred_at">
+            <column name="occurred_at"/>
+        </createIndex>
+        <createIndex tableName="dev_request_log" indexName="idx_dev_request_log_trace_id">
+            <column name="trace_id"/>
+        </createIndex>
+        <createIndex tableName="dev_request_log" indexName="idx_dev_request_log_status">
+            <column name="http_status"/>
+        </createIndex>
+        <createIndex tableName="dev_request_log" indexName="idx_dev_request_log_path">
+            <column name="path"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

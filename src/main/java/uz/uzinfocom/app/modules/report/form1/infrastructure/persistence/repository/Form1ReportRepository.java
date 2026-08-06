@@ -73,7 +73,9 @@ import java.util.stream.Collectors;
  * CONFIRMED = {@code status = 'APPROVED'}, PRIMARY = {@code status NOT IN
  * ('APPROVED', 'CANCELED')} — both bucketed by {@code created_at}, not by
  * any diagnosis/report date field (those differ in shape between form058
- * and form058_1, created_at does not).
+ * and form058_1, created_at does not). A form058 rejected by the receiver
+ * is stored as {@code CANCELED} (see {@code FormStatus}), so it is already
+ * excluded here — there is no separate "rejected" status to account for.
  * <p>
  * Every {@code ::type} cast below wraps its named parameter in parentheses —
  * {@code (:param)::type}, never {@code :param::type} — because Hibernate's

@@ -1,45 +1,73 @@
 package uz.uzinfocom.app.modules.form058.domain.enums;
 
 public enum FormStatus {
-    NOT_APPROVED,
     SENT,
-    RECEIVED,
+    ACCEPTED,
     CARD_LINKED,
-    APPROVED_PENDING,
     APPROVED,
     CANCELED;
 
     public boolean physicallyDeletable() {
         return switch (this) {
-            case NOT_APPROVED, SENT -> true;
-            case RECEIVED,
+            case SENT -> true;
+            case ACCEPTED,
                  CARD_LINKED,
-                 APPROVED_PENDING,
                  APPROVED,
                  CANCELED -> false;
         };
     }
 
     /**
-     * True while the receiver's approve/not-approve decision is still open.
-     * Once a form has been approved, rejected, or canceled, that decision is
-     * final and cannot be re-made.
+     * True only while the form is freshly {@code SENT} and the receiver has
+     * not yet decided whether to accept it. Once {@code accept()} moves it
+     * on toward approval ({@code ACCEPTED}), that decision cannot be
+     * re-made — see {@code Form058AcceptValidator}.
      */
-    public boolean isApprovalDecisionPending() {
-        return switch (this) {
-            case SENT, RECEIVED, CARD_LINKED, APPROVED_PENDING -> true;
-            case NOT_APPROVED, APPROVED, CANCELED -> false;
-        };
+    public boolean isAcceptanceDecisionPending() {
+        return this == SENT;
     }
 
     /**
-     * True while the sender is still allowed to withdraw the form. Once the
-     * receiver has formally approved it, or it was already canceled, it can
-     * no longer be canceled.
+     * True only while the form is still {@code SENT} — both the sender
+     * (withdrawing it) and the receiver (rejecting it) may {@code cancel()}
+     * it during this window, see {@code Form058CancelValidator}. Once the
+     * receiver has accepted it, neither side can cancel anymore: the only
+     * ways forward from there are approval ({@code APPROVED}) or a
+     * super-admin {@code reopen()} of an already-{@code CANCELED} form.
      */
     public boolean isCancellable() {
+        return this == SENT;
+    }
+
+    /**
+     * True once a card has been linked to the form — the sender may only
+     * issue the final approval (with the final diagnosis) after that point,
+     * never directly from {@code SENT}/{@code ACCEPTED}. See
+     * {@code Form058ApprovalValidator}.
+     */
+    public boolean isApprovable() {
+        return this == CARD_LINKED;
+    }
+
+    /**
+     * True once a form is {@code CANCELED} — whether that happened via the
+     * sender withdrawing it or the receiver rejecting it, both are the same
+     * closed/locked outcome now. A super admin is the only one who can
+     * {@code reopen()} it back to {@code SENT}; see
+     * {@code Form058ReopenValidator}.
+     */
+    public boolean isReopenable() {
+        return this == CANCELED;
+    }
+
+    /**
+     * True while the case has not yet reached a final outcome (approved or
+     * canceled) — drives the "active cases" dashboard metric
+     * ({@code Form058StatsRepository.countActive}).
+     */
+    public boolean isPending() {
         return switch (this) {
-            case NOT_APPROVED, SENT, RECEIVED, CARD_LINKED, APPROVED_PENDING -> true;
+            case SENT, ACCEPTED, CARD_LINKED -> true;
             case APPROVED, CANCELED -> false;
         };
     }

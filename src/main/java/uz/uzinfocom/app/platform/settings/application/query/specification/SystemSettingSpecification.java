@@ -26,6 +26,11 @@ public final class SystemSettingSpecification {
                 predicates.add(cb.like(cb.lower(root.get("settingKey")), search));
             }
 
+            if (StringUtils.hasText(request.settingValue())) {
+                String value = "%" + request.settingValue().trim().toLowerCase(Locale.ROOT) + "%";
+                predicates.add(cb.like(cb.lower(root.get("settingValue")), value));
+            }
+
             if (request.valueType() != null) {
                 predicates.add(cb.equal(root.get("valueType"), request.valueType()));
             }

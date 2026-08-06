@@ -5,10 +5,12 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.reference.application.common.ReferenceCodeNormalizer;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
+import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodLookupFilterRequest;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodLookupResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodResponse;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.dto.NeighborhoodTableResponse;
@@ -16,6 +18,7 @@ import uz.uzinfocom.app.platform.reference.application.neighborhood.query.mapper
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.projection.NeighborhoodTableProjection;
 import uz.uzinfocom.app.platform.reference.application.neighborhood.query.specification.NeighborhoodSpecification;
 import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.platform.reference.domain.Neighborhood;
 import uz.uzinfocom.app.platform.reference.repository.NeighborhoodRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
@@ -27,6 +30,8 @@ import java.util.Objects;
 @CacheConfig(cacheManager = "securityCacheManager")
 @RequiredArgsConstructor
 public class NeighborhoodQueryService {
+
+    private static final int DEFAULT_LOOKUP_PAGE_SIZE = 20;
 
     private final NeighborhoodRepository neighborhoodRepository;
     private final NeighborhoodMapper neighborhoodMapper;
@@ -67,7 +72,8 @@ public class NeighborhoodQueryService {
     @Transactional(readOnly = true)
     @Cacheable(
             cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE,
-            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT)",
+            key = "#code.trim().toUpperCase(T(java.util.Locale).ROOT) + '-' + " +
+                    "T(org.springframework.context.i18n.LocaleContextHolder).getLocale().toLanguageTag()",
             condition = "#code != null"
     )
     public NeighborhoodLookupResponse getByCode(String code) {
@@ -79,18 +85,22 @@ public class NeighborhoodQueryService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(
-            cacheNames = ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE,
-            key = "#parentCode.trim().toUpperCase(T(java.util.Locale).ROOT)",
-            condition = "#parentCode != null"
-    )
-    public List<NeighborhoodLookupResponse> getByParentCode(String parentCode) {
+    public Page<NeighborhoodLookupResponse> getByParentCode(String parentCode, NeighborhoodLookupFilterRequest request) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
-        return neighborhoodRepository
-                .findAllByParentCodeAndDeletedFalseOrderByNameUzAsc(normalizedParentCode)
-                .stream()
-                .map(neighborhoodMapper::toLookupResponse)
-                .toList();
+        Pageable pageable = PageableUtils.of(
+                request,
+                "nameUz",
+                Sort.Direction.ASC,
+                NeighborhoodSortFields.ALLOWED_SORT_FIELDS,
+                DEFAULT_LOOKUP_PAGE_SIZE
+        );
+
+        Page<Neighborhood> page = neighborhoodRepository.findAll(
+                NeighborhoodSpecification.byParentCodeAndName(normalizedParentCode, request.name()),
+                pageable
+        );
+
+        return page.map(neighborhoodMapper::toLookupResponse);
     }
 }

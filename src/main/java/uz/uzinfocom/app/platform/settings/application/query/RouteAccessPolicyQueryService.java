@@ -6,6 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.settings.application.query.dto.RouteAccessPolicyDetailResponse;
 import uz.uzinfocom.app.platform.settings.application.query.dto.RouteAccessPolicyFilterRequest;
 import uz.uzinfocom.app.platform.settings.application.query.dto.RouteAccessPolicyResponse;
 import uz.uzinfocom.app.platform.settings.application.query.specification.RouteAccessPolicySpecification;
@@ -19,6 +22,7 @@ import uz.uzinfocom.app.shared.pagination.PageableUtils;
 public class RouteAccessPolicyQueryService {
 
     private final RouteAccessPolicyRepository routeAccessPolicyRepository;
+    private final AuditResolver auditResolver;
 
     @Transactional(readOnly = true)
     public Page<RouteAccessPolicyResponse> findAll(RouteAccessPolicyFilterRequest request) {
@@ -32,11 +36,11 @@ public class RouteAccessPolicyQueryService {
     }
 
     @Transactional(readOnly = true)
-    public RouteAccessPolicyResponse getById(Long id) {
+    public RouteAccessPolicyDetailResponse getById(Long id) {
         RouteAccessPolicy policy = routeAccessPolicyRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("route-policy.not-found", id));
 
-        return toResponse(policy);
+        return toDetailResponse(policy, auditResolver.resolve(policy));
     }
 
     private static RouteAccessPolicyResponse toResponse(RouteAccessPolicy entity) {
@@ -49,6 +53,20 @@ public class RouteAccessPolicyQueryService {
                 entity.getRoleValidationRequired(),
                 entity.getEnabled(),
                 entity.getDescription()
+        );
+    }
+
+    private static RouteAccessPolicyDetailResponse toDetailResponse(RouteAccessPolicy entity, AuditResponse audit) {
+        return new RouteAccessPolicyDetailResponse(
+                entity.getId(),
+                entity.getPattern(),
+                entity.getDisplayOrder(),
+                entity.getOpen(),
+                entity.getOrganizationHeaderRequired(),
+                entity.getRoleValidationRequired(),
+                entity.getEnabled(),
+                entity.getDescription(),
+                audit
         );
     }
 }

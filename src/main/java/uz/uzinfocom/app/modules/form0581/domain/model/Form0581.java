@@ -19,14 +19,13 @@ import java.util.Map;
 /**
  * "Form 058-1" — emergency notification of suspected rabies on an animal
  * bite/scratch/saliva-contact case. Sibling of {@link uz.uzinfocom.app.modules.form058.domain.model.Form058},
- * built to the same create/update/approve/notApprove/cancel/delete lifecycle,
- * and deliberately not sharing {@code FormStatus} or the {@code Form058}
- * entity itself — these are independent sibling forms, not a subtype
- * relationship. As with {@code Form058}, assigning cards advances
- * {@link Form0581Status} into {@code CARD_LINKED} (forward-only); see
- * {@link #linkCards()}. Unlike {@code Form058}, the final approve/not-approve
- * decision here belongs to the sender organization, not the receiver — see
- * {@code Form0581ApprovalValidator}.
+ * built to the identical create/accept/cancel/approve/delete lifecycle, and
+ * deliberately not sharing {@code FormStatus} or the {@code Form058} entity
+ * itself — these are independent sibling forms, not a subtype relationship.
+ * As with {@code Form058}, assigning cards advances {@link Form0581Status}
+ * into {@code CARD_LINKED} (forward-only); see {@link #linkCards()}. The
+ * final approve decision belongs to the sender organization, not the
+ * receiver — see {@code Form0581ApprovalValidator}.
  */
 @Getter
 @Setter
@@ -151,27 +150,26 @@ public class Form0581 extends AbsEntity implements AuditableFields {
 
     /**
      * Called once one or more cards exist on this form (see
-     * {@code CardCommandService.assignCardsToForm0581}). Unlike
-     * {@code Form058.linkCards()}, cards may only be linked after the
-     * receiver has explicitly accepted the form ({@link #receive()} —
-     * {@code RECEIVED}); a still-{@code SENT} (not yet received) or
-     * {@code NOT_APPROVED} form must not have cards linked to it directly.
-     * From {@code RECEIVED} this advances into {@link Form0581Status#CARD_LINKED},
-     * but only forward: a form already past that point (APPROVED_PENDING and
-     * beyond) must not be pushed backwards just because another card was
-     * added to it. {@link #ensureEditable()} already rules out
-     * CANCELED/APPROVED/deleted forms before this is ever reached.
+     * {@code CardCommandService.assignCardsToForm0581}). Cards may only be
+     * linked after the receiver has accepted the form ({@link #accept()} —
+     * {@code ACCEPTED}); a still-{@code SENT} (not yet decided) form must
+     * not have cards linked to it directly. From {@code ACCEPTED} this
+     * advances into {@link Form0581Status#CARD_LINKED}, but only forward: a
+     * form already at {@code CARD_LINKED} must not be pushed backwards just
+     * because another card was added to it. {@link #ensureEditable()}
+     * already rules out CANCELED/APPROVED/deleted forms before this is ever
+     * reached.
      */
     public void linkCards() {
         ensureEditable();
 
-        if (status == Form0581Status.SENT || status == Form0581Status.NOT_APPROVED) {
+        if (status == Form0581Status.SENT) {
             throw new InvalidForm0581StateException("error.form0581.card-link-not-allowed", this.status);
         }
 
         this.hasLinkedCards = true;
 
-        if (status == Form0581Status.RECEIVED) {
+        if (status == Form0581Status.ACCEPTED) {
             status = Form0581Status.CARD_LINKED;
         }
     }
@@ -191,15 +189,22 @@ public class Form0581 extends AbsEntity implements AuditableFields {
 
     /**
      * The receiver's acknowledgement of an incoming form — the only path
-     * from {@code SENT} into {@code RECEIVED}. Cards cannot be linked
+     * from {@code SENT} into {@code ACCEPTED}. Cards cannot be linked
      * ({@link #linkCards()}) before this happens; see
-     * {@code Form0581ReceiveValidator} for the status/scope check.
+     * {@code Form0581AcceptValidator} for the status/scope check.
      */
-    public void receive() {
+    public void accept() {
         ensureEditable();
-        this.status = Form0581Status.RECEIVED;
+        this.status = Form0581Status.ACCEPTED;
     }
 
+    /**
+     * Closes the form as {@code CANCELED} — shared by both organizations
+     * while the form is still {@code SENT}: the sender withdrawing it, or
+     * the receiver rejecting it (see {@code Form0581CancelValidator} for
+     * the status/scope check; {@code canceledBy} is whichever org's user
+     * actually called it).
+     */
     public void cancel(String reason, Long canceledBy) {
         if (isCanceled()) {
             return;
@@ -211,6 +216,20 @@ public class Form0581 extends AbsEntity implements AuditableFields {
         this.cancellationInfo.setCancelReason(reason);
         this.cancellationInfo.setCanceledBy(canceledBy);
         this.cancellationInfo.setCanceledAt(Instant.now());
+    }
+
+    /**
+     * Super-admin-only escape hatch out of {@code CANCELED} — puts the form
+     * back to {@code SENT} regardless of which organization called
+     * {@link #cancel(String, Long)}. See {@code Form0581ReopenValidator} for
+     * the {@code requireSuperAdmin()} check; this method only re-asserts the
+     * state precondition.
+     */
+    public void reopen() {
+        if (!status.isReopenable()) {
+            throw new InvalidForm0581StateException("error.form0581.reopen-not-allowed", this.status);
+        }
+        this.status = Form0581Status.SENT;
     }
 
     public void approve(
@@ -228,13 +247,6 @@ public class Form0581 extends AbsEntity implements AuditableFields {
         this.approvalInfo.setApprovedBy(approvedBy);
         this.approvalInfo.setApprovedOrganizationId(approvedOrganizationId);
         this.approvalInfo.setApprovedAt(Instant.now());
-    }
-
-    public void notApprove(String reason) {
-        ensureCancellationInfo();
-
-        this.status = Form0581Status.NOT_APPROVED;
-        this.cancellationInfo.setNotApprovedReason(reason);
     }
 
     public void updateFinalDiagnosis(String finalIcd10Code, String finalIcd10Name) {

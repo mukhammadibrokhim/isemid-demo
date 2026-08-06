@@ -32,6 +32,10 @@ public record SystemSettingFilterRequest(
         @Size(max = 200, message = "{settings.setting-key.size}")
         String search,
 
+        @Schema(description = "Текст поиска по значению настройки.")
+        @Size(max = 2000, message = "{settings.setting-value.size}")
+        String settingValue,
+
         @Schema(description = "Фильтр по типу значения настройки.", example = "STRING")
         SystemSettingValueType valueType,
 

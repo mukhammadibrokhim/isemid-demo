@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form0581Status was reworked to mirror the sibling Form058's final
+        shape exactly: SENT, ACCEPTED, CARD_LINKED, APPROVED, CANCELED (5
+        values instead of the previous 7).
+
+        - RECEIVED -> ACCEPTED: same status, renamed for clarity.
+        - NOT_APPROVED -> CANCELED: notApprove() (the sender's final
+          rejection) was folded entirely into cancel() — there is only one
+          shared closing action/status now, same as Form058's reject/cancel
+          merge.
+        - APPROVED_PENDING was removed from the enum entirely: it was never
+          reachable by any code path, so no row can hold that value — no
+          data migration needed for its removal.
+    -->
+    <!--
+        form058_1_status_check is a stale, untracked check constraint present
+        on some environments' form058_1 table (not created by any changeset
+        in this changelog) that still only allows the old 7-value status
+        set — the same situation already hit once with the act module (see
+        zzz-card-act/20260723-1200-drop-stale-act-status-check.xml) and
+        blocks the renames below with "violates check constraint
+        form058_1_status_check". Dropped rather than redefined, matching
+        this codebase's convention that status columns are validated at the
+        Java/@Enumerated(EnumType.STRING) layer only, not by a DB constraint
+        that would just drift out of sync on the next status change.
+    -->
+    <changeSet id="20260806-1299-form0581-drop-stale-status-check" author="claude">
+        <sql>ALTER TABLE form058_1 DROP CONSTRAINT IF EXISTS form058_1_status_check;</sql>
+    </changeSet>
+
+    <changeSet id="20260806-1300-form0581-received-to-accepted-rename" author="claude">
+        <update tableName="form058_1">
+            <column name="status" value="ACCEPTED"/>
+            <where>status = 'RECEIVED'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260806-1301-form0581-not-approved-into-canceled-merge" author="claude">
+        <update tableName="form058_1">
+            <column name="status" value="CANCELED"/>
+            <where>status = 'NOT_APPROVED'</where>
+        </update>
+    </changeSet>
+
+    <!--
+        notApprove() is gone: there is only one shared reason field now
+        (cancellationInfo.cancelReason), used by both the sender's
+        withdrawal and the receiver's rejection. Any reason text already
+        sitting in not_approved_reason is preserved by copying it into
+        cancel_reason first (only where cancel_reason is still empty, so a
+        genuine cancellation's reason is never overwritten) before the
+        column is dropped.
+    -->
+    <changeSet id="20260806-1302-form0581-merge-not-approved-reason-into-cancel-reason" author="claude">
+        <update tableName="form058_1">
+            <column name="cancel_reason" valueComputed="not_approved_reason"/>
+            <where>not_approved_reason is not null and (cancel_reason is null or cancel_reason = '')</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260806-1303-form0581-drop-not-approved-reason-column" author="claude">
+        <dropColumn tableName="form058_1" columnName="not_approved_reason"/>
+    </changeSet>
+</databaseChangeLog>
