@@ -1,6 +1,7 @@
 package uz.uzinfocom.isemid.features.classifier.mappers;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.mapstruct.Context;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import uz.uzinfocom.isemid.features.form058.constants.Form058Sources;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class CatalogMapperHelper {
     private final CatalogService catalogService;
 
@@ -21,7 +23,10 @@ public class CatalogMapperHelper {
 
     @Named("toNeighborhoodCode")
     public String toNeighborhoodCode(String neighborhood, @Context String source) {
-        if (!Form058Sources.DMED.equals(source)) {
+        log.info("source: {}", source);
+        log.info("source.length= {}", source.length());
+        log.info("Form058Sources.DMED.length= {}", Form058Sources.DMED.length());
+        if (!Form058Sources.DMED.equalsIgnoreCase(source.strip())) {
             return neighborhood;
         }
         Catalog catalog = catalogService.findByInn(neighborhood);
