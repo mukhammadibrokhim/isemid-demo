@@ -53,7 +53,18 @@ public class DevErrorLogWriter {
                     .occurredAt(Instant.now())
                     .build();
 
-            devErrorLogRepository.save(entry);
+            DevErrorLog saved = devErrorLogRepository.save(entry);
+
+            devSseBroadcaster.broadcast("error", new DevErrorResponse(
+                    saved.getId(),
+                    saved.getErrorCode(),
+                    saved.getHttpStatus(),
+                    saved.getExceptionType(),
+                    saved.getPath(),
+                    saved.getMethod(),
+                    saved.getOccurredAt(),
+                    saved.getStatus()
+            ));
         } catch (RuntimeException persistenceFailure) {
             log.warn("event=dev_error_log_write_failure traceId={} errorCode={} failureType={}",
                     traceId, errorCode, persistenceFailure.getClass().getName());
