@@ -6,10 +6,12 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
 import uz.uzinfocom.app.platform.iam.application.sync.mapper.OrganizationRemoteMapper;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.infrastructure.remote.ProviderIamRemoteClient;
+import uz.uzinfocom.app.platform.iam.infrastructure.remote.payload.RemoteOrganizationPayload;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
 
 import java.util.UUID;
@@ -35,7 +37,10 @@ public class OrganizationSyncService {
     }
 
     private Organization provision(String providerKey, UUID organizationUuid, String rawToken) {
-        Organization entity = mapper.toEntity(remoteClient.fetchOrganization(providerKey, organizationUuid, rawToken));
+        RemoteOrganizationPayload payload = remoteClient.fetchOrganization(providerKey, organizationUuid, rawToken);
+        Organization entity = mapper.toEntity(payload);
+        entity.setParent(resolveParent(providerKey, payload, rawToken));
+
         try {
             return organizationRepository.saveAndFlush(entity);
         } catch (DataIntegrityViolationException concurrentInsert) {
@@ -45,5 +50,23 @@ public class OrganizationSyncService {
             return organizationRepository.findByUuid(organizationUuid)
                     .orElseThrow(() -> concurrentInsert);
         }
+    }
+
+    private Organization resolveParent(String providerKey, RemoteOrganizationPayload payload, String rawToken) {
+        String parentUuidRaw = payload.parentOrganizationUuid();
+        if (!StringUtils.hasText(parentUuidRaw)) {
+            return null;
+        }
+
+        UUID parentUuid;
+        try {
+            parentUuid = UUID.fromString(parentUuidRaw);
+        } catch (IllegalArgumentException invalidUuid) {
+            log.warn("Organization {} has a non-UUID parent reference '{}'; skipping parent link",
+                    payload.uuid(), parentUuidRaw);
+            return null;
+        }
+
+        return resolve(providerKey, parentUuid, rawToken);
     }
 }

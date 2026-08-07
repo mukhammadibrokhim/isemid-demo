@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerMapping;
 import uz.uzinfocom.app.platform.devmonitoring.application.DevErrorLogWriter;
@@ -177,7 +178,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             if (!HTTP_LOG.isErrorEnabled()) {
                 return;
             }
-        } else if (status >= 400 || slow || directFailure != null) {
+        } else if (status >= 400 || slow) {
             if (!HTTP_LOG.isWarnEnabled()) {
                 return;
             }
@@ -235,7 +236,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                         sanitizer.sanitizePath(request.getRequestURI(), config.isMaskPathIdentifiers(), config.getMaxTextLength()),
                         request.getMethod(),
                         principal,
-                        message
+                        sanitize(appendCause(message, failure, rootCause), config.getMaxTextLength())
                 );
             }
 
@@ -330,6 +331,26 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             return "rejected";
         }
         return "success";
+    }
+
+    /**
+     * Appends the root cause's message to the (already resolved) technical
+     * message, e.g. "Validation failed | cause: Connection reset by peer" -
+     * only when the failure actually has a distinct nested cause and that
+     * cause's message isn't already part of {@code message}.
+     */
+    private String appendCause(String message, Throwable failure, Throwable rootCause) {
+        if (rootCause == null || rootCause == failure) {
+            return message;
+        }
+        String causeMessage = rootCause.getMessage();
+        if (!StringUtils.hasText(causeMessage)) {
+            causeMessage = rootCause.getClass().getSimpleName();
+        }
+        if (message != null && message.contains(causeMessage)) {
+            return message;
+        }
+        return message == null ? causeMessage : message + " | cause: " + causeMessage;
     }
 
     private Throwable rootCause(Throwable failure) {

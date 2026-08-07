@@ -21,6 +21,7 @@ public interface OrganizationQueryMapper {
     OrganizationTableResponse toTableResponse(OrganizationTableProjection organizationTableProjection);
 
     @Mapping(target = "name", source = "organization", qualifiedByName = "localizedOrganizationName")
+    @Mapping(target = "parent", source = "organization.parent", qualifiedByName = "toOrgMiniResponse")
     @Mapping(target = "audit", source = "audit")
     OrganizationDetailResponse toDetailedResponse(Organization organization, AuditResponse audit);
 

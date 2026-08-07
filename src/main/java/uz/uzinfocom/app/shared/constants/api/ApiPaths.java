@@ -250,6 +250,15 @@ public final class ApiPaths {
         public static final String REQUEST_BY_ID = "/requests/{id}";
         public static final String METRICS_SYSTEM = "/metrics/system";
         public static final String METRICS_HTTP = "/metrics/http";
+
+        /**
+         * Single multiplexed SSE connection for the dev panel - pushes
+         * {@code system}, {@code http} (periodic metrics snapshots) and
+         * {@code error} (new {@link #ERRORS} row) named events over one
+         * stream instead of one connection per data source, to stay well
+         * under the browser's per-origin connection limit.
+         */
+        public static final String STREAM = "/stream";
         public static final String SETTINGS = "/settings";
         public static final String SETTINGS_BY_ID = "/settings/{id}";
         public static final String SETTINGS_BY_KEY = "/settings/by-key/{key}";

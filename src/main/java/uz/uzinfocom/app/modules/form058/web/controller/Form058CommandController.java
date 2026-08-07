@@ -123,7 +123,8 @@ public class Form058CommandController {
     @Operation(
             summary = "Утвердить форму №058 (отправитель)",
             description = "Переводит форму в статус APPROVED с итоговым диагнозом. Доступно организации-отправителю "
-                    + "после того, как форма принята получателем и к ней привязана карта (статус CARD_LINKED)."
+                    + "после того, как форма принята получателем (статус ACCEPTED), в том числе до привязки карты; "
+                    + "привязанная карта (статус CARD_LINKED) не обязательна."
     )
     @PatchMapping(ApiPaths.Form058.APPROVE)
     @PreAuthorize("isAuthenticated()")

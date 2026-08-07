@@ -40,13 +40,14 @@ public enum FormStatus {
     }
 
     /**
-     * True once a card has been linked to the form — the sender may only
-     * issue the final approval (with the final diagnosis) after that point,
-     * never directly from {@code SENT}/{@code ACCEPTED}. See
-     * {@code Form058ApprovalValidator}.
+     * True once the receiver has accepted the form — the sender may issue
+     * the final approval either right after acceptance ({@code ACCEPTED},
+     * no card needed) or later once a card has been linked
+     * ({@code CARD_LINKED}), but never while still {@code SENT} (the
+     * receiver hasn't decided yet). See {@code Form058ApprovalValidator}.
      */
     public boolean isApprovable() {
-        return this == CARD_LINKED;
+        return this == ACCEPTED || this == CARD_LINKED;
     }
 
     /**

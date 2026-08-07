@@ -79,4 +79,8 @@ public class Organization extends AuditableEntity {
     @Column(name = "service_type")
     private List<ServiceType> serviceTypes = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Organization parent;
+
 }

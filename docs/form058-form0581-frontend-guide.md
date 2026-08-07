@@ -75,7 +75,7 @@ SENT ──accept (receiver)──► ACCEPTED ──linkCards()──► CARD_L
 |---|---|---|---|
 | `accept` | Receiver org only | `SENT` | → `ACCEPTED` |
 | `cancel` | **Either** sender org **or** receiver org | `SENT` only | → `CANCELED` |
-| `approve` | **Sender** org only (not the receiver!) | `CARD_LINKED` only | → `APPROVED` |
+| `approve` | **Sender** org only (not the receiver!) | Form058: `ACCEPTED` or `CARD_LINKED`. Form0581: `CARD_LINKED` only | → `APPROVED` |
 | `reopen` | **Super admin only** | `CANCELED` only | → `SENT` |
 
 A super admin (`isemid_super_admin` authority) bypasses every organization-scope

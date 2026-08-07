@@ -47,6 +47,9 @@ public record OrganizationDetailResponse(
         @Schema(description = "Виды услуг организации.")
         List<ServiceType> serviceTypes,
 
+        @Schema(description = "Родительская организация.")
+        OrganizationShortResponse parent,
+
         @Schema(description = "Информация о создании и последнем изменении записи.")
         AuditResponse audit
 ) {

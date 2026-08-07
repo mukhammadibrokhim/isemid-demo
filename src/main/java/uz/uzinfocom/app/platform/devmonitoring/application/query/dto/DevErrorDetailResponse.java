@@ -4,19 +4,19 @@ import uz.uzinfocom.app.platform.devmonitoring.domain.DevErrorStatus;
 
 import java.time.Instant;
 
-/**
- * Summary row for the table view - {@code GET /v1/dev/errors}. Full detail
- * (trace id, principal, message) is only fetched per-row via
- * {@code GET /v1/dev/errors/{id}}, see {@link DevErrorDetailResponse}.
- */
-public record DevErrorResponse(
+public record DevErrorDetailResponse(
         Long id,
+        String traceId,
         String errorCode,
         Integer httpStatus,
         String exceptionType,
         String path,
         String method,
+        String principal,
+        String message,
         Instant occurredAt,
-        DevErrorStatus status
+        DevErrorStatus status,
+        Long resolvedBy,
+        Instant resolvedAt
 ) {
 }

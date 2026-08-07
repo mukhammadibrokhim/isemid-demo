@@ -31,7 +31,9 @@ form058/
 ## Status lifecycle (`FormStatus`)
 
 ```
-SENT ──accept (receiver)──► ACCEPTED ──linkCards()──► CARD_LINKED ──── approve (sender, finalIcd10 required) ──► APPROVED (final)
+SENT ──accept (receiver)──► ACCEPTED ──linkCards()──► CARD_LINKED
+                               │                            │
+                               └──── approve (sender, finalIcd10 required) ──► APPROVED (final)
   │
   └──cancel (sender OR receiver, reason)──► CANCELED (final, locked —
         only while still SENT              only a super admin may act on
@@ -52,10 +54,11 @@ Three decisions on a form, three different actors:
    freshly `SENT` form. `accept()` opens it up for processing (`ACCEPTED`)
    — see `Form058AcceptValidator`.
 3. **Approve** — the sender's call (the institution that originally
-   diagnosed and reported the case), reachable only once a card has been
-   linked (`FormStatus.isApprovable()`, i.e. `CARD_LINKED`). A form can
-   never be approved straight from `SENT`/`ACCEPTED`. See
-   `Form058ApprovalValidator`.
+   diagnosed and reported the case), reachable once the receiver has
+   accepted the form — either right away (`ACCEPTED`, no card required) or
+   later once a card has been linked (`CARD_LINKED`)
+   (`FormStatus.isApprovable()`). A form can never be approved straight
+   from `SENT`. See `Form058ApprovalValidator`.
 
 Neither the sender nor the receiver organization can touch a `CANCELED`
 form — `ensureEditable()`, `linkCards()` and `isCancellable()` all reject
@@ -88,7 +91,7 @@ there now that rejection and cancellation share one status.
 | PUT | `/{id}` | Update |
 | DELETE | `/{id}` | Delete |
 | PATCH | `/{id}/accept` | Receiver accepts an incoming form (`SENT` → `ACCEPTED`) |
-| PATCH | `/{id}/approve` | Sender's final approval with the definitive diagnosis (`CARD_LINKED` → `APPROVED`) |
+| PATCH | `/{id}/approve` | Sender's final approval with the definitive diagnosis (`ACCEPTED`/`CARD_LINKED` → `APPROVED`) |
 | PATCH | `/{id}/cancel` | Sender withdraws or receiver rejects the form, only while `SENT` (`CANCELED`, final/locked) |
 | PATCH | `/{id}/reopen` | Super-admin-only: puts a `CANCELED` form back to `SENT` |
 | GET | `/` | List/filter |

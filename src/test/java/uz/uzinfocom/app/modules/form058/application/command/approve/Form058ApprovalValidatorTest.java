@@ -41,11 +41,11 @@ class Form058ApprovalValidatorTest {
     }
 
     @Test
-    void anAcceptedButNotYetCardLinkedFormCannotBeApproved() {
+    void senderOrganizationCanApproveAnAcceptedFormWithoutACardLinkedYet() {
         CurrentOrganizationContext.set(organization(10L));
 
-        assertThatThrownBy(() -> validator.validateApprove(form(FormStatus.ACCEPTED)))
-                .isInstanceOf(InvalidForm058StateException.class);
+        assertThatCode(() -> validator.validateApprove(form(FormStatus.ACCEPTED)))
+                .doesNotThrowAnyException();
     }
 
     @Test

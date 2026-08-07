@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.devmonitoring.application.command.DevErrorCommandService;
 import uz.uzinfocom.app.platform.devmonitoring.application.command.dto.DevErrorStatusUpdateRequest;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.DevErrorQueryService;
+import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevErrorDetailResponse;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevErrorFilterRequest;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevErrorResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -30,7 +31,9 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 @Tag(
         name = "Dev Monitoring - Errors",
         description = "Failed-request (status >= 400) history captured by RequestLoggingFilter, "
-                + "queryable and resolvable for the internal developer monitoring panel."
+                + "queryable and resolvable for the internal developer monitoring panel. Use the list "
+                + "endpoint for the table/summary view, and the by-id endpoint for the full detail of a "
+                + "single failed request."
 )
 @Validated
 @RestController
@@ -50,6 +53,15 @@ public class DevErrorController {
     ) {
         Page<DevErrorResponse> page = devErrorQueryService.findAll(request);
         return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @GetMapping(ApiPaths.Dev.ERROR_BY_ID)
+    public ApiResponse<DevErrorDetailResponse> findById(
+            @Parameter(description = "Internal id of the failed-request log entry.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        DevErrorDetailResponse response = devErrorQueryService.findById(id);
+        return ApiResponse.success(messageResolver.resolve("common.success"), response);
     }
 
     @PatchMapping(ApiPaths.Dev.ERROR_BY_ID)

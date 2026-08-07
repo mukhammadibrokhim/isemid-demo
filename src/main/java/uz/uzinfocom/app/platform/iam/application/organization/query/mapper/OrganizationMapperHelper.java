@@ -37,6 +37,11 @@ public class OrganizationMapperHelper {
         return organizationRepository.findByUuid(uuid).map(this::toResponse).orElse(null);
     }
 
+    @Named("toOrgMiniResponse")
+    public OrganizationShortResponse toOrgMiniResponse(Organization organization) {
+        return toResponse(organization);
+    }
+
     @Named("uuidToLongId")
     public Long uuidToLongId(UUID uuid) {
         if (uuid == null) {

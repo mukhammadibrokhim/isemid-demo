@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevErrorResponse;
+import uz.uzinfocom.app.platform.devmonitoring.application.stream.DevSseBroadcaster;
 import uz.uzinfocom.app.platform.devmonitoring.domain.DevErrorLog;
 import uz.uzinfocom.app.platform.devmonitoring.repository.DevErrorLogRepository;
 
@@ -24,6 +26,7 @@ import java.time.Instant;
 public class DevErrorLogWriter {
 
     private final DevErrorLogRepository devErrorLogRepository;
+    private final DevSseBroadcaster devSseBroadcaster;
 
     @Async("applicationTaskExecutor")
     @Transactional
