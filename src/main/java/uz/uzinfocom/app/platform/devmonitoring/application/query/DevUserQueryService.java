@@ -1,15 +1,17 @@
 package uz.uzinfocom.app.platform.devmonitoring.application.query;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserDetailResponse;
-import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserResponse;
+import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserFilterRequest;
+import uz.uzinfocom.app.platform.devmonitoring.application.query.specification.DevUserSpecification;
 import uz.uzinfocom.app.platform.devmonitoring.domain.DevUser;
 import uz.uzinfocom.app.platform.devmonitoring.repository.DevUserRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
-
-import java.util.List;
+import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -18,10 +20,12 @@ public class DevUserQueryService {
     private final DevUserRepository devUserRepository;
 
     @Transactional(readOnly = true)
-    public List<DevUserResponse> findAll() {
-        return devUserRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+    public Page<DevUserDetailResponse> findAll(DevUserFilterRequest request) {
+        Pageable pageable = PageableUtils.of(request, DevUserSortFields.ALLOWED);
+
+        return devUserRepository
+                .findAll(DevUserSpecification.byFilter(request), pageable)
+                .map(DevUserQueryService::toDetailResponse);
     }
 
     @Transactional(readOnly = true)
@@ -32,17 +36,7 @@ public class DevUserQueryService {
         return toDetailResponse(devUser);
     }
 
-    private DevUserResponse toResponse(DevUser devUser) {
-        return new DevUserResponse(
-                devUser.getId(),
-                devUser.getUsername(),
-                devUser.isEnabled(),
-                devUser.isRoot(),
-                devUser.getCreatedAt()
-        );
-    }
-
-    private DevUserDetailResponse toDetailResponse(DevUser devUser) {
+    private static DevUserDetailResponse toDetailResponse(DevUser devUser) {
         return new DevUserDetailResponse(
                 devUser.getId(),
                 devUser.getUsername(),

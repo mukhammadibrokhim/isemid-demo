@@ -3,11 +3,16 @@ package uz.uzinfocom.app.platform.devmonitoring.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,12 +24,12 @@ import uz.uzinfocom.app.platform.devmonitoring.application.command.dto.DevUserCr
 import uz.uzinfocom.app.platform.devmonitoring.application.command.dto.DevUserCreateResponse;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.DevUserQueryService;
 import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserDetailResponse;
-import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserResponse;
+import uz.uzinfocom.app.platform.devmonitoring.application.query.dto.DevUserFilterRequest;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
-
-import java.util.List;
+import uz.uzinfocom.app.shared.dto.response.PagedResponse;
+import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 /**
  * Provisioning for developer-monitoring-panel logins ({@code /v1/dev/**}) -
@@ -45,6 +50,7 @@ import java.util.List;
                 + "local credential system for an internal ops tool, distinct from the SSO/DHP-issued "
                 + "bearer tokens every other endpoint requires. Restricted to root dev-panel accounts."
 )
+@Validated
 @RestController
 @RequestMapping(ApiPaths.Dev.ROOT)
 @RequiredArgsConstructor
@@ -53,12 +59,17 @@ public class DevUserController {
     private final DevUserQueryService devUserQueryService;
     private final DevUserCommandService devUserCommandService;
     private final MessageResolver messageResolver;
+    private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(summary = "List dev-panel accounts")
     @GetMapping(ApiPaths.Dev.DEV_USERS)
     @PreAuthorize("hasRole('DEV_ROOT')")
-    public ApiResponse<List<DevUserResponse>> findAll() {
-        return ApiResponse.success(messageResolver.resolve("common.success"), devUserQueryService.findAll());
+    public PagedResponse<DevUserDetailResponse> findAll(
+            @ParameterObject @Valid @ModelAttribute DevUserFilterRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        Page<DevUserDetailResponse> page = devUserQueryService.findAll(request);
+        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(summary = "Get a dev-panel account by id")

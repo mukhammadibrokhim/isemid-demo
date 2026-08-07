@@ -19,6 +19,7 @@ import uz.uzinfocom.app.platform.security.jwt.ProviderJwtDecoderFactory;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Records login attempts (success and failure) against {@code /v1/auth/login/{provider}}
@@ -48,12 +49,12 @@ public class LoginHistoryRecorder {
     public void recordSuccess(String loginProviderKey, LoginResult result, String ip, String userAgent) {
         String traceId = TraceContext.currentTraceId();
         try {
-            String username = resolveUsername(result.accessToken());
-            save(loginProviderKey, username, true, null, ip, userAgent, traceId);
+            ExternalIdentityPayload identity = resolveIdentity(result.accessToken());
+            save(loginProviderKey, identity.username(), identity.practitionerUuid(), true, null, ip, userAgent, traceId);
         } catch (RuntimeException resolutionFailure) {
             log.warn("event=dev_login_history_username_resolution_failure traceId={} provider={} failureType={}",
                     traceId, loginProviderKey, resolutionFailure.getClass().getName());
-            save(loginProviderKey, null, true, null, ip, userAgent, traceId);
+            save(loginProviderKey, null, null, true, null, ip, userAgent, traceId);
         }
     }
 
@@ -62,10 +63,10 @@ public class LoginHistoryRecorder {
     public void recordFailure(String loginProviderKey, Throwable failure, String ip, String userAgent) {
         String traceId = TraceContext.currentTraceId();
         String reason = failure.getMessage() != null ? failure.getMessage() : failure.getClass().getSimpleName();
-        save(loginProviderKey, null, false, reason, ip, userAgent, traceId);
+        save(loginProviderKey, null, null, false, reason, ip, userAgent, traceId);
     }
 
-    private String resolveUsername(String accessToken) {
+    private ExternalIdentityPayload resolveIdentity(String accessToken) {
         JWTClaimsSet claims;
         try {
             claims = SignedJWT.parse(accessToken).getJWTClaimsSet();
@@ -82,14 +83,13 @@ public class LoginHistoryRecorder {
                 authProvidersProperties.requireProvider(inboundProviderKey)
         );
         Jwt jwt = decoder.decode(accessToken);
-        ExternalIdentityPayload payload = identityClaimExtractorRegistry.extract(inboundProviderKey, jwt);
-
-        return payload.username();
+        return identityClaimExtractorRegistry.extract(inboundProviderKey, jwt);
     }
 
     private void save(
             String provider,
             String username,
+            UUID userId,
             boolean success,
             String failureReason,
             String ip,
@@ -100,6 +100,7 @@ public class LoginHistoryRecorder {
             DevLoginHistory entry = DevLoginHistory.builder()
                     .provider(provider)
                     .username(username)
+                    .userId(userId)
                     .success(success)
                     .failureReason(failureReason)
                     .ip(ip)

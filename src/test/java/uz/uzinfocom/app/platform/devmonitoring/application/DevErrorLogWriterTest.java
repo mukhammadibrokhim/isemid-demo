@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.devmonitoring.application;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import uz.uzinfocom.app.platform.devmonitoring.application.stream.DevSseBroadcaster;
 import uz.uzinfocom.app.platform.devmonitoring.domain.DevErrorLog;
 import uz.uzinfocom.app.platform.devmonitoring.domain.DevErrorStatus;
 import uz.uzinfocom.app.platform.devmonitoring.repository.DevErrorLogRepository;
@@ -15,7 +16,8 @@ import static org.mockito.Mockito.when;
 class DevErrorLogWriterTest {
 
     private final DevErrorLogRepository devErrorLogRepository = mock(DevErrorLogRepository.class);
-    private final DevErrorLogWriter writer = new DevErrorLogWriter(devErrorLogRepository);
+    private final DevSseBroadcaster devSseBroadcaster = mock(DevSseBroadcaster.class);
+    private final DevErrorLogWriter writer = new DevErrorLogWriter(devErrorLogRepository, devSseBroadcaster);
 
     @Test
     void persistsAllSuppliedFieldsWithOpenStatusByDefault() {

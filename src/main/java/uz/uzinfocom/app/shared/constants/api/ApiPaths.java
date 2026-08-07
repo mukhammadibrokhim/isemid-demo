@@ -236,7 +236,15 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/dev";
         public static final String ERRORS = "/errors";
         public static final String ERROR_BY_ID = "/errors/{id}";
+
+        /**
+         * Login-attempt (success and failure) history against
+         * {@code /v1/auth/login/{provider}}. {@link #LOGINS} returns the
+         * table/list view (summary columns); {@link #LOGIN_BY_ID} returns
+         * the full detail (failure reason, user agent, trace id) for one row.
+         */
         public static final String LOGINS = "/logins";
+        public static final String LOGIN_BY_ID = "/logins/{id}";
 
         /**
          * Full per-request resource-usage log (every request, not just
@@ -248,17 +256,16 @@ public final class ApiPaths {
          */
         public static final String REQUESTS = "/requests";
         public static final String REQUEST_BY_ID = "/requests/{id}";
-        public static final String METRICS_SYSTEM = "/metrics/system";
-        public static final String METRICS_HTTP = "/metrics/http";
 
         /**
          * Single multiplexed SSE connection for the dev panel - pushes
-         * {@code system}, {@code http} (periodic metrics snapshots) and
-         * {@code error} (new {@link #ERRORS} row) named events over one
-         * stream instead of one connection per data source, to stay well
-         * under the browser's per-origin connection limit.
+         * {@code system}, {@code http} (periodic metrics snapshots, replacing
+         * what used to be plain {@code GET /metrics/system} / {@code /metrics/http}
+         * polling endpoints) and {@code error} (new {@link #ERRORS} row) named
+         * events over one stream instead of one connection per data source, to
+         * stay well under the browser's per-origin connection limit.
          */
-        public static final String STREAM = "/stream";
+        public static final String METRICS_STREAM = "/metrics/stream";
         public static final String SETTINGS = "/settings";
         public static final String SETTINGS_BY_ID = "/settings/{id}";
         public static final String SETTINGS_BY_KEY = "/settings/by-key/{key}";

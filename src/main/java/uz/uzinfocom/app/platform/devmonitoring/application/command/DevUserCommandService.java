@@ -2,6 +2,8 @@ package uz.uzinfocom.app.platform.devmonitoring.application.command;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +11,7 @@ import uz.uzinfocom.app.platform.devmonitoring.application.command.dto.DevUserCr
 import uz.uzinfocom.app.platform.devmonitoring.application.command.dto.DevUserCreateResponse;
 import uz.uzinfocom.app.platform.devmonitoring.domain.DevUser;
 import uz.uzinfocom.app.platform.devmonitoring.repository.DevUserRepository;
+import uz.uzinfocom.app.platform.devmonitoring.security.DevUserPrincipal;
 import uz.uzinfocom.app.shared.exception.ConflictException;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 
@@ -60,6 +63,10 @@ public class DevUserCommandService {
 
     @Transactional
     public void revoke(Long id) {
+        if (id.equals(currentDevUserId())) {
+            throw new ConflictException("dev-user.revoke.self-forbidden");
+        }
+
         DevUser devUser = devUserRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("dev-user.not-found", id));
 
@@ -67,6 +74,13 @@ public class DevUserCommandService {
         devUserRepository.save(devUser);
 
         log.info("Dev-panel account revoked. id={}, username={}", devUser.getId(), devUser.getUsername());
+    }
+
+    private static Long currentDevUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getPrincipal() instanceof DevUserPrincipal principal
+                ? principal.getDevUserId()
+                : null;
     }
 
     private static String generateRandomPassword() {

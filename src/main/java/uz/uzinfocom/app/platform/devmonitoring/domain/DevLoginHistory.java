@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.persistence.entity.BaseEntity;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * One row per login attempt (success or failure) against {@code /v1/auth/login/{provider}}
@@ -34,6 +35,14 @@ public class DevLoginHistory extends BaseEntity {
 
     @Column(length = 255)
     private String username;
+
+    /**
+     * The external identity's practitioner UUID (see {@code ExternalIdentityPayload#practitionerUuid}),
+     * resolved from the issued access token same as {@link #username}. Null whenever
+     * {@link #username} is null (failed attempts, or resolution failure).
+     */
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(nullable = false)
     private Boolean success;
