@@ -27,11 +27,14 @@ import uz.uzinfocom.app.platform.integrationclient.application.command.dto.Integ
 import uz.uzinfocom.app.platform.integrationclient.application.query.IntegrationClientQueryService;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientFilterRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientResponse;
+import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientSourceKeyLookupRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientTableResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
+
+import java.util.List;
 
 /**
  * Dev-panel mirror of {@code IntegrationClientController} - same command/query
@@ -80,6 +83,25 @@ public class DevIntegrationClientController {
             @PathVariable @Positive Long id
     ) {
         return ApiResponse.success(messageResolver.resolve("common.success"), integrationClientQueryService.getById(id));
+    }
+
+    @Operation(
+            summary = "Получить source-ключи активных клиентов для выбора",
+            description = "Возвращает краткий отсортированный список уникальных sourceKey активных "
+                    + "интеграционных клиентов — для заполнения параметра {source} эндпоинтов "
+                    + "/integration/v1/{source}/** (см. Integration - Form 058 и т. д.) значением из "
+                    + "реального списка. Предназначен для выпадающих списков: результат ограничен "
+                    + "параметром limit (по умолчанию 20, максимум 50) — при большем числе "
+                    + "зарегистрированных источников используйте search для сужения выборки."
+    )
+    @GetMapping(ApiPaths.Dev.INTEGRATION_CLIENT_SOURCE_KEYS)
+    public ApiResponse<List<String>> getActiveSourceKeys(
+            @ParameterObject @Valid @ModelAttribute IntegrationClientSourceKeyLookupRequest request
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                integrationClientQueryService.listActiveSourceKeys(request)
+        );
     }
 
     @Operation(

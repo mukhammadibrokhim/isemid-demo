@@ -12,6 +12,9 @@ import uz.uzinfocom.app.platform.audit.domain.AuditEvent;
 import uz.uzinfocom.app.platform.audit.repository.AuditEventRepository;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import java.util.Arrays;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuditQueryService {
@@ -33,14 +36,18 @@ public class AuditQueryService {
                 entity.getEventType(),
                 entity.getEntityType(),
                 entity.getEntityId(),
-                entity.getOldStatus(),
-                entity.getNewStatus(),
-                entity.getOldOrgId(),
-                entity.getNewOrgId(),
                 entity.getActorUserId(),
                 entity.getReason(),
-                entity.getChanges(),
+                resolveChanges(entity),
                 entity.getOccurredAt()
         );
+    }
+
+    private static Map<String, Object> resolveChanges(AuditEvent entity) {
+        return switch (entity.getEventType()) {
+            case STATUS_CHANGED -> Map.of("status", Arrays.asList(entity.getOldStatus(), entity.getNewStatus()));
+            case ORG_REASSIGNED -> Map.of("orgId", Arrays.asList(entity.getOldOrgId(), entity.getNewOrgId()));
+            case CREATED, FIELD_CHANGED -> entity.getChanges();
+        };
     }
 }

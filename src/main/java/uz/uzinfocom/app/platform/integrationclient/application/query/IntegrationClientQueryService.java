@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.integrationclient.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientFilterRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientResponse;
+import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientSourceKeyLookupRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientTableResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientWebhookResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.specification.IntegrationClientSpecification;
@@ -38,6 +40,12 @@ public class IntegrationClientQueryService {
         );
 
         return page.map(this::toTableResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> listActiveSourceKeys(IntegrationClientSourceKeyLookupRequest request) {
+        Pageable pageable = PageRequest.of(0, request.normalizedLimit());
+        return integrationClientRepository.findDistinctActiveSourceKeys(request.normalizedSearch(), pageable);
     }
 
     @Transactional(readOnly = true)

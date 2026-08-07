@@ -210,6 +210,13 @@ public final class ApiPaths {
         public static final String REVOKE = "/{id}/revoke";
         public static final String ALLOWED_IPS = "/{id}/allowed-ips";
         public static final String WEBHOOK = "/{id}/webhook";
+
+        /**
+         * Distinct {@code sourceKey} values of active clients — lets a caller
+         * populate the {@code {source}} path segment of {@link Integration}'s
+         * endpoints from a live list instead of a hand-typed string.
+         */
+        public static final String SOURCE_KEYS = "/source-keys";
     }
 
     /**
@@ -257,6 +264,7 @@ public final class ApiPaths {
         public static final String INTEGRATION_CLIENT_REVOKE = "/integration-clients/{id}/revoke";
         public static final String INTEGRATION_CLIENT_ALLOWED_IPS = "/integration-clients/{id}/allowed-ips";
         public static final String INTEGRATION_CLIENT_WEBHOOK = "/integration-clients/{id}/webhook";
+        public static final String INTEGRATION_CLIENT_SOURCE_KEYS = "/integration-clients/source-keys";
 
         /**
          * Operational visibility for the outbound status-change webhook queue
