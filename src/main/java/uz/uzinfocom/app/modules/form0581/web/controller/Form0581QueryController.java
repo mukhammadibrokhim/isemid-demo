@@ -22,6 +22,7 @@ import uz.uzinfocom.app.modules.form0581.application.query.Form0581Filter;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581QueryService;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.Form0581DetailResponse;
+import uz.uzinfocom.app.modules.form0581.application.query.dto.pdf.Form0581PdfResponse;
 import uz.uzinfocom.app.platform.export.application.ExportJobService;
 import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -93,6 +94,24 @@ public class Form0581QueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 form0581QueryService.getById(id)
+        );
+    }
+
+    @Operation(
+            summary = "Сведения формы №058-1 для печатного бланка",
+            description = "Возвращает сведения по форме в виде, готовом для печатного бланка формы №058-1: "
+                    + "все коды справочников (регион, район, пол, семейное положение, профессия, категория "
+                    + "животного и т.д.) приведены к человекочитаемым наименованиям."
+    )
+    @GetMapping(ApiPaths.Form0581.PDF)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<Form0581PdfResponse> pdf(
+            @Parameter(description = "Идентификатор формы №058-1.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                form0581QueryService.getPdf(id)
         );
     }
 

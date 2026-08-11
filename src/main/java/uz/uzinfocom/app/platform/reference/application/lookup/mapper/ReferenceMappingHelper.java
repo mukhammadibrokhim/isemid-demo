@@ -95,4 +95,9 @@ public class ReferenceMappingHelper {
     public String professionName(String code) {
         return referenceLookupService.getCatalogName("PROFESSION", code);
     }
+
+    @Named("animalCategoryName")
+    public String animalCategoryName(String code) {
+        return referenceLookupService.getCatalogName("ANIMAL_CATEGORY", code);
+    }
 }

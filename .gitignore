@@ -67,3 +67,5 @@ replay_pid*
 *.swp
 *~
 /exports/
+
+.claude/

@@ -17,9 +17,9 @@ platform pieces rather than introducing new infrastructure:
 notification/
 ├── domain/
 │   ├── Notification.java        one row per (event, recipient) — see "Fan-out model" below
-│   └── NotificationType.java    FORM058_RECEIVED, FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED,
-│                                  FORM0581_CANCELED, CARD_ASSIGNED, ACT_ASSIGNED,
-│                                  ACT_LIS_RESPONSE, EXPORT_READY
+│   └── NotificationType.java    FORM058_RECEIVED, FORM058_ACKNOWLEDGED, FORM058_CANCELED,
+│                                  FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED, FORM0581_CANCELED,
+│                                  CARD_ASSIGNED, ACT_ASSIGNED, ACT_LIS_RESPONSE, EXPORT_READY
 ├── repository/
 │   └── NotificationRepository.java
 ├── application/
@@ -47,13 +47,26 @@ alongside the audit trail:
 | Trigger | Event (publisher) | Recipients |
 |---|---|---|
 | Form058 received | `EntityCreatedEvent(FORM058, id, actorUserId)` — `CreateForm058Service` | active users of `Form058.receiverOrganizationId` |
+| Form058 acknowledged | `StatusChangedEvent(FORM058, id, "SENT", "ACCEPTED", ...)` — `AcceptForm058Service.accept` | active users of `Form058.senderOrganizationId` |
+| Form058 canceled | `StatusChangedEvent(FORM058, id, oldStatus, "CANCELED", ...)` — `CancelForm058Service.cancel` | active users of **both** `Form058.senderOrganizationId` and `Form058.receiverOrganizationId` |
 | Form0581 received | `EntityCreatedEvent(FORM0581, id, actorUserId)` — `CreateForm0581Service` | active users of `Form0581.receiverOrganizationId` |
+| Form0581 acknowledged | `StatusChangedEvent(FORM0581, id, "SENT", "ACCEPTED", ...)` — `AcceptForm0581Service.accept` | active users of `Form0581.senderOrganizationId` |
+| Form0581 canceled | `StatusChangedEvent(FORM0581, id, oldStatus, "CANCELED", ...)` — `CancelForm0581Service.cancel` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
 | Card assigned | `EntityCreatedEvent(CARD, id, assignedById)` — `CardCommandService.createBlankCards` (**new** publish call — cards previously fired no per-card event) | `card.getUsers()` |
 | Act assigned | `EntityCreatedEvent(ACT, id, assignedById)` — `ActCommandService.assignActs` | `act.getUsers()` |
 | LIS response received | `StatusChangedEvent(ACT, id, "SENT", "COMPLETED", ...)` — `ActCommandService.receiveLisResponse` | `act.getUsers()` |
-| Form0581 acknowledged | `StatusChangedEvent(FORM0581, id, "SENT", "RECEIVED", ...)` — `ReceiveForm0581Service.receive` | active users of `Form0581.senderOrganizationId` |
-| Form0581 canceled | `StatusChangedEvent(FORM0581, id, oldStatus, "CANCELED", ...)` — `CancelForm0581Service.cancel` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
 | Export ready to download | `ExportJobCompletedEvent(jobId, createdBy, exportType, fileName)` — `ExportJobService.completeJob` | `event.recipientUserId()` only (whoever submitted the export) |
+
+**Fixed bug (this change)**: the acknowledged handlers previously matched
+`oldStatus == "SENT" && newStatus == "RECEIVED"` — but neither
+`FormStatus` nor `Form0581Status` has ever had a `RECEIVED` value (the
+receiver's acceptance moves the form to `ACCEPTED`, see
+`AcceptForm058Service`/`AcceptForm0581Service`). `FORM0581_ACKNOWLEDGED`
+therefore never fired in practice; `FORM058_ACKNOWLEDGED`/`FORM058_CANCELED`
+didn't exist at all (`FORM058` wasn't even routed in
+`on(StatusChangedEvent)`, only `ACT` and `FORM0581` were). Both are now
+wired the same way Form0581 already was, matching `Form058CancelValidator`'s
+identical "either side may cancel while `SENT`" rule.
 
 The export-ready trigger is the one exception to "reuse `EntityCreatedEvent`/
 `StatusChangedEvent` as-is": `ExportJobCompletedEvent`
@@ -90,15 +103,17 @@ just the LIS callback. The listener only reacts when
 `oldStatus == "SENT" && newStatus == "COMPLETED"` — the one transition
 `ActCommandService.receiveLisResponse` produces.
 
-**Form0581 status filtering**: same idea — `StatusChangedEvent(FORM0581, ...)`
-fires for every transition (`CARD_LINKED`, `APPROVED_PENDING`, `APPROVED`,
-`NOT_APPROVED`, ...), but the listener only reacts to `SENT→RECEIVED` (the
-receiver's acknowledgement, see `Form0581ReceiveValidator`) and any
-`→CANCELED` transition. `Form0581CancelValidator` allows *either* the sender
-or the receiver to cancel while still `SENT`, so `handleForm0581Canceled`
-notifies both organizations rather than trying to resolve which side didn't
-act — `excludingActor` already drops the acting user from whichever side's
-recipient list they belong to.
+**Form058/Form0581 status filtering**: same idea — `StatusChangedEvent(FORM058, ...)`
+/`StatusChangedEvent(FORM0581, ...)` fires for every transition
+(`SENT→ACCEPTED`, `ACCEPTED→CARD_LINKED`, `CARD_LINKED→APPROVED`, ...), but
+the listener only reacts to `SENT→ACCEPTED` (the receiver's acknowledgement,
+see `Form058AcceptValidator`/`Form0581AcceptValidator`) and any `→CANCELED`
+transition. `Form058CancelValidator`/`Form0581CancelValidator` allow
+*either* the sender or the receiver to cancel while still `SENT`, so
+`handleForm058Canceled`/`handleForm0581Canceled` notify both organizations
+rather than trying to resolve which side didn't act — `excludingActor`
+already drops the acting user from whichever side's recipient list they
+belong to.
 
 **Ordering pitfall already hit once**: the settings-enabled check must run
 *before* any DB lookup of the source entity, not just before the fan-out —
@@ -145,6 +160,8 @@ Each notification kind is gated by a boolean key, checked via the existing
 read-through over the `system_settings` table):
 
 - `notification.form058-received.enabled`
+- `notification.form058-acknowledged.enabled`
+- `notification.form058-canceled.enabled`
 - `notification.form0581-received.enabled`
 - `notification.form0581-acknowledged.enabled`
 - `notification.form0581-canceled.enabled`

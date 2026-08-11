@@ -407,6 +407,7 @@ public final class ApiPaths {
         public static final String REOPEN = "/{id}/reopen";
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
+        public static final String PDF = "/{id}/pdf";
         public static final String EXPORT = "/export";
     }
 

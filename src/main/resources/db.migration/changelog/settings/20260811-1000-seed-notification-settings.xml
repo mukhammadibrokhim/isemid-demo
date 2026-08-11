@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Seeds one system_settings row per NotificationEventListener KEY_*
+        toggle (see platform.notification), so every notification kind is
+        visible/editable in the dev panel (/v1/dev/settings) instead of only
+        existing as an unseeded key that resolveBoolean(key, true) silently
+        defaults to enabled - the same treatment already given to circuit
+        breaker thresholds and HTTP client tuning.
+
+        All ten are seeded ACTIVE with value 'true': this exactly matches
+        NotificationEventListener's own defaultValue for every KEY_* lookup
+        (resolveBoolean(key, true)), so running this migration is a no-op for
+        current behavior - it only makes the toggle discoverable/editable
+        from the dev panel without first knowing the exact key string.
+
+        form058-acknowledged/form058-canceled and form0581-acknowledged/
+        form0581-canceled cover the SENT->ACCEPTED and ->CANCELED transitions
+        (FormStatus/Form0581Status never have a "RECEIVED" value - see the
+        javadoc on NotificationEventListener.handleForm058StatusChanged).
+
+        Same WHERE NOT EXISTS guard per row as the circuit-breaker/http-client
+        seed changesets.
+    -->
+    <changeSet id="20260811-1000-01-seed-notification-settings" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form058-received.enabled', 'true', 'BOOLEAN', 'Notify the receiver organization when a new Form058 arrives.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form058-received.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form058-acknowledged.enabled', 'true', 'BOOLEAN', 'Notify the sender organization when a Form058 is accepted by the receiver (SENT -> ACCEPTED).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form058-acknowledged.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form058-canceled.enabled', 'true', 'BOOLEAN', 'Notify both organizations when a Form058 is canceled.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form058-canceled.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form0581-received.enabled', 'true', 'BOOLEAN', 'Notify the receiver organization when a new Form0581 arrives.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form0581-received.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form0581-acknowledged.enabled', 'true', 'BOOLEAN', 'Notify the sender organization when a Form0581 is accepted by the receiver (SENT -> ACCEPTED).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form0581-acknowledged.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form0581-canceled.enabled', 'true', 'BOOLEAN', 'Notify both organizations when a Form0581 is canceled.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form0581-canceled.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.card-assigned.enabled', 'true', 'BOOLEAN', 'Notify assigned users when a Card is created for them.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.card-assigned.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.act-assigned.enabled', 'true', 'BOOLEAN', 'Notify assigned users when an Act is created for them.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.act-assigned.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.act-lis-response.enabled', 'true', 'BOOLEAN', 'Notify assigned users when an Act''s LIS status moves SENT -> COMPLETED.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.act-lis-response.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.export-ready.enabled', 'true', 'BOOLEAN', 'Notify the requesting user when their background export job finishes.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.export-ready.enabled');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key LIKE 'notification.%.enabled';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

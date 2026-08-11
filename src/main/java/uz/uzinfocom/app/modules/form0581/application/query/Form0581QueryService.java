@@ -12,7 +12,9 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundE
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViolationException;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.Form0581DetailResponse;
+import uz.uzinfocom.app.modules.form0581.application.query.dto.pdf.Form0581PdfResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581DetailResponseMapper;
+import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581PdfMapper;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581TableMapper;
 import uz.uzinfocom.app.modules.form0581.application.query.projection.Form0581TableProjection;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
@@ -40,6 +42,7 @@ public class Form0581QueryService {
     private final OrganizationScopeResolver organizationScopeResolver;
     private final Form0581Specification form0581Specification;
     private final Form0581DetailResponseMapper form0581DetailResponseMapper;
+    private final Form0581PdfMapper form0581PdfMapper;
     private final Form0581TableMapper form0581TableMapper;
     private final AdminAccessGuard form0581AccessGuard;
     private final AuditResolver auditResolver;
@@ -170,6 +173,16 @@ public class Form0581QueryService {
                 form0581,
                 auditResolver.resolve(form0581)
         );
+    }
+
+    public Form0581PdfResponse getPdf(Long id) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        Form0581 form0581 = repository
+                .findOne(form0581Specification.visibleById(id, scope))
+                .orElseThrow(() -> new Form0581NotFoundException(id));
+
+        return form0581PdfMapper.toPdfResponse(form0581);
     }
 
     private ResolvedOrganizationScope currentScope() {

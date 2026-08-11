@@ -55,6 +55,8 @@ import java.util.Set;
 public class NotificationEventListener {
 
     private static final String KEY_FORM058_RECEIVED_ENABLED = "notification.form058-received.enabled";
+    private static final String KEY_FORM058_ACKNOWLEDGED_ENABLED = "notification.form058-acknowledged.enabled";
+    private static final String KEY_FORM058_CANCELED_ENABLED = "notification.form058-canceled.enabled";
     private static final String KEY_FORM0581_RECEIVED_ENABLED = "notification.form0581-received.enabled";
     private static final String KEY_FORM0581_ACKNOWLEDGED_ENABLED = "notification.form0581-acknowledged.enabled";
     private static final String KEY_FORM0581_CANCELED_ENABLED = "notification.form0581-canceled.enabled";
@@ -90,6 +92,7 @@ public class NotificationEventListener {
     public void on(StatusChangedEvent event) {
         switch (event.entityType()) {
             case ACT -> handleActStatusChanged(event);
+            case FORM058 -> handleForm058StatusChanged(event);
             case FORM0581 -> handleForm0581StatusChanged(event);
             default -> { }
         }
@@ -102,8 +105,21 @@ public class NotificationEventListener {
         handleActLisResponse(event);
     }
 
+    /**
+     * {@code FormStatus}/{@code Form0581Status} never have a "RECEIVED" value — the receiver's
+     * acceptance moves the form to {@code ACCEPTED} (see {@code AcceptForm058Service}/
+     * {@code AcceptForm0581Service}), so that's the transition matched here.
+     */
+    private void handleForm058StatusChanged(StatusChangedEvent event) {
+        if ("SENT".equals(event.oldStatus()) && "ACCEPTED".equals(event.newStatus())) {
+            handleForm058Acknowledged(event);
+        } else if ("CANCELED".equals(event.newStatus())) {
+            handleForm058Canceled(event);
+        }
+    }
+
     private void handleForm0581StatusChanged(StatusChangedEvent event) {
-        if ("SENT".equals(event.oldStatus()) && "RECEIVED".equals(event.newStatus())) {
+        if ("SENT".equals(event.oldStatus()) && "ACCEPTED".equals(event.newStatus())) {
             handleForm0581Acknowledged(event);
         } else if ("CANCELED".equals(event.newStatus())) {
             handleForm0581Canceled(event);
@@ -159,6 +175,41 @@ public class NotificationEventListener {
     ) {
         notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
                 type, messageKey, receiverOrganizationId);
+    }
+
+    private void handleForm058Acknowledged(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM058_ACKNOWLEDGED_ENABLED, true)) {
+            return;
+        }
+        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
+        if (form058 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
+            return;
+        }
+
+        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                NotificationType.FORM058_ACKNOWLEDGED, "notification.form058-acknowledged",
+                form058.getSenderOrganizationId());
+    }
+
+    private void handleForm058Canceled(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM058_CANCELED_ENABLED, true)) {
+            return;
+        }
+        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
+        if (form058 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
+            return;
+        }
+
+        // Either party can cancel while still SENT (see Form058CancelValidator) — notify both
+        // organizations, since the actor's own side is already excluded by notifyOrganization.
+        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                NotificationType.FORM058_CANCELED, "notification.form058-canceled",
+                form058.getSenderOrganizationId());
+        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                NotificationType.FORM058_CANCELED, "notification.form058-canceled",
+                form058.getReceiverOrganizationId());
     }
 
     private void handleForm0581Acknowledged(StatusChangedEvent event) {
