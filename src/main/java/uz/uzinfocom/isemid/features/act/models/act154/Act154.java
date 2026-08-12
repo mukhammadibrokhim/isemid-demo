@@ -22,6 +22,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uz.uzinfocom.isemid.features.act.models.Act;
+import uz.uzinfocom.isemid.features.act.models.LisDocumentAttachable;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
 import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
@@ -33,7 +34,7 @@ import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Act154 extends Act {
+public class Act154 extends Act implements LisDocumentAttachable {
 
    private String title;
    private Long actNumber;
@@ -103,5 +104,9 @@ public class Act154 extends Act {
 
    @JdbcTypeCode(SqlTypes.JSON)
    @Column(columnDefinition = "jsonb")
-   private Map<String, Object> lisResponse;
+   private Map<String, Object> lisActResponse;
+
+   @JdbcTypeCode(SqlTypes.JSON)
+   @Column(columnDefinition = "jsonb")
+   private Map<String, Object> lisProtocolResponse;
 }

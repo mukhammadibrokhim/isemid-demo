@@ -5,7 +5,8 @@ public enum ActStatus {
     IN_PROGRESS,    // jarayonda (masalan, tahrirlanmoqda)
     SENT,           // LISga yuborilgan
     PENDING,           // LISga yuborilmoqda
-    RECEIVED,       // LISdan javob keldi
+    ACCEPTED_BY_TESTER,       // LISdan javob keldi
+    REJECTED_BY_TESTER,       // LISdan rad javob keldi
     COMPLETED,      // to‘liq yakunlangan
     NOT_VIEWED,     // hali ko‘rilmagan
     ACT_ATTACHED,   // kartaga biriktirilgan
