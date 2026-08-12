@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import lombok.Builder;
 import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.LisDataDictionary;
 
 /**
@@ -14,6 +15,7 @@ import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.LisDataDictionary
  * Fields that come from the HTTP request itself (priority, paid, fullNameOfDoctor,
  * redirectUrl, locationOwnership) are intentionally absent here.
  */
+@Builder
 public record ActLisDto(
     Integer actTemplateId,
     String tin,
@@ -39,6 +41,7 @@ public record ActLisDto(
     List<SelectionActItemDto> selectionActItems
 ) {
 
+    @Builder
     public record SelectionActItemDto(
         Integer itemTypeId,
         String location,

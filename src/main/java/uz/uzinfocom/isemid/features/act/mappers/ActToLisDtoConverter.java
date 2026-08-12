@@ -17,10 +17,17 @@ import uz.uzinfocom.isemid.features.act.models.act154.Act154;
 import uz.uzinfocom.isemid.features.act.models.act154.Act154Detail;
 import uz.uzinfocom.isemid.features.act.models.act223.Act223;
 import uz.uzinfocom.isemid.features.act.models.act223.Act223Detail;
+import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
+import uz.uzinfocom.isemid.features.act.models.common.EmployeeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Institution;
+import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
+import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -51,187 +58,134 @@ public class ActToLisDtoConverter {
 
     private ActLisDto fromAct153(Act153 act) {
         Set<Act153Detail> details = act.getAct153Details();
-        Integer actTemplateId = resolveLisActTemplateId(act.getType());
 
-        return new ActLisDto(
-                actTemplateId,
-                act.getInstitution().getTin() != null ? act.getInstitution().getTin().toString() : null,
-                act.getInstitution().getInstitutionName(),
-                act.getInstitution().getInstitutionAddress(),
-                act.getInstitution().getInstitutionLegalAddress(),
-                new LisDataDictionary(act.getPurpose().getPurposeId(), act.getPurpose().getSamplingPurposeUz()),
-                act.getSampleTakenDateTime(),
-                act.getDeliveredDateTime(),
-                new LisDataDictionary(
-                        act.getStorageAndDeliveryCondition().getConditionId(),
-                        act.getStorageAndDeliveryCondition().getDescription().getUz()
-                ),
-                act.getAdditionalInfo(),
-                act.getParticipant().getFullName(),
-                act.getParticipant().getPositionId(),
-                new LisDataDictionary(
-                        act.getPackageTypeInfo().getPackageTypeId(),
-                        act.getPackageTypeInfo().getPackageTypeUz()
-                ),
-                act.getSamplingDocuments(),
-                act.getGoal(),
-                new LisDataDictionary(
-                        act.getSpecialCondition().getConditionId(),
-                        act.getSpecialCondition().getDescription().getUz()
-                ),
-                act.getSampler().getPositionId(),
-                null,
-                null,
-                null,
-                new LisDataDictionary(
+        return buildCommonFields(
+                act.getType(), act.getInstitution(), act.getPurpose(), act.getSampleTakenDateTime(),
+                act.getDeliveredDateTime(), act.getStorageAndDeliveryCondition(), act.getAdditionalInfo(),
+                act.getParticipant(), act.getPackageTypeInfo(), act.getGoal(), act.getSpecialCondition(), act.getSampler()
+        )
+                .document(act.getSamplingDocuments())
+                .preservationMethod(new LisDataDictionary(
                         act.getConservationTypeInfo().getConservationMethodId(),
                         act.getConservationTypeInfo().getConservationMethodsUz()
-                ),
-                details.stream().map(this::toSelectionItemFromAct153).toList()
-        );
+                ))
+                .selectionActItems(details.stream().map(this::toSelectionItemFromAct153).toList())
+                .build();
     }
 
-    private SelectionActItemDto toSelectionItemFromAct153(Act153Detail d) {
-        return new SelectionActItemDto(
-                d.getResearchItemTypeInfo().getItemTypeId(),
-                d.getSampleLocation(),
-                null,
-                null,
-                d.getAddress(),
-                d.getSamplingDepth() != null ? d.getSamplingDepth().toString() : null,
-                d.getDepthUnit(),
-                d.getDistanceFromShore() != null ? d.getDistanceFromShore().toString() : null,
-                d.getDistanceFromShoreUnit(),
-                d.getWeatherAtSampling() != null ? d.getWeatherAtSampling().toString() : null,
-                d.getWaterTemperature() != null ? d.getWaterTemperature().toString() : null,
-                null,
-                hasSampleTypeInfo(d)
-                        ? new LisDataDictionary(
-                        d.getSampleTypeInfo().getSampleTypeId(),
-                        d.getSampleTypeInfo().getSampleTypeUz()
-                )
-                        : null,
-                null,
-                null
-        );
+    private SelectionActItemDto toSelectionItemFromAct153(Act153Detail detail) {
+        SelectionActItemDto.SelectionActItemDtoBuilder item = SelectionActItemDto.builder()
+                .itemTypeId(detail.getResearchItemTypeInfo().getItemTypeId())
+                .location(detail.getSampleLocation())
+                .samplingAddress(detail.getAddress())
+                .samplingDepth(Objects.toString(detail.getSamplingDepth(), null))
+                .depthUnit(detail.getDepthUnit())
+                .distanceFromShore(Objects.toString(detail.getDistanceFromShore(), null))
+                .distanceFromShoreUnit(detail.getDistanceFromShoreUnit())
+                .weatherConditions(Objects.toString(detail.getWeatherAtSampling(), null))
+                .waterTemperature(Objects.toString(detail.getWaterTemperature(), null));
+
+        if (hasSampleTypeInfo(detail)) {
+            item.sampleType(new LisDataDictionary(
+                    detail.getSampleTypeInfo().getSampleTypeId(),
+                    detail.getSampleTypeInfo().getSampleTypeUz()
+            ));
+        }
+
+        return item.build();
     }
 
     private ActLisDto fromAct154(Act154 act) {
         Set<Act154Detail> details = act.getAct154Details();
-        Integer actTemplateId = resolveLisActTemplateId(act.getType());
 
-        return new ActLisDto(
-                actTemplateId,
-                act.getInstitution().getTin() != null ? act.getInstitution().getTin().toString() : null,
-                act.getInstitution().getInstitutionName(),
-                act.getInstitution().getInstitutionAddress(),
-                act.getInstitution().getInstitutionLegalAddress(),
-                new LisDataDictionary(act.getPurpose().getPurposeId(), act.getPurpose().getSamplingPurposeUz()),
-                act.getSampleTakenDateTime(),
-                act.getDeliveredDateTime(),
-                new LisDataDictionary(
-                        act.getStorageAndDeliveryCondition().getConditionId(),
-                        act.getStorageAndDeliveryCondition().getDescription().getUz()
-                ),
-                act.getAdditionalInfo(),
-                act.getParticipant().getFullName(),
-                act.getParticipant().getPositionId(),
-                new LisDataDictionary(
-                        act.getPackageTypeInfo().getPackageTypeId(),
-                        act.getPackageTypeInfo().getPackageTypeUz()
-                ),
-                act.getDocumentConfirmSampling(),
-                act.getGoal(),
-                new LisDataDictionary(
-                        act.getSpecialCondition().getConditionId(),
-                        act.getSpecialCondition().getDescription().getUz()
-                ),
-                act.getSampler().getPositionId(),
-                act.getManufacturingCompany(),
-                act.getManufactureDate(),
-                act.getDocNumberOfTakenObject(),
-                null,
-                details.stream().map(this::toSelectionItemFromAct154).toList()
-        );
+        return buildCommonFields(
+                act.getType(), act.getInstitution(), act.getPurpose(), act.getSampleTakenDateTime(),
+                act.getDeliveredDateTime(), act.getStorageAndDeliveryCondition(), act.getAdditionalInfo(),
+                act.getParticipant(), act.getPackageTypeInfo(), act.getGoal(), act.getSpecialCondition(), act.getSampler()
+        )
+                .document(act.getDocumentConfirmSampling())
+                .manufacturer(act.getManufacturingCompany())
+                .manufactureDate(act.getManufactureDate())
+                .docNumber(act.getDocNumberOfTakenObject())
+                .selectionActItems(details.stream().map(this::toSelectionItemFromAct154).toList())
+                .build();
     }
 
     private SelectionActItemDto toSelectionItemFromAct154(Act154Detail d) {
-        return new SelectionActItemDto(
-                d.getResearchItemTypeInfo().getItemTypeId(),
-                null,
-                d.getGroupSize() != null ? d.getGroupSize().toString() : null,
-                d.getSampleWeight() != null ? d.getSampleWeight().toString() : null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
+        return SelectionActItemDto.builder()
+                .itemTypeId(d.getResearchItemTypeInfo().getItemTypeId())
+                .groupSize(Objects.toString(d.getGroupSize(), null))
+                .sampleWeight(Objects.toString(d.getSampleWeight(), null))
+                .sampleQtUnit(d.getSampleQtUnit())
+                .build();
     }
 
     private ActLisDto fromAct223(Act223 act) {
         List<Act223Detail> details = new ArrayList<>(act.getAct223Details());
-        Integer actTemplateId = resolveLisActTemplateId(act.getType());
 
-        return new ActLisDto(
-                actTemplateId,
-                act.getInstitution().getTin() != null ? act.getInstitution().getTin().toString() : null,
-                act.getInstitution().getInstitutionName(),
-                act.getInstitution().getInstitutionAddress(),
-                act.getInstitution().getInstitutionLegalAddress(),
-                new LisDataDictionary(act.getPurpose().getPurposeId(), act.getPurpose().getSamplingPurposeUz()),
-                act.getSampleTakenDateTime(),
-                act.getDeliveredDateTime(),
-                new LisDataDictionary(
-                        act.getStorageAndDeliveryCondition().getConditionId(),
-                        act.getStorageAndDeliveryCondition().getDescription().getUz()
-                ),
-                act.getAdditionalInfo(),
-                act.getParticipant().getFullName(),
-                act.getParticipant().getPositionId(),
-                new LisDataDictionary(
-                        act.getPackageTypeInfo().getPackageTypeId(),
-                        act.getPackageTypeInfo().getPackageTypeUz()
-                ),
-                act.getSupportingDocumentsForSampling(),
-                act.getGoal(),
-                new LisDataDictionary(
-                        act.getSpecialCondition().getConditionId(),
-                        act.getSpecialCondition().getDescription().getUz()
-                ),
-                act.getSampler().getPositionId(),
-                null,
-                null,
-                null,
-                null,
-                details.stream().map(this::toSelectionItemFromAct223).toList()
-        );
+        return buildCommonFields(
+                act.getType(), act.getInstitution(), act.getPurpose(), act.getSampleTakenDateTime(),
+                act.getDeliveredDateTime(), act.getStorageAndDeliveryCondition(), act.getAdditionalInfo(),
+                act.getParticipant(), act.getPackageTypeInfo(), act.getGoal(), act.getSpecialCondition(), act.getSampler()
+        )
+                .document(act.getSupportingDocumentsForSampling())
+                .selectionActItems(details.stream().map(this::toSelectionItemFromAct223).toList())
+                .build();
     }
 
     private SelectionActItemDto toSelectionItemFromAct223(Act223Detail d) {
-        return new SelectionActItemDto(
-                d.getResearchItemTypeInfo().getItemTypeId(),
-                d.getExactLocationPointSampling(),
-                null,
-                null,
-                null,
-                d.getDepthOfObtainedArea() != null ? d.getDepthOfObtainedArea().toString() : null,
-                d.getDepthUnit(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                d.getAmount() != null ? d.getAmount().toString() : null,
-                null
-        );
+        return SelectionActItemDto.builder()
+                .itemTypeId(d.getResearchItemTypeInfo().getItemTypeId())
+                .location(d.getExactLocationPointSampling())
+                .samplingDepth(Objects.toString(d.getDepthOfObtainedArea(), null))
+                .depthUnit(d.getDepthUnit())
+                .sampleQt(Objects.toString(d.getAmount(), null))
+                .build();
+    }
+
+    /**
+     * Builds the fields shared by every act type (institution, purpose, dates,
+     * conditions, participant, package type, goal) as a pre-populated builder,
+     * leaving the act-type-specific fields (document, manufacturer, manufactureDate,
+     * docNumber, preservationMethod, selectionActItems) for the caller to set.
+     */
+    private ActLisDto.ActLisDtoBuilder buildCommonFields(
+            ActType actType,
+            Institution institution,
+            Purpose purpose,
+            LocalDateTime sampleTakenDateTime,
+            LocalDateTime deliveredDateTime,
+            ConditionInfo storageAndDeliveryCondition,
+            String additionalInfo,
+            EmployeeInfo participant,
+            PackageTypeInfo packageTypeInfo,
+            String goal,
+            ConditionInfo specialCondition,
+            EmployeeInfo sampler
+    ) {
+        return ActLisDto.builder()
+                .actTemplateId(resolveLisActTemplateId(actType))
+                .tin(Objects.toString(institution.getTin(), null))
+                .organizationName(institution.getInstitutionName())
+                .organizationAddress(institution.getInstitutionAddress())
+                .organizationLegalAddress(institution.getInstitutionLegalAddress())
+                .purpose(new LisDataDictionary(purpose.getPurposeId(), purpose.getSamplingPurposeUz()))
+                .sampleTakenDateTime(sampleTakenDateTime)
+                .deliveryDateTime(deliveredDateTime)
+                .conditions(new LisDataDictionary(
+                        storageAndDeliveryCondition.getConditionId(),
+                        storageAndDeliveryCondition.getDescription().getUz()
+                ))
+                .additionalInformation(additionalInfo)
+                .involvedPersonName(participant.getFullName())
+                .involvedProfessionId(participant.getPositionId())
+                .packageType(new LisDataDictionary(packageTypeInfo.getPackageTypeId(), packageTypeInfo.getPackageTypeUz()))
+                .goal(goal)
+                .noteConditions(new LisDataDictionary(
+                        specialCondition.getConditionId(),
+                        specialCondition.getDescription().getUz()
+                ))
+                .collectorProfessionId(sampler.getPositionId());
     }
 
     private Integer resolveLisActTemplateId(ActType actType) {
