@@ -5,25 +5,20 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
 
 import jakarta.transaction.Transactional;
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClient;
 import uz.uzinfocom.isemid.commons.exceptions.ApiException;
 import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
-import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest;
 import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
@@ -35,14 +30,15 @@ import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.services.ActService;
 import uz.uzinfocom.isemid.features.act.specifications.ActSpecification;
 import uz.uzinfocom.isemid.features.act.strategy.impls.UpdateActService;
+import uz.uzinfocom.isemid.features.integrations.lis.LisActClient;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.LisResponse;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest;
 import uz.uzinfocom.isemid.features.user.models.User;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ActServiceImpl implements ActService {
-
-    private static final String ORGANIZATION_ID_HEADER = "Organization-Id";
 
     private final ActRepository actRepository;
     private final UpdateActService updateActService;
@@ -51,8 +47,7 @@ public class ActServiceImpl implements ActService {
     private final MessageUtil messageUtil;
     private final IntegrationUrlFactory integrationUrlFactory;
 
-    @Qualifier("integrationRestClient")
-    private final RestClient integrationRestClient;
+    private final LisActClient lisActClient;
 
     @Override
     public Page<Act> filter(int page, int size, Long cardId) {
@@ -110,36 +105,19 @@ public class ActServiceImpl implements ActService {
 
             ActLisDto actLisDto = actToLisDtoConverter.convert(act);
 
-            LisActPushRequest body = emisToLisRequestMapper
+            CreateLisActRequest body = emisToLisRequestMapper
                     .map(lisRequest, actLisDto)
                     .withFullNameOfDoctor(user.getFullName())
                     .withRedirectUrl(redirectUrl);
 
-            URI lisCreateActUrl = integrationUrlFactory.lisCreateActUrl(
-                    String.valueOf(lisRequest.lisLabId()),
-                    String.valueOf(act.getId()),
-                    lisRequest.isAllowedDuplicate()
-            );
+            LisResponse<Long> lisResponse = lisActClient.createLisAct(
+                Objects.toString(organizationUuid), lisRequest.lisLabId(),
+                Objects.toString(act.getId()), lisRequest.isAllowedDuplicate(),
+                body);
 
-            HttpHeaders headers = buildLisHeaders(organizationUuid, token);
+            Long lisActId = lisResponse.getData();
 
-            log.info(
-                    "Sending act to LIS. actId={}, lisLabId={}, redirectUrl={}, uri={}",
-                    act.getId(),
-                    lisRequest.lisLabId(),
-                    redirectUrl,
-                    lisCreateActUrl
-            );
-
-            Long lisActId = integrationRestClient
-                    .post()
-                    .uri(lisCreateActUrl)
-                    .headers(httpHeaders -> httpHeaders.addAll(headers))
-                    .body(body)
-                    .retrieve()
-                    .body(Long.class);
-
-            if (lisActId == null) {
+            if (Objects.isNull(lisActId)) {
                 throw new IllegalStateException("LIS response does not contain act ID");
             }
 
@@ -158,27 +136,6 @@ public class ActServiceImpl implements ActService {
 
             throw new ApiException(INTERNAL_SERVER_ERROR, message);
         }
-    }
-
-    private HttpHeaders buildLisHeaders(UUID organizationUuid, String token) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(ORGANIZATION_ID_HEADER, organizationUuid.toString());
-
-        if (StringUtils.hasText(token)) {
-            headers.setBearerAuth(normalizeBearerToken(token));
-        }
-
-        return headers;
-    }
-
-    private String normalizeBearerToken(String token) {
-        String value = token.trim();
-
-        if (value.regionMatches(true, 0, "Bearer ", 0, "Bearer ".length())) {
-            return value.substring("Bearer ".length()).trim();
-        }
-
-        return value;
     }
 
     private void markAsPending(Act act) {

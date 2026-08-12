@@ -1,13 +1,12 @@
 package uz.uzinfocom.isemid.features.act.mappers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-import uz.uzinfocom.isemid.commons.integration.IntegrationUrlFactory;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto.SelectionActItemDto;
-import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.LisDataDictionary;
+import uz.uzinfocom.isemid.features.integrations.lis.LisActClient;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.LisResponse;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest.LisDataDictionary;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
 import uz.uzinfocom.isemid.features.act.enums.LisResearchCode;
 import uz.uzinfocom.isemid.features.act.models.Act;
@@ -23,7 +22,6 @@ import uz.uzinfocom.isemid.features.act.models.common.Institution;
 import uz.uzinfocom.isemid.features.act.models.common.PackageTypeInfo;
 import uz.uzinfocom.isemid.features.act.models.common.Purpose;
 
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,15 +32,10 @@ import java.util.Set;
 @Component
 public class ActToLisDtoConverter {
 
-    private final RestClient integrationRestClient;
-    private final IntegrationUrlFactory integrationUrlFactory;
+    private final LisActClient lisActClient;
 
-    public ActToLisDtoConverter(
-            @Qualifier("integrationRestClient") RestClient integrationRestClient,
-            IntegrationUrlFactory integrationUrlFactory
-    ) {
-        this.integrationRestClient = integrationRestClient;
-        this.integrationUrlFactory = integrationUrlFactory;
+    public ActToLisDtoConverter(LisActClient lisActClient) {
+        this.lisActClient = lisActClient;
     }
 
     public ActLisDto convert(Act act) {
@@ -188,29 +181,16 @@ public class ActToLisDtoConverter {
                 .collectorProfessionId(sampler.getPositionId());
     }
 
-    private Integer resolveLisActTemplateId(ActType actType) {
+    private Long resolveLisActTemplateId(ActType actType) {
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(actType);
-        URI uri = integrationUrlFactory.lisResearchTypeUrl(lisResearchCode.name());
+        LisResponse<Long> lisActTemplateResponse = lisActClient.getLisActTemplate(lisResearchCode.name());
 
-        log.info("Fetching LIS act template ID. actType={}, lisResearchCode={}, uri={}",
-                actType,
-                lisResearchCode,
-                uri
-        );
-
-        Integer actTemplateId = integrationRestClient
-                .get()
-                .uri(uri)
-                .retrieve()
-                .body(Integer.class);
-
-        if (actTemplateId == null) {
+        if (Objects.isNull(lisActTemplateResponse.getData())) {
             throw new IllegalStateException(
                     "LIS act template ID is empty. actType=" + actType + ", lisResearchCode=" + lisResearchCode
             );
         }
-
-        return actTemplateId;
+        return lisActTemplateResponse.getData();
     }
 
     private boolean hasSampleTypeInfo(Act153Detail detail) {

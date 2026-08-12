@@ -9,9 +9,9 @@ import java.util.stream.IntStream;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto.SelectionActItemDto;
-import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest;
-import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.LisDataDictionary;
-import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.SelectionActItem;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest.LisDataDictionary;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest.SelectionActItem;
 import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 
 @Component
@@ -24,10 +24,10 @@ public class EMisToLisRequestMapper {
      * <p>{@code fullNameOfDoctor} and {@code redirectUrl} are intentionally left
      * null here; callers must set them via the {@code @With} methods on the result.
      */
-    public LisActPushRequest map(LisRequest lisRequest, ActLisDto actLisDto) {
+    public CreateLisActRequest map(LisRequest lisRequest, ActLisDto actLisDto) {
         String manufactureDate = formatManufactureDate(actLisDto);
 
-        return LisActPushRequest.builder()
+        return CreateLisActRequest.builder()
             .actTemplateId(actLisDto.actTemplateId())
             .priority(lisRequest.priority())
             .tin(actLisDto.tin())
