@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Correction to 20260806-1300-form0581-status-workflow-rework.xml: that
+        changelog's comment claimed APPROVED_PENDING "was never reachable by
+        any code path, so no row can hold that value" — that was wrong, rows
+        with status = 'APPROVED_PENDING' do exist in production, and every
+        GET against them throws InvalidDataAccessApiUsageException
+        ("No enum constant ...Form0581Status.APPROVED_PENDING") since the
+        enum no longer has that constant.
+
+        APPROVED_PENDING sat between CARD_LINKED and APPROVED in the old
+        7-value enum (see git history of Form0581Status.java) — i.e. "card
+        linked, awaiting the sender's final approval decision". That is
+        exactly what CARD_LINKED means in the current 5-value enum
+        (Form0581Status.isApprovable() == CARD_LINKED), so that's the target
+        for this backfill.
+    -->
+    <changeSet id="20260812-1200-form0581-approved-pending-to-card-linked" author="claude">
+        <update tableName="form058_1">
+            <column name="status" value="CARD_LINKED"/>
+            <where>status = 'APPROVED_PENDING'</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

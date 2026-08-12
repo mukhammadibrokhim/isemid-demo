@@ -31,7 +31,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class DistrictQueryService {
 
-    private static final int DEFAULT_LOOKUP_PAGE_SIZE = 20;
+    private static final int DEFAULT_LOOKUP_LIMIT = 20;
+    private static final int MAX_LOOKUP_LIMIT = 200;
 
     private final DistrictRepository districtRepository;
     private final DistrictMapper districtMapper;
@@ -85,22 +86,22 @@ public class DistrictQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<DistrictLookupResponse> getByParentCode(String parentCode, DistrictLookupFilterRequest request) {
+    public List<DistrictLookupResponse> getByParentCode(String parentCode, DistrictLookupFilterRequest request) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
-        Pageable pageable = PageableUtils.of(
-                request,
+        Pageable pageable = PageableUtils.limitOnly(
+                request.limit(),
                 "nameUz",
                 Sort.Direction.ASC,
-                DistrictSortFields.ALLOWED_SORT_FIELDS,
-                DEFAULT_LOOKUP_PAGE_SIZE
+                DEFAULT_LOOKUP_LIMIT,
+                MAX_LOOKUP_LIMIT
         );
 
-        Page<District> page = districtRepository.findAll(
-                DistrictSpecification.byParentCodeAndName(normalizedParentCode, request.name()),
-                pageable
-        );
-
-        return page.map(districtMapper::toLookupResponse);
+        return districtRepository.findAll(
+                        DistrictSpecification.byParentCodeAndName(normalizedParentCode, request.name()),
+                        pageable
+                )
+                .map(districtMapper::toLookupResponse)
+                .getContent();
     }
 }

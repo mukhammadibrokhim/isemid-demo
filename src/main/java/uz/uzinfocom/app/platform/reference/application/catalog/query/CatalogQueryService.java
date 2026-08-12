@@ -20,13 +20,15 @@ import uz.uzinfocom.app.platform.reference.repository.CatalogRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class CatalogQueryService {
 
-    private static final int DEFAULT_LOOKUP_PAGE_SIZE = 20;
+    private static final int DEFAULT_LOOKUP_LIMIT = 20;
+    private static final int MAX_LOOKUP_LIMIT = 200;
 
     private final CatalogRepository catalogRepository;
     private final CatalogMapper catalogMapper;
@@ -66,40 +68,40 @@ public class CatalogQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CatalogLookupResponse> getByType(String type, CatalogLookupFilterRequest request) {
-        Pageable pageable = PageableUtils.of(
-                request,
+    public List<CatalogLookupResponse> getByType(String type, CatalogLookupFilterRequest request) {
+        Pageable pageable = PageableUtils.limitOnly(
+                request.limit(),
                 "nameUz",
                 Sort.Direction.ASC,
-                CatalogSortFields.ALLOWED_SORT_FIELDS,
-                DEFAULT_LOOKUP_PAGE_SIZE
+                DEFAULT_LOOKUP_LIMIT,
+                MAX_LOOKUP_LIMIT
         );
 
-        Page<Catalog> page = catalogRepository.findAll(
-                CatalogSpecification.byTypeAndName(type, request.name()),
-                pageable
-        );
-
-        return page.map(catalogMapper::toLookupResponse);
+        return catalogRepository.findAll(
+                        CatalogSpecification.byTypeAndName(type, request.name()),
+                        pageable
+                )
+                .map(catalogMapper::toLookupResponse)
+                .getContent();
     }
 
     @Transactional(readOnly = true)
-    public Page<CatalogLookupResponse> getByTypeAndParentCode(String type, String parentCode, CatalogLookupFilterRequest request) {
+    public List<CatalogLookupResponse> getByTypeAndParentCode(String type, String parentCode, CatalogLookupFilterRequest request) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
-        Pageable pageable = PageableUtils.of(
-                request,
+        Pageable pageable = PageableUtils.limitOnly(
+                request.limit(),
                 "nameUz",
                 Sort.Direction.ASC,
-                CatalogSortFields.ALLOWED_SORT_FIELDS,
-                DEFAULT_LOOKUP_PAGE_SIZE
+                DEFAULT_LOOKUP_LIMIT,
+                MAX_LOOKUP_LIMIT
         );
 
-        Page<Catalog> page = catalogRepository.findAll(
-                CatalogSpecification.byTypeAndParentCodeAndName(type, normalizedParentCode, request.name()),
-                pageable
-        );
-
-        return page.map(catalogMapper::toLookupResponse);
+        return catalogRepository.findAll(
+                        CatalogSpecification.byTypeAndParentCodeAndName(type, normalizedParentCode, request.name()),
+                        pageable
+                )
+                .map(catalogMapper::toLookupResponse)
+                .getContent();
     }
 }

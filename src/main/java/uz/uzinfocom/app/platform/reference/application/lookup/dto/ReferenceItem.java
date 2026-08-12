@@ -19,6 +19,8 @@ public record ReferenceItem(
         @Schema(description = "Числовой код СОАТО элемента справочника (доступен только для region/district/neighborhood).", example = "1703")
         Integer soatoId,
         @Schema(description = "ИНН (TIN) элемента справочника (доступен только для neighborhood).", example = "202853324")
-        String tin
+        String tin,
+        @Schema(description = "Код элемента справочника в реестре uzcad (доступен только для neighborhood).", example = "103-0105")
+        String uzcadRegistryCode
 ) {
 }

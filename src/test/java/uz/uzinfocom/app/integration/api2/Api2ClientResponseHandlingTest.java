@@ -10,6 +10,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.integration.api2.citizen.client.CitizenApi2Client;
+import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenAddressLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2MalformedResponseException;
@@ -47,8 +48,10 @@ class Api2ClientResponseHandlingTest {
                     "/v3/Child",
                     "/v3/Citizen",
                     "/v3/CitizenPassport",
+                    "/v3/citizenAddress",
                     "/v3/LegalEntity"
-            )
+            ),
+            Duration.ofSeconds(3)
     );
     private final Api2ErrorDecoder decoder = new Api2ErrorDecoder();
     private final Api2ResponseBodyReader bodyReader = new Api2ResponseBodyReader(jsonMapper);
@@ -170,6 +173,55 @@ class Api2ClientResponseHandlingTest {
                 ));
 
         assertThatThrownBy(() -> legalEntityClient.lookupByTin("123456789"))
+                .isInstanceOf(Api2Exception.class)
+                .hasFieldOrPropertyWithValue("responseStatus", HttpStatus.BAD_REQUEST)
+                .hasFieldOrPropertyWithValue("errorCode", "API2_UPSTREAM_BAD_REQUEST");
+
+        server.verify();
+    }
+
+    @Test
+    void citizenAddressValidPascalCaseJsonSuccessReturnsResult() {
+        server.expect(once(), requestTo(
+                        BASE_URL + "/v3/citizenAddress?nnuzb=12345678901234&birth_date=2020-01-01"))
+                .andRespond(withSuccess(
+                        "{\"AnswereId\":1,\"AnswereMessage\":\"Ok\",\"Data\":{\"PermanentRegistration\":null,\"TemproaryRegistrations\":null}}",
+                        MediaType.APPLICATION_JSON
+                ));
+
+        CitizenAddressLookupResult result = citizenClient.lookupAddress(
+                "12345678901234",
+                LocalDate.of(2020, 1, 1)
+        );
+
+        assertThat(result.upstreamStatus()).isEqualTo(200);
+        assertThat(result.data().get("AnswereMessage").asText()).isEqualTo("Ok");
+        server.verify();
+    }
+
+    @Test
+    void citizenAddressSuccessfulMalformedJsonIsRejected() {
+        server.expect(once(), requestTo(
+                        BASE_URL + "/v3/citizenAddress?nnuzb=12345678901234&birth_date=2020-01-01"))
+                .andRespond(withSuccess("incorrect", MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> citizenClient.lookupAddress("12345678901234", LocalDate.of(2020, 1, 1)))
+                .isInstanceOf(Api2MalformedResponseException.class)
+                .hasFieldOrPropertyWithValue("responseStatus", HttpStatus.BAD_GATEWAY)
+                .hasFieldOrPropertyWithValue("errorCode", "API2_MALFORMED_RESPONSE");
+
+        server.verify();
+    }
+
+    @Test
+    void citizenAddressHttpErrorStatusIsRejected() {
+        server.expect(once(), requestTo(
+                        BASE_URL + "/v3/citizenAddress?nnuzb=12345678901234&birth_date=2020-01-01"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .body("incorrect"));
+
+        assertThatThrownBy(() -> citizenClient.lookupAddress("12345678901234", LocalDate.of(2020, 1, 1)))
                 .isInstanceOf(Api2Exception.class)
                 .hasFieldOrPropertyWithValue("responseStatus", HttpStatus.BAD_REQUEST)
                 .hasFieldOrPropertyWithValue("errorCode", "API2_UPSTREAM_BAD_REQUEST");

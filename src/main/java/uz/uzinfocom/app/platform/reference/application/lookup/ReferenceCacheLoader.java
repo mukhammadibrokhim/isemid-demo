@@ -64,7 +64,7 @@ public class ReferenceCacheLoader {
 
         for (ReferenceItemProjection projection : projections) {
             String key = projection.getCode().trim().toUpperCase(Locale.ROOT);
-            ReferenceItem previous = result.put(key, toItem(projection, null, null));
+            ReferenceItem previous = result.put(key, toItem(projection, null, null, null));
 
             if (previous != null) {
                 throw new IllegalStateException("Duplicate reference code in cache load: " + projection.getCode());
@@ -75,19 +75,25 @@ public class ReferenceCacheLoader {
     }
 
     /**
-     * Builds three indexes off the same snapshot: by {@code code} (unique), by numeric SOATO id,
-     * and by {@code tin} (neighborhoods only — always empty for regions/districts). A SOATO id of
-     * {@code null} or {@code 0} means "not assigned" in the source data (thousands of
-     * neighborhoods share it), so those entries are simply left out of the SOATO index rather
-     * than treated as a lookup collision. Same treatment for a blank {@code tin}.
+     * Builds four indexes off the same snapshot: by {@code code} (unique), by numeric SOATO id,
+     * by {@code tin}, and by {@code uzcadRegistryCode} (the latter two neighborhoods only —
+     * always empty for regions/districts). A SOATO id of {@code null} or {@code 0} means "not
+     * assigned" in the source data (thousands of neighborhoods share it), so those entries are
+     * simply left out of the SOATO index rather than treated as a lookup collision. Same
+     * treatment for a blank {@code tin}/{@code uzcadRegistryCode}. Unlike {@code byCode}, none of
+     * the other three indexes rejects a duplicate key with an exception — see
+     * {@code uzcad_registry_code}'s migration comment for why that one specifically is only a
+     * soft, not-guaranteed-unique key.
      */
     private GeoReferenceLookupTable toGeoLookupTable(List<GeoReferenceItemProjection> projections) {
         LinkedHashMap<String, ReferenceItem> byCode = new LinkedHashMap<>();
         LinkedHashMap<String, ReferenceItem> bySoatoId = new LinkedHashMap<>();
         LinkedHashMap<String, ReferenceItem> byTin = new LinkedHashMap<>();
+        LinkedHashMap<String, ReferenceItem> byUzcadRegistryCode = new LinkedHashMap<>();
 
         for (GeoReferenceItemProjection projection : projections) {
-            ReferenceItem item = toItem(projection, projection.getSoatoId(), projection.getTin());
+            ReferenceItem item = toItem(
+                    projection, projection.getSoatoId(), projection.getTin(), projection.getUzcadRegistryCode());
 
             ReferenceItem previous = byCode.put(projection.getCode(), item);
             if (previous != null) {
@@ -103,12 +109,20 @@ public class ReferenceCacheLoader {
             if (StringUtils.hasText(tin)) {
                 byTin.putIfAbsent(tin.trim().toUpperCase(Locale.ROOT), item);
             }
+
+            String uzcadRegistryCode = projection.getUzcadRegistryCode();
+            if (StringUtils.hasText(uzcadRegistryCode)) {
+                byUzcadRegistryCode.putIfAbsent(uzcadRegistryCode.trim().toUpperCase(Locale.ROOT), item);
+            }
         }
 
-        return new GeoReferenceLookupTable(Map.copyOf(byCode), Map.copyOf(bySoatoId), Map.copyOf(byTin));
+        return new GeoReferenceLookupTable(
+                Map.copyOf(byCode), Map.copyOf(bySoatoId), Map.copyOf(byTin), Map.copyOf(byUzcadRegistryCode));
     }
 
-    private ReferenceItem toItem(ReferenceItemProjection projection, Integer soatoId, String tin) {
+    private ReferenceItem toItem(
+            ReferenceItemProjection projection, Integer soatoId, String tin, String uzcadRegistryCode
+    ) {
         return new ReferenceItem(
                 projection.getCode(),
                 projection.getParentCode(),
@@ -117,7 +131,8 @@ public class ReferenceCacheLoader {
                 projection.getNameRu(),
                 projection.getNameKaa(),
                 soatoId,
-                tin
+                tin,
+                uzcadRegistryCode
         );
     }
 }

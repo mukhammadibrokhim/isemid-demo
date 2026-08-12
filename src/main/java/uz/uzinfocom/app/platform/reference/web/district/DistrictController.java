@@ -37,6 +37,8 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
+import java.util.List;
+
 @Tag(
         name = "Reference - Districts",
         description = "API для управления справочником районов."
@@ -114,10 +116,10 @@ public class DistrictController {
     @Operation(
             summary = "Получить районы по коду региона (для справочного выбора)",
             description = """
-                    Возвращает постраничный список активных районов, у которых parentCode совпадает
+                    Возвращает список активных районов, у которых parentCode совпадает
                     с указанным кодом региона, для справочного выбора (select).
 
-                    Нумерация страниц начинается с 1, размер страницы по умолчанию — 20 (максимум — 200).
+                    Без пагинации — только ограничение количества (limit, по умолчанию 20, максимум 200).
                     Параметр name ищет совпадение по наименованию сразу на всех локалях (uz, uz-cyril, ru, kaa).
                     """
     )
@@ -127,14 +129,15 @@ public class DistrictController {
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
-    public PagedResponse<DistrictLookupResponse> getByParentCode(
+    public ApiResponse<List<DistrictLookupResponse>> getByParentCode(
             @Parameter(description = "Код региона, хранящийся в District.parentCode.", required = true, example = "UZ-AN")
             @PathVariable @NotBlank @Size(max = 50) String parentCode,
-            @ParameterObject @Valid @ModelAttribute DistrictLookupFilterRequest request,
-            HttpServletRequest httpRequest
+            @ParameterObject @Valid @ModelAttribute DistrictLookupFilterRequest request
     ) {
-        Page<DistrictLookupResponse> page = districtQueryService.getByParentCode(parentCode, request);
-        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                districtQueryService.getByParentCode(parentCode, request)
+        );
     }
 
     @Operation(

@@ -37,6 +37,8 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
+import java.util.List;
+
 @Tag(
         name = "Reference - Neighborhoods",
         description = "API для управления справочником махаллей."
@@ -114,10 +116,10 @@ public class NeighborhoodController {
     @Operation(
             summary = "Получить махалли по коду района (для справочного выбора)",
             description = """
-                    Возвращает постраничный список активных махаллей, у которых parentCode совпадает
+                    Возвращает список активных махаллей, у которых parentCode совпадает
                     с указанным кодом района, для справочного выбора (select).
 
-                    Нумерация страниц начинается с 1, размер страницы по умолчанию — 20 (максимум — 200).
+                    Без пагинации — только ограничение количества (limit, по умолчанию 20, максимум 200).
                     Параметр name ищет совпадение по наименованию сразу на всех локалях (uz, uz-cyril, ru, kaa).
                     """
     )
@@ -127,14 +129,15 @@ public class NeighborhoodController {
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
-    public PagedResponse<NeighborhoodLookupResponse> getByParentCode(
+    public ApiResponse<List<NeighborhoodLookupResponse>> getByParentCode(
             @Parameter(description = "Код района, хранящийся в Neighborhood.parentCode.", required = true, example = "AN-202")
             @PathVariable @NotBlank @Size(max = 50) String parentCode,
-            @ParameterObject @Valid @ModelAttribute NeighborhoodLookupFilterRequest request,
-            HttpServletRequest httpRequest
+            @ParameterObject @Valid @ModelAttribute NeighborhoodLookupFilterRequest request
     ) {
-        Page<NeighborhoodLookupResponse> page = neighborhoodQueryService.getByParentCode(parentCode, request);
-        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                neighborhoodQueryService.getByParentCode(parentCode, request)
+        );
     }
 
     @Operation(

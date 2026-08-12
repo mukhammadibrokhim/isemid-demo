@@ -30,7 +30,8 @@ public interface RegionRepository extends JpaRepository<Region, Long>, JpaSpecif
             r.nameRu as nameRu,
             r.nameKaa as nameKaa,
             r.soatoId as soatoId,
-            '' as tin
+            '' as tin,
+            '' as uzcadRegistryCode
         from Region r
         where r.deleted = false
         order by r.nameUz asc

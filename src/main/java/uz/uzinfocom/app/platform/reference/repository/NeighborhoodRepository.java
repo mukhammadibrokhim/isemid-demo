@@ -30,7 +30,8 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
             n.nameRu as nameRu,
             n.nameKaa as nameKaa,
             n.soatoId as soatoId,
-            n.tin as tin
+            n.tin as tin,
+            n.uzcadRegistryCode as uzcadRegistryCode
         from Neighborhood n
         where n.deleted = false
         order by n.nameUz asc

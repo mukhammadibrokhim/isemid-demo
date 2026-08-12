@@ -5,4 +5,6 @@ public interface GeoReferenceItemProjection extends ReferenceItemProjection {
     Integer getSoatoId();
 
     String getTin();
+
+    String getUzcadRegistryCode();
 }

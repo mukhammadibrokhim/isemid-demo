@@ -16,9 +16,14 @@
           rejection) was folded entirely into cancel() — there is only one
           shared closing action/status now, same as Form058's reject/cancel
           merge.
-        - APPROVED_PENDING was removed from the enum entirely: it was never
-          reachable by any code path, so no row can hold that value — no
-          data migration needed for its removal.
+        - APPROVED_PENDING was removed from the enum entirely.
+
+        CORRECTION (see 20260812-1200-form0581-fix-approved-pending-leftover-rows.xml):
+        the claim below that APPROVED_PENDING was unreachable and needed no
+        data migration was wrong — production had rows sitting in that
+        status, and every read of them threw InvalidDataAccessApiUsageException
+        once the enum constant was removed. Left as-is here (this changeset
+        already ran) — the backfill lives in the follow-up file instead.
     -->
     <!--
         form058_1_status_check is a stale, untracked check constraint present

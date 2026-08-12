@@ -31,7 +31,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class NeighborhoodQueryService {
 
-    private static final int DEFAULT_LOOKUP_PAGE_SIZE = 20;
+    private static final int DEFAULT_LOOKUP_LIMIT = 20;
+    private static final int MAX_LOOKUP_LIMIT = 200;
 
     private final NeighborhoodRepository neighborhoodRepository;
     private final NeighborhoodMapper neighborhoodMapper;
@@ -85,22 +86,22 @@ public class NeighborhoodQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<NeighborhoodLookupResponse> getByParentCode(String parentCode, NeighborhoodLookupFilterRequest request) {
+    public List<NeighborhoodLookupResponse> getByParentCode(String parentCode, NeighborhoodLookupFilterRequest request) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
-        Pageable pageable = PageableUtils.of(
-                request,
+        Pageable pageable = PageableUtils.limitOnly(
+                request.limit(),
                 "nameUz",
                 Sort.Direction.ASC,
-                NeighborhoodSortFields.ALLOWED_SORT_FIELDS,
-                DEFAULT_LOOKUP_PAGE_SIZE
+                DEFAULT_LOOKUP_LIMIT,
+                MAX_LOOKUP_LIMIT
         );
 
-        Page<Neighborhood> page = neighborhoodRepository.findAll(
-                NeighborhoodSpecification.byParentCodeAndName(normalizedParentCode, request.name()),
-                pageable
-        );
-
-        return page.map(neighborhoodMapper::toLookupResponse);
+        return neighborhoodRepository.findAll(
+                        NeighborhoodSpecification.byParentCodeAndName(normalizedParentCode, request.name()),
+                        pageable
+                )
+                .map(neighborhoodMapper::toLookupResponse)
+                .getContent();
     }
 }

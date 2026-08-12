@@ -37,6 +37,8 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
+import java.util.List;
+
 @Tag(
         name = "Reference - Regions",
         description = "API для управления справочником регионов."
@@ -114,10 +116,10 @@ public class RegionController {
     @Operation(
             summary = "Получить регионы по коду страны (для справочного выбора)",
             description = """
-                    Возвращает постраничный список активных регионов, у которых parentCode совпадает
+                    Возвращает список активных регионов, у которых parentCode совпадает
                     с указанным кодом страны, для справочного выбора (select).
 
-                    Нумерация страниц начинается с 1, размер страницы по умолчанию — 20 (максимум — 200).
+                    Без пагинации — только ограничение количества (limit, по умолчанию 20, максимум 200).
                     Параметр name ищет совпадение по наименованию сразу на всех локалях (uz, uz-cyril, ru, kaa).
                     """
     )
@@ -127,14 +129,15 @@ public class RegionController {
     )
     @GetMapping(ApiPaths.Reference.BY_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
-    public PagedResponse<RegionLookupResponse> getByParentCode(
+    public ApiResponse<List<RegionLookupResponse>> getByParentCode(
             @Parameter(description = "Код страны, хранящийся в Region.parentCode.", required = true, example = "UZ")
             @PathVariable @NotBlank @Size(max = 50) String parentCode,
-            @ParameterObject @Valid @ModelAttribute RegionLookupFilterRequest request,
-            HttpServletRequest httpRequest
+            @ParameterObject @Valid @ModelAttribute RegionLookupFilterRequest request
     ) {
-        Page<RegionLookupResponse> page = regionQueryService.getByParentCode(parentCode, request);
-        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                regionQueryService.getByParentCode(parentCode, request)
+        );
     }
 
     @Operation(

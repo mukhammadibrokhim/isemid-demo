@@ -31,7 +31,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class RegionQueryService {
 
-    private static final int DEFAULT_LOOKUP_PAGE_SIZE = 20;
+    private static final int DEFAULT_LOOKUP_LIMIT = 20;
+    private static final int MAX_LOOKUP_LIMIT = 200;
 
     private final RegionRepository regionRepository;
     private final RegionMapper regionMapper;
@@ -85,22 +86,22 @@ public class RegionQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<RegionLookupResponse> getByParentCode(String parentCode, RegionLookupFilterRequest request) {
+    public List<RegionLookupResponse> getByParentCode(String parentCode, RegionLookupFilterRequest request) {
         String normalizedParentCode = ReferenceCodeNormalizer.normalizeParentCode(parentCode);
 
-        Pageable pageable = PageableUtils.of(
-                request,
+        Pageable pageable = PageableUtils.limitOnly(
+                request.limit(),
                 "nameUz",
                 Sort.Direction.ASC,
-                RegionSortFields.ALLOWED_SORT_FIELDS,
-                DEFAULT_LOOKUP_PAGE_SIZE
+                DEFAULT_LOOKUP_LIMIT,
+                MAX_LOOKUP_LIMIT
         );
 
-        Page<Region> page = regionRepository.findAll(
-                RegionSpecification.byParentCodeAndName(normalizedParentCode, request.name()),
-                pageable
-        );
-
-        return page.map(regionMapper::toLookupResponse);
+        return regionRepository.findAll(
+                        RegionSpecification.byParentCodeAndName(normalizedParentCode, request.name()),
+                        pageable
+                )
+                .map(regionMapper::toLookupResponse)
+                .getContent();
     }
 }

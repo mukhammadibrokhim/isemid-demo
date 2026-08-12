@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.app.integration.api2.citizen.application.CitizenAddressLookupService;
 import uz.uzinfocom.app.integration.api2.citizen.application.CitizenLookupService;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupRequest;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
@@ -18,6 +19,7 @@ import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Tag(name = "API2 Citizen", description = "Поиск сведений о физическом лице через внешнюю систему API2.")
 @RestController
@@ -26,6 +28,7 @@ import java.time.LocalDate;
 public class CitizenLookupController {
 
     private final CitizenLookupService citizenLookupService;
+    private final CitizenAddressLookupService citizenAddressLookupService;
     private final MessageResolver messages;
 
     @Operation(
@@ -59,12 +62,17 @@ public class CitizenLookupController {
                 number
         ));
 
+        List<CitizenAddressResponse> addresses = type == CitizenLookupType.NNUZB
+                ? citizenAddressLookupService.lookupWithTimeout(nnuzb, birthDate)
+                : List.of();
+
         return new CitizenLookupResponse(
                 true,
                 messages.resolve("api2.citizen.lookup.success"),
                 result.source(),
                 result.upstreamStatus(),
-                result.data()
+                result.data(),
+                addresses
         );
     }
 }

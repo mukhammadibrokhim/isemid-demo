@@ -30,6 +30,8 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
+import java.util.List;
+
 @Tag(
         name = "Reference - Catalogs",
         description = "API для управления общими справочниками-каталогами."
@@ -112,9 +114,9 @@ public class CatalogController {
     @Operation(
             summary = "Получить элементы каталога по типу",
             description = """
-                    Возвращает постраничный список активных элементов каталога указанного типа для справочного выбора.
+                    Возвращает список активных элементов каталога указанного типа для справочного выбора (select).
 
-                    Нумерация страниц начинается с 1, размер страницы по умолчанию — 20 (максимум — 200).
+                    Без пагинации — только ограничение количества (limit, по умолчанию 20, максимум 200).
                     Параметр name ищет совпадение по наименованиям сразу на всех локалях (uz, uz-cyril, ru, kaa).
                     """
     )
@@ -124,23 +126,21 @@ public class CatalogController {
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE)
     @PreAuthorize("isAuthenticated()")
-    public PagedResponse<CatalogLookupResponse> getByType(
+    public ApiResponse<List<CatalogLookupResponse>> getByType(
             @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
             @PathVariable @NotNull String type,
-            @ParameterObject @Valid @ModelAttribute CatalogLookupFilterRequest request,
-            HttpServletRequest httpRequest
+            @ParameterObject @Valid @ModelAttribute CatalogLookupFilterRequest request
     ) {
-        Page<CatalogLookupResponse> page = catalogQueryService.getByType(type, request);
-        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
+        return ApiResponse.success(messageResolver.resolve("common.success"), catalogQueryService.getByType(type, request));
     }
 
     @Operation(
             summary = "Получить элементы каталога по типу и коду родителя (для справочного выбора)",
             description = """
-                    Возвращает постраничный список активных элементов каталога указанного типа, у которых
+                    Возвращает список активных элементов каталога указанного типа, у которых
                     parentCode совпадает с другим элементом того же типа каталога, для справочного выбора (select).
 
-                    Нумерация страниц начинается с 1, размер страницы по умолчанию — 20 (максимум — 200).
+                    Без пагинации — только ограничение количества (limit, по умолчанию 20, максимум 200).
                     Параметр name ищет совпадение по наименованиям сразу на всех локалях (uz, uz-cyril, ru, kaa).
                     """
     )
@@ -150,16 +150,17 @@ public class CatalogController {
     )
     @GetMapping(ApiPaths.Reference.BY_TYPE_AND_PARENT_CODE)
     @PreAuthorize("isAuthenticated()")
-    public PagedResponse<CatalogLookupResponse> getByTypeAndParentCode(
+    public ApiResponse<List<CatalogLookupResponse>> getByTypeAndParentCode(
             @Parameter(description = "Тип каталога.", required = true, example = "GENDER")
             @PathVariable @NotNull String type,
             @Parameter(description = "Код родительского элемента того же типа каталога.", required = true)
             @PathVariable @NotBlank @Size(max = 50) String parentCode,
-            @ParameterObject @Valid @ModelAttribute CatalogLookupFilterRequest request,
-            HttpServletRequest httpRequest
+            @ParameterObject @Valid @ModelAttribute CatalogLookupFilterRequest request
     ) {
-        Page<CatalogLookupResponse> page = catalogQueryService.getByTypeAndParentCode(type, parentCode, request);
-        return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                catalogQueryService.getByTypeAndParentCode(type, parentCode, request)
+        );
     }
 
     @Operation(

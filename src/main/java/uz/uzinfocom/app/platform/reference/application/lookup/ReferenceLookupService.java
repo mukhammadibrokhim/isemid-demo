@@ -33,11 +33,13 @@ public class ReferenceLookupService {
     }
 
     /**
-     * Resolves a neighborhood by its {@code code}, its numeric SOATO id, or its {@code tin} —
-     * whichever an upstream caller happens to store as the neighborhood reference value.
+     * Resolves a neighborhood by its {@code code}, its numeric SOATO id, its {@code tin}, or its
+     * {@code uzcadRegistryCode} — whichever an upstream caller happens to store/send as the
+     * neighborhood reference value (the last one is what api2's v3/citizenAddress sends as a
+     * Maxalla's {@code Guid} — see CitizenAddressMapper).
      */
-    public ReferenceItem findNeighborhood(String codeOrSoatoIdOrTin) {
-        return findGeo(cacheLoader.loadNeighborhoods(), codeOrSoatoIdOrTin);
+    public ReferenceItem findNeighborhood(String codeOrSoatoIdOrTinOrUzcadRegistryCode) {
+        return findGeo(cacheLoader.loadNeighborhoods(), codeOrSoatoIdOrTinOrUzcadRegistryCode);
     }
 
     public ReferenceItem findCatalog(String type, String code) {
@@ -87,8 +89,8 @@ public class ReferenceLookupService {
         return items.get(normalizedCode);
     }
 
-    private ReferenceItem findGeo(GeoReferenceLookupTable table, String codeOrSoatoIdOrTin) {
-        String normalized = normalize(codeOrSoatoIdOrTin);
+    private ReferenceItem findGeo(GeoReferenceLookupTable table, String codeOrSoatoIdOrTinOrUzcadRegistryCode) {
+        String normalized = normalize(codeOrSoatoIdOrTinOrUzcadRegistryCode);
         if (normalized == null) {
             return null;
         }
@@ -105,7 +107,12 @@ public class ReferenceLookupService {
             }
         }
 
-        return table.byTin().get(normalized);
+        ReferenceItem byTin = table.byTin().get(normalized);
+        if (byTin != null) {
+            return byTin;
+        }
+
+        return table.byUzcadRegistryCode().get(normalized);
     }
 
     private boolean isDigits(String value) {

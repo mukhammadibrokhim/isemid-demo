@@ -47,6 +47,15 @@ public class Neighborhood extends ReferenceDictionaryEntity {
     @Column(name = "tin", length = 20)
     private String tin;
 
+    /**
+     * The uzcad source registry's own neighborhood code (e.g. "103-0105" or "23010008") -
+     * distinct from {@code soato_id} (that registry's SOATO id) and from {@code code} (this
+     * app's own internal code). Matches the {@code Guid} api2's v3/citizenAddress sends for a
+     * Maxalla, which carries neither soato_id nor tin - see CitizenAddressMapper.
+     */
+    @Column(name = "uzcad_registry_code", length = 20)
+    private String uzcadRegistryCode;
+
     @Column(name = "name_uz")
     private String nameUz;
 

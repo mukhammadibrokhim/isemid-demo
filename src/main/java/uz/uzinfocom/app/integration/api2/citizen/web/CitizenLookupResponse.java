@@ -5,6 +5,8 @@ import tools.jackson.databind.JsonNode;
 import uz.uzinfocom.app.integration.api2.citizen.application.mapper.CitizenResponseMapper;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupSource;
 
+import java.util.List;
+
 @Schema(description = "Результат поиска физического лица через внешнюю систему API2.")
 public record CitizenLookupResponse(
         @Schema(description = "Признак успешного выполнения запроса.")
@@ -26,7 +28,10 @@ public record CitizenLookupResponse(
         String comments,
 
         @Schema(description = "Сырые данные о физическом лице, полученные от API2.")
-        JsonNode data
+        JsonNode data,
+
+        @Schema(description = "Постоянный и временный адреса физического лица (v3/citizenAddress). Заполняется только для поиска по ПИНФЛ (NNUZB); если адресный сервис не ответил в отведённое время, приходит пустым списком — это не признак ошибки основного поиска.")
+        List<CitizenAddressResponse> addresses
 ) {
 
     public CitizenLookupResponse(
@@ -34,7 +39,8 @@ public record CitizenLookupResponse(
             String message,
             CitizenLookupSource source,
             int status,
-            JsonNode payload
+            JsonNode payload,
+            List<CitizenAddressResponse> addresses
     ) {
         this(
                 success,
@@ -43,7 +49,8 @@ public record CitizenLookupResponse(
                 status,
                 CitizenResponseMapper.result(payload),
                 CitizenResponseMapper.comments(payload),
-                CitizenResponseMapper.data(payload)
+                CitizenResponseMapper.data(payload),
+                addresses == null ? List.of() : addresses
         );
     }
 }
