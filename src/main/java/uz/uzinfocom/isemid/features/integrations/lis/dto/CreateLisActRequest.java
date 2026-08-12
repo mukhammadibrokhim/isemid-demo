@@ -1,8 +1,11 @@
-package uz.uzinfocom.isemid.features.act.dtos;
+package uz.uzinfocom.isemid.features.integrations.lis.dto;
 
 import java.util.List;
 import lombok.Builder;
 import lombok.With;
+import uz.uzinfocom.isemid.features.act.dtos.LengthUnit;
+import uz.uzinfocom.isemid.features.act.dtos.Priority;
+import uz.uzinfocom.isemid.features.act.dtos.SampleQtUnit;
 
 
 /**
@@ -41,8 +44,8 @@ import lombok.With;
  */
 @Builder
 @With
-public record LisActPushRequest(
-    Integer actTemplateId,// @NotNull(message = "act template id must not be null") // get from lis and map to local enum
+public record CreateLisActRequest(
+    Long actTemplateId,// @NotNull(message = "act template id must not be null") // get from lis and map to local enum
     Priority priority, //   @NotNull(message = "priority must not be null") // from send pop up
     String tin, // from backend act.tin
     String organizationName, //from backend act.institutionName

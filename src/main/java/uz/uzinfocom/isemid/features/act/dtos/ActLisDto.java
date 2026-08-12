@@ -6,18 +6,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import lombok.Builder;
-import uz.uzinfocom.isemid.features.act.dtos.LisActPushRequest.LisDataDictionary;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest;
+import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest.LisDataDictionary;
 
 /**
  * Intermediate DTO populated from the Act entity (and its loaded detail collection)
- * before final mapping to {@link LisActPushRequest}.
+ * before final mapping to {@link CreateLisActRequest}.
  * <p>
  * Fields that come from the HTTP request itself (priority, paid, fullNameOfDoctor,
  * redirectUrl, locationOwnership) are intentionally absent here.
  */
 @Builder
 public record ActLisDto(
-    Integer actTemplateId,
+    Long actTemplateId,
     String tin,
     String organizationName,
     String organizationAddress,
