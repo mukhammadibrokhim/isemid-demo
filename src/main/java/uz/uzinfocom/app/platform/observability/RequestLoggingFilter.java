@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerMapping;
-import uz.uzinfocom.app.platform.devmonitoring.application.DevErrorLogWriter;
-import uz.uzinfocom.app.platform.devmonitoring.application.DevRequestLogWriter;
+import uz.uzinfocom.app.platform.devpanel.application.DevErrorLogWriter;
+import uz.uzinfocom.app.platform.devpanel.application.DevRequestLogWriter;
 import uz.uzinfocom.app.platform.http.SensitiveLoggingSanitizer;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 

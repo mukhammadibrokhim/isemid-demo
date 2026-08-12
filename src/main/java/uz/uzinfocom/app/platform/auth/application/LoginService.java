@@ -7,7 +7,7 @@ import uz.uzinfocom.app.platform.auth.web.dto.LoginRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.LoginResponse;
 import uz.uzinfocom.app.platform.auth.web.dto.LogoutRequest;
 import uz.uzinfocom.app.platform.auth.web.dto.RefreshTokenRequest;
-import uz.uzinfocom.app.platform.devmonitoring.application.LoginHistoryRecorder;
+import uz.uzinfocom.app.platform.devpanel.application.LoginHistoryRecorder;
 import uz.uzinfocom.app.platform.security.jwt.TokenBlacklistService;
 
 @Service

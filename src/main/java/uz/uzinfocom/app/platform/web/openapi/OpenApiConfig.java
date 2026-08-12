@@ -33,7 +33,7 @@ public class OpenApiConfig {
     private static final int ORDER_REPORT = 4;
     private static final int ORDER_INTEGRATION = 5;
     private static final int ORDER_INBOUND_INTEGRATION = 6;
-    private static final int ORDER_DEV_MONITORING = 7;
+    private static final int ORDER_DEV_PANEL = 7;
     private static final int ORDER_ADMIN = 8;
 
     private final CommonOpenApiCustomizer commonOpenApiCustomizer;
@@ -99,9 +99,9 @@ public class OpenApiConfig {
     }
 
     @Bean
-    @Order(ORDER_DEV_MONITORING)
-    public GroupedOpenApi devMonitoringOpenApi() {
-        return buildGroupedOpenApi(OpenApiGroups.DEV_MONITORING);
+    @Order(ORDER_DEV_PANEL)
+    public GroupedOpenApi devPanelOpenApi() {
+        return buildGroupedOpenApi(OpenApiGroups.DEV_PANEL);
     }
 
     @Bean

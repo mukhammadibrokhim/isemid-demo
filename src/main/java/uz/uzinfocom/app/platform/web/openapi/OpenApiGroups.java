@@ -56,7 +56,7 @@ public final class OpenApiGroups {
             .toArray(String[]::new);
 
     /**
-     * The developer monitoring panel itself ({@code /v1/dev/**}) -
+     * The developer panel itself ({@code /v1/dev/**}) -
      * authenticated via a separate local {@code DevUser} HTTP Basic chain
      * (see {@code DevPanelSecurityConfig}), not the SSO/DHP bearer JWT the
      * rest of the API requires. Kept out of {@link #ADMIN_PATHS} entirely:
@@ -65,7 +65,7 @@ public final class OpenApiGroups {
      * {@code ROLE_DEV_ROOT} rather than any SSO admin authority - not even
      * {@code isemid_super_admin} can manage these accounts.
      */
-    private static final String[] DEV_MONITORING_PATHS = {
+    private static final String[] DEV_PANEL_PATHS = {
             ApiPaths.Dev.ROOT,
             ApiPaths.Dev.ROOT + "/**"
     };
@@ -136,15 +136,15 @@ public final class OpenApiGroups {
             ADMIN_PATHS
     );
 
-    public static final ApiDocumentationGroup DEV_MONITORING = new ApiDocumentationGroup(
-            "dev-monitoring",
-            "Dev Monitoring",
-            "Dev Monitoring",
+    public static final ApiDocumentationGroup DEV_PANEL = new ApiDocumentationGroup(
+            "dev-panel",
+            "Dev Panel",
+            "Dev Panel",
             "Панель разработчика: история неудачных запросов, попытки входа, метрики CPU/RAM/диска/HTTP и "
                     + "управление самими учётными записями панели (только для root-аккаунтов). "
                     + "Аутентификация через отдельную локальную учётную запись DevUser (HTTP Basic), а не "
                     + "через SSO/DHP bearer-токен, как весь остальной API.",
-            DEV_MONITORING_PATHS
+            DEV_PANEL_PATHS
     );
 
     public static final ApiDocumentationGroup REPORT = new ApiDocumentationGroup(
@@ -194,7 +194,7 @@ public final class OpenApiGroups {
                         ADMIN.pathsToMatch(),
                         REPORT.pathsToMatch(),
                         INTEGRATION.pathsToMatch(),
-                        DEV_MONITORING.pathsToMatch()
+                        DEV_PANEL.pathsToMatch()
                 )
                 .flatMap(Arrays::stream)
                 .toArray(String[]::new);

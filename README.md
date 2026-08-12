@@ -111,7 +111,7 @@ surface where applicable:
 | `settings` | Runtime-editable system settings and route-access policies (HTTP client tuning, circuit-breaker thresholds, webhook backoff, ...) — no redeploy needed to change them. |
 | `integrationclient` | Provisioning and lifecycle (revoke, allowed IPs, webhook config) for machine clients that call the inbound integration API. |
 | `dashboard` | Single-organization summary widgets (as opposed to `report`'s drill-down tables). |
-| `devmonitoring` | A separate, HTTP-Basic-authenticated ops panel (`/v1/dev/**`) — error/login/request history, live metrics via SSE, dev-only user/settings management — deliberately outside the SSO admin model. |
+| `devpanel` | A separate, HTTP-Basic-authenticated ops panel (`/v1/dev/**`) — error/login/request history, live metrics via SSE, dev-only user/settings management — deliberately outside the SSO admin model. |
 | `reference` | Reference data: countries, regions, districts, neighborhoods, ICD-10 codes, generic catalogs. |
 | `i18n` | Message bundles for `uz` (default), `uz-Cyrl`, `kaa`, `ru`, `en`. |
 | `observability` | Trace-ID propagation, inbound/outbound HTTP logging with sensitive-field redaction, a dedicated async executor pool. |

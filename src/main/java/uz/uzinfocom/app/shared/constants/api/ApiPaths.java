@@ -182,7 +182,7 @@ public final class ApiPaths {
      * Runtime-editable route-access rules — replaces the old, restart-only
      * {@code SecurityRouteCatalog}. Lives under {@link Admin} (SSO-admin
      * authenticated), mirrored read/write under {@link Dev} for the
-     * dev-monitoring panel (see {@code DevRoutePolicyController}).
+     * dev panel (see {@code DevRoutePolicyController}).
      */
     public static final class RouteAccessPolicy {
         private RouteAccessPolicy() {
@@ -198,7 +198,7 @@ public final class ApiPaths {
      * not under {@code Integration.ROOT}, since it's authenticated the same
      * way as every other admin endpoint (human SSO JWT + adminAccessGuard),
      * not by the machine clients it manages. Mirrored read/write under
-     * {@link Dev} for the dev-monitoring panel (see
+     * {@link Dev} for the dev panel (see
      * {@code DevIntegrationClientController}), same as {@link RouteAccessPolicy}.
      */
     public static final class IntegrationClient {
