@@ -215,6 +215,73 @@ class NotificationEventListenerTest {
     }
 
     @Test
+    void form058CardLinkedNotifiesSenderOrganizationOnlyOnAcceptedToCardLinkedTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM058, 9L, "SENT", "CARD_LINKED", 1L, null));
+        verify(form058Repository, never()).findById(any());
+
+        Form058 form058 = mock(Form058.class);
+        when(form058.getSenderOrganizationId()).thenReturn(3L);
+        when(form058Repository.findById(9L)).thenReturn(Optional.of(form058));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L, 22L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM058, 9L, "ACCEPTED", "CARD_LINKED", 22L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).extracting(Notification::getRecipientUserId).containsExactly(11L);
+        assertThat(saved).allSatisfy(notification ->
+                assertThat(notification.getType()).isEqualTo(NotificationType.FORM058_CARD_LINKED));
+    }
+
+    @Test
+    void form058ApprovedNotifiesReceiverOrganizationOnApprovedTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Form058 form058 = mock(Form058.class);
+        when(form058.getReceiverOrganizationId()).thenReturn(5L);
+        when(form058Repository.findById(9L)).thenReturn(Optional.of(form058));
+        when(userRepository.findActiveIdsByOrganizationId(5L)).thenReturn(List.of(33L, 44L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM058, 9L, "CARD_LINKED", "APPROVED", 1L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).extracting(Notification::getRecipientUserId).containsExactlyInAnyOrder(33L, 44L);
+        assertThat(saved).allSatisfy(notification ->
+                assertThat(notification.getType()).isEqualTo(NotificationType.FORM058_APPROVED));
+    }
+
+    @Test
+    void form058ReopenedNotifiesBothOrganizationsOnCanceledToSentTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Form058 form058 = mock(Form058.class);
+        when(form058.getSenderOrganizationId()).thenReturn(3L);
+        when(form058.getReceiverOrganizationId()).thenReturn(5L);
+        when(form058Repository.findById(9L)).thenReturn(Optional.of(form058));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L, 22L));
+        when(userRepository.findActiveIdsByOrganizationId(5L)).thenReturn(List.of(33L, 44L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM058, 9L, "CANCELED", "SENT", 1L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository, org.mockito.Mockito.times(2)).saveAll(captor.capture());
+
+        List<List<Notification>> allSaved = captor.getAllValues();
+        assertThat(allSaved.get(0)).extracting(Notification::getRecipientUserId).containsExactlyInAnyOrder(11L, 22L);
+        assertThat(allSaved.get(1)).extracting(Notification::getRecipientUserId).containsExactlyInAnyOrder(33L, 44L);
+        assertThat(allSaved.stream().flatMap(List::stream))
+                .allSatisfy(notification -> assertThat(notification.getType())
+                        .isEqualTo(NotificationType.FORM058_REOPENED));
+    }
+
+    @Test
     void form058CanceledIsSkippedWhenDisabledBySetting() {
         when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(false);
 
@@ -272,6 +339,73 @@ class NotificationEventListenerTest {
         assertThat(allSaved.stream().flatMap(List::stream))
                 .allSatisfy(notification -> assertThat(notification.getType())
                         .isEqualTo(NotificationType.FORM0581_CANCELED));
+    }
+
+    @Test
+    void form0581CardLinkedNotifiesSenderOrganizationOnlyOnAcceptedToCardLinkedTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "SENT", "CARD_LINKED", 1L, null));
+        verify(form0581Repository, never()).findById(any());
+
+        Form0581 form0581 = mock(Form0581.class);
+        when(form0581.getSenderOrganizationId()).thenReturn(3L);
+        when(form0581Repository.findById(9L)).thenReturn(Optional.of(form0581));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L, 22L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "ACCEPTED", "CARD_LINKED", 22L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).extracting(Notification::getRecipientUserId).containsExactly(11L);
+        assertThat(saved).allSatisfy(notification ->
+                assertThat(notification.getType()).isEqualTo(NotificationType.FORM0581_CARD_LINKED));
+    }
+
+    @Test
+    void form0581ApprovedNotifiesReceiverOrganizationOnApprovedTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Form0581 form0581 = mock(Form0581.class);
+        when(form0581.getReceiverOrganizationId()).thenReturn(5L);
+        when(form0581Repository.findById(9L)).thenReturn(Optional.of(form0581));
+        when(userRepository.findActiveIdsByOrganizationId(5L)).thenReturn(List.of(33L, 44L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "CARD_LINKED", "APPROVED", 1L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).extracting(Notification::getRecipientUserId).containsExactlyInAnyOrder(33L, 44L);
+        assertThat(saved).allSatisfy(notification ->
+                assertThat(notification.getType()).isEqualTo(NotificationType.FORM0581_APPROVED));
+    }
+
+    @Test
+    void form0581ReopenedNotifiesBothOrganizationsOnCanceledToSentTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Form0581 form0581 = mock(Form0581.class);
+        when(form0581.getSenderOrganizationId()).thenReturn(3L);
+        when(form0581.getReceiverOrganizationId()).thenReturn(5L);
+        when(form0581Repository.findById(9L)).thenReturn(Optional.of(form0581));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L, 22L));
+        when(userRepository.findActiveIdsByOrganizationId(5L)).thenReturn(List.of(33L, 44L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "CANCELED", "SENT", 1L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository, org.mockito.Mockito.times(2)).saveAll(captor.capture());
+
+        List<List<Notification>> allSaved = captor.getAllValues();
+        assertThat(allSaved.get(0)).extracting(Notification::getRecipientUserId).containsExactlyInAnyOrder(11L, 22L);
+        assertThat(allSaved.get(1)).extracting(Notification::getRecipientUserId).containsExactlyInAnyOrder(33L, 44L);
+        assertThat(allSaved.stream().flatMap(List::stream))
+                .allSatisfy(notification -> assertThat(notification.getType())
+                        .isEqualTo(NotificationType.FORM0581_REOPENED));
     }
 
     @Test

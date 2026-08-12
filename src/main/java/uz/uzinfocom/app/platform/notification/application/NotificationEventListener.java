@@ -56,10 +56,16 @@ public class NotificationEventListener {
 
     private static final String KEY_FORM058_RECEIVED_ENABLED = "notification.form058-received.enabled";
     private static final String KEY_FORM058_ACKNOWLEDGED_ENABLED = "notification.form058-acknowledged.enabled";
+    private static final String KEY_FORM058_CARD_LINKED_ENABLED = "notification.form058-card-linked.enabled";
+    private static final String KEY_FORM058_APPROVED_ENABLED = "notification.form058-approved.enabled";
     private static final String KEY_FORM058_CANCELED_ENABLED = "notification.form058-canceled.enabled";
+    private static final String KEY_FORM058_REOPENED_ENABLED = "notification.form058-reopened.enabled";
     private static final String KEY_FORM0581_RECEIVED_ENABLED = "notification.form0581-received.enabled";
     private static final String KEY_FORM0581_ACKNOWLEDGED_ENABLED = "notification.form0581-acknowledged.enabled";
+    private static final String KEY_FORM0581_CARD_LINKED_ENABLED = "notification.form0581-card-linked.enabled";
+    private static final String KEY_FORM0581_APPROVED_ENABLED = "notification.form0581-approved.enabled";
     private static final String KEY_FORM0581_CANCELED_ENABLED = "notification.form0581-canceled.enabled";
+    private static final String KEY_FORM0581_REOPENED_ENABLED = "notification.form0581-reopened.enabled";
     private static final String KEY_CARD_ASSIGNED_ENABLED = "notification.card-assigned.enabled";
     private static final String KEY_ACT_ASSIGNED_ENABLED = "notification.act-assigned.enabled";
     private static final String KEY_ACT_LIS_RESPONSE_ENABLED = "notification.act-lis-response.enabled";
@@ -113,16 +119,28 @@ public class NotificationEventListener {
     private void handleForm058StatusChanged(StatusChangedEvent event) {
         if ("SENT".equals(event.oldStatus()) && "ACCEPTED".equals(event.newStatus())) {
             handleForm058Acknowledged(event);
+        } else if ("ACCEPTED".equals(event.oldStatus()) && "CARD_LINKED".equals(event.newStatus())) {
+            handleForm058CardLinked(event);
+        } else if ("APPROVED".equals(event.newStatus())) {
+            handleForm058Approved(event);
         } else if ("CANCELED".equals(event.newStatus())) {
             handleForm058Canceled(event);
+        } else if ("CANCELED".equals(event.oldStatus()) && "SENT".equals(event.newStatus())) {
+            handleForm058Reopened(event);
         }
     }
 
     private void handleForm0581StatusChanged(StatusChangedEvent event) {
         if ("SENT".equals(event.oldStatus()) && "ACCEPTED".equals(event.newStatus())) {
             handleForm0581Acknowledged(event);
+        } else if ("ACCEPTED".equals(event.oldStatus()) && "CARD_LINKED".equals(event.newStatus())) {
+            handleForm0581CardLinked(event);
+        } else if ("APPROVED".equals(event.newStatus())) {
+            handleForm0581Approved(event);
         } else if ("CANCELED".equals(event.newStatus())) {
             handleForm0581Canceled(event);
+        } else if ("CANCELED".equals(event.oldStatus()) && "SENT".equals(event.newStatus())) {
+            handleForm0581Reopened(event);
         }
     }
 
@@ -212,6 +230,56 @@ public class NotificationEventListener {
                 form058.getReceiverOrganizationId());
     }
 
+    private void handleForm058CardLinked(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM058_CARD_LINKED_ENABLED, true)) {
+            return;
+        }
+        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
+        if (form058 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
+            return;
+        }
+
+        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                NotificationType.FORM058_CARD_LINKED, "notification.form058-card-linked",
+                form058.getSenderOrganizationId());
+    }
+
+    private void handleForm058Approved(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM058_APPROVED_ENABLED, true)) {
+            return;
+        }
+        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
+        if (form058 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
+            return;
+        }
+
+        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                NotificationType.FORM058_APPROVED, "notification.form058-approved",
+                form058.getReceiverOrganizationId());
+    }
+
+    private void handleForm058Reopened(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM058_REOPENED_ENABLED, true)) {
+            return;
+        }
+        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
+        if (form058 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
+            return;
+        }
+
+        // Super-admin-only escape hatch (Form058.reopen) — either side may have been
+        // responsible for the original cancellation, so notify both organizations.
+        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                NotificationType.FORM058_REOPENED, "notification.form058-reopened",
+                form058.getSenderOrganizationId());
+        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                NotificationType.FORM058_REOPENED, "notification.form058-reopened",
+                form058.getReceiverOrganizationId());
+    }
+
     private void handleForm0581Acknowledged(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_ACKNOWLEDGED_ENABLED, true)) {
             return;
@@ -244,6 +312,56 @@ public class NotificationEventListener {
                 form0581.getSenderOrganizationId());
         notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                 NotificationType.FORM0581_CANCELED, "notification.form0581-canceled",
+                form0581.getReceiverOrganizationId());
+    }
+
+    private void handleForm0581CardLinked(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_CARD_LINKED_ENABLED, true)) {
+            return;
+        }
+        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
+        if (form0581 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
+            return;
+        }
+
+        notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                NotificationType.FORM0581_CARD_LINKED, "notification.form0581-card-linked",
+                form0581.getSenderOrganizationId());
+    }
+
+    private void handleForm0581Approved(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_APPROVED_ENABLED, true)) {
+            return;
+        }
+        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
+        if (form0581 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
+            return;
+        }
+
+        notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                NotificationType.FORM0581_APPROVED, "notification.form0581-approved",
+                form0581.getReceiverOrganizationId());
+    }
+
+    private void handleForm0581Reopened(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_REOPENED_ENABLED, true)) {
+            return;
+        }
+        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
+        if (form0581 == null) {
+            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
+            return;
+        }
+
+        // Super-admin-only escape hatch (Form0581.reopen) — either side may have been
+        // responsible for the original cancellation, so notify both organizations.
+        notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                NotificationType.FORM0581_REOPENED, "notification.form0581-reopened",
+                form0581.getSenderOrganizationId());
+        notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                NotificationType.FORM0581_REOPENED, "notification.form0581-reopened",
                 form0581.getReceiverOrganizationId());
     }
 

@@ -17,8 +17,10 @@ platform pieces rather than introducing new infrastructure:
 notification/
 ├── domain/
 │   ├── Notification.java        one row per (event, recipient) — see "Fan-out model" below
-│   └── NotificationType.java    FORM058_RECEIVED, FORM058_ACKNOWLEDGED, FORM058_CANCELED,
-│                                  FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED, FORM0581_CANCELED,
+│   └── NotificationType.java    FORM058_RECEIVED, FORM058_ACKNOWLEDGED, FORM058_CARD_LINKED,
+│                                  FORM058_APPROVED, FORM058_CANCELED, FORM058_REOPENED,
+│                                  FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED, FORM0581_CARD_LINKED,
+│                                  FORM0581_APPROVED, FORM0581_CANCELED, FORM0581_REOPENED,
 │                                  CARD_ASSIGNED, ACT_ASSIGNED, ACT_LIS_RESPONSE, EXPORT_READY
 ├── repository/
 │   └── NotificationRepository.java
@@ -48,10 +50,16 @@ alongside the audit trail:
 |---|---|---|
 | Form058 received | `EntityCreatedEvent(FORM058, id, actorUserId)` — `CreateForm058Service` | active users of `Form058.receiverOrganizationId` |
 | Form058 acknowledged | `StatusChangedEvent(FORM058, id, "SENT", "ACCEPTED", ...)` — `AcceptForm058Service.accept` | active users of `Form058.senderOrganizationId` |
+| Form058 card linked | `StatusChangedEvent(FORM058, id, "ACCEPTED", "CARD_LINKED", ...)` — `CardCommandService.assignCards` | active users of `Form058.senderOrganizationId` |
+| Form058 approved | `StatusChangedEvent(FORM058, id, oldStatus, "APPROVED", ...)` — `ApproveForm058Service.approve` | active users of `Form058.receiverOrganizationId` |
 | Form058 canceled | `StatusChangedEvent(FORM058, id, oldStatus, "CANCELED", ...)` — `CancelForm058Service.cancel` | active users of **both** `Form058.senderOrganizationId` and `Form058.receiverOrganizationId` |
+| Form058 reopened | `StatusChangedEvent(FORM058, id, "CANCELED", "SENT", ...)` — `ReopenForm058Service.reopen` | active users of **both** `Form058.senderOrganizationId` and `Form058.receiverOrganizationId` |
 | Form0581 received | `EntityCreatedEvent(FORM0581, id, actorUserId)` — `CreateForm0581Service` | active users of `Form0581.receiverOrganizationId` |
 | Form0581 acknowledged | `StatusChangedEvent(FORM0581, id, "SENT", "ACCEPTED", ...)` — `AcceptForm0581Service.accept` | active users of `Form0581.senderOrganizationId` |
+| Form0581 card linked | `StatusChangedEvent(FORM0581, id, "ACCEPTED", "CARD_LINKED", ...)` — `CardCommandService.assignCardsToForm0581` | active users of `Form0581.senderOrganizationId` |
+| Form0581 approved | `StatusChangedEvent(FORM0581, id, oldStatus, "APPROVED", ...)` — `ApproveForm0581Service.approve` | active users of `Form0581.receiverOrganizationId` |
 | Form0581 canceled | `StatusChangedEvent(FORM0581, id, oldStatus, "CANCELED", ...)` — `CancelForm0581Service.cancel` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
+| Form0581 reopened | `StatusChangedEvent(FORM0581, id, "CANCELED", "SENT", ...)` — `ReopenForm0581Service.reopen` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
 | Card assigned | `EntityCreatedEvent(CARD, id, assignedById)` — `CardCommandService.createBlankCards` (**new** publish call — cards previously fired no per-card event) | `card.getUsers()` |
 | Act assigned | `EntityCreatedEvent(ACT, id, assignedById)` — `ActCommandService.assignActs` | `act.getUsers()` |
 | LIS response received | `StatusChangedEvent(ACT, id, "SENT", "COMPLETED", ...)` — `ActCommandService.receiveLisResponse` | `act.getUsers()` |
@@ -105,15 +113,24 @@ just the LIS callback. The listener only reacts when
 
 **Form058/Form0581 status filtering**: same idea — `StatusChangedEvent(FORM058, ...)`
 /`StatusChangedEvent(FORM0581, ...)` fires for every transition
-(`SENT→ACCEPTED`, `ACCEPTED→CARD_LINKED`, `CARD_LINKED→APPROVED`, ...), but
-the listener only reacts to `SENT→ACCEPTED` (the receiver's acknowledgement,
-see `Form058AcceptValidator`/`Form0581AcceptValidator`) and any `→CANCELED`
-transition. `Form058CancelValidator`/`Form0581CancelValidator` allow
-*either* the sender or the receiver to cancel while still `SENT`, so
-`handleForm058Canceled`/`handleForm0581Canceled` notify both organizations
-rather than trying to resolve which side didn't act — `excludingActor`
-already drops the acting user from whichever side's recipient list they
-belong to.
+(`SENT→ACCEPTED`, `ACCEPTED→CARD_LINKED`, `CARD_LINKED→APPROVED`, ...), and
+now every one of them is matched: `SENT→ACCEPTED` (the receiver's
+acknowledgement, see `Form058AcceptValidator`/`Form0581AcceptValidator`),
+`ACCEPTED→CARD_LINKED` (card(s) linked via `CardCommandService.assignCards`/
+`assignCardsToForm0581` — matched on the exact old/new pair so a no-op
+re-link call, which leaves the form already at `CARD_LINKED`, doesn't fire
+again), any `→APPROVED` (final sign-off, matched on new status alone since
+it can arrive from either `ACCEPTED` or `CARD_LINKED` depending on
+`FormStatus.isApprovable`/`Form0581Status.isApprovable`), any `→CANCELED`,
+and `CANCELED→SENT` (super-admin `reopen()`). `Form058CancelValidator`/
+`Form0581CancelValidator` allow *either* the sender or the receiver to
+cancel while still `SENT`, so `handleForm058Canceled`/`handleForm0581Canceled`
+notify both organizations rather than trying to resolve which side didn't
+act — `excludingActor` already drops the acting user from whichever side's
+recipient list they belong to. `handleForm058Reopened`/`handleForm0581Reopened`
+notify both organizations for the same reason: either side could have been
+responsible for the original cancellation, and the actor is a super-admin
+who isn't a member of either organization's recipient list anyway.
 
 **Ordering pitfall already hit once**: the settings-enabled check must run
 *before* any DB lookup of the source entity, not just before the fan-out —
@@ -161,10 +178,16 @@ read-through over the `system_settings` table):
 
 - `notification.form058-received.enabled`
 - `notification.form058-acknowledged.enabled`
+- `notification.form058-card-linked.enabled`
+- `notification.form058-approved.enabled`
 - `notification.form058-canceled.enabled`
+- `notification.form058-reopened.enabled`
 - `notification.form0581-received.enabled`
 - `notification.form0581-acknowledged.enabled`
+- `notification.form0581-card-linked.enabled`
+- `notification.form0581-approved.enabled`
 - `notification.form0581-canceled.enabled`
+- `notification.form0581-reopened.enabled`
 - `notification.card-assigned.enabled`
 - `notification.act-assigned.enabled`
 - `notification.act-lis-response.enabled`
