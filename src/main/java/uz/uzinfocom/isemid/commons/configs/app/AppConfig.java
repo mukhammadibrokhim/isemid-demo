@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.Nonnull;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.cache.CacheManager;
@@ -13,7 +16,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.i18n.AcceptHeaderLocaleContextResolver;
@@ -29,11 +32,19 @@ public class AppConfig {
 
     @Bean
     public RestClient restClient() {
+        // SimpleClientHttpRequestFactory (java.net.HttpURLConnection) refuses to follow
+        // redirects that change protocol (e.g. http -> https), returning an empty body
+        // with the 3xx status instead. Apache HttpClient5 follows these correctly.
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(Timeout.ofMilliseconds(5_000))
+                .setResponseTimeout(Timeout.ofMilliseconds(5_000))
+                .build();
 
-        SimpleClientHttpRequestFactory factory =
-                new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(5_000);
-        factory.setReadTimeout(5_000);
+        var httpClient = HttpClientBuilder.create()
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
+        var factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
         return RestClient.builder()
                 .requestFactory(factory)
