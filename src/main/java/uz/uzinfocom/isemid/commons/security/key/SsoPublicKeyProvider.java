@@ -17,7 +17,7 @@ import java.security.interfaces.RSAPublicKey;
 @RequiredArgsConstructor
 public class SsoPublicKeyProvider {
 
-    private final RestClient integrationRestClient;
+    private final RestClient restClient;
     private final IntegrationUrlFactory integrationUrlFactory;
     private final PemPublicKeyParser pemPublicKeyParser;
 
@@ -31,7 +31,7 @@ public class SsoPublicKeyProvider {
         try {
             log.info("Fetching SSO public key from endpoint: {}", publicKeyUrl);
 
-            ResponseEntity<String> response = integrationRestClient
+            ResponseEntity<String> response = restClient
                     .get()
                     .uri(publicKeyUrl)
                     .accept(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, MediaType.ALL)
