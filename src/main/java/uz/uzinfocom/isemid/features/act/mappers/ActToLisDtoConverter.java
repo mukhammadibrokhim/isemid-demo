@@ -183,14 +183,14 @@ public class ActToLisDtoConverter {
 
     private Long resolveLisActTemplateId(ActType actType) {
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(actType);
-        LisResponse<Long> lisActTemplateResponse = lisActClient.getLisActTemplate(lisResearchCode.name());
+        Long lisActTemplateResponse = lisActClient.getLisActTemplate(lisResearchCode.name());
 
-        if (Objects.isNull(lisActTemplateResponse.getData())) {
+        if (Objects.isNull(lisActTemplateResponse)) {
             throw new IllegalStateException(
                     "LIS act template ID is empty. actType=" + actType + ", lisResearchCode=" + lisResearchCode
             );
         }
-        return lisActTemplateResponse.getData();
+        return lisActTemplateResponse;
     }
 
     private boolean hasSampleTypeInfo(Act153Detail detail) {
