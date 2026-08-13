@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto.SelectionActItemDto;
 import uz.uzinfocom.isemid.features.integrations.lis.LisActClient;
-import uz.uzinfocom.isemid.features.integrations.lis.dto.LisResponse;
 import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest.LisDataDictionary;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
 import uz.uzinfocom.isemid.features.act.enums.LisResearchCode;
