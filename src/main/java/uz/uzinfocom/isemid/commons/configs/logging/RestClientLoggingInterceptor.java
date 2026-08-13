@@ -1,15 +1,19 @@
 package uz.uzinfocom.isemid.commons.configs.logging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
@@ -40,8 +44,11 @@ public class RestClientLoggingInterceptor implements ClientHttpRequestIntercepto
 
     ClientHttpResponse response = execution.execute(request, body);
 
-    String responseBody = StreamUtils.copyToString(
-        response.getBody(), StandardCharsets.UTF_8);
+    // Reading the response stream for logging drains (and, with chunked/pooled
+    // connections, auto-closes) the underlying stream. Buffer it into memory first so
+    // downstream message converters can still read the body afterwards.
+    byte[] responseBytes = StreamUtils.copyToByteArray(response.getBody());
+    String responseBody = new String(responseBytes, StandardCharsets.UTF_8);
 
     HttpStatus httpStatus = HttpStatus.resolve(
         response.getStatusCode().value());
@@ -59,7 +66,36 @@ public class RestClientLoggingInterceptor implements ClientHttpRequestIntercepto
 
     log.info(objectMapper.writeValueAsString(logMap));
 
-    return response;
+    return new BufferedClientHttpResponse(response, responseBytes);
+  }
+
+  private record BufferedClientHttpResponse(
+      ClientHttpResponse delegate, byte[] body) implements ClientHttpResponse {
+
+    @Override
+    public InputStream getBody() {
+      return new ByteArrayInputStream(body);
+    }
+
+    @Override
+    public HttpHeaders getHeaders() {
+      return delegate.getHeaders();
+    }
+
+    @Override
+    public HttpStatusCode getStatusCode() throws IOException {
+      return delegate.getStatusCode();
+    }
+
+    @Override
+    public String getStatusText() throws IOException {
+      return delegate.getStatusText();
+    }
+
+    @Override
+    public void close() {
+      delegate.close();
+    }
   }
 
   private String maskSensitiveData(String message) {
