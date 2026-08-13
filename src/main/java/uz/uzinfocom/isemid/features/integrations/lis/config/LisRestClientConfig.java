@@ -1,8 +1,10 @@
 package uz.uzinfocom.isemid.features.integrations.lis.config;
 
+import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.util.StringValueResolver;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
@@ -13,8 +15,14 @@ import uz.uzinfocom.isemid.commons.configs.properties.IntegrationProperties;
 import uz.uzinfocom.isemid.features.integrations.lis.LisActClient;
 
 @Configuration
-public class LisRestClientConfig {
+public class LisRestClientConfig implements EmbeddedValueResolverAware {
 
+    private StringValueResolver embeddedValueResolver;
+
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver resolver) {
+        this.embeddedValueResolver = resolver;
+    }
 
     @Bean
     public LisActClient lisClient(IntegrationProperties properties,
@@ -32,6 +40,7 @@ public class LisRestClientConfig {
 
         HttpServiceProxyFactory factory = HttpServiceProxyFactory
             .builderFor(RestClientAdapter.create(restClient))
+            .embeddedValueResolver(embeddedValueResolver)
             .build();
         return factory.createClient(LisActClient.class);
     }
