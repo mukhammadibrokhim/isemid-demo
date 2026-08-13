@@ -23,7 +23,7 @@ public interface LisActClient {
    * @param request
    * @return
    */
-  @PostExchange("${isemid.integration.paths.lis-create-act-path}/{actType}")
+  @PostExchange("${isemid.integration.paths.lis-create-act-path}")
   LisResponse<Long> createLisAct(@RequestHeader("Organization-Id") String organizationId,
                            @PathVariable("actType") Long laboratoryId,
                            @RequestParam String senderActNumber,
