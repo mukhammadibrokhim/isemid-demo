@@ -32,5 +32,5 @@ public interface LisActClient {
 
 
   @GetExchange("${isemid.integration.paths.lis-act-code-path}")
-  LisResponse<Long> getLisActTemplate(@RequestParam String researchCode);
+  Long getLisActTemplate(@RequestParam String researchCode);
 }

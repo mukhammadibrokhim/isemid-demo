@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto.SelectionActItemDto;
 import uz.uzinfocom.isemid.features.integrations.lis.LisActClient;
-import uz.uzinfocom.isemid.features.integrations.lis.dto.LisResponse;
 import uz.uzinfocom.isemid.features.integrations.lis.dto.CreateLisActRequest.LisDataDictionary;
 import uz.uzinfocom.isemid.features.act.enums.ActType;
 import uz.uzinfocom.isemid.features.act.enums.LisResearchCode;
@@ -183,14 +182,14 @@ public class ActToLisDtoConverter {
 
     private Long resolveLisActTemplateId(ActType actType) {
         LisResearchCode lisResearchCode = ActType.mapToLisResearchCode(actType);
-        LisResponse<Long> lisActTemplateResponse = lisActClient.getLisActTemplate(lisResearchCode.name());
+        Long lisActTemplateResponse = lisActClient.getLisActTemplate(lisResearchCode.name());
 
-        if (Objects.isNull(lisActTemplateResponse.getData())) {
+        if (Objects.isNull(lisActTemplateResponse)) {
             throw new IllegalStateException(
                     "LIS act template ID is empty. actType=" + actType + ", lisResearchCode=" + lisResearchCode
             );
         }
-        return lisActTemplateResponse.getData();
+        return lisActTemplateResponse;
     }
 
     private boolean hasSampleTypeInfo(Act153Detail detail) {
