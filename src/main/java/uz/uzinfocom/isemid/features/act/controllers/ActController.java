@@ -13,6 +13,7 @@ import uz.uzinfocom.isemid.commons.dtos.PagedResponse;
 import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.dtos.requests.ProtocolConclusionRequest;
 import uz.uzinfocom.isemid.features.act.dtos.responses.ActResponse;
 import uz.uzinfocom.isemid.features.act.mappers.ActMapperFactory;
 import uz.uzinfocom.isemid.features.act.models.Act;
@@ -66,6 +67,28 @@ public class ActController {
         return ApiResponse.deleteSuccess(messageUtil);
     }
 
+    @Operation(summary = "Получить акт от ЛИС по ID", description = "Получить акт о приеме/отказе образца от ЛИС по ID.")
+    @GetMapping("/{id}/lis-confirmation")
+    public ApiResponse<?> getReviewedAct(@PathVariable Long id) {
+        Map<String, Object> reviewedDocument = actService.getReviewedDocument(id);
+        return ApiResponse.success(messageUtil,reviewedDocument);
+    }
+
+    @Operation(summary = "Получить протокол от ЛИС по ID", description = "Получить протокол исследования образца от ЛИС по ID.")
+    @GetMapping("/{id}/lis-protocol")
+    public ApiResponse<?> getActProtocol(@PathVariable Long id) {
+        Map<String, Object> protocol = actService.getProtocol(id);
+        return ApiResponse.success(messageUtil,protocol);
+    }
+
+    @Operation(summary = "Дать заключение для протокола от ЛИС по ID", description = "Дать заключение для протокола исследования образца от ЛИС по ID.")
+    @PatchMapping("/{id}/lis-protocol/conclude")
+    public ApiResponse<?> concludeActProtocol(@PathVariable Long id,
+                                    @RequestBody ProtocolConclusionRequest conclusionRequest) {
+        actService.concludeProtocol(id, conclusionRequest);
+        return ApiResponse.success(messageUtil, "protocol is successfully concluded");
+    }
+
     // ===================================
     // 📡 LIS Integration
     // ===================================
@@ -101,7 +124,7 @@ public class ActController {
             @RequestParam DocumentType documentType,
             @RequestBody Map<String,Object> body
     ) {
-        actService.handleLisResponse(actId, documentType, body);
+        actService.attachLisDocument(actId, documentType, body);
         return ApiResponse.success(messageUtil, "Ответ от LIS успешно принят.");
     }
 }

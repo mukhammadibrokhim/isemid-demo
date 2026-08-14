@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.LisDocumentAttachable;
 import uz.uzinfocom.isemid.features.act.models.common.ConditionInfo;
@@ -110,4 +111,10 @@ public class Act153 extends Act implements LisDocumentAttachable {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> lisProtocolResponse;
+
+    @Override
+    public void concludeProtocol(String message) {
+        lisProtocolResponse.computeIfPresent("sanitaryConclusion",(k,v)-> message);
+        setStatus(ActStatus.COMPLETED);
+    }
 }
