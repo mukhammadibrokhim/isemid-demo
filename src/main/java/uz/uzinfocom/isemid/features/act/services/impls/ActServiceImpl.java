@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.act.services.impls;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uz.uzinfocom.isemid.commons.utils.PageableUtils.pageableSortByIdDesc;
@@ -21,10 +22,12 @@ import uz.uzinfocom.isemid.commons.utils.MessageUtil;
 import uz.uzinfocom.isemid.features.act.dtos.ActLisDto;
 import uz.uzinfocom.isemid.features.act.dtos.LisRequest;
 import uz.uzinfocom.isemid.features.act.dtos.requests.ActRequest;
+import uz.uzinfocom.isemid.features.act.dtos.requests.ProtocolConclusionRequest;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.mappers.ActToLisDtoConverter;
 import uz.uzinfocom.isemid.features.act.mappers.EMisToLisRequestMapper;
 import uz.uzinfocom.isemid.features.act.models.Act;
+import uz.uzinfocom.isemid.features.act.models.LisDocumentAttachable;
 import uz.uzinfocom.isemid.features.act.models.common.DocumentType;
 import uz.uzinfocom.isemid.features.act.repositores.ActRepository;
 import uz.uzinfocom.isemid.features.act.services.ActService;
@@ -157,9 +160,37 @@ public class ActServiceImpl implements ActService {
     }
 
     @Override
-    public void handleLisResponse(Long id, DocumentType documentType, Map<String, Object> document) {
+    public void attachLisDocument(Long id, DocumentType documentType, Map<String, Object> document) {
         Act act = getById(id);
         updateActService.attachLisDocument(act, documentType, document);
+        actRepository.save(act);
+    }
+
+    @Override
+    public Map<String, Object> getReviewedDocument(Long id) {
+        Act act = getById(id);
+        if (!(act instanceof LisDocumentAttachable attachable)) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.invalid_request.act_type_is_not_lis_viewable"));
+        }
+        return attachable.getLisActResponse();
+    }
+
+    @Override
+    public Map<String, Object> getProtocol(Long id) {
+        Act act = getById(id);
+        if (!(act instanceof LisDocumentAttachable attachable)) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.invalid_request.act_type_is_not_lis_viewable"));
+        }
+        return attachable.getLisProtocolResponse();
+    }
+
+    @Override
+    public void concludeProtocol(Long id, ProtocolConclusionRequest request) {
+        Act act = getById(id);
+        if (!(act instanceof LisDocumentAttachable attachable)) {
+            throw new ApiException(BAD_REQUEST, messageUtil.get("error.invalid_request.act_type_is_not_lis_viewable"));
+        }
+        attachable.concludeProtocol(request.conclusion());
         actRepository.save(act);
     }
 }
