@@ -191,6 +191,7 @@ public class ActServiceImpl implements ActService {
             throw new ApiException(BAD_REQUEST, messageUtil.get("error.invalid_request.act_type_is_not_lis_viewable"));
         }
         attachable.concludeProtocol(request.conclusion());
+        act.setStatus(ActStatus.COMPLETED);
         actRepository.save(act);
     }
 }
