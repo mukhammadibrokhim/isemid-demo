@@ -57,7 +57,7 @@ public class UpdateActService {
             act.setStatus(actStatus);
         } else {
             attachable.setLisProtocolResponse(document);
-            act.setStatus(ActStatus.COMPLETED);
+            act.setStatus(ActStatus.CONCLUSION_PENDING);
         }
     }
 }
