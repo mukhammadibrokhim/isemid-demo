@@ -6,9 +6,17 @@ thing to one.
 
 ## `config`
 
-Only `TimezoneConfig` — pins the JVM default timezone to `Asia/Tashkent` via
-`@PostConstruct`, so date/time handling is consistent regardless of the host
-environment's system timezone.
+`JacksonTimeZoneConfig` — overrides Jackson's default `Instant` serializer,
+which always writes UTC ("...Z") regardless of `spring.jackson.time-zone`
+(that property only affects `Date`/`Calendar` formatting), so every `Instant`
+field returned by the API is rendered with a fixed `+05:00` (Asia/Tashkent)
+offset instead.
+
+The JVM default timezone itself is pinned to `Asia/Tashkent` as the first
+line of `Application.main()` (not a `@PostConstruct` bean — that would run
+too late for beans that initialize early in context refresh, e.g. the
+DataSource/Liquibase), so date/time handling is consistent regardless of the
+host environment's system timezone.
 
 ## `security`
 

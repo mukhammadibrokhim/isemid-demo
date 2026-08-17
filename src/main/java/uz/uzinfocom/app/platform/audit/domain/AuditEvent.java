@@ -18,9 +18,10 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * One row per audited business event (creation, status change, or receiving-organization
- * reassignment) on Form058/Form0581/Act — never a generic whole-entity snapshot, only the
- * handful of columns those three event kinds actually carry. Written asynchronously,
+ * One row per audited business event (creation, status change, field change, or
+ * receiving-organization reassignment) on Form058/Form0581/Act/Card/ExportJob — never a
+ * generic whole-entity snapshot, only the handful of columns those event kinds actually
+ * carry. Written asynchronously,
  * after the originating transaction commits — see {@code AuditEventListener}. Not an
  * {@link uz.uzinfocom.app.platform.persistence.entity.AuditableEntity}: this row IS the
  * audit record, there's no separate "creator" to attribute it to beyond {@link #actorUserId}.

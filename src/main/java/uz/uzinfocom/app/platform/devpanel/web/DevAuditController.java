@@ -1,14 +1,17 @@
 package uz.uzinfocom.app.platform.devpanel.web;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.audit.application.query.AuditQueryService;
@@ -16,6 +19,7 @@ import uz.uzinfocom.app.platform.audit.application.query.dto.AuditEventFilterReq
 import uz.uzinfocom.app.platform.audit.application.query.dto.AuditEventResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
@@ -46,5 +50,14 @@ public class DevAuditController {
     ) {
         Page<AuditEventResponse> page = auditQueryService.findAll(request);
         return pagedResponseAssembler.toResponse(page, messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @GetMapping(ApiPaths.Dev.AUDIT_BY_ID)
+    public ApiResponse<AuditEventResponse> findById(
+            @Parameter(description = "Internal id of the audit event.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        AuditEventResponse response = auditQueryService.findById(id);
+        return ApiResponse.success(messageResolver.resolve("common.success"), response);
     }
 }

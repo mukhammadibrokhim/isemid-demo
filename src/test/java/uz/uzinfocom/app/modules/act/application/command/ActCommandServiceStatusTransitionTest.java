@@ -19,7 +19,7 @@ import uz.uzinfocom.app.modules.act.domain.model.act154.Act154;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
 import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.Act153Request;
-import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
+import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
@@ -62,14 +62,14 @@ class ActCommandServiceStatusTransitionTest {
     @SuppressWarnings("unchecked")
     void setUp() {
         actRepository = mock(ActRepository.class);
-        CardRepository cardRepository = mock(CardRepository.class);
+        CardCommandService cardCommandService = mock(CardCommandService.class);
         UserRepository userRepository = mock(UserRepository.class);
         currentUserProvider = mock(CurrentUserProvider.class);
         handlerRegistry = mock(ActTypeHandlerRegistry.class);
         act153Handler = mock(ActTypeHandler.class);
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider, eventPublisher);
+        service = new ActCommandService(actRepository, cardCommandService, userRepository, handlerRegistry, currentUserProvider, eventPublisher);
 
         when(actRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         doReturn(act153Handler).when(handlerRegistry).get(ActType.ACT153);

@@ -21,7 +21,9 @@ notification/
 │                                  FORM058_APPROVED, FORM058_CANCELED, FORM058_REOPENED,
 │                                  FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED, FORM0581_CARD_LINKED,
 │                                  FORM0581_APPROVED, FORM0581_CANCELED, FORM0581_REOPENED,
-│                                  CARD_ASSIGNED, ACT_ASSIGNED, ACT_LIS_RESPONSE, EXPORT_READY
+│                                  CARD_ASSIGNED, CARD_ACCEPTED_BY_USER, CARD_REJECTED_BY_USER,
+│                                  CARD_COMPLETED, CARD_APPROVED, CARD_REJECTED,
+│                                  ACT_ASSIGNED, ACT_LIS_RESPONSE, EXPORT_READY
 ├── repository/
 │   └── NotificationRepository.java
 ├── application/
@@ -61,6 +63,11 @@ alongside the audit trail:
 | Form0581 canceled | `StatusChangedEvent(FORM0581, id, oldStatus, "CANCELED", ...)` — `CancelForm0581Service.cancel` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
 | Form0581 reopened | `StatusChangedEvent(FORM0581, id, "CANCELED", "SENT", ...)` — `ReopenForm0581Service.reopen` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
 | Card assigned | `EntityCreatedEvent(CARD, id, assignedById)` — `CardCommandService.createBlankCards` (**new** publish call — cards previously fired no per-card event) | `card.getUsers()` |
+| Card accepted by user | `StatusChangedEvent(CARD, id, "NEW", "ACCEPTED_BY_USER", ...)` — `CardCommandService.acceptByUser` | `Card.assignedById` (the assigning supervisor) |
+| Card rejected by user | `StatusChangedEvent(CARD, id, "NEW"/"ACCEPTED_BY_USER", "REJECTED_BY_USER", ...)` — `CardCommandService.rejectByUser` | `Card.assignedById` |
+| Card completed | `StatusChangedEvent(CARD, id, oldStatus, "COMPLETED", ...)` — `CardCommandService.complete` | `Card.assignedById` |
+| Card approved | `StatusChangedEvent(CARD, id, "COMPLETED", "APPROVED", ...)` — `CardCommandService.approveBySupervisor` | `card.getUsers()` |
+| Card rejected by supervisor (sent back for rework) | `StatusChangedEvent(CARD, id, "COMPLETED", "REJECTED", ...)` — `CardCommandService.rejectBySupervisor` | `card.getUsers()` |
 | Act assigned | `EntityCreatedEvent(ACT, id, assignedById)` — `ActCommandService.assignActs` | `act.getUsers()` |
 | LIS response received | `StatusChangedEvent(ACT, id, "SENT", "COMPLETED", ...)` — `ActCommandService.receiveLisResponse` | `act.getUsers()` |
 | Export ready to download | `ExportJobCompletedEvent(jobId, createdBy, exportType, fileName)` — `ExportJobService.completeJob` | `event.recipientUserId()` only (whoever submitted the export) |
@@ -189,6 +196,11 @@ read-through over the `system_settings` table):
 - `notification.form0581-canceled.enabled`
 - `notification.form0581-reopened.enabled`
 - `notification.card-assigned.enabled`
+- `notification.card-accepted-by-user.enabled`
+- `notification.card-rejected-by-user.enabled`
+- `notification.card-completed.enabled`
+- `notification.card-approved.enabled`
+- `notification.card-rejected.enabled`
 - `notification.act-assigned.enabled`
 - `notification.act-lis-response.enabled`
 - `notification.export-ready.enabled`

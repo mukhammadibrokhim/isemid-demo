@@ -275,6 +275,7 @@ public final class ApiPaths {
         public static final String FILES = "/files";
         public static final String FILES_DOWNLOAD = "/files/download";
         public static final String AUDIT = "/audit";
+        public static final String AUDIT_BY_ID = "/audit/{id}";
         public static final String INTEGRATION_CLIENTS = "/integration-clients";
         public static final String INTEGRATION_CLIENT_BY_ID = "/integration-clients/{id}";
         public static final String INTEGRATION_CLIENT_REVOKE = "/integration-clients/{id}/revoke";
@@ -316,6 +317,7 @@ public final class ApiPaths {
         }
 
         public static final String ROOT = Admin.ROOT + "/audit";
+        public static final String BY_ID = "/{id}";
     }
 
     /**

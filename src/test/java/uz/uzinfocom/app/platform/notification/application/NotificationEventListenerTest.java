@@ -116,6 +116,119 @@ class NotificationEventListenerTest {
     }
 
     @Test
+    void cardAcceptedByUserNotifiesTheAssigningSupervisorOnlyOnNewToAcceptedTransition() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        listener.on(new StatusChangedEvent(AuditEntityType.CARD, 7L, "ACCEPTED_BY_USER", "IN_PROGRESS", 100L, null));
+        verify(cardRepository, never()).findById(any());
+
+        Card card = mock(Card.class);
+        when(card.getId()).thenReturn(7L);
+        when(card.getAssignedById()).thenReturn(99L);
+        when(card.getForm058()).thenReturn(null);
+        when(card.getForm0581()).thenReturn(null);
+        when(cardRepository.findById(7L)).thenReturn(Optional.of(card));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.CARD, 7L, "NEW", "ACCEPTED_BY_USER", 100L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getRecipientUserId()).isEqualTo(99L);
+        assertThat(saved.get(0).getType()).isEqualTo(NotificationType.CARD_ACCEPTED_BY_USER);
+    }
+
+    @Test
+    void cardRejectedByUserNotifiesTheAssigningSupervisorFromEitherNewOrAcceptedByUser() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Card card = mock(Card.class);
+        when(card.getId()).thenReturn(7L);
+        when(card.getAssignedById()).thenReturn(99L);
+        when(cardRepository.findById(7L)).thenReturn(Optional.of(card));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.CARD, 7L, "ACCEPTED_BY_USER", "REJECTED_BY_USER", 100L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getRecipientUserId()).isEqualTo(99L);
+        assertThat(saved.get(0).getType()).isEqualTo(NotificationType.CARD_REJECTED_BY_USER);
+    }
+
+    @Test
+    void cardCompletedNotifiesTheAssigningSupervisorRegardlessOfPriorStatus() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Card card = mock(Card.class);
+        when(card.getId()).thenReturn(7L);
+        when(card.getAssignedById()).thenReturn(99L);
+        when(cardRepository.findById(7L)).thenReturn(Optional.of(card));
+
+        // COMPLETED is reachable from ACCEPTED_BY_USER, IN_PROGRESS, or REJECTED
+        // (rework) — matched on the new status alone, same as Form058Approved.
+        listener.on(new StatusChangedEvent(AuditEntityType.CARD, 7L, "REJECTED", "COMPLETED", 100L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getRecipientUserId()).isEqualTo(99L);
+        assertThat(saved.get(0).getType()).isEqualTo(NotificationType.CARD_COMPLETED);
+    }
+
+    @Test
+    void cardApprovedNotifiesAttachedUsersExcludingTheSupervisor() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        User attached = mock(User.class);
+        when(attached.getId()).thenReturn(100L);
+
+        Card card = mock(Card.class);
+        when(card.getId()).thenReturn(7L);
+        when(card.getUsers()).thenReturn(Set.of(attached));
+        when(cardRepository.findById(7L)).thenReturn(Optional.of(card));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.CARD, 7L, "COMPLETED", "APPROVED", 99L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getRecipientUserId()).isEqualTo(100L);
+        assertThat(saved.get(0).getType()).isEqualTo(NotificationType.CARD_APPROVED);
+    }
+
+    @Test
+    void cardRejectedBySupervisorNotifiesAttachedUsersExcludingTheSupervisor() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        User attached = mock(User.class);
+        when(attached.getId()).thenReturn(100L);
+
+        Card card = mock(Card.class);
+        when(card.getId()).thenReturn(7L);
+        when(card.getUsers()).thenReturn(Set.of(attached));
+        when(cardRepository.findById(7L)).thenReturn(Optional.of(card));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.CARD, 7L, "COMPLETED", "REJECTED", 99L, "Incomplete"));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository).saveAll(captor.capture());
+
+        List<Notification> saved = captor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getRecipientUserId()).isEqualTo(100L);
+        assertThat(saved.get(0).getType()).isEqualTo(NotificationType.CARD_REJECTED);
+    }
+
+    @Test
     void actLisResponseFiresOnlyForTheSentToCompletedTransition() {
         when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
 

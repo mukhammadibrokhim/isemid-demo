@@ -19,9 +19,8 @@ import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
 import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
-import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
+import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
-import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
@@ -63,7 +62,7 @@ import java.util.stream.Collectors;
 public class ActCommandService {
 
     private final ActRepository actRepository;
-    private final CardRepository cardRepository;
+    private final CardCommandService cardCommandService;
     private final UserRepository userRepository;
     private final ActTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
@@ -78,8 +77,7 @@ public class ActCommandService {
      */
     @Transactional
     public void assignActs(Long cardId, AssignActsRequest request) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new CardNotFoundException(cardId));
+        Card card = cardCommandService.getExistingCard(cardId);
 
         Long assignedById = currentUserProvider.userIdOrNull();
         if (assignedById == null) {

@@ -67,6 +67,11 @@ public class NotificationEventListener {
     private static final String KEY_FORM0581_CANCELED_ENABLED = "notification.form0581-canceled.enabled";
     private static final String KEY_FORM0581_REOPENED_ENABLED = "notification.form0581-reopened.enabled";
     private static final String KEY_CARD_ASSIGNED_ENABLED = "notification.card-assigned.enabled";
+    private static final String KEY_CARD_ACCEPTED_BY_USER_ENABLED = "notification.card-accepted-by-user.enabled";
+    private static final String KEY_CARD_REJECTED_BY_USER_ENABLED = "notification.card-rejected-by-user.enabled";
+    private static final String KEY_CARD_COMPLETED_ENABLED = "notification.card-completed.enabled";
+    private static final String KEY_CARD_APPROVED_ENABLED = "notification.card-approved.enabled";
+    private static final String KEY_CARD_REJECTED_ENABLED = "notification.card-rejected.enabled";
     private static final String KEY_ACT_ASSIGNED_ENABLED = "notification.act-assigned.enabled";
     private static final String KEY_ACT_LIS_RESPONSE_ENABLED = "notification.act-lis-response.enabled";
     private static final String KEY_EXPORT_READY_ENABLED = "notification.export-ready.enabled";
@@ -98,6 +103,7 @@ public class NotificationEventListener {
     public void on(StatusChangedEvent event) {
         switch (event.entityType()) {
             case ACT -> handleActStatusChanged(event);
+            case CARD -> handleCardStatusChanged(event);
             case FORM058 -> handleForm058StatusChanged(event);
             case FORM0581 -> handleForm0581StatusChanged(event);
             default -> { }
@@ -109,6 +115,29 @@ public class NotificationEventListener {
             return;
         }
         handleActLisResponse(event);
+    }
+
+    /**
+     * {@code CardStatus.canBeUpdated()}/{@code complete()} let a card reach
+     * {@code COMPLETED} from {@code ACCEPTED_BY_USER}, {@code IN_PROGRESS},
+     * or {@code REJECTED} (rework), so that leg is matched on the new
+     * status alone — mirrors how {@code handleForm058StatusChanged} matches
+     * {@code APPROVED}. The other legs are exact old/new pairs, each
+     * produced by exactly one {@code CardCommandService} method.
+     */
+    private void handleCardStatusChanged(StatusChangedEvent event) {
+        if ("NEW".equals(event.oldStatus()) && "ACCEPTED_BY_USER".equals(event.newStatus())) {
+            handleCardAcceptedByUser(event);
+        } else if (("NEW".equals(event.oldStatus()) || "ACCEPTED_BY_USER".equals(event.oldStatus()))
+                && "REJECTED_BY_USER".equals(event.newStatus())) {
+            handleCardRejectedByUser(event);
+        } else if ("COMPLETED".equals(event.newStatus())) {
+            handleCardCompleted(event);
+        } else if ("COMPLETED".equals(event.oldStatus()) && "APPROVED".equals(event.newStatus())) {
+            handleCardApproved(event);
+        } else if ("COMPLETED".equals(event.oldStatus()) && "REJECTED".equals(event.newStatus())) {
+            handleCardRejectedBySupervisor(event);
+        }
     }
 
     /**
@@ -394,6 +423,81 @@ public class NotificationEventListener {
         fanOut(NotificationType.CARD_ASSIGNED, AuditEntityType.CARD, card.getId(), organizationId,
                 excludingActor(recipientIds, event.actorUserId()), "notification.card-assigned",
                 new Object[]{card.getId()});
+    }
+
+    private void handleCardAcceptedByUser(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_CARD_ACCEPTED_BY_USER_ENABLED, true)) {
+            return;
+        }
+        notifyCardAssigner(event, NotificationType.CARD_ACCEPTED_BY_USER, "notification.card-accepted-by-user");
+    }
+
+    private void handleCardRejectedByUser(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_CARD_REJECTED_BY_USER_ENABLED, true)) {
+            return;
+        }
+        notifyCardAssigner(event, NotificationType.CARD_REJECTED_BY_USER, "notification.card-rejected-by-user");
+    }
+
+    private void handleCardCompleted(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_CARD_COMPLETED_ENABLED, true)) {
+            return;
+        }
+        notifyCardAssigner(event, NotificationType.CARD_COMPLETED, "notification.card-completed");
+    }
+
+    /**
+     * Recipient is the supervisor who assigned the card
+     * ({@code Card.assignedById}) — used by the three transitions the
+     * attached employee drives (accept, reject, complete).
+     */
+    private void notifyCardAssigner(StatusChangedEvent event, NotificationType type, String messageKey) {
+        Card card = cardRepository.findById(event.entityId()).orElse(null);
+        if (card == null) {
+            log.warn("event=notification_source_not_found entityType=CARD entityId={}", event.entityId());
+            return;
+        }
+        Long assignedById = card.getAssignedById();
+        if (assignedById == null) {
+            return;
+        }
+
+        Long organizationId = resolveOrganizationId(card);
+        fanOut(type, AuditEntityType.CARD, card.getId(), organizationId,
+                excludingActor(List.of(assignedById), event.actorUserId()), messageKey,
+                new Object[]{card.getId()});
+    }
+
+    private void handleCardApproved(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_CARD_APPROVED_ENABLED, true)) {
+            return;
+        }
+        notifyCardUsers(event, NotificationType.CARD_APPROVED, "notification.card-approved");
+    }
+
+    private void handleCardRejectedBySupervisor(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_CARD_REJECTED_ENABLED, true)) {
+            return;
+        }
+        notifyCardUsers(event, NotificationType.CARD_REJECTED, "notification.card-rejected");
+    }
+
+    /**
+     * Recipients are the card's attached employees ({@code Card.users}) —
+     * used by the two transitions the supervisor drives (approve, reject
+     * back for rework).
+     */
+    private void notifyCardUsers(StatusChangedEvent event, NotificationType type, String messageKey) {
+        Card card = cardRepository.findById(event.entityId()).orElse(null);
+        if (card == null) {
+            log.warn("event=notification_source_not_found entityType=CARD entityId={}", event.entityId());
+            return;
+        }
+
+        Long organizationId = resolveOrganizationId(card);
+        List<Long> recipientIds = card.getUsers().stream().map(User::getId).toList();
+        fanOut(type, AuditEntityType.CARD, card.getId(), organizationId,
+                excludingActor(recipientIds, event.actorUserId()), messageKey, new Object[]{card.getId()});
     }
 
     private void handleActAssigned(EntityCreatedEvent event) {

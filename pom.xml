@@ -156,6 +156,22 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Loads a .env file (if present, in the process's working directory) into the
+             Spring Environment on startup, so the ${VAR:default} placeholders in
+             application*.properties can be filled from a file instead of real env vars.
+             Works in every profile, dev and prod alike - real OS/container env vars are
+             added to the Environment after .env, so they always win when both are set;
+             .env only fills gaps. ignoreIfMissing defaults to true, so an absent .env
+             (the normal prod case, where vars come from the orchestrator/secret store
+             instead) is a no-op, not a startup failure. See .env.example (dev) and
+             .env.prod.example (prod) for the documented variable lists. -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>springboot4-dotenv</artifactId>
+            <version>5.1.0</version>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Annotation processors -->
         <dependency>
             <groupId>org.projectlombok</groupId>

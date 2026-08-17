@@ -291,8 +291,10 @@ public class CardCommandService {
     public void acceptByUser(Long cardId) {
         Card card = requireAttachedUserCard(cardId);
         requireTransition(card.getStatus().canBeAcceptedByUser(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.ACCEPTED_BY_USER);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -302,9 +304,11 @@ public class CardCommandService {
     public void rejectByUser(Long cardId, String comment) {
         Card card = requireAttachedUserCard(cardId);
         requireTransition(card.getStatus().canBeRejectedByUser(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.REJECTED_BY_USER);
         card.setAttachedUserComment(comment);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -315,9 +319,11 @@ public class CardCommandService {
     public void complete(Long cardId) {
         Card card = requireAttachedUserCard(cardId);
         requireTransition(card.getStatus().canBeUpdated(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setCompletedDate(LocalDate.now());
         card.setStatus(CardStatus.COMPLETED);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -328,8 +334,10 @@ public class CardCommandService {
     public void approveBySupervisor(Long cardId) {
         Card card = requireAssignedSupervisorCard(cardId);
         requireTransition(card.getStatus().canBeApprovedBySupervisor(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.APPROVED);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -343,9 +351,36 @@ public class CardCommandService {
         if (!StringUtils.hasText(comment)) {
             throw new CardValidationException("error.card.rejection-reason-required");
         }
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.REJECTED);
         card.setSupervisorComment(comment);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
+    }
+
+    /**
+     * Drives {@code NotificationEventListener}'s card-status fan-out
+     * (assignee &lt;-&gt; supervisor, depending on which direction the
+     * transition went) alongside the audit trail — mirrors
+     * {@code ActCommandService.publishStatusChange}.
+     */
+    private void publishCardStatusChange(Card card, String oldStatus) {
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.CARD, card.getId(), oldStatus, card.getStatus().name(),
+                currentUserProvider.userIdOrNull(), null
+        ));
+    }
+
+    /**
+     * The sanctioned way for another module's aggregate (e.g. {@code Act#card})
+     * to obtain a managed {@link Card} reference to attach — callers outside
+     * this module must go through here instead of {@link CardRepository}
+     * directly, so this module's own invariants stay enforceable in one place.
+     */
+    @Transactional(readOnly = true)
+    public Card getExistingCard(Long cardId) {
+        return cardRepository.findById(cardId)
+                .orElseThrow(() -> new CardNotFoundException(cardId));
     }
 
     private Card requireAttachedUserCard(Long cardId) {
@@ -365,6 +400,10 @@ public class CardCommandService {
     private Card requireAssignedSupervisorCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
+
+        if (adminAccessGuard.isSuperAdmin()) {
+            return card;
+        }
 
         Long userId = currentUserProvider.userIdOrNull();
         if (userId == null || !userId.equals(card.getAssignedById())) {

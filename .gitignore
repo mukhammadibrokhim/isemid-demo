@@ -52,6 +52,8 @@ desktop.ini
 
 .env
 .env.*
+!.env.example
+!.env.prod.example
 *.local
 application-local.yml
 application-local.yaml
