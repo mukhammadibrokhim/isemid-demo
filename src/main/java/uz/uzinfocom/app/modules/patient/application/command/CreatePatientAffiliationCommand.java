@@ -11,7 +11,7 @@ public record CreatePatientAffiliationCommand(
         LocalDate lastVisitedDate,
         String organizationName,
         String regionCode,
-        String cityCode,
+        String districtCode,
         Long organizationId,
         UUID organizationUuid,
         String address

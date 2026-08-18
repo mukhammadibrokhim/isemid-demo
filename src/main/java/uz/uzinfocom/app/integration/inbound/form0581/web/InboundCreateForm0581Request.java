@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.AnimalOwnerRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.OtherInjuredPersonRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,7 +51,7 @@ public record InboundCreateForm0581Request(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
         @NotNull(message = "{validation.form0581.patient.required}")
-        PatientRequest patient,
+        IntegrationPatientRequest patient,
 
         @Schema(description = "Идентификатор организации-получателя формы. Должна быть учреждением "
                 + "санитарно-эпидемиологической службы.", requiredMode = Schema.RequiredMode.REQUIRED)

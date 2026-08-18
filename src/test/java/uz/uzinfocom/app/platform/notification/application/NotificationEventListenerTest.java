@@ -592,6 +592,71 @@ class NotificationEventListenerTest {
     }
 
     @Test
+    void form0581ReceivedAlsoNotifiesAffiliatedOrganizationsExcludingSenderAndReceiver() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Patient patient = mock(Patient.class);
+        when(patient.getId()).thenReturn(50L);
+
+        Form0581 form0581 = mock(Form0581.class);
+        when(form0581.getSenderOrganizationId()).thenReturn(3L);
+        when(form0581.getReceiverOrganizationId()).thenReturn(5L);
+        when(form0581.getPatient()).thenReturn(patient);
+        when(form0581Repository.findById(1L)).thenReturn(Optional.of(form0581));
+        when(userRepository.findActiveIdsByOrganizationId(5L)).thenReturn(List.of(10L));
+
+        // 3L is the sender - already notified separately, must be filtered out here.
+        when(patientAffiliationRepository.findDistinctOrganizationIdsByPatientIdAndTypeIn(
+                50L, uz.uzinfocom.app.platform.scope.FormAccessScopeResolver.AFFILIATION_TYPES
+        )).thenReturn(List.of(3L, 7L));
+        when(userRepository.findActiveIdsByOrganizationId(7L)).thenReturn(List.of(70L));
+
+        listener.on(new EntityCreatedEvent(AuditEntityType.FORM0581, 1L, 20L));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository, org.mockito.Mockito.times(2)).saveAll(captor.capture());
+
+        List<List<Notification>> allSaved = captor.getAllValues();
+        assertThat(allSaved.get(0)).extracting(Notification::getType).containsExactly(NotificationType.FORM0581_RECEIVED);
+        assertThat(allSaved.get(0)).extracting(Notification::getRecipientUserId).containsExactly(10L);
+        assertThat(allSaved.get(1)).extracting(Notification::getType).containsExactly(NotificationType.FORM0581_AFFILIATED_RECEIVED);
+        assertThat(allSaved.get(1)).extracting(Notification::getRecipientUserId).containsExactly(70L);
+    }
+
+    @Test
+    void form0581CardLinkedAlsoNotifiesAffiliatedOrganizationsExcludingSenderAndReceiver() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Patient patient = mock(Patient.class);
+        when(patient.getId()).thenReturn(50L);
+
+        Form0581 form0581 = mock(Form0581.class);
+        when(form0581.getSenderOrganizationId()).thenReturn(3L);
+        when(form0581.getReceiverOrganizationId()).thenReturn(5L);
+        when(form0581.getPatient()).thenReturn(patient);
+        when(form0581Repository.findById(9L)).thenReturn(Optional.of(form0581));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L));
+
+        // 5L is the receiver - not notified by this transition at all, so it
+        // must be filtered out of the affiliated fan-out too.
+        when(patientAffiliationRepository.findDistinctOrganizationIdsByPatientIdAndTypeIn(
+                50L, uz.uzinfocom.app.platform.scope.FormAccessScopeResolver.AFFILIATION_TYPES
+        )).thenReturn(List.of(5L, 7L));
+        when(userRepository.findActiveIdsByOrganizationId(7L)).thenReturn(List.of(70L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM0581, 9L, "ACCEPTED", "CARD_LINKED", 22L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository, org.mockito.Mockito.times(2)).saveAll(captor.capture());
+
+        List<List<Notification>> allSaved = captor.getAllValues();
+        assertThat(allSaved.get(0)).extracting(Notification::getType).containsExactly(NotificationType.FORM0581_CARD_LINKED);
+        assertThat(allSaved.get(0)).extracting(Notification::getRecipientUserId).containsExactly(11L);
+        assertThat(allSaved.get(1)).extracting(Notification::getType).containsExactly(NotificationType.FORM0581_AFFILIATED_CARD_LINKED);
+        assertThat(allSaved.get(1)).extracting(Notification::getRecipientUserId).containsExactly(70L);
+    }
+
+    @Test
     void form0581CanceledIsSkippedWhenDisabledBySetting() {
         when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(false);
 

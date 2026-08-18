@@ -9,13 +9,13 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundE
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581OtherInjuredPerson;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
-import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAddressCommand;
-import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAffiliationCommand;
-import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
+import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientAddressCommand;
+import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientAffiliationCommand;
+import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientCommand;
 import uz.uzinfocom.app.modules.patient.application.service.PatientIdentifierSync;
+import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
-import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
 import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
@@ -85,12 +85,11 @@ public class UpdateForm0581Service {
     }
 
     /**
-     * Unlike Form058's patient sync (name/birthDate/gender/phone/identifiers
-     * only), this also upserts addresses and affiliations — address and
-     * employment/education are first-class fields on this form, not
-     * incidental ones.
+     * Same patient sync as {@code UpdateForm058Service.updatePatient} —
+     * demographic fields, identifiers, addresses, and affiliations are all
+     * upserted here too.
      */
-    private void updatePatient(CreatePatientCommand patientCommand, Patient patient) {
+    private void updatePatient(UpdatePatientCommand patientCommand, Patient patient) {
         if (patient == null || patientCommand == null) {
             return;
         }
@@ -140,20 +139,26 @@ public class UpdateForm0581Service {
         patientCommand.affiliations().forEach(affiliation -> upsertAffiliation(patient, affiliation));
     }
 
-    private void upsertAddress(Patient patient, CreatePatientAddressCommand command) {
+    /**
+     * Matches by {@code id} when the caller supplied one (editing a specific
+     * existing address); a missing id falls back to the legacy
+     * find-or-create-by-type behavior, which is safe here because
+     * {@link AddressType} only has two values, so a patient can only ever
+     * have one of each.
+     */
+    private void upsertAddress(Patient patient, UpdatePatientAddressCommand command) {
         if (command == null || command.type() == null) {
             return;
         }
 
-        PatientAddress address = patient.getAddresses().stream()
-                .filter(item -> command.type().equals(item.getType()))
-                .findFirst()
-                .orElseGet(() -> {
-                    PatientAddress newAddress = new PatientAddress();
-                    newAddress.setType(command.type());
-                    patient.addAddress(newAddress);
-                    return newAddress;
-                });
+        PatientAddress address = command.id() != null
+                ? findAddressById(patient, command.id())
+                : findOrCreateAddressByType(patient, command.type());
+        if (address == null) {
+            return;
+        }
+
+        address.setType(command.type());
         address.setRegionCode(command.regionCode());
         address.setDistrictCode(command.districtCode());
         address.setNeighborhoodCode(command.neighborhoodCode());
@@ -162,26 +167,44 @@ public class UpdateForm0581Service {
         address.setApartmentNumber(command.apartmentNumber());
     }
 
-    private void upsertAffiliation(Patient patient, CreatePatientAffiliationCommand command) {
-        if (command == null || command.type() == null) {
+    private static PatientAddress findAddressById(Patient patient, Long id) {
+        return patient.getAddresses().stream()
+                .filter(item -> id.equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static PatientAddress findOrCreateAddressByType(Patient patient, AddressType type) {
+        return patient.getAddresses().stream()
+                .filter(item -> type.equals(item.getType()))
+                .findFirst()
+                .orElseGet(() -> {
+                    PatientAddress newAddress = new PatientAddress();
+                    newAddress.setType(type);
+                    patient.addAddress(newAddress);
+                    return newAddress;
+                });
+    }
+
+    /**
+     * Same "correct an existing affiliation by id, never create a new one" rule
+     * as {@code UpdateForm058Service#upsertAffiliation} - see its javadoc.
+     */
+    private void upsertAffiliation(Patient patient, UpdatePatientAffiliationCommand command) {
+        if (command == null || command.id() == null) {
             return;
         }
 
-        PatientAffiliation affiliation = patient.getAffiliations().stream()
-                .filter(item -> command.type().equals(item.getType()))
+        patient.getAffiliations().stream()
+                .filter(item -> command.id().equals(item.getId()))
                 .findFirst()
-                .orElseGet(() -> {
-                    PatientAffiliation newAffiliation = new PatientAffiliation();
-                    newAffiliation.setType(command.type());
-                    patient.addAffiliation(newAffiliation);
-                    return newAffiliation;
+                .ifPresent(affiliation -> {
+                    affiliation.setType(command.type());
+                    affiliation.setLastVisitedDate(command.lastVisitedDate());
+                    affiliation.setRegionCode(command.regionCode());
+                    affiliation.setDistrictCode(command.districtCode());
+                    affiliation.setOrganizationId(command.organizationId());
+                    affiliation.setAddress(command.address());
                 });
-        affiliation.setLastVisitedDate(command.lastVisitedDate());
-        affiliation.setOrganizationName(command.organizationName());
-        affiliation.setRegionCode(command.regionCode());
-        affiliation.setDistrictCode(command.cityCode());
-        affiliation.setOrganizationId(command.organizationId());
-        affiliation.setOrganizationUuid(command.organizationUuid());
-        affiliation.setAddress(command.address());
     }
 }

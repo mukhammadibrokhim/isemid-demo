@@ -248,7 +248,7 @@ same time you fire the read request.
 `FORM0581_CARD_LINKED`, `FORM0581_APPROVED`, `FORM0581_CANCELED`,
 `FORM0581_REOPENED`, `CARD_ASSIGNED`, `CARD_ACCEPTED_BY_USER`,
 `CARD_REJECTED_BY_USER`, `CARD_COMPLETED`, `CARD_APPROVED`, `CARD_REJECTED`,
-`ACT_ASSIGNED`, `ACT_LIS_RESPONSE`, `EXPORT_READY` — plus the two
+`ACT_ASSIGNED`, `ACT_LIS_RESPONSE`, `EXPORT_READY` — plus the four
 affiliation-specific types below. `*_ACKNOWLEDGED` fires when the receiving
 organization accepts the form (`SENT` → `ACCEPTED`) — sent to the *sender's*
 organization; `*_RECEIVED` is the opposite direction, sent to the
@@ -260,23 +260,27 @@ disabled" case specially.
 
 ### Affiliation types — a third kind of recipient
 
-`FORM058_AFFILIATED_RECEIVED` and `FORM058_AFFILIATED_CARD_LINKED` are
-different from every other type above: they're sent to an organization that
-is **neither the sender nor the receiver** of the form, but is the patient's
-workplace or place of study (see
+`FORM058_AFFILIATED_RECEIVED`/`FORM058_AFFILIATED_CARD_LINKED` and their
+Form0581 counterparts `FORM0581_AFFILIATED_RECEIVED`/
+`FORM0581_AFFILIATED_CARD_LINKED` are different from every other type above:
+they're sent to an organization that is **neither the sender nor the
+receiver** of the form, but is the patient's workplace or place of study
+(see
 [form058-form0581-frontend-guide.md § Affiliated organizations](./form058-form0581-frontend-guide.md#affiliated-organizations)
-for the full picture — the dedicated `GET /v1/form-058/affiliated` listing
-and the card/act attachment rule these two notifications are cueing you
-into).
+for the full picture — the dedicated `GET /v1/form-058/affiliated` /
+`GET /v1/form-058-1/affiliated` listings and the card/act attachment rule
+these four notifications are cueing you into).
 
 | `type` | `entityType`/`entityId` | Recipient | When |
 |---|---|---|---|
 | `FORM058_AFFILIATED_RECEIVED` | `FORM058` / form id | active users of the affiliated org | a new Form058 is created whose patient is affiliated with your org |
 | `FORM058_AFFILIATED_CARD_LINKED` | `FORM058` / form id | active users of the affiliated org | that form reaches `CARD_LINKED` — the cue that `Card`s now exist and you may attach an `Act` (`POST /v1/cards/{id}/acts`) |
+| `FORM0581_AFFILIATED_RECEIVED` | `FORM0581` / form id | active users of the affiliated org | a new Form0581 is created whose patient is affiliated with your org |
+| `FORM0581_AFFILIATED_CARD_LINKED` | `FORM0581` / form id | active users of the affiliated org | that form reaches `CARD_LINKED` — the cue that `Card`s now exist and you may attach an `Act` (`POST /v1/cards/{id}/acts`) |
 
 Handle these exactly like every other notification (same `NotificationResponse`
 shape, same read/unread flow) — the only difference is *why* you received
 it, not the delivery mechanism. A sensible click-through: open the form via
-`GET /v1/form-058/{entityId}` (or route into the `/v1/form-058/affiliated`
-list view filtered to that id) rather than assuming you're its sender or
-receiver.
+`GET /v1/form-058/{entityId}` / `GET /v1/form-058-1/{entityId}` (or route
+into the `/v1/form-058/affiliated` / `/v1/form-058-1/affiliated` list view
+filtered to that id) rather than assuming you're its sender or receiver.

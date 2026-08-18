@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.modules.form0581.application.command.update;
 
 import uz.uzinfocom.app.modules.form0581.application.command.OtherInjuredPersonCommand;
-import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
+import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientCommand;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,6 +55,6 @@ public record UpdateForm0581Command(
         String receiverFullName,
         LocalDateTime messageSentAt,
 
-        CreatePatientCommand patient
+        UpdatePatientCommand patient
 ) {
 }

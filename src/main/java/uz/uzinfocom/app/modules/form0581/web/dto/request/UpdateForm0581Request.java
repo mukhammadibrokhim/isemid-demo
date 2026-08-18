@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
+import uz.uzinfocom.app.modules.patient.web.request.UpdatePatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -100,6 +100,6 @@ public record UpdateForm0581Request(
 
         @Schema(description = "Сведения о пациенте для обновления.")
         @Valid
-        PatientRequest patient
+        UpdatePatientRequest patient
 ) {
 }

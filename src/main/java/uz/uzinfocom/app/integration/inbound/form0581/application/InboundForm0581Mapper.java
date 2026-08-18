@@ -2,15 +2,15 @@ package uz.uzinfocom.app.integration.inbound.form0581.application;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequestMapper;
 import uz.uzinfocom.app.integration.inbound.form0581.web.InboundCreateForm0581Request;
 import uz.uzinfocom.app.modules.form0581.application.command.OtherInjuredPersonCommand;
 import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm0581Command;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.OtherInjuredPersonRequest;
-import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
-@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})
+@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, IntegrationPatientRequestMapper.class})
 public interface InboundForm0581Mapper {
 
     @Mapping(target = "source", source = "source")

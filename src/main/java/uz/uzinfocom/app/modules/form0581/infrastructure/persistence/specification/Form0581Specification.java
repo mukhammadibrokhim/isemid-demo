@@ -5,8 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581AffiliatedFilter;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581Filter;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581FilterFields;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
+import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
+import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.scope.jpa.CaseSpecificationSupport;
 import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
@@ -47,7 +51,8 @@ public class Form0581Specification {
             predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
             predicates.add(scopePredicateFactory.applyDirectionScope(root, cb, scope, received));
 
-            applyFilters(predicates, root, query, cb, filter, received);
+            applyFilters(predicates, root, query, cb, filter);
+            applySenderReceiverFilters(predicates, root, cb, filter, received);
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
@@ -64,7 +69,35 @@ public class Form0581Specification {
 
             predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
 
-            applyFilters(predicates, root, query, cb, filter, null);
+            applyFilters(predicates, root, query, cb, filter);
+            applySenderReceiverFilters(predicates, root, cb, filter, null);
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    /**
+     * {@code GET /v1/form-058-1/affiliated} - forms visible to {@code
+     * organizationId} solely because the patient's workplace or place of
+     * study is that organization, independent of sender/receiver. Unlike
+     * {@link #table}/{@link #tableUnscoped}, the affiliation predicate here
+     * is unconditional (this specification exists only for that mode), and
+     * {@code organizationId}/region-district filtering — both meaningless
+     * once access isn't sender/receiver-scoped — simply aren't offered by
+     * {@link Form0581AffiliatedFilter} in the first place. Mirrors {@code
+     * Form058Specification#affiliatedTable}.
+     */
+    public Specification<Form0581> affiliatedTable(
+            Form0581AffiliatedFilter filter,
+            Long organizationId
+    ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
+            predicates.add(patientAffiliationExists(root, query, cb, organizationId));
+
+            applyFilters(predicates, root, query, cb, filter);
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
@@ -127,13 +160,16 @@ public class Form0581Specification {
         );
     }
 
+    /**
+     * Common part shared by every Form0581 listing, regardless of how its
+     * access scope is determined — see {@link Form0581FilterFields}.
+     */
     private void applyFilters(
             List<Predicate> predicates,
             Root<Form0581> root,
             CriteriaQuery<?> query,
             CriteriaBuilder cb,
-            Form0581Filter filter,
-            Boolean received
+            Form0581FilterFields filter
     ) {
         if (filter == null) {
             return;
@@ -168,6 +204,28 @@ public class Form0581Specification {
             predicates.add(cb.equal(root.get(DIAGNOSIS_INFO).get(ICD10_CODE), normalizeCode(filter.icd10Code())));
         }
 
+        if (StringUtils.hasText(filter.source())) {
+            predicates.add(cb.equal(root.get(SOURCE), normalizeCode(filter.source())));
+        }
+    }
+
+    /**
+     * {@code organizationId}/region-district filtering — both mean "sender
+     * or receiver", so they only apply to the direction-scoped listings
+     * ({@link #table}/{@link #tableUnscoped}), never to {@link
+     * #affiliatedTable}.
+     */
+    private void applySenderReceiverFilters(
+            List<Predicate> predicates,
+            Root<Form0581> root,
+            CriteriaBuilder cb,
+            Form0581Filter filter,
+            Boolean received
+    ) {
+        if (filter == null) {
+            return;
+        }
+
         if (filter.organizationId() != null) {
             predicates.add(caseSpecificationSupport.directionalOrganizationIdPredicate(
                     root, cb, received, SENDER_ORGANIZATION_ID, RECEIVER_ORGANIZATION_ID, filter.organizationId()
@@ -180,10 +238,29 @@ public class Form0581Specification {
                     filter.regionCode(), filter.districtCode()
             ));
         }
+    }
 
-        if (StringUtils.hasText(filter.source())) {
-            predicates.add(cb.equal(root.get(SOURCE), normalizeCode(filter.source())));
+    private Predicate patientAffiliationExists(
+            Root<Form0581> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Long currentOrganizationId
+    ) {
+        if (currentOrganizationId == null) {
+            return cb.disjunction();
         }
+
+        Subquery<Long> subquery = query.subquery(Long.class);
+        Root<PatientAffiliation> affiliation = subquery.from(PatientAffiliation.class);
+
+        subquery.select(cb.literal(1L));
+        subquery.where(
+                cb.equal(affiliation.get(PATIENT).get(ID), root.get(PATIENT).get(ID)),
+                cb.equal(affiliation.get("organizationId"), currentOrganizationId),
+                affiliation.get("type").in(AffiliationType.WORKPLACE, AffiliationType.EDUCATIONAL)
+        );
+
+        return cb.exists(subquery);
     }
 
     private String normalizeCode(String value) {

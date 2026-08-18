@@ -420,6 +420,12 @@ public final class ApiPaths {
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
         public static final String PDF = "/{id}/pdf";
         public static final String EXPORT = "/export";
+
+        // Same rationale as Form058.AFFILIATED - a form058-1 visible because
+        // the patient's workplace/place of study matches the current
+        // organization gets its own endpoint/filter instead of a hidden
+        // mode-switch query flag.
+        public static final String AFFILIATED = "/affiliated";
     }
 
     public static final class Form0581Stats {
@@ -658,6 +664,16 @@ public final class ApiPaths {
          * contract that isn't meant to generalize.
          */
         public static final String DMED_FORM058 = ROOT + "/DMED/form-058";
+
+        /**
+         * DMED-specific form058-1 endpoint, kept separate from
+         * {@link #FORM0581} for the same reason as {@link #DMED_FORM058}:
+         * DMED integrates against a fixed, flat request shape
+         * ({@code DmedCreateForm0581Request}) that must not shift to the
+         * generic endpoint's entity-mirroring nested structure. A literal
+         * path, not a {@code {source}} pattern.
+         */
+        public static final String DMED_FORM0581 = ROOT + "/DMED/form-058-1";
 
         /**
          * Outbound side of the same integration surface: instead of an

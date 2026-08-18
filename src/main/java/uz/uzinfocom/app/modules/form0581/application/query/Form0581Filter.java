@@ -130,7 +130,7 @@ public record Form0581Filter(
         )
         String source
 
-) implements PageableRequest {
+) implements PageableRequest, Form0581FilterFields {
 
         @Schema(hidden = true)
         @AssertTrue(message = "{form0581.filter.date_range.invalid}")

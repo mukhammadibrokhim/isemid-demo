@@ -13,9 +13,11 @@ import uz.uzinfocom.app.platform.reference.repository.NeighborhoodRepository;
 import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,9 +31,9 @@ class PatientCreateValidatorTest {
 
     @BeforeEach
     void stubKnownCodes() {
-        when(regionRepository.existsByCodeAndDeletedFalse("R1")).thenReturn(true);
-        when(districtRepository.existsByCodeAndDeletedFalse("D1")).thenReturn(true);
-        when(neighborhoodRepository.existsByCodeAndDeletedFalse("N1")).thenReturn(true);
+        when(regionRepository.findExistingCodes(any())).thenReturn(Set.of("R1"));
+        when(districtRepository.findExistingCodes(any())).thenReturn(Set.of("D1"));
+        when(neighborhoodRepository.findExistingCodes(any())).thenReturn(Set.of("N1"));
     }
 
     @Test
@@ -61,7 +63,6 @@ class PatientCreateValidatorTest {
 
     @Test
     void rejectsUnknownRegionCodeInAddress() {
-        when(regionRepository.existsByCodeAndDeletedFalse("R9")).thenReturn(false);
         CreatePatientCommand command = command(
                 List.of(address("R9", null, null)),
                 List.of()
@@ -73,7 +74,6 @@ class PatientCreateValidatorTest {
 
     @Test
     void rejectsUnknownDistrictCodeInAddress() {
-        when(districtRepository.existsByCodeAndDeletedFalse("D9")).thenReturn(false);
         CreatePatientCommand command = command(
                 List.of(address(null, "D9", null)),
                 List.of()
@@ -85,7 +85,6 @@ class PatientCreateValidatorTest {
 
     @Test
     void rejectsUnknownNeighborhoodCodeInAddress() {
-        when(neighborhoodRepository.existsByCodeAndDeletedFalse("N9")).thenReturn(false);
         CreatePatientCommand command = command(
                 List.of(address(null, null, "N9")),
                 List.of()
@@ -107,7 +106,6 @@ class PatientCreateValidatorTest {
 
     @Test
     void rejectsUnknownRegionCodeInAffiliation() {
-        when(regionRepository.existsByCodeAndDeletedFalse("R9")).thenReturn(false);
         CreatePatientCommand command = command(
                 List.of(),
                 List.of(affiliation("R9", null))
@@ -118,8 +116,7 @@ class PatientCreateValidatorTest {
     }
 
     @Test
-    void rejectsUnknownCityCodeInAffiliation() {
-        when(districtRepository.existsByCodeAndDeletedFalse("D9")).thenReturn(false);
+    void rejectsUnknownDistrictCodeInAffiliation() {
         CreatePatientCommand command = command(
                 List.of(),
                 List.of(affiliation(null, "D9"))
@@ -165,13 +162,13 @@ class PatientCreateValidatorTest {
         );
     }
 
-    private CreatePatientAffiliationCommand affiliation(String regionCode, String cityCode) {
+    private CreatePatientAffiliationCommand affiliation(String regionCode, String districtCode) {
         return new CreatePatientAffiliationCommand(
                 AffiliationType.WORKPLACE,
                 null,
                 null,
                 regionCode,
-                cityCode,
+                districtCode,
                 null,
                 null,
                 null

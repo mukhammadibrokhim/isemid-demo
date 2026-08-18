@@ -22,6 +22,7 @@ notification/
 │                                  FORM058_AFFILIATED_RECEIVED, FORM058_AFFILIATED_CARD_LINKED,
 │                                  FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED, FORM0581_CARD_LINKED,
 │                                  FORM0581_APPROVED, FORM0581_CANCELED, FORM0581_REOPENED,
+│                                  FORM0581_AFFILIATED_RECEIVED, FORM0581_AFFILIATED_CARD_LINKED,
 │                                  CARD_ASSIGNED, CARD_ACCEPTED_BY_USER, CARD_REJECTED_BY_USER,
 │                                  CARD_COMPLETED, CARD_APPROVED, CARD_REJECTED,
 │                                  ACT_ASSIGNED, ACT_LIS_RESPONSE, EXPORT_READY
@@ -65,6 +66,8 @@ alongside the audit trail:
 | Form0581 approved | `StatusChangedEvent(FORM0581, id, oldStatus, "APPROVED", ...)` — `ApproveForm0581Service.approve` | active users of `Form0581.receiverOrganizationId` |
 | Form0581 canceled | `StatusChangedEvent(FORM0581, id, oldStatus, "CANCELED", ...)` — `CancelForm0581Service.cancel` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
 | Form0581 reopened | `StatusChangedEvent(FORM0581, id, "CANCELED", "SENT", ...)` — `ReopenForm0581Service.reopen` | active users of **both** `Form0581.senderOrganizationId` and `Form0581.receiverOrganizationId` |
+| Form0581 affiliated-received | `EntityCreatedEvent(FORM0581, id, actorUserId)` — same event as "Form0581 received", handled in the same method | active users of every organization the patient is affiliated with (`PatientAffiliation.type` WORKPLACE/EDUCATIONAL) **excluding** sender/receiver — see `GET /v1/form-058-1/affiliated` |
+| Form0581 affiliated-card-linked | `StatusChangedEvent(FORM0581, id, "ACCEPTED", "CARD_LINKED", ...)` — same event as "Form0581 card linked", handled in the same method | active users of every affiliated organization (excluding sender/receiver) — their cue that `Card`s now exist and an `Act` can be attached (`POST /v1/cards/{id}/acts`) |
 | Card assigned | `EntityCreatedEvent(CARD, id, assignedById)` — `CardCommandService.createBlankCards` (**new** publish call — cards previously fired no per-card event) | `card.getUsers()` |
 | Card accepted by user | `StatusChangedEvent(CARD, id, "NEW", "ACCEPTED_BY_USER", ...)` — `CardCommandService.acceptByUser` | `Card.assignedById` (the assigning supervisor) |
 | Card rejected by user | `StatusChangedEvent(CARD, id, "NEW"/"ACCEPTED_BY_USER", "REJECTED_BY_USER", ...)` — `CardCommandService.rejectByUser` | `Card.assignedById` |
@@ -200,6 +203,8 @@ read-through over the `system_settings` table):
 - `notification.form0581-approved.enabled`
 - `notification.form0581-canceled.enabled`
 - `notification.form0581-reopened.enabled`
+- `notification.form0581-affiliated-received.enabled`
+- `notification.form0581-affiliated-card-linked.enabled`
 - `notification.card-assigned.enabled`
 - `notification.card-accepted-by-user.enabled`
 - `notification.card-rejected-by-user.enabled`

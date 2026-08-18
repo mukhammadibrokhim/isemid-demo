@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
+import uz.uzinfocom.app.modules.patient.web.request.UpdatePatientRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -62,7 +62,7 @@ public record UpdateForm058Request(
 
         @Schema(description = "Сведения о пациенте для обновления.")
         @Valid
-        PatientRequest patient,
+        UpdatePatientRequest patient,
 
         @Schema(description = "Географическое место выявления заболевания.")
         @Valid

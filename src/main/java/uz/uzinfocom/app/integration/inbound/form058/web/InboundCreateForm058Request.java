@@ -8,8 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form058.web.dto.request.LocationRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -37,7 +37,7 @@ public record InboundCreateForm058Request(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
         @NotNull(message = "{validation.form058.patient.required}")
-        PatientRequest patient,
+        IntegrationPatientRequest patient,
 
         @Schema(description = "Клинические сведения.", requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid

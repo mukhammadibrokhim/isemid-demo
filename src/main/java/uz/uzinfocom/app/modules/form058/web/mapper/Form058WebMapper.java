@@ -15,10 +15,12 @@ import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
 import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
+import uz.uzinfocom.app.modules.patient.web.mapper.UpdatePatientRequestMapper;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
-@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})
+@Mapper(config = CentralMapperConfig.class,
+        uses = {OrganizationMappingHelper.class, PatientRequestMapper.class, UpdatePatientRequestMapper.class})
 public interface Form058WebMapper {
 
     @Mapping(target = "source", source = "source")
