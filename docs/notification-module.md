@@ -19,6 +19,7 @@ notification/
 │   ├── Notification.java        one row per (event, recipient) — see "Fan-out model" below
 │   └── NotificationType.java    FORM058_RECEIVED, FORM058_ACKNOWLEDGED, FORM058_CARD_LINKED,
 │                                  FORM058_APPROVED, FORM058_CANCELED, FORM058_REOPENED,
+│                                  FORM058_AFFILIATED_RECEIVED, FORM058_AFFILIATED_CARD_LINKED,
 │                                  FORM0581_RECEIVED, FORM0581_ACKNOWLEDGED, FORM0581_CARD_LINKED,
 │                                  FORM0581_APPROVED, FORM0581_CANCELED, FORM0581_REOPENED,
 │                                  CARD_ASSIGNED, CARD_ACCEPTED_BY_USER, CARD_REJECTED_BY_USER,
@@ -56,6 +57,8 @@ alongside the audit trail:
 | Form058 approved | `StatusChangedEvent(FORM058, id, oldStatus, "APPROVED", ...)` — `ApproveForm058Service.approve` | active users of `Form058.receiverOrganizationId` |
 | Form058 canceled | `StatusChangedEvent(FORM058, id, oldStatus, "CANCELED", ...)` — `CancelForm058Service.cancel` | active users of **both** `Form058.senderOrganizationId` and `Form058.receiverOrganizationId` |
 | Form058 reopened | `StatusChangedEvent(FORM058, id, "CANCELED", "SENT", ...)` — `ReopenForm058Service.reopen` | active users of **both** `Form058.senderOrganizationId` and `Form058.receiverOrganizationId` |
+| Form058 affiliated-received | `EntityCreatedEvent(FORM058, id, actorUserId)` — same event as "Form058 received", handled in the same method | active users of every organization the patient is affiliated with (`PatientAffiliation.type` WORKPLACE/EDUCATIONAL) **excluding** sender/receiver — see `GET /v1/form-058/affiliated` |
+| Form058 affiliated-card-linked | `StatusChangedEvent(FORM058, id, "ACCEPTED", "CARD_LINKED", ...)` — same event as "Form058 card linked", handled in the same method | active users of every affiliated organization (excluding sender/receiver) — their cue that `Card`s now exist and an `Act` can be attached (`POST /v1/cards/{id}/acts`) |
 | Form0581 received | `EntityCreatedEvent(FORM0581, id, actorUserId)` — `CreateForm0581Service` | active users of `Form0581.receiverOrganizationId` |
 | Form0581 acknowledged | `StatusChangedEvent(FORM0581, id, "SENT", "ACCEPTED", ...)` — `AcceptForm0581Service.accept` | active users of `Form0581.senderOrganizationId` |
 | Form0581 card linked | `StatusChangedEvent(FORM0581, id, "ACCEPTED", "CARD_LINKED", ...)` — `CardCommandService.assignCardsToForm0581` | active users of `Form0581.senderOrganizationId` |
@@ -189,6 +192,8 @@ read-through over the `system_settings` table):
 - `notification.form058-approved.enabled`
 - `notification.form058-canceled.enabled`
 - `notification.form058-reopened.enabled`
+- `notification.form058-affiliated-received.enabled`
+- `notification.form058-affiliated-card-linked.enabled`
 - `notification.form0581-received.enabled`
 - `notification.form0581-acknowledged.enabled`
 - `notification.form0581-card-linked.enabled`

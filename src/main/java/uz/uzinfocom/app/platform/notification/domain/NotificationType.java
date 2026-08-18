@@ -7,6 +7,11 @@ public enum NotificationType {
     FORM058_APPROVED,
     FORM058_CANCELED,
     FORM058_REOPENED,
+    // Sent to an organization that is neither sender nor receiver, but is
+    // the patient's workplace/place-of-study affiliation — see
+    // GET /v1/form-058/affiliated and FormAccessScopeResolver.
+    FORM058_AFFILIATED_RECEIVED,
+    FORM058_AFFILIATED_CARD_LINKED,
     FORM0581_RECEIVED,
     FORM0581_ACKNOWLEDGED,
     FORM0581_CARD_LINKED,

@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.modules.card.application.command;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,8 +28,12 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundE
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
+import uz.uzinfocom.app.modules.patient.domain.model.Patient;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +65,8 @@ class CardCommandServiceAssignCardsTest {
     private CurrentUserProvider currentUserProvider;
     private ApplicationEventPublisher eventPublisher;
     private CardCommandService service;
+    private AdminAccessGuard adminAccessGuard;
+    private FormAccessScopeResolver formAccessScopeResolver;
 
     @BeforeEach
     void setUp() {
@@ -70,17 +77,23 @@ class CardCommandServiceAssignCardsTest {
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
         currentUserProvider = mock(CurrentUserProvider.class);
         eventPublisher = mock(ApplicationEventPublisher.class);
-        AdminAccessGuard adminAccessGuard = mock(AdminAccessGuard.class);
+        adminAccessGuard = mock(AdminAccessGuard.class);
         when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
+        formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
         service = new CardCommandService(
                 cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
-                currentUserProvider, eventPublisher, adminAccessGuard
+                currentUserProvider, eventPublisher, adminAccessGuard, formAccessScopeResolver
         );
 
         when(cardRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(form058Repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(form0581Repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    @AfterEach
+    void tearDown() {
+        CurrentOrganizationContext.clear();
     }
 
     @Test
@@ -181,6 +194,49 @@ class CardCommandServiceAssignCardsTest {
     }
 
     @Test
+    void rejectsAssignCardsWhenCallerOrganizationHasNoAccessToTheForm() {
+        Form058 form = formWith(FormStatus.ACCEPTED, 10L, 20L, 30L);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(999L));
+        when(formAccessScopeResolver.canAccess(999L, 10L, 20L, 30L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.assignCards(FORM_ID, new AssignCardsRequest(
+                List.of(CardType.CARD161), List.of(1L)
+        ))).isInstanceOf(CardScopeViolationException.class);
+
+        verify(cardRepository, org.mockito.Mockito.never()).saveAll(any());
+    }
+
+    @Test
+    void allowsAssignCardsWhenFormAccessScopeResolverGrantsAccess() {
+        Form058 form = formWith(FormStatus.ACCEPTED, 10L, 20L, 30L);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(20L));
+        when(formAccessScopeResolver.canAccess(20L, 10L, 20L, 30L)).thenReturn(true);
+
+        stubHandler(CardType.CARD161, new Card161());
+
+        service.assignCards(FORM_ID, new AssignCardsRequest(List.of(CardType.CARD161), List.of(1L)));
+
+        assertThat(capturePersistedCards()).hasSize(1);
+    }
+
+    @Test
+    void rejectsAssignCardsWhenNoCurrentOrganizationSelectedAndNotSuperAdmin() {
+        Form058 form = formWith(FormStatus.ACCEPTED, 10L, 20L, 30L);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+
+        assertThatThrownBy(() -> service.assignCards(FORM_ID, new AssignCardsRequest(
+                List.of(CardType.CARD161), List.of(1L)
+        ))).isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
     void failsWhenFormDoesNotExist() {
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.empty());
 
@@ -262,6 +318,26 @@ class CardCommandServiceAssignCardsTest {
         Form058 form = Form058.builder().status(status).build();
         form.setId(FORM_ID);
         return form;
+    }
+
+    private Form058 formWith(FormStatus status, Long senderOrganizationId, Long receiverOrganizationId, Long patientId) {
+        Patient patient = Patient.builder().build();
+        patient.setId(patientId);
+
+        Form058 form = Form058.builder()
+                .status(status)
+                .senderOrganizationId(senderOrganizationId)
+                .receiverOrganizationId(receiverOrganizationId)
+                .patient(patient)
+                .build();
+        form.setId(FORM_ID);
+        return form;
+    }
+
+    private Organization organization(Long id) {
+        Organization organization = new Organization();
+        organization.setId(id);
+        return organization;
     }
 
     private User userWithId(Long id) {

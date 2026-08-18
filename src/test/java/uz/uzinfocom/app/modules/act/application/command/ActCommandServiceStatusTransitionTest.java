@@ -22,6 +22,8 @@ import uz.uzinfocom.app.modules.act.web.dto.request.Act153Request;
 import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.Map;
@@ -68,8 +70,13 @@ class ActCommandServiceStatusTransitionTest {
         handlerRegistry = mock(ActTypeHandlerRegistry.class);
         act153Handler = mock(ActTypeHandler.class);
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+        AdminAccessGuard adminAccessGuard = mock(AdminAccessGuard.class);
+        FormAccessScopeResolver formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
-        service = new ActCommandService(actRepository, cardCommandService, userRepository, handlerRegistry, currentUserProvider, eventPublisher);
+        service = new ActCommandService(
+                actRepository, cardCommandService, userRepository, handlerRegistry, currentUserProvider,
+                eventPublisher, adminAccessGuard, formAccessScopeResolver
+        );
 
         when(actRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         doReturn(act153Handler).when(handlerRegistry).get(ActType.ACT153);

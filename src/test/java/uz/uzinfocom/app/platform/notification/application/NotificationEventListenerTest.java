@@ -11,6 +11,8 @@ import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
+import uz.uzinfocom.app.modules.patient.domain.model.Patient;
+import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
@@ -44,10 +46,12 @@ class NotificationEventListenerTest {
     private final UserRepository userRepository = mock(UserRepository.class);
     private final NotificationRepository notificationRepository = mock(NotificationRepository.class);
     private final SystemSettingResolver systemSettingResolver = mock(SystemSettingResolver.class);
+    private final PatientAffiliationJpaRepository patientAffiliationRepository = mock(PatientAffiliationJpaRepository.class);
 
     private final NotificationEventListener listener = new NotificationEventListener(
             form058Repository, form0581Repository, cardRepository, actRepository,
-            userRepository, notificationRepository, systemSettingResolver, JsonMapper.builder().build()
+            userRepository, notificationRepository, systemSettingResolver, JsonMapper.builder().build(),
+            patientAffiliationRepository
     );
 
     @Test
@@ -83,6 +87,38 @@ class NotificationEventListenerTest {
 
         verify(form058Repository, never()).findById(any());
         verify(notificationRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void formReceivedAlsoNotifiesAffiliatedOrganizationsExcludingSenderAndReceiver() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Patient patient = mock(Patient.class);
+        when(patient.getId()).thenReturn(50L);
+
+        Form058 form058 = mock(Form058.class);
+        when(form058.getSenderOrganizationId()).thenReturn(3L);
+        when(form058.getReceiverOrganizationId()).thenReturn(5L);
+        when(form058.getPatient()).thenReturn(patient);
+        when(form058Repository.findById(1L)).thenReturn(Optional.of(form058));
+        when(userRepository.findActiveIdsByOrganizationId(5L)).thenReturn(List.of(10L));
+
+        // 3L is the sender - already notified separately, must be filtered out here.
+        when(patientAffiliationRepository.findDistinctOrganizationIdsByPatientIdAndTypeIn(
+                50L, uz.uzinfocom.app.platform.scope.FormAccessScopeResolver.AFFILIATION_TYPES
+        )).thenReturn(List.of(3L, 7L));
+        when(userRepository.findActiveIdsByOrganizationId(7L)).thenReturn(List.of(70L));
+
+        listener.on(new EntityCreatedEvent(AuditEntityType.FORM058, 1L, 20L));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository, org.mockito.Mockito.times(2)).saveAll(captor.capture());
+
+        List<List<Notification>> allSaved = captor.getAllValues();
+        assertThat(allSaved.get(0)).extracting(Notification::getType).containsExactly(NotificationType.FORM058_RECEIVED);
+        assertThat(allSaved.get(0)).extracting(Notification::getRecipientUserId).containsExactly(10L);
+        assertThat(allSaved.get(1)).extracting(Notification::getType).containsExactly(NotificationType.FORM058_AFFILIATED_RECEIVED);
+        assertThat(allSaved.get(1)).extracting(Notification::getRecipientUserId).containsExactly(70L);
     }
 
     @Test
@@ -348,6 +384,40 @@ class NotificationEventListenerTest {
         assertThat(saved).extracting(Notification::getRecipientUserId).containsExactly(11L);
         assertThat(saved).allSatisfy(notification ->
                 assertThat(notification.getType()).isEqualTo(NotificationType.FORM058_CARD_LINKED));
+    }
+
+    @Test
+    void form058CardLinkedAlsoNotifiesAffiliatedOrganizationsExcludingSenderAndReceiver() {
+        when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
+
+        Patient patient = mock(Patient.class);
+        when(patient.getId()).thenReturn(50L);
+
+        Form058 form058 = mock(Form058.class);
+        when(form058.getSenderOrganizationId()).thenReturn(3L);
+        when(form058.getReceiverOrganizationId()).thenReturn(5L);
+        when(form058.getPatient()).thenReturn(patient);
+        when(form058Repository.findById(9L)).thenReturn(Optional.of(form058));
+        when(userRepository.findActiveIdsByOrganizationId(3L)).thenReturn(List.of(11L));
+
+        // 5L is the receiver - not notified by this transition at all (see
+        // form058CardLinkedNotifiesSenderOrganizationOnlyOnAcceptedToCardLinkedTransition),
+        // so it must be filtered out of the affiliated fan-out too.
+        when(patientAffiliationRepository.findDistinctOrganizationIdsByPatientIdAndTypeIn(
+                50L, uz.uzinfocom.app.platform.scope.FormAccessScopeResolver.AFFILIATION_TYPES
+        )).thenReturn(List.of(5L, 7L));
+        when(userRepository.findActiveIdsByOrganizationId(7L)).thenReturn(List.of(70L));
+
+        listener.on(new StatusChangedEvent(AuditEntityType.FORM058, 9L, "ACCEPTED", "CARD_LINKED", 22L, null));
+
+        ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+        verify(notificationRepository, org.mockito.Mockito.times(2)).saveAll(captor.capture());
+
+        List<List<Notification>> allSaved = captor.getAllValues();
+        assertThat(allSaved.get(0)).extracting(Notification::getType).containsExactly(NotificationType.FORM058_CARD_LINKED);
+        assertThat(allSaved.get(0)).extracting(Notification::getRecipientUserId).containsExactly(11L);
+        assertThat(allSaved.get(1)).extracting(Notification::getType).containsExactly(NotificationType.FORM058_AFFILIATED_CARD_LINKED);
+        assertThat(allSaved.get(1)).extracting(Notification::getRecipientUserId).containsExactly(70L);
     }
 
     @Test

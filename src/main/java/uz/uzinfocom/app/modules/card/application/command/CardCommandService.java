@@ -35,6 +35,7 @@ import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
@@ -76,6 +77,7 @@ public class CardCommandService {
     private final CurrentUserProvider currentUserProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final AdminAccessGuard adminAccessGuard;
+    private final FormAccessScopeResolver formAccessScopeResolver;
 
     /**
      * Bulk-assigns one blank card per distinct requested type to a form,
@@ -94,6 +96,8 @@ public class CardCommandService {
     public void assignCards(Long formId, AssignCardsRequest request) {
         Form058 form = form058Repository.findByIdAndDeletedFalse(formId)
                 .orElseThrow(() -> new Form058NotFoundException(formId));
+
+        requireForm058Access(form);
 
         List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
         publishCardAssignedEvents(cardRepository.saveAll(cards));
@@ -147,6 +151,32 @@ public class CardCommandService {
                 AuditEntityType.FORM0581, form.getId(), oldStatus, form.getStatus().name(),
                 currentUserProvider.userIdOrNull(), null
         ));
+    }
+
+    /**
+     * Only an organization actually connected to the form — sender, receiver,
+     * or (the "external" case) the one the patient is affiliated with as
+     * their workplace or place of study — may assign cards to it. Mirrors
+     * the receiver-only check {@link #assignCardsToForm0581} already applies
+     * for form0581, extended with the affiliation path {@code
+     * Form058Specification} already grants read access through under
+     * {@code affiliation=true}.
+     */
+    private void requireForm058Access(Form058 form) {
+        if (adminAccessGuard.isSuperAdmin()) {
+            return;
+        }
+
+        Long currentOrganizationId = CurrentOrganizationContext.getOptional()
+                .map(Organization::getId)
+                .orElseThrow(CardScopeViolationException::new);
+
+        Long patientId = form.getPatient() != null ? form.getPatient().getId() : null;
+        if (!formAccessScopeResolver.canAccess(
+                currentOrganizationId, form.getSenderOrganizationId(), form.getReceiverOrganizationId(), patientId
+        )) {
+            throw new CardScopeViolationException();
+        }
     }
 
     /**

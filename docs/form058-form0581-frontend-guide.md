@@ -153,6 +153,92 @@ changed), the receiver organization must have
 in the "receiver" field is filtered to SANEPID_SERVICE institutions to avoid
 a round-trip error.
 
+## Affiliated organizations
+
+Form №058 only (no Form0581 equivalent). Besides the sender/receiver
+relationship, an organization can also see a form because the **patient's
+workplace or place of study** (`PatientAffiliation`, type `WORKPLACE` or
+`EDUCATIONAL`) is that organization — e.g. a санэпидстанция responsible for
+a factory or a school. This "affiliated" organization is neither the
+sender nor the receiver, and the normal `GET /v1/form-058?direction=...`
+listing will never show it the form.
+
+### Listing: a separate endpoint, not a filter flag
+
+```
+GET /v1/form-058/affiliated
+```
+
+Same query-parameter shape as the main listing (`page`, `size`, `sortBy`,
+`sortDir`, `status`, `dateFrom`, `dateTo`, `id`, `documentValue`,
+`icd10Code`, `source`, `hasLinkedCards`) — but **no `direction` and no
+`organizationId`/`regionCode`/`districtCode`**. Those describe the
+sender/receiver side and have no meaning here; the endpoint doesn't accept
+them at all, on purpose, so there's nothing to send by mistake.
+
+Each row is wrapped with the affiliation type that explains why it's
+visible to you:
+
+```jsonc
+// GET /v1/form-058/affiliated  ->  PagedResponse<Form058AffiliatedTableResponse>
+{
+  "success": true,
+  "message": "Успешный запрос.",
+  "data": [
+    {
+      "form": {
+        "id": 123,
+        "uuid": "...",
+        "createdAt": "2026-08-10T09:00:00Z",
+        "status": "CARD_LINKED",
+        "icd10Code": "A09",
+        "senderOrganizationId": 10,
+        "receiverOrganizationId": 20,
+        "patient": { "id": 456, "firstName": "...", "lastName": "..." }
+      },
+      "affiliationType": "WORKPLACE"
+    }
+  ],
+  "meta": { "page": 1, "size": 20, "totalElements": 3, "totalPages": 1 }
+}
+```
+
+Note the extra nesting level — `data[i].form.id`, not `data[i].id`. This
+differs from the plain `GET /v1/form-058` response shape on purpose: the
+`affiliationType` field is meaningless for every other listing, so it isn't
+bolted onto the shared row type.
+
+For the full detail view (`GET /v1/form-058/{id}`), no separate endpoint is
+needed — `patient.affiliations[]` in `Form058DetailResponse` already lists
+every affiliation record (`type`, `organizationId`, ...); find the entry
+where `organizationId` matches your own to get the same information.
+
+### Attaching an Act — the reason this list exists
+
+Once the form reaches `CARD_LINKED`, cards exist and an affiliated
+organization may attach an `Act` to one of them, same as the sender/receiver
+could:
+
+```
+POST /v1/cards/{cardId}/acts
+```
+
+The backend checks that the caller's active organization is the form's
+sender, its receiver, **or** an affiliated organization for that form's
+patient — anyone else gets `403` (`code: "SCOPE_VIOLATION"`). The same
+check applies to `POST /v1/form-058/{id}/cards/assign` (linking cards in
+the first place). There is no separate "am I allowed" endpoint — attempt
+the action and handle a `403` the same way you already handle one on
+`accept`/`approve`/`cancel`.
+
+### Notifications
+
+Two dedicated notification types exist for this flow — see
+[notification-frontend-guide.md § Affiliation types](./notification-frontend-guide.md#affiliation-types--a-third-kind-of-recipient)
+for the full contract: `FORM058_AFFILIATED_RECEIVED` (form just became
+visible to you) and `FORM058_AFFILIATED_CARD_LINKED` (cards now exist, you
+may attach an Act).
+
 ## Outbound notifications
 
 If a form was originally submitted through an external integration channel

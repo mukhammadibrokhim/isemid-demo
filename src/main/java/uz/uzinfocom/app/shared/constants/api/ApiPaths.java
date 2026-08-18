@@ -372,6 +372,15 @@ public final class ApiPaths {
         public static final String PDF = "/{id}/pdf";
         public static final String EXPORT = "/export";
 
+        // Separate from the root listing (direction-scoped: sender/receiver)
+        // on purpose — an "affiliated" form is visible for a completely
+        // different reason (the patient's workplace/place of study matches
+        // the current organization, regardless of who sent/received it), so
+        // it gets its own endpoint/filter instead of a hidden mode-switch
+        // query flag. Mirrors how GET /cards/mine stays separate from the
+        // root card listing.
+        public static final String AFFILIATED = "/affiliated";
+
     }
 
     public static final class Form058Stats {

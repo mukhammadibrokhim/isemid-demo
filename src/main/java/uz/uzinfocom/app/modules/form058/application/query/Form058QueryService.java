@@ -15,6 +15,7 @@ import uz.uzinfocom.app.modules.card.application.query.CardQueryService;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
+import uz.uzinfocom.app.modules.form058.application.query.dto.Form058AffiliatedTableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058DetailResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.pdf.Form058PdfResponse;
@@ -25,18 +26,26 @@ import uz.uzinfocom.app.modules.form058.application.query.projection.Form058Tabl
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
+import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
+import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
+import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationOrganizationType;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.scope.jpa.ExplainRowCountEstimator;
 import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+import uz.uzinfocom.app.shared.pagination.PageableRequest;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +62,7 @@ public class Form058QueryService {
     private final AuditResolver auditResolver;
     private final CardQueryService cardQueryService;
     private final ExplainRowCountEstimator explainRowCountEstimator;
+    private final PatientAffiliationJpaRepository patientAffiliationRepository;
 
     /**
      * Same direction-based scope switch as {@link #findAll} (including the super-admin
@@ -94,7 +104,7 @@ public class Form058QueryService {
         boolean canEstimateTotal = scope.mode() == OrganizationScopeMode.ALL
                 && filter.hasNoAdditionalFilters();
 
-        return assemblePage(spec, pageable, filter, canEstimateTotal);
+        return assemblePage(spec, pageable, filter.direction(), canEstimateTotal);
     }
 
     /**
@@ -111,7 +121,61 @@ public class Form058QueryService {
         Pageable pageable = resolvePageable(filter);
         Specification<Form058> spec = form058Specification.tableUnscoped(filter, scope);
 
-        return assemblePage(spec, pageable, filter, filter.hasNoAdditionalFilters());
+        return assemblePage(spec, pageable, filter.direction(), filter.hasNoAdditionalFilters());
+    }
+
+    /**
+     * {@code GET /v1/form-058/affiliated} - forms visible to the current
+     * organization solely because the patient's workplace or place of study
+     * is that organization, independent of sender/receiver. Kept as its own
+     * method/endpoint rather than a mode-switch on {@link #findAll} - see
+     * {@link Form058AffiliatedFilter}'s javadoc for why.
+     * <p>
+     * Each row is additionally labelled with which affiliation type
+     * (WORKPLACE/EDUCATIONAL) explains its visibility - resolved in one bulk
+     * query over the page's patient ids rather than one lookup per row.
+     */
+    public Page<Form058AffiliatedTableResponse> findAllAffiliated(Form058AffiliatedFilter filter) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        Pageable pageable = resolvePageable(filter);
+        Specification<Form058> spec = form058Specification.affiliatedTable(filter, scope.organizationId());
+
+        Page<Form058TableResponse> page = assemblePage(spec, pageable, Form058Direction.ALL, filter.hasNoAdditionalFilters());
+        return page.map(withAffiliationType(page.getContent(), scope.organizationId()));
+    }
+
+    /**
+     * Builds the patientId -> AffiliationType lookup for one page of results
+     * up front, then returns a per-row mapping function - avoids an N+1
+     * query (one affiliation lookup per row) for what would otherwise be a
+     * per-row {@code existsBy...} call.
+     */
+    private Function<Form058TableResponse, Form058AffiliatedTableResponse> withAffiliationType(
+            List<Form058TableResponse> content,
+            Long organizationId
+    ) {
+        List<Long> patientIds = content.stream()
+                .map(row -> row.patient() != null ? row.patient().id() : null)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, AffiliationType> typeByPatientId = patientIds.isEmpty()
+                ? Map.of()
+                : patientAffiliationRepository
+                        .findTypesByPatientIdInAndOrganizationIdAndTypeIn(patientIds, organizationId, FormAccessScopeResolver.AFFILIATION_TYPES)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                PatientAffiliationOrganizationType::patientId,
+                                PatientAffiliationOrganizationType::type,
+                                (first, second) -> first
+                        ));
+
+        return row -> new Form058AffiliatedTableResponse(
+                row,
+                row.patient() != null ? typeByPatientId.get(row.patient().id()) : null
+        );
     }
 
     /**
@@ -127,7 +191,7 @@ public class Form058QueryService {
     private Page<Form058TableResponse> assemblePage(
             Specification<Form058> spec,
             Pageable pageable,
-            Form058Filter filter,
+            Form058Direction direction,
             boolean canEstimateTotal
     ) {
         Slice<Form058TableProjection> slice = Objects.requireNonNull(
@@ -148,7 +212,7 @@ public class Form058QueryService {
                 : repository.count(spec);
 
         List<Form058TableResponse> content = slice.getContent().stream()
-                .map(projection -> form058TableMapper.toTableResponse(projection, filter.direction()))
+                .map(projection -> form058TableMapper.toTableResponse(projection, direction))
                 .toList();
 
         return new PageImpl<>(content, pageable, total);
@@ -168,7 +232,7 @@ public class Form058QueryService {
      * order; id is appended as a stable tiebreaker for rows sharing a
      * timestamp.
      */
-    public Pageable resolvePageable(Form058Filter filter) {
+    public Pageable resolvePageable(PageableRequest filter) {
         Pageable pageable = PageableUtils.of(
                 filter,
                 "createdAt",

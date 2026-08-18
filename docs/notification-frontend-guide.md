@@ -243,13 +243,40 @@ same time you fire the read request.
 ## Which notification kinds exist
 
 `NotificationType`: `FORM058_RECEIVED`, `FORM058_ACKNOWLEDGED`,
-`FORM058_CANCELED`, `FORM0581_RECEIVED`, `FORM0581_ACKNOWLEDGED`,
-`FORM0581_CANCELED`, `CARD_ASSIGNED`, `ACT_ASSIGNED`, `ACT_LIS_RESPONSE`,
-`EXPORT_READY`. `*_ACKNOWLEDGED` fires when the receiving organization
-accepts the form (`SENT` → `ACCEPTED`) — sent to the *sender's*
+`FORM058_CARD_LINKED`, `FORM058_APPROVED`, `FORM058_CANCELED`,
+`FORM058_REOPENED`, `FORM0581_RECEIVED`, `FORM0581_ACKNOWLEDGED`,
+`FORM0581_CARD_LINKED`, `FORM0581_APPROVED`, `FORM0581_CANCELED`,
+`FORM0581_REOPENED`, `CARD_ASSIGNED`, `CARD_ACCEPTED_BY_USER`,
+`CARD_REJECTED_BY_USER`, `CARD_COMPLETED`, `CARD_APPROVED`, `CARD_REJECTED`,
+`ACT_ASSIGNED`, `ACT_LIS_RESPONSE`, `EXPORT_READY` — plus the two
+affiliation-specific types below. `*_ACKNOWLEDGED` fires when the receiving
+organization accepts the form (`SENT` → `ACCEPTED`) — sent to the *sender's*
 organization; `*_RECEIVED` is the opposite direction, sent to the
 *receiver's* organization when the form first arrives. Each type is
 independently toggleable server-side via `/v1/dev/settings` — a type being disabled there
 just means it stops being created, existing rows and the API shape are
 unaffected either way, so the frontend doesn't need to handle a "type is
 disabled" case specially.
+
+### Affiliation types — a third kind of recipient
+
+`FORM058_AFFILIATED_RECEIVED` and `FORM058_AFFILIATED_CARD_LINKED` are
+different from every other type above: they're sent to an organization that
+is **neither the sender nor the receiver** of the form, but is the patient's
+workplace or place of study (see
+[form058-form0581-frontend-guide.md § Affiliated organizations](./form058-form0581-frontend-guide.md#affiliated-organizations)
+for the full picture — the dedicated `GET /v1/form-058/affiliated` listing
+and the card/act attachment rule these two notifications are cueing you
+into).
+
+| `type` | `entityType`/`entityId` | Recipient | When |
+|---|---|---|---|
+| `FORM058_AFFILIATED_RECEIVED` | `FORM058` / form id | active users of the affiliated org | a new Form058 is created whose patient is affiliated with your org |
+| `FORM058_AFFILIATED_CARD_LINKED` | `FORM058` / form id | active users of the affiliated org | that form reaches `CARD_LINKED` — the cue that `Card`s now exist and you may attach an `Act` (`POST /v1/cards/{id}/acts`) |
+
+Handle these exactly like every other notification (same `NotificationResponse`
+shape, same read/unread flow) — the only difference is *why* you received
+it, not the delivery mechanism. A sensible click-through: open the form via
+`GET /v1/form-058/{entityId}` (or route into the `/v1/form-058/affiliated`
+list view filtered to that id) rather than assuming you're its sender or
+receiver.

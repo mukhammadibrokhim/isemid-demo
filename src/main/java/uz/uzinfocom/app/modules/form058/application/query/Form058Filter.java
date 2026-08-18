@@ -145,7 +145,7 @@ public record Form058Filter(
         )
         Boolean hasLinkedCards
 
-) implements PageableRequest {
+) implements PageableRequest, Form058FilterFields {
 
         public boolean isAffiliationFilterEnabled() {
                 return Boolean.TRUE.equals(affiliation);

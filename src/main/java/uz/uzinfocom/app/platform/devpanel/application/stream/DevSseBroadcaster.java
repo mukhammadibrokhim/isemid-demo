@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Registry of open {@code /v1/dev/stream} connections and the single place
  * that pushes named SSE events to all of them. One connection is shared by
- * every event type (see {@link uz.uzinfocom.app.shared.constants.api.ApiPaths.Dev#STREAM})
+ * every event type (see {@link uz.uzinfocom.app.shared.constants.api.ApiPaths.Dev})
  * rather than one connection per data source, so a dev panel tab never needs
  * more than one open connection to this origin.
  */
@@ -46,8 +46,14 @@ public class DevSseBroadcaster {
                         .name(eventName)
                         .data(payload, MediaType.APPLICATION_JSON));
             } catch (IOException | IllegalStateException sendFailure) {
+                // The listener is simply gone (tab closed, network drop, etc.) - a routine
+                // disconnect, not a server error. completeWithError() would hand this to
+                // Spring MVC's normal error-response machinery, which then fails trying to
+                // write a JSON ErrorResponse body onto a response already committed as
+                // text/event-stream ("No converter for ... with preset Content-Type
+                // 'text/event-stream'") - so this just stops quietly instead.
                 emitters.remove(emitter);
-                emitter.completeWithError(sendFailure);
+                emitter.complete();
             }
         }
     }

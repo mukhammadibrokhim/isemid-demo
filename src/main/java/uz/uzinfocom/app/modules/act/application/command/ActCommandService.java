@@ -21,13 +21,19 @@ import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
 import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
+import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
 import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.HashSet;
@@ -67,6 +73,8 @@ public class ActCommandService {
     private final ActTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
     private final ApplicationEventPublisher eventPublisher;
+    private final AdminAccessGuard adminAccessGuard;
+    private final FormAccessScopeResolver formAccessScopeResolver;
 
     /**
      * Bulk-assigns one blank act per distinct requested {@code actType} to a
@@ -78,6 +86,7 @@ public class ActCommandService {
     @Transactional
     public void assignActs(Long cardId, AssignActsRequest request) {
         Card card = cardCommandService.getExistingCard(cardId);
+        requireCardAccess(card);
 
         Long assignedById = currentUserProvider.userIdOrNull();
         if (assignedById == null) {
@@ -103,6 +112,41 @@ public class ActCommandService {
         saved.forEach(act -> eventPublisher.publishEvent(
                 new EntityCreatedEvent(AuditEntityType.ACT, act.getId(), assignedById)
         ));
+    }
+
+    /**
+     * Only an organization actually connected to the card's underlying case
+     * may attach acts to it: for a form058-backed card, sender, receiver, or
+     * (the "external" case) the organization the patient is affiliated with
+     * as their workplace/place of study — the same rule {@code
+     * CardCommandService.requireForm058Access} applies to card assignment.
+     * A form0581-backed card stays receiver-only, matching {@code
+     * CardCommandService.assignCardsToForm0581}.
+     */
+    private void requireCardAccess(Card card) {
+        if (adminAccessGuard.isSuperAdmin()) {
+            return;
+        }
+
+        Long currentOrganizationId = CurrentOrganizationContext.getOptional()
+                .map(Organization::getId)
+                .orElseThrow(ActScopeViolationException::new);
+
+        Form058 form058 = card.getForm058();
+        boolean allowed;
+        if (form058 != null) {
+            Long patientId = form058.getPatient() != null ? form058.getPatient().getId() : null;
+            allowed = formAccessScopeResolver.canAccess(
+                    currentOrganizationId, form058.getSenderOrganizationId(), form058.getReceiverOrganizationId(), patientId
+            );
+        } else {
+            Form0581 form0581 = card.getForm0581();
+            allowed = form0581 != null && currentOrganizationId.equals(form0581.getReceiverOrganizationId());
+        }
+
+        if (!allowed) {
+            throw new ActScopeViolationException();
+        }
     }
 
     /**

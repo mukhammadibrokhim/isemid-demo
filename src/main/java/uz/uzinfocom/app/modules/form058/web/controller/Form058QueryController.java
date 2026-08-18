@@ -13,8 +13,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.modules.form058.application.export.Form058ExcelExportSource;
+import uz.uzinfocom.app.modules.form058.application.query.Form058AffiliatedFilter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058Filter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058QueryService;
+import uz.uzinfocom.app.modules.form058.application.query.dto.Form058AffiliatedTableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058DetailResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.pdf.Form058PdfResponse;
@@ -56,6 +58,27 @@ public class Form058QueryController {
     ) {
         return pagedResponseAssembler
                 .toResponse(form058QueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @Operation(
+            summary = "Список форм №058, доступных через affiliation пациента",
+            description = "Возвращает постраничный список форм, видимых текущей организации не как "
+                    + "отправителю/получателю, а потому что место работы или учёбы пациента (affiliation) "
+                    + "совпадает с текущей организацией — например, для санэпидстанции, обслуживающей "
+                    + "предприятие или учебное заведение. Отдельный эндпоинт вместо флага в общем списке: "
+                    + "область видимости здесь принципиально другая (не sender/receiver), поэтому и "
+                    + "набор фильтров отличается — нет direction и organizationId. Каждая строка дополнительно "
+                    + "помечена типом принадлежности (affiliationType: WORKPLACE/EDUCATIONAL), объясняющим, "
+                    + "почему форма видна именно этой организации."
+    )
+    @GetMapping(ApiPaths.Form058.AFFILIATED)
+    @PreAuthorize("isAuthenticated()")
+    public PagedResponse<Form058AffiliatedTableResponse> findAllAffiliated(
+            @ParameterObject @Valid Form058AffiliatedFilter filter,
+            HttpServletRequest httpRequest
+    ) {
+        return pagedResponseAssembler
+                .toResponse(form058QueryService.findAllAffiliated(filter), messageResolver.resolve("common.success"), httpRequest);
     }
 
     @Operation(

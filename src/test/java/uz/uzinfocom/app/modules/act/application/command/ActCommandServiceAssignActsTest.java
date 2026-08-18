@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.modules.act.application.command;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,8 +20,15 @@ import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
+import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
+import uz.uzinfocom.app.modules.patient.domain.model.Patient;
+import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.List;
@@ -52,6 +60,8 @@ class ActCommandServiceAssignActsTest {
     private UserRepository userRepository;
     private CurrentUserProvider currentUserProvider;
     private ActCommandService service;
+    private AdminAccessGuard adminAccessGuard;
+    private FormAccessScopeResolver formAccessScopeResolver;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -62,8 +72,14 @@ class ActCommandServiceAssignActsTest {
         currentUserProvider = mock(CurrentUserProvider.class);
         ActTypeHandlerRegistry handlerRegistry = mock(ActTypeHandlerRegistry.class);
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+        adminAccessGuard = mock(AdminAccessGuard.class);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
+        formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
-        service = new ActCommandService(actRepository, cardCommandService, userRepository, handlerRegistry, currentUserProvider, eventPublisher);
+        service = new ActCommandService(
+                actRepository, cardCommandService, userRepository, handlerRegistry, currentUserProvider,
+                eventPublisher, adminAccessGuard, formAccessScopeResolver
+        );
 
         when(actRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -74,6 +90,11 @@ class ActCommandServiceAssignActsTest {
         ActTypeHandler<?, ?, ?> act154Handler = mock(ActTypeHandler.class);
         when(act154Handler.handleCreateBlank()).thenAnswer(invocation -> new Act154());
         doReturn(act154Handler).when(handlerRegistry).get(ActType.ACT154);
+    }
+
+    @AfterEach
+    void tearDown() {
+        CurrentOrganizationContext.clear();
     }
 
     @Test
@@ -143,6 +164,62 @@ class ActCommandServiceAssignActsTest {
     }
 
     @Test
+    void rejectsAssignActsWhenCallerOrganizationHasNoAccessToTheForm058Card() {
+        Card card = cardWithForm058(CARD_ID, 10L, 20L, 30L);
+        when(cardCommandService.getExistingCard(CARD_ID)).thenReturn(card);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(999L));
+        when(formAccessScopeResolver.canAccess(999L, 10L, 20L, 30L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.assignActs(CARD_ID, new AssignActsRequest(
+                List.of(ActType.ACT153), List.of(1L)
+        ))).isInstanceOf(ActScopeViolationException.class);
+
+        verify(actRepository, org.mockito.Mockito.never()).saveAll(any());
+    }
+
+    @Test
+    void allowsAssignActsWhenFormAccessScopeResolverGrantsAccessToForm058Card() {
+        Card card = cardWithForm058(CARD_ID, 10L, 20L, 30L);
+        when(cardCommandService.getExistingCard(CARD_ID)).thenReturn(card);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(30L));
+        when(formAccessScopeResolver.canAccess(30L, 10L, 20L, 30L)).thenReturn(true);
+
+        service.assignActs(CARD_ID, new AssignActsRequest(List.of(ActType.ACT153), List.of(1L)));
+
+        assertThat(capturePersistedActs()).hasSize(1);
+    }
+
+    @Test
+    void allowsAssignActsWhenCallerOrganizationIsTheForm0581Receiver() {
+        Card card = cardWithForm0581(CARD_ID, 40L);
+        when(cardCommandService.getExistingCard(CARD_ID)).thenReturn(card);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(40L));
+
+        service.assignActs(CARD_ID, new AssignActsRequest(List.of(ActType.ACT153), List.of(1L)));
+
+        assertThat(capturePersistedActs()).hasSize(1);
+    }
+
+    @Test
+    void rejectsAssignActsWhenCallerOrganizationIsNotTheForm0581Receiver() {
+        Card card = cardWithForm0581(CARD_ID, 40L);
+        when(cardCommandService.getExistingCard(CARD_ID)).thenReturn(card);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(999L));
+
+        assertThatThrownBy(() -> service.assignActs(CARD_ID, new AssignActsRequest(
+                List.of(ActType.ACT153), List.of(1L)
+        ))).isInstanceOf(ActScopeViolationException.class);
+    }
+
+    @Test
     void failsWhenCardDoesNotExist() {
         when(cardCommandService.getExistingCard(CARD_ID)).thenThrow(new CardNotFoundException(CARD_ID));
 
@@ -163,6 +240,39 @@ class ActCommandServiceAssignActsTest {
         Card161 card = new Card161();
         card.setId(id);
         return card;
+    }
+
+    private Card cardWithForm058(Long id, Long senderOrganizationId, Long receiverOrganizationId, Long patientId) {
+        Patient patient = Patient.builder().build();
+        patient.setId(patientId);
+
+        Form058 form = Form058.builder()
+                .senderOrganizationId(senderOrganizationId)
+                .receiverOrganizationId(receiverOrganizationId)
+                .patient(patient)
+                .build();
+
+        Card161 card = new Card161();
+        card.setId(id);
+        card.setForm058(form);
+        return card;
+    }
+
+    private Card cardWithForm0581(Long id, Long receiverOrganizationId) {
+        Form0581 form = Form0581.builder()
+                .receiverOrganizationId(receiverOrganizationId)
+                .build();
+
+        Card161 card = new Card161();
+        card.setId(id);
+        card.setForm0581(form);
+        return card;
+    }
+
+    private Organization organization(Long id) {
+        Organization organization = new Organization();
+        organization.setId(id);
+        return organization;
     }
 
     private User userWithId(Long id) {

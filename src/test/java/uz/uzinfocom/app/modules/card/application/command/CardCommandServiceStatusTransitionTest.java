@@ -29,6 +29,7 @@ import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
 
 import java.util.List;
@@ -75,10 +76,11 @@ class CardCommandServiceStatusTransitionTest {
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
         eventPublisher = mock(ApplicationEventPublisher.class);
         adminAccessGuard = mock(AdminAccessGuard.class);
+        FormAccessScopeResolver formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
         service = new CardCommandService(
                 cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
-                currentUserProvider, eventPublisher, adminAccessGuard
+                currentUserProvider, eventPublisher, adminAccessGuard, formAccessScopeResolver
         );
 
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

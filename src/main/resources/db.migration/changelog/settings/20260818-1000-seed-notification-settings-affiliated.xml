@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Extends 20260811-1000-seed-notification-settings.xml with the two
+        new affiliation-based Form058 notifications: an organization that is
+        neither sender nor receiver, but is the patient's workplace/place of
+        study, is notified when such a form is created and again when it
+        reaches CARD_LINKED (their cue to attach an Act). See
+        NotificationEventListener.handleForm058Received/handleForm058CardLinked.
+
+        Same WHERE NOT EXISTS guard, same ACTIVE/'true' seeding as the
+        original changeset - a no-op for behavior since resolveBoolean
+        already defaults an unseeded key to enabled.
+    -->
+    <changeSet id="20260818-1000-01-seed-notification-settings-affiliated" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form058-affiliated-received.enabled', 'true', 'BOOLEAN', 'Notify every organization affiliated with the patient (workplace/place of study, excluding sender/receiver) when a Form058 is created.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form058-affiliated-received.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.form058-affiliated-card-linked.enabled', 'true', 'BOOLEAN', 'Notify every organization affiliated with the patient (workplace/place of study, excluding sender/receiver) when a Form058 reaches CARD_LINKED, so they know they can attach an Act.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.form058-affiliated-card-linked.enabled');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key IN (
+                    'notification.form058-affiliated-received.enabled',
+                    'notification.form058-affiliated-card-linked.enabled'
+                );
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -18,6 +18,7 @@ import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
+import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
@@ -27,6 +28,7 @@ import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.notification.domain.Notification;
 import uz.uzinfocom.app.platform.notification.domain.NotificationType;
 import uz.uzinfocom.app.platform.notification.repository.NotificationRepository;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.time.Instant;
@@ -60,6 +62,8 @@ public class NotificationEventListener {
     private static final String KEY_FORM058_APPROVED_ENABLED = "notification.form058-approved.enabled";
     private static final String KEY_FORM058_CANCELED_ENABLED = "notification.form058-canceled.enabled";
     private static final String KEY_FORM058_REOPENED_ENABLED = "notification.form058-reopened.enabled";
+    private static final String KEY_FORM058_AFFILIATED_RECEIVED_ENABLED = "notification.form058-affiliated-received.enabled";
+    private static final String KEY_FORM058_AFFILIATED_CARD_LINKED_ENABLED = "notification.form058-affiliated-card-linked.enabled";
     private static final String KEY_FORM0581_RECEIVED_ENABLED = "notification.form0581-received.enabled";
     private static final String KEY_FORM0581_ACKNOWLEDGED_ENABLED = "notification.form0581-acknowledged.enabled";
     private static final String KEY_FORM0581_CARD_LINKED_ENABLED = "notification.form0581-card-linked.enabled";
@@ -84,6 +88,7 @@ public class NotificationEventListener {
     private final NotificationRepository notificationRepository;
     private final SystemSettingResolver systemSettingResolver;
     private final JsonMapper objectMapper;
+    private final PatientAffiliationJpaRepository patientAffiliationRepository;
 
     @Async("applicationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -191,17 +196,37 @@ public class NotificationEventListener {
                 new Object[]{event.fileName()});
     }
 
+    /**
+     * Two independent notifications can fire off the same {@code
+     * EntityCreatedEvent(FORM058)}: the receiver ({@code FORM058_RECEIVED},
+     * unconditionally applicable) and — new — every organization that is
+     * neither sender nor receiver but is the patient's workplace/place of
+     * study ({@code FORM058_AFFILIATED_RECEIVED}), telling them the form is
+     * now visible to them via {@code GET /v1/form-058/affiliated}. Each has
+     * its own feature flag; the repository lookup only happens if at least
+     * one of the two is enabled.
+     */
     private void handleForm058Received(EntityCreatedEvent event) {
-        if (!systemSettingResolver.resolveBoolean(KEY_FORM058_RECEIVED_ENABLED, true)) {
+        boolean receivedEnabled = systemSettingResolver.resolveBoolean(KEY_FORM058_RECEIVED_ENABLED, true);
+        boolean affiliatedEnabled = systemSettingResolver.resolveBoolean(KEY_FORM058_AFFILIATED_RECEIVED_ENABLED, true);
+        if (!receivedEnabled && !affiliatedEnabled) {
             return;
         }
+
         Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
         if (form058 == null) {
             log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
             return;
         }
-        notifyReceiverOrganization(event, NotificationType.FORM058_RECEIVED, "notification.form058-received",
-                form058.getReceiverOrganizationId());
+
+        if (receivedEnabled) {
+            notifyReceiverOrganization(event, NotificationType.FORM058_RECEIVED, "notification.form058-received",
+                    form058.getReceiverOrganizationId());
+        }
+        if (affiliatedEnabled) {
+            notifyAffiliatedOrganizations(form058, event.actorUserId(),
+                    NotificationType.FORM058_AFFILIATED_RECEIVED, "notification.form058-affiliated-received");
+        }
     }
 
     private void handleForm0581Received(EntityCreatedEvent event) {
@@ -259,19 +284,37 @@ public class NotificationEventListener {
                 form058.getReceiverOrganizationId());
     }
 
+    /**
+     * Same two-flags-one-lookup shape as {@link #handleForm058Received}: the
+     * sender gets {@code FORM058_CARD_LINKED} as before, and — new — every
+     * affiliated organization gets {@code FORM058_AFFILIATED_CARD_LINKED},
+     * since this is the transition that actually creates the {@code Card}s
+     * they're now allowed to attach {@code Act}s to (see {@code
+     * CardCommandService.requireForm058Access}/{@code
+     * ActCommandService.requireCardAccess}).
+     */
     private void handleForm058CardLinked(StatusChangedEvent event) {
-        if (!systemSettingResolver.resolveBoolean(KEY_FORM058_CARD_LINKED_ENABLED, true)) {
+        boolean cardLinkedEnabled = systemSettingResolver.resolveBoolean(KEY_FORM058_CARD_LINKED_ENABLED, true);
+        boolean affiliatedEnabled = systemSettingResolver.resolveBoolean(KEY_FORM058_AFFILIATED_CARD_LINKED_ENABLED, true);
+        if (!cardLinkedEnabled && !affiliatedEnabled) {
             return;
         }
+
         Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
         if (form058 == null) {
             log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
             return;
         }
 
-        notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
-                NotificationType.FORM058_CARD_LINKED, "notification.form058-card-linked",
-                form058.getSenderOrganizationId());
+        if (cardLinkedEnabled) {
+            notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                    NotificationType.FORM058_CARD_LINKED, "notification.form058-card-linked",
+                    form058.getSenderOrganizationId());
+        }
+        if (affiliatedEnabled) {
+            notifyAffiliatedOrganizations(form058, event.actorUserId(),
+                    NotificationType.FORM058_AFFILIATED_CARD_LINKED, "notification.form058-affiliated-card-linked");
+        }
     }
 
     private void handleForm058Approved(StatusChangedEvent event) {
@@ -405,6 +448,36 @@ public class NotificationEventListener {
         List<Long> recipientIds = userRepository.findActiveIdsByOrganizationId(organizationId);
         fanOut(type, entityType, entityId, organizationId,
                 excludingActor(recipientIds, actorUserId), messageKey, new Object[]{entityId});
+    }
+
+    /**
+     * Notifies every organization affiliated with the form's patient
+     * (workplace/place of study) except sender/receiver — those already get
+     * their own dedicated notification from the caller, so including them
+     * here would double-notify the same organization for the same event.
+     */
+    private void notifyAffiliatedOrganizations(
+            Form058 form058, Long actorUserId, NotificationType type, String messageKey
+    ) {
+        for (Long affiliatedOrganizationId : resolveAffiliatedOrganizationIds(form058)) {
+            notifyOrganization(AuditEntityType.FORM058, form058.getId(), actorUserId,
+                    type, messageKey, affiliatedOrganizationId);
+        }
+    }
+
+    private List<Long> resolveAffiliatedOrganizationIds(Form058 form058) {
+        if (form058.getPatient() == null) {
+            return List.of();
+        }
+
+        List<Long> affiliatedOrganizationIds = patientAffiliationRepository.findDistinctOrganizationIdsByPatientIdAndTypeIn(
+                form058.getPatient().getId(), FormAccessScopeResolver.AFFILIATION_TYPES
+        );
+
+        return affiliatedOrganizationIds.stream()
+                .filter(organizationId -> !organizationId.equals(form058.getSenderOrganizationId())
+                        && !organizationId.equals(form058.getReceiverOrganizationId()))
+                .toList();
     }
 
     private void handleCardAssigned(EntityCreatedEvent event) {
