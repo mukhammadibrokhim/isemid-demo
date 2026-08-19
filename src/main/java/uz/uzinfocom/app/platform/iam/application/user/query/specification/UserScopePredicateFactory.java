@@ -7,8 +7,8 @@ import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopePredicateFactory;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.OrganizationScopePredicateFactory;
 
 @Component
 @RequiredArgsConstructor

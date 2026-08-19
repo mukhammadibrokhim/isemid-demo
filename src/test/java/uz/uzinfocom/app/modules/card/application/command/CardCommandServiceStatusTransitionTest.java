@@ -29,8 +29,8 @@ import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 
 import java.util.List;
 import java.util.Optional;

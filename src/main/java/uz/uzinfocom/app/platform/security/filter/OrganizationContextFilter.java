@@ -24,8 +24,8 @@ import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCache
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
 import uz.uzinfocom.app.platform.security.ip.IpAllowlistMatcher;
-import uz.uzinfocom.app.platform.security.route.RequestPolicy;
-import uz.uzinfocom.app.platform.security.route.RequestPolicyResolver;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicy;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicyResolver;
 
 import java.io.IOException;
 import java.util.UUID;

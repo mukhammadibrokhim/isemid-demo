@@ -8,7 +8,7 @@ import uz.uzinfocom.app.platform.iam.application.organization.query.dto.response
 import uz.uzinfocom.app.platform.iam.application.organization.query.projection.OrganizationTableProjection;
 import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.reference.application.lookup.mapper.ReferenceMappingHelper;
+import uz.uzinfocom.app.modules.reference.application.lookup.mapper.ReferenceMappingHelper;
 
 @Mapper(
         componentModel = "spring",

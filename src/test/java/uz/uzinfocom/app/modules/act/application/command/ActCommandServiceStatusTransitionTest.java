@@ -22,8 +22,8 @@ import uz.uzinfocom.app.modules.act.web.dto.request.Act153Request;
 import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.Map;

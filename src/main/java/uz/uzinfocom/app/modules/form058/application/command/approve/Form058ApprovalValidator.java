@@ -6,7 +6,7 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolat
 import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Objects;

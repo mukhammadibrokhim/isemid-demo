@@ -20,7 +20,7 @@ import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserMiniResponse;
 import uz.uzinfocom.app.platform.iam.application.user.query.mapper.UserMapperHelper;
-import uz.uzinfocom.app.platform.reference.application.lookup.mapper.ReferenceMappingHelper;
+import uz.uzinfocom.app.modules.reference.application.lookup.mapper.ReferenceMappingHelper;
 
 import java.util.List;
 import java.util.Locale;

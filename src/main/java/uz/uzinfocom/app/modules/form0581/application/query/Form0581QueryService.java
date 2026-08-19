@@ -26,12 +26,12 @@ import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.Pa
 import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationOrganizationType;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.jpa.ExplainRowCountEstimator;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.jpa.ExplainRowCountEstimator;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 

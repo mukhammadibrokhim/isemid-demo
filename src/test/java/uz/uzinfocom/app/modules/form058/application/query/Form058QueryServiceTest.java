@@ -12,9 +12,9 @@ import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Fo
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
 import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.jpa.ExplainRowCountEstimator;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.jpa.ExplainRowCountEstimator;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 
 import java.util.Iterator;
 

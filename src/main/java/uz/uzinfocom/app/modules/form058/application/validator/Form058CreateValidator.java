@@ -8,7 +8,7 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationE
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.reference.repository.Icd10Repository;
+import uz.uzinfocom.app.modules.reference.repository.Icd10Repository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.validation.ReferenceCodeValidation;
 

@@ -9,7 +9,7 @@ import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Objects;

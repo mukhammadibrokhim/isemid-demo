@@ -11,7 +11,7 @@ import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
@@ -32,7 +32,7 @@ import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.List;

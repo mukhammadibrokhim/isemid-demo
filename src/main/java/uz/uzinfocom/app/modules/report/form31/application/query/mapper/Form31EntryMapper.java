@@ -5,7 +5,7 @@ import uz.uzinfocom.app.modules.report.form31.application.query.dto.Form31EntryT
 import uz.uzinfocom.app.modules.report.form31.domain.Form31Entry;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
 
 /**
  * Enriches a persisted {@link Form31Entry} row (which only stores a scalar

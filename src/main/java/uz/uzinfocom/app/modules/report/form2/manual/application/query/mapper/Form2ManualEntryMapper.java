@@ -5,7 +5,7 @@ import uz.uzinfocom.app.modules.report.form2.manual.application.query.dto.Form2M
 import uz.uzinfocom.app.modules.report.form2.manual.domain.Form2ManualEntry;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
 
 /**
  * Enriches a persisted {@link Form2ManualEntry} row (which only stores a

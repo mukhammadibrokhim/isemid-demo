@@ -13,7 +13,7 @@ import uz.uzinfocom.app.platform.iam.application.shared.dto.RoleUserCountProject
 import uz.uzinfocom.app.platform.iam.application.user.query.specification.UserScopePredicateFactory;
 import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 
 import java.util.List;
 

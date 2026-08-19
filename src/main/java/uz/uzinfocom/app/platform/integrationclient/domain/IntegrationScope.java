@@ -2,7 +2,7 @@ package uz.uzinfocom.app.platform.integrationclient.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import uz.uzinfocom.app.platform.security.authorization.AuthorityNames;
+import uz.uzinfocom.app.platform.security.auth.AuthorityNames;
 
 import java.util.Arrays;
 import java.util.Optional;

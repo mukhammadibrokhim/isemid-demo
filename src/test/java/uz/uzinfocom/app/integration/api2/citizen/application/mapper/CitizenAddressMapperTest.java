@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenAddressType;
 import uz.uzinfocom.app.integration.api2.citizen.web.CitizenAddressResponse;
-import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
-import uz.uzinfocom.app.platform.reference.application.lookup.dto.ReferenceItem;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
+import uz.uzinfocom.app.modules.reference.application.lookup.dto.ReferenceItem;
 
 import java.util.List;
 

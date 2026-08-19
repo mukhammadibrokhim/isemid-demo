@@ -11,9 +11,9 @@ import uz.uzinfocom.app.modules.form0581.application.query.Form0581FilterFields;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.CaseSpecificationSupport;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.CaseSpecificationSupport;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
 
 import java.util.ArrayList;
 import java.util.List;

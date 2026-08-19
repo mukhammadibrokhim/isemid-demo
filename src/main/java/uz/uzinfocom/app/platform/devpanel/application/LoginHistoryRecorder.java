@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.auth.application.LoginResult;
+import uz.uzinfocom.app.platform.ssoproxy.application.LoginResult;
 import uz.uzinfocom.app.platform.devpanel.domain.DevLoginHistory;
 import uz.uzinfocom.app.platform.devpanel.repository.DevLoginHistoryRepository;
 import uz.uzinfocom.app.platform.observability.TraceContext;
@@ -25,7 +25,7 @@ import java.util.UUID;
  * Records login attempts (success and failure) against {@code /v1/auth/login/{provider}}
  * into {@code dev_login_history}, for the developer monitoring panel.
  *
- * <p>{@code LoginProviderRegistry} (platform.auth) uses login-side provider keys
+ * <p>{@code LoginProviderRegistry} (platform.ssoproxy) uses login-side provider keys
  * ({@code sso-web}/{@code dhp-web}), which are deliberately kept distinct from the
  * inbound/resource-server provider keys ({@code sso}/{@code dhp}) that
  * {@link IdentityClaimExtractorRegistry} is keyed by. To learn "who" logged in, the

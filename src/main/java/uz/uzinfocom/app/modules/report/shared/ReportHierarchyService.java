@@ -10,15 +10,15 @@ import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationNameProj
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
-import uz.uzinfocom.app.platform.reference.domain.District;
-import uz.uzinfocom.app.platform.reference.domain.Region;
-import uz.uzinfocom.app.platform.reference.repository.DistrictRepository;
-import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopeOrganizationIdResolver;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
+import uz.uzinfocom.app.modules.reference.domain.District;
+import uz.uzinfocom.app.modules.reference.domain.Region;
+import uz.uzinfocom.app.modules.reference.repository.DistrictRepository;
+import uz.uzinfocom.app.modules.reference.repository.RegionRepository;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.OrganizationScopeOrganizationIdResolver;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.util.ArrayList;

@@ -31,8 +31,8 @@ import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 

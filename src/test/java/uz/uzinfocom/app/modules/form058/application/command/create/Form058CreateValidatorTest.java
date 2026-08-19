@@ -10,8 +10,8 @@ import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.reference.domain.Icd10;
-import uz.uzinfocom.app.platform.reference.repository.Icd10Repository;
+import uz.uzinfocom.app.modules.reference.domain.Icd10;
+import uz.uzinfocom.app.modules.reference.repository.Icd10Repository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Optional;

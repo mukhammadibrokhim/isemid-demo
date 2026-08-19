@@ -9,8 +9,8 @@ import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActStatsRepository;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.time.LocalDate;

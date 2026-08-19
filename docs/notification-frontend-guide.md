@@ -1,6 +1,6 @@
 # Internal notifications — frontend guide
 
-`platform.notification` covers **internal, in-app notifications only** —
+`orchestration.notification` covers **internal, in-app notifications only** —
 alerts shown inside this app's own SPA to its own signed-in users (a form
 was assigned to you, a card needs attention, your export is ready, ...).
 This is not a generic "notify anyone about anything" system, and it is not
@@ -27,7 +27,7 @@ scoped to the caller — there is no way to pass another user's id.
 > through SSO/DHP in the normal UI). That integration client never gets an
 > in-app `Notification` row or an SSE event here — it's notified separately,
 > via outbound **webhooks** (`OutboundWebhookEventListener` →
-> `OutboundWebhookDispatchService`, see `platform.webhook`): an HTTP callback
+> `OutboundWebhookDispatchService`, see `orchestration.webhook`): an HTTP callback
 > POSTed to the client's own registered URL, with its own retry/backoff and
 > payload shape, unrelated to anything on this page. The *receiving*
 > organization's human users (`receiverOrganizationId`) still get a normal

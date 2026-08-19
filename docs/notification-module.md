@@ -1,6 +1,6 @@
 # Notification module
 
-Package: `uz.uzinfocom.app.platform.notification`. In-app notifications for
+Package: `uz.uzinfocom.app.orchestration.notification`. In-app notifications for
 end users — no message broker exists in this deployment (confirmed absent
 from `pom.xml`/`application*.properties`), so events are generated and
 delivered entirely in-process. Deliberately modeled on two existing

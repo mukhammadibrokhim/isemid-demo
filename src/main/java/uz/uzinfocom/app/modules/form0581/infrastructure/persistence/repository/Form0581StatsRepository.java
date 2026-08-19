@@ -13,9 +13,9 @@ import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Sou
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
-import uz.uzinfocom.app.platform.stats.jpa.AbstractCaseStatsRepository;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.platform.stats.AbstractCaseStatsRepository;
 
 import java.time.LocalDate;
 import java.util.Arrays;

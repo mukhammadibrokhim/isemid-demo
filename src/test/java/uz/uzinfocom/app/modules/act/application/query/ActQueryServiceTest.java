@@ -11,10 +11,10 @@ import uz.uzinfocom.app.modules.act.application.query.mapper.ActMapper;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
 import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 

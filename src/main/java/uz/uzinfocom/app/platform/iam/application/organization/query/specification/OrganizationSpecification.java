@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.iam.application.organization.query.dto.request.OrganizationFilerRequest;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopePredicateFactory;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.OrganizationScopePredicateFactory;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -13,8 +13,8 @@ import uz.uzinfocom.app.modules.report.form31.infrastructure.persistence.reposit
 import uz.uzinfocom.app.modules.report.form31.infrastructure.persistence.specification.Form31EntrySpecification;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;

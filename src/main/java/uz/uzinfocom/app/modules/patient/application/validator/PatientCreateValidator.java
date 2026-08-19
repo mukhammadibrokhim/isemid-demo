@@ -7,9 +7,9 @@ import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAddress
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAffiliationCommand;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
 import uz.uzinfocom.app.modules.patient.application.exception.PatientValidationException;
-import uz.uzinfocom.app.platform.reference.repository.DistrictRepository;
-import uz.uzinfocom.app.platform.reference.repository.NeighborhoodRepository;
-import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
+import uz.uzinfocom.app.modules.reference.repository.DistrictRepository;
+import uz.uzinfocom.app.modules.reference.repository.NeighborhoodRepository;
+import uz.uzinfocom.app.modules.reference.repository.RegionRepository;
 
 import java.util.List;
 import java.util.Set;

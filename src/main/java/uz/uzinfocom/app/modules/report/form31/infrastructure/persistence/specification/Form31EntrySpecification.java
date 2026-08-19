@@ -6,8 +6,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.report.form31.application.query.dto.Form31EntryFilterRequest;
 import uz.uzinfocom.app.modules.report.form31.domain.Form31Entry;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopePredicateFactory;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.OrganizationScopePredicateFactory;
 
 import java.util.ArrayList;
 import java.util.List;

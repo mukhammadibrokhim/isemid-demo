@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import uz.uzinfocom.app.platform.auth.application.LoginResult;
+import uz.uzinfocom.app.platform.ssoproxy.application.LoginResult;
 import uz.uzinfocom.app.platform.devpanel.domain.DevLoginHistory;
 import uz.uzinfocom.app.platform.devpanel.repository.DevLoginHistoryRepository;
 import uz.uzinfocom.app.platform.security.claims.ExternalIdentityPayload;

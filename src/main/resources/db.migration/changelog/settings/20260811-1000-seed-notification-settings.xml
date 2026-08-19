@@ -9,7 +9,7 @@
 
     <!--
         Seeds one system_settings row per NotificationEventListener KEY_*
-        toggle (see platform.notification), so every notification kind is
+        toggle (see orchestration.notification), so every notification kind is
         visible/editable in the dev panel (/v1/dev/settings) instead of only
         existing as an unseeded key that resolveBoolean(key, true) silently
         defaults to enabled - the same treatment already given to circuit

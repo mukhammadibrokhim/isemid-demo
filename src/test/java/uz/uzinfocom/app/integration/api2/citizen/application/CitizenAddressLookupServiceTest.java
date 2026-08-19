@@ -13,7 +13,7 @@ import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenAddressLookupResu
 import uz.uzinfocom.app.integration.api2.citizen.web.CitizenAddressResponse;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2UnavailableException;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
-import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
 
 import java.time.Duration;
 import java.time.LocalDate;

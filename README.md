@@ -71,17 +71,25 @@ modules/<name>/
 └── web/             controllers, request/response DTOs
 ```
 
-Shared, cross-cutting code lives under `platform/*` (security, auth,
-observability, caching, notifications, audit, export, webhooks, settings,
-i18n, persistence base classes, scope resolution, IAM) and `shared/*` (API
-path constants, common DTOs, pagination, validation). `integration/*` holds
-the outbound clients to external systems (API2, LIS) and the inbound API
-surface for external systems submitting data into ISEMID.
+Shared, cross-cutting code lives under `platform/*` (security, ssoproxy
+login-proxy, observability, caching, audit, export, settings, i18n,
+persistence base classes, IAM) and `shared/*` (API path constants, common
+DTOs, pagination, validation). Code that legitimately needs to read across
+module boundaries — not infrastructure, but not a business capability of
+its own either — lives under `orchestration/*` (dashboard, notification,
+webhook, scope resolution). `integration/*` holds the outbound clients to
+external systems (API2, LIS) and the inbound API surface for external
+systems submitting data into ISEMID.
 
-Module boundaries are enforced at test time by ArchUnit
-(`CardModuleBoundaryTest`, `EntityNameUniquenessTest`), not just by
-convention — a dependency pointed the wrong way, or a Hibernate entity-name
-collision, fails the build instead of surfacing at runtime.
+`platform` must never depend on `modules` — enforced at test time by
+ArchUnit (`PlatformModuleBoundaryTest`), with one narrow, deliberate
+exception: `modules.reference` is a dependency-free, business-logic-free
+reference-data lookup module (the same shape as `platform.iam` itself),
+so `platform.iam`'s organization-table mapper is allowed to resolve
+region/district display names through it. `CardModuleBoundaryTest` and
+`EntityNameUniquenessTest` enforce two further rules (no dependency on the
+legacy `uz.uzinfocom.isemid` codebase; no Hibernate entity-name
+collisions) — all three fail the build instead of surfacing at runtime.
 
 ## Modules
 
@@ -93,30 +101,42 @@ collision, fails the build instead of surfacing at runtime.
 | `patient` | Patient/person record (demographics, national ID, addresses, workplace/school affiliation), created as a side effect of registering a `form058`. No REST surface of its own. | — | [docs/patient-module.md](docs/patient-module.md) |
 | `act` | Lab/procedure order attached to a card, integrated with the external LIS (Laboratory Information System). Deliberately a minimal placeholder — the legacy system's 6 act subtypes are out of scope for this build. | `/v1/acts` | [docs/act-module.md](docs/act-module.md) |
 | `report` | Cross-form, organization-hierarchy statistical reports (Forms 1, 2, 3-1, 3-2, 4, 6) built on `form058`/`form0581` data plus hand-entered counts that have no other source of truth. Every drill-down report shares one hierarchy pattern (republic → region → district → organization, one level per call) via `report.shared.ReportHierarchyService`. | `/v1/reports/**` | — |
+| `reference` | Reference data: countries, regions, districts, neighborhoods, ICD-10 codes, generic catalogs. Dependency-free — every other module (and, narrowly, `platform.iam`) may read from it, it reads from nothing. | `/v1/references` | — |
 
 ## Platform capabilities
 
-Shared infrastructure under `platform/*`, each with its own admin/API
-surface where applicable:
+Cross-cutting infrastructure under `platform/*`, each with its own
+admin/API surface where applicable. Never depends on `modules/*` (see
+Architecture above):
 
 | Package | Responsibility |
 |---|---|
-| `security` | Inbound JWT validation (OAuth2 resource server, multi-provider), organization-scope resolution, whitelist-based public routes, runtime-editable route-access policies. |
-| `auth` | Login-proxy: exchanges an authorization code (PKCE) or refresh token for an access token by calling an external SSO/DHP provider on the caller's behalf — user credentials never reach this backend. |
+| `security` | Inbound JWT validation (OAuth2 resource server, multi-provider), organization-scope resolution, dynamic runtime-editable route-access policies. |
+| `ssoproxy` | Login-proxy: exchanges an authorization code (PKCE) or refresh token for an access token by calling an external SSO/DHP provider on the caller's behalf — user credentials never reach this backend. |
 | `iam` | `User`, `Organization`, `Role`, `Permission`, `Action` domain and admin CRUD, synced against the upstream SSO/DHP identity provider. |
-| `notification` | In-app notifications (form received/acknowledged/canceled, card/act assigned, LIS response, export ready), fanned out in-process from the same domain events the audit trail consumes — list, unread badge, mark-read, SSE stream. |
 | `audit` | Read-only audit trail of business events (creation, status change, reassignment) across `form058`/`form0581`/`card`/`act`. |
 | `export` | Generic background Excel export (streaming SXSSF) shared by every exportable module — submission stays per-module, "my files"/progress/download is one shared surface with SSE progress. |
-| `webhook` | Outbound status-change webhooks to registered integration clients, with retry/backoff scheduling and dispatch-history visibility. |
 | `settings` | Runtime-editable system settings and route-access policies (HTTP client tuning, circuit-breaker thresholds, webhook backoff, ...) — no redeploy needed to change them. |
 | `integrationclient` | Provisioning and lifecycle (revoke, allowed IPs, webhook config) for machine clients that call the inbound integration API. |
-| `dashboard` | Single-organization summary widgets (as opposed to `report`'s drill-down tables). |
 | `devpanel` | A separate, HTTP-Basic-authenticated ops panel (`/v1/dev/**`) — error/login/request history, live metrics via SSE, dev-only user/settings management — deliberately outside the SSO admin model. |
-| `reference` | Reference data: countries, regions, districts, neighborhoods, ICD-10 codes, generic catalogs. |
 | `i18n` | Message bundles for `uz` (default), `uz-Cyrl`, `kaa`, `ru`, `en`. |
 | `observability` | Trace-ID propagation, inbound/outbound HTTP logging with sensitive-field redaction, a dedicated async executor pool. |
 | `resilience` | Resilience4j circuit-breaker configuration for every outbound integration (API2, LIS, SSO/DHP login, RSA public key, outbound webhooks), tunable at runtime from `settings`. |
 | `cache` | Caffeine-backed `@Cacheable` setup for security/user/organization lookups. |
+
+## Orchestration capabilities
+
+Cross-module read/fan-out code under `orchestration/*` — deliberately kept
+out of `platform/*` because it reads across module boundaries by nature
+(status-change fan-out, cross-module dashboards), which infrastructure
+proper should never do:
+
+| Package | Responsibility |
+|---|---|
+| `notification` | In-app notifications (form received/acknowledged/canceled, card/act assigned, LIS response, export ready), fanned out in-process from the same domain events the audit trail consumes — list, unread badge, mark-read, SSE stream. |
+| `webhook` | Outbound status-change webhooks to registered integration clients, with retry/backoff scheduling and dispatch-history visibility. |
+| `dashboard` | Single-organization summary widgets aggregating across `act`/`card`/`form058`/`form0581` (as opposed to `report`'s drill-down tables). |
+| `scope` | Organization/region scope resolution, including form-visibility scope derived from `patient` affiliations. |
 
 ## Integrations
 
@@ -282,10 +302,9 @@ Karakalpak (`kaa`), Russian (`ru`), English (`en`).
   providers (SSO, DHP) simultaneously, resolved per-request.
 - CSRF, HTTP Basic and form login are disabled; CORS is explicit
   (`app.cors.allowed-origins`).
-- Public routes are an explicit whitelist (`SecurityRouteCatalog`), not
-  `permitAll()` scattered across config — and mirrored by a
-  runtime-editable `RouteAccessPolicy` store for operational flexibility
-  without a redeploy.
+- Public routes are resolved dynamically by `DynamicRouteAuthorizationManager`
+  against a runtime-editable `RouteAccessPolicy` store, not `permitAll()`
+  scattered across config — editable without a redeploy.
 - The dev/ops monitoring panel (`/v1/dev/**`) authenticates independently
   via local HTTP Basic credentials, entirely outside the SSO/DHP bearer-JWT
   model used by every other endpoint.

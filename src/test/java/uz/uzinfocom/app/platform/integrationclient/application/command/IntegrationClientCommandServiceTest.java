@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import uz.uzinfocom.app.platform.crypto.WebhookSecretCipher;
+import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
 import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;

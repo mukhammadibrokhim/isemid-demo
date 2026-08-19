@@ -1,0 +1,26 @@
+package uz.uzinfocom.app.modules.reference.application.neighborhood.query.projection;
+
+public interface NeighborhoodTableProjection {
+
+    Long getId();
+
+    String getCode();
+
+    String getParentCode();
+
+    Integer getSoatoId();
+
+    Integer getParentSoatoId();
+
+    String getTin();
+
+    String getNameUz();
+
+    String getNameUzCyril();
+
+    String getNameRu();
+
+    String getNameKaa();
+
+    Boolean getDeleted();
+}

@@ -22,7 +22,7 @@ import uz.uzinfocom.app.platform.audit.event.AffiliatedOrganizationsAddedEvent;
 import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.OrganizationReassignedEvent;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
-import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.HashSet;

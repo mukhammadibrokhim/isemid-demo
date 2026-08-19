@@ -24,7 +24,7 @@ public final class ApiPaths {
     /**
      * Login-proxy surface: exchanges an end user's credentials for a token
      * by calling an external authentication provider's token endpoint on the
-     * caller's behalf (see platform.auth) - one endpoint regardless of which
+     * caller's behalf (see platform.ssoproxy) - one endpoint regardless of which
      * OAuth2 grant the resolved provider speaks. Public - see
      * the {@code /v1/auth/**} row in {@code RouteAccessPolicy}.
      */
@@ -285,7 +285,7 @@ public final class ApiPaths {
 
         /**
          * Operational visibility for the outbound status-change webhook queue
-         * (see {@code platform.webhook}) - dev-panel only, no admin-facing
+         * (see {@code orchestration.webhook}) - dev-panel only, no admin-facing
          * equivalent: this is purely operational (dispatch status, manual
          * retry), not something an org admin configures.
          */
@@ -339,7 +339,7 @@ public final class ApiPaths {
     /**
      * In-app notifications — no message broker in this deployment, so events
      * (Form058/Form058-1 received, Card/Act assigned, LIS response) are fanned
-     * out to {@code notification} rows in-process (see {@code platform.notification})
+     * out to {@code notification} rows in-process (see {@code orchestration.notification})
      * and delivered here: paged list, unread badge, mark-read, and an SSE stream
      * for live updates. Per-type enablement lives in the existing
      * {@code system_settings} store, editable from {@link Dev#SETTINGS} — no

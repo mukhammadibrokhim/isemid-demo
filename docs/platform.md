@@ -1,10 +1,17 @@
 # Platform (shared infrastructure)
 
 Package: `uz.uzinfocom.app.platform`. Cross-cutting code every module
-depends on. No `package-info.java` files exist yet — this doc is the closest
-thing to one.
+depends on, and which must never depend back on `modules/*` (enforced by
+`PlatformModuleBoundaryTest`). No `package-info.java` files exist yet —
+this doc is the closest thing to one.
 
-## `config`
+Code that legitimately needs to read *across* module boundaries —
+dashboards, notifications, webhooks, form-visibility scope resolution —
+lives in the sibling `orchestration/*` package instead, precisely because
+it isn't allowed to live here. See [orchestration section](#orchestration)
+below.
+
+## `web.config`
 
 `JacksonTimeZoneConfig` — overrides Jackson's default `Instant` serializer,
 which always writes UTC ("...Z") regardless of `spring.jackson.time-zone`
@@ -20,17 +27,18 @@ host environment's system timezone.
 
 ## `security`
 
-Subpackages: `annotation`, `auth`, `authorization`, `claims`, `config`,
-`context`, `filter`, `handler`, `jwt`, `principal`, `properties`, `resolver`,
-`route`, `whitelist`.
+Subpackages: `annotation`, `auth`, `claims`, `config`, `context`, `filter`,
+`handler`, `jwt`, `principal`, `properties`, `resolver`.
 
 `SecurityConfig` disables CSRF/HTTP-Basic/form-login, enables CORS, and uses
 a multi-provider `AuthenticationManagerResolver` (OAuth2 resource server —
-JWT bearer tokens). Public routes are declared in
-`SecurityRouteCatalog.OPEN_PATTERNS` (a whitelist, not an inline
-`permitAll()` scattered across config). An `OrganizationContextFilter` runs
-before Spring Security's `AuthorizationFilter`, resolving the caller's
-organization scope ahead of any authorization decision.
+JWT bearer tokens). Public routes are resolved dynamically by
+`DynamicRouteAuthorizationManager` against the DB-backed
+`settings.domain.RouteAccessPolicy` table (the old static
+`SecurityRouteCatalog` whitelist was removed in favor of this). An
+`OrganizationContextFilter` runs before Spring Security's
+`AuthorizationFilter`, resolving the caller's organization scope ahead of
+any authorization decision.
 
 ## `observability`
 
@@ -65,7 +73,29 @@ historical bug worth remembering: `"uz-Cyril"` is **not** a valid BCP-47 tag
 `SecurityUserCacheService`/`SelectedOrganizationSecurityCacheService` for
 usage examples), `exception` (global exception handling —
 `Api2ExceptionHandler` and friends), `http`, `iam` (`User`, `Organization`
-domain), `mapping` (shared MapStruct config), `persistence` (`AbsEntity`,
-`BaseEntity`, `AuditableEntity`, `UuidAuditableEntity` base classes used
-across every module's entities), `scope` (organization/region scoping
-helpers, e.g. `app.scope.tashkent-region-code`).
+domain — the one package here allowed a narrow read from `modules.reference`
+for display-name lookups, see `PlatformModuleBoundaryTest`), `ssoproxy`
+(login-proxy, formerly `auth` — renamed to stop colliding with
+`security.auth` in search), `mapping` (shared MapStruct config),
+`persistence` (`AbsEntity`, `BaseEntity`, `AuditableEntity`,
+`UuidAuditableEntity` base classes used across every module's entities),
+`stats` (`AbstractCaseStatsRepository`, the Criteria-API template every
+module's own `*StatsRepository` extends).
+
+## Orchestration
+
+Sibling package `uz.uzinfocom.app.orchestration`, not `platform` — see the
+note at the top of this doc for why. Four packages, moved out of `platform`
+unchanged (same classes, same logic, only the package declaration and
+imports changed):
+
+- `notification` — in-app notification fan-out (form058/form0581/card/act
+  domain events → `Notification` rows); reads `Act`/`Card`/`Form058`/
+  `Form0581`/`PatientAffiliation` directly by design.
+- `webhook` — outbound status-change webhook dispatch; same
+  cross-module-read shape as `notification`.
+- `dashboard` — single-organization summary widgets aggregating query
+  results from `act`/`card`/`form058`/`form0581`.
+- `scope` — organization/region scope resolution (`app.scope.tashkent-region-code`,
+  etc.), including form-visibility scope derived from `patient`
+  affiliations (`FormAccessScopeResolver`).

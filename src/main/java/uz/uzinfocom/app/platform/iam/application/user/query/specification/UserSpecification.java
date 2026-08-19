@@ -10,7 +10,7 @@ import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.platform.iam.web.user.dto.request.UserFilterRequest;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 
 import java.util.ArrayList;
 import java.util.List;

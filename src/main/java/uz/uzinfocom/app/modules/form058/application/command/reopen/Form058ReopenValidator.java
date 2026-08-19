@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 
 /**
  * Reopening a {@code CANCELED} form is a super-admin-only escape hatch —

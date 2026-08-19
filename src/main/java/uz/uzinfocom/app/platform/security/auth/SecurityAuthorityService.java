@@ -13,7 +13,7 @@ import uz.uzinfocom.app.platform.iam.domain.Role;
 import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.security.authorization.AuthorityNames;
+import uz.uzinfocom.app.platform.security.auth.AuthorityNames;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;

@@ -25,8 +25,8 @@ import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
 import uz.uzinfocom.app.platform.security.principal.IntegrationClientPrincipal;
 import uz.uzinfocom.app.platform.security.principal.PrincipalOrganization;
 import uz.uzinfocom.app.platform.security.principal.PrincipalUser;
-import uz.uzinfocom.app.platform.security.route.RequestPolicy;
-import uz.uzinfocom.app.platform.security.route.RequestPolicyResolver;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicy;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicyResolver;
 
 import java.util.List;
 import java.util.Optional;
