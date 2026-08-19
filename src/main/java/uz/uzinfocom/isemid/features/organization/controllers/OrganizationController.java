@@ -99,9 +99,10 @@ public class OrganizationController {
             @RequestParam(required = false) String stateCode,
             @RequestParam(required = false) String cityCode,
             @RequestParam(required = false) MedicalType medicalType,
+            @RequestParam(required = false) Boolean isHealthcareFacility,
             @RequestParam(required = false) String name
     ) {
-        return ApiResponse.success(messageUtil, organizationService.getOrganizationsBySearch(stateCode, cityCode, medicalType, name)
+        return ApiResponse.success(messageUtil, organizationService.getOrganizationsBySearch(stateCode, cityCode, medicalType,isHealthcareFacility, name)
                 .stream().map(organizationMapper::toOrgMiniResponse).collect(Collectors.toSet()));
     }
 }

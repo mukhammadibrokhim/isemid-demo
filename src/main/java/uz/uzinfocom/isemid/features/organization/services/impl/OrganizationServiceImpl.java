@@ -2,6 +2,7 @@ package uz.uzinfocom.isemid.features.organization.services.impl;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -133,14 +134,20 @@ public class OrganizationServiceImpl implements OrganizationService {
         return organizationRepository.findByTin(tin);
     }
 
-    @Cacheable(value = "organizationSearchCache", key = "#stateCode + '-' + #cityCode + '-' + (#medicalType != null ? #medicalType.name() : 'null') + '-' + #name")
+    @Cacheable(value = "organizationSearchCache", key = "{#stateCode, #cityCode, #medicalType, #name}")
     @Override
-    public List<Organization> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name) {
+    public List<Organization> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, Boolean isHealthcareFacility,String name) {
         String normalizedName = name != null ? TextNormalizationUtils.stripApostrophes(name.toLowerCase()) : null;
-        return organizationRepository.searchByFilter(
-                stateCode, cityCode, medicalType != null ? medicalType.name() : null,
-                normalizedName, TextNormalizationUtils.APOSTROPHE_CHARS
+        List<Organization> organizations = organizationRepository.searchByFilter(
+            stateCode, cityCode, medicalType != null ? medicalType.name() : null,
+            normalizedName, TextNormalizationUtils.APOSTROPHE_CHARS
         );
+        if(Objects.nonNull(isHealthcareFacility)&&isHealthcareFacility){
+            return organizations.stream()
+                .filter(o->o.getMedicalType().isHealthcareFacility())
+                .toList();
+        }
+        return organizations;
     }
 
     @Override
