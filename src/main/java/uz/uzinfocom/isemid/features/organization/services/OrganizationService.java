@@ -31,7 +31,16 @@ public interface OrganizationService {
 
     Optional<Organization> findByTin(String tin);
 
-    List<Organization> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType, String name);
+    /**
+     *
+     * @param stateCode
+     * @param cityCode
+     * @param medicalType
+     * @param isHealthcareFacility means "является ли орг. - ЛПУ (лечебно-профилактическое учреждение)"
+     * @param name
+     * @return
+     */
+    List<Organization> getOrganizationsBySearch(String stateCode, String cityCode, MedicalType medicalType,Boolean isHealthcareFacility ,String name);
 
     Organization save(Organization newOrg);
 
