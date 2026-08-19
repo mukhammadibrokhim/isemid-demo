@@ -22,15 +22,18 @@ import uz.uzinfocom.app.modules.card.web.dto.request.AssignCardsRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
+import uz.uzinfocom.app.modules.form058.application.shared.Form058AffiliatedOrganizationsResolver;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
+import uz.uzinfocom.app.modules.form0581.application.shared.Form0581AffiliatedOrganizationsResolver;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
 import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
@@ -100,7 +103,7 @@ public class CardCommandService {
         requireForm058Access(form);
 
         List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
-        publishCardAssignedEvents(cardRepository.saveAll(cards));
+        publishCardAssignedEvents(cardRepository.saveAll(cards), form.getReceiverOrganizationId());
 
         String oldStatus = form.getStatus().name();
         form.linkCards();
@@ -108,7 +111,7 @@ public class CardCommandService {
 
         eventPublisher.publishEvent(new StatusChangedEvent(
                 AuditEntityType.FORM058, form.getId(), oldStatus, form.getStatus().name(),
-                currentUserProvider.userIdOrNull(), null
+                currentUserProvider.userIdOrNull(), null, form058Routing(form)
         ));
     }
 
@@ -141,7 +144,7 @@ public class CardCommandService {
         }
 
         List<Card> cards = createBlankCards(request, card -> card.setForm0581(form));
-        publishCardAssignedEvents(cardRepository.saveAll(cards));
+        publishCardAssignedEvents(cardRepository.saveAll(cards), form.getReceiverOrganizationId());
 
         String oldStatus = form.getStatus().name();
         form.linkCards();
@@ -149,7 +152,7 @@ public class CardCommandService {
 
         eventPublisher.publishEvent(new StatusChangedEvent(
                 AuditEntityType.FORM0581, form.getId(), oldStatus, form.getStatus().name(),
-                currentUserProvider.userIdOrNull(), null
+                currentUserProvider.userIdOrNull(), null, form0581Routing(form)
         ));
     }
 
@@ -182,13 +185,58 @@ public class CardCommandService {
     /**
      * Notifies {@code NotificationEventListener} (alongside the audit trail) that each
      * card now exists with its attached employees set — card creation previously
-     * published nothing per-card, only the parent form's status change.
+     * published nothing per-card, only the parent form's status change. Every card in
+     * one bulk-assign batch shares the same owning form, so {@code organizationId} (the
+     * form's receiver) is resolved once by the caller rather than per card.
      */
-    private void publishCardAssignedEvents(List<Card> savedCards) {
+    private void publishCardAssignedEvents(List<Card> savedCards, Long organizationId) {
         Long assignedById = currentUserProvider.userIdOrNull();
-        savedCards.forEach(card -> eventPublisher.publishEvent(
-                new EntityCreatedEvent(AuditEntityType.CARD, card.getId(), assignedById)
-        ));
+        savedCards.forEach(card -> eventPublisher.publishEvent(new EntityCreatedEvent(
+                AuditEntityType.CARD, card.getId(), assignedById,
+                new NotificationRoutingContext.CardRouting(
+                        organizationId, card.getUsers().stream().map(User::getId).toList(), assignedById
+                )
+        )));
+    }
+
+    /**
+     * Card-linking ({@link #assignCards}/{@link #assignCardsToForm0581}) is the one
+     * card-module transition that also carries the owning form's affiliated-organization
+     * list — {@code NotificationEventListener}'s {@code *_AFFILIATED_CARD_LINKED}
+     * notification, mirroring {@code CreateForm058Service}'s "received" routing.
+     */
+    private NotificationRoutingContext.FormRouting form058Routing(Form058 form) {
+        Set<Long> affiliatedOrganizationIds = Form058AffiliatedOrganizationsResolver.resolve(form.getPatient());
+        affiliatedOrganizationIds.remove(form.getSenderOrganizationId());
+        affiliatedOrganizationIds.remove(form.getReceiverOrganizationId());
+        return new NotificationRoutingContext.FormRouting(
+                form.getSenderOrganizationId(), form.getReceiverOrganizationId(),
+                List.copyOf(affiliatedOrganizationIds), form.getSourceIntegrationClientId()
+        );
+    }
+
+    private NotificationRoutingContext.FormRouting form0581Routing(Form0581 form) {
+        Set<Long> affiliatedOrganizationIds = Form0581AffiliatedOrganizationsResolver.resolve(form.getPatient());
+        affiliatedOrganizationIds.remove(form.getSenderOrganizationId());
+        affiliatedOrganizationIds.remove(form.getReceiverOrganizationId());
+        return new NotificationRoutingContext.FormRouting(
+                form.getSenderOrganizationId(), form.getReceiverOrganizationId(),
+                List.copyOf(affiliatedOrganizationIds), form.getSourceIntegrationClientId()
+        );
+    }
+
+    /**
+     * Same resolution {@code NotificationEventListener} used to do itself after a
+     * repository re-fetch: a card's routing organization is its owning form's receiver.
+     */
+    private Long resolveCardOrganizationId(Card card) {
+        if (card.getForm058() != null) {
+            return card.getForm058().getReceiverOrganizationId();
+        }
+        if (card.getForm0581() != null) {
+            return card.getForm0581().getReceiverOrganizationId();
+        }
+        return null;
     }
 
     /**
@@ -397,7 +445,12 @@ public class CardCommandService {
     private void publishCardStatusChange(Card card, String oldStatus) {
         eventPublisher.publishEvent(new StatusChangedEvent(
                 AuditEntityType.CARD, card.getId(), oldStatus, card.getStatus().name(),
-                currentUserProvider.userIdOrNull(), null
+                currentUserProvider.userIdOrNull(), null,
+                new NotificationRoutingContext.CardRouting(
+                        resolveCardOrganizationId(card),
+                        card.getUsers().stream().map(User::getId).toList(),
+                        card.getAssignedById()
+                )
         ));
     }
 

@@ -10,26 +10,18 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
-import uz.uzinfocom.app.modules.act.domain.model.Act;
-import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
-import uz.uzinfocom.app.modules.card.domain.model.Card;
-import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
-import uz.uzinfocom.app.modules.form058.domain.model.Form058;
-import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
-import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
-import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
-import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.AffiliatedOrganizationsAddedEvent;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.ActRouting;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.CardRouting;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.FormRouting;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.export.domain.event.ExportJobCompletedEvent;
-import uz.uzinfocom.app.platform.iam.domain.User;
 import uz.uzinfocom.app.platform.iam.repository.UserRepository;
 import uz.uzinfocom.app.orchestration.notification.domain.Notification;
 import uz.uzinfocom.app.orchestration.notification.domain.NotificationType;
 import uz.uzinfocom.app.orchestration.notification.repository.NotificationRepository;
-import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.time.Instant;
@@ -46,6 +38,12 @@ import java.util.Set;
  * one trigger with its own dedicated event type rather than reusing
  * {@code EntityCreatedEvent}/{@code StatusChangedEvent} — export jobs aren't part of the audit
  * trail and always have exactly one recipient (see that event's own javadoc).
+ *
+ * <p>Routing data (organization ids, recipient user ids) comes entirely from each event's
+ * {@code routing()} field — the publisher already has the entity loaded at the moment it
+ * publishes, so this listener never re-fetches {@code Form058}/{@code Form0581}/{@code Card}/
+ * {@code Act} itself. This deliberately keeps {@code orchestration.notification} free of any
+ * {@code modules.*} repository dependency.
  *
  * <p>Each notification kind is individually toggleable via {@link SystemSettingResolver} keys
  * (see the {@code KEY_*} constants) — writable from either {@code /v1/admin/settings} or the
@@ -83,15 +81,10 @@ public class NotificationEventListener {
     private static final String KEY_ACT_LIS_RESPONSE_ENABLED = "notification.act-lis-response.enabled";
     private static final String KEY_EXPORT_READY_ENABLED = "notification.export-ready.enabled";
 
-    private final Form058JpaRepository form058Repository;
-    private final Form0581JpaRepository form0581Repository;
-    private final CardRepository cardRepository;
-    private final ActRepository actRepository;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final SystemSettingResolver systemSettingResolver;
     private final JsonMapper objectMapper;
-    private final PatientAffiliationJpaRepository patientAffiliationRepository;
 
     @Async("applicationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -252,12 +245,12 @@ public class NotificationEventListener {
     /**
      * Two independent notifications can fire off the same {@code
      * EntityCreatedEvent(FORM058)}: the receiver ({@code FORM058_RECEIVED},
-     * unconditionally applicable) and — new — every organization that is
-     * neither sender nor receiver but is the patient's workplace/place of
-     * study ({@code FORM058_AFFILIATED_RECEIVED}), telling them the form is
-     * now visible to them via {@code GET /v1/form-058/affiliated}. Each has
-     * its own feature flag; the repository lookup only happens if at least
-     * one of the two is enabled.
+     * unconditionally applicable) and every organization that is neither
+     * sender nor receiver but is the patient's workplace/place of study
+     * ({@code FORM058_AFFILIATED_RECEIVED}), telling them the form is now
+     * visible to them via {@code GET /v1/form-058/affiliated}. Each has its
+     * own feature flag. {@code routing().affiliatedOrganizationIds()} is
+     * already sender/receiver-filtered by the publisher.
      */
     private void handleForm058Received(EntityCreatedEvent event) {
         boolean receivedEnabled = systemSettingResolver.resolveBoolean(KEY_FORM058_RECEIVED_ENABLED, true);
@@ -266,29 +259,28 @@ public class NotificationEventListener {
             return;
         }
 
-        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
-        if (form058 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         if (receivedEnabled) {
-            notifyReceiverOrganization(event, NotificationType.FORM058_RECEIVED, "notification.form058-received",
-                    form058.getReceiverOrganizationId());
+            notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
+                    NotificationType.FORM058_RECEIVED, "notification.form058-received", routing.receiverOrganizationId());
         }
         if (affiliatedEnabled) {
-            notifyAffiliatedOrganizations(form058, event.actorUserId(),
-                    NotificationType.FORM058_AFFILIATED_RECEIVED, "notification.form058-affiliated-received");
+            for (Long affiliatedOrganizationId : routing.affiliatedOrganizationIds()) {
+                notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
+                        NotificationType.FORM058_AFFILIATED_RECEIVED, "notification.form058-affiliated-received",
+                        affiliatedOrganizationId);
+            }
         }
     }
 
     /**
-     * Same two-flags-one-lookup shape as {@link #handleForm058Received}: the
-     * receiver gets {@code FORM0581_RECEIVED} unconditionally, and — new —
-     * every organization that is neither sender nor receiver but is the
-     * patient's workplace/place of study gets {@code
-     * FORM0581_AFFILIATED_RECEIVED}, telling them the form is now visible to
-     * them via {@code GET /v1/form-058-1/affiliated}.
+     * Same two-flags-one-routing shape as {@link #handleForm058Received}: the
+     * receiver gets {@code FORM0581_RECEIVED} unconditionally, and every
+     * organization that is neither sender nor receiver but is the patient's
+     * workplace/place of study gets {@code FORM0581_AFFILIATED_RECEIVED},
+     * telling them the form is now visible to them via
+     * {@code GET /v1/form-058-1/affiliated}.
      */
     private void handleForm0581Received(EntityCreatedEvent event) {
         boolean receivedEnabled = systemSettingResolver.resolveBoolean(KEY_FORM0581_RECEIVED_ENABLED, true);
@@ -297,70 +289,54 @@ public class NotificationEventListener {
             return;
         }
 
-        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
-        if (form0581 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         if (receivedEnabled) {
-            notifyReceiverOrganization(event, NotificationType.FORM0581_RECEIVED, "notification.form0581-received",
-                    form0581.getReceiverOrganizationId());
+            notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
+                    NotificationType.FORM0581_RECEIVED, "notification.form0581-received", routing.receiverOrganizationId());
         }
         if (affiliatedEnabled) {
-            notifyAffiliatedOrganizations(form0581, event.actorUserId(),
-                    NotificationType.FORM0581_AFFILIATED_RECEIVED, "notification.form0581-affiliated-received");
+            for (Long affiliatedOrganizationId : routing.affiliatedOrganizationIds()) {
+                notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
+                        NotificationType.FORM0581_AFFILIATED_RECEIVED, "notification.form0581-affiliated-received",
+                        affiliatedOrganizationId);
+            }
         }
-    }
-
-    private void notifyReceiverOrganization(
-            EntityCreatedEvent event, NotificationType type, String messageKey, Long receiverOrganizationId
-    ) {
-        notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
-                type, messageKey, receiverOrganizationId);
     }
 
     private void handleForm058Acknowledged(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM058_ACKNOWLEDGED_ENABLED, true)) {
             return;
         }
-        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
-        if (form058 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
                 NotificationType.FORM058_ACKNOWLEDGED, "notification.form058-acknowledged",
-                form058.getSenderOrganizationId());
+                routing.senderOrganizationId());
     }
 
     private void handleForm058Canceled(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM058_CANCELED_ENABLED, true)) {
             return;
         }
-        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
-        if (form058 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         // Either party can cancel while still SENT (see Form058CancelValidator) — notify both
         // organizations, since the actor's own side is already excluded by notifyOrganization.
         notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
                 NotificationType.FORM058_CANCELED, "notification.form058-canceled",
-                form058.getSenderOrganizationId());
+                routing.senderOrganizationId());
         notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
                 NotificationType.FORM058_CANCELED, "notification.form058-canceled",
-                form058.getReceiverOrganizationId());
+                routing.receiverOrganizationId());
     }
 
     /**
-     * Same two-flags-one-lookup shape as {@link #handleForm058Received}: the
-     * sender gets {@code FORM058_CARD_LINKED} as before, and — new — every
-     * affiliated organization gets {@code FORM058_AFFILIATED_CARD_LINKED},
-     * since this is the transition that actually creates the {@code Card}s
-     * they're now allowed to attach {@code Act}s to (see {@code
+     * Same two-flags-one-routing shape as {@link #handleForm058Received}: the
+     * sender gets {@code FORM058_CARD_LINKED} as before, and every affiliated
+     * organization gets {@code FORM058_AFFILIATED_CARD_LINKED}, since this is
+     * the transition that actually creates the {@code Card}s they're now
+     * allowed to attach {@code Act}s to (see {@code
      * CardCommandService.requireForm058Access}/{@code
      * ActCommandService.requireCardAccess}).
      */
@@ -371,20 +347,19 @@ public class NotificationEventListener {
             return;
         }
 
-        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
-        if (form058 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         if (cardLinkedEnabled) {
             notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
                     NotificationType.FORM058_CARD_LINKED, "notification.form058-card-linked",
-                    form058.getSenderOrganizationId());
+                    routing.senderOrganizationId());
         }
         if (affiliatedEnabled) {
-            notifyAffiliatedOrganizations(form058, event.actorUserId(),
-                    NotificationType.FORM058_AFFILIATED_CARD_LINKED, "notification.form058-affiliated-card-linked");
+            for (Long affiliatedOrganizationId : routing.affiliatedOrganizationIds()) {
+                notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
+                        NotificationType.FORM058_AFFILIATED_CARD_LINKED, "notification.form058-affiliated-card-linked",
+                        affiliatedOrganizationId);
+            }
         }
     }
 
@@ -392,79 +367,62 @@ public class NotificationEventListener {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM058_APPROVED_ENABLED, true)) {
             return;
         }
-        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
-        if (form058 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
                 NotificationType.FORM058_APPROVED, "notification.form058-approved",
-                form058.getReceiverOrganizationId());
+                routing.receiverOrganizationId());
     }
 
     private void handleForm058Reopened(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM058_REOPENED_ENABLED, true)) {
             return;
         }
-        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
-        if (form058 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM058 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         // Super-admin-only escape hatch (Form058.reopen) — either side may have been
         // responsible for the original cancellation, so notify both organizations.
         notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
                 NotificationType.FORM058_REOPENED, "notification.form058-reopened",
-                form058.getSenderOrganizationId());
+                routing.senderOrganizationId());
         notifyOrganization(AuditEntityType.FORM058, event.entityId(), event.actorUserId(),
                 NotificationType.FORM058_REOPENED, "notification.form058-reopened",
-                form058.getReceiverOrganizationId());
+                routing.receiverOrganizationId());
     }
 
     private void handleForm0581Acknowledged(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_ACKNOWLEDGED_ENABLED, true)) {
             return;
         }
-        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
-        if (form0581 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                 NotificationType.FORM0581_ACKNOWLEDGED, "notification.form0581-acknowledged",
-                form0581.getSenderOrganizationId());
+                routing.senderOrganizationId());
     }
 
     private void handleForm0581Canceled(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_CANCELED_ENABLED, true)) {
             return;
         }
-        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
-        if (form0581 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         // Either party can cancel while still SENT (see Form0581CancelValidator) — notify both
         // organizations, since the actor's own side is already excluded by notifyOrganization.
         notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                 NotificationType.FORM0581_CANCELED, "notification.form0581-canceled",
-                form0581.getSenderOrganizationId());
+                routing.senderOrganizationId());
         notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                 NotificationType.FORM0581_CANCELED, "notification.form0581-canceled",
-                form0581.getReceiverOrganizationId());
+                routing.receiverOrganizationId());
     }
 
     /**
-     * Same two-flags-one-lookup shape as {@link #handleForm058CardLinked}:
-     * the sender gets {@code FORM0581_CARD_LINKED} as before, and — new —
-     * every affiliated organization gets {@code
-     * FORM0581_AFFILIATED_CARD_LINKED}, since this is the transition that
-     * actually creates the {@code Card}s they're now allowed to attach
-     * {@code Act}s to.
+     * Same two-flags-one-routing shape as {@link #handleForm058CardLinked}:
+     * the sender gets {@code FORM0581_CARD_LINKED} as before, and every
+     * affiliated organization gets {@code FORM0581_AFFILIATED_CARD_LINKED},
+     * since this is the transition that actually creates the {@code Card}s
+     * they're now allowed to attach {@code Act}s to.
      */
     private void handleForm0581CardLinked(StatusChangedEvent event) {
         boolean cardLinkedEnabled = systemSettingResolver.resolveBoolean(KEY_FORM0581_CARD_LINKED_ENABLED, true);
@@ -473,20 +431,19 @@ public class NotificationEventListener {
             return;
         }
 
-        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
-        if (form0581 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         if (cardLinkedEnabled) {
             notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                     NotificationType.FORM0581_CARD_LINKED, "notification.form0581-card-linked",
-                    form0581.getSenderOrganizationId());
+                    routing.senderOrganizationId());
         }
         if (affiliatedEnabled) {
-            notifyAffiliatedOrganizations(form0581, event.actorUserId(),
-                    NotificationType.FORM0581_AFFILIATED_CARD_LINKED, "notification.form0581-affiliated-card-linked");
+            for (Long affiliatedOrganizationId : routing.affiliatedOrganizationIds()) {
+                notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
+                        NotificationType.FORM0581_AFFILIATED_CARD_LINKED, "notification.form0581-affiliated-card-linked",
+                        affiliatedOrganizationId);
+            }
         }
     }
 
@@ -494,35 +451,27 @@ public class NotificationEventListener {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_APPROVED_ENABLED, true)) {
             return;
         }
-        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
-        if (form0581 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                 NotificationType.FORM0581_APPROVED, "notification.form0581-approved",
-                form0581.getReceiverOrganizationId());
+                routing.receiverOrganizationId());
     }
 
     private void handleForm0581Reopened(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_FORM0581_REOPENED_ENABLED, true)) {
             return;
         }
-        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
-        if (form0581 == null) {
-            log.warn("event=notification_source_not_found entityType=FORM0581 entityId={}", event.entityId());
-            return;
-        }
+        FormRouting routing = (FormRouting) event.routing();
 
         // Super-admin-only escape hatch (Form0581.reopen) — either side may have been
         // responsible for the original cancellation, so notify both organizations.
         notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                 NotificationType.FORM0581_REOPENED, "notification.form0581-reopened",
-                form0581.getSenderOrganizationId());
+                routing.senderOrganizationId());
         notifyOrganization(AuditEntityType.FORM0581, event.entityId(), event.actorUserId(),
                 NotificationType.FORM0581_REOPENED, "notification.form0581-reopened",
-                form0581.getReceiverOrganizationId());
+                routing.receiverOrganizationId());
     }
 
     private void notifyOrganization(
@@ -538,80 +487,15 @@ public class NotificationEventListener {
                 excludingActor(recipientIds, actorUserId), messageKey, new Object[]{entityId});
     }
 
-    /**
-     * Notifies every organization affiliated with the form's patient
-     * (workplace/place of study) except sender/receiver — those already get
-     * their own dedicated notification from the caller, so including them
-     * here would double-notify the same organization for the same event.
-     */
-    private void notifyAffiliatedOrganizations(
-            Form058 form058, Long actorUserId, NotificationType type, String messageKey
-    ) {
-        for (Long affiliatedOrganizationId : resolveAffiliatedOrganizationIds(form058)) {
-            notifyOrganization(AuditEntityType.FORM058, form058.getId(), actorUserId,
-                    type, messageKey, affiliatedOrganizationId);
-        }
-    }
-
-    private List<Long> resolveAffiliatedOrganizationIds(Form058 form058) {
-        if (form058.getPatient() == null) {
-            return List.of();
-        }
-
-        List<Long> affiliatedOrganizationIds = patientAffiliationRepository.findDistinctOrganizationIdsByPatientIdAndTypeIn(
-                form058.getPatient().getId(), FormAccessScopeResolver.AFFILIATION_TYPES
-        );
-
-        return affiliatedOrganizationIds.stream()
-                .filter(organizationId -> !organizationId.equals(form058.getSenderOrganizationId())
-                        && !organizationId.equals(form058.getReceiverOrganizationId()))
-                .toList();
-    }
-
-    /**
-     * Form0581 counterpart of {@link #notifyAffiliatedOrganizations(Form058, Long, NotificationType, String)}
-     * - same rationale, just resolved against Form0581's own patient/sender/receiver.
-     */
-    private void notifyAffiliatedOrganizations(
-            Form0581 form0581, Long actorUserId, NotificationType type, String messageKey
-    ) {
-        for (Long affiliatedOrganizationId : resolveAffiliatedOrganizationIds(form0581)) {
-            notifyOrganization(AuditEntityType.FORM0581, form0581.getId(), actorUserId,
-                    type, messageKey, affiliatedOrganizationId);
-        }
-    }
-
-    private List<Long> resolveAffiliatedOrganizationIds(Form0581 form0581) {
-        if (form0581.getPatient() == null) {
-            return List.of();
-        }
-
-        List<Long> affiliatedOrganizationIds = patientAffiliationRepository.findDistinctOrganizationIdsByPatientIdAndTypeIn(
-                form0581.getPatient().getId(), FormAccessScopeResolver.AFFILIATION_TYPES
-        );
-
-        return affiliatedOrganizationIds.stream()
-                .filter(organizationId -> !organizationId.equals(form0581.getSenderOrganizationId())
-                        && !organizationId.equals(form0581.getReceiverOrganizationId()))
-                .toList();
-    }
-
     private void handleCardAssigned(EntityCreatedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_CARD_ASSIGNED_ENABLED, true)) {
             return;
         }
-        Card card = cardRepository.findById(event.entityId()).orElse(null);
-        if (card == null) {
-            log.warn("event=notification_source_not_found entityType=CARD entityId={}", event.entityId());
-            return;
-        }
+        CardRouting routing = (CardRouting) event.routing();
 
-        Long organizationId = resolveOrganizationId(card);
-        List<Long> recipientIds = card.getUsers().stream().map(User::getId).toList();
-
-        fanOut(NotificationType.CARD_ASSIGNED, AuditEntityType.CARD, card.getId(), organizationId,
-                excludingActor(recipientIds, event.actorUserId()), "notification.card-assigned",
-                new Object[]{card.getId()});
+        fanOut(NotificationType.CARD_ASSIGNED, AuditEntityType.CARD, event.entityId(), routing.organizationId(),
+                excludingActor(routing.userIds(), event.actorUserId()), "notification.card-assigned",
+                new Object[]{event.entityId()});
     }
 
     private void handleCardAcceptedByUser(StatusChangedEvent event) {
@@ -641,20 +525,15 @@ public class NotificationEventListener {
      * attached employee drives (accept, reject, complete).
      */
     private void notifyCardAssigner(StatusChangedEvent event, NotificationType type, String messageKey) {
-        Card card = cardRepository.findById(event.entityId()).orElse(null);
-        if (card == null) {
-            log.warn("event=notification_source_not_found entityType=CARD entityId={}", event.entityId());
-            return;
-        }
-        Long assignedById = card.getAssignedById();
+        CardRouting routing = (CardRouting) event.routing();
+        Long assignedById = routing.assignedById();
         if (assignedById == null) {
             return;
         }
 
-        Long organizationId = resolveOrganizationId(card);
-        fanOut(type, AuditEntityType.CARD, card.getId(), organizationId,
+        fanOut(type, AuditEntityType.CARD, event.entityId(), routing.organizationId(),
                 excludingActor(List.of(assignedById), event.actorUserId()), messageKey,
-                new Object[]{card.getId()});
+                new Object[]{event.entityId()});
     }
 
     private void handleCardApproved(StatusChangedEvent event) {
@@ -677,62 +556,31 @@ public class NotificationEventListener {
      * back for rework).
      */
     private void notifyCardUsers(StatusChangedEvent event, NotificationType type, String messageKey) {
-        Card card = cardRepository.findById(event.entityId()).orElse(null);
-        if (card == null) {
-            log.warn("event=notification_source_not_found entityType=CARD entityId={}", event.entityId());
-            return;
-        }
-
-        Long organizationId = resolveOrganizationId(card);
-        List<Long> recipientIds = card.getUsers().stream().map(User::getId).toList();
-        fanOut(type, AuditEntityType.CARD, card.getId(), organizationId,
-                excludingActor(recipientIds, event.actorUserId()), messageKey, new Object[]{card.getId()});
+        CardRouting routing = (CardRouting) event.routing();
+        fanOut(type, AuditEntityType.CARD, event.entityId(), routing.organizationId(),
+                excludingActor(routing.userIds(), event.actorUserId()), messageKey, new Object[]{event.entityId()});
     }
 
     private void handleActAssigned(EntityCreatedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_ACT_ASSIGNED_ENABLED, true)) {
             return;
         }
-        Act act = actRepository.findById(event.entityId()).orElse(null);
-        if (act == null) {
-            log.warn("event=notification_source_not_found entityType=ACT entityId={}", event.entityId());
-            return;
-        }
+        ActRouting routing = (ActRouting) event.routing();
 
-        Long organizationId = act.getCard() != null ? resolveOrganizationId(act.getCard()) : null;
-        List<Long> recipientIds = act.getUsers().stream().map(User::getId).toList();
-
-        fanOut(NotificationType.ACT_ASSIGNED, AuditEntityType.ACT, act.getId(), organizationId,
-                excludingActor(recipientIds, event.actorUserId()), "notification.act-assigned",
-                new Object[]{act.getId()});
+        fanOut(NotificationType.ACT_ASSIGNED, AuditEntityType.ACT, event.entityId(), routing.organizationId(),
+                excludingActor(routing.userIds(), event.actorUserId()), "notification.act-assigned",
+                new Object[]{event.entityId()});
     }
 
     private void handleActLisResponse(StatusChangedEvent event) {
         if (!systemSettingResolver.resolveBoolean(KEY_ACT_LIS_RESPONSE_ENABLED, true)) {
             return;
         }
-        Act act = actRepository.findById(event.entityId()).orElse(null);
-        if (act == null) {
-            log.warn("event=notification_source_not_found entityType=ACT entityId={}", event.entityId());
-            return;
-        }
+        ActRouting routing = (ActRouting) event.routing();
 
-        Long organizationId = act.getCard() != null ? resolveOrganizationId(act.getCard()) : null;
-        List<Long> recipientIds = act.getUsers().stream().map(User::getId).toList();
-
-        fanOut(NotificationType.ACT_LIS_RESPONSE, AuditEntityType.ACT, act.getId(), organizationId,
-                excludingActor(recipientIds, event.actorUserId()), "notification.act-lis-response",
-                new Object[]{act.getId()});
-    }
-
-    private Long resolveOrganizationId(Card card) {
-        if (card.getForm058() != null) {
-            return card.getForm058().getReceiverOrganizationId();
-        }
-        if (card.getForm0581() != null) {
-            return card.getForm0581().getReceiverOrganizationId();
-        }
-        return null;
+        fanOut(NotificationType.ACT_LIS_RESPONSE, AuditEntityType.ACT, event.entityId(), routing.organizationId(),
+                excludingActor(routing.userIds(), event.actorUserId()), "notification.act-lis-response",
+                new Object[]{event.entityId()});
     }
 
     private List<Long> excludingActor(List<Long> recipientIds, Long actorUserId) {

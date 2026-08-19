@@ -10,11 +10,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
-import uz.uzinfocom.app.modules.form058.domain.model.Form058;
-import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
-import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
-import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.FormRouting;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
@@ -29,14 +26,20 @@ import java.time.Instant;
  * HTTP attempt (first try and every retry alike) always goes through
  * {@code OutboundWebhookDispatchScheduler} /
  * {@code OutboundWebhookDispatchSendOrchestrator}.
+ *
+ * <p>The routing key ({@code sourceIntegrationClientId}) comes from the
+ * event's {@code routing()} field, set by the publisher at the moment it
+ * already has the form loaded — this listener never re-fetches
+ * {@code Form058}/{@code Form0581} itself, deliberately keeping {@code
+ * orchestration.webhook} free of any {@code modules.*} repository
+ * dependency. The webhook payload doesn't need the form either — it's a
+ * small self-contained record built entirely from the event's own fields.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class OutboundWebhookEventListener {
 
-    private final Form058JpaRepository form058Repository;
-    private final Form0581JpaRepository form0581Repository;
     private final IntegrationClientRepository integrationClientRepository;
     private final OutboundWebhookDispatchService outboundWebhookDispatchService;
     private final JsonMapper objectMapper;
@@ -46,31 +49,15 @@ public class OutboundWebhookEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(StatusChangedEvent event) {
         switch (event.entityType()) {
-            case FORM058 -> handleForm058(event);
-            case FORM0581 -> handleForm0581(event);
+            case FORM058 -> enqueueIfWebhookActive(event, AuditEntityType.FORM058);
+            case FORM0581 -> enqueueIfWebhookActive(event, AuditEntityType.FORM0581);
             default -> { }
         }
     }
 
-    private void handleForm058(StatusChangedEvent event) {
-        Form058 form058 = form058Repository.findById(event.entityId()).orElse(null);
-        if (form058 == null) {
-            log.warn("event=webhook_dispatch_source_not_found entityType=FORM058 entityId={}", event.entityId());
-            return;
-        }
-        enqueueIfWebhookActive(event, AuditEntityType.FORM058, form058.getSourceIntegrationClientId());
-    }
-
-    private void handleForm0581(StatusChangedEvent event) {
-        Form0581 form0581 = form0581Repository.findById(event.entityId()).orElse(null);
-        if (form0581 == null) {
-            log.warn("event=webhook_dispatch_source_not_found entityType=FORM0581 entityId={}", event.entityId());
-            return;
-        }
-        enqueueIfWebhookActive(event, AuditEntityType.FORM0581, form0581.getSourceIntegrationClientId());
-    }
-
-    private void enqueueIfWebhookActive(StatusChangedEvent event, AuditEntityType entityType, Long sourceIntegrationClientId) {
+    private void enqueueIfWebhookActive(StatusChangedEvent event, AuditEntityType entityType) {
+        FormRouting routing = (FormRouting) event.routing();
+        Long sourceIntegrationClientId = routing.sourceIntegrationClientId();
         if (sourceIntegrationClientId == null) {
             return;
         }

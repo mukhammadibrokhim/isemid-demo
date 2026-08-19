@@ -8,9 +8,12 @@ public record EntityCreatedEvent(
         AuditEntityType entityType,
         Long entityId,
         Long actorUserId,
+        NotificationRoutingContext routing,
         Instant occurredAt
 ) {
-    public EntityCreatedEvent(AuditEntityType entityType, Long entityId, Long actorUserId) {
-        this(entityType, entityId, actorUserId, Instant.now());
+    public EntityCreatedEvent(
+            AuditEntityType entityType, Long entityId, Long actorUserId, NotificationRoutingContext routing
+    ) {
+        this(entityType, entityId, actorUserId, routing, Instant.now());
     }
 }

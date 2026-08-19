@@ -27,6 +27,7 @@ import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
 import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.iam.domain.Organization;
 import uz.uzinfocom.app.platform.iam.domain.User;
@@ -109,9 +110,13 @@ public class ActCommandService {
                 .toList();
 
         List<Act> saved = actRepository.saveAll(acts);
-        saved.forEach(act -> eventPublisher.publishEvent(
-                new EntityCreatedEvent(AuditEntityType.ACT, act.getId(), assignedById)
-        ));
+        Long organizationId = resolveOrganizationId(card);
+        saved.forEach(act -> eventPublisher.publishEvent(new EntityCreatedEvent(
+                AuditEntityType.ACT, act.getId(), assignedById,
+                new NotificationRoutingContext.ActRouting(
+                        organizationId, act.getUsers().stream().map(User::getId).toList()
+                )
+        )));
     }
 
     /**
@@ -278,8 +283,29 @@ public class ActCommandService {
     private void publishStatusChange(Act act, String oldStatus) {
         eventPublisher.publishEvent(new StatusChangedEvent(
                 AuditEntityType.ACT, act.getId(), oldStatus, act.getActStatus().name(),
-                currentUserProvider.userIdOrNull(), null
+                currentUserProvider.userIdOrNull(), null,
+                new NotificationRoutingContext.ActRouting(
+                        resolveOrganizationId(act.getCard()), act.getUsers().stream().map(User::getId).toList()
+                )
         ));
+    }
+
+    /**
+     * Same resolution {@code NotificationEventListener} used to do itself after a
+     * repository re-fetch: an act's routing organization is its card's owning form's
+     * receiver.
+     */
+    private Long resolveOrganizationId(Card card) {
+        if (card == null) {
+            return null;
+        }
+        if (card.getForm058() != null) {
+            return card.getForm058().getReceiverOrganizationId();
+        }
+        if (card.getForm0581() != null) {
+            return card.getForm0581().getReceiverOrganizationId();
+        }
+        return null;
     }
 
     private void publishFieldChanges(Act act, Map<String, Object> before) {

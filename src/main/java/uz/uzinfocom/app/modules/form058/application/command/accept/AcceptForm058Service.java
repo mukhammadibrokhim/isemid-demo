@@ -10,8 +10,11 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundExc
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +36,11 @@ public class AcceptForm058Service {
         UpdateForm058Result result = form058UpdateMapper.toResult(form058JpaRepository.save(form058));
 
         eventPublisher.publishEvent(new StatusChangedEvent(
-                AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(), actorUserId, null
+                AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(), actorUserId, null,
+                new NotificationRoutingContext.FormRouting(
+                        form058.getSenderOrganizationId(), form058.getReceiverOrganizationId(),
+                        List.of(), form058.getSourceIntegrationClientId()
+                )
         ));
 
         return result;

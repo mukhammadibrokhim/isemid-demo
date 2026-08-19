@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form0581.application.command.Form0581OtherInjuredPersonMapper;
+import uz.uzinfocom.app.modules.form0581.application.shared.Form0581AffiliatedOrganizationsResolver;
 import uz.uzinfocom.app.modules.form0581.application.validator.Form0581CreateValidator;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581OtherInjuredPerson;
@@ -13,8 +14,12 @@ import uz.uzinfocom.app.modules.patient.application.service.PatientRegistrationS
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
+
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -46,9 +51,17 @@ public class CreateForm0581Service {
 
         Form0581 saved = form0581Repository.save(form0581);
 
-        eventPublisher.publishEvent(
-                new EntityCreatedEvent(AuditEntityType.FORM0581, saved.getId(), currentUserProvider.userIdOrNull())
-        );
+        Set<Long> affiliatedOrganizationIds = Form0581AffiliatedOrganizationsResolver.resolve(saved.getPatient());
+        affiliatedOrganizationIds.remove(saved.getSenderOrganizationId());
+        affiliatedOrganizationIds.remove(saved.getReceiverOrganizationId());
+
+        eventPublisher.publishEvent(new EntityCreatedEvent(
+                AuditEntityType.FORM0581, saved.getId(), currentUserProvider.userIdOrNull(),
+                new NotificationRoutingContext.FormRouting(
+                        saved.getSenderOrganizationId(), saved.getReceiverOrganizationId(),
+                        List.copyOf(affiliatedOrganizationIds), null
+                )
+        ));
 
         return form0581CreateMapper.toResult(saved);
     }

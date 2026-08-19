@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form0581.application.command.Form0581OtherInjuredPersonMapper;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
+import uz.uzinfocom.app.modules.form0581.application.shared.Form0581AffiliatedOrganizationsResolver;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581OtherInjuredPerson;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
@@ -22,10 +23,8 @@ import uz.uzinfocom.app.platform.audit.event.AffiliatedOrganizationsAddedEvent;
 import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.OrganizationReassignedEvent;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
-import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,7 +47,7 @@ public class UpdateForm0581Service {
         form0581UpdateValidator.validate(form0581, command);
         Long oldReceiverOrganizationId = form0581.getReceiverOrganizationId();
         Map<String, Object> before = form0581.auditFields();
-        Set<Long> affiliationsBefore = affiliatedOrganizationIds(form0581.getPatient());
+        Set<Long> affiliationsBefore = Form0581AffiliatedOrganizationsResolver.resolve(form0581.getPatient());
         form0581UpdateMapper.update(command, form0581);
 
         if (command.otherInjuredPeople() != null) {
@@ -82,7 +81,7 @@ public class UpdateForm0581Service {
             ));
         }
 
-        Set<Long> newlyAffiliatedOrganizationIds = affiliatedOrganizationIds(form0581.getPatient());
+        Set<Long> newlyAffiliatedOrganizationIds = Form0581AffiliatedOrganizationsResolver.resolve(form0581.getPatient());
         newlyAffiliatedOrganizationIds.removeAll(affiliationsBefore);
         newlyAffiliatedOrganizationIds.remove(form0581.getSenderOrganizationId());
         newlyAffiliatedOrganizationIds.remove(newReceiverOrganizationId);
@@ -98,24 +97,6 @@ public class UpdateForm0581Service {
     private Form0581 findRequired(Long id) {
         return form0581Repository.findActiveByIdForUpdate(id)
                 .orElseThrow(() -> new Form0581NotFoundException(id));
-    }
-
-    /**
-     * Same before/after affiliation snapshot as {@code
-     * UpdateForm058Service#affiliatedOrganizationIds} - see its javadoc.
-     */
-    private Set<Long> affiliatedOrganizationIds(Patient patient) {
-        if (patient == null) {
-            return new HashSet<>();
-        }
-        Set<Long> organizationIds = new HashSet<>();
-        for (PatientAffiliation affiliation : patient.getAffiliations()) {
-            if (FormAccessScopeResolver.AFFILIATION_TYPES.contains(affiliation.getType())
-                    && affiliation.getOrganizationId() != null) {
-                organizationIds.add(affiliation.getOrganizationId());
-            }
-        }
-        return organizationIds;
     }
 
     /**

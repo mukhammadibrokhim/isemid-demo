@@ -12,8 +12,11 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581Validatio
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +44,11 @@ public class CancelForm0581Service {
         UpdateForm0581Result result = form0581UpdateMapper.toResult(form0581Repository.save(form0581));
 
         eventPublisher.publishEvent(new StatusChangedEvent(
-                AuditEntityType.FORM0581, form0581.getId(), oldStatus, form0581.getStatus().name(), actorUserId, reason
+                AuditEntityType.FORM0581, form0581.getId(), oldStatus, form0581.getStatus().name(), actorUserId, reason,
+                new NotificationRoutingContext.FormRouting(
+                        form0581.getSenderOrganizationId(), form0581.getReceiverOrganizationId(),
+                        List.of(), form0581.getSourceIntegrationClientId()
+                )
         ));
 
         return result;
