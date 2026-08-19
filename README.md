@@ -160,11 +160,53 @@ and the live Swagger UI once the app is running.
 - JDK 21
 - PostgreSQL (any recent version reachable at `spring.datasource.*`)
 
+### Environments
+
+Three Spring profiles, each with its own `application-{profile}.properties`
+and `.env.{profile}.example` template:
+
+| Profile | Config file | Purpose | Committed? |
+|---|---|---|---|
+| `local` | `application-local.properties` | Your own machine — a dedicated `isemid_local` database on whatever Postgres you already have running, verbose logging, permissive CORS. Activated together with `dev` (`dev,local`) so the SSO/DHP/API2/LIS test-environment defaults still apply. | No — gitignored, personal (see below) |
+| `dev` | `application-dev.properties` | Shared dev/test target (used both for a plain local run and by CI's `deploy_dev` on the dev server) — points at `test-sso.ssv.uz`, `test-api2.ssv.uz`, `test-lis.sanepid.uz`, etc. | Yes |
+| `prod` | `application-prod.properties` | Production. No built-in fallbacks for secrets/URLs — everything required must come from real env vars. | Yes |
+
+All three load `.env` (if present, via `springboot4-dotenv`) into the Spring
+`Environment` on startup — a real OS/container env var of the same name
+always wins over `.env`. Copy the matching template and fill in as needed:
+
+```bash
+cp .env.local.example .env      # local profile (see "Local setup" below)
+# or
+cp .env.example .env            # dev profile
+# or
+cp .env.prod.example .env       # prod profile
+```
+
+`application-local.properties` itself is **not** committed (it's in
+`.gitignore`, alongside `application-local.yml`/`.yaml`) — it's meant to be
+your own per-developer file. This repo ships one on first checkout for
+convenience; if it's missing, recreate it with your local DB/port/CORS
+overrides (everything else — SSO/DHP/API2/LIS — is inherited from the `dev`
+profile since `SPRING_PROFILES_ACTIVE=dev,local` activates both).
+
+#### Local setup
+
+No container needed — just an empty database on your existing PostgreSQL
+instance (Liquibase creates the schema on first run):
+
+```bash
+createdb isemid_local            # or: psql -c "CREATE DATABASE isemid_local"
+cp .env.local.example .env       # adjust DB_URL/DB_USERNAME/DB_PASSWORD if your
+                                  # local Postgres isn't on localhost:5432/postgres
+./mvnw spring-boot:run
+```
+
 ### Configuration
 
 Environment variables (all optional — defaults live in
 `application.properties` / `application-dev.properties` /
-`application-prod.properties`):
+`application-prod.properties` / `application-local.properties`):
 
 ```
 SERVER_PORT                                  default 8081
@@ -186,8 +228,9 @@ environment variables per deployment — the values checked into
 ### Run
 
 ```bash
-./mvnw spring-boot:run                  # dev profile
-./mvnw clean package                    # produces target/app.jar (finalName=app)
+./mvnw spring-boot:run                                          # SPRING_PROFILES_ACTIVE from .env (defaults to whatever you copied above)
+SPRING_PROFILES_ACTIVE=dev,local ./mvnw spring-boot:run          # explicit override, no .env needed
+./mvnw clean package                                             # produces target/app.jar (finalName=app)
 java -jar target/app.jar
 ```
 

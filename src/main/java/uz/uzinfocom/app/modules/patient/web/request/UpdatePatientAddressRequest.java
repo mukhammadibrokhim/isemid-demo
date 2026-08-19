@@ -9,8 +9,7 @@ import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
 public record UpdatePatientAddressRequest(
 
         @Schema(description = "Идентификатор существующего адреса, который нужно изменить. "
-                + "Не указывается (null) при добавлении нового адреса - в этом случае запись "
-                + "ищется/создаётся по типу адреса.")
+                + "Не указывается (null) при добавлении нового адреса.")
         Long id,
 
         @Schema(description = "Тип адреса (постоянный/временный).")

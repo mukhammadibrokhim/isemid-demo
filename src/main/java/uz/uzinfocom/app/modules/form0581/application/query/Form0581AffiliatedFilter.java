@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
@@ -83,21 +82,6 @@ public record Form0581AffiliatedFilter(
         String source
 
 ) implements PageableRequest, Form0581FilterFields {
-
-        /**
-         * Mirrors {@link Form0581Filter#hasNoAdditionalFilters()} - used to decide
-         * whether the pagination total can use a fast planner estimate instead of
-         * an exact {@code COUNT(*)}.
-         */
-        public boolean hasNoAdditionalFilters() {
-                return status == null
-                        && dateFrom == null
-                        && dateTo == null
-                        && id == null
-                        && !StringUtils.hasText(documentValue)
-                        && !StringUtils.hasText(icd10Code)
-                        && !StringUtils.hasText(source);
-        }
 
         @Schema(hidden = true)
         @AssertTrue(message = "{form0581.filter.date_range.invalid}")

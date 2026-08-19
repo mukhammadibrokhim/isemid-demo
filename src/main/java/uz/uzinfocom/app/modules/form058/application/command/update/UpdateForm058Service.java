@@ -11,17 +11,22 @@ import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientAddress
 import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientAffiliationCommand;
 import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientCommand;
 import uz.uzinfocom.app.modules.patient.application.service.PatientIdentifierSync;
-import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
+import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
+import uz.uzinfocom.app.platform.audit.event.AffiliatedOrganizationsAddedEvent;
 import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
 import uz.uzinfocom.app.platform.audit.event.OrganizationReassignedEvent;
+import uz.uzinfocom.app.platform.scope.FormAccessScopeResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +44,7 @@ public class UpdateForm058Service {
         form058UpdateValidator.validate(form058, command);
         Long oldReceiverOrganizationId = form058.getReceiverOrganizationId();
         Map<String, Object> before = form058.auditFields();
+        Set<Long> affiliationsBefore = affiliatedOrganizationIds(form058.getPatient());
         form058UpdateMapper.update(command, form058);
         updatePatient(command, form058.getPatient());
         UpdateForm058Result result = form058UpdateMapper.toResult(form058Repository.save(form058));
@@ -60,7 +66,39 @@ public class UpdateForm058Service {
             ));
         }
 
+        Set<Long> newlyAffiliatedOrganizationIds = affiliatedOrganizationIds(form058.getPatient());
+        newlyAffiliatedOrganizationIds.removeAll(affiliationsBefore);
+        newlyAffiliatedOrganizationIds.remove(form058.getSenderOrganizationId());
+        newlyAffiliatedOrganizationIds.remove(newReceiverOrganizationId);
+        if (!newlyAffiliatedOrganizationIds.isEmpty()) {
+            eventPublisher.publishEvent(new AffiliatedOrganizationsAddedEvent(
+                    AuditEntityType.FORM058, form058.getId(), List.copyOf(newlyAffiliatedOrganizationIds), actorUserId
+            ));
+        }
+
         return result;
+    }
+
+    /**
+     * Snapshot of which organizations currently have {@code /affiliated}
+     * visibility into this patient (WORKPLACE/EDUCATIONAL affiliations only,
+     * same set {@code FormAccessScopeResolver}/{@code Form058Specification}
+     * use) - compared before/after {@link #updatePatient} to detect newly
+     * granted affiliation visibility. Mutable {@code HashSet} since callers
+     * remove entries from it in place.
+     */
+    private Set<Long> affiliatedOrganizationIds(Patient patient) {
+        if (patient == null) {
+            return new HashSet<>();
+        }
+        Set<Long> organizationIds = new HashSet<>();
+        for (PatientAffiliation affiliation : patient.getAffiliations()) {
+            if (FormAccessScopeResolver.AFFILIATION_TYPES.contains(affiliation.getType())
+                    && affiliation.getOrganizationId() != null) {
+                organizationIds.add(affiliation.getOrganizationId());
+            }
+        }
+        return organizationIds;
     }
 
     private Form058 findRequired(Long id) {
@@ -98,22 +136,25 @@ public class UpdateForm058Service {
     }
 
     /**
-     * Matches by {@code id} when the caller supplied one (editing a specific
-     * existing address); a missing id falls back to the legacy
-     * find-or-create-by-type behavior, which is safe here because
-     * {@link uz.uzinfocom.app.modules.patient.domain.enums.AddressType} only
-     * has two values, so a patient can only ever have one of each.
+     * {@code id} is optional: when supplied it must match one of the
+     * patient's existing addresses - that one is updated in place, and the
+     * command is silently ignored if nothing matches; when omitted, a
+     * brand-new address is always added.
      */
     private void upsertAddress(Patient patient, UpdatePatientAddressCommand command) {
         if (command == null || command.type() == null) {
             return;
         }
 
-        PatientAddress address = command.id() != null
-                ? findAddressById(patient, command.id())
-                : findOrCreateAddressByType(patient, command.type());
-        if (address == null) {
-            return;
+        PatientAddress address;
+        if (command.id() != null) {
+            address = findAddressById(patient, command.id());
+            if (address == null) {
+                return;
+            }
+        } else {
+            address = new PatientAddress();
+            patient.addAddress(address);
         }
 
         address.setType(command.type());
@@ -132,40 +173,36 @@ public class UpdateForm058Service {
                 .orElse(null);
     }
 
-    private static PatientAddress findOrCreateAddressByType(Patient patient, AddressType type) {
-        return patient.getAddresses().stream()
-                .filter(item -> type.equals(item.getType()))
-                .findFirst()
-                .orElseGet(() -> {
-                    PatientAddress newAddress = new PatientAddress();
-                    newAddress.setType(type);
-                    patient.addAddress(newAddress);
-                    return newAddress;
-                });
-    }
-
     /**
-     * Update only ever corrects an existing affiliation, matched by its own id -
-     * never creates a new one. A patient's affiliations are set up at
-     * registration time; if {@code command.id()} doesn't match one of the
-     * patient's current affiliations (including when it's null), the command
-     * is silently ignored rather than guessing which affiliation was meant.
+     * {@code id} is optional: when supplied it must match one of the
+     * patient's existing affiliations - that one is updated in place, and the
+     * command is silently ignored if nothing matches; when omitted, a
+     * brand-new affiliation is always added.
      */
     private void upsertAffiliation(Patient patient, UpdatePatientAffiliationCommand command) {
-        if (command == null || command.id() == null) {
+        if (command == null || command.type() == null) {
             return;
         }
 
-        patient.getAffiliations().stream()
-                .filter(item -> command.id().equals(item.getId()))
-                .findFirst()
-                .ifPresent(affiliation -> {
-                    affiliation.setType(command.type());
-                    affiliation.setLastVisitedDate(command.lastVisitedDate());
-                    affiliation.setRegionCode(command.regionCode());
-                    affiliation.setDistrictCode(command.districtCode());
-                    affiliation.setOrganizationId(command.organizationId());
-                    affiliation.setAddress(command.address());
-                });
+        PatientAffiliation affiliation;
+        if (command.id() != null) {
+            affiliation = patient.getAffiliations().stream()
+                    .filter(item -> command.id().equals(item.getId()))
+                    .findFirst()
+                    .orElse(null);
+            if (affiliation == null) {
+                return;
+            }
+        } else {
+            affiliation = new PatientAffiliation();
+            patient.addAffiliation(affiliation);
+        }
+
+        affiliation.setType(command.type());
+        affiliation.setLastVisitedDate(command.lastVisitedDate());
+        affiliation.setRegionCode(command.regionCode());
+        affiliation.setDistrictCode(command.districtCode());
+        affiliation.setOrganizationId(command.organizationId());
+        affiliation.setAddress(command.address());
     }
 }

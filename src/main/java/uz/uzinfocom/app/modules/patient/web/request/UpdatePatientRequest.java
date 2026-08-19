@@ -13,11 +13,12 @@ import java.util.List;
  * Update-only counterpart of {@code PatientRequest}, used as the {@code
  * patient} field on {@code UpdateForm058Request}/{@code UpdateForm0581Request}.
  * Kept separate from the create-side type (rather than reused) because its
- * child lists mean something different here: {@code affiliations} elements
- * are matched against the patient's existing affiliations by {@code id} via
- * {@code UpdatePatientAffiliationRequest} and never create a new one, whereas
- * a create request's affiliations always describe brand-new rows. Mixing the
- * two previously caused {@code organizationId} updates to be silently dropped
+ * child lists mean something different here: every element of {@code
+ * identifiers}, {@code addresses}, and {@code affiliations} carries an
+ * optional {@code id} - when present it's matched against the patient's
+ * existing rows and updated in place (ignored if nothing matches); when
+ * omitted, a brand-new row is added. Mixing this with the create-side type
+ * previously caused {@code organizationId} updates to be silently dropped
  * whenever the caller didn't also resend a matching {@code type}.
  */
 @Schema(description = "Сведения о пациенте для обновления вместе с формой.")
@@ -86,7 +87,7 @@ public record UpdatePatientRequest(
         @NotEmpty(message = "{patient.request.addresses.required}")
         List<UpdatePatientAddressRequest> addresses,
 
-        @Schema(description = "Список принадлежностей пациента для обновления (место работы/учёбы) - каждый элемент должен ссылаться на существующую запись через id.")
+        @Schema(description = "Список принадлежностей пациента для обновления (место работы/учёбы) - элемент с id обновляет существующую запись, без id - добавляет новую.")
         @Valid
         List<UpdatePatientAffiliationRequest> affiliations
 

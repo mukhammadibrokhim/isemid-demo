@@ -7,10 +7,10 @@ import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 
 /**
  * Shared upsert used by every module that lets a patient's identifiers be
- * edited alongside its own form (Form058, Form0581). Matches by {@code id}
- * when the caller supplied one (editing a specific existing document); a
- * missing id falls back to the legacy find-or-create-by-type behavior, which
- * is safe here because identifier types are one-per-patient by convention.
+ * edited alongside its own form (Form058, Form0581). {@code id} is optional:
+ * when supplied it must match one of the patient's existing identifiers -
+ * that one is updated in place, and the command is silently ignored if
+ * nothing matches; when omitted, a brand-new identifier is always added.
  */
 public final class PatientIdentifierSync {
 
@@ -22,11 +22,15 @@ public final class PatientIdentifierSync {
             return;
         }
 
-        PatientIdentifier identifier = command.id() != null
-                ? findById(patient, command.id())
-                : findOrCreateByType(patient, command.type());
-        if (identifier == null) {
-            return;
+        PatientIdentifier identifier;
+        if (command.id() != null) {
+            identifier = findById(patient, command.id());
+            if (identifier == null) {
+                return;
+            }
+        } else {
+            identifier = new PatientIdentifier();
+            patient.addIdentifier(identifier);
         }
 
         identifier.setTypeCode(command.type());
@@ -40,17 +44,5 @@ public final class PatientIdentifierSync {
                 .filter(item -> id.equals(item.getId()))
                 .findFirst()
                 .orElse(null);
-    }
-
-    private static PatientIdentifier findOrCreateByType(Patient patient, String type) {
-        return patient.getIdentifiers().stream()
-                .filter(item -> type.equals(item.getTypeCode()))
-                .findFirst()
-                .orElseGet(() -> {
-                    PatientIdentifier newIdentifier = new PatientIdentifier();
-                    newIdentifier.setTypeCode(type);
-                    patient.addIdentifier(newIdentifier);
-                    return newIdentifier;
-                });
     }
 }

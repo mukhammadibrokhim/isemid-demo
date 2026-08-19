@@ -20,6 +20,7 @@ import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
 import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.AffiliatedOrganizationsAddedEvent;
 import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.export.domain.event.ExportJobCompletedEvent;
@@ -196,6 +197,56 @@ public class NotificationEventListener {
         fanOut(NotificationType.EXPORT_READY, AuditEntityType.EXPORT_JOB, event.jobId(), null,
                 List.of(event.recipientUserId()), "notification.export-ready",
                 new Object[]{event.fileName()});
+    }
+
+    /**
+     * Update-time counterpart of {@link #handleForm058Received}/{@link #handleForm0581Received}'s
+     * {@code *_AFFILIATED_RECEIVED} notification: fires when an update adds a
+     * new {@code PatientAffiliation} (or repoints an existing one) so that an
+     * organization gains {@code /affiliated} visibility into a form it
+     * couldn't already see - see {@code UpdateForm058Service}/{@code
+     * UpdateForm0581Service}, which diff the patient's affiliated
+     * organization ids before/after the update and only publish this event
+     * for ones that are newly present (and never for the form's current
+     * sender/receiver, who have their own notifications). Reuses the same
+     * {@code *_AFFILIATED_RECEIVED} type/message/flag as the create-time
+     * path - to the newly affiliated organization, the form becoming visible
+     * to them for the first time reads the same either way.
+     */
+    @Async("applicationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void on(AffiliatedOrganizationsAddedEvent event) {
+        if (event.organizationIds().isEmpty()) {
+            return;
+        }
+
+        NotificationType type;
+        String messageKey;
+        boolean enabled;
+        switch (event.entityType()) {
+            case FORM058 -> {
+                type = NotificationType.FORM058_AFFILIATED_RECEIVED;
+                messageKey = "notification.form058-affiliated-received";
+                enabled = systemSettingResolver.resolveBoolean(KEY_FORM058_AFFILIATED_RECEIVED_ENABLED, true);
+            }
+            case FORM0581 -> {
+                type = NotificationType.FORM0581_AFFILIATED_RECEIVED;
+                messageKey = "notification.form0581-affiliated-received";
+                enabled = systemSettingResolver.resolveBoolean(KEY_FORM0581_AFFILIATED_RECEIVED_ENABLED, true);
+            }
+            default -> {
+                return;
+            }
+        }
+        if (!enabled) {
+            return;
+        }
+
+        for (Long organizationId : event.organizationIds()) {
+            notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
+                    type, messageKey, organizationId);
+        }
     }
 
     /**

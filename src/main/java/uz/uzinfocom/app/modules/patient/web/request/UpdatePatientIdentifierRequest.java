@@ -10,8 +10,7 @@ import java.time.LocalDate;
 public record UpdatePatientIdentifierRequest(
 
         @Schema(description = "Идентификатор существующего документа, который нужно изменить. "
-                + "Не указывается (null) при добавлении нового документа - в этом случае запись "
-                + "ищется/создаётся по типу документа.")
+                + "Не указывается (null) при добавлении нового документа.")
         Long id,
 
         @Schema(description = "Тип документа, удостоверяющего личность.", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -141,7 +141,11 @@ public class Form058QueryService {
         Pageable pageable = resolvePageable(filter);
         Specification<Form058> spec = form058Specification.affiliatedTable(filter, scope.organizationId());
 
-        Page<Form058TableResponse> page = assemblePage(spec, pageable, Form058Direction.ALL, filter.hasNoAdditionalFilters());
+        // Never estimate here: unlike findByScope/findAllUnscoped, this spec is always
+        // restricted by patientAffiliationExists(organizationId), so the unfiltered-table
+        // planner estimate (explainActiveRowCountPlan) would report the whole active
+        // form058 table's row count instead of this organization's affiliated total.
+        Page<Form058TableResponse> page = assemblePage(spec, pageable, Form058Direction.ALL, false);
         return page.map(withAffiliationType(page.getContent(), scope.organizationId()));
     }
 
