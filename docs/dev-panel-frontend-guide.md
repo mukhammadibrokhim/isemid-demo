@@ -8,9 +8,9 @@ authenticates via an SSO/DHP `Authorization: Bearer` token, but the whole
 `DevUser` accounts — a separate credential system, unrelated to end-user
 login (see [`auth-login-frontend-guide.md`](./auth-login-frontend-guide.md)
 for that one). This document only covers account auth/self-service/admin
-management and the positions lookup — the rest of the panel (errors,
-requests, metrics, settings, route-policies, ...) is unchanged and documented
-in Swagger.
+management, the positions lookup, and RBAC permission/action/role management —
+the rest of the panel (errors, requests, metrics, settings, route-policies,
+...) is unchanged and documented in Swagger.
 
 Available in Swagger UI as its own group, **"Dev Panel"**
 (`/swagger-ui.html`, group dropdown → "Dev Panel").
@@ -28,6 +28,18 @@ Available in Swagger UI as its own group, **"Dev Panel"**
 | PATCH | `/v1/dev/dev-users/{id}/reset-password` | SUPER_ADMIN | Force-reset another account's password |
 | GET | `/v1/dev/ref/positions` | any | Paged list of positions/departments |
 | GET/POST/PUT/DELETE | `/v1/dev/ref/positions/{id}` | any / ADMIN+ / ADMIN+ / SUPER_ADMIN | Position lookup CRUD |
+| GET | `/v1/dev/permissions` | any | Paged list of RBAC permissions (subjects) |
+| GET/POST/PUT/DELETE | `/v1/dev/permissions/{id}` | any / ADMIN+ / ADMIN+ / SUPER_ADMIN | Permission CRUD (soft delete) |
+| PATCH | `/v1/dev/permissions/{id}/restore` | SUPER_ADMIN | Restore a soft-deleted permission |
+| GET | `/v1/dev/actions` | any | Paged list of RBAC actions |
+| GET/POST/PUT/DELETE | `/v1/dev/actions/{id}` | any / ADMIN+ / ADMIN+ / SUPER_ADMIN | Action CRUD (soft delete) |
+| PATCH | `/v1/dev/actions/{id}/restore` | SUPER_ADMIN | Restore a soft-deleted action |
+| GET | `/v1/dev/roles` | any | Paged list of RBAC roles |
+| GET/POST/PUT/DELETE | `/v1/dev/roles/{id}` | any / ADMIN+ / ADMIN+ / SUPER_ADMIN | Role CRUD (soft delete) |
+| PATCH | `/v1/dev/roles/{id}/restore` | SUPER_ADMIN | Restore a soft-deleted role |
+| GET | `/v1/dev/roles/{id}/permissions` | any | Permissions/actions assigned to a role |
+| PATCH/PUT | `/v1/dev/roles/{id}/permissions` | ADMIN+ | Add to / fully replace a role's permissions |
+| PATCH | `/v1/dev/roles/{id}/permissions/remove` | ADMIN+ | Remove permissions/actions from a role |
 
 ## CORS
 
@@ -143,11 +155,11 @@ create a second one.
 |---|:---:|:---:|:---:|
 | Read anything (lists/details) | ✓ | ✓ | ✓ |
 | Update own profile, change own password | ✓ | ✓ | ✓ |
-| Write (settings, route-policies, integration clients, positions, create dev-user) | – | ✓ | ✓ |
+| Write (settings, route-policies, integration clients, positions, permissions, actions, create dev-user) | – | ✓ | ✓ |
 | Resolve an error (`PATCH .../errors/{id}`) | – | ✓ | ✓ |
 | Retry a webhook dispatch (`POST .../webhook-dispatches/{id}/retry`) | – | ✓ | ✓ |
 | Revoke an integration client (`POST .../integration-clients/{id}/revoke`) | – | ✓ | ✓ |
-| Delete (settings, route-policies, positions) | – | – | ✓ |
+| Delete (settings, route-policies, positions), restore (settings, permissions, actions) | – | – | ✓ |
 | Block / unblock another account | – | – | ✓ |
 | Reset another account's password | – | – | ✓ |
 
@@ -262,6 +274,105 @@ any dev-user still has it assigned — reassign or clear those first.
 
 ---
 
+## Permissions (subjects) and actions
+
+`/v1/dev/permissions` and `/v1/dev/actions` are the dev-panel's own entry
+point into the same RBAC `Permission`/`Action` tables the main app's
+`/v1/permissions`/`/v1/actions` manage — they're the same rows, just reachable
+without an SSO `isemid_super_admin`/`isemid_admin` JWT (which a `/v1/dev/**`
+Basic-Auth account has no way to obtain). A "permission" here is really a
+**subject** — a module/resource name like `users` or `form058-sender` — that
+gets paired with one or more **actions** (`READ`, `CREATE`, `MANAGE`, or a
+custom code like `CARD_ATTACH`) when building a role's grants elsewhere in
+the app. Both follow the exact same request/response shape and role tiers as
+`positions` above (list/get: any; create/update: ADMIN+; delete/restore:
+SUPER_ADMIN), with one difference: **delete here is a soft delete**
+(`active: false`, `deleted: true`), not the hard delete positions use — so
+`restore` exists for these two but not for positions.
+
+```jsonc
+// GET /v1/dev/permissions -> PagedResponse<PermissionTableResponse>, data[0]:
+{ "id": 1, "subject": "users", "descriptionUz": "...", "descriptionRu": "Управление пользователями", "descriptionUzCyril": "...", "descriptionKaa": "...", "active": true }
+
+// GET /v1/dev/permissions/{id} -> ApiResponse<PermissionDetailResponse> — same fields plus `audit` (createdAt/updatedAt/etc.), no `active` in the detail shape
+
+// POST /v1/dev/permissions (ADMIN+)
+{ "subject": "users", "descriptionUz": "...", "descriptionRu": "...", "descriptionUzCyril": "...", "descriptionKaa": "...", "active": true }
+// PUT /v1/dev/permissions/{id} (ADMIN+) — same body shape as POST
+
+// GET /v1/dev/actions -> PagedResponse<ActionTableResponse>, data[0]:
+{ "id": 1, "code": "CARD_ATTACH", "descriptionUz": "...", "descriptionRu": "...", "descriptionUzCyril": "...", "descriptionKaa": "...", "active": true }
+
+// POST /v1/dev/actions (ADMIN+) — same shape as permissions, "code" instead of "subject"
+{ "code": "CARD_ATTACH", "descriptionUz": "...", "descriptionRu": "...", "descriptionUzCyril": "...", "descriptionKaa": "...", "active": true }
+```
+
+Both list endpoints take the same paging params as everywhere else
+(`page`, `size`, `sortBy`, `sortDir`) plus per-field filters — `subject` /
+`code` do a partial match, `active` an exact match. `sortBy` only accepts
+`id` or `subject` (permissions) / `id` or `code` (actions); anything else is
+ignored server-side rather than erroring.
+
+Unlike positions, `DELETE /v1/dev/permissions/{id}` (SUPER_ADMIN) is never
+blocked by other rows referencing it — it always succeeds and just flips
+`active: false, deleted: true`. The one delete-adjacent conflict is on
+*update*: `409 permission.update.deleted_conflict` if you `PUT` a row that's
+already soft-deleted — restore it first. `PATCH .../{id}/restore`
+(SUPER_ADMIN) clears `deleted`/`active` back. Same pair of endpoints and
+semantics for `actions` (`action.update.deleted_conflict`).
+
+---
+
+## Roles
+
+`/v1/dev/roles` is the dev-panel's own entry point into the same RBAC `Role`
+table the main app's `/v1/roles` manages — same rows, same tiers as
+`permissions`/`actions` above (list/get: any; create/update/permission
+changes: ADMIN+; delete/restore: SUPER_ADMIN), same soft-delete/restore
+pair. A role bundles a `name` (e.g. `isemid_epidemiologist`) with a set of
+**permission grants** — each grant pairs one permission (subject) with the
+subset of its actions the role is allowed to perform.
+
+```jsonc
+// GET /v1/dev/roles -> PagedResponse<RoleTableResponse>, data[0]:
+{ "id": 1, "name": "ROLE_ADMIN", "active": true, "descriptionUz": "...", "descriptionRu": "Роль администратора", "descriptionUzCyril": "...", "descriptionKaa": "..." }
+
+// GET /v1/dev/roles/{id} -> ApiResponse<RoleDetailResponse> — same fields plus `audit` and `permissions`:
+{
+  "id": 1, "name": "isemid_epidemiologist", "active": true,
+  "descriptionUz": "...", "descriptionRu": "...", "descriptionUzCyril": "...", "descriptionKaa": "...",
+  "audit": { "createdAt": "...", "updatedAt": "..." },
+  "permissions": [
+    { "id": 22, "subject": "DISEASE_PLACES", "description": "Места расположения больного",
+      "actions": [ { "id": 1, "code": "READ", "description": "..." } ] }
+  ]
+}
+
+// POST /v1/dev/roles (ADMIN+)
+{ "name": "ROLE_ADMIN", "descriptionUz": "...", "descriptionRu": "...", "descriptionUzCyril": "...", "descriptionKaa": "...", "active": true }
+// PUT /v1/dev/roles/{id} (ADMIN+) — same body shape as POST, `active` is required
+
+// GET /v1/dev/roles/{id}/permissions -> ApiResponse<List<RolePermissionResponse>> — same shape as the `permissions` array above
+
+// PATCH/PUT /v1/dev/roles/{id}/permissions (ADMIN+), PATCH /v1/dev/roles/{id}/permissions/remove (ADMIN+):
+{ "permissions": [ { "permissionId": 22, "actionIds": [1, 2] } ] }
+```
+
+`PATCH .../permissions` merges each listed permission's actions into what
+the role already has; `PUT .../permissions` replaces the role's whole
+permission set with exactly what's given; `PATCH .../permissions/remove`
+removes the listed actions from each permission, dropping the permission
+entirely once no actions remain on it. All three respond with the full
+`RoleDetailResponse`, so the frontend can re-render the role's permission
+list straight from the response instead of re-fetching.
+
+List filtering/sorting follows the same convention as `permissions`/`actions`
+(`name` does a partial match, `active` an exact match; `sortBy` accepts `id`,
+`name`, `descriptionUz`, `descriptionUzCyril`, `descriptionRu`, `descriptionKaa`
+— anything else is ignored server-side).
+
+---
+
 ## Organizations lookup
 
 `GET /v1/dev/ref/organizations` (any) — search/select organizations without
@@ -308,8 +419,8 @@ in code (it changes per-locale). The codes specific to this module:
 | HTTP | `code` | When |
 |---|---|---|
 | 403 | `DEV_USER_PASSWORD_CHANGE_REQUIRED` | Caller has `mustChangePassword: true` and hit anything besides `GET/PATCH .../me[/password]` |
-| 409 | `CONFLICT` | `dev-user.password.current.invalid` (wrong `currentPassword`), `dev-user.username.already-exists`, `dev-user.email.already-exists`, `dev-user.role.super-admin-not-creatable`, `dev-user.revoke.self-forbidden`, `dev-position.name.already-exists`, `dev-position.delete.in-use` — see `message` for which one |
-| 404 | `NOT_FOUND` | `dev-user.not-found` / `dev-position.not-found` — bad id |
+| 409 | `CONFLICT` | `dev-user.password.current.invalid` (wrong `currentPassword`), `dev-user.username.already-exists`, `dev-user.email.already-exists`, `dev-user.role.super-admin-not-creatable`, `dev-user.revoke.self-forbidden`, `dev-position.name.already-exists`, `dev-position.delete.in-use`, `permission.subject.already_exists`, `permission.update.deleted_conflict`, `action.code.already_exists`, `action.update.deleted_conflict`, `role.name.already_exists`, `role.update.deleted_conflict` — see `message` for which one |
+| 404 | `NOT_FOUND` | `dev-user.not-found` / `dev-position.not-found` / `permission.not_found_by_id` / `action.not_found_by_id` / `role.not_found` — bad id |
 
 `dev-user.password.change-required` is carved out with its own `code`
 (rather than the generic `FORBIDDEN` every other 403 in this app uses) so

@@ -348,6 +348,27 @@ public final class ApiPaths {
          * {@code DevIntegrationClientController}).
          */
         public static final String REF_ORGANIZATIONS = "/ref/organizations";
+
+        /**
+         * Dev-panel access to the same RBAC {@code Permission} ("subject"),
+         * {@code Action} and {@code Role} entities managed by {@link Permission} /
+         * {@link Action} / {@link Role} - reachable from the dev panel's own
+         * Basic-Auth chain since a dev-panel account has no SSO {@code isemid_}-role
+         * JWT to satisfy {@code @adminAccessGuard} with. See
+         * {@code DevPermissionController} / {@code DevActionController} /
+         * {@code DevRoleController}.
+         */
+        public static final String PERMISSIONS = "/permissions";
+        public static final String PERMISSION_BY_ID = "/permissions/{id}";
+        public static final String PERMISSION_RESTORE = "/permissions/{id}/restore";
+        public static final String ACTIONS = "/actions";
+        public static final String ACTION_BY_ID = "/actions/{id}";
+        public static final String ACTION_RESTORE = "/actions/{id}/restore";
+        public static final String ROLES = "/roles";
+        public static final String ROLE_BY_ID = "/roles/{id}";
+        public static final String ROLE_RESTORE = "/roles/{id}/restore";
+        public static final String ROLE_PERMISSIONS = "/roles/{id}/permissions";
+        public static final String ROLE_REMOVE_PERMISSIONS = "/roles/{id}/permissions/remove";
     }
 
     /**
