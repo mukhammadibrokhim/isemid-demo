@@ -17,7 +17,8 @@ public record IntegrationClientFilterRequest(
         @Max(value = 200, message = "{integration-client.filter.size.max}")
         Integer size,
 
-        @Schema(description = "Поле для сортировки.", example = "id")
+        @Schema(description = "Поле для сортировки.", example = "id",
+                allowableValues = {"id", "name", "clientId", "organizationId", "createdAt"})
         String sortBy,
 
         @Schema(description = "Направление сортировки.", example = "desc", allowableValues = {"asc", "desc"})

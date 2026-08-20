@@ -13,7 +13,8 @@ public record OutboundWebhookDispatchFilterRequest(
         @Schema(description = "Количество записей на странице.", example = "20")
         Integer size,
 
-        @Schema(description = "Поле для сортировки.", example = "id")
+        @Schema(description = "Поле для сортировки.", example = "id",
+                allowableValues = {"id", "status", "nextAttemptAt", "lastAttemptedAt", "createdAt"})
         String sortBy,
 
         @Schema(description = "Направление сортировки.", example = "desc", allowableValues = {"asc", "desc"})
