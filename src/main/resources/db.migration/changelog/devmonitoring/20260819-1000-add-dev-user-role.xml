@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Replaces the boolean "root" flag (20260804-1000-add-dev-user-root-flag.xml)
+        with a three-tier "role" (SUPER_ADMIN / ADMIN / USER), enforced via
+        @PreAuthorize across every /v1/dev/** controller: SUPER_ADMIN gets full
+        CRUD and can manage other DevUser accounts, ADMIN gets CRUD except
+        delete, USER is read-only. See DevUserRole, DevUserPrincipal.
+
+        Backfill: root = true -> SUPER_ADMIN (unchanged privilege - these
+        accounts could already manage other DevUser rows). root = false ->
+        ADMIN, not USER - before this migration EVERY authenticated dev-user
+        (root or not) had unrestricted write access to the whole panel, so
+        mapping to ADMIN (CRUD except delete) preserves close to their prior
+        access instead of silently locking them out to read-only. New accounts
+        provisioned after this migration default to USER (see
+        DevUserCommandService) - the read-only default only applies going
+        forward.
+    -->
+    <changeSet id="20260819-1000-01-add-dev-user-role" author="codex" runInTransaction="true">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="dev_user"/>
+            <not>
+                <columnExists tableName="dev_user" columnName="role"/>
+            </not>
+        </preConditions>
+
+        <!--
+            No DB-level default on purpose - the app (DevUserCommandService)
+            explicitly writes USER for every newly-provisioned account, and a
+            stray DEFAULT 'ADMIN' left on the column would silently contradict
+            that read-only-by-default policy for any insert that didn't go
+            through the app. Backfilled explicitly below instead.
+        -->
+        <addColumn tableName="dev_user">
+            <column name="role" type="VARCHAR(20)"/>
+        </addColumn>
+
+        <update tableName="dev_user">
+            <column name="role" value="SUPER_ADMIN"/>
+            <where>root = true</where>
+        </update>
+
+        <update tableName="dev_user">
+            <column name="role" value="ADMIN"/>
+            <where>root = false OR root IS NULL</where>
+        </update>
+
+        <addNotNullConstraint tableName="dev_user" columnName="role" columnDataType="VARCHAR(20)"/>
+    </changeSet>
+
+    <changeSet id="20260819-1000-02-drop-dev-user-root-flag" author="codex" runInTransaction="true">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="dev_user"/>
+            <columnExists tableName="dev_user" columnName="root"/>
+            <columnExists tableName="dev_user" columnName="role"/>
+        </preConditions>
+
+        <dropColumn tableName="dev_user" columnName="root"/>
+    </changeSet>
+
+</databaseChangeLog>

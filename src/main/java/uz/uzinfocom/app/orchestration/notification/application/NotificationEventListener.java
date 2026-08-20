@@ -18,7 +18,7 @@ import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.CardRout
 import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.FormRouting;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.export.domain.event.ExportJobCompletedEvent;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
 import uz.uzinfocom.app.orchestration.notification.domain.Notification;
 import uz.uzinfocom.app.orchestration.notification.domain.NotificationType;
 import uz.uzinfocom.app.orchestration.notification.repository.NotificationRepository;

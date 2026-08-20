@@ -6,9 +6,9 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViol
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ValidationException;
 import uz.uzinfocom.app.modules.form0581.application.validator.Form0581CreateValidator;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.List;

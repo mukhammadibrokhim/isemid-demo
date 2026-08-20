@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.security.core.GrantedAuthority;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
-import uz.uzinfocom.app.platform.iam.domain.Role;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.iam.domain.Role;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.RoleRepository;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
 
 import java.util.Collection;
 import java.util.Optional;

@@ -3,8 +3,8 @@ package uz.uzinfocom.app.modules.report.form31.application.query.mapper;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.report.form31.application.query.dto.Form31EntryTableResponse;
 import uz.uzinfocom.app.modules.report.form31.domain.Form31Entry;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationNameResolver;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
 
 /**

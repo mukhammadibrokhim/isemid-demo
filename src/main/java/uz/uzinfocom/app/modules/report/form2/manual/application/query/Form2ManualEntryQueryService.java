@@ -15,9 +15,9 @@ import uz.uzinfocom.app.modules.report.form2.manual.infrastructure.persistence.r
 import uz.uzinfocom.app.modules.report.form2.manual.infrastructure.persistence.specification.Form2ManualEntrySpecification;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRange;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRangeResolver;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationNameResolver;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;

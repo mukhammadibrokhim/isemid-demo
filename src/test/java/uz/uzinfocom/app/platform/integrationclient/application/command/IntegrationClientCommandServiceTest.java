@@ -5,7 +5,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
+import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
@@ -35,17 +35,17 @@ import static org.mockito.Mockito.when;
 class IntegrationClientCommandServiceTest {
 
     private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
-    private final OrganizationIdResolver organizationIdResolver = mock(OrganizationIdResolver.class);
+    private final OrganizationLookup organizationLookup = mock(OrganizationLookup.class);
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final WebhookSecretCipher webhookSecretCipher = mock(WebhookSecretCipher.class);
 
     private final IntegrationClientCommandService service = new IntegrationClientCommandService(
-            integrationClientRepository, organizationIdResolver, passwordEncoder, webhookSecretCipher);
+            integrationClientRepository, organizationLookup, passwordEncoder, webhookSecretCipher);
 
     @Test
     void createReturnsThePlaintextSecretOnlyOnceAndNeverPersistsIt() {
         UUID organizationUuid = UUID.randomUUID();
-        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -77,7 +77,7 @@ class IntegrationClientCommandServiceTest {
     @Test
     void createNormalizesAndPersistsAllowedIps() {
         UUID organizationUuid = UUID.randomUUID();
-        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -95,7 +95,7 @@ class IntegrationClientCommandServiceTest {
     @Test
     void createRejectsAMalformedAllowedIpEntry() {
         UUID organizationUuid = UUID.randomUUID();
-        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
 
         assertThatThrownBy(() -> service.create(new IntegrationClientCreateRequest(
                 "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed", organizationUuid,
@@ -106,7 +106,7 @@ class IntegrationClientCommandServiceTest {
     @Test
     void createIssuesAnApiKeyPrefixedByTheClientIdAndPersistsOnlyItsHash() {
         UUID organizationUuid = UUID.randomUUID();
-        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -133,7 +133,7 @@ class IntegrationClientCommandServiceTest {
     @Test
     void createIssuesABasicAuthSecretAndPersistsOnlyItsHash() {
         UUID organizationUuid = UUID.randomUUID();
-        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -159,7 +159,7 @@ class IntegrationClientCommandServiceTest {
     @Test
     void createAnIpAllowlistClientRequiresAllowedIpsAndIssuesNoSecret() {
         UUID organizationUuid = UUID.randomUUID();
-        when(organizationIdResolver.resolveActiveId(organizationUuid)).thenReturn(42L);
+        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
 
         assertThatThrownBy(() -> service.create(new IntegrationClientCreateRequest(
                 "Test Lab System", IntegrationAuthType.IP_ALLOWLIST, "dmed", organizationUuid,

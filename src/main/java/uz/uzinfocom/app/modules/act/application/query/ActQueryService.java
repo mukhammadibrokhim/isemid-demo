@@ -18,8 +18,8 @@ import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRep
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.specification.ActSpecification;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.specification.CardCaseScopeSpecification;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;

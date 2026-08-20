@@ -18,7 +18,7 @@ import uz.uzinfocom.app.modules.form0581.web.dto.response.CreateForm0581Response
 import uz.uzinfocom.app.modules.form0581.web.dto.response.UpdateForm0581Response;
 import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
 import uz.uzinfocom.app.modules.patient.web.mapper.UpdatePatientRequestMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 @Mapper(config = CentralMapperConfig.class,

@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.orchestration.dashboard.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
 
 @Schema(description = "Количество медицинских учреждений по медицинскому типу (medicalType), в рамках доступа текущей организации.")
 public record MedicalTypeCountResponse(

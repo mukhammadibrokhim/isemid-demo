@@ -11,4 +11,6 @@ public interface DevUserRepository extends JpaRepository<DevUser, Long>, JpaSpec
     Optional<DevUser> findByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    boolean existsByPositionId(Long positionId);
 }

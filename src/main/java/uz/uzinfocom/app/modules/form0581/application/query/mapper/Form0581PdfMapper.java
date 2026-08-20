@@ -26,9 +26,9 @@ import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
-import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserMiniResponse;
-import uz.uzinfocom.app.platform.iam.application.user.query.mapper.UserMapperHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.user.query.dto.UserMiniResponse;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 import uz.uzinfocom.app.modules.reference.application.lookup.mapper.ReferenceMappingHelper;
 
 import java.util.List;

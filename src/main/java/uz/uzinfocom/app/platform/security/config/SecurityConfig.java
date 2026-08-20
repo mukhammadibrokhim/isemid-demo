@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultHttpSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
-import uz.uzinfocom.app.platform.iam.application.sync.RoleSyncProperties;
+import uz.uzinfocom.app.modules.iam.application.sync.RoleSyncProperties;
 import uz.uzinfocom.app.platform.security.filter.IntegrationApiKeyAuthenticationFilter;
 import uz.uzinfocom.app.platform.security.filter.IntegrationBasicAuthenticationFilter;
 import uz.uzinfocom.app.platform.security.filter.IntegrationIpAllowlistAuthenticationFilter;

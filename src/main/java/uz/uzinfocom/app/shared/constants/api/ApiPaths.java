@@ -294,15 +294,60 @@ public final class ApiPaths {
         public static final String WEBHOOK_DISPATCH_RETRY = "/webhook-dispatches/{id}/retry";
 
         /**
-         * Dev-panel account management (list/create/revoke) - deliberately
-         * NOT under {@link Admin}: not even an SSO {@code isemid_super_admin}
-         * may manage these accounts. Gated to {@code ROLE_DEV_ROOT} (see
-         * {@code DevUserController}), a privilege only another root
-         * dev-user can grant.
+         * Dev-panel account management (list/create/update/revoke) -
+         * deliberately NOT under {@link Admin}: not even an SSO
+         * {@code isemid_super_admin} may manage these accounts. See
+         * {@code DevUserController} for the per-endpoint role gates.
          */
         public static final String DEV_USERS = "/dev-users";
         public static final String DEV_USER_BY_ID = "/dev-users/{id}";
         public static final String DEV_USER_REVOKE = "/dev-users/{id}/revoke";
+
+        /**
+         * The counterpart to {@link #DEV_USER_REVOKE} - re-enables a
+         * previously revoked account.
+         */
+        public static final String DEV_USER_UNBLOCK = "/dev-users/{id}/unblock";
+
+        /**
+         * Admin-initiated password reset for another account (SUPER_ADMIN
+         * only) - distinct from the self-service {@link #DEV_USER_ME_PASSWORD}.
+         */
+        public static final String DEV_USER_RESET_PASSWORD = "/dev-users/{id}/reset-password";
+
+        /**
+         * Self-service, for the calling account only - reachable regardless
+         * of role, and deliberately exempted from
+         * {@code DevPasswordChangeGuardFilter}'s must-change-password block
+         * (it's the one endpoint that lets an account escape that block).
+         */
+        public static final String DEV_USER_ME = "/dev-users/me";
+        public static final String DEV_USER_ME_PASSWORD = "/dev-users/me/password";
+
+        /**
+         * Dev-panel-only lookups ("spravochnik") - separate from the org-facing,
+         * multi-language {@link Reference} dictionaries. Positions/departments
+         * ({@code DevPosition}), assignable to a {@code DevUser}'s profile (see
+         * {@code DevPositionController}).
+         */
+        public static final String REF_POSITIONS = "/ref/positions";
+        public static final String REF_POSITION_BY_ID = "/ref/positions/{id}";
+
+        /**
+         * Read-only organization lookup by id/uuid/name search, reusing
+         * {@code OrganizationQueryService.lookup()} - the same data as
+         * {@link Organization#LOOKUP}, but reachable from the dev panel's own
+         * Basic-Auth chain. Exists because {@code /v1/dev/**} is a fully
+         * separate {@code SecurityFilterChain} from the SSO/DHP bearer-token
+         * chain the main {@link Organization} endpoints sit on (see
+         * {@code DevPanelSecurityConfig}) - a dev-panel account has no business
+         * session token to call {@link Organization#LOOKUP} with, so without
+         * this the panel could only ever refer to an organization by a
+         * hand-typed uuid, never show or search by its name (e.g. when
+         * registering an {@code IntegrationClient}, see
+         * {@code DevIntegrationClientController}).
+         */
+        public static final String REF_ORGANIZATIONS = "/ref/organizations";
     }
 
     /**

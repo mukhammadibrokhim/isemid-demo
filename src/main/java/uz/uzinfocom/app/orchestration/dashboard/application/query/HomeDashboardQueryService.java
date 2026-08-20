@@ -11,9 +11,9 @@ import uz.uzinfocom.app.orchestration.dashboard.application.query.dto.MedicalIns
 import uz.uzinfocom.app.orchestration.dashboard.application.query.dto.MedicalTypeCountResponse;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.dto.RoleCountResponse;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.dto.UsersResponse;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.iam.repository.UserStatsRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.repository.UserStatsRepository;
 import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;

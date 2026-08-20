@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.platform.settings.application.query.dto.SystemSettingFilterRequest;
 import uz.uzinfocom.app.platform.settings.application.query.dto.SystemSettingResponse;
 import uz.uzinfocom.app.platform.settings.application.query.dto.SystemSettingTableResponse;

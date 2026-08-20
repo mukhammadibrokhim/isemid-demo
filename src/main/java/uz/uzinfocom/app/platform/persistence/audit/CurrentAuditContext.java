@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.platform.persistence.audit;
 
 import lombok.Setter;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 
 public final class CurrentAuditContext {
 

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import uz.uzinfocom.app.platform.devpanel.domain.DevUser;
+import uz.uzinfocom.app.platform.devpanel.domain.DevUserRole;
 import uz.uzinfocom.app.platform.devpanel.repository.DevUserRepository;
 
 import java.util.Optional;
@@ -36,16 +37,33 @@ class DevUserDetailsServiceTest {
         assertThat(((DevUserPrincipal) userDetails).getDevUserId()).isEqualTo(7L);
         assertThat(userDetails.getAuthorities())
                 .extracting(Object::toString)
-                .containsExactly("ROLE_DEV_MONITORING");
+                .containsExactlyInAnyOrder("ROLE_DEV_MONITORING", "ROLE_DEV_USER");
     }
 
     @Test
-    void grantsRoleDevRootOnlyToARootAccount() {
+    void grantsRoleDevAdminToAnAdminAccount() {
+        DevUser devUser = DevUser.builder()
+                .username("dev-admin-user")
+                .passwordHash("hash")
+                .enabled(true)
+                .role(DevUserRole.ADMIN)
+                .build();
+        when(devUserRepository.findByUsername("dev-admin-user")).thenReturn(Optional.of(devUser));
+
+        UserDetails userDetails = service.loadUserByUsername("dev-admin-user");
+
+        assertThat(userDetails.getAuthorities())
+                .extracting(Object::toString)
+                .containsExactlyInAnyOrder("ROLE_DEV_MONITORING", "ROLE_DEV_USER", "ROLE_DEV_ADMIN");
+    }
+
+    @Test
+    void grantsRoleDevSuperAdminOnlyToASuperAdminAccount() {
         DevUser devUser = DevUser.builder()
                 .username("dev-root")
                 .passwordHash("hash")
                 .enabled(true)
-                .root(true)
+                .role(DevUserRole.SUPER_ADMIN)
                 .build();
         when(devUserRepository.findByUsername("dev-root")).thenReturn(Optional.of(devUser));
 
@@ -53,7 +71,9 @@ class DevUserDetailsServiceTest {
 
         assertThat(userDetails.getAuthorities())
                 .extracting(Object::toString)
-                .containsExactlyInAnyOrder("ROLE_DEV_MONITORING", "ROLE_DEV_ROOT");
+                .containsExactlyInAnyOrder(
+                        "ROLE_DEV_MONITORING", "ROLE_DEV_USER", "ROLE_DEV_ADMIN", "ROLE_DEV_SUPER_ADMIN"
+                );
     }
 
     @Test

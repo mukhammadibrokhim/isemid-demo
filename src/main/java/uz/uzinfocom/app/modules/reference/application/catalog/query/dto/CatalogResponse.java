@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.modules.reference.application.catalog.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 @Schema(description = "Детальный ответ по элементу каталога.")
 public record CatalogResponse(

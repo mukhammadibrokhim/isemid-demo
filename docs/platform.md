@@ -72,9 +72,7 @@ historical bug worth remembering: `"uz-Cyril"` is **not** a valid BCP-47 tag
 `cache` (Caffeine-backed `@Cacheable` setup — see
 `SecurityUserCacheService`/`SelectedOrganizationSecurityCacheService` for
 usage examples), `exception` (global exception handling —
-`Api2ExceptionHandler` and friends), `http`, `iam` (`User`, `Organization`
-domain — the one package here allowed a narrow read from `modules.reference`
-for display-name lookups, see `PlatformModuleBoundaryTest`), `ssoproxy`
+`Api2ExceptionHandler` and friends), `http`, `ssoproxy`
 (login-proxy, formerly `auth` — renamed to stop colliding with
 `security.auth` in search), `mapping` (shared MapStruct config),
 `persistence` (`AbsEntity`, `BaseEntity`, `AuditableEntity`,

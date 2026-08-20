@@ -25,7 +25,7 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 @Tag(
-        name = "Dev Monitoring - Requests",
+        name = "Dev Panel - Requests",
         description = "Full per-request resource-usage log (every request, not just failures) captured by "
                 + "RequestLoggingFilter, for the internal developer monitoring panel. Use the list endpoint "
                 + "(filterable by principal/username) to see which resources a user accessed, and the "

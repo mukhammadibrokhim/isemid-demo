@@ -19,7 +19,7 @@ public final class SystemSettingSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.equal(root.get("deleted"), false));
+            predicates.add(cb.equal(root.get("deleted"), request.deleted() != null ? request.deleted() : false));
 
             if (StringUtils.hasText(request.search())) {
                 String search = "%" + request.search().trim().toLowerCase(Locale.ROOT) + "%";

@@ -8,7 +8,7 @@ import uz.uzinfocom.app.modules.act.application.query.dto.ActDailyCountResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActStatsRepository;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;

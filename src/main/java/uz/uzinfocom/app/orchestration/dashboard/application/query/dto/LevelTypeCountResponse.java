@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.orchestration.dashboard.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
 
 @Schema(description = "Количество медицинских учреждений по уровню организации (levelType), в рамках доступа текущей организации.")
 public record LevelTypeCountResponse(

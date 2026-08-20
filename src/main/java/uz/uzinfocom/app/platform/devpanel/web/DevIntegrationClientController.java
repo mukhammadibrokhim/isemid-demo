@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,12 +40,14 @@ import java.util.List;
 /**
  * Dev-panel mirror of {@code IntegrationClientController} - same command/query
  * services and the same DB table, reached via the {@code DevUser} Basic-Auth
- * chain instead of an SSO admin token. No {@code @PreAuthorize} needed: the
- * whole {@code /v1/dev/**} chain already requires authentication
- * (see {@code DevPanelSecurityConfig}).
+ * chain instead of an SSO admin token. Reads are open to any authenticated
+ * dev-panel account (see {@code DevPanelSecurityConfig}); writes require
+ * {@code ROLE_DEV_ADMIN} - there is no true delete here (revoke is reversible
+ * via {@code PUT .../{id}} with {@code active=true}), so nothing is restricted
+ * to {@code ROLE_DEV_SUPER_ADMIN}.
  */
 @Tag(
-        name = "Dev Monitoring - Integration Clients",
+        name = "Dev Panel - Integration Clients",
         description = "Registration and management of integration clients — same table as "
                 + "/v1/admin/integration-clients — reachable from the developer monitoring panel."
 )
@@ -110,6 +113,7 @@ public class DevIntegrationClientController {
                     + "clientSecret возвращается в ответе только один раз — сохраните его сейчас."
     )
     @PostMapping(ApiPaths.Dev.INTEGRATION_CLIENTS)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<IntegrationClientCreateResponse> create(
             @Valid @RequestBody IntegrationClientCreateRequest request
     ) {
@@ -127,6 +131,7 @@ public class DevIntegrationClientController {
                     + "снова включить клиента, выставив active=true."
     )
     @PutMapping(ApiPaths.Dev.INTEGRATION_CLIENT_BY_ID)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<Void> update(
             @Parameter(description = "Внутренний идентификатор клиента.", required = true)
             @PathVariable @Positive Long id,
@@ -144,6 +149,7 @@ public class DevIntegrationClientController {
                     + "этот эндпоинт — чтобы снова включить клиента, используйте PUT .../{id} с active=true."
     )
     @PostMapping(ApiPaths.Dev.INTEGRATION_CLIENT_REVOKE)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<Void> revoke(
             @Parameter(description = "Внутренний идентификатор клиента.", required = true)
             @PathVariable @Positive Long id
@@ -158,6 +164,7 @@ public class DevIntegrationClientController {
                     + "клиенту. Пустой список или null снимает ограничение."
     )
     @PutMapping(ApiPaths.Dev.INTEGRATION_CLIENT_ALLOWED_IPS)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<Void> updateAllowedIps(
             @Parameter(description = "Внутренний идентификатор клиента.", required = true)
             @PathVariable @Positive Long id,
@@ -174,6 +181,7 @@ public class DevIntegrationClientController {
                     + "должен быть HTTPS; секрет возвращается только признаком наличия, никогда — значением."
     )
     @PutMapping(ApiPaths.Dev.INTEGRATION_CLIENT_WEBHOOK)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<Void> updateWebhook(
             @Parameter(description = "Внутренний идентификатор клиента.", required = true)
             @PathVariable @Positive Long id,

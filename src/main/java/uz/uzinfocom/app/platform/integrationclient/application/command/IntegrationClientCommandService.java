@@ -6,8 +6,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
 import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
+import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
@@ -41,13 +41,13 @@ public class IntegrationClientCommandService {
     private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private final IntegrationClientRepository integrationClientRepository;
-    private final OrganizationIdResolver organizationIdResolver;
+    private final OrganizationLookup organizationLookup;
     private final PasswordEncoder passwordEncoder;
     private final WebhookSecretCipher webhookSecretCipher;
 
     @Transactional
     public IntegrationClientCreateResponse create(IntegrationClientCreateRequest request) {
-        Long organizationId = organizationIdResolver.resolveActiveId(request.organizationId());
+        Long organizationId = organizationLookup.resolveActiveId(request.organizationId());
 
         String sourceKey = request.sourceKey().trim().toLowerCase(Locale.ROOT);
         if (integrationClientRepository.existsBySourceKey(sourceKey)) {

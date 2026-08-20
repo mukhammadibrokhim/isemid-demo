@@ -7,8 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
+import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientFilterRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientSourceKeyLookupRequest;
@@ -27,7 +27,7 @@ import java.util.List;
 public class IntegrationClientQueryService {
 
     private final IntegrationClientRepository integrationClientRepository;
-    private final OrganizationMappingHelper organizationMappingHelper;
+    private final OrganizationLookup organizationLookup;
     private final AuditResolver auditResolver;
 
     @Transactional(readOnly = true)
@@ -64,7 +64,7 @@ public class IntegrationClientQueryService {
                 client.getAuthType(),
                 client.getSourceKey(),
                 client.getOrganizationId(),
-                organizationMappingHelper.activeOrganizationNameById(client.getOrganizationId()),
+                organizationLookup.activeOrganizationNameById(client.getOrganizationId()),
                 client.isActive(),
                 client.getLastUsedAt()
         );
@@ -78,7 +78,7 @@ public class IntegrationClientQueryService {
                 client.getAuthType(),
                 client.getSourceKey(),
                 client.getOrganizationId(),
-                organizationMappingHelper.activeOrganizationNameById(client.getOrganizationId()),
+                organizationLookup.activeOrganizationNameById(client.getOrganizationId()),
                 List.of(client.getScopes().split(",")),
                 client.isActive(),
                 StringUtils.hasText(client.getAllowedIps()) ? List.of(client.getAllowedIps().split(",")) : List.of(),

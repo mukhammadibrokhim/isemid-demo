@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationIdResolver;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationIdResolver;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationNameResolver;
 
 /**
  * Resolves an affiliation's display name from the organization registry

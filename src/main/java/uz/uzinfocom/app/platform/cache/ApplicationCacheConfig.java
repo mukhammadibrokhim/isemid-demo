@@ -8,8 +8,8 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uz.uzinfocom.app.platform.iam.application.shared.cache.AuditCacheConfig;
-import uz.uzinfocom.app.platform.iam.application.shared.cache.OrganizationCacheConfig;
+import uz.uzinfocom.app.modules.iam.application.shared.cache.AuditCacheConfig;
+import uz.uzinfocom.app.modules.iam.application.shared.cache.OrganizationCacheConfig;
 import uz.uzinfocom.app.modules.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.settings.config.SettingsCacheConfig;
 

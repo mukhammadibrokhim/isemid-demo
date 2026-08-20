@@ -41,7 +41,7 @@ module's "legacy fixes" notes in [`docs/`](docs) for specifics.
 |---|---|---|
 | Language | Java | 21 |
 | Framework | Spring Boot | 4.0.6 |
-| Modularity | Spring Modulith | 2.0.6 |
+| Modularity | Hand-rolled `platform`/`modules`/`orchestration` layering, enforced by ArchUnit (no Spring Modulith dependency) | — |
 | Persistence | Spring Data JPA / Hibernate ORM | Spring Boot managed |
 | Database | PostgreSQL | runtime |
 | Schema management | Liquibase (`spring-boot-starter-liquibase`, XML changelogs, `<includeAll>`) | — |
@@ -73,7 +73,7 @@ modules/<name>/
 
 Shared, cross-cutting code lives under `platform/*` (security, ssoproxy
 login-proxy, observability, caching, audit, export, settings, i18n,
-persistence base classes, IAM) and `shared/*` (API path constants, common
+persistence base classes) and `shared/*` (API path constants, common
 DTOs, pagination, validation). Code that legitimately needs to read across
 module boundaries — not infrastructure, but not a business capability of
 its own either — lives under `orchestration/*` (dashboard, notification,
@@ -82,14 +82,20 @@ external systems (API2, LIS) and the inbound API surface for external
 systems submitting data into ISEMID.
 
 `platform` must never depend on `modules` — enforced at test time by
-ArchUnit (`PlatformModuleBoundaryTest`), with one narrow, deliberate
-exception: `modules.reference` is a dependency-free, business-logic-free
-reference-data lookup module (the same shape as `platform.iam` itself),
-so `platform.iam`'s organization-table mapper is allowed to resolve
-region/district display names through it. `CardModuleBoundaryTest` and
-`EntityNameUniquenessTest` enforce two further rules (no dependency on the
-legacy `uz.uzinfocom.isemid` codebase; no Hibernate entity-name
-collisions) — all three fail the build instead of surfacing at runtime.
+ArchUnit (`PlatformModuleBoundaryTest`), with two narrow, deliberate
+exceptions: `modules.reference` is a dependency-free, business-logic-free
+reference-data lookup module, and `modules.iam` is a dependency-free
+`User`/`Organization`/`Role`/`Permission`/`Action` domain — the same shape
+as `modules.reference` itself, just organized under `modules` for its own
+CRUD/domain layering rather than being a business capability `platform`
+should be walled off from. Many `platform` packages (security, persistence,
+cache, settings, integrationclient, audit, export) legitimately read
+`modules.iam`, and `modules.iam`'s organization-table mapper is allowed to
+resolve region/district display names through `modules.reference`.
+`CardModuleBoundaryTest` and `EntityNameUniquenessTest` enforce two further
+rules (no dependency on the legacy `uz.uzinfocom.isemid` codebase; no
+Hibernate entity-name collisions) — all three fail the build instead of
+surfacing at runtime.
 
 ## Modules
 
@@ -101,7 +107,8 @@ collisions) — all three fail the build instead of surfacing at runtime.
 | `patient` | Patient/person record (demographics, national ID, addresses, workplace/school affiliation), created as a side effect of registering a `form058`. No REST surface of its own. | — | [docs/patient-module.md](docs/patient-module.md) |
 | `act` | Lab/procedure order attached to a card, integrated with the external LIS (Laboratory Information System). Deliberately a minimal placeholder — the legacy system's 6 act subtypes are out of scope for this build. | `/v1/acts` | [docs/act-module.md](docs/act-module.md) |
 | `report` | Cross-form, organization-hierarchy statistical reports (Forms 1, 2, 3-1, 3-2, 4, 6) built on `form058`/`form0581` data plus hand-entered counts that have no other source of truth. Every drill-down report shares one hierarchy pattern (republic → region → district → organization, one level per call) via `report.shared.ReportHierarchyService`. | `/v1/reports/**` | — |
-| `reference` | Reference data: countries, regions, districts, neighborhoods, ICD-10 codes, generic catalogs. Dependency-free — every other module (and, narrowly, `platform.iam`) may read from it, it reads from nothing. | `/v1/references` | — |
+| `iam` | `User`, `Organization`, `Role`, `Permission`, `Action` domain and admin CRUD, synced against the upstream SSO/DHP identity provider. | `/v1/users`, `/v1/organizations`, `/v1/roles`, `/v1/permissions`, `/v1/actions` | — |
+| `reference` | Reference data: countries, regions, districts, neighborhoods, ICD-10 codes, generic catalogs. Dependency-free — every other module (and, narrowly, `modules.iam`) may read from it, it reads from nothing. | `/v1/references` | — |
 
 ## Platform capabilities
 
@@ -113,7 +120,6 @@ Architecture above):
 |---|---|
 | `security` | Inbound JWT validation (OAuth2 resource server, multi-provider), organization-scope resolution, dynamic runtime-editable route-access policies. |
 | `ssoproxy` | Login-proxy: exchanges an authorization code (PKCE) or refresh token for an access token by calling an external SSO/DHP provider on the caller's behalf — user credentials never reach this backend. |
-| `iam` | `User`, `Organization`, `Role`, `Permission`, `Action` domain and admin CRUD, synced against the upstream SSO/DHP identity provider. |
 | `audit` | Read-only audit trail of business events (creation, status change, reassignment) across `form058`/`form0581`/`card`/`act`. |
 | `export` | Generic background Excel export (streaming SXSSF) shared by every exportable module — submission stays per-module, "my files"/progress/download is one shared surface with SSE progress. |
 | `settings` | Runtime-editable system settings and route-access policies (HTTP client tuning, circuit-breaker thresholds, webhook backoff, ...) — no redeploy needed to change them. |
@@ -136,7 +142,7 @@ proper should never do:
 | `notification` | In-app notifications (form received/acknowledged/canceled, card/act assigned, LIS response, export ready), fanned out in-process from the same domain events the audit trail consumes — list, unread badge, mark-read, SSE stream. |
 | `webhook` | Outbound status-change webhooks to registered integration clients, with retry/backoff scheduling and dispatch-history visibility. |
 | `dashboard` | Single-organization summary widgets aggregating across `act`/`card`/`form058`/`form0581` (as opposed to `report`'s drill-down tables). |
-| `scope` | Organization/region scope resolution, including form-visibility scope derived from `patient` affiliations. |
+| `scope` | Organization/region scope resolution, including form-visibility scope derived from `patient` affiliations. Reads `modules.patient` (affiliation types, patient identifiers) directly — the same cross-module-read pattern this section describes, not a cycle: `patient` has no dependency back on `scope` or on the modules that call it. |
 
 ## Integrations
 

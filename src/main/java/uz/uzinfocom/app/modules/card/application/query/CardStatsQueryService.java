@@ -9,7 +9,7 @@ import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountRespon
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTypeCountResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardStatsRepository;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;

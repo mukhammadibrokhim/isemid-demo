@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,11 +31,12 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
  * webhook queue - dispatch status, failure history, manual retry. No
  * admin-facing equivalent: unlike {@code IntegrationClientController}, this
  * is purely operational, not something an org admin configures, so it exists
- * only under {@code /v1/dev/**} (see {@code DevPanelSecurityConfig} - no
- * {@code @PreAuthorize} needed, same as {@code DevIntegrationClientController}).
+ * only under {@code /v1/dev/**} (see {@code DevPanelSecurityConfig}). Reads
+ * are open to any authenticated dev-panel account; the retry action requires
+ * {@code ROLE_DEV_ADMIN}.
  */
 @Tag(
-        name = "Dev Monitoring - Outbound Webhook Dispatches",
+        name = "Dev Panel - Outbound Webhook Dispatches",
         description = "Статус доставки исходящих status-change webhook-уведомлений интеграционным клиентам, "
                 + "история попыток и ручной повтор."
 )
@@ -82,6 +84,7 @@ public class DevOutboundWebhookDispatchController {
                     + "попытки или уже была исчерпана (EXHAUSTED)."
     )
     @PostMapping(ApiPaths.Dev.WEBHOOK_DISPATCH_RETRY)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<Void> retryNow(
             @Parameter(description = "Внутренний идентификатор задачи.", required = true)
             @PathVariable @Positive Long id

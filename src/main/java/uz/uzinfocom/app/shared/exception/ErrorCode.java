@@ -28,6 +28,13 @@ public enum ErrorCode {
     UPSTREAM_ERROR("UPSTREAM_ERROR", HttpStatus.BAD_GATEWAY, "error.upstream"),
     UPSTREAM_TIMEOUT("UPSTREAM_TIMEOUT", HttpStatus.GATEWAY_TIMEOUT, "error.upstream_timeout"),
 
+    // Distinct from FORBIDDEN so a dev-panel frontend can reliably detect
+    // "must change password" from the `code` field alone, without matching
+    // on the localized `message` text - see DevPasswordChangeGuardFilter.
+    DEV_USER_PASSWORD_CHANGE_REQUIRED(
+            "DEV_USER_PASSWORD_CHANGE_REQUIRED", HttpStatus.FORBIDDEN, "dev-user.password.change-required"
+    ),
+
     BAD_REQUEST("BAD_REQUEST", HttpStatus.BAD_REQUEST, "error.bad_request"),
     REQUEST_BODY_MISSING("REQUEST_BODY_MISSING", HttpStatus.BAD_REQUEST, "error.request_body_missing"),
     MALFORMED_JSON("MALFORMED_JSON", HttpStatus.BAD_REQUEST, "error.malformed_json");

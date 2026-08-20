@@ -10,7 +10,7 @@ import uz.uzinfocom.app.modules.act.domain.model.act154.Act154;
 import uz.uzinfocom.app.modules.act.domain.model.act154.Act154Detail;
 import uz.uzinfocom.app.modules.act.mapper.act154.Act154Mapper;
 import uz.uzinfocom.app.modules.act.web.dto.request.Act154Request;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 
 @Component

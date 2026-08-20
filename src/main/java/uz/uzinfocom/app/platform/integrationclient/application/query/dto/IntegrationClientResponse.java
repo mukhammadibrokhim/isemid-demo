@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.platform.integrationclient.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationAuthType;
 
 import java.time.Instant;

@@ -11,8 +11,8 @@ import uz.uzinfocom.app.modules.report.form2.manual.application.query.dto.Form2M
 import uz.uzinfocom.app.modules.report.form2.manual.application.query.mapper.Form2ManualEntryMapper;
 import uz.uzinfocom.app.modules.report.form2.manual.domain.Form2ManualEntry;
 import uz.uzinfocom.app.modules.report.form2.manual.infrastructure.persistence.repository.Form2ManualEntryRepository;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;

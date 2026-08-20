@@ -6,7 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.app.modules.act.application.query.ActFilterRequest;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
-import uz.uzinfocom.app.platform.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.domain.User;
 
 import java.util.ArrayList;
 import java.util.List;

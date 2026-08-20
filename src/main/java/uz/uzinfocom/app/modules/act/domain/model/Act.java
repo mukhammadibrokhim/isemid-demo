@@ -27,7 +27,7 @@ import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldReflector;
 import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
-import uz.uzinfocom.app.platform.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.domain.User;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.util.HashSet;

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -29,7 +30,7 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 @Tag(
-        name = "Dev Monitoring - Errors",
+        name = "Dev Panel - Errors",
         description = "Failed-request (status >= 400) history captured by RequestLoggingFilter, "
                 + "queryable and resolvable for the internal developer monitoring panel. Use the list "
                 + "endpoint for the table/summary view, and the by-id endpoint for the full detail of a "
@@ -65,6 +66,7 @@ public class DevErrorController {
     }
 
     @PatchMapping(ApiPaths.Dev.ERROR_BY_ID)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<Void> updateStatus(
             @Parameter(description = "Internal id of the failed-request log entry.", required = true)
             @PathVariable @Positive Long id,

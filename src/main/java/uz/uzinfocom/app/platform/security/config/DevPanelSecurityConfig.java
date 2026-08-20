@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import uz.uzinfocom.app.platform.devpanel.security.CachingDevAuthenticationProvider;
+import uz.uzinfocom.app.platform.devpanel.security.DevPasswordChangeGuardFilter;
 import uz.uzinfocom.app.platform.devpanel.security.DevUserDetailsService;
 import uz.uzinfocom.app.platform.security.filter.PrincipalCaptureFilter;
 import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
@@ -40,6 +41,7 @@ public class DevPanelSecurityConfig {
     private final JsonAuthenticationEntryPoint authenticationEntryPoint;
     private final JsonAccessDeniedHandler accessDeniedHandler;
     private final PrincipalCaptureFilter principalCaptureFilter;
+    private final DevPasswordChangeGuardFilter devPasswordChangeGuardFilter;
 
     /**
      * Kept separate from {@code SecurityConfig.integrationClientPasswordEncoder} -
@@ -74,7 +76,8 @@ public class DevPanelSecurityConfig {
                 .authenticationProvider(cachingDevAuthenticationProvider)
                 .exceptionHandling(exceptions -> exceptions.accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-                .addFilterBefore(principalCaptureFilter, AuthorizationFilter.class);
+                .addFilterBefore(principalCaptureFilter, AuthorizationFilter.class)
+                .addFilterAfter(devPasswordChangeGuardFilter, AuthorizationFilter.class);
 
         return http.build();
     }

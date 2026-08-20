@@ -49,7 +49,7 @@ import uz.uzinfocom.app.modules.act.domain.model.embedded.SampleTypeInfo;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapperHelper;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.util.List;
 

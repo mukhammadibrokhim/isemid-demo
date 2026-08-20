@@ -27,7 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Tag(
-        name = "Dev Monitoring - Files",
+        name = "Dev Panel - Files",
         description = "Read-only browsing and download of the app's docs/ folder and its log directory "
                 + "(including the rotated .log.gz archives under logs/archive), for the internal developer "
                 + "monitoring panel."

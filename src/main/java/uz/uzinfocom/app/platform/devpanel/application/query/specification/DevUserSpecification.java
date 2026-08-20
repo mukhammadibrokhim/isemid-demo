@@ -26,8 +26,12 @@ public final class DevUserSpecification {
                 predicates.add(cb.equal(root.get("enabled"), request.enabled()));
             }
 
-            if (request.root() != null) {
-                predicates.add(cb.equal(root.get("root"), request.root()));
+            if (request.role() != null) {
+                predicates.add(cb.equal(root.get("role"), request.role()));
+            }
+
+            if (request.positionId() != null) {
+                predicates.add(cb.equal(root.get("position").get("id"), request.positionId()));
             }
 
             return cb.and(predicates.toArray(Predicate[]::new));

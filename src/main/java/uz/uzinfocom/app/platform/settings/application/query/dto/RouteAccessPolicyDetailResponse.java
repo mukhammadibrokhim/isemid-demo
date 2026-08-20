@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.platform.settings.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 @Schema(description = "Детальный ответ по политике доступа к маршруту.")
 public record RouteAccessPolicyDetailResponse(

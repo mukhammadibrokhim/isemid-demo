@@ -11,8 +11,8 @@ import uz.uzinfocom.app.modules.report.form31.application.query.mapper.Form31Ent
 import uz.uzinfocom.app.modules.report.form31.domain.Form31Entry;
 import uz.uzinfocom.app.modules.report.form31.infrastructure.persistence.repository.Form31EntryRepository;
 import uz.uzinfocom.app.modules.report.form31.infrastructure.persistence.specification.Form31EntrySpecification;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;

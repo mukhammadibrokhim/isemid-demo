@@ -30,18 +30,26 @@ public class DevUserQueryService {
 
     @Transactional(readOnly = true)
     public DevUserDetailResponse getById(Long id) {
-        DevUser devUser = devUserRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("dev-user.not-found", id));
-
-        return toDetailResponse(devUser);
+        return toDetailResponse(findEntity(id));
     }
 
-    private static DevUserDetailResponse toDetailResponse(DevUser devUser) {
+    public DevUser findEntity(Long id) {
+        return devUserRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("dev-user.not-found", id));
+    }
+
+    public static DevUserDetailResponse toDetailResponse(DevUser devUser) {
         return new DevUserDetailResponse(
                 devUser.getId(),
                 devUser.getUsername(),
                 devUser.isEnabled(),
-                devUser.isRoot(),
+                devUser.getRole(),
+                devUser.isMustChangePassword(),
+                devUser.getEmail(),
+                devUser.getFullName(),
+                devUser.getPhone(),
+                devUser.getPosition() != null ? devUser.getPosition().getId() : null,
+                devUser.getPosition() != null ? devUser.getPosition().getName() : null,
                 devUser.getCreatedAt(),
                 devUser.getUpdatedAt()
         );

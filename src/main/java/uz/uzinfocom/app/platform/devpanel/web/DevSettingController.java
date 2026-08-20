@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -27,13 +28,14 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 /**
  * Dev-panel mirror of {@code SystemSettingController} - same command/query
  * services and the same {@code system_settings} table, reached via the
- * {@code DevUser} Basic-Auth chain instead of an SSO admin token. No
- * {@code @PreAuthorize} needed: the whole {@code /v1/dev/**} chain already
- * requires authentication (see {@code DevPanelSecurityConfig}). A value
- * written from either surface is visible on the other immediately.
+ * {@code DevUser} Basic-Auth chain instead of an SSO admin token (see
+ * {@code DevPanelSecurityConfig}). A value written from either surface is
+ * visible on the other immediately. Reads are open to any authenticated
+ * dev-panel account; create/update/restore require {@code ROLE_DEV_ADMIN}
+ * and delete requires {@code ROLE_DEV_SUPER_ADMIN}.
  */
 @Tag(
-        name = "Dev Monitoring - Settings",
+        name = "Dev Panel - Settings",
         description = "Runtime system-settings configuration (key/value store) reachable from the developer "
                 + "monitoring panel - same table as /v1/admin/settings."
 )
@@ -58,6 +60,7 @@ public class DevSettingController {
     }
 
     @PostMapping(ApiPaths.Dev.SETTINGS)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<SystemSettingResponse> create(@Valid @RequestBody SystemSettingCreateRequest request) {
         return ApiResponse.success(messageResolver.resolve("common.created"), systemSettingCommandService.create(request));
     }
@@ -71,6 +74,7 @@ public class DevSettingController {
     }
 
     @PutMapping(ApiPaths.Dev.SETTINGS_BY_ID)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<SystemSettingResponse> update(
             @Parameter(description = "Internal id of the setting.", required = true)
             @PathVariable @Positive Long id,
@@ -80,6 +84,7 @@ public class DevSettingController {
     }
 
     @DeleteMapping(ApiPaths.Dev.SETTINGS_BY_ID)
+    @PreAuthorize("hasRole('DEV_SUPER_ADMIN')")
     public ApiResponse<Void> delete(
             @Parameter(description = "Internal id of the setting.", required = true)
             @PathVariable @Positive Long id
@@ -89,6 +94,7 @@ public class DevSettingController {
     }
 
     @PatchMapping(ApiPaths.Dev.SETTINGS_RESTORE)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<Void> restore(
             @Parameter(description = "Internal id of the setting.", required = true)
             @PathVariable @Positive Long id

@@ -12,7 +12,7 @@ import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Sou
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581StatsRepository;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581Direction;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;

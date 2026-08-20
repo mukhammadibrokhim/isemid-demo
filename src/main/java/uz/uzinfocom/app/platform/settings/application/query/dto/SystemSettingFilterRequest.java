@@ -40,6 +40,13 @@ public record SystemSettingFilterRequest(
         SystemSettingValueType valueType,
 
         @Schema(description = "Фильтр по признаку активности.", example = "true")
-        Boolean active
+        Boolean active,
+
+        @Schema(description = "Фильтр по признаку удаления (мягкое удаление). По умолчанию (не указано) "
+                + "возвращаются только неудалённые записи — как и раньше. Укажите true, чтобы найти "
+                + "удалённую запись (например, чтобы восстановить её через PATCH .../{id}/restore, если id "
+                + "уже неизвестен вызывающей стороне), или false, чтобы явно исключить удалённые (то же, "
+                + "что и поведение по умолчанию).", example = "true")
+        Boolean deleted
 ) implements PageableRequest {
 }

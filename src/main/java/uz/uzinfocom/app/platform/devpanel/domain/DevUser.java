@@ -2,6 +2,11 @@ package uz.uzinfocom.app.platform.devpanel.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -21,9 +26,9 @@ import uz.uzinfocom.app.platform.persistence.entity.AuditableEntity;
  *
  * <p>Management of these accounts (create/list/revoke) is intentionally kept
  * OUT of the SSO-admin surface entirely - it lives at {@code POST/GET/PATCH
- * /v1/dev/dev-users} and is gated to accounts where {@link #isRoot()} is true
- * (see {@code DevUserController}, {@code DevUserPrincipal}). Not even an
- * {@code isemid_super_admin} can create or revoke a dev-panel account.
+ * /v1/dev/dev-users} and revoke is gated to {@link DevUserRole#SUPER_ADMIN}
+ * accounts (see {@code DevUserController}, {@code DevUserPrincipal}). Not even
+ * an {@code isemid_super_admin} can create or revoke a dev-panel account.
  */
 @Getter
 @Setter
@@ -48,18 +53,59 @@ public class DevUser extends AuditableEntity {
     private Boolean enabled = true;
 
     /**
-     * Grants {@code ROLE_DEV_ROOT} (see {@code DevUserPrincipal}) - the only
-     * accounts allowed to manage other {@code DevUser} rows.
+     * Contact/profile detail - not used for authentication or notifications,
+     * purely descriptive for the account list. Nullable: existing accounts
+     * predate this field, and the seeded bootstrap account has none.
+     */
+    @Column(length = 150)
+    private String email;
+
+    @Column(name = "full_name", length = 200)
+    private String fullName;
+
+    @Column(length = 32)
+    private String phone;
+
+    /**
+     * Optional position/department, from the dev-panel-only {@link DevPosition}
+     * lookup ({@code /v1/dev/ref/positions}) - not the org-facing reference
+     * dictionaries.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id")
+    private DevPosition position;
+
+    /**
+     * Access tier for this account - drives the granted authorities in
+     * {@code DevUserPrincipal} and, in turn, the {@code @PreAuthorize} checks
+     * across the {@code /v1/dev/**} controllers. See {@link DevUserRole}.
      */
     @Builder.Default
-    @Column(nullable = false)
-    private Boolean root = false;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private DevUserRole role = DevUserRole.USER;
+
+    /**
+     * When true, {@code DevPasswordChangeGuardFilter} blocks every
+     * {@code /v1/dev/**} request from this account except its own
+     * {@code PATCH /v1/dev/dev-users/me/password} call. Defaults to true for
+     * every newly-provisioned account (see {@code DevUserCommandService.create})
+     * - cleared only by {@code DevUserCommandService.changeOwnPassword}, once
+     * the account's real owner has set their own password.
+     */
+    @Builder.Default
+    @Column(name = "must_change_password", nullable = false)
+    private Boolean mustChangePassword = true;
 
     public boolean isEnabled() {
         return Boolean.TRUE.equals(enabled);
     }
 
-    public boolean isRoot() {
-        return Boolean.TRUE.equals(root);
+    public boolean isSuperAdmin() {
+        return role == DevUserRole.SUPER_ADMIN;
+    }
+
+    public boolean isMustChangePassword() {
+        return Boolean.TRUE.equals(mustChangePassword);
     }
 }

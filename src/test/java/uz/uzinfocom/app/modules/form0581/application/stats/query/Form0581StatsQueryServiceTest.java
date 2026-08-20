@@ -6,7 +6,7 @@ import org.springframework.security.access.AccessDeniedException;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViolationException;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581StatsRepository;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581Direction;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;

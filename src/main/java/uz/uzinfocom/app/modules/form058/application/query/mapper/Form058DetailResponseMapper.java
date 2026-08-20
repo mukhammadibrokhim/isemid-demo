@@ -8,7 +8,7 @@ import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058Location;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 import java.time.LocalDate;

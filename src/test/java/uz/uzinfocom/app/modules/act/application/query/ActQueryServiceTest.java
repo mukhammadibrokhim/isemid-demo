@@ -9,8 +9,8 @@ import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationExcep
 import uz.uzinfocom.app.modules.act.application.query.mapper.ActDetailMapper;
 import uz.uzinfocom.app.modules.act.application.query.mapper.ActMapper;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;

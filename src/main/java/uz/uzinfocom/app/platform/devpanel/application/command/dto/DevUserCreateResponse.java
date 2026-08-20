@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.platform.devpanel.application.command.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import uz.uzinfocom.app.platform.devpanel.domain.DevUserRole;
 
 import java.time.Instant;
 
@@ -8,7 +9,12 @@ import java.time.Instant;
 public record DevUserCreateResponse(
         Long id,
         String username,
-        Boolean root,
+        DevUserRole role,
+        String email,
+        String fullName,
+        String phone,
+        Long positionId,
+        String positionName,
 
         @Schema(description = "Plaintext password - shown once, never stored or retrievable again.")
         String password,

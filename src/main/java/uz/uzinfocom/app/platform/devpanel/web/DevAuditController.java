@@ -29,7 +29,7 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
  * {@code /v1/dev/**} (see {@code DevPanelSecurityConfig}), no further role check needed.
  */
 @Tag(
-        name = "Dev Monitoring - Audit",
+        name = "Dev Panel - Audit",
         description = "Audit trail for Form058/Form0581/Act business events, for the internal developer "
                 + "monitoring panel."
 )

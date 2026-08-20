@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -26,12 +27,12 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 /**
  * Dev-panel mirror of {@code RouteAccessPolicyController} - same command/query
  * services and the same DB table, reached via the {@code DevUser} Basic-Auth
- * chain instead of an SSO admin token. No {@code @PreAuthorize} needed: the
- * whole {@code /v1/dev/**} chain already requires authentication
- * (see {@code DevPanelSecurityConfig}).
+ * chain instead of an SSO admin token. Reads are open to any authenticated
+ * dev-panel account (see {@code DevPanelSecurityConfig}); create/update
+ * require {@code ROLE_DEV_ADMIN} and delete requires {@code ROLE_DEV_SUPER_ADMIN}.
  */
 @Tag(
-        name = "Dev Monitoring - Route Policies",
+        name = "Dev Panel - Route Policies",
         description = "Runtime route-access policy (public/authenticated, org-header, role validation) reachable "
                 + "from the developer monitoring panel - same table as /v1/admin/route-policies, replaces the old "
                 + "restart-only SecurityRouteCatalog."
@@ -57,6 +58,7 @@ public class DevRoutePolicyController {
     }
 
     @PostMapping(ApiPaths.Dev.ROUTE_POLICIES)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<RouteAccessPolicyResponse> create(@Valid @RequestBody RouteAccessPolicyCreateRequest request) {
         return ApiResponse.success(
                 messageResolver.resolve("common.created"), routeAccessPolicyCommandService.create(request)
@@ -72,6 +74,7 @@ public class DevRoutePolicyController {
     }
 
     @PutMapping(ApiPaths.Dev.ROUTE_POLICY_BY_ID)
+    @PreAuthorize("hasRole('DEV_ADMIN')")
     public ApiResponse<RouteAccessPolicyResponse> update(
             @Parameter(description = "Internal id of the route-access policy row.", required = true)
             @PathVariable @Positive Long id,
@@ -83,6 +86,7 @@ public class DevRoutePolicyController {
     }
 
     @DeleteMapping(ApiPaths.Dev.ROUTE_POLICY_BY_ID)
+    @PreAuthorize("hasRole('DEV_SUPER_ADMIN')")
     public ApiResponse<Void> delete(
             @Parameter(description = "Internal id of the route-access policy row.", required = true)
             @PathVariable @Positive Long id

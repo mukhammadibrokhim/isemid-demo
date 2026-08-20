@@ -11,8 +11,8 @@ import uz.uzinfocom.app.platform.audit.application.query.dto.AuditEventResponse;
 import uz.uzinfocom.app.platform.audit.application.query.specification.AuditEventSpecification;
 import uz.uzinfocom.app.platform.audit.domain.AuditEvent;
 import uz.uzinfocom.app.platform.audit.repository.AuditEventRepository;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.Arrays;

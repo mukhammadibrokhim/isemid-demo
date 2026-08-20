@@ -25,7 +25,7 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 @Tag(
-        name = "Dev Monitoring - Logins",
+        name = "Dev Panel - Logins",
         description = "Login-attempt (success and failure) history for /v1/auth/login/{provider}, "
                 + "for the internal developer monitoring panel. Use the list endpoint for the "
                 + "table/summary view, and the by-id endpoint for the full detail of a single attempt."

@@ -10,8 +10,8 @@ import uz.uzinfocom.app.modules.report.form32.application.query.dto.Form32EntryT
 import uz.uzinfocom.app.modules.report.form32.application.query.mapper.Form32EntryMapper;
 import uz.uzinfocom.app.modules.report.form32.domain.Form32Entry;
 import uz.uzinfocom.app.modules.report.form32.infrastructure.persistence.repository.Form32EntryRepository;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientDetailResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.util.List;
 import java.util.UUID;

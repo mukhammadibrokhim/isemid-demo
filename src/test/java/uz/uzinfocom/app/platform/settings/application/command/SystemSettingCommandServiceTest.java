@@ -1,8 +1,8 @@
 package uz.uzinfocom.app.platform.settings.application.command;
 
 import org.junit.jupiter.api.Test;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 import uz.uzinfocom.app.platform.settings.application.dto.SystemSettingCreateRequest;
 import uz.uzinfocom.app.platform.settings.application.dto.SystemSettingUpdateRequest;
