@@ -494,6 +494,16 @@ public final class ApiPaths {
         public static final String AFFILIATED = "/affiliated";
     }
 
+    public static final class Form129 {
+        private Form129() {
+        }
+
+        public static final String ROOT = API_V1 + "/form-129";
+        public static final String BY_ID = "/{id}";
+        public static final String ACCEPT = "/{id}/accept";
+        public static final String REJECT = "/{id}/reject";
+    }
+
     public static final class Form0581Stats {
         private Form0581Stats() {
         }
@@ -753,6 +763,14 @@ public final class ApiPaths {
          * inbound side.
          */
         public static final String PATIENT_CASE = ROOT + "/{source}/patients/case";
+
+        /**
+         * Form129 inbound submission — one generic {@code {source}} endpoint
+         * for every registered source, DMED included. Unlike
+         * {@link #FORM058}/{@link #FORM0581}, there is no separate
+         * DMED-specific fixed-contract path for Form129.
+         */
+        public static final String FORM129 = ROOT + "/{source}/form-129";
     }
 
 }

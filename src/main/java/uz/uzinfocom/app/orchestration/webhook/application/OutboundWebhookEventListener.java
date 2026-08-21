@@ -51,6 +51,7 @@ public class OutboundWebhookEventListener {
         switch (event.entityType()) {
             case FORM058 -> enqueueIfWebhookActive(event, AuditEntityType.FORM058);
             case FORM0581 -> enqueueIfWebhookActive(event, AuditEntityType.FORM0581);
+            case FORM129 -> enqueueIfWebhookActive(event, AuditEntityType.FORM129);
             default -> { }
         }
     }

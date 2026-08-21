@@ -71,6 +71,9 @@ public class NotificationEventListener {
     private static final String KEY_FORM0581_REOPENED_ENABLED = "notification.form0581-reopened.enabled";
     private static final String KEY_FORM0581_AFFILIATED_RECEIVED_ENABLED = "notification.form0581-affiliated-received.enabled";
     private static final String KEY_FORM0581_AFFILIATED_CARD_LINKED_ENABLED = "notification.form0581-affiliated-card-linked.enabled";
+    private static final String KEY_FORM129_RECEIVED_ENABLED = "notification.form129-received.enabled";
+    private static final String KEY_FORM129_ACKNOWLEDGED_ENABLED = "notification.form129-acknowledged.enabled";
+    private static final String KEY_FORM129_REJECTED_ENABLED = "notification.form129-rejected.enabled";
     private static final String KEY_CARD_ASSIGNED_ENABLED = "notification.card-assigned.enabled";
     private static final String KEY_CARD_ACCEPTED_BY_USER_ENABLED = "notification.card-accepted-by-user.enabled";
     private static final String KEY_CARD_REJECTED_BY_USER_ENABLED = "notification.card-rejected-by-user.enabled";
@@ -93,6 +96,7 @@ public class NotificationEventListener {
         switch (event.entityType()) {
             case FORM058 -> handleForm058Received(event);
             case FORM0581 -> handleForm0581Received(event);
+            case FORM129 -> handleForm129Received(event);
             case CARD -> handleCardAssigned(event);
             case ACT -> handleActAssigned(event);
         }
@@ -107,6 +111,7 @@ public class NotificationEventListener {
             case CARD -> handleCardStatusChanged(event);
             case FORM058 -> handleForm058StatusChanged(event);
             case FORM0581 -> handleForm0581StatusChanged(event);
+            case FORM129 -> handleForm129StatusChanged(event);
             default -> { }
         }
     }
@@ -302,6 +307,47 @@ public class NotificationEventListener {
                         affiliatedOrganizationId);
             }
         }
+    }
+
+    private void handleForm129Received(EntityCreatedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM129_RECEIVED_ENABLED, true)) {
+            return;
+        }
+
+        FormRouting routing = (FormRouting) event.routing();
+
+        notifyOrganization(event.entityType(), event.entityId(), event.actorUserId(),
+                NotificationType.FORM129_RECEIVED, "notification.form129-received", routing.receiverOrganizationId());
+    }
+
+    private void handleForm129StatusChanged(StatusChangedEvent event) {
+        if ("SENT".equals(event.oldStatus()) && "ACCEPTED".equals(event.newStatus())) {
+            handleForm129Acknowledged(event);
+        } else if ("SENT".equals(event.oldStatus()) && "CANCELED".equals(event.newStatus())) {
+            handleForm129Rejected(event);
+        }
+    }
+
+    private void handleForm129Acknowledged(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM129_ACKNOWLEDGED_ENABLED, true)) {
+            return;
+        }
+        FormRouting routing = (FormRouting) event.routing();
+
+        notifyOrganization(AuditEntityType.FORM129, event.entityId(), event.actorUserId(),
+                NotificationType.FORM129_ACKNOWLEDGED, "notification.form129-acknowledged",
+                routing.senderOrganizationId());
+    }
+
+    private void handleForm129Rejected(StatusChangedEvent event) {
+        if (!systemSettingResolver.resolveBoolean(KEY_FORM129_REJECTED_ENABLED, true)) {
+            return;
+        }
+        FormRouting routing = (FormRouting) event.routing();
+
+        notifyOrganization(AuditEntityType.FORM129, event.entityId(), event.actorUserId(),
+                NotificationType.FORM129_REJECTED, "notification.form129-rejected",
+                routing.senderOrganizationId());
     }
 
     private void handleForm058Acknowledged(StatusChangedEvent event) {
