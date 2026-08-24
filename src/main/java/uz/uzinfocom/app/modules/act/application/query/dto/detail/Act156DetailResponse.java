@@ -29,6 +29,7 @@ public record Act156DetailResponse(
         String activityTypeCode,
         LocalDateTime sampleTakenTime,
         Long lisOrganizationId,
+        String lisOrganizationName,
         String laboratoryAddress,
         LocalDateTime sampleDeliveryTime,
         String fullNameOfSampler,

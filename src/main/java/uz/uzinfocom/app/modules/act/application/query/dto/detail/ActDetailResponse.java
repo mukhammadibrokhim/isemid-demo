@@ -21,8 +21,8 @@ import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
  */
 @Schema(
         description = "Детальные сведения по акту. Конкретная структура зависит от поля \"type\" — оно определяет, "
-                + "какой из 6 типов актов (ACT153, ACT154, ACT155, ACT156, ACT223, ACT224) возвращается.",
-        oneOf = {Act153DetailResponse.class, Act154DetailResponse.class, Act155DetailResponse.class,
+                + "какой из 5 типов актов (ACT153, ACT154, ACT156, ACT223, ACT224) возвращается.",
+        oneOf = {Act153DetailResponse.class, Act154DetailResponse.class,
                 Act156DetailResponse.class, Act223DetailResponse.class, Act224DetailResponse.class},
         discriminatorProperty = "type"
 )
@@ -30,13 +30,12 @@ import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Act153DetailResponse.class, name = "ACT153"),
         @JsonSubTypes.Type(value = Act154DetailResponse.class, name = "ACT154"),
-        @JsonSubTypes.Type(value = Act155DetailResponse.class, name = "ACT155"),
         @JsonSubTypes.Type(value = Act156DetailResponse.class, name = "ACT156"),
         @JsonSubTypes.Type(value = Act223DetailResponse.class, name = "ACT223"),
         @JsonSubTypes.Type(value = Act224DetailResponse.class, name = "ACT224")
 })
 public sealed interface ActDetailResponse
-        permits Act153DetailResponse, Act154DetailResponse, Act155DetailResponse,
+        permits Act153DetailResponse, Act154DetailResponse,
                 Act156DetailResponse, Act223DetailResponse, Act224DetailResponse {
 
     Long id();

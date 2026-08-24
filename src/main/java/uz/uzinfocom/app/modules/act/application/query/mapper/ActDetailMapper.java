@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act153DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act154DetailResponse;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act155DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act156DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act223DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act224DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.ActDetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act153.Act153SampleResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act154.Act154SampleResponse;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.act155.Act155SampleResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act156.Act156GroupDetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act156.Act156KitchenUtensilResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act223.Act223SampleResponse;
@@ -29,8 +27,6 @@ import uz.uzinfocom.app.modules.act.domain.model.act153.Act153;
 import uz.uzinfocom.app.modules.act.domain.model.act153.Act153Detail;
 import uz.uzinfocom.app.modules.act.domain.model.act154.Act154;
 import uz.uzinfocom.app.modules.act.domain.model.act154.Act154Detail;
-import uz.uzinfocom.app.modules.act.domain.model.act155.Act155;
-import uz.uzinfocom.app.modules.act.domain.model.act155.Act155Detail;
 import uz.uzinfocom.app.modules.act.domain.model.act156.Act156;
 import uz.uzinfocom.app.modules.act.domain.model.act156.Act156GroupDetail;
 import uz.uzinfocom.app.modules.act.domain.model.act156.Act156KitchenUtensil;
@@ -49,6 +45,7 @@ import uz.uzinfocom.app.modules.act.domain.model.embedded.SampleTypeInfo;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapperHelper;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.util.List;
@@ -69,12 +66,12 @@ import java.util.List;
 public class ActDetailMapper {
 
     private final CardTableMapperHelper cardTableMapperHelper;
+    private final OrganizationMappingHelper organizationMappingHelper;
 
     public ActDetailResponse toDetailResponse(Act act, AuditResponse audit) {
         return switch (act) {
             case Act153 a -> toAct153(a, audit);
             case Act154 a -> toAct154(a, audit);
-            case Act155 a -> toAct155(a, audit);
             case Act156 a -> toAct156(a, audit);
             case Act223 a -> toAct223(a, audit);
             case Act224 a -> toAct224(a, audit);
@@ -89,7 +86,8 @@ public class ActDetailMapper {
                 act.getActNumber(), act.getActivityTypeCode(), act.getSamplingDocuments(), act.getGoal(),
                 act.getSampleTakenDateTime(), act.getDeliveredDateTime(), purpose(act.getPurpose()),
                 employee(act.getSampler()), employee(act.getParticipant()), condition(act.getSpecialCondition()),
-                condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(), act.getLaboratoryAddress(),
+                condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
+                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), conservationType(act.getConservationTypeInfo()),
                 act.getAdditionalInfo(), act153Samples(act.getAct153Details()), audit
         );
@@ -103,20 +101,10 @@ public class ActDetailMapper {
                 act.getDeliveredDateTime(), act.getDocumentConfirmSampling(), act.getGoal(), purpose(act.getPurpose()),
                 employee(act.getSampler()), employee(act.getParticipant()), act.getManufacturingCompany(),
                 act.getManufactureDate(), act.getDocNumberOfTakenObject(), condition(act.getSpecialCondition()),
-                condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(), act.getLaboratoryAddress(),
+                condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
+                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), act.getAdditionalInfo(), act154Samples(act.getAct154Details()),
                 audit
-        );
-    }
-
-    private Act155DetailResponse toAct155(Act155 act, AuditResponse audit) {
-        return new Act155DetailResponse(
-                act.getId(), act.getActType(), act.getActStatus(), cardMini(act.getCard()), act.getAssignedById(),
-                act.getResultComment(), institution(act.getInstitution()),
-                act.getTitle(), act.getTin(), act.getInstitutionName(), act.getInstitutionAddress(),
-                act.getActivityTypeCode(), act.getSelectedDate(), act.getSamplerFullName(), act.getSamplerPosition(),
-                act.getObjectRepresentativeFullName(), act.getObjectRepresentativePosition(), act.getAdditionalInfo(),
-                act155Samples(act.getAct155Details()), audit
         );
     }
 
@@ -125,7 +113,8 @@ public class ActDetailMapper {
                 act.getId(), act.getActType(), act.getActStatus(), cardMini(act.getCard()), act.getAssignedById(),
                 act.getResultComment(), institution(act.getInstitution()),
                 act.getTitle(), act.getTin(), act.getInstitutionName(), act.getInstitutionAddress(),
-                act.getActivityTypeCode(), act.getSampleTakenTime(), act.getLisOrganizationId(), act.getLaboratoryAddress(),
+                act.getActivityTypeCode(), act.getSampleTakenTime(), act.getLisOrganizationId(),
+                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 act.getSampleDeliveryTime(), act.getFullNameOfSampler(), act.getPositionOfSampler(),
                 act.getFullNameOfObjectRepresentative(), act.getPositionOfObjectRepresentative(),
                 act156KitchenUtensils(act.getAct156KitchenUtensils()), act156GroupDetails(act.getAct156GroupDetails()),
@@ -140,7 +129,8 @@ public class ActDetailMapper {
                 act.getActNumber(), act.getSupportingDocumentsForSampling(), act.getGoal(), act.getActivityTypeCode(),
                 employee(act.getSampler()), employee(act.getParticipant()), purpose(act.getPurpose()),
                 act.getSampleTakenDateTime(), act.getDeliveredDateTime(), condition(act.getSpecialCondition()),
-                condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(), act.getLaboratoryAddress(),
+                condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
+                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), act.getAdditionalInfo(), act223Samples(act.getAct223Details()),
                 audit
         );
@@ -177,17 +167,6 @@ public class ActDetailMapper {
                         detail.getSampleName(), detail.getGroupSize(), detail.getSerialNumberOfGroup(),
                         detail.getSampleWeight(), detail.getSampleQtUnit(), detail.getSampleVolume(),
                         detail.getSampleVolumeUnit(), detail.getNote()
-                ))
-                .toList();
-    }
-
-    private List<Act155SampleResponse> act155Samples(List<Act155Detail> details) {
-        return details.stream()
-                .map(detail -> new Act155SampleResponse(
-                        detail.getId(), detail.getProductName(), detail.getPurposeOfTesting(),
-                        detail.getPurposeOfTestingLoinc(), detail.getLisOrganizationId(), detail.getLaboratoryAddress(),
-                        detail.getSampleTakenLocation(), detail.getSampleQuantity(), detail.getProductBatchQuantity(),
-                        detail.getAppliedPesticides(), detail.getManufacturer(), detail.getSampleDocumentJustifying()
                 ))
                 .toList();
     }
@@ -254,7 +233,10 @@ public class ActDetailMapper {
         if (info == null) {
             return null;
         }
-        return new EmployeeInfoResponse(info.getFullName(), info.getPositionId(), info.getPositionUz(), info.getPositionRu());
+        return new EmployeeInfoResponse(
+                info.getFullName(), info.getPositionId(), info.getPositionUz(), info.getPositionRu(),
+                info.getIdentifierType(), info.getIdentifierValue()
+        );
     }
 
     private ConditionInfoResponse condition(ConditionInfo info) {

@@ -87,7 +87,7 @@ class ActCommandServiceStatusTransitionTest {
                     act.getAssignedById(), act.getResultComment(), null,
                     null, null, null, null, null, null,
                     null, null, null, null, null,
-                    null, null, null, null, null, null,
+                    null, null, null, null, null, null, null,
                     null
             );
         });

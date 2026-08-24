@@ -37,6 +37,7 @@ public record Act223DetailResponse(
         ConditionInfoResponse specialCondition,
         ConditionInfoResponse storageAndDeliveryCondition,
         Long lisOrganizationId,
+        String lisOrganizationName,
         String laboratoryAddress,
         PackageTypeInfoResponse packageTypeInfo,
         String additionalInfo,

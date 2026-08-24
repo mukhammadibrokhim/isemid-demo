@@ -59,7 +59,9 @@ public class Act153 extends Act {
             @AttributeOverride(name = "fullName", column = @Column(name = "sampler_full_name")),
             @AttributeOverride(name = "positionId", column = @Column(name = "sampler_position_id")),
             @AttributeOverride(name = "positionUz", column = @Column(name = "sampler_position_uz")),
-            @AttributeOverride(name = "positionRu", column = @Column(name = "sampler_position_ru"))
+            @AttributeOverride(name = "positionRu", column = @Column(name = "sampler_position_ru")),
+            @AttributeOverride(name = "identifierType", column = @Column(name = "sampler_identifier_type")),
+            @AttributeOverride(name = "identifierValue", column = @Column(name = "sampler_identifier_value"))
     })
     private EmployeeInfo sampler;
 
@@ -68,7 +70,9 @@ public class Act153 extends Act {
             @AttributeOverride(name = "fullName", column = @Column(name = "participant_full_name")),
             @AttributeOverride(name = "positionId", column = @Column(name = "participant_position_id")),
             @AttributeOverride(name = "positionUz", column = @Column(name = "participant_position_uz")),
-            @AttributeOverride(name = "positionRu", column = @Column(name = "participant_position_ru"))
+            @AttributeOverride(name = "positionRu", column = @Column(name = "participant_position_ru")),
+            @AttributeOverride(name = "identifierType", column = @Column(name = "participant_identifier_type")),
+            @AttributeOverride(name = "identifierValue", column = @Column(name = "participant_identifier_value"))
     })
     private EmployeeInfo participant;
 

@@ -42,6 +42,7 @@ public record Act154DetailResponse(
         ConditionInfoResponse specialCondition,
         ConditionInfoResponse storageAndDeliveryCondition,
         Long lisOrganizationId,
+        String lisOrganizationName,
         String laboratoryAddress,
         PackageTypeInfoResponse packageTypeInfo,
         String additionalInfo,

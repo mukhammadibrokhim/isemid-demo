@@ -38,6 +38,7 @@ public record Act153DetailResponse(
         ConditionInfoResponse specialCondition,
         ConditionInfoResponse storageAndDeliveryCondition,
         Long lisOrganizationId,
+        String lisOrganizationName,
         String laboratoryAddress,
         PackageTypeInfoResponse packageTypeInfo,
         ConservationTypeInfoResponse conservationTypeInfo,

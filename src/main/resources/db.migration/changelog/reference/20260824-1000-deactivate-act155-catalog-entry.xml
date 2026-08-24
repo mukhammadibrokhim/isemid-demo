@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        catalog_reference.csv is only loaded into ref_catalog once, when the
+        table is empty (see 20260605-1800-seed-reference-data.xml) — editing
+        the CSV alone has no effect on a database that already ran that seed.
+        ACT155 was dropped as an act subtype (absorbed into ACT154), so its
+        ACT_TYPE catalog row is soft-deleted here for every environment,
+        seeded or not.
+    -->
+    <changeSet id="20260824-1000-01-deactivate-act155-catalog-entry" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_catalog"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            UPDATE ref_catalog SET deleted = true WHERE type = 'ACT_TYPE' AND code = 'ACT155';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
