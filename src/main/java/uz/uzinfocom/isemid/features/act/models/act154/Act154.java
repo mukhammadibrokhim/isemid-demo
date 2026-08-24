@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uz.uzinfocom.isemid.commons.exceptions.ProtocolNotReadyException;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.LisDocumentAttachable;
@@ -115,7 +117,10 @@ public class Act154 extends Act implements LisDocumentAttachable {
 
    @Override
    public void concludeProtocol(String message) {
-      lisProtocolResponse.computeIfPresent(LIS_SANITARY_CONCLUSION_FIELD,(k,v)-> message);
+      if (Objects.isNull(lisProtocolResponse)) {
+         throw new ProtocolNotReadyException();
+      }
+      lisProtocolResponse.put(LIS_SANITARY_CONCLUSION_FIELD, message);
       setStatus(ActStatus.COMPLETED);
    }
 }
