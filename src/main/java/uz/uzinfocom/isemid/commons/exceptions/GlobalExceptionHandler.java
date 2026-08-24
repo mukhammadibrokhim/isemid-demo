@@ -66,6 +66,22 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // LIS protokoli akt uchun hali biriktirilmagan
+    @ExceptionHandler(ProtocolNotReadyException.class)
+    public ResponseEntity<ApiErrorResponse> handleProtocolNotReady(ProtocolNotReadyException ex) {
+        logger.warn("⚠️ ProtocolNotReadyException: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ApiErrorResponse.builder()
+                        .success(false)
+                        .statusCode(BAD_REQUEST.value())
+                        .message(messageUtil.get("error.invalid_request.lis_protocol_not_attached"))
+                        .errors(List.of(ApiErrorResponse.ErrorDetail.builder()
+                                .field(ex.getClass().getSimpleName())
+                                .errorMessage(ex.getMessage())
+                                .build()))
+                        .build());
+    }
+
     // HTTP metod mos emas
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {

@@ -1,5 +1,7 @@
 package uz.uzinfocom.isemid.features.act.models.act153;
 
+import static uz.uzinfocom.isemid.features.act.constants.ExternalSystemConstants.LIS_SANITARY_CONCLUSION_FIELD;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
@@ -13,6 +15,7 @@ import jakarta.persistence.OrderBy;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uz.uzinfocom.isemid.commons.exceptions.ProtocolNotReadyException;
 import uz.uzinfocom.isemid.features.act.enums.ActStatus;
 import uz.uzinfocom.isemid.features.act.models.Act;
 import uz.uzinfocom.isemid.features.act.models.LisDocumentAttachable;
@@ -114,7 +118,10 @@ public class Act153 extends Act implements LisDocumentAttachable {
 
     @Override
     public void concludeProtocol(String message) {
-        lisProtocolResponse.computeIfPresent("sanitaryConclusion",(k,v)-> message);
+        if(Objects.isNull(lisProtocolResponse)){
+            throw new ProtocolNotReadyException();
+        }
+        lisProtocolResponse.put(LIS_SANITARY_CONCLUSION_FIELD, message);
         setStatus(ActStatus.COMPLETED);
     }
 }
