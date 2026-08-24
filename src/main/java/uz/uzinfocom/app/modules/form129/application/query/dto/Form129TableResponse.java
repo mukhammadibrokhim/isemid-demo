@@ -26,8 +26,14 @@ public record Form129TableResponse(
         @Schema(description = "Идентификатор организации-отправителя.")
         Long senderOrganizationId,
 
+        @Schema(description = "Наименование организации-отправителя.")
+        String senderOrganizationName,
+
         @Schema(description = "Идентификатор организации-получателя.")
         Long receiverOrganizationId,
+
+        @Schema(description = "Наименование организации-получателя.")
+        String receiverOrganizationName,
 
         @Schema(description = "Краткие сведения о пациенте.")
         PatientShortResponse patient
