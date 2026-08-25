@@ -60,7 +60,7 @@ public class Form1ReportController {
                     + "показатели самой организации."
     )
     @GetMapping(ApiPaths.Form1Report.ROOT_NODE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
     public ApiResponse<List<Form1ReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -84,7 +84,7 @@ public class Form1ReportController {
                     + "вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form1Report.CHILDREN)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
     public ApiResponse<List<Form1ReportNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,

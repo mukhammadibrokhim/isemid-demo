@@ -365,6 +365,7 @@ Deeper, module-specific documentation lives under [`docs/`](docs):
 | [card-module.md](docs/card-module.md) | Card types, handler pattern, status lifecycle, child-collection sync |
 | [patient-module.md](docs/patient-module.md) | Patient entity and registration flow |
 | [act-module.md](docs/act-module.md) | Act placeholder scope and LIS integration touchpoints |
+| [act-lis-frontend-guide.md](docs/act-lis-frontend-guide.md) | Frontend integration guide for send-to-LIS, the result callback, and its notification |
 | [auth-login-module.md](docs/auth-login-module.md) | Login-proxy architecture, providers, grant flow |
 | [auth-login-frontend-guide.md](docs/auth-login-frontend-guide.md) | Frontend integration guide for login/refresh |
 | [notification-module.md](docs/notification-module.md) | Notification event fan-out model and triggers |

@@ -17,7 +17,10 @@ public final class OpenApiGroups {
 
     private static final String[] REFERENCES_PATHS = {
             "/v1/references",
-            "/v1/references/**"
+            "/v1/references/**",
+
+            ApiPaths.LisReference.ROOT,
+            ApiPaths.LisReference.ROOT + "/**"
     };
 
     private static final String[] ACCESS_CONTROL_PATHS = {

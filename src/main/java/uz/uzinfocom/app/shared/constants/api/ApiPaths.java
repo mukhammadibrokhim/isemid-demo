@@ -168,6 +168,29 @@ public final class ApiPaths {
         public static final String CHILDREN = "/{id}/children";
     }
 
+    /**
+     * LIS's own public read-only dictionaries (organizations, departments,
+     * conditions, professions, research types, categories, item types),
+     * proxied+cached by this backend rather than called by the frontend
+     * directly — see {@code LisReferenceController}/{@code
+     * LisReferenceQueryService} and {@code docs/act-lis-frontend-guide.md}
+     * for why. Deliberately not nested under {@link Reference}: that root is
+     * this app's own multi-language catalogs, these are LIS's.
+     */
+    public static final class LisReference {
+        private LisReference() {
+        }
+
+        public static final String ROOT = API_V1 + "/lis-reference";
+        public static final String ORGANIZATIONS = "/organizations";
+        public static final String DEPARTMENTS = "/organizations/{organizationId}/departments";
+        public static final String CONDITIONS = "/conditions";
+        public static final String PROFESSIONS = "/professions";
+        public static final String RESEARCH_TYPES = "/research-types";
+        public static final String CATEGORIES = "/categories";
+        public static final String ITEM_TYPES = "/item-types";
+    }
+
     public static final class SystemSetting {
         private SystemSetting() {
         }

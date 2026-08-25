@@ -55,7 +55,7 @@ public class Form32EntryController {
             description = "Создаёт запись для текущей организации вызывающего."
     )
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_CREATE')")
     public ApiResponse<Form32EntryTableResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой записи Shakl №3-2.",
@@ -76,7 +76,7 @@ public class Form32EntryController {
                     "каждая со своей создавшей организацией и худудом."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
     public PagedResponse<Form32EntryTableResponse> findTable(
             @ParameterObject @Valid @ModelAttribute Form32EntryFilterRequest request,
             HttpServletRequest httpRequest
@@ -90,7 +90,7 @@ public class Form32EntryController {
             description = "Разрешено только организации, создавшей запись, либо isemid_admin/isemid_super_admin."
     )
     @PutMapping(ApiPaths.Form32Entry.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_UPDATE')")
     public ApiResponse<Form32EntryTableResponse> update(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -111,7 +111,7 @@ public class Form32EntryController {
             description = "Разрешено только организации, создавшей запись, либо isemid_admin/isemid_super_admin."
     )
     @DeleteMapping(ApiPaths.Form32Entry.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_DELETE')")
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id

@@ -8,6 +8,7 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uz.uzinfocom.app.integration.lis.reference.config.LisReferenceCacheConfig;
 import uz.uzinfocom.app.modules.iam.application.shared.cache.AuditCacheConfig;
 import uz.uzinfocom.app.modules.iam.application.shared.cache.OrganizationCacheConfig;
 import uz.uzinfocom.app.modules.reference.config.ReferenceCacheConfig;
@@ -83,7 +84,22 @@ public class ApplicationCacheConfig {
                 // safety net so a value never goes stale for more than ~30s even
                 // if an eviction is ever missed.
                 cache(SettingsCacheConfig.SYSTEM_SETTING_BY_KEY, 2_000, Duration.ofSeconds(30)),
-                cache(SettingsCacheConfig.ROUTE_ACCESS_POLICIES, 4, Duration.ofSeconds(30))
+                cache(SettingsCacheConfig.ROUTE_ACCESS_POLICIES, 4, Duration.ofSeconds(30)),
+
+                // LIS's own dictionaries, not this app's data - see
+                // docs/act-lis-frontend-guide.md for why this backend proxies
+                // them instead of the frontend calling LIS directly. 1h TTL
+                // for the small, non-paginated lookups (organizations,
+                // departments, conditions); 30m for the four paginated ones,
+                // bounded to a few thousand distinct (search, page, limit)
+                // keys since each caller-chosen search term is its own entry.
+                cache(LisReferenceCacheConfig.LIS_ORGANIZATIONS, 5_000, Duration.ofHours(1)),
+                cache(LisReferenceCacheConfig.LIS_DEPARTMENTS, 5_000, Duration.ofHours(1)),
+                cache(LisReferenceCacheConfig.LIS_CONDITIONS, 4, Duration.ofHours(1)),
+                cache(LisReferenceCacheConfig.LIS_PROFESSIONS, 2_000, Duration.ofMinutes(30)),
+                cache(LisReferenceCacheConfig.LIS_RESEARCH_TYPES, 2_000, Duration.ofMinutes(30)),
+                cache(LisReferenceCacheConfig.LIS_CATEGORIES, 2_000, Duration.ofMinutes(30)),
+                cache(LisReferenceCacheConfig.LIS_ITEM_TYPES, 2_000, Duration.ofMinutes(30))
         ));
 
         return manager;

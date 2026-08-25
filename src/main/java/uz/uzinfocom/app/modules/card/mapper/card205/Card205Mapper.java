@@ -27,6 +27,12 @@ public interface Card205Mapper {
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
     @Mapping(target = "type", source = "cardType")
+    @Mapping(target = "icd10Code", source = ".", qualifiedByName = "resolveCard205Icd10Code")
+    @Mapping(target = "icd10Name", source = ".", qualifiedByName = "resolveCard205Icd10Name")
+    @Mapping(target = "animalType", source = ".", qualifiedByName = "resolveCard205AnimalType")
+    @Mapping(target = "dateOfBiteOccurrence", source = ".", qualifiedByName = "resolveCard205DateOfBiteOccurrence")
+    @Mapping(target = "addressOfBiteOccurrence", source = ".", qualifiedByName = "resolveCard205AddressOfBiteOccurrence")
+    @Mapping(target = "fullNameofAnimalOwner", source = ".", qualifiedByName = "resolveCard205FullNameOfAnimalOwner")
     Card205DetailResponse toResponse(Card205 card205);
 
     @Mapping(target = "id", ignore = true)

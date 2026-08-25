@@ -51,7 +51,23 @@ public record LisProperties(
              * Research-type lookup that resolves a LIS act-template id from a
              * research code (WATER/FOOD/SOIL) — e.g. {@code /act-code}.
              */
-            @NotBlank String actCode
+            @NotBlank String actCode,
+
+            /**
+             * Public read-only dictionary lookups this backend proxies (and
+             * caches) for the frontend, rather than letting the frontend call
+             * LIS directly — see {@code LisReferenceClient}. All share the
+             * same {@link #apiKey} as {@link #createAct}/{@link #actCode};
+             * LIS does not distinguish a separate "public" credential from
+             * this one.
+             */
+            @NotBlank String sesorgs,
+            @NotBlank String departments,
+            @NotBlank String referenceDictionaries,
+            @NotBlank String professions,
+            @NotBlank String researchTypes,
+            @NotBlank String categories,
+            @NotBlank String itemTypes
     ) {
     }
 }

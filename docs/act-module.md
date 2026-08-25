@@ -80,8 +80,9 @@ NEW → IN_PROGRESS → READY → SENT → COMPLETED
 - `recordLisSendSuccess` / `recordLisSendFailure`: called after the actual
   HTTP call — success attaches the LIS-side act id; failure moves SENT →
   SEND_FAILED with a reason, staying editable/re-sendable.
-- `receiveLisResponse` (`POST /acts/{id}/lis-callback`): SENT → COMPLETED
-  only, stores the full LIS response JSON.
+- `receiveLisResponse` (`POST /acts/{id}/lis/callback`, called by LIS itself
+  — see [`act-lis-frontend-guide.md`](./act-lis-frontend-guide.md)): SENT →
+  COMPLETED only, stores the full LIS response JSON.
 - `delete`: soft-delete, blocked once SENT or COMPLETED
   (`ActAlreadySentToLisException`).
 
