@@ -8,26 +8,14 @@
             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!--
-        ref_neighborhood ga "tin" (STIR) ustuni qo'shiladi — mahalla fuqarolar
-        yig'ini uchun soliq to'lovchi identifikatsion raqami. Manba: rasmiy
-        uzcad kadastr eksporti (uzcad_code = bizdagi soato_id).
+        "tin" (STIR) ustunini qo'shish 20260605-1755-add-neighborhood-tin-column.xml
+        ga ko'chirildi — CSV seed'idan OLDIN qo'shilishi kerak, aks holda toza
+        bazada seed changeset'i "column tin does not exist" bilan yiqiladi.
+        Bu yerdagi eski addColumn changeset'i (20260801-1230-01) olib tashlandi:
+        u har toza bazada "not columnExists" precondition bo'yicha MARK_RAN
+        bo'lib, faqat log shovqinini beryapti edi. Backfill quyida o'z joyida
+        qoladi (seed'dan keyin ishlaydi).
     -->
-    <changeSet
-            id="20260801-1230-01-add-ref-neighborhood-tin-column"
-            author="uzinfocom">
-
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="ref_neighborhood"/>
-            <not>
-                <columnExists tableName="ref_neighborhood" columnName="tin"/>
-            </not>
-        </preConditions>
-
-        <addColumn tableName="ref_neighborhood">
-            <column name="tin" type="VARCHAR(20)"/>
-        </addColumn>
-
-    </changeSet>
 
     <!--
         Barcha qatorlarni to'ldirish: tin (yangi ustun) va name_ru (rasmiy

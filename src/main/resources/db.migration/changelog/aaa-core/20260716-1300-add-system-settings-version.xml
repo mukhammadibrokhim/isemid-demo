@@ -13,6 +13,11 @@
         dev DB (via ddl-auto=update, not Liquibase); that changeset's own
         createTable never declared it. Fixing it here as a new changeset
         rather than editing the original, already-executed/checksummed one.
+
+        Kept in `changelog/aaa-core/` next to the CREATE so the column is in
+        place before any per-module folder (export/, webhook/, settings/)
+        seeds a row that carries `version`. The `not columnExists`
+        precondition keeps it a no-op where the column already exists.
     -->
     <changeSet id="20260716-1300-01-add-system-settings-version" author="uzinfocom">
         <preConditions onFail="MARK_RAN" onError="HALT">

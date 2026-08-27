@@ -6,7 +6,27 @@
             http://www.liquibase.org/xml/ns/dbchangelog
             https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
+    <!--
+        Lives in `changelog/aaa-core/` (not `changelog/settings/`) on purpose.
+        `includeAll` runs files in path-alphabetical order, so every per-module
+        folder that seeds rows into `system_settings` - `changelog/export/`,
+        `changelog/webhook/`, `changelog/settings/` itself - must find the table
+        already there. `export/` sorts before `settings/`, so keeping the
+        CREATE under `settings/` made a fresh database blow up on the first
+        `export/*` seed with "relation system_settings does not exist".
+        `aaa-core/` sorts before every module folder.
+
+        The `not tableExists` precondition makes the CREATE a safe no-op on
+        databases that already built this table under its old path
+        (`changelog/settings/20260711-1400-create-system-settings.xml`) via
+        ddl-auto or an earlier changelog run.
+    -->
     <changeSet id="20260711-1400-01-create-system-settings" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="system_settings"/>
+            </not>
+        </preConditions>
         <createTable tableName="system_settings">
             <column name="id" type="BIGSERIAL">
                 <constraints primaryKey="true" primaryKeyName="pk_system_settings" nullable="false"/>

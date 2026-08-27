@@ -32,12 +32,13 @@
         </preConditions>
         <sql dbms="postgresql">ALTER INDEX idx_ref_mkb10_parent_id RENAME TO idx_ref_icd10_parent_id;</sql>
     </changeSet>
-    <changeSet id="20260803-1100-03-rename-ref-icd10-code-index" author="codex">
-        <preConditions onFail="MARK_RAN" onError="HALT">
-            <indexExists tableName="ref_icd10" indexName="idx_ref_mkb10_code"/>
-        </preConditions>
-        <sql dbms="postgresql">ALTER INDEX idx_ref_mkb10_code RENAME TO idx_ref_icd10_code;</sql>
-    </changeSet>
+    <!--
+        03 (rename idx_ref_mkb10_code -> idx_ref_icd10_code) was removed: the
+        baseline snapshot never created a plain "code" index on ref_mkb10 —
+        column "code" is already covered by the unique constraint
+        uk_ref_mkb10_code (renamed to uk_ref_icd10_code by 05). The changeset
+        only ever MARK_RAN'd on a "does not exist" precondition.
+    -->
     <changeSet id="20260803-1100-04-rename-ref-icd10-deleted-index" author="codex">
         <preConditions onFail="MARK_RAN" onError="HALT">
             <indexExists tableName="ref_icd10" indexName="idx_ref_mkb10_deleted"/>
@@ -84,16 +85,16 @@
     </changeSet>
 
     <!--
-        The generic `catalog` table stores MKB10-typed rows discriminated by the
-        `type` column (see Icd10Service, formerly Mkb10Service). Fix any existing
-        data so lookups against the renamed ICD10_TYPE constant still resolve.
-        No-op if no such rows exist yet.
+        The ref_catalog table stores type-discriminated lookup rows; if any were
+        imported with the legacy discriminator 'MKB10', re-label them so lookups
+        against the renamed ICD10_TYPE constant (see Icd10Service, formerly
+        Mkb10Service) still resolve. No-op if no such rows exist yet.
     -->
     <changeSet id="20260803-1100-10-fix-catalog-mkb10-type-literal" author="codex">
         <preConditions onFail="MARK_RAN" onError="CONTINUE">
-            <tableExists tableName="catalog"/>
+            <tableExists tableName="ref_catalog"/>
         </preConditions>
-        <update tableName="catalog">
+        <update tableName="ref_catalog">
             <column name="type" value="ICD10"/>
             <where>type = 'MKB10'</where>
         </update>

@@ -142,10 +142,13 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!--
+            Compile scope (not runtime): LiquibaseDataSourceConfig references
+            @LiquibaseDataSource to give migrations their own connection pool.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-liquibase</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Dev-only -->
