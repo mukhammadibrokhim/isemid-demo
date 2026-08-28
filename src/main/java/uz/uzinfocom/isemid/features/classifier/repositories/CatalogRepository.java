@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.classifier.repositories;
 
+import org.hibernate.NonUniqueResultException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,7 +41,7 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long>, JpaSpec
     List<Catalog> findAllByParentCode(String parentCode);
 
     Optional<Catalog> findByCode(String code);
-    Optional<Catalog> findByInn(String inn);
+    Optional<Catalog> findByInn(String inn) throws NonUniqueResultException;
 
     @Query(value = """
     SELECT * FROM cls_catalog c

@@ -1,5 +1,6 @@
 package uz.uzinfocom.isemid.features.classifier.mappers;
 
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.mapstruct.Context;
@@ -23,14 +24,16 @@ public class CatalogMapperHelper {
 
     @Named("toNeighborhoodCode")
     public String toNeighborhoodCode(String neighborhood, @Context String source) {
-        log.info("source: {}", source);
-        log.info("source.length= {}", source.length());
-        log.info("Form058Sources.DMED.length= {}", Form058Sources.DMED.length());
-        if (!Form058Sources.DMED.equalsIgnoreCase(source.strip())) {
-            return neighborhood;
+        if (Objects.nonNull(source) && Form058Sources.DMED.equalsIgnoreCase(source.strip())) {
+            Catalog catalog = catalogService.findByInn(neighborhood);
+            boolean isExplicit = Objects.nonNull(catalog);
+            log.info("Form-058 is received from: {}, neighborhood_code: {}, mapped_neighborhood_code: {}",
+                Form058Sources.DMED,neighborhood, isExplicit ?catalog.getCode():"NOT_MAPPED");
+            return isExplicit ? catalog.getCode() : null;
         }
-        Catalog catalog = catalogService.findByInn(neighborhood);
-        return (catalog != null) ? catalog.getCode() : null;
+        log.info("Form-058 is received from {}", source);
+        return neighborhood;
+
     }
 
     @Named("toCatalog")
