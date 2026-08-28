@@ -90,7 +90,13 @@
         against the renamed ICD10_TYPE constant (see Icd10Service, formerly
         Mkb10Service) still resolve. No-op if no such rows exist yet.
     -->
-    <changeSet id="20260803-1100-10-fix-catalog-mkb10-type-literal" author="codex">
+    <!--
+        Superseded by -11- below: -10- referenced a non-existent `catalog` table
+        and only ever MARK_RAN. It was corrected to `ref_catalog` in place, which
+        broke its stored checksum on databases where it had already run. Kept the
+        history clean by re-issuing it under a new id instead.
+    -->
+    <changeSet id="20260803-1100-11-fix-ref-catalog-mkb10-type-literal" author="codex">
         <preConditions onFail="MARK_RAN" onError="CONTINUE">
             <tableExists tableName="ref_catalog"/>
         </preConditions>
