@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -76,7 +77,14 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public Catalog findByInn(String inn) {
+      try {
         return catalogRepository.findByInn(inn).orElse(null);
+      } catch (IncorrectResultSizeDataAccessException e) {
+        // INN is expected to be unique, but legacy production data may contain duplicates.
+        // Gracefully handle the inconsistency to avoid propagating a data-quality issue to callers.
+        log.error("Multiple catalogs found for INN: {}", inn, e);
+        return null;
+      }
     }
 
     @Cacheable(value = "catalogAllType", key = "#catalogType.name()", unless = "#result == null")
