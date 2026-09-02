@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.modules.report.form8.application.query.dto;
 
 /**
- * Raw per-organization primary-notification count produced by {@code
+ * Raw per-organization confirmed-notification count produced by {@code
  * Form8ReportRepository} — one row per organization (grouped query) or a
  * single unattributed total row ({@code organizationId == null}, total
  * query). Internal to the report's query service; the web layer never sees

@@ -1,7 +1,7 @@
 package uz.uzinfocom.app.modules.report.form8.application.query.dto;
 
 /**
- * Raw social-category-bucketed primary-notification counts produced by {@code
+ * Raw social-category-bucketed confirmed-notification counts produced by {@code
  * Form8ReportRepository#countCategoryBreakdown} — a single aggregate row over
  * an arbitrary organization-id subtree (a node's whole scope, not grouped by
  * organization). Buckets follow {@code patient.category_code} against the

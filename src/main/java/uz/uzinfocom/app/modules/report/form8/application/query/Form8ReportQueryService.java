@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 
 /**
  * "Form 8" — query service for the "infectious/parasitic disease by social
- * composition" comparison report (form058 + form058_1 combined, primary/
- * not-yet-decided notifications only). Structurally identical to "Form 6":
+ * composition" comparison report (form058 + form058_1 combined, confirmed
+ * notifications only — {@code status = 'APPROVED'}). Structurally identical to "Form 6":
  * republic→region→district→organization drill-down is delegated to {@link
  * ReportHierarchyService} (implements {@link ReportCountSource} with a plain
  * {@link Long} total, backed by {@link Form8ReportRepository}), and every

@@ -15,10 +15,10 @@ public record Form8ReportNodeResponse(
         @Schema(description = "Есть ли у узла более глубокий уровень (для отображения раскрывающей стрелки).")
         boolean hasChildren,
 
-        @Schema(description = "Количество первичных извещений за тот же период год назад (\"O'tgan yil\").")
+        @Schema(description = "Количество подтверждённых извещений за тот же период год назад (\"O'tgan yil\").")
         long previousYear,
 
-        @Schema(description = "Количество первичных извещений за выбранный период (\"Joriy yil\").")
+        @Schema(description = "Количество подтверждённых извещений за выбранный период (\"Joriy yil\").")
         long currentYear,
 
         @Schema(description = "Разница currentYear - previousYear (\"O'sish / Kamayish\").")

@@ -627,8 +627,8 @@ public final class ApiPaths {
 
     /**
      * "Form 8" — «Инфекционные и паразитарные заболевания по социальному
-     * составу», сравнительный анализ первичных извещений (status NOT IN
-     * (APPROVED, CANCELED)), формы №058 + №058-1 объединены,
+     * составу», сравнительный анализ подтверждённых извещений (status =
+     * APPROVED), формы №058 + №058-1 объединены,
      * организационно-иерархический drill-down (республика→регион→район
      * →организация) с колонками "O'tgan yil"/"Joriy yil"/"O'sish-Kamayish"
      * (как Form 6), плюс разбивка каждого узла по социальным категориям
@@ -664,6 +664,49 @@ public final class ApiPaths {
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
         public static final String MONTHLY_BREAKDOWN = "/monthly-breakdown";
+    }
+
+    /**
+     * "Form 11" — «Yuqumli va parazitar kasalliklar bilan kasallanish
+     * ko'rsatkichlari», показатели заболеваемости: подтверждённые извещения
+     * (status = APPROVED), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация) с абсолютным и интенсивным (на koef населения) показателями,
+     * каждый — "O'tgan yil"/"Joriy yil"/"O'sish-Pasayish %" (как Form 6/8/9),
+     * плюс городской / сельский / детский (до 18 лет) срезы текущего периода;
+     * разбивки узла нет — только география. См. {@code Form11ReportController}
+     * под {@code modules.report.form11}.
+     */
+    public static final class Form11Report {
+        private Form11Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-11";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
+     * "Form 12" — «Nozologik shakllar bo'yicha yuqumli va parazitar
+     * kasalliklar», данные по инфекционным и паразитарным болезням в разрезе
+     * нозологических форм. Корневой уровень — не география, а плоский список
+     * записей справочника ручных отчётов ({@code /v1/references/manual-reports})
+     * с тегом типа {@code FORM_12}: числа строки — подтверждённые (status =
+     * APPROVED) случаи форм №058 + №058-1, чей подтверждённый диагноз входит в
+     * набор кодов МКБ-10 записи (всего / до 14 лет / до 18 лет), за выбранный
+     * период рядом с тем же периодом год назад, плюс строка "Jami" (только
+     * записи с includeInTotal). Раскрытие строки — drill-down по
+     * административной иерархии (республика→регион→район→организация) для этой
+     * нозологической формы. См. {@code Form12ReportController} под {@code
+     * modules.report.form12}.
+     */
+    public static final class Form12Report {
+        private Form12Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-12";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
     }
 
     /**

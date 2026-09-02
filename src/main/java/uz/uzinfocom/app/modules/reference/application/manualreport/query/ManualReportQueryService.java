@@ -86,4 +86,22 @@ public class ManualReportQueryService {
                 .map(manualReportMapper::toResponse)
                 .toList();
     }
+
+    /**
+     * Every active manual-report catalog entry tagged with the given report
+     * type (matched case-insensitively). Used by the statistical reports that
+     * are driven by the catalog rather than by a fixed field list — e.g.
+     * "Form 12", whose rows are the entries tagged {@code FORM_12}.
+     */
+    @Transactional(readOnly = true)
+    public List<ManualReportResponse> findByReportType(String reportType) {
+        if (reportType == null || reportType.isBlank()) {
+            return List.of();
+        }
+
+        return manualReportRepository.findAllByReportTypeAndDeletedFalse(reportType.trim())
+                .stream()
+                .map(manualReportMapper::toResponse)
+                .toList();
+    }
 }

@@ -24,9 +24,11 @@ import java.util.stream.Collectors;
  * <p>
  * "Registered" = every form058/form058_1 notification created by the
  * organization in {@code [fromInclusive, toExclusive)} that is not deleted
- * and not {@code CANCELED} (a form058 rejected by the receiver is stored as
- * {@code CANCELED}). "Birlamchi tashxis tasdiqlandi" = that subset with
- * {@code status = 'APPROVED'}. No diagnosis filtering.
+ * and has been confirmed ({@code status = 'APPROVED'}) — the report counts
+ * confirmed cases only, never primary/not-yet-decided notifications.
+ * "Birlamchi tashxis tasdiqlandi" is therefore the same population as
+ * "Registered" (kept as its own column for the reference form layout). No
+ * diagnosis filtering.
  */
 @Repository
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class Form7CaseCountRepository {
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
-              and f.status <> 'CANCELED'
+              and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
             select extract(year from age(f.created_at::date, p.birth_date))::int,
@@ -50,7 +52,7 @@ public class Form7CaseCountRepository {
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
-              and f.status <> 'CANCELED'
+              and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             """;
 

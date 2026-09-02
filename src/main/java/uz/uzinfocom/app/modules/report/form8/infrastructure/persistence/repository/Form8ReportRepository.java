@@ -17,12 +17,10 @@ import java.util.stream.Collectors;
  * comparison report, over an arbitrary caller-supplied {@code [fromInclusive,
  * toExclusive)} range. Mirrors {@code Form6ReportRepository} exactly (same
  * {@code VALUES}-list org-id join instead of {@code IN}/{@code = any(...)},
- * same {@code (:param)::type} cast style, same primary-only status filter)
- * but buckets by {@code patient.category_code} instead of age — this report
- * has no CONFIRMED counterpart, so the UNION below has 2 branches, not 4. A
- * form058 rejected by the receiver is stored as {@code CANCELED} (see {@code
- * FormStatus}), so it is already excluded here — there is no separate
- * "rejected" status to account for.
+ * same {@code (:param)::type} cast style) but buckets by {@code
+ * patient.category_code} instead of age, and counts confirmed cases only
+ * ({@code status = 'APPROVED'}) — primary/not-yet-decided and {@code CANCELED}
+ * notifications are both excluded — so the UNION below has 2 branches, not 4.
  * <p>
  * Category buckets for {@link #countCategoryBreakdown} are the same set
  * "Form 4" breaks out ({@code Form4ReportRepository}); the seeded {@code
@@ -46,7 +44,7 @@ public class Form8ReportRepository {
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
+              and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
@@ -55,7 +53,7 @@ public class Form8ReportRepository {
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
+              and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             """;
