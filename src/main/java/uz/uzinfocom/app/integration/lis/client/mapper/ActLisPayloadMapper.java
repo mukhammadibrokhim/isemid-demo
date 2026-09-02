@@ -105,6 +105,10 @@ public class ActLisPayloadMapper {
     private SelectionActItem toSelectionItem(Act153Detail detail) {
         return SelectionActItem.builder()
                 .itemTypeId(itemTypeIdOf(detail.getResearchItemTypeInfo()))
+                // sampleQtUnit is deliberately NOT sent for ACT153: 153's quantity
+                // lives in sampleVolume/sampleVolumeUnit (distinct from sampleQtUnit),
+                // and a lone unit with no value is more misleading than none.
+                // TODO(LIS-spec): which quantity pair does LIS want for water (153)?
                 .samplingAddress(detail.getAddress())
                 .samplingDepth(toStringOrNull(detail.getSamplingDepth()))
                 .depthUnit(detail.getDepthUnit())
@@ -157,6 +161,8 @@ public class ActLisPayloadMapper {
                 .itemTypeId(itemTypeIdOf(detail.getResearchItemTypeInfo()))
                 .groupSize(toStringOrNull(detail.getGroupSize()))
                 .sampleWeight(toStringOrNull(detail.getSampleWeight()))
+                // TODO(LIS-spec): confirm LIS accepts our SampleQtUnit enum name as-is.
+                .sampleQtUnit(detail.getSampleQtUnit())
                 .build();
     }
 

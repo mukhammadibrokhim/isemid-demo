@@ -117,10 +117,15 @@ public class NotificationEventListener {
     }
 
     private void handleActStatusChanged(StatusChangedEvent event) {
-        if (!"SENT".equals(event.oldStatus()) || !"COMPLETED".equals(event.newStatus())) {
+        if (!"SENT".equals(event.oldStatus())) {
             return;
         }
-        handleActLisResponse(event);
+        // LIS answered on a sent act — either the result is in (COMPLETED) or
+        // it sent the act back for rework (RETURNED_BY_LIS). Both are the
+        // "LIS responded" notification the attached employees are waiting on.
+        if ("COMPLETED".equals(event.newStatus()) || "RETURNED_BY_LIS".equals(event.newStatus())) {
+            handleActLisResponse(event);
+        }
     }
 
     /**

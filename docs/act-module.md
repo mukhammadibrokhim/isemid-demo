@@ -68,23 +68,35 @@ One `ActStatus` for every type, no accept/reject/supervisor-approval gate
 
 ```
 NEW → IN_PROGRESS → READY → SENT → COMPLETED
-                       ↑        ↓
-                       └── SEND_FAILED
+                       ↑       │ │
+       SEND_FAILED ────┘       │ └──→ RETURNED_BY_LIS
+            ↑ └────────────────┘            │
+            │ (send itself failed)          │ (LIS accepted, then
+            └───────────────────────────────┘  sent back for rework)
 ```
 
 - `update` (`PUT /acts/{id}`): freely re-saveable from NEW/IN_PROGRESS/READY/
-  SEND_FAILED, always lands on IN_PROGRESS. Blocked once SENT/COMPLETED.
-- `markReady`: IN_PROGRESS or SEND_FAILED → READY.
-- `markSendingToLis` / `ActLisSendService.send`: READY or SEND_FAILED → SENT
-  (records `LisInfo.attempt`/`sentDate`, clears any previous `lastError`).
+  SEND_FAILED/RETURNED_BY_LIS, always lands on IN_PROGRESS. Blocked once
+  SENT/COMPLETED.
+- `markReady`: IN_PROGRESS, SEND_FAILED, or RETURNED_BY_LIS → READY.
+- `markSendingToLis` / `ActLisSendService.send`: READY, SEND_FAILED, or
+  RETURNED_BY_LIS → SENT (records `LisInfo.attempt`/`sentDate`, clears any
+  previous `lastError`). On a re-send the frontend passes `force: true` so
+  LIS accepts the duplicate `senderActNumber` as a fresh request.
 - `recordLisSendSuccess` / `recordLisSendFailure`: called after the actual
   HTTP call — success attaches the LIS-side act id; failure moves SENT →
   SEND_FAILED with a reason, staying editable/re-sendable.
 - `receiveLisResponse` (`POST /acts/{id}/lis/callback`, called by LIS itself
-  — see [`act-lis-frontend-guide.md`](./act-lis-frontend-guide.md)): SENT →
-  COMPLETED only, stores the full LIS response JSON.
-- `delete`: soft-delete, blocked once SENT or COMPLETED
-  (`ActAlreadySentToLisException`).
+  — see [`act-lis-frontend-guide.md`](./act-lis-frontend-guide.md)): stores
+  the full LIS response JSON and, based on what the body says
+  (`LisCallbackInterpreter`), either SENT → COMPLETED (the result is in) or
+  SENT → RETURNED_BY_LIS (sent back for rework; short reason also written to
+  `LisInfo.lastError`). **TODO(LIS-spec):** the exact "returned" signal in
+  LIS's callback body is unconfirmed — the interpreter uses a broad
+  status/flag heuristic and defaults to COMPLETED.
+- `delete`: soft-delete, blocked once SENT, COMPLETED, or RETURNED_BY_LIS
+  (`ActAlreadySentToLisException`) — LIS has seen the act, so it is
+  reworked/re-sent, never removed.
 
 ## LIS integration
 
@@ -94,6 +106,38 @@ research code LIS expects — updated when Act155 was removed.
 `LisUnsupportedActTypeException` fires if a type has no mapping.
 
 ## Recent changes
+
+### Frontend-driven changes (2026-09-02)
+
+Responding to the ISEMID/YKEM frontend's question list (see
+`docs/act-backend-answers.md`):
+
+- **`RETURNED_BY_LIS` status** — LIS can send a sent act back for rework via
+  the same callback. `ActCommandService.receiveLisResponse` branches
+  COMPLETED vs RETURNED_BY_LIS on `LisCallbackInterpreter` (a broad
+  heuristic — real LIS signal still owed). Editable/re-sendable, not
+  deletable. See the Lifecycle section above.
+- **`lisInfo` on every `Act…DetailResponse`** (`ActLisInfoResponse`) — was
+  entity-only.
+- **`subject`** — new free-text column on the base `act` table (500 chars),
+  on all 5 `Act…Request`/`Act…DetailResponse` and `ActTableResponse`. The
+  one "what is this act about" field every type has.
+- **`act_number` moved to the base `act` table** — was a `BIGINT` on
+  `act153`/`act154`/`act223` only; migration
+  `zzz-card-act/20260902-1200-...` adds it to `act`, backfills from the
+  subtypes, drops the subtype columns. `Act153/154/223` lose their own
+  field (inherit from `Act`); detail-response shapes unchanged.
+- **`ActTableResponse`** gained `subject`, `actNumber`, `cardId`,
+  `cardType`, `assignedById`.
+- **`actType` query filter** on `ActFilterRequest`/`ActSpecification`.
+- **`sampleQtUnit`** now forwarded to LIS for `ACT154` (not `ACT153` — see
+  `act-lis-frontend-guide.md`).
+- **RBAC enforcement** — the Act controllers now check
+  `PERMISSION_ATTACH_ACT_{READ,VIEW_ALL,ASSIGN,UPDATE,DELETE}` via
+  `@PreAuthorize` (were `isAuthenticated()` only). `VIEW_ALL` is a new
+  custom action gating the org-wide `GET /v1/acts`; `/v1/acts/mine` and the
+  rest use `READ`. `/lis/callback` stays `isAuthenticated()` (LIS calls it).
+  Seed: `iam/20260902-1300-seed-act-view-all-action.xml`.
 
 ### Act155 removal (2026-08-24)
 

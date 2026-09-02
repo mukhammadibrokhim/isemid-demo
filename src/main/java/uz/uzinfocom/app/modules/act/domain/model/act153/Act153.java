@@ -33,9 +33,6 @@ import java.util.List;
 @AllArgsConstructor
 public class Act153 extends Act {
 
-    @Column(name = "act_number")
-    private Long actNumber;
-
     @Column(name = "activity_type_code")
     private String activityTypeCode;
 

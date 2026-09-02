@@ -33,6 +33,10 @@ public final class ActSpecification {
                 predicates.add(cb.equal(root.get("actStatus"), filter.status()));
             }
 
+            if (filter.actType() != null) {
+                predicates.add(cb.equal(root.get("actType"), filter.actType()));
+            }
+
             if (filter.assignedToUserId() != null) {
                 Join<Act, User> users = root.join("users", JoinType.INNER);
                 predicates.add(cb.equal(users.get("id"), filter.assignedToUserId()));

@@ -626,6 +626,47 @@ public final class ApiPaths {
     }
 
     /**
+     * "Form 8" — «Инфекционные и паразитарные заболевания по социальному
+     * составу», сравнительный анализ первичных извещений (status NOT IN
+     * (APPROVED, CANCELED)), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация) с колонками "O'tgan yil"/"Joriy yil"/"O'sish-Kamayish"
+     * (как Form 6), плюс разбивка каждого узла по социальным категориям
+     * (patient.category_code, тот же набор, что разбивает Form 4) — см.
+     * {@code Form8ReportController} под {@code modules.report.form8}.
+     */
+    public static final class Form8Report {
+        private Form8Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-8";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String CATEGORY_BREAKDOWN = "/category-breakdown";
+    }
+
+    /**
+     * "Shakl №7" manual statistics entry — infectious-disease registry
+     * movement for a reporting period: cases open at the start of the
+     * period, patients newly registered during the period (with age/gender/
+     * urban-rural cuts and follow-up columns — examined, to be examined,
+     * primary diagnosis confirmed, hospitalized), cases open at the end of
+     * the period, and the period-over-period change. The age/gender cuts and
+     * "primary diagnosis confirmed" are auto-computed server-side from
+     * form058 + form058_1 case data (see {@link #PREFILL}, mirroring {@link
+     * Form2ManualEntry}); every other count is operator-entered. See {@code
+     * Form7EntryController} under {@code modules.report.form7}.
+     */
+    public static final class Form7Entry {
+        private Form7Entry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-7/entries";
+        public static final String PREFILL = "/prefill";
+        public static final String BY_ID = "/{id}";
+    }
+
+    /**
      * "Shakl №2" manual statistics entry — counts that have no source of
      * truth anywhere else in the system (disinfection, inspections, fines,
      * prosecutor referrals, ...), entered by hand per creating organization

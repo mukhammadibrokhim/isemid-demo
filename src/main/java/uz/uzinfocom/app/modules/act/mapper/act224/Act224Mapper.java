@@ -38,6 +38,7 @@ public interface Act224Mapper {
     @Mapping(target = "assignedById", ignore = true)
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "resultComment", ignore = true)
+    @Mapping(target = "actNumber", ignore = true) // act224 has no paper act number
     @Mapping(target = "act224Details", ignore = true)
     void copyOwnFields(@MappingTarget Act224 target, Act224Request request);
 }

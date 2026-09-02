@@ -110,6 +110,6 @@ class ActQueryServiceTest {
     }
 
     private ActFilterRequest emptyFilter() {
-        return new ActFilterRequest(1, 20, null, null, null, null, null, null);
+        return new ActFilterRequest(1, 20, null, null, null, null, null, null, null);
     }
 }

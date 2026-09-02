@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.act.application.query.dto.detail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act153.Act153SampleResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ConditionInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ConservationTypeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.EmployeeInfoResponse;
@@ -24,6 +25,7 @@ public record Act153DetailResponse(
         CardMiniResponse card,
         Long assignedById,
         String resultComment,
+        String subject,
         ActInstitutionResponse institution,
 
         Long actNumber,
@@ -45,6 +47,7 @@ public record Act153DetailResponse(
         String additionalInfo,
         List<Act153SampleResponse> samples,
 
+        ActLisInfoResponse lisInfo,
         AuditResponse audit
 ) implements ActDetailResponse {
 }

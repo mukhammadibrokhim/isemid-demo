@@ -36,9 +36,6 @@ public class Act154 extends Act {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "act_number")
-    private Long actNumber;
-
     @Column(name = "activity_type_code")
     private String activityTypeCode;
 

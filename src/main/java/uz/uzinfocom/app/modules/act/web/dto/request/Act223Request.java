@@ -18,6 +18,9 @@ import java.util.List;
 public record Act223Request(
         InstitutionRequest institution,
 
+        @Schema(description = "Тема/предмет далолатномы — что это за акт (свободный текст).")
+        @Size(max = 500) String subject,
+
         Long actNumber,
         @Size(max = 500) String supportingDocumentsForSampling,
         @Size(max = 500) String goal,

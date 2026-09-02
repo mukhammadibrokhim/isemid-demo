@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
@@ -55,7 +56,20 @@ public sealed interface ActDetailResponse
 
     String resultComment();
 
+    /**
+     * Free-text "what this act is about" — every act type has it (see
+     * {@code Act.subject}). {@code null} until an operator fills it in.
+     */
+    String subject();
+
     ActInstitutionResponse institution();
+
+    /**
+     * The act's LIS transmission state — always present. Lets the frontend
+     * show why an act is {@code SEND_FAILED} / {@code RETURNED_BY_LIS} or
+     * what the {@code COMPLETED} result was.
+     */
+    ActLisInfoResponse lisInfo();
 
     /**
      * Populated for {@code GET /v1/acts/{id}} (who and when created/updated

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.integration.lis.client.callback.LisCallbackInterpreter;
 import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
 import uz.uzinfocom.app.modules.act.application.exception.ActNotFoundException;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
@@ -51,12 +52,14 @@ import java.util.stream.Collectors;
  * same split {@code CardCommandService} uses for {@code Card}.
  * <p>
  * The act's status ({@link ActStatus}) moves forward through {@link #update}
- * (NEW/READY/SEND_FAILED -> IN_PROGRESS), {@link #markReady}
- * (IN_PROGRESS/SEND_FAILED -> READY), {@link #markSendingToLis}
- * (READY/SEND_FAILED -> SENT), and {@link #receiveLisResponse}
- * (SENT -> COMPLETED, called back by LIS once it has processed the act).
- * {@link #recordLisSendFailure} is the one step back
- * (SENT -> SEND_FAILED), taken when the send itself failed.
+ * (NEW/READY/SEND_FAILED/RETURNED_BY_LIS -> IN_PROGRESS), {@link #markReady}
+ * (IN_PROGRESS/SEND_FAILED/RETURNED_BY_LIS -> READY), {@link #markSendingToLis}
+ * (READY/SEND_FAILED/RETURNED_BY_LIS -> SENT), and {@link #receiveLisResponse}
+ * (SENT -> COMPLETED or SENT -> RETURNED_BY_LIS, called back by LIS once it
+ * has processed the act). {@link #recordLisSendFailure} is one step back
+ * (SENT -> SEND_FAILED), taken when the send itself failed;
+ * RETURNED_BY_LIS is the other, taken when LIS accepted the act but sent it
+ * back for rework.
  * <p>
  * {@link #markSendingToLis}/{@link #recordLisSendSuccess}/
  * {@link #recordLisSendFailure} are deliberately three separate transactions
@@ -193,7 +196,9 @@ public class ActCommandService {
     public void markReady(Long actId) {
         Act act = requireAttachedUserAct(actId);
         requireTransition(
-                act.getActStatus() == ActStatus.IN_PROGRESS || act.getActStatus() == ActStatus.SEND_FAILED,
+                act.getActStatus() == ActStatus.IN_PROGRESS
+                        || act.getActStatus() == ActStatus.SEND_FAILED
+                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS,
                 act.getActStatus()
         );
         String oldStatus = act.getActStatus().name();
@@ -220,7 +225,9 @@ public class ActCommandService {
     public Act markSendingToLis(Long actId) {
         Act act = requireAttachedUserAct(actId);
         requireTransition(
-                act.getActStatus() == ActStatus.READY || act.getActStatus() == ActStatus.SEND_FAILED,
+                act.getActStatus() == ActStatus.READY
+                        || act.getActStatus() == ActStatus.SEND_FAILED
+                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS,
                 act.getActStatus()
         );
         String oldStatus = act.getActStatus().name();
@@ -263,8 +270,13 @@ public class ActCommandService {
 
     /**
      * Called back by LIS once it has processed a sent act — stores its raw
-     * response and moves the act to {@link ActStatus#COMPLETED}, which
-     * concludes the act's lifecycle.
+     * response and either concludes the act ({@link ActStatus#COMPLETED},
+     * the laboratory result is in) or sends it back for rework
+     * ({@link ActStatus#RETURNED_BY_LIS}), depending on what the callback
+     * body says (see {@link LisCallbackInterpreter}). Either way the full
+     * body is kept in {@code lisInfo.response}; a return also records a
+     * short reason in {@code lisInfo.lastError} so the attached employee
+     * sees why without opening the raw JSON.
      */
     @Transactional
     public void receiveLisResponse(Long actId, Long lisActId, Map<String, Object> response) {
@@ -275,7 +287,15 @@ public class ActCommandService {
         String oldStatus = act.getActStatus().name();
         act.getLisInfo().setActId(lisActId);
         act.getLisInfo().setResponse(response);
-        act.setActStatus(ActStatus.COMPLETED);
+
+        LisCallbackInterpreter.Result outcome = LisCallbackInterpreter.interpret(response);
+        if (outcome.outcome() == LisCallbackInterpreter.Outcome.RETURNED) {
+            act.getLisInfo().setLastError(outcome.reason());
+            act.setActStatus(ActStatus.RETURNED_BY_LIS);
+        } else {
+            act.setActStatus(ActStatus.COMPLETED);
+        }
+
         Act saved = actRepository.save(act);
         publishStatusChange(saved, oldStatus);
     }
@@ -330,7 +350,9 @@ public class ActCommandService {
         Act act = actRepository.findActiveByIdForUpdate(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
 
-        if (act.getActStatus() == ActStatus.SENT || act.getActStatus() == ActStatus.COMPLETED) {
+        if (act.getActStatus() == ActStatus.SENT
+                || act.getActStatus() == ActStatus.COMPLETED
+                || act.getActStatus() == ActStatus.RETURNED_BY_LIS) {
             throw new ActAlreadySentToLisException("error.act.already-sent-to-lis");
         }
 
@@ -339,12 +361,13 @@ public class ActCommandService {
 
     /**
      * NEW, IN_PROGRESS, READY, and SEND_FAILED all still precede a
-     * successful send to LIS, so saving is allowed from any of them; once
-     * SENT or COMPLETED, the act has left our hands.
+     * successful send to LIS, so saving is allowed from any of them;
+     * RETURNED_BY_LIS reopens editing after LIS sent the act back for
+     * rework. Once SENT or COMPLETED, the act has left our hands.
      */
     private boolean canBeUpdated(ActStatus status) {
         return switch (status) {
-            case NEW, IN_PROGRESS, READY, SEND_FAILED -> true;
+            case NEW, IN_PROGRESS, READY, SEND_FAILED, RETURNED_BY_LIS -> true;
             case SENT, COMPLETED -> false;
         };
     }

@@ -84,11 +84,11 @@ class ActCommandServiceStatusTransitionTest {
             Act act = invocation.getArgument(0);
             return new Act153DetailResponse(
                     act.getId(), act.getActType(), act.getActStatus(), null,
-                    act.getAssignedById(), act.getResultComment(), null,
+                    act.getAssignedById(), act.getResultComment(), null, null,
                     null, null, null, null, null, null,
                     null, null, null, null, null,
                     null, null, null, null, null, null, null,
-                    null
+                    null, null
             );
         });
     }
@@ -274,6 +274,66 @@ class ActCommandServiceStatusTransitionTest {
     }
 
     @Test
+    void receiveLisResponseMovesSentToReturnedWhenBodySignalsReturn() {
+        Act act = actWith(ActStatus.SENT, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+
+        service.receiveLisResponse(ACT_ID, 555L, Map.of("status", "RETURNED", "message", "namuna yetarli emas"));
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.RETURNED_BY_LIS);
+        assertThat(act.getLisInfo().getActId()).isEqualTo(555L);
+        assertThat(act.getLisInfo().getLastError()).isEqualTo("namuna yetarli emas");
+        assertThat(act.getLisInfo().getResponse()).containsEntry("status", "RETURNED");
+    }
+
+    @Test
+    void updateAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.update(ACT_ID, blankAct153Request());
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void markReadyAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.markReady(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.READY);
+    }
+
+    @Test
+    void markSendingToLisAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        act.getLisInfo().setLastError("LIS_RETURNED");
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.markSendingToLis(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.SENT);
+        assertThat(act.getLisInfo().getAttempt()).isEqualTo(1);
+        assertThat(act.getLisInfo().getLastError()).isNull();
+    }
+
+    @Test
+    void deleteBlockedOnceReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, Set.of());
+        givenAct(act);
+
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
+                .isInstanceOf(ActAlreadySentToLisException.class);
+
+        assertThat(act.isDeleted()).isFalse();
+    }
+
+    @Test
     void receiveLisResponseRejectsFromReady() {
         Act act = actWith(ActStatus.READY, attachedUserId(ATTACHED_USER_ID));
         givenAct(act);
@@ -347,7 +407,7 @@ class ActCommandServiceStatusTransitionTest {
 
     private ActRequest blankAct153Request() {
         return new Act153Request(
-                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null, null
         );
     }

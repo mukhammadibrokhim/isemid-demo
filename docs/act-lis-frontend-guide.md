@@ -105,19 +105,16 @@ name the same physical lab. If product intent is that they always agree,
 enforce that client-side (e.g. drive both fields off one picker) until/unless
 the backend adds validation.
 
-**By design, not a backend gap:** the labs list is fetched by the frontend
-directly from `lis.sanepid.uz`, outside this backend entirely — confirmed by
-the user, not something this backend proxies or needs to. This backend's
-`LisActClient` only ever calls LIS for `createAct`/`resolveActTemplateId`;
-it has no labs-list endpoint and isn't meant to grow one. The frontend picks
-`labId` from that direct LIS lookup and passes only the chosen id into
-`send-to-lis` — this backend never sees the rest of that catalog.
-
-One thing to carry over from that direct call: whatever auth the frontend
-uses against `lis.sanepid.uz` for the labs list is a separate credential
-from `integration.lis.api-key` below, which stays backend-only and is never
-handed to the frontend — don't reuse or expose that one for the direct
-lookup.
+**Where the `labId` options come from:** use the proxied
+`GET /v1/lis-reference/organizations` (+ `/organizations/{id}/departments`)
+endpoints below — same catalog, served through this backend so the LIS
+credential never ships in frontend code. A direct call to `lis.sanepid.uz`
+is not an option: every path there returns `401`, and LIS's only key is
+deliberately backend-only (`integration.lis.api-key`, never handed to the
+frontend). `LisActClient` itself still only calls LIS for
+`createAct`/`resolveActTemplateId`; the dictionary reads go through
+`LisReferenceClient` (see the table below). The frontend picks `labId` from
+that proxied lookup and passes only the chosen id into `send-to-lis`.
 
 ## LIS reference/dictionary endpoints — proxied through this backend
 
@@ -221,8 +218,10 @@ mapping to work around.
 
 ```
 NEW → IN_PROGRESS → READY → SENT → COMPLETED
-                       ↑        │
-                       └─ SEND_FAILED
+                       ↑       │ │
+       SEND_FAILED ────┘       │ └──→ RETURNED_BY_LIS ──┐
+            ↑ └────────────────┘                        │
+            └────────────────────────────(rework)───────┘
 ```
 
 | Status | Meaning | Frontend affordances |
@@ -230,26 +229,33 @@ NEW → IN_PROGRESS → READY → SENT → COMPLETED
 | `NEW` / `IN_PROGRESS` | Being filled in | Edit, mark ready once complete |
 | `READY` | Ready to send | Edit (drops back to `IN_PROGRESS`), send to LIS |
 | `SENT` | LIS accepted it, result pending | Read-only — no edit/delete |
-| `SEND_FAILED` | The *send itself* failed (network/LIS rejection) | Fix and retry (`ready` → `send-to-lis` again) |
+| `SEND_FAILED` | The *send itself* failed (network/LIS rejection) — never reached LIS | Fix and retry (`ready` → `send-to-lis` again); still deletable |
+| `RETURNED_BY_LIS` | LIS accepted the act, then sent it back for rework instead of a result | Edit → `ready` → `send-to-lis` again (pass `force: true` — see below). **Not** deletable |
 | `COMPLETED` | LIS's result has been received | Read-only, terminal |
 
-> **Known gap:** neither `lisInfo.lastError` (why a `SEND_FAILED` attempt
-> failed) nor `lisInfo.response` (LIS's full result payload once
-> `COMPLETED`) nor `lisInfo.actId` (LIS's own act id) is currently exposed
-> on any `Act153/154/223DetailResponse` — they exist on the entity
-> (`LisInfo` embeddable) but the response DTOs don't carry them yet. In
-> practice this means the frontend can show that an act is `SEND_FAILED` or
-> `COMPLETED`, but not *why* or *what the result was*, until the backend
-> adds those fields to the detail response. Flag this early if the UI needs
-> to show LIS results or failure reasons.
+`lisInfo` is now on every `Act…DetailResponse` (always present):
+`lisInfo.attempt` (0 = never sent), `lisInfo.sentDate`, `lisInfo.actId`
+(LIS's own id), `lisInfo.lastError` (why the last send failed **or** why LIS
+returned the act — cleared on the next attempt), and `lisInfo.response` (the
+full LIS callback body, available once `COMPLETED` or `RETURNED_BY_LIS`).
+
+> **On `RETURNED_BY_LIS`:** re-sending is a fresh LIS request under the same
+> `senderActNumber`, so LIS treats it as a duplicate unless the frontend
+> passes `force: true` on that `send-to-lis` call. **TODO(LIS-spec):** how
+> LIS marks a "returned" act in its callback body is not confirmed — the
+> backend uses a broad heuristic (`LisCallbackInterpreter`) and defaults to
+> `COMPLETED`, so a genuine return that doesn't match the heuristic will
+> currently look completed. Confirm the real signal against `Act.xlsx`/LIS.
 
 ## Notification on result
 
 Already wired up — no extra backend work needed. When the callback moves an
-act `SENT → COMPLETED`, every employee attached to that act gets an
-`ACT_LIS_RESPONSE` notification (feature-flagged via
-`notification.act-lis-response.enabled`, default on). Consume it exactly
-like any other type in
+act `SENT → COMPLETED` **or `SENT → RETURNED_BY_LIS`**, every employee
+attached to that act gets an `ACT_LIS_RESPONSE` notification (feature-flagged
+via `notification.act-lis-response.enabled`, default on). The notification
+does not itself say which of the two happened — read the act
+(`GET /v1/acts/{entityId}`) and check `status` / `lisInfo`. Consume it
+exactly like any other type in
 [`notification-frontend-guide.md`](./notification-frontend-guide.md) — list,
 unread count, SSE stream, mark-read all work unchanged. `entityType` is
 `ACT`, `entityId` is the act id, so a sensible click-through is
@@ -303,13 +309,15 @@ built the original integration. Diffing that against this codebase's
 `LisActPushRequest`/`ActLisPayloadMapper` surfaces gaps worth checking
 against LIS's real schema before assuming the current payload is complete:
 
-1. **`sampleQtUnit` is captured but never sent — confirmed in code.**
-   `Act153Detail.sampleQtUnit` and `Act154Detail.sampleQtUnit` both exist as
-   real, populated domain columns (`sample_qt_unit`), and
-   `LisActPushRequest.SelectionActItem.sampleQtUnit` exists as a field to
-   carry it — but `ActLisPayloadMapper.toSelectionItem(...)` never calls
-   `.sampleQtUnit(...)` for any act type. The unit for `sampleQt`/
-   `sampleWeight` is silently dropped from every LIS submission today.
+1. **`sampleQtUnit` — fixed for `ACT154` only.**
+   `ActLisPayloadMapper.toSelectionItem(Act154Detail)` now forwards
+   `detail.getSampleQtUnit()` next to `sampleWeight`. The enum value goes
+   over as-is — **TODO(LIS-spec):** confirm LIS accepts our `SampleQtUnit`
+   names. **`ACT153` deliberately does not send it:** 153's quantity is
+   `sampleVolume`/`sampleVolumeUnit` (a different pair from `sampleQtUnit`),
+   and neither the volume value nor a lone unit currently reaches LIS —
+   **TODO(LIS-spec):** which quantity pair does LIS want for water (153)?
+   `Act223Detail` has no such column at all.
 
 2. **`packageType` is likely sent at the wrong nesting level.** The legacy
    DTO's comment on its own (act-level-stored) `packageType` field is
@@ -373,11 +381,12 @@ credential of any kind.
 
 1. Should `lisOrganizationId` and `send-to-lis`'s `labId` be the same
    laboratory, and if so, who enforces that?
-2. ~~Where the `labId` picker's options come from~~ — resolved: the
-   frontend fetches the labs list directly from `lis.sanepid.uz`, not
-   through this backend. No backend work needed here.
-3. Exposing `lisInfo.lastError`/`response`/`actId` on the detail response —
-   needed before the frontend can show failure reasons or LIS results.
+2. ~~Where the `labId` picker's options come from~~ — resolved: use the
+   proxied `GET /v1/lis-reference/organizations` (+ `/departments`); a
+   direct `lis.sanepid.uz` call returns `401`. See "Where the `labId`
+   options come from" above.
+3. ~~Exposing `lisInfo.lastError`/`response`/`actId` on the detail
+   response~~ — **done**: `lisInfo` is now on every `Act…DetailResponse`.
 4. Confirm LIS actually authenticates its callback with a valid bearer
    token, since `/lis/callback` has no LIS-specific auth channel.
 5. Should `fullNameOfDoctor` be the sender or the recorded `sampler`, and
@@ -385,8 +394,14 @@ credential of any kind.
    LIS field spec (`Act.xlsx`).
 6. Should any act fields be mandatory before `READY`/`send-to-lis`, given
    nothing currently enforces that server-side?
-7. **Fix `sampleQtUnit` being dropped** — this one isn't really a question,
-   the domain data exists and the mapper just doesn't forward it.
+7. ~~Fix `sampleQtUnit` being dropped~~ — **done for `ACT154`** (see
+   mapping-gaps §1). `ACT153` intentionally left out until LIS says which
+   quantity pair it wants for water (`sampleQt`/`sampleQtUnit` vs
+   `sampleVolume`/`sampleVolumeUnit`). Also confirm LIS accepts the enum names.
+9. **How does LIS signal a *returned* act in its callback body?** The
+   backend now branches `SENT → COMPLETED` vs `SENT → RETURNED_BY_LIS` on a
+   heuristic (`LisCallbackInterpreter`) because the real contract is
+   unknown. Needs the actual field/value from `Act.xlsx` or LIS.
 8. Does LIS actually need `packageType` and `manufacturer`/`manufactureDate`
    nested per `selectionActItems[]` entry rather than at the act level, per
    the legacy client's comments? If so, both the payload mapper and (for

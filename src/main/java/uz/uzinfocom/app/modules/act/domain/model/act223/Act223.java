@@ -31,9 +31,6 @@ import java.util.List;
 @AllArgsConstructor
 public class Act223 extends Act {
 
-    @Column(name = "act_number")
-    private Long actNumber;
-
     @Column(name = "supporting_documents_for_sampling")
     private String supportingDocumentsForSampling;
 

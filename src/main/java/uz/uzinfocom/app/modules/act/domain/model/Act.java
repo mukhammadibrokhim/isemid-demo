@@ -73,6 +73,24 @@ public abstract class Act extends AbsEntity implements AuditableFields {
     @Embedded
     private Institution institution;
 
+    /**
+     * Free-text "what is this act about" — the one field an operator fills in
+     * that every act type has, so the registry row and other list views can
+     * say which case an act belongs to. Present on all 5 subtypes; lives here
+     * rather than per-subtype for that reason.
+     */
+    @Column(name = "subject", length = 500)
+    private String subject;
+
+    /**
+     * The act number from the paper form. Only meaningful for the three
+     * sample-collection types (act153/154/155→154/223); {@code null} for
+     * act156/act224. Kept on the base table (not per-subtype) so list views
+     * can show and search it without a subtype join.
+     */
+    @Column(name = "act_number")
+    private Long actNumber;
+
     @Embedded
     private LisInfo lisInfo = new LisInfo();
 
