@@ -646,6 +646,27 @@ public final class ApiPaths {
     }
 
     /**
+     * "Form 9" — «Юкумли касалликлар бўйича қиёсий маълумот»,
+     * сравнительный анализ первичных извещений (status NOT IN (APPROVED,
+     * CANCELED)), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация) с двумя метриками на узел («зарегистрировано по
+     * первичному извещению»; «госпитализировано»), каждая — "O'tgan yil"/
+     * "Joriy yil"/"Taqqoslash (+/-)" (как Form 6/8), плюс разбивка каждого
+     * узла по календарным месяцам (12 + "Jami") — см. {@code
+     * Form9ReportController} под {@code modules.report.form9}.
+     */
+    public static final class Form9Report {
+        private Form9Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-9";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String MONTHLY_BREAKDOWN = "/monthly-breakdown";
+    }
+
+    /**
      * "Shakl №7" manual statistics entry — infectious-disease registry
      * movement for a reporting period: cases open at the start of the
      * period, patients newly registered during the period (with age/gender/

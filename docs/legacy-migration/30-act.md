@@ -26,6 +26,8 @@ act'larga ishora qiluvchi `act_users`) **umuman ko'chirilmaydi**.
 | `act_type` | `act_type` NN | 1:1 (`ACT153/154/156/223/224`); `ACT155` — filtrlanadi |
 | — | `assigned_by_id` | `NULL` (legacy `act` da yo'q) |
 | — | `result_comment` | `NULL` |
+| — | `subject` | `NULL` (yangi maydon — 2026-09-02, base `act` da; legacy'da yo'q) |
+| — | `act_number` | legacy `act153/154/223` (`act_number` / `serial_number`) dan — 2026-09-02 dan base `act` da, sub-jadvallardan ko'chirildi. `act156/224` uchun `NULL` |
 | — | `subject_type` | `NULL` (qaror: ko'chirilmaydi) |
 | — | `tin` | `NULL` (legacy `act` base'da yo'q; subtype'larда bor — §4) |
 | — | `institution_name` / `institution_address` / `institution_legal_address` | `NULL` (qaror) |
@@ -102,7 +104,7 @@ detail qatoridan?
 | `document_send_date` | — | ⚠️ yangi'да yo'q — tashlanadimi? |
 | `hospitalization_date` | — | ⚠️ yangi'да yo'q |
 | `sample_object_name` | — | ⚠️ yangi'да yo'q (detail'даги `object_name`?) |
-| — | `act_number` | ⚠️ manba? (akt raqami) |
+| — | ~~`act_number`~~ | 2026-09-02 dan base `act.act_number` da (§1) — `act153` da emas |
 | — | `activity_type_code`, `goal`, `sample_taken_date_time`, `delivered_date_time` | ⚠️ legacy `act153_detail.sampling_date` / `sampling_purpose` dan header'ga? |
 | — | `purpose_id`+`sampling_purpose_uz/ru`, `special_condition_id`+triplet, `storage_delivery_condition_id`+triplet, `package_type_id`+triplet, `conservation_method_id`+triplet | legacy `act153_detail` (`sampling_purpose`, `special_sampling_conditions`, `storage_conditions`, `delivery_conditions`, `conservation_methods`) dan — ⚠️ detail→header |
 | — | `lis_organization_id` | legacy `act153_detail.organization_id` dan — ⚠️ detail→header |
@@ -148,7 +150,7 @@ detail qatoridan?
 | `object_address` | ⚠️ | yangi'да yo'q |
 | `sampler_full_name` | `sampler_full_name` | 1:1 |
 | `"position"` | `sampler_position_uz` (+`_id`=NULL) | ⚠️ triplet |
-| `serial_number` (bigint) | ⚠️ | yangi `act154` da yo'q — `act_number`? |
+| `serial_number` (bigint) | base `act.act_number` (§1) | 2026-09-02 dan base `act` da |
 | `tin` (integer) | `sampler_identifier_type='TIN'` + `..._value` | ⚠️ |
 | `document_send_date` | — | ⚠️ yangi'да yo'q |
 | `hospitalization_date` | — | ⚠️ yangi'да yo'q |
@@ -208,7 +210,7 @@ qolgan barcha `boolean` maydonlar 1:1. `+version`, `tz`.
 | `loinc` | `sampling_purpose_loinc` | ⚠️ (`reason_inspectoring_loinc` bilan to'qnashuv — ⚠️) |
 | `institution_name` / `institution_address` | — | ⚠️ yangi `act223` da yo'q (act base'da ham `institution_*` bor lekin qaror bo'yicha ko'chirilmaydi) |
 | `document_send_date` | — | ⚠️ yo'q |
-| — | `act_number`, `supporting_documents_for_sampling`, `delivered_date_time`, `purpose_id`+triplet, `special_condition_id`+triplet, `storage_delivery_condition_id`+triplet, `package_type_id`+triplet, `lis_organization_id`, `laboratory_address` | ⚠️ legacy `act223_detail` dan header'ga (`supporting_documents_for_sampling`) va boshqa manba yo'q → NULL |
+| — | `supporting_documents_for_sampling`, `delivered_date_time`, `purpose_id`+triplet, `special_condition_id`+triplet, `storage_delivery_condition_id`+triplet, `package_type_id`+triplet, `lis_organization_id`, `laboratory_address` | ⚠️ legacy `act223_detail` dan header'ga (`supporting_documents_for_sampling`) va boshqa manba yo'q → NULL. `act_number` → base `act.act_number` (§1) |
 
 **`public.act223_detail` → `public2.act223_detail`:**
 
