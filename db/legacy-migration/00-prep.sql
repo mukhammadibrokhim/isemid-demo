@@ -77,7 +77,7 @@ INSERT INTO public2.organization (
     id, version, created_at, updated_at, active, level_type, medical_type,
     name, name_uz, uuid
 ) VALUES (
-    0, 0, now(), now(), false, 'NOT_DEFINED', 'NOT_DEFINED',
+    0, 0, now(), now(), false, 'NOT_DEFINED', 'OTHER',
     'MIGRATSIYA: NOMA''LUM TASHKILOT', 'MIGRATSIYA: NOMA''LUM TASHKILOT',
     '00000000-0000-0000-0000-000000000000'
 );

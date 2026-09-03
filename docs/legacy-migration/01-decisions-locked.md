@@ -81,7 +81,8 @@ Ziddiyat bo'lsa — shu fayl ustun.
 | **`organization`/`users` `.district`** (erkin matn) | DROP. |
 | **`organization.name` → `name_uz`** | Ha, `name` ni `name_uz` ga ham nusxa (qolgan `name_ru/kaa/uz_cyril` = `NULL`). |
 | **`users.username`** | `nnuzb` (NULL bo'lsa `NULL` — yangi'da nullable). |
-| **`organization.level_type` / `medical_type` NULL** | `'NOT_DEFINED'`. |
+| **`organization.level_type` NULL** | `'NOT_DEFINED'` (OrganizationLevel has that constant). |
+| **`organization.medical_type` NULL** | `'OTHER'` — MedicalType has **no** `NOT_DEFINED`; its "not specified" sentinel is `OTHER` (see `OrganizationRemoteMapper#parseMedicalType`). |
 | **`patient`** | ~1:1 + `version`, `timestamptz`. |
 | **`pt_address` / `pt_affiliation` `patient_id IS NULL`** | Qator **skip** + log (yetim manzil). |
 | **`pt_identifier.type_code IS NULL`** | `'UNKNOWN'`. |

@@ -156,6 +156,9 @@ public final class ApiPaths {
         public static final String CATALOGS = ROOT + "/catalogs";
         public static final String MANUAL_REPORTS = ROOT + "/manual-reports";
         public static final String ICD10 = ROOT + "/icd10";
+        public static final String POPULATIONS = ROOT + "/populations";
+        public static final String SYNC = "/sync";
+        public static final String YEARS = "/years";
 
         public static final String BY_ID = "/{id}";
         public static final String BY_CODE = "/code/{code}";

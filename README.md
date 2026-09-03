@@ -370,4 +370,5 @@ Deeper, module-specific documentation lives under [`docs/`](docs):
 | [auth-login-frontend-guide.md](docs/auth-login-frontend-guide.md) | Frontend integration guide for login/refresh |
 | [notification-module.md](docs/notification-module.md) | Notification event fan-out model and triggers |
 | [notification-frontend-guide.md](docs/notification-frontend-guide.md) | Frontend integration guide for notifications/SSE |
+| [population-reference-frontend-guide.md](docs/population-reference-frontend-guide.md) | Frontend integration guide for the `ref_population` reference (year-scoped hierarchy, detail, manual entry, SDMX sync) |
 | [platform.md](docs/platform.md) | Shared platform infrastructure overview |

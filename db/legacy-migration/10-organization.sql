@@ -11,7 +11,8 @@ SET TIME ZONE 'Asia/Tashkent';
 -- Rename: city_code->district_code, state_code->region_code, line->address_line
 -- Drop:   country_code, district, email, service_area_code
 -- Backfill: version=0; created_by_id/updated_by_id=NULL; name_uz<-name;
---           level_type/medical_type NULL -> 'NOT_DEFINED';
+--           level_type NULL -> 'NOT_DEFINED'; medical_type NULL -> 'OTHER'
+--           (MedicalType has no NOT_DEFINED constant — its sentinel is OTHER);
 --           created_at/updated_at NULL -> now()
 -- parent_id: 2-bosqich (self-FK) — avval NULL, keyin UPDATE.
 INSERT INTO public2.organization (
@@ -29,7 +30,7 @@ SELECT
     o.active,
     left(o.city_code, 64),               -- district_code
     left(COALESCE(o.level_type, 'NOT_DEFINED'), 50),
-    left(COALESCE(o.medical_type, 'NOT_DEFINED'), 50),
+    left(COALESCE(o.medical_type, 'OTHER'), 50),
     left(o.name, 500),
     left(o.phone, 50),
     left(o.state_code, 64),               -- region_code

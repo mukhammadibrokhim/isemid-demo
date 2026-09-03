@@ -25,8 +25,8 @@ Umumiy: `id` saqlanadi · `version` → `0` · `created_at`/`updated_at` → `ti
 | `state_code` | `region_code` | nom o'zgardi |
 | `district` (erkin matn) | — | ⚠️ yangi'да yo'q — tashlanadimi yoki `district_code` ga? |
 | `line` | `address_line` | nom o'zgardi |
-| `level_type` (nullable) | `level_type` **NN** | legacy NULL → ⚠️ (`'NOT_DEFINED'`?) |
-| `medical_type` (nullable) | `medical_type` **NN** | legacy NULL → ⚠️ |
+| `level_type` (nullable) | `level_type` **NN** | legacy NULL → `'NOT_DEFINED'` |
+| `medical_type` (nullable) | `medical_type` **NN** | legacy NULL → `'OTHER'` (MedicalType has no `NOT_DEFINED`) |
 | `phone` | `phone` | to'g'ridan |
 | `tin` | `tin` | to'g'ridan |
 | `parent_id` | `parent_id` | to'g'ridan (self-FK — topologik tartib yoki deferrable) |
@@ -132,7 +132,8 @@ Transform: `+ version = 0`, `created_at`/`updated_at` → `timestamptz` (legacy 
    Farqli bo'lsa — value transform + crosswalk jadval (`00` §3, `docs/legacy-data-migration.md` §4).
 2. **`organization.district` / `users.district`** (erkin matn) — tashlanadimi yoki `district_code` ga urinib ko'riladimi?
 3. **`organization.name` → `name_uz`** ham nusxa qilinsinmi (ko'p tilli ustunlar)?
-4. **`organization.level_type` / `medical_type` NULL** qatorlar — nima qiymat (NN!)?
+4. ~~**`organization.level_type` / `medical_type` NULL** qatorlar — nima qiymat (NN!)?~~
+   HAL QILINDI: `level_type`→`'NOT_DEFINED'`, `medical_type`→`'OTHER'` (MedicalType'da `NOT_DEFINED` yo'q).
 5. **`users.username`** — nima bilan to'ldiriladi (`nnuzb`? `ppn`? NULL)?
 6. **`users.ppn` / `position_code` / `organization.country_code` / `email` / `service_area_code`** —
    tasdiqlangan DROP; e'tiroz bo'lsa hozir aytilsin.
