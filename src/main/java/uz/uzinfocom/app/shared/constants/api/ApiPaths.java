@@ -736,8 +736,9 @@ public final class ApiPaths {
 
     /**
      * "Form 13" — тот же материал, что и «Form 12» (подтверждённые, status =
-     * APPROVED, случаи форм №058 + №058-1, диагноз — coalesce(final_icd10_code,
-     * icd10_code), набор болезней — записи справочника ручных отчётов), но
+     * APPROVED, случаи форм №058 + №058-1, диагноз — только заключительный код
+     * final_icd10_code, без отката к первичному icd10_code, набор болезней —
+     * записи справочника ручных отчётов), но
      * «перевёрнутый»: строки — география (республика→регион→район→организация,
      * drill-down по одному уровню за вызов), столбцы — болезни (каждая запись
      * справочника ручных отчётов с тегом {@code FORM_13}), для каждой болезни
@@ -750,6 +751,56 @@ public final class ApiPaths {
         }
 
         public static final String ROOT = Report.ROOT + "/form-13";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
+     * "Form 28.1" — «Ayrim yuqumli va parazitar kasalliklar haqida ma'lumotlar»,
+     * структурно — клон «Form 12»: корневой уровень — плоский список записей
+     * справочника ручных отчётов ({@code /v1/references/manual-reports}) с тегом
+     * типа {@code FORM_28_1}, раскрытие строки — drill-down по административной
+     * иерархии (республика→регион→район→организация) для этой нозологической
+     * формы тем же движком {@code ReportHierarchyService}. Числа строки —
+     * подтверждённые (status = APPROVED, deleted = false) случаи форм №058 +
+     * №058-1, чей заключительный код МКБ-10 ({@code final_icd10_code}, без отката
+     * к первичному {@code icd10_code}) входит в набор кодов записи. В отличие от
+     * «Form 12» — один произвольный период {@code [from, to]} без сравнения год
+     * назад, а метрики варакаи: всего / женщины / до 17 включ. / до 14 включ. /
+     * до 1 года / 1–2 года / 3–5 лет, и те же возрастные срезы отдельно по
+     * сельскому населению ({@code patient.population_type_code =
+     * 'VILLAGE_RESIDENT'}). Последней строкой — «Jami» (только записи с
+     * includeInTotal). См. {@code Form281ReportController} под {@code
+     * modules.report.form281}.
+     */
+    public static final class Form281Report {
+        private Form281Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-28-1";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
+     * "Form 28.2" — «Kasalxona ichki infeksiyalari haqida ma'lumotlar»,
+     * структурно клон «Form 28.1» / «Form 12»: корневой уровень — плоский список
+     * записей справочника ручных отчётов с тегом типа {@code FORM_28_2},
+     * раскрытие строки — drill-down по административной иерархии
+     * (республика→регион→район→организация). Числа строки — подтверждённые
+     * (status = APPROVED, deleted = false) случаи форм №058 + №058-1, чей
+     * заключительный код МКБ-10 ({@code final_icd10_code}, без отката к
+     * первичному {@code icd10_code}) входит в набор кодов записи, за один
+     * произвольный период {@code [from, to]}. Метрики варакаи: всего / до 17
+     * включ. (лет) / до 1 месяца / от 1 месяца до 1 года. Последней строкой —
+     * «Jami» (только записи с includeInTotal). См. {@code Form282ReportController}
+     * под {@code modules.report.form282}.
+     */
+    public static final class Form282Report {
+        private Form282Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-28-2";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
     }

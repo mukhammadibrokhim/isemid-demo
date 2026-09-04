@@ -3,8 +3,9 @@ package uz.uzinfocom.app.modules.report.form13.application.query.dto;
 /**
  * "Form 13" per-disease count triple for a single geography node and a single
  * period: confirmed ({@code status = 'APPROVED'}) {@code form058} / {@code
- * form058_1} cases whose confirmed diagnosis ({@code coalesce(final_icd10_code,
- * icd10_code)}) is in one {@code FORM_13} catalog entry's ICD-10 set.
+ * form058_1} cases whose confirmed final diagnosis ({@code final_icd10_code} —
+ * no fallback to the initial {@code icd10_code}) is in one {@code FORM_13}
+ * catalog entry's ICD-10 set.
  * <ul>
  *   <li>{@code total} — every matching notification;</li>
  *   <li>{@code under14} — the subset under 14 complete calendar years at {@code created_at};</li>

@@ -25,16 +25,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * "Form 13" — the geography-first counterpart of "Form 12". Same case
- * material (confirmed, {@code status = 'APPROVED'}, {@code form058} + {@code
- * form058_1}; diagnosis {@code coalesce(final_icd10_code, icd10_code)}; disease
- * set = the manual-report catalog), but transposed: rows are geography
+ * "Form 13" — the geography-first counterpart of "Form 12". Same base material
+ * (confirmed, {@code status = 'APPROVED'}, {@code form058} + {@code form058_1};
+ * disease set = the manual-report catalog), but transposed: rows are geography
  * (republic→region→district→organization, one level per call via the shared
  * {@link ReportHierarchyService}) and columns are diseases — every {@link
- * ManualReportResponse} tagged {@value #MANUAL_REPORT_TYPE}. Each disease cell
- * shows the chosen period ("Joriy yil") next to the same calendar dates one
- * year earlier ("O'tgan yil") in three metrics — total / under 14 / under 18.
- * No delta column.
+ * ManualReportResponse} tagged {@value #MANUAL_REPORT_TYPE}. A case's diagnosis
+ * is its <b>confirmed final code alone</b> ({@code form058(_1).final_icd10_code},
+ * no fallback to the initial {@code icd10_code}) — a case with no final code
+ * recorded is not counted. Each disease cell shows the chosen period ("Joriy
+ * yil") next to the same calendar dates one year earlier ("O'tgan yil") in
+ * three metrics — total / under 14 / under 18. No delta column.
  * <p>
  * Every response row carries its {@code diseases[]} cells in the same order —
  * the {@code FORM_13} entries sorted by {@code code} — so the frontend renders

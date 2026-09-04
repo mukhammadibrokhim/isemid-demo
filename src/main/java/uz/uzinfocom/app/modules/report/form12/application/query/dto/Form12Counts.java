@@ -8,8 +8,9 @@ package uz.uzinfocom.app.modules.report.form12.application.query.dto;
  * report shows next to it:
  * <ul>
  *   <li>{@code total} — every APPROVED {@code form058} / {@code form058_1}
- *   notification whose confirmed diagnosis ({@code coalesce(final_icd10_code,
- *   icd10_code)}) is in the nosological form's code set;</li>
+ *   notification whose confirmed final diagnosis ({@code final_icd10_code}, no
+ *   fallback to the initial {@code icd10_code}) is in the nosological form's
+ *   code set;</li>
  *   <li>{@code under14} — the subset under 14 complete calendar years at
  *   {@code created_at};</li>
  *   <li>{@code under18} — the subset under 18 (a superset of {@code under14}).</li>

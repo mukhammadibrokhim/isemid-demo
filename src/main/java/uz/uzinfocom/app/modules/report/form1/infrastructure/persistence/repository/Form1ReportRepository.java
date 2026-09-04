@@ -77,6 +77,12 @@ import java.util.stream.Collectors;
  * is stored as {@code CANCELED} (see {@code FormStatus}), so it is already
  * excluded here — there is no separate "rejected" status to account for.
  * <p>
+ * The optional {@code diagnosisCode} filter is matched differently per block:
+ * the CONFIRMED block matches the <b>final</b> code alone ({@code
+ * final_icd10_code = :diagnosisCode}) — every confirmed-only report does, a
+ * confirmed case is defined by its final diagnosis — while the PRIMARY block,
+ * whose cases usually have no final code yet, still matches "initial OR final".
+ * <p>
  * Every {@code ::type} cast below wraps its named parameter in parentheses —
  * {@code (:param)::type}, never {@code :param::type} — because Hibernate's
  * named-parameter scanner reads trailing {@code ::} as part of the
@@ -99,7 +105,7 @@ public class Form1ReportRepository {
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
@@ -122,7 +128,7 @@ public class Form1ReportRepository {
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
