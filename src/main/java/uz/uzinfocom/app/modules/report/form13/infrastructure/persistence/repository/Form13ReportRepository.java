@@ -13,11 +13,14 @@ import java.util.stream.Collectors;
 
 /**
  * "Form 13" — native SQL aggregation across {@code form058} and {@code
- * form058_1}, structurally the same source as {@code Form12ReportRepository}
- * (confirmed cases only, {@code status = 'APPROVED'}; diagnosis is {@code
- * coalesce(f.final_icd10_code, f.icd10_code)}; age is {@code extract(year from
- * age(f.created_at::date, p.birth_date))}; scoped and grouped by {@code
- * sender_organization_id}). The difference is the grain: "Form 13" needs the
+ * form058_1}, structurally close to {@code Form12ReportRepository}
+ * (confirmed cases only, {@code status = 'APPROVED'}; age is {@code extract(year
+ * from age(f.created_at::date, p.birth_date))}; scoped and grouped by {@code
+ * sender_organization_id}). Unlike Form 12, the diagnosis of a case here is the
+ * <b>confirmed final code alone</b> — {@code f.final_icd10_code}, with <b>no</b>
+ * fallback to the initial {@code f.icd10_code}: a case that never got a final
+ * diagnosis recorded does not appear in this report at all. The difference from
+ * Form 12 in shape is the grain: "Form 13" needs the
  * counts split by <b>diagnosis code AND organization</b> at once, because the
  * report puts every disease on its own column against every territory row — so
  * the query service can roll a whole row of per-disease numbers up the
@@ -36,44 +39,48 @@ import java.util.stream.Collectors;
 public class Form13ReportRepository {
 
     private static final String UNION_SOURCE_TEMPLATE = """
-            select upper(coalesce(f.final_icd10_code, f.icd10_code)) as diagnosis_code,
+            select upper(f.final_icd10_code) as diagnosis_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years
             from form058 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status = 'APPROVED'
+              and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
-            select upper(coalesce(f.final_icd10_code, f.icd10_code)),
+            select upper(f.final_icd10_code),
                    extract(year from age(f.created_at::date, p.birth_date))::int
             from form058_1 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status = 'APPROVED'
+              and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             """;
 
     private static final String UNION_SOURCE_WITH_ORG_TEMPLATE = """
             select f.sender_organization_id,
-                   upper(coalesce(f.final_icd10_code, f.icd10_code)) as diagnosis_code,
+                   upper(f.final_icd10_code) as diagnosis_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years
             from form058 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status = 'APPROVED'
+              and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
             select f.sender_organization_id,
-                   upper(coalesce(f.final_icd10_code, f.icd10_code)),
+                   upper(f.final_icd10_code),
                    extract(year from age(f.created_at::date, p.birth_date))::int
             from form058_1 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status = 'APPROVED'
+              and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             """;
 

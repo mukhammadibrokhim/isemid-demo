@@ -52,7 +52,7 @@ public class Form11ReportRepository {
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id,
                    p.population_type_code,
@@ -63,7 +63,7 @@ public class Form11ReportRepository {
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             """;
 
     private static final String METRIC_COLUMNS = """

@@ -1,12 +1,12 @@
-package uz.uzinfocom.app.modules.report.form12.infrastructure.persistence.repository;
+package uz.uzinfocom.app.modules.report.form281.infrastructure.persistence.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12Counts;
-import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12DiagnosisCountProjection;
-import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12OrganizationCountProjection;
+import uz.uzinfocom.app.modules.report.form281.application.query.dto.Form281Counts;
+import uz.uzinfocom.app.modules.report.form281.application.query.dto.Form281DiagnosisCountProjection;
+import uz.uzinfocom.app.modules.report.form281.application.query.dto.Form281OrganizationCountProjection;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -14,46 +14,39 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * "Form 12" — native SQL aggregation across {@code form058} and {@code
- * form058_1} for the by-nosological-form infectious/parasitic disease report,
- * over an arbitrary caller-supplied {@code [fromInclusive, toExclusive)}
- * range. Confirmed cases only: {@code status = 'APPROVED'} (unlike Form
- * 6/8/9/11, which count primary/not-yet-decided notifications) — Form 12 is a
- * final-diagnosis statistical form.
+ * "Form 28.1" — native SQL aggregation across {@code form058} and {@code
+ * form058_1} for the «Ayrim yuqumli va parazitar kasalliklar haqida
+ * ma'lumotlar» reference form, over an arbitrary caller-supplied {@code
+ * [fromInclusive, toExclusive)} range. Structurally a clone of {@code
+ * Form12ReportRepository}: confirmed cases only ({@code status = 'APPROVED'},
+ * {@code deleted = false}), the "diagnosis" of a case is its confirmed final
+ * code alone — {@code f.final_icd10_code}, with <b>no</b> fallback to the
+ * initial {@code f.icd10_code} (a case whose final diagnosis was never recorded
+ * does not appear), and nothing caller-influenced is ever spliced into the SQL
+ * text: {@code organizationIds} is an inlined {@code VALUES} join of our own
+ * {@code Long}s (see {@code Form1ReportRepository} for the rationale) and the
+ * ICD-10 code set is a bound {@code IN (:codes)} collection parameter.
  * <p>
- * The "diagnosis" of a case is its confirmed final code alone — {@code
- * f.final_icd10_code}, with <b>no</b> fallback to the initial {@code
- * f.icd10_code}: a case whose final diagnosis was never recorded ({@code
- * final_icd10_code is null}) does not appear in this report at all. Matching on
- * that single value (rather than "initial OR final is in the set", as {@code
- * Form1ReportRepository}'s CONFIRMED block does) keeps a case from landing in
- * two different nosological-form rows at once.
- * <p>
- * {@link #countByDiagnosisCode} is deliberately <b>fully static SQL</b> — it
- * groups by the confirmed code and returns one row per distinct code; the
- * query service rolls those up per catalog entry in Java. Nothing
- * caller-influenced is ever spliced into the SQL text: {@code organizationIds}
- * is an inlined {@code VALUES} join of our own {@code Long}s (see {@code
- * Form1ReportRepository} for the full rationale — index-friendly and
- * injection-free), and the ICD-10 code set used by the drill-down queries is a
- * bound {@code IN (:codes)} collection parameter.
+ * The difference from Form 12 is the column set — the reference form's varaqa:
+ * total / female / under-18 / under-15 / under-1 / 1–2 / 3–5, and the same age
+ * cuts again restricted to the rural population ({@code
+ * patient.population_type_code = 'VILLAGE_RESIDENT'}). There is no
+ * year-over-year comparison — one period only.
  * <p>
  * Age is {@code extract(year from age(f.created_at::date, p.birth_date))} —
- * complete calendar years at the case's own {@code created_at}, same
- * expression as {@code Form1ReportRepository} / {@code Form6ReportRepository}.
- * Grouped/filtered by {@code sender_organization_id} (the institution that
- * <b>created</b> the case) — see {@code Form1ReportRepository}.
- * <p>
- * Every {@code ::type} cast wraps its named parameter in parentheses —
- * {@code (:param)::type}, never {@code :param::type} — see {@code
- * Form1ReportRepository} for why.
+ * complete calendar years at the case's own {@code created_at}. Grouped/filtered
+ * by {@code sender_organization_id} (the institution that <b>created</b> the
+ * case). Every {@code ::type} cast wraps its named parameter in parentheses —
+ * {@code (:param)::type} — see {@code Form1ReportRepository} for why.
  */
 @Repository
 @RequiredArgsConstructor
-public class Form12ReportRepository {
+public class Form281ReportRepository {
 
     private static final String UNION_SOURCE_TEMPLATE = """
             select upper(f.final_icd10_code) as diagnosis_code,
+                   p.gender_code as gender_code,
+                   p.population_type_code as pop_type,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years
             from form058 f
             join patient p on p.id = f.patient_id
@@ -64,6 +57,8 @@ public class Form12ReportRepository {
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
             select upper(f.final_icd10_code),
+                   p.gender_code,
+                   p.population_type_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int
             from form058_1 f
             join patient p on p.id = f.patient_id
@@ -78,6 +73,8 @@ public class Form12ReportRepository {
     private static final String UNION_SOURCE_WITH_ORG_TEMPLATE = """
             select f.sender_organization_id,
                    upper(f.final_icd10_code) as diagnosis_code,
+                   p.gender_code as gender_code,
+                   p.population_type_code as pop_type,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years
             from form058 f
             join patient p on p.id = f.patient_id
@@ -89,6 +86,8 @@ public class Form12ReportRepository {
             union all
             select f.sender_organization_id,
                    upper(f.final_icd10_code),
+                   p.gender_code,
+                   p.population_type_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int
             from form058_1 f
             join patient p on p.id = f.patient_id
@@ -99,10 +98,31 @@ public class Form12ReportRepository {
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             """;
 
+    /**
+     * The 13 varaqa columns, in the order {@link #readCounts} reads them back.
+     * The rural cuts add {@code and t.pop_type = 'VILLAGE_RESIDENT'} to their
+     * age predicate; «Ayollarda» is not repeated for the rural block, matching
+     * the reference form.
+     */
     private static final String METRIC_COLUMNS = """
-            count(*)                                                        as total,
-            count(*) filter (where t.age_years >= 0 and t.age_years < 14)   as under_14,
-            count(*) filter (where t.age_years >= 0 and t.age_years < 18)   as under_18
+            count(*)                                                                        as total,
+            count(*) filter (where t.gender_code = 'FEMALE')                                as female,
+            count(*) filter (where t.age_years >= 0 and t.age_years < 18)                   as under_18,
+            count(*) filter (where t.age_years >= 0 and t.age_years < 15)                   as under_15,
+            count(*) filter (where t.age_years >= 0 and t.age_years < 1)                    as under_1,
+            count(*) filter (where t.age_years >= 1 and t.age_years <= 2)                   as age_1_2,
+            count(*) filter (where t.age_years >= 3 and t.age_years <= 5)                   as age_3_5,
+            count(*) filter (where t.pop_type = 'VILLAGE_RESIDENT')                         as rural_total,
+            count(*) filter (where t.pop_type = 'VILLAGE_RESIDENT'
+                                   and t.age_years >= 0 and t.age_years < 18)               as rural_under_18,
+            count(*) filter (where t.pop_type = 'VILLAGE_RESIDENT'
+                                   and t.age_years >= 0 and t.age_years < 15)               as rural_under_15,
+            count(*) filter (where t.pop_type = 'VILLAGE_RESIDENT'
+                                   and t.age_years >= 0 and t.age_years < 1)                as rural_under_1,
+            count(*) filter (where t.pop_type = 'VILLAGE_RESIDENT'
+                                   and t.age_years >= 1 and t.age_years <= 2)               as rural_age_1_2,
+            count(*) filter (where t.pop_type = 'VILLAGE_RESIDENT'
+                                   and t.age_years >= 3 and t.age_years <= 5)               as rural_age_3_5
             """;
 
     private final EntityManager entityManager;
@@ -110,9 +130,9 @@ public class Form12ReportRepository {
     /**
      * One aggregate row per distinct confirmed-diagnosis code across the whole
      * scope — the raw material for the report's root level. Static SQL; the
-     * query service maps codes to {@code FORM_12} catalog entries in memory.
+     * query service maps codes to {@code FORM_28_1} catalog entries in memory.
      */
-    public List<Form12DiagnosisCountProjection> countByDiagnosisCode(
+    public List<Form281DiagnosisCountProjection> countByDiagnosisCode(
             List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
@@ -128,15 +148,13 @@ public class Form12ReportRepository {
         return rows.stream()
                 .map(row -> {
                     Object[] r = (Object[]) row;
-                    return new Form12DiagnosisCountProjection(
-                            (String) r[0], count(r, 1), count(r, 2), count(r, 3)
-                    );
+                    return new Form281DiagnosisCountProjection((String) r[0], readCounts(r, 1));
                 })
                 .toList();
     }
 
     /** One count row per organization id, restricted to one nosological form's ICD-10 set — geography drill-down. */
-    public List<Form12OrganizationCountProjection> countGroupedByOrganizationForCodes(
+    public List<Form281OrganizationCountProjection> countGroupedByOrganizationForCodes(
             List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes
     ) {
         if (organizationIds == null || organizationIds.isEmpty() || codes == null || codes.isEmpty()) {
@@ -154,19 +172,17 @@ public class Form12ReportRepository {
         return rows.stream()
                 .map(row -> {
                     Object[] r = (Object[]) row;
-                    return new Form12OrganizationCountProjection(
-                            ((Number) r[0]).longValue(), count(r, 1), count(r, 2), count(r, 3)
-                    );
+                    return new Form281OrganizationCountProjection(((Number) r[0]).longValue(), readCounts(r, 1));
                 })
                 .toList();
     }
 
     /** A single, unattributed total for one nosological form's ICD-10 set — a drill-down root node. */
-    public Form12Counts countTotalForCodes(
+    public Form281Counts countTotalForCodes(
             List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes
     ) {
         if (organizationIds == null || organizationIds.isEmpty() || codes == null || codes.isEmpty()) {
-            return Form12Counts.EMPTY;
+            return Form281Counts.EMPTY;
         }
 
         String sql = "select " + METRIC_COLUMNS
@@ -176,8 +192,7 @@ public class Form12ReportRepository {
                 .setParameter("codes", codes)
                 .getSingleResult();
 
-        Object[] r = (Object[]) row;
-        return new Form12Counts(count(r, 0), count(r, 1), count(r, 2));
+        return readCounts((Object[]) row, 0);
     }
 
     private String unionSource(List<Long> organizationIds) {
@@ -196,6 +211,24 @@ public class Form12ReportRepository {
         return query
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive);
+    }
+
+    private Form281Counts readCounts(Object[] row, int offset) {
+        return new Form281Counts(
+                count(row, offset),
+                count(row, offset + 1),
+                count(row, offset + 2),
+                count(row, offset + 3),
+                count(row, offset + 4),
+                count(row, offset + 5),
+                count(row, offset + 6),
+                count(row, offset + 7),
+                count(row, offset + 8),
+                count(row, offset + 9),
+                count(row, offset + 10),
+                count(row, offset + 11),
+                count(row, offset + 12)
+        );
     }
 
     private long count(Object[] row, int index) {
