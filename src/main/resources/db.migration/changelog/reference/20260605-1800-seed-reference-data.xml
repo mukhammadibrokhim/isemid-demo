@@ -289,6 +289,16 @@
             author="uzinfocom"
             runInTransaction="true">
 
+        <!--
+            base/catalog_reference.csv vaqti-vaqti bilan yangi katalog
+            qatorlari bilan to'ldiriladi (masalan JOURNAL_060). Bu changeset
+            faqat jadval bo'sh bo'lganda ishlaydi, lekin allaqachon ishga
+            tushirilgan bazalarda checksum o'zgarishini keltirib chiqaradi —
+            shu sababli eski va yangi checksumlar qabul qilinadi.
+        -->
+        <validCheckSum>9:7f9c7e624a7c7830844b539d447f652a</validCheckSum>
+        <validCheckSum>9:2d417b2bb3cc54fe2ab8b14e84ba4de4</validCheckSum>
+
         <preConditions onFail="MARK_RAN" onError="HALT">
             <dbms type="postgresql"/>
             <tableExists tableName="ref_catalog"/>

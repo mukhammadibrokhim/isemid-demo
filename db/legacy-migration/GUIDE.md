@@ -69,6 +69,7 @@ fm0581_*, card (+ 161/174/175/205/tube), act (+ 153/154/156/223/224)`.
 | 13 | `60-act.sql` | `act`, `act_users` (ACT155 bazaviy qatori ham) |
 | 14 | `61-act-subtypes.sql` | `act153/154/156/223/224` + `*_detail` |
 | 15 | `90-finalize.sql` | `form058.assigned_card_id`, barcha `setval(...)`, **validatsiya hisoboti** |
+| —  | `95-fix-sequences.sql` | **faqat kerak bo'lganda** — ko'chirishдан keyin ilova `duplicate key ... _pkey` bersa. Xavfsiz, mustaqil, `00-prep` kerak emas. `90-finalize` bilan bir xil mantiq. |
 
 **Tartib majburiy** (FK): organization -> users -> patient -> form058/form058_1 -> card -> act.
 
@@ -255,6 +256,7 @@ har fayl faqat o'z jadvalini to'ldiradi. Har doim to'liq to'plam.
 | `null value in column "..." violates not-null` | skriptda e'tibordan qolgan NOT NULL — xato matnini bering, sentinel qo'shaman |
 | `value too long for type character varying(N)` | legacy qiymat yangi ustundan uzun — jadval/ustunni ayting, `left(x,N)` qo'shaman |
 | `insert or update ... violates foreign key` | tartib buzilgan yoki `00-prep` to'liq ishlamagan — boshidan |
+| `duplicate key value violates unique constraint "<jadval>_pkey"` ilovada, ko'chirishдан keyin | Identity sequence 1 da qolgan (eski `90-finalize` `deptype='a'` filtri identity sequence'larni topmagan). Yechim: `95-fix-sequences.sql` ni yugurting (yoki yangilangan `90-finalize` bilan to'plamни qayta). |
 | `_migration_notes` da ko'p qator | 5.4 — sentinel/fallback ishlatilgan qatorlar; ko'rib chiqing, kerak bo'lsa qoidani yumshataman |
 | kirill harflari log'da buzuq (`ð│ð░`) | kosmetik — psql chiqishi UTF-8, terminal codepage'i boshqa. `chcp 65001` yordam beradi. Ma'lumotga ta'siri yo'q. |
 
