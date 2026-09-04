@@ -28,7 +28,7 @@ public interface OutboundWebhookDispatchRepository
     @Query(value = """
             SELECT * FROM outbound_webhook_dispatch
             WHERE status = 'PENDING' AND next_attempt_at <= :now
-            ORDER BY next_attempt_at ASC
+            ORDER BY next_attempt_at
             LIMIT :batchSize
             FOR UPDATE SKIP LOCKED
             """, nativeQuery = true)

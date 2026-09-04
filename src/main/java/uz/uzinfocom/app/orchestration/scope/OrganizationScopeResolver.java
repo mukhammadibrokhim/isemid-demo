@@ -22,11 +22,7 @@ public class OrganizationScopeResolver {
         MedicalType medicalType = organization.getMedicalType();
         OrganizationLevel level = organization.getLevelType();
 
-        /*
-         * Muhim qoida:
-         * Level-based scope faqat SANEPID_SERVICE uchun ishlaydi.
-         * Qolgan MEDICAL / EDUCATIONAL / OTHER organizationlar faqat o‘z organization_id bo‘yicha ishlaydi.
-         */
+
         if (medicalType != MedicalType.SANEPID_SERVICE) {
             return ownOrganization(organization);
         }

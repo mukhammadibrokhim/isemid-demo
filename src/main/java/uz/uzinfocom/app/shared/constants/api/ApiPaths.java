@@ -735,6 +735,26 @@ public final class ApiPaths {
     }
 
     /**
+     * "Form 13" — тот же материал, что и «Form 12» (подтверждённые, status =
+     * APPROVED, случаи форм №058 + №058-1, диагноз — coalesce(final_icd10_code,
+     * icd10_code), набор болезней — записи справочника ручных отчётов), но
+     * «перевёрнутый»: строки — география (республика→регион→район→организация,
+     * drill-down по одному уровню за вызов), столбцы — болезни (каждая запись
+     * справочника ручных отчётов с тегом {@code FORM_13}), для каждой болезни
+     * пара «O'tgan yil / Joriy yil» × «Jami / до 14 лет / до 18 лет». Прироста
+     * (delta) нет. См. {@code Form13ReportController} под {@code
+     * modules.report.form13}.
+     */
+    public static final class Form13Report {
+        private Form13Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-13";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
      * "Shakl №7" manual statistics entry — infectious-disease registry
      * movement for a reporting period: cases open at the start of the
      * period, patients newly registered during the period (with age/gender/
