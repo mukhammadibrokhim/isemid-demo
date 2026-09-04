@@ -121,7 +121,7 @@ public class ExcelExportWriter {
             try {
                 workbook.write(out);
             } finally {
-                workbook.dispose();
+                workbook.close();
             }
         }
 
@@ -185,7 +185,7 @@ public class ExcelExportWriter {
             cell.setCellValue(header);
             cell.setCellStyle(headerStyle);
 
-            sheet.setColumnWidth(i, Math.min(60, Math.max(12, header.length() + 4)) * 256);
+            sheet.setColumnWidth(i, Math.clamp(header.length() + 4, 12, 60) * 256);
         }
 
         return rowIndex + 1;

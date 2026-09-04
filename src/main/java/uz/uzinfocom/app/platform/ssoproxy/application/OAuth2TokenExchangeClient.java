@@ -117,7 +117,7 @@ final class OAuth2TokenExchangeClient {
             throw new LoginUpstreamException(providerKey, exception);
         }
 
-        if (response == null || !StringUtils.hasText(response.accessToken())) {
+        if (!StringUtils.hasText(response.accessToken())) {
             throw new LoginUpstreamException(providerKey,
                     new IllegalStateException("Upstream returned no access token"));
         }
@@ -174,7 +174,7 @@ final class OAuth2TokenExchangeClient {
             JsonNode node = jsonMapper.readTree(new String(body, StandardCharsets.UTF_8));
             JsonNode errorNode = node.get("error");
 
-            return errorNode == null || errorNode.isNull() ? null : errorNode.asText();
+            return errorNode == null || errorNode.isNull() ? null : errorNode.asString();
         } catch (IOException | RuntimeException exception) {
             log.debug("Could not parse upstream error body as an OAuth2 error - falling back to the safe "
                             + "default classification. providerKey={}, errorType={}",

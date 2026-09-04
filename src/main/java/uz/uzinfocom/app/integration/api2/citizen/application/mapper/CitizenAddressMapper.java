@@ -118,6 +118,6 @@ public class CitizenAddressMapper {
             return null;
         }
 
-        return node.asText();
+        return node.asString();
     }
 }

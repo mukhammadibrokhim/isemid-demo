@@ -65,7 +65,7 @@ public class UserStatsRepository {
 
         Predicate scopePredicate = userScopePredicateFactory.applyOrganizationScope(root, query, cb, scope);
 
-        query.multiselect(roleJoin.<String>get("name"), cb.countDistinct(root))
+        query.select(cb.tuple(roleJoin.<String>get("name"), cb.countDistinct(root)))
                 .where(cb.and(scopePredicate, cb.isTrue(root.<Boolean>get("active"))))
                 .groupBy(roleJoin.get("name"));
 

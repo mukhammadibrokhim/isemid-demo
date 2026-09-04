@@ -87,7 +87,7 @@ class Api2ClientResponseHandlingTest {
         );
 
         assertThat(result.upstreamStatus()).isEqualTo(200);
-        assertThat(result.data().get("result").asText()).isEqualTo("OK");
+        assertThat(result.data().get("result").asString()).isEqualTo("OK");
         server.verify();
     }
 
@@ -102,7 +102,7 @@ class Api2ClientResponseHandlingTest {
         LegalEntityLookupResult result = legalEntityClient.lookupByTin("123456789");
 
         assertThat(result.upstreamStatus()).isEqualTo(200);
-        assertThat(result.data().get("data").get("tin").asText()).isEqualTo("123456789");
+        assertThat(result.data().get("data").get("tin").asString()).isEqualTo("123456789");
         server.verify();
     }
 
@@ -195,7 +195,7 @@ class Api2ClientResponseHandlingTest {
         );
 
         assertThat(result.upstreamStatus()).isEqualTo(200);
-        assertThat(result.data().get("AnswereMessage").asText()).isEqualTo("Ok");
+        assertThat(result.data().get("AnswereMessage").asString()).isEqualTo("Ok");
         server.verify();
     }
 

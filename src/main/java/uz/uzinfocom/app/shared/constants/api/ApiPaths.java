@@ -670,6 +670,28 @@ public final class ApiPaths {
     }
 
     /**
+     * "Form 10" — «Respublika bo'yicha ma'muriy hududlar kesimida yuqumli
+     * kasalliklar bilan kasallanish to'g'risidagi ma'lumotlar»: подтверждённые
+     * извещения (status = APPROVED), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация), только география. Параметры — {@code year} + {@code
+     * period} ({@code ReportPeriod}: месяц / квартал / полугодие / 9 месяцев /
+     * год): два блока столбцов «Joriy davr» (месячный интервал периода) и
+     * «Yig'ma» (с января по конец периода), каждый — прошлый год / текущий год
+     * / прирост %, с абсолютным и интенсивным (на koef населения территории из
+     * {@code ref_population}) показателями и отдельным срезом по детям до 14
+     * лет. См. {@code Form10ReportController} под {@code modules.report.form10}.
+     */
+    public static final class Form10Report {
+        private Form10Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-10";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+    }
+
+    /**
      * "Form 11" — «Yuqumli va parazitar kasalliklar bilan kasallanish
      * ko'rsatkichlari», показатели заболеваемости: подтверждённые извещения
      * (status = APPROVED), формы №058 + №058-1 объединены,

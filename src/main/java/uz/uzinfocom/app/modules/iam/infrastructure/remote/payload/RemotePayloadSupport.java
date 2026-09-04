@@ -21,7 +21,7 @@ public final class RemotePayloadSupport {
         }
 
         if (node.isValueNode()) {
-            String value = node.asText();
+            String value = node.asString();
             return StringUtils.hasText(value) ? value.trim() : null;
         }
 
@@ -50,7 +50,7 @@ public final class RemotePayloadSupport {
             return List.of();
         }
 
-        if (node.isTextual() || node.isNumber() || node.isBoolean()) {
+        if (node.isString() || node.isNumber() || node.isBoolean()) {
             String value = text(node);
             return StringUtils.hasText(value) ? List.of(value) : List.of();
         }

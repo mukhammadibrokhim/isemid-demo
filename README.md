@@ -39,7 +39,7 @@ module's "legacy fixes" notes in [`docs/`](docs) for specifics.
 
 | Layer | Choice | Version |
 |---|---|---|
-| Language | Java | 21 |
+| Language | Java | 25 |
 | Framework | Spring Boot | 4.0.6 |
 | Modularity | Hand-rolled `platform`/`modules`/`orchestration` layering, enforced by ArchUnit (no Spring Modulith dependency) | — |
 | Persistence | Spring Data JPA / Hibernate ORM | Spring Boot managed |
@@ -183,7 +183,7 @@ and the live Swagger UI once the app is running.
 
 ### Prerequisites
 
-- JDK 21
+- JDK 25
 - PostgreSQL (any recent version reachable at `spring.datasource.*`)
 
 ### Environments

@@ -30,6 +30,17 @@ public interface PopulationRepository
     List<Population> findAllByRegionCodeAndYearAndGeoTypeAndDeletedFalse(
             String regionCode, Integer year, PopulationGeoType geoType);
 
+    /** The single republic-level figure for a year — report per-capita denominator (root node). */
+    Optional<Population> findFirstByYearAndGeoTypeAndDeletedFalse(Integer year, PopulationGeoType geoType);
+
+    /** One region's figure for a year — report per-capita denominator (region node). */
+    Optional<Population> findFirstByRegionCodeAndYearAndGeoTypeAndDeletedFalse(
+            String regionCode, Integer year, PopulationGeoType geoType);
+
+    /** One district's figure for a year — report per-capita denominator (district / organization node). */
+    Optional<Population> findFirstByDistrictCodeAndYearAndGeoTypeAndDeletedFalse(
+            String districtCode, Integer year, PopulationGeoType geoType);
+
     @Query("select max(p.year) from Population p where p.deleted = false")
     Optional<Integer> findMaxYear();
 

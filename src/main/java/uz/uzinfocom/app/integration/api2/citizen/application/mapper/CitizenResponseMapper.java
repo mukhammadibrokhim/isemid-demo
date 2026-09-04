@@ -124,7 +124,7 @@ public final class CitizenResponseMapper {
             return null;
         }
 
-        return node.asText();
+        return node.asString();
     }
 
     private static Integer integerOrNull(JsonNode node) {

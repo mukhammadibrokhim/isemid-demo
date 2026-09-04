@@ -237,9 +237,9 @@ public class Api2ErrorDecoder {
             return value >= 100 && value <= 599 ? value : fallbackStatus;
         }
 
-        if (status.isTextual()) {
+        if (status.isString()) {
             try {
-                int value = Integer.parseInt(status.asText().trim());
+                int value = Integer.parseInt(status.asString().trim());
                 return value >= 100 && value <= 599 ? value : fallbackStatus;
             } catch (NumberFormatException ignored) {
                 return fallbackStatus;
@@ -340,7 +340,7 @@ public class Api2ErrorDecoder {
             return null;
         }
 
-        return Api2ResponseBodySanitizer.sanitize(node.asText(), null);
+        return Api2ResponseBodySanitizer.sanitize(node.asString(), null);
     }
 
     private boolean isFailureValue(JsonNode node) {
@@ -354,14 +354,14 @@ public class Api2ErrorDecoder {
 
         if (node.isNumber()) {
             int value = node.asInt();
-            return value == 0 || value < 200 || value >= 400;
+            return value < 200 || value >= 400;
         }
 
-        if (!node.isTextual()) {
+        if (!node.isString()) {
             return false;
         }
 
-        String value = normalize(node.asText());
+        String value = normalize(node.asString());
         return value.equals("0")
                 || value.equals("false")
                 || value.equals("fail")
@@ -369,9 +369,7 @@ public class Api2ErrorDecoder {
                 || value.equals("failure")
                 || value.equals("error")
                 || value.equals("incorrect")
-                || value.equals("invalid")
                 || value.equals("not_found")
-                || value.equals("not found")
                 || value.contains("not found")
                 || value.contains("validation")
                 || value.contains("invalid");
