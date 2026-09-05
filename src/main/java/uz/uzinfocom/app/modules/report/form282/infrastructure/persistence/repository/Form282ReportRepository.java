@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form282.application.query.dto.Form282Counts;
 import uz.uzinfocom.app.modules.report.form282.application.query.dto.Form282DiagnosisCountProjection;
 import uz.uzinfocom.app.modules.report.form282.application.query.dto.Form282OrganizationCountProjection;
+import uz.uzinfocom.app.modules.report.form282.application.query.dto.Form282OrganizationDiagnosisCountProjection;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -148,6 +149,37 @@ public class Form282ReportRepository {
                 .map(row -> {
                     Object[] r = (Object[]) row;
                     return new Form282OrganizationCountProjection(((Number) r[0]).longValue(), readCounts(r, 1));
+                })
+                .toList();
+    }
+
+    /**
+     * One count row per (organization id, confirmed-diagnosis code) pair, with
+     * no code filter — the raw material for the "Form 28.2 by territory" view,
+     * where every disease is its own column against every territory row (unlike
+     * {@link #countGroupedByOrganizationForCodes}, which restricts to a single
+     * nosological form's code set).
+     */
+    public List<Form282OrganizationDiagnosisCountProjection> countGroupedByOrganizationAndDiagnosisCode(
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = "select t.sender_organization_id as organization_id, t.diagnosis_code as diagnosis_code, "
+                + METRIC_COLUMNS
+                + " from (" + unionSourceWithOrg(organizationIds) + ") t"
+                + " where t.diagnosis_code is not null group by t.sender_organization_id, t.diagnosis_code";
+
+        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+
+        return rows.stream()
+                .map(row -> {
+                    Object[] r = (Object[]) row;
+                    return new Form282OrganizationDiagnosisCountProjection(
+                            ((Number) r[0]).longValue(), (String) r[1], readCounts(r, 2)
+                    );
                 })
                 .toList();
     }

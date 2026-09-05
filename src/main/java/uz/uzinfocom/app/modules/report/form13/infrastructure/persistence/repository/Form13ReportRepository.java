@@ -5,9 +5,12 @@ import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13DiagnosisCountProjection;
+import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13Metric;
+import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13OrganizationCountProjection;
 import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13OrganizationDiagnosisCountProjection;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -146,6 +149,59 @@ public class Form13ReportRepository {
                     );
                 })
                 .toList();
+    }
+
+    /**
+     * One count row per organization id, restricted to one {@code FORM_13}
+     * catalog entry's ICD-10 set — the "Form 13 by disease" geography
+     * drill-down, structurally identical to {@code
+     * Form12ReportRepository#countGroupedByOrganizationForCodes}.
+     */
+    public List<Form13OrganizationCountProjection> countGroupedByOrganizationForCodes(
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty() || codes == null || codes.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = "select t.sender_organization_id as organization_id, " + METRIC_COLUMNS
+                + " from (" + unionSourceWithOrg(organizationIds) + ") t"
+                + " where t.diagnosis_code in (:codes) group by t.sender_organization_id";
+
+        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive)
+                .setParameter("codes", codes)
+                .getResultList();
+
+        return rows.stream()
+                .map(row -> {
+                    Object[] r = (Object[]) row;
+                    return new Form13OrganizationCountProjection(
+                            ((Number) r[0]).longValue(), count(r, 1), count(r, 2), count(r, 3)
+                    );
+                })
+                .toList();
+    }
+
+    /**
+     * A single, unattributed total for one {@code FORM_13} catalog entry's
+     * ICD-10 set — a "Form 13 by disease" drill-down root node.
+     */
+    public Form13Metric countTotalForCodes(
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty() || codes == null || codes.isEmpty()) {
+            return Form13Metric.EMPTY;
+        }
+
+        String sql = "select " + METRIC_COLUMNS
+                + " from (" + unionSource(organizationIds) + ") t where t.diagnosis_code in (:codes)";
+
+        Object row = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive)
+                .setParameter("codes", codes)
+                .getSingleResult();
+
+        Object[] r = (Object[]) row;
+        return new Form13Metric(count(r, 0), count(r, 1), count(r, 2));
     }
 
     private String unionSource(List<Long> organizationIds) {

@@ -135,13 +135,6 @@ public class Form058 extends AbsEntity implements AuditableFields {
     @Builder.Default
     private boolean hasLinkedCards = false;
 
-    /**
-     * Legacy single-card link kept for existing API and database compatibility.
-     */
-    @Deprecated
-    @Column(name = "assigned_card_id")
-    private Long assignedCardId;
-
     @Embedded
     private Form058CancellationInfo cancellationInfo;
 
@@ -156,14 +149,6 @@ public class Form058 extends AbsEntity implements AuditableFields {
     @Embedded
     @Builder.Default
     private Form058DeleteInfo deleteInfo = new Form058DeleteInfo();
-
-    public void attachLocation(Form058Location location) {
-        this.location = location;
-    }
-
-    public void refreshCardLinkState() {
-        this.hasLinkedCards = this.assignedCardId != null;
-    }
 
     public void markCardsLinked() {
         this.hasLinkedCards = true;

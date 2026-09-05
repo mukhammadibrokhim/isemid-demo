@@ -50,7 +50,6 @@ public abstract class Form058CreateMapper {
     @Mapping(target = "location", source = ".", qualifiedByName = "toLocation")
 
     @Mapping(target = "hasLinkedCards", constant = "false")
-    @Mapping(target = "assignedCardId", ignore = true)
     @Mapping(target = "cancellationInfo", ignore = true)
     @Mapping(target = "approvalInfo", ignore = true)
     @Mapping(target = "deleteInfo", ignore = true)

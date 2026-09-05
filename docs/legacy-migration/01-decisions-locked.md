@@ -49,7 +49,7 @@ Ziddiyat bo'lsa — shu fayl ustun.
 | **`not_approve_comment` → `cancel_reason`** | Ha (rad/bekor sababi bir xil maydon). |
 | **`has_linked_cards`** | `EXISTS (SELECT 1 FROM public.card c WHERE c.form058_id = f.id)`. |
 | **`form_comment`** ← `comment` | to'g'ridan (nom o'zgardi). |
-| **patient denormal maydonlar** (`patient_full_name` va h.k.) | `public.patient` (+ `pt_identifier`) dan JOIN. `patient_nnuzb` uchun `pt_identifier.type_code` qaysi qiymat = NNUZB — **⚠️ hali kerak** (yagona ochiq band). |
+| **patient denormal maydonlar** (`patient_full_name`, `patient_nnuzb` va h.k.) | **2026-09-04: bekor qilindi.** Ustunlarning o'zi `public2.form058`dan butunlay olib tashlandi (Liquibase `20260904-1400-drop-form058-disease-place.xml`, 02-changeset) — `form058` faqat `patient_id` FK orqali bog'lanadi, bemor ma'lumoti (FIO/tug'ilgan sana/jins/telefon/NNUZB/PINFL) faqat `patient`/`pt_identifier`da (`30-patient.sql`). Pastdagi Round 6 fallback mantig'i endi qo'llanmaydi. |
 | **`form058_1`** | Legacy'dan ko'chirilmaydi. |
 
 ## card
@@ -115,7 +115,8 @@ qatorlarga belgi qo'yib bering — men shунга qarab SQL yozaman.
 
 ## Qolgan ochiq bandlar
 
-✅ **`form058.patient_nnuzb`** ← `pt_identifier.value` WHERE `type_code = 'NNUZB'`. Topilmasa → qator **skip** + log.
+~~✅ **`form058.patient_nnuzb`** ← `pt_identifier.value` WHERE `type_code = 'NNUZB'`. Topilmasa → qator **skip** + log.~~
+2026-09-04: ustunning o'zi olib tashlandi, band butunlay bekor — pastdagi bo'limga qarang.
 ✅ **`act`/`card` `.created_org_uuid` NULL** → qator **skip** + log.
 ✅ **`card175`** — `initial_diagnosis_code` / `checking_diagnosis_code` va shunga o'xshash
 diagnoz-kod ustunlari legacy `card175` dan EMAS, **bog'langan `form058` / `form058_1` dan**
@@ -137,15 +138,17 @@ Bu SQL yozishни **to'sib turmaydi** — o'sha jadvalga kelganда aniqlanadi.
 Sinov (`isemid_test`, 6 form058) da barcha qatorlar `NNUZB yo'q` bilan skip
 bo'ldi (test bemorlarda identifikator turi `REO`, `NNUZB` emas). Tuzatildi:
 
-- **`form058.patient_nnuzb`** (NOT NULL) endi **skip qilmaydi**: `NNUZB` bo'lsa
+- ~~**`form058.patient_nnuzb`** (NOT NULL) endi **skip qilmaydi**: `NNUZB` bo'lsa
   NNUZB; bo'lmasa har qanday identifikator; u ham bo'lmasa
   `lpad(patient_id, 14, '0')`. Fallback ishlatilgan qatorlar `_migration_skipped`
-  ga `INFO:` bilan yoziladi (lekin **ko'chiriladi**).
+  ga `INFO:` bilan yoziladi (lekin **ko'chiriladi**).~~
+  **2026-09-04: bekor.** Ustun olib tashlandi, `40-form058.sql` endi patientga
+  tegishli hech narsani o'zida saqlamaydi/yozmaydi — faqat `patient_id`.
 - **`card.created_org_uuid`** (NOT NULL): `NULL` bo'lsa bog'langan
   `form058.created_org_uuid` dan olinadi. Ikkalasi ham NULL bo'lsagina skip.
 - **`act.created_org_uuid`** (NOT NULL): `NULL` bo'lsa bog'langan
   `card.created_org_uuid` dan.
 - Barcha toraytiruvchi `varchar` ustunlar `left(x, N)` bilan himoyalandi
-  (`icd10_code`(20), `patient_nnuzb`(14), `journal_form_code`(64), ...).
+  (`icd10_code`(20), `journal_form_code`(64), ...).
 
 O'zgargan fayllar: `40-form058.sql`, `50-card.sql`, `60-act.sql`.

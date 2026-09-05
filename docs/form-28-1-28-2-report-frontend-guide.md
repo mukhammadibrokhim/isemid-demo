@@ -1,7 +1,9 @@
 # Form 28.1 / Form 28.2 report — frontend integration guide
 
 Two statistical reports built as **clones of Form 12** (disease‑first rows, a
-geography drill‑down per row):
+geography drill‑down per row). Each also has a **geography‑first counterpart**
+— rows are territories, columns are diseases, the same relationship Form 13
+has to Form 12 — documented in §8.
 
 | | Form 28.1 | Form 28.2 |
 |---|---|---|
@@ -236,3 +238,115 @@ GET /v1/reports/form-28-2/children?manualReportId=201&regionCode=1703&from=2026-
   less than the plain sum of the visible rows if you also filter
   `includeInTotal`, and more than a naïve "distinct cases" count. This matches
   Form 12.
+
+---
+
+## 8. "By territory" — the geography‑first counterpart
+
+`GET {base}/by-territory/root` and `GET {base}/by-territory/children` — same
+base paths (`/v1/reports/form-28-1`, `/v1/reports/form-28-2`), same data, same
+access rule, same period semantics (one arbitrary `[from, to]`, no
+year‑over‑year) as §1–§2 above. The only thing that changes is the axes:
+**rows are territories, columns are diseases** — exactly the relationship
+Form 13 has to Form 12.
+
+### 8.1 `GET {base}/by-territory/root`
+
+| Query param | Type | Notes |
+|---|---|---|
+| `from` / `to` | `YYYY-MM-DD` | Same as §4. |
+
+Returns the caller's whole access scope broken down **one level** — regions
+for a republican/ALL‑scope caller, districts for a region‑scope caller,
+organizations for a district‑scope caller — plus a trailing **`Jami`** row
+summing the whole scope. One call renders a complete first screen; no
+follow‑up `children` call is needed just to see something (unlike disease‑first
+Form 28.1/28.2, which needs a `children` call per row to see any geography at
+all).
+
+Row shape:
+
+| Field | Meaning |
+|---|---|
+| `code` | Region/district code, organization id, `"UZ"` for the republic root, or `"TOTAL"` for `Jami`. |
+| `name` | Localized geography node name (`"Jami"` for the total row). |
+| `hasChildren` | Show the expand arrow when `true`. `Jami` is always `false`. |
+| `diseases` | Array of disease cells, **one per `FORM_28_1`/`FORM_28_2` catalog entry, in a stable code‑sorted order that is identical across every row** (including `Jami`) — safe to render as fixed table columns. |
+
+Each `diseases[]` cell:
+
+| Field | Meaning |
+|---|---|
+| `manualReportId` | The catalog entry id (stable column key). |
+| `code` | «Qator kodi». |
+| `name` | Localized disease name. |
+| `icd10Display` | The catalog entry's `shortName`. |
+| *(28.1)* `total`, `female`, `under18`, `under15`, `under1`, `age1to2`, `age3to5`, `ruralTotal`, `ruralUnder18`, `ruralUnder15`, `ruralUnder1`, `ruralAge1to2`, `ruralAge3to5` | Same meaning as the §4 varaqa columns, but computed for this geography node only. |
+| *(28.2)* `total`, `under18`, `underOneMonth`, `oneMonthToUnderOneYear` | Same as §4. |
+
+```
+GET /v1/reports/form-28-1/by-territory/root?from=2026-08-28&to=2026-09-04
+```
+```json
+{
+  "success": true, "message": "...",
+  "data": [
+    {
+      "code": "1703", "name": "Andijon viloyati", "hasChildren": true,
+      "diseases": [
+        { "manualReportId": 39, "code": "101", "name": "Ichterlama", "icd10Display": "A01.0",
+          "total": 3, "female": 1, "under18": 1, "under15": 1, "under1": 0,
+          "age1to2": 0, "age3to5": 0, "ruralTotal": 2, "ruralUnder18": 1,
+          "ruralUnder15": 1, "ruralUnder1": 0, "ruralAge1to2": 0, "ruralAge3to5": 0 }
+      ]
+    },
+    { "code": "TOTAL", "name": "Jami", "hasChildren": false,
+      "diseases": [ { "manualReportId": 39, "...": "sum over the whole scope" } ] }
+  ]
+}
+```
+
+### 8.2 `GET {base}/by-territory/children`
+
+| Query param | Type | Notes |
+|---|---|---|
+| `regionCode` | string | Optional. Omit for the caller's own first level. |
+| `districtCode` | string | Optional. |
+| `from` / `to` | `YYYY-MM-DD` | Same period as `root`. |
+
+No `manualReportId` here — unlike the disease‑first `children` (§5), every
+disease is already a column on every row.
+
+| Call | Returns |
+|---|---|
+| *(no params)* | The caller's own first level — same as `root` minus the `Jami` row. |
+| `regionCode=1703` | Districts of that region. |
+| `districtCode=1703215` | Organizations of that district. |
+
+Row shape is identical to §8.1 minus the `Jami` row (never present on
+`children`). `regionCode`/`districtCode` outside the caller's scope → `403`
+(`organization.scope_violation`).
+
+### 8.3 Suggested UI flow
+
+1. Filter bar: **Sanadan / Sanagacha** only (no manual report/disease
+   selector needed — every disease is a column).
+2. On load / filter change → `GET {base}/by-territory/root?from&to`. Render
+   every row with an expand chevron where `hasChildren`; pin `Jami` last. One
+   call already shows the first level plus totals.
+3. On expand of a region row → `GET {base}/by-territory/children?regionCode={row.code}&from&to`;
+   on a district row → `+ &districtCode={row.code}`.
+4. Render one table column per entry in `diseases[]`, using the **first
+   row's** order/`manualReportId` list as the fixed header — every row (and
+   `Jami`) repeats the same entries in the same order.
+5. Excel export is still built client‑side from the row array, transposed
+   from the §4 layout (disease columns become sub‑headers under each
+   territory row, or vice versa depending on the target varaqa layout).
+
+### 8.4 Relationship to the disease‑first endpoints
+
+Both views read the **same** underlying data (§1) and the **same** catalog
+entries — switching between them is a pure UI choice, not a different report.
+Pick `by-territory` when the analyst thinks "which regions have the most
+cases of X," and the plain `root`/`children` (§4–§5) when they think "how bad
+is disease X, and where."

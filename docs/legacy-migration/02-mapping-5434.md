@@ -53,10 +53,8 @@ triplet'lar bor). Faqat **`card174/175/205/card_tube` BAZA jadvallari** hali esk
   - `deleted`→false
   - `has_linked_cards` ← `EXISTS(SELECT 1 FROM public.card c WHERE c.form058_id=f.id)`
   - `icd10_code`/`icd10_name` ← `mkb10code`/`mkb10name`; NULL bo'lsa **qator skip + log**
-  - `disease_place` (NOT NULL) ← ⚠️ legacy'da matn yo'q (`disease_place_code` bor). **`COALESCE(disease_place_code, '—')`?** yoki skip? → **QAROR** (pastda)
-  - `patient_full_name` ← `public.patient` dan `last‖first‖middle`; bo'sh → skip+log
-  - `patient_nnuzb` ← `public.pt_identifier` WHERE `type_code='NNUZB'`; topilmasa → skip+log
-- **denormal (NULLable, patient'dan):** `patient_birth_date`←`patient.birth_date`, `patient_gender`←`patient.gender_code`, `patient_phone`←`patient.phone_number`, `patient_pinfl`←`pt_identifier` WHERE `type_code='PINFL'`
+  - ~~`disease_place` (NOT NULL)~~ → ustun `public2` dan olib tashlandi (Liquibase `20260904-1400-drop-form058-disease-place.xml`) — yangi modelda ishlatilmaydi, backfill kerak emas
+  - ~~`patient_full_name`, `patient_nnuzb`, `patient_pinfl`, `patient_birth_date`, `patient_gender`, `patient_phone`~~ → hammasi `public2` dan olib tashlandi (o'sha migratsiyaning 02-changeset'i) — bemor ma'lumoti faqat `patient`/`pt_identifier`da (`30-patient.sql`), `form058` faqat `patient_id` orqali bog'lanadi
 - **location_* (NULLable):** legacy manba yo'q → NULL (yoki `pt_address` PERMANENT dan — QAROR)
 - **approve audit (NULLable):** `approved_by_id, approved_organization_id, approved_at` → NULL; `approved_full_name`/`approved_org_uuid` legacy'da bor
 - **`assigned_card_id`** → `90-finalize.sql` da UPDATE
@@ -135,7 +133,7 @@ SQL yozishда har jadval alohida ko'rib chiqiladi. Element jadvallar (`*_affect
 
 ## 5. Qarorlar (round 5 — ✅ hal qilinди)
 
-1. **`form058.disease_place`** (NOT NULL) → `disease_place := disease_place_code`; agar `disease_place_code IS NULL` → **qator skip + log**.
+1. ~~**`form058.disease_place`** (NOT NULL)~~ → **BEKOR**: ustun yangi modelda ishlatilmaydi, `public2` dan olib tashlandi (Liquibase `20260904-1400-drop-form058-disease-place.xml`). Backfill/skip kerak emas; `disease_place_code` (kod ustuni) o'z holicha qoladi.
 2. **`form058.location_*_code` / `location_address`** → **NULL**. Joylashuv `fm058_location` (lat/long, `location_id` orqali) bilan ishlaydi, kod ustunlari ishlatilmaydi.
 3. **`card161_main_probable_infection_factor`** (legacy element) → target skalyar `card161.main_probable_infection_factor_code` ga **birinchi** `catalog_code`. Bittadan ko'p bo'lsa — log.
 4. **card174 bola jadvallari** (`disinfection_info`, `external_sample_test`, `preventive_measure`) → target'da yangi qanday bo'lsa shунday; legacy'da ma'lumot bo'lsa `card174` ota ustunlariga ko'chiriladi (birinchi qator; ko'p bo'lsa log):

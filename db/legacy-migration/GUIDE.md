@@ -171,7 +171,7 @@ SELECT * FROM public2._migration_notes ORDER BY source_table, source_id;
 
 ### 5.5. Qo'lda solishtirish (ixtiyoriy)
 ```sql
-SELECT id, status, icd10_code, patient_nnuzb, patient_full_name
+SELECT id, status, icd10_code, patient_id
 FROM public2.form058 WHERE id <> 0 ORDER BY id LIMIT 20;
 
 SELECT id, status, mkb10code, source FROM public.form058 ORDER BY id LIMIT 20;
@@ -268,3 +268,10 @@ Muvaffaqiyatli. 6 form058, 2 card, 2 act, 6 patient, 1 card161, 1 card174,
 1 act154, 1 act224 — hammasi ko'chdi. `yo'qolgan` = 0, JOINED butunlik = 0.
 6 form058 uchun `NNUZB` yo'q edi (test bemorlarda `REO`) -> REO qiymati
 `patient_nnuzb` ga yozildi, qator ko'chdi.
+
+> **2026-09-04 yangilanish:** `form058.patient_nnuzb`/`patient_pinfl`/
+> `patient_full_name`/`patient_birth_date`/`patient_gender`/`patient_phone`
+> ustunlari butunlay olib tashlandi
+> (`20260904-1400-drop-form058-disease-place.xml`, 02-changeset). Bemor
+> ma'lumotlari faqat `patient`/`pt_identifier`da (`30-patient.sql`) saqlanadi —
+> yuqoridagi NNUZB fallback endi `40-form058.sql`ga tegishli emas.

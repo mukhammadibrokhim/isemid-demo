@@ -71,7 +71,6 @@ public interface Form058DetailResponseMapper {
     Form058ApprovalDetailResponse toResponse(Form058ApprovalInfo source);
 
     @Mapping(target = "hasLinkedCards", source = "hasLinkedCards")
-    @Mapping(target = "assignedCardId", source = "assignedCardId")
     Form058CardLinkDetailResponse toCardLinkResponse(Form058 source);
 
     @Mapping(target = "deleted", source = "source.deleteInfo.deleted")

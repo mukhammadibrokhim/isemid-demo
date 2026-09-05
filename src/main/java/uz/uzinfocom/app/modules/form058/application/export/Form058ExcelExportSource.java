@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.modules.form058.application.export;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -48,9 +49,19 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
             "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"
     };
 
+    /**
+     * How often {@link #forEachRow} detaches everything from the persistence context while
+     * streaming. Each row is built from a fully-loaded {@link Form058} plus its lazily
+     * fetched associations (patient, addresses, workplace, organizations); without this,
+     * every one of them would stay managed for the whole export and heap would grow linearly
+     * with the result set (up to {@code app.export.max-rows}).
+     */
+    private static final int PERSISTENCE_CONTEXT_CLEAR_EVERY_N_ROWS = 500;
+
     private final Form058JpaRepository repository;
     private final Form058QueryService form058QueryService;
     private final Form058PdfMapper form058PdfMapper;
+    private final EntityManager entityManager;
 
     @Override
     public String exportType() {
@@ -72,6 +83,7 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
         Specification<Form058> spec = form058QueryService.resolveSpecification(filter);
         Sort sort = form058QueryService.resolvePageable(filter).getSort();
 
+        long[] processed = {0};
         try (Stream<Form058> entities = repository.findBy(spec, query -> query.sortBy(sort).stream())) {
             entities.forEach(entity -> {
                 try {
@@ -84,6 +96,14 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
                     // still be investigated separately.
                     log.warn("event=export_row_skipped exportType=FORM058 form058Id={} reason={}",
                             entity.getId(), mappingFailure.getMessage(), mappingFailure);
+                }
+
+                // Detach after the row is mapped (the mapper has already resolved every
+                // association it needs) so the context stays bounded across a large export.
+                // Safe mid-stream: clearing the session doesn't close the underlying
+                // server-side cursor the Stream reads from.
+                if (++processed[0] % PERSISTENCE_CONTEXT_CLEAR_EVERY_N_ROWS == 0) {
+                    entityManager.clear();
                 }
             });
         }

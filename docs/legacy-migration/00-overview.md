@@ -100,7 +100,7 @@ tasdiq yoki boshqa qiymat kerak:
 | `card.created_org_uuid` (NOT NULL) | legacy'da bor — to'g'ridan. NULL → QAROR. |
 | `form058.sender_organization_id` / `receiver_organization_id` (NOT NULL) | legacy'da bor (nullable) — NULL qatorlar bo'lsa QAROR. |
 | `form058.icd10_code` / `icd10_name` (NOT NULL) | legacy `mkb10code`/`mkb10name` (nullable). NULL bo'lsa → QAROR (masalan `'0'` / `'—'`?). |
-| `form058.disease_date`, `first_visit_date`, `visit_date`, `initial_report_date_time`, `disease_place`, `notifier_full_name`, `patient_nnuzb`, `patient_full_name` (barchasi NOT NULL) | legacy'da nullable. NULL bo'lgan qatorlar soni tekshiriladi → default yoki QAROR (`40` §validatsiya). |
+| `form058.disease_date`, `first_visit_date`, `visit_date`, `initial_report_date_time`, `notifier_full_name` (barchasi NOT NULL) | legacy'da nullable. NULL bo'lgan qatorlar soni tekshiriladi → default yoki QAROR (`40` §validatsiya). `disease_place` va denormalizatsiya qilingan `patient_nnuzb`/`patient_full_name`/... ustunlari esa `public2` dan butunlay olib tashlandi (`20260904-1400-drop-form058-disease-place.xml`) — bemor ma'lumoti faqat `patient`/`pt_identifier`da. |
 
 ---
 

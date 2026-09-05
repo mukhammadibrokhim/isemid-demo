@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.modules.form0581.application.export;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -39,9 +40,18 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class Form0581ExcelExportSource implements ExcelExportSource<Form0581Filter, Form0581TableResponse> {
 
+    /**
+     * See {@code Form058ExcelExportSource} for the rationale - the nested-collection table
+     * projection here (patient + its addresses) is still materialized through managed
+     * entities, so the persistence context has to be detached periodically to keep a large
+     * streamed export's heap use flat.
+     */
+    private static final int PERSISTENCE_CONTEXT_CLEAR_EVERY_N_ROWS = 500;
+
     private final Form0581JpaRepository repository;
     private final Form0581QueryService form0581QueryService;
     private final Form0581TableMapper form0581TableMapper;
+    private final EntityManager entityManager;
 
     @Override
     public String exportType() {
@@ -60,6 +70,7 @@ public class Form0581ExcelExportSource implements ExcelExportSource<Form0581Filt
         Specification<Form0581> spec = form0581QueryService.resolveSpecification(filter);
         Sort sort = PageableUtils.of(filter, Form0581SortFields.ALLOWED).getSort();
 
+        long[] processed = {0};
         try (Stream<Form0581TableProjection> projections = repository.findBy(
                 spec,
                 query -> query.as(Form0581TableProjection.class).sortBy(sort).stream()
@@ -72,6 +83,12 @@ public class Form0581ExcelExportSource implements ExcelExportSource<Form0581Filt
                     // since-deactivated/merged organization shouldn't abort the whole export.
                     log.warn("event=export_row_skipped exportType=FORM0581 form0581Id={} reason={}",
                             projection.getId(), mappingFailure.getMessage(), mappingFailure);
+                }
+
+                // Detach mapped rows so a large streamed export's heap stays flat - safe
+                // mid-stream, the server-side cursor the Stream reads from is unaffected.
+                if (++processed[0] % PERSISTENCE_CONTEXT_CLEAR_EVERY_N_ROWS == 0) {
+                    entityManager.clear();
                 }
             });
         }

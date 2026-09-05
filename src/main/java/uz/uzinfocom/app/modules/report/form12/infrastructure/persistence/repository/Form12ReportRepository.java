@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12Counts;
 import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12DiagnosisCountProjection;
 import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12OrganizationCountProjection;
+import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12OrganizationDiagnosisCountProjection;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -156,6 +157,38 @@ public class Form12ReportRepository {
                     Object[] r = (Object[]) row;
                     return new Form12OrganizationCountProjection(
                             ((Number) r[0]).longValue(), count(r, 1), count(r, 2), count(r, 3)
+                    );
+                })
+                .toList();
+    }
+
+    /**
+     * One count row per (organization id, confirmed-diagnosis code) pair, with
+     * no code filter — the raw material for the "Form 12 by territory" view,
+     * where every nosological form is its own column against every territory
+     * row (unlike {@link #countGroupedByOrganizationForCodes}, which restricts
+     * to a single nosological form's code set).
+     */
+    public List<Form12OrganizationDiagnosisCountProjection> countGroupedByOrganizationAndDiagnosisCode(
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = "select t.sender_organization_id as organization_id, t.diagnosis_code as diagnosis_code, "
+                + METRIC_COLUMNS
+                + " from (" + unionSourceWithOrg(organizationIds) + ") t"
+                + " where t.diagnosis_code is not null group by t.sender_organization_id, t.diagnosis_code";
+
+        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+
+        return rows.stream()
+                .map(row -> {
+                    Object[] r = (Object[]) row;
+                    return new Form12OrganizationDiagnosisCountProjection(
+                            ((Number) r[0]).longValue(), (String) r[1],
+                            new Form12Counts(count(r, 2), count(r, 3), count(r, 4))
                     );
                 })
                 .toList();

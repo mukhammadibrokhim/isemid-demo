@@ -723,7 +723,10 @@ public final class ApiPaths {
      * записи с includeInTotal). Раскрытие строки — drill-down по
      * административной иерархии (республика→регион→район→организация) для этой
      * нозологической формы. См. {@code Form12ReportController} под {@code
-     * modules.report.form12}.
+     * modules.report.form12}. У отчёта также есть «перевёрнутый» (по территориям)
+     * вариант — строки география, столбцы болезни (те же записи FORM_12, без
+     * сравнения год назад), как «Form 28.1»/«Form 28.2» — см. {@code
+     * Form12ByTerritoryReportController} под {@code BY_TERRITORY_*}.
      */
     public static final class Form12Report {
         private Form12Report() {
@@ -732,6 +735,8 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-12";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
+        public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
     }
 
     /**
@@ -744,7 +749,10 @@ public final class ApiPaths {
      * справочника ручных отчётов с тегом {@code FORM_13}), для каждой болезни
      * пара «O'tgan yil / Joriy yil» × «Jami / до 14 лет / до 18 лет». Прироста
      * (delta) нет. См. {@code Form13ReportController} под {@code
-     * modules.report.form13}.
+     * modules.report.form13}. У отчёта также есть «прямой» (по нозологическим
+     * формам) вариант — корневой уровень плоский список записей FORM_13 (как
+     * «Form 12»), с раскрытием строки по географии для одной формы — см. {@code
+     * Form13ByDiseaseReportController} под {@code BY_DISEASE_*}.
      */
     public static final class Form13Report {
         private Form13Report() {
@@ -753,6 +761,8 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-13";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String BY_DISEASE_ROOT_NODE = "/by-disease/root";
+        public static final String BY_DISEASE_CHILDREN = "/by-disease/children";
     }
 
     /**
@@ -771,7 +781,9 @@ public final class ApiPaths {
      * сельскому населению ({@code patient.population_type_code =
      * 'VILLAGE_RESIDENT'}). Последней строкой — «Jami» (только записи с
      * includeInTotal). См. {@code Form281ReportController} под {@code
-     * modules.report.form281}.
+     * modules.report.form281}. У отчёта также есть «перевёрнутый» (по территориям)
+     * вариант — строки география, столбцы болезни, как «Form 13» к «Form 12» — см.
+     * {@code Form281ByTerritoryReportController} под {@code BY_TERRITORY_*}.
      */
     public static final class Form281Report {
         private Form281Report() {
@@ -780,6 +792,8 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-28-1";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
+        public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
     }
 
     /**
@@ -794,13 +808,69 @@ public final class ApiPaths {
      * произвольный период {@code [from, to]}. Метрики варакаи: всего / до 17
      * включ. (лет) / до 1 месяца / от 1 месяца до 1 года. Последней строкой —
      * «Jami» (только записи с includeInTotal). См. {@code Form282ReportController}
-     * под {@code modules.report.form282}.
+     * под {@code modules.report.form282}. У отчёта также есть «перевёрнутый» (по
+     * территориям) вариант — строки география, столбцы болезни — см. {@code
+     * Form282ByTerritoryReportController} под {@code BY_TERRITORY_*}.
      */
     public static final class Form282Report {
         private Form282Report() {
         }
 
         public static final String ROOT = Report.ROOT + "/form-28-2";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
+        public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
+    }
+
+    /**
+     * "Forecast" — surveillance forecasting over form058 + form058_1. Not a
+     * geography drill-down: one geography node (the caller's whole access
+     * scope, or an explicit {@code regionCode}/{@code districtCode} inside
+     * it) is resolved via {@code ReportHierarchyService.resolveNode}, its
+     * whole sub-tree pulled as one DAY/WEEK/MONTH-bucketed time series over
+     * the training window, and extrapolated {@code horizon} buckets ahead
+     * (exponential smoothing / Holt / Holt-Winters, auto-selected) with a
+     * ~95% prediction band and the classical endemic-channel epidemic
+     * threshold. Filters: geography, ICD-10 ({@code diagnosisCode}, initial
+     * or final code), training window ({@code from}/{@code to}). See {@code
+     * ForecastReportController} under {@code modules.report.forecast}.
+     */
+    public static final class ForecastReport {
+        private ForecastReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/forecast";
+
+        /** Geography breakdown — first hierarchy level of the caller's scope + "Jami", one compact forecast row each. */
+        public static final String ROOT_NODE = "/root";
+
+        /** Geography breakdown — next hierarchy level (region → districts, district → organizations). */
+        public static final String CHILDREN = "/children";
+
+        /** Full history + horizon-ahead forecast + endemic channel for one geography node (the chart). */
+        public static final String SERIES = "/series";
+    }
+
+    /**
+     * "Statistika" — geography-first statistics report: root level is the
+     * administrative hierarchy (republic→region→district→organization, one
+     * level per call via {@code ReportHierarchyService}, drilling all the
+     * way down to the individual organization — the lowest level this
+     * system models), same as every other report. Numbers are confirmed
+     * (status = APPROVED) vs primary/not-yet-decided (status not in
+     * (APPROVED, CANCELED)) cases of forms №058 + №058-1, an age (18
+     * years)/gender cut, a per-category breakdown driven by the live
+     * {@code ref_catalog(type = CATEGORY)} catalog rather than a hardcoded
+     * set, plus card ({@code modules.card}) and act ({@code modules.act})
+     * status breakdowns for the same node — see {@code
+     * StatisticsReportController} under {@code modules.report.statistics}.
+     */
+    public static final class StatisticsReport {
+        private StatisticsReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/statistics";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
     }
