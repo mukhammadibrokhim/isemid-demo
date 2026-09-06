@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastBucketUnit;
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastBucketCountProjection;
+import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastDiseaseBucketCountProjection;
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastOrgBucketCountProjection;
 
 import java.sql.Timestamp;
@@ -71,6 +72,34 @@ public class ForecastSeriesRepository {
                    or f.final_icd10_code = (:diagnosisCode)::text)
             """;
 
+    /**
+     * Same shape as {@link #UNION_SOURCE_TEMPLATE} but grouped by disease
+     * instead of filtered to one: no {@code diagnosisCode} bind parameter,
+     * and the "current best known code" — final if present, else initial —
+     * is projected as {@code diagnosis_code} so every notification is
+     * attributed to exactly one series (avoiding the double count an "initial
+     * OR final" match would cause when grouping).
+     */
+    private static final String DIAGNOSIS_UNION_SOURCE_TEMPLATE = """
+            select coalesce(f.final_icd10_code, f.icd10_code) as diagnosis_code,
+                   date_trunc('%2$s', f.created_at at time zone 'Asia/Tashkent') as bucket_start
+            from form058 f
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            where f.deleted = false
+              and f.status <> 'CANCELED'
+              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+              and coalesce(f.final_icd10_code, f.icd10_code) is not null
+            union all
+            select coalesce(f.final_icd10_code, f.icd10_code),
+                   date_trunc('%2$s', f.created_at at time zone 'Asia/Tashkent')
+            from form058_1 f
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            where f.deleted = false
+              and f.status <> 'CANCELED'
+              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+              and coalesce(f.final_icd10_code, f.icd10_code) is not null
+            """;
+
     private final EntityManager entityManager;
 
     /**
@@ -127,6 +156,39 @@ public class ForecastSeriesRepository {
                     return new ForecastOrgBucketCountProjection(
                             ((Number) r[0]).longValue(), toLocalDate(r[1]), ((Number) r[2]).longValue()
                     );
+                })
+                .toList();
+    }
+
+    /**
+     * One count row per {@code (ICD-10 code, bucket start)} pair across the
+     * given organizations, for the whole training window, unfiltered by
+     * disease — the "top diseases" ranking feed. The query service groups
+     * these into one series per code and forecasts each independently.
+     */
+    public List<ForecastDiseaseBucketCountProjection> countByBucketGroupedByDiagnosis(
+            List<Long> organizationIds,
+            ForecastBucketUnit unit,
+            Instant fromInclusive,
+            Instant toExclusive
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty()) {
+            return List.of();
+        }
+
+        String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
+        String source = DIAGNOSIS_UNION_SOURCE_TEMPLATE.formatted(valuesList, unit.sqlTruncField());
+        String sql = "select t.diagnosis_code as diagnosis_code, t.bucket_start as bucket_start, count(*) as cnt from ("
+                + source + ") t group by t.diagnosis_code, t.bucket_start";
+
+        List<?> rows = entityManager.createNativeQuery(sql)
+                .setParameter("fromInclusive", fromInclusive)
+                .setParameter("toExclusive", toExclusive)
+                .getResultList();
+        return rows.stream()
+                .map(row -> {
+                    Object[] r = (Object[]) row;
+                    return new ForecastDiseaseBucketCountProjection((String) r[0], toLocalDate(r[1]), ((Number) r[2]).longValue());
                 })
                 .toList();
     }

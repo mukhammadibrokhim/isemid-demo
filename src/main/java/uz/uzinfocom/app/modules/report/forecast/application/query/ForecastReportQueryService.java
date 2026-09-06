@@ -3,18 +3,22 @@ package uz.uzinfocom.app.modules.report.forecast.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastBucketUnit;
+import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastDiseaseRiskResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastHistoryPointResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastMethod;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastNodeResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastPredictionPointResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastResponse;
+import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastRiskLevel;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastSeries;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastSummaryResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.forecasting.EndemicChannel;
 import uz.uzinfocom.app.modules.report.forecast.application.query.forecasting.TimeSeriesForecaster;
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.ForecastSeriesRepository;
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastBucketCountProjection;
+import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastDiseaseBucketCountProjection;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRange;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyNode;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyService;
@@ -26,6 +30,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -63,9 +69,13 @@ public class ForecastReportQueryService {
     private static final int DEFAULT_HORIZON = 8;
     private static final int MIN_HORIZON = 1;
     private static final int MAX_TRAINING_BUCKETS = 520;
+    private static final int DEFAULT_TOP_DISEASES = 10;
+    private static final int MAX_TOP_DISEASES = 50;
+    private static final long DEFAULT_MIN_TRAINING_CASES = 3;
 
     private final ForecastSeriesRepository forecastSeriesRepository;
     private final ReportHierarchyService reportHierarchyService;
+    private final Icd10LookupService icd10LookupService;
 
     public List<ForecastNodeResponse> getRoot(
             String diagnosisCode,
@@ -157,6 +167,104 @@ public class ForecastReportQueryService {
         );
 
         return new ForecastResponse(summary, history, computation.points());
+    }
+
+    /**
+     * "Which diseases might rise" for one geography node: every ICD-10 code
+     * seen in the node's training window gets its own independent forecast
+     * (same models/endemic channel as {@link #getSeries}), and the result is
+     * a risk-ranked top {@code limit} list — {@link ForecastRiskLevel#HIGH}
+     * first (by {@code alertBuckets}), then {@link ForecastRiskLevel#MEDIUM}
+     * (by rising trend), then the rest by {@code forecastTotal}. Codes with
+     * fewer than {@code minCases} total training-window notifications are
+     * dropped before forecasting — too sparse a series to say anything about,
+     * and the dominant cost of this endpoint (one query total, then one
+     * forecast per surviving code).
+     */
+    public List<ForecastDiseaseRiskResponse> getTopDiseases(
+            String regionCode,
+            String districtCode,
+            ForecastBucketUnit bucketOrNull,
+            Integer horizonOrNull,
+            ForecastMethod methodOrNull,
+            LocalDate from,
+            LocalDate to,
+            Integer limitOrNull,
+            Long minCasesOrNull
+    ) {
+        Organization currentOrganization = requireCurrentOrganization();
+        ResolvedReportNode node = reportHierarchyService.resolveNode(currentOrganization, regionCode, districtCode);
+        Request request = request(null, bucketOrNull, horizonOrNull, methodOrNull, from, to);
+        int limit = limitOrNull != null ? Math.max(1, Math.min(limitOrNull, MAX_TOP_DISEASES)) : DEFAULT_TOP_DISEASES;
+        long minCases = minCasesOrNull != null ? Math.max(0, minCasesOrNull) : DEFAULT_MIN_TRAINING_CASES;
+
+        List<LocalDate> bucketStarts = request.window().bucketStarts();
+        Map<LocalDate, Integer> indexByStart = new HashMap<>(bucketStarts.size() * 2);
+        for (int i = 0; i < bucketStarts.size(); i++) {
+            indexByStart.put(bucketStarts.get(i), i);
+        }
+
+        Map<String, long[]> countsByCode = new HashMap<>();
+        for (ForecastDiseaseBucketCountProjection row : forecastSeriesRepository.countByBucketGroupedByDiagnosis(
+                node.organizationIds(), request.unit(),
+                request.window().range().fromInclusive(), request.window().range().toExclusive()
+        )) {
+            Integer i = indexByStart.get(row.bucketStart());
+            if (i == null) {
+                continue;
+            }
+            countsByCode.computeIfAbsent(row.diagnosisCode(), k -> new long[bucketStarts.size()])[i] += row.count();
+        }
+
+        Map<String, String> diagnosisNames = icd10LookupService.resolveNames(countsByCode.keySet());
+
+        List<ForecastDiseaseRiskResponse> rows = new ArrayList<>(countsByCode.size());
+        for (Map.Entry<String, long[]> entry : countsByCode.entrySet()) {
+            long[] counts = entry.getValue();
+            long trainingTotal = Arrays.stream(counts).sum();
+            if (trainingTotal < minCases) {
+                continue;
+            }
+
+            String code = entry.getKey();
+            Computation computation = compute(counts, bucketStarts, request);
+            rows.add(new ForecastDiseaseRiskResponse(
+                    code,
+                    diagnosisNames.getOrDefault(code, code),
+                    riskLevel(computation.alertBuckets(), computation.trendPerBucket()),
+                    computation.result().method(),
+                    trainingTotal,
+                    counts[counts.length - 1],
+                    computation.points().isEmpty() ? 0L : computation.points().get(0).predicted(),
+                    computation.forecastTotal(),
+                    round2(computation.trendPerBucket()),
+                    computation.alertBuckets(),
+                    computation.peakPeriodStart()
+            ));
+        }
+
+        rows.sort(Comparator
+                .comparingInt((ForecastDiseaseRiskResponse r) -> riskRank(r.riskLevel())).reversed()
+                .thenComparing(Comparator.comparingInt(ForecastDiseaseRiskResponse::alertBuckets).reversed())
+                .thenComparing(Comparator.comparingDouble(ForecastDiseaseRiskResponse::trendPerBucket).reversed())
+                .thenComparing(Comparator.comparingLong(ForecastDiseaseRiskResponse::forecastTotal).reversed()));
+
+        return rows.size() > limit ? rows.subList(0, limit) : rows;
+    }
+
+    private ForecastRiskLevel riskLevel(int alertBuckets, double trendPerBucket) {
+        if (alertBuckets > 0) {
+            return ForecastRiskLevel.HIGH;
+        }
+        return trendPerBucket > 0 ? ForecastRiskLevel.MEDIUM : ForecastRiskLevel.LOW;
+    }
+
+    private int riskRank(ForecastRiskLevel level) {
+        return switch (level) {
+            case HIGH -> 2;
+            case MEDIUM -> 1;
+            case LOW -> 0;
+        };
     }
 
     private ForecastNodeResponse nodeRow(ReportHierarchyNode<ForecastSeries> node, Request request) {

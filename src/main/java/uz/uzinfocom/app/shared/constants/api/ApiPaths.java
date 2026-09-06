@@ -850,6 +850,9 @@ public final class ApiPaths {
 
         /** Full history + horizon-ahead forecast + endemic channel for one geography node (the chart). */
         public static final String SERIES = "/series";
+
+        /** Risk-ranked "which diseases might rise" list for one geography node — one independent forecast per ICD-10 code seen in the training window. */
+        public static final String TOP_DISEASES = "/top-diseases";
     }
 
     /**
@@ -909,6 +912,25 @@ public final class ApiPaths {
 
         public static final String ROOT = Report.ROOT + "/form-2/manual-entries";
         public static final String PREFILL = "/prefill";
+        public static final String BY_ID = "/{id}";
+    }
+
+    /**
+     * "Analitik hisobot" — the ad-hoc analytical report builder: caller picks
+     * a date range plus multi-select regions/ICD-10 diagnoses, previews the
+     * computed per-region population (current-year {@code ref_population})
+     * and confirmed-case rate via {@link #COMPUTE}, free-edits the result
+     * into rich-text {@code content}, then saves it either as a reusable
+     * "Shablon sifatida saqlash" template or a finished "Saqlash" report
+     * (same shape, distinguished by {@code status}). See {@code
+     * AnalyticReportController} under {@code modules.report.analytic}.
+     */
+    public static final class AnalyticReport {
+        private AnalyticReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/analytic";
+        public static final String COMPUTE = "/compute";
         public static final String BY_ID = "/{id}";
     }
 

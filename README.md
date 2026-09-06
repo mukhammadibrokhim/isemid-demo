@@ -373,5 +373,5 @@ Deeper, module-specific documentation lives under [`docs/`](docs):
 | [population-reference-frontend-guide.md](docs/population-reference-frontend-guide.md) | Frontend integration guide for the `ref_population` reference (year-scoped hierarchy, detail, manual entry, SDMX sync) |
 | [manual-report-reference-frontend-guide.md](docs/manual-report-reference-frontend-guide.md) | Frontend integration guide for the `ref_manual_report` reference — the «Hisobot turi» (`REPORT_TYPE` catalog) field, table, CRUD |
 | [form-28-1-28-2-report-frontend-guide.md](docs/form-28-1-28-2-report-frontend-guide.md) | Frontend integration guide for Form 28.1 / Form 28.2 reports — disease rows, geography drill-down, varaqa column mapping |
-| [forecast-report-frontend-guide.md](docs/forecast-report-frontend-guide.md) | Frontend integration guide for the Forecast report — single geography node, DAY/WEEK/MONTH series, horizon-ahead prediction + endemic channel, `from`/`to` + ICD-10 filters |
+| [forecast-report-frontend-guide.md](docs/forecast-report-frontend-guide.md) | Frontend integration guide for the Forecast report — geography-first `/root`+`/children` breakdown rows + per-node `/series` chart, DAY/WEEK/MONTH horizon-ahead prediction + endemic channel, `from`/`to` + ICD-10 filters |
 | [platform.md](docs/platform.md) | Shared platform infrastructure overview |

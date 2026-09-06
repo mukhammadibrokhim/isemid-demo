@@ -21,6 +21,8 @@ public interface Icd10Repository extends JpaRepository<Icd10, Long>, JpaSpecific
 
     List<Icd10> findAllByParentIsNullAndDeletedFalseOrderByCodeAsc();
 
+    List<Icd10> findAllByCodeInAndDeletedFalse(Collection<String> codes);
+
     List<Icd10> findAllByParent_IdAndDeletedFalseOrderByCodeAsc(Long parentId);
 
     long countByParent_IdAndDeletedFalse(Long parentId);
