@@ -11,9 +11,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import uz.uzinfocom.app.modules.report.form9.application.export.Form9ExcelExportSource;
+import uz.uzinfocom.app.modules.report.form9.application.export.Form9ExportFilter;
 import uz.uzinfocom.app.modules.report.form9.application.query.Form9ReportQueryService;
 import uz.uzinfocom.app.modules.report.form9.application.query.dto.Form9MonthlyBreakdownResponse;
 import uz.uzinfocom.app.modules.report.form9.application.query.dto.Form9ReportNodeResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -54,6 +59,8 @@ public class Form9ReportController {
 
     private final Form9ReportQueryService form9ReportQueryService;
     private final MessageResolver messageResolver;
+    private final ExportJobService exportJobService;
+    private final Form9ExcelExportSource form9ExcelExportSource;
 
     @Operation(
             summary = "Первый уровень иерархии + итого",
@@ -129,6 +136,28 @@ public class Form9ReportController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 form9ReportQueryService.getMonthlyBreakdown(regionCode, districtCode, from, to, diagnosisCode)
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт Form 9 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по всей доступной иерархии "
+                    + "(регион→район→организация) за выбранный период. Прогресс и скачивание готового файла "
+                    + "— через /v1/exports."
+    )
+    @PostMapping(ApiPaths.Form9Report.EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> export(
+            @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "Конец периода (включительно). По умолчанию — сегодня.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @Parameter(description = "Фильтр по коду диагноза МКБ-10 (КХК-10), необязательный.")
+            @RequestParam(required = false) String diagnosisCode
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(form9ExcelExportSource, new Form9ExportFilter(from, to, diagnosisCode))
         );
     }
 }

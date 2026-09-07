@@ -1,37 +1,31 @@
 package uz.uzinfocom.app.modules.report.statistics.application.query.dto;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * The count shape {@code C} the statistics report plugs into {@code
  * ReportHierarchyService} / {@code ReportCountSource}. One geography node
- * carries: an {@link #overall} total — every form058/form058_1 case in
- * scope, regardless of whether its patient has a recognized social category
- * — a per-category breakdown ({@link #byCategoryCode}, keyed by {@code
- * ref_catalog(type = 'CATEGORY')} code), and this same node's {@link #cards}
- * and {@link #acts} counts. Merging two nodes (organization → district →
- * region → republic) sums all four independently.
+ * carries three fully independent blocks — form 058, form 058-1 and form 129
+ * are reported <b>separately</b>, never summed into a single "overall". Each
+ * form-058/058-1 block also carries its own cards and acts (a card/act belongs
+ * to exactly one of the two forms); form 129 never has cards or acts.
+ * <p>
+ * Merging two nodes (organization → district → region → republic) merges the
+ * three blocks independently.
  */
 public record StatisticsNodeCounts(
-        StatisticsCounts overall,
-        Map<String, StatisticsCounts> byCategoryCode,
-        StatisticsCardCounts cards,
-        StatisticsActCounts acts
+        StatisticsFormBlockCounts form058,
+        StatisticsFormBlockCounts form0581,
+        StatisticsForm129Counts form129
 ) {
 
-    public static final StatisticsNodeCounts EMPTY =
-            new StatisticsNodeCounts(StatisticsCounts.EMPTY, Map.of(), StatisticsCardCounts.EMPTY, StatisticsActCounts.EMPTY);
-
-    public StatisticsCounts category(String code) {
-        return byCategoryCode.getOrDefault(code, StatisticsCounts.EMPTY);
-    }
+    public static final StatisticsNodeCounts EMPTY = new StatisticsNodeCounts(
+            StatisticsFormBlockCounts.EMPTY, StatisticsFormBlockCounts.EMPTY, StatisticsForm129Counts.EMPTY
+    );
 
     public StatisticsNodeCounts plus(StatisticsNodeCounts other) {
-        Map<String, StatisticsCounts> merged = new HashMap<>(this.byCategoryCode);
-        other.byCategoryCode.forEach((code, counts) -> merged.merge(code, counts, StatisticsCounts::plus));
         return new StatisticsNodeCounts(
-                this.overall.plus(other.overall), merged, this.cards.plus(other.cards), this.acts.plus(other.acts)
+                this.form058.plus(other.form058),
+                this.form0581.plus(other.form0581),
+                this.form129.plus(other.form129)
         );
     }
 }

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.Form0581DiagnosisDetailResponse;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,9 @@ public record Form0581PdfResponse(
 
         @Schema(description = "UUID формы.")
         UUID uuid,
+
+        @Schema(description = "Дата и время создания формы (используется, например, для расчёта возраста пациента на момент создания формы).")
+        Instant createdAt,
 
         @Schema(description = "Текущий статус формы в её жизненном цикле.")
         Form0581Status status,

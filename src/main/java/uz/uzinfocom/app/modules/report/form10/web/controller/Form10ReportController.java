@@ -7,12 +7,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.app.modules.report.form10.application.export.Form10ExcelExportSource;
+import uz.uzinfocom.app.modules.report.form10.application.export.Form10ExportFilter;
 import uz.uzinfocom.app.modules.report.form10.application.query.Form10ReportQueryService;
 import uz.uzinfocom.app.modules.report.form10.application.query.dto.Form10ReportNodeResponse;
 import uz.uzinfocom.app.modules.report.shared.ReportPeriod;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -55,6 +60,8 @@ public class Form10ReportController {
 
     private final Form10ReportQueryService form10ReportQueryService;
     private final MessageResolver messageResolver;
+    private final ExportJobService exportJobService;
+    private final Form10ExcelExportSource form10ExcelExportSource;
 
     @Operation(
             summary = "Первый уровень иерархии + итого",
@@ -110,6 +117,34 @@ public class Form10ReportController {
                 messageResolver.resolve("common.success"),
                 form10ReportQueryService.getChildren(
                         regionCode, districtCode, resolveYear(year), resolvePeriod(period), diagnosisCode, koef
+                )
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт Form 10 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по всей доступной иерархии "
+                    + "(регион→район→организация) за выбранный год и период. Прогресс и скачивание готового "
+                    + "файла — через /v1/exports."
+    )
+    @PostMapping(ApiPaths.Form10Report.EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> export(
+            @Parameter(description = "Отчётный год. По умолчанию — текущий.")
+            @RequestParam(required = false) Integer year,
+            @Parameter(description = "Период: месяц (JANUARY…DECEMBER), квартал (Q1…Q4), полугодие "
+                    + "(HALF_YEAR), 9 месяцев (NINE_MONTHS) или год (YEAR). По умолчанию — текущий месяц.")
+            @RequestParam(required = false) ReportPeriod period,
+            @Parameter(description = "Фильтр по коду диагноза МКБ-10 (КХК-10), необязательный.")
+            @RequestParam(required = false) String diagnosisCode,
+            @Parameter(description = "Коэффициент интенсивного показателя (на сколько населения). По умолчанию 100000.")
+            @RequestParam(defaultValue = "100000") long koef
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(
+                        form10ExcelExportSource,
+                        new Form10ExportFilter(resolveYear(year), resolvePeriod(period), diagnosisCode, koef)
                 )
         );
     }

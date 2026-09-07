@@ -11,8 +11,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import uz.uzinfocom.app.modules.report.statistics.application.export.StatisticsExcelExportSource;
+import uz.uzinfocom.app.modules.report.statistics.application.export.StatisticsExportFilter;
 import uz.uzinfocom.app.modules.report.statistics.application.query.StatisticsReportQueryService;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsNodeResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -38,6 +43,8 @@ public class StatisticsReportController {
 
     private final StatisticsReportQueryService statisticsReportQueryService;
     private final MessageResolver messageResolver;
+    private final ExportJobService exportJobService;
+    private final StatisticsExcelExportSource statisticsExcelExportSource;
 
     @Operation(
             summary = "Первый уровень иерархии + итого",
@@ -93,6 +100,31 @@ public class StatisticsReportController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 statisticsReportQueryService.getChildren(regionCode, districtCode, fromA, toA, fromB, toB)
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт Statistika в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по всей доступной иерархии "
+                    + "(регион→район→организация) за «Davr A» и, если запрошено, «Davr B». Прогресс и "
+                    + "скачивание готового файла — через /v1/exports."
+    )
+    @PostMapping(ApiPaths.StatisticsReport.EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> export(
+            @Parameter(description = "Davr A: начало периода (включительно). По умолчанию — вся история.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromA,
+            @Parameter(description = "Davr A: конец периода (включительно). По умолчанию — сегодня.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toA,
+            @Parameter(description = "Davr B (для сравнения): начало периода. Не передан вместе с toB — "
+                    + "periodB отсутствует (null).")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromB,
+            @Parameter(description = "Davr B (для сравнения): конец периода.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toB
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(statisticsExcelExportSource, new StatisticsExportFilter(fromA, toA, fromB, toB))
         );
     }
 }

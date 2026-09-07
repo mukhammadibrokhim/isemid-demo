@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.form129.application.command.accept.AcceptForm129Service;
 import uz.uzinfocom.app.modules.form129.application.command.create.CreateForm129Service;
+import uz.uzinfocom.app.modules.form129.application.command.delete.DeleteForm129Service;
 import uz.uzinfocom.app.modules.form129.application.command.reject.RejectForm129Service;
 import uz.uzinfocom.app.modules.form129.web.dto.request.AcceptForm129Request;
 import uz.uzinfocom.app.modules.form129.web.dto.request.CreateForm129Request;
+import uz.uzinfocom.app.modules.form129.web.dto.request.DeleteForm129Request;
 import uz.uzinfocom.app.modules.form129.web.dto.request.RejectForm129Request;
 import uz.uzinfocom.app.modules.form129.web.dto.response.CreateForm129Response;
 import uz.uzinfocom.app.modules.form129.web.dto.response.Form129StatusResponse;
@@ -45,6 +48,7 @@ public class Form129CommandController {
     private final CreateForm129Service createForm129Service;
     private final AcceptForm129Service acceptForm129Service;
     private final RejectForm129Service rejectForm129Service;
+    private final DeleteForm129Service deleteForm129Service;
     private final Form129WebMapper form129WebMapper;
     private final Form129SourceResolver sourceResolver;
     private final MessageResolver messageResolver;
@@ -68,6 +72,24 @@ public class Form129CommandController {
                         form129WebMapper.toCommand(request, sourceResolver.resolve(sourceHeader))
                 ))
         );
+    }
+
+    @Operation(
+            summary = "Удалить форму №129 (администратор / супер-администратор)",
+            description = "Мягкое удаление формы с обязательным указанием причины. Форма №129 — это чистый "
+                    + "реестр без редактирования и утверждения; удалить запись может только пользователь с "
+                    + "ролью isemid_admin или isemid_super_admin. После удаления форма скрывается из всех "
+                    + "списков и выборок."
+    )
+    @DeleteMapping(ApiPaths.Form129.BY_ID)
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    public ApiResponse<Void> delete(
+            @Parameter(description = "Идентификатор формы №129.", required = true)
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody DeleteForm129Request request
+    ) {
+        deleteForm129Service.delete(id, request.reason());
+        return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
     }
 
     @Operation(

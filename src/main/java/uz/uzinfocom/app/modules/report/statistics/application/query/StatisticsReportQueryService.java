@@ -3,21 +3,33 @@ package uz.uzinfocom.app.modules.report.statistics.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.modules.act.application.query.dto.ActStatusCountResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.ActTypeCountResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
+import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardStatusCountResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.CardTypeCountResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
+import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+import uz.uzinfocom.app.modules.form129.domain.enums.Form129Status;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.modules.reference.application.lookup.projection.ReferenceItemProjection;
 import uz.uzinfocom.app.modules.reference.repository.CatalogRepository;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsAgeBreakdownResponse;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsCategoryCellResponse;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsCounts;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsForm129BlockResponse;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsForm129CategoryCellResponse;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsForm129Counts;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsForm129StatusCountResponse;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsFormBlockCounts;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsFormBlockResponse;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsGenderBreakdownResponse;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsNodeCounts;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsNodeResponse;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsPeriodCountsResponse;
 import uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.repository.StatisticsActRepository;
 import uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.repository.StatisticsCardRepository;
+import uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.repository.StatisticsForm129Repository;
 import uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.repository.StatisticsReportRepository;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRange;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyNode;
@@ -65,6 +77,7 @@ public class StatisticsReportQueryService {
     private final StatisticsReportRepository statisticsReportRepository;
     private final StatisticsCardRepository statisticsCardRepository;
     private final StatisticsActRepository statisticsActRepository;
+    private final StatisticsForm129Repository statisticsForm129Repository;
     private final CatalogRepository catalogRepository;
     private final ReportHierarchyService reportHierarchyService;
     private final ReportDateRangeResolver reportDateRangeResolver;
@@ -123,7 +136,8 @@ public class StatisticsReportQueryService {
                 .map(ReferenceItemProjection::getCode)
                 .collect(Collectors.toSet());
         return new StatisticsGeographyCountSource(
-                statisticsReportRepository, statisticsCardRepository, statisticsActRepository, knownCategoryCodes
+                statisticsReportRepository, statisticsCardRepository, statisticsActRepository,
+                statisticsForm129Repository, knownCategoryCodes
         );
     }
 
@@ -158,9 +172,19 @@ public class StatisticsReportQueryService {
     private StatisticsPeriodCountsResponse toPeriodResponse(
             StatisticsNodeCounts counts, List<ReferenceItemProjection> categories
     ) {
-        StatisticsCounts overall = counts.overall();
-
         return new StatisticsPeriodCountsResponse(
+                formBlockResponse(counts.form058(), categories),
+                formBlockResponse(counts.form0581(), categories),
+                form129BlockResponse(counts.form129(), categories)
+        );
+    }
+
+    private StatisticsFormBlockResponse formBlockResponse(
+            StatisticsFormBlockCounts block, List<ReferenceItemProjection> categories
+    ) {
+        StatisticsCounts overall = block.overall();
+
+        return new StatisticsFormBlockResponse(
                 overall.confirmedTotal(), overall.primaryTotal(),
                 new StatisticsAgeBreakdownResponse(
                         overall.confirmedUnder18(), overall.confirmedAdult(),
@@ -170,38 +194,81 @@ public class StatisticsReportQueryService {
                         overall.confirmedFemale(), overall.confirmedMale(),
                         overall.primaryFemale(), overall.primaryMale()
                 ),
-                categoryCells(categories, counts),
-                counts.cards().total(), cardStatusCells(counts),
-                counts.acts().total(), actStatusCells(counts)
+                categoryCells(categories, block),
+                block.cards().total(), cardStatusCells(block), cardTypeCells(block),
+                block.acts().total(), actStatusCells(block), actTypeCells(block)
         );
     }
 
-    /** Every {@link CardStatus} value, in enum order, zero-filled where the node has no cards in that status. */
-    private List<CardStatusCountResponse> cardStatusCells(StatisticsNodeCounts counts) {
-        Map<CardStatus, Long> byStatus = counts.cards().byStatus();
+    private StatisticsForm129BlockResponse form129BlockResponse(
+            StatisticsForm129Counts counts, List<ReferenceItemProjection> categories
+    ) {
+        return new StatisticsForm129BlockResponse(
+                counts.total(), counts.under18(), counts.adult(), counts.female(), counts.male(),
+                form129CategoryCells(categories, counts), form129StatusCells(counts)
+        );
+    }
+
+    /** Every {@link CardStatus} value, in enum order, zero-filled where the block has no cards in that status. */
+    private List<CardStatusCountResponse> cardStatusCells(StatisticsFormBlockCounts block) {
+        Map<CardStatus, Long> byStatus = block.cards().byStatus();
         return Arrays.stream(CardStatus.values())
                 .map(status -> new CardStatusCountResponse(status, byStatus.getOrDefault(status, 0L)))
                 .toList();
     }
 
-    /** Every {@link ActStatus} value, in enum order, zero-filled where the node has no acts in that status. */
-    private List<ActStatusCountResponse> actStatusCells(StatisticsNodeCounts counts) {
-        Map<ActStatus, Long> byStatus = counts.acts().byStatus();
+    /** Every {@link CardType} value, in enum order, zero-filled where the block has no cards of that type. */
+    private List<CardTypeCountResponse> cardTypeCells(StatisticsFormBlockCounts block) {
+        Map<CardType, Long> byType = block.cards().byType();
+        return Arrays.stream(CardType.values())
+                .map(type -> new CardTypeCountResponse(type, byType.getOrDefault(type, 0L)))
+                .toList();
+    }
+
+    /** Every {@link ActStatus} value, in enum order, zero-filled where the block has no acts in that status. */
+    private List<ActStatusCountResponse> actStatusCells(StatisticsFormBlockCounts block) {
+        Map<ActStatus, Long> byStatus = block.acts().byStatus();
         return Arrays.stream(ActStatus.values())
                 .map(status -> new ActStatusCountResponse(status, byStatus.getOrDefault(status, 0L)))
                 .toList();
     }
 
+    /** Every {@link ActType} value, in enum order, zero-filled where the block has no acts of that type. */
+    private List<ActTypeCountResponse> actTypeCells(StatisticsFormBlockCounts block) {
+        Map<ActType, Long> byType = block.acts().byType();
+        return Arrays.stream(ActType.values())
+                .map(type -> new ActTypeCountResponse(type, byType.getOrDefault(type, 0L)))
+                .toList();
+    }
+
+    /** Every {@link Form129Status} value, in enum order, zero-filled where the node has no form129 in that status. */
+    private List<StatisticsForm129StatusCountResponse> form129StatusCells(StatisticsForm129Counts counts) {
+        Map<Form129Status, Long> byStatus = counts.byStatus();
+        return Arrays.stream(Form129Status.values())
+                .map(status -> new StatisticsForm129StatusCountResponse(status, byStatus.getOrDefault(status, 0L)))
+                .toList();
+    }
+
     private List<StatisticsCategoryCellResponse> categoryCells(
-            List<ReferenceItemProjection> categories, StatisticsNodeCounts counts
+            List<ReferenceItemProjection> categories, StatisticsFormBlockCounts block
     ) {
         return categories.stream()
                 .map(category -> {
-                    StatisticsCounts c = counts.category(category.getCode());
+                    StatisticsCounts c = block.category(category.getCode());
                     return new StatisticsCategoryCellResponse(
                             category.getCode(), localizedName(category), c.confirmedTotal(), c.primaryTotal()
                     );
                 })
+                .toList();
+    }
+
+    private List<StatisticsForm129CategoryCellResponse> form129CategoryCells(
+            List<ReferenceItemProjection> categories, StatisticsForm129Counts counts
+    ) {
+        return categories.stream()
+                .map(category -> new StatisticsForm129CategoryCellResponse(
+                        category.getCode(), localizedName(category), counts.category(category.getCode())
+                ))
                 .toList();
     }
 

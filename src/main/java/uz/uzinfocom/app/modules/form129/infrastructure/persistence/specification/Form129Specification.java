@@ -22,6 +22,8 @@ import java.util.List;
 public class Form129Specification {
 
     private static final String ID = "id";
+    private static final String DELETE_INFO = "deleteInfo";
+    private static final String DELETED = "deleted";
     private static final String PATIENT = "patient";
     private static final String CREATED_AT = "createdAt";
     private static final String STATUS = "status";
@@ -40,6 +42,7 @@ public class Form129Specification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(cb.isFalse(root.get(DELETE_INFO).get(DELETED)));
             predicates.add(scopePredicateFactory.applyDirectionScope(root, cb, scope, received));
 
             applyFilters(predicates, root, query, cb, filter);
@@ -58,6 +61,8 @@ public class Form129Specification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(cb.isFalse(root.get(DELETE_INFO).get(DELETED)));
+
             applyFilters(predicates, root, query, cb, filter);
             applySenderReceiverFilters(predicates, root, cb, filter, null);
 
@@ -67,6 +72,7 @@ public class Form129Specification {
 
     public Specification<Form129> visibleById(Long id, ResolvedOrganizationScope scope) {
         return (root, query, cb) -> cb.and(
+                cb.isFalse(root.get(DELETE_INFO).get(DELETED)),
                 scopePredicateFactory.applyDirectionScope(root, cb, scope, null),
                 cb.equal(root.get(ID), id)
         );

@@ -25,10 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.report.form2.manual.application.command.Form2ManualEntryCommandService;
 import uz.uzinfocom.app.modules.report.form2.manual.application.command.dto.Form2ManualEntryCreateRequest;
 import uz.uzinfocom.app.modules.report.form2.manual.application.command.dto.Form2ManualEntryUpdateRequest;
+import uz.uzinfocom.app.modules.report.form2.manual.application.export.Form2ManualEntryExcelExportSource;
 import uz.uzinfocom.app.modules.report.form2.manual.application.query.Form2ManualEntryQueryService;
 import uz.uzinfocom.app.modules.report.form2.manual.application.query.dto.Form2ManualEntryFilterRequest;
 import uz.uzinfocom.app.modules.report.form2.manual.application.query.dto.Form2ManualEntryPrefillResponse;
 import uz.uzinfocom.app.modules.report.form2.manual.application.query.dto.Form2ManualEntryTableResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -53,6 +56,8 @@ public class Form2ManualEntryController {
     private final Form2ManualEntryCommandService form2ManualEntryCommandService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
+    private final ExportJobService exportJobService;
+    private final Form2ManualEntryExcelExportSource form2ManualEntryExcelExportSource;
 
     @Operation(
             summary = "Автозаполнение формы создания",
@@ -145,5 +150,21 @@ public class Form2ManualEntryController {
     ) {
         form2ManualEntryCommandService.delete(id);
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
+    }
+
+    @Operation(
+            summary = "Экспорт записей Shakl №2 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по тем же фильтрам, что и таблица "
+                    + "записей. Прогресс и скачивание готового файла — через /v1/exports."
+    )
+    @PostMapping(ApiPaths.Form2ManualEntry.EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> export(
+            @ParameterObject @Valid Form2ManualEntryFilterRequest filter
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(form2ManualEntryExcelExportSource, filter)
+        );
     }
 }

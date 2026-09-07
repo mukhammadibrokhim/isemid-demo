@@ -22,6 +22,7 @@ import uz.uzinfocom.app.shared.excel.ExcelTitleBlock;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
@@ -163,13 +164,20 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
         return row.dateInfo().initialReportDateTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 
+    /**
+     * Age is computed as of the form's creation date, not the moment the export runs - an
+     * export generated long after the fact must still show the patient's age when the case
+     * was registered (matches the {@code age(created_at, birth_date)} convention already used
+     * by the report module's own age-cut queries).
+     */
     private String ageCell(Form058PdfResponse row) {
-        if (row.patient() == null || row.patient().birthDate() == null) {
+        if (row.patient() == null || row.patient().birthDate() == null || row.createdAt() == null) {
             return null;
         }
 
         LocalDate birthDate = row.patient().birthDate();
-        Period age = Period.between(birthDate, LocalDate.now());
+        LocalDate referenceDate = row.createdAt().atZone(ZoneId.systemDefault()).toLocalDate();
+        Period age = Period.between(birthDate, referenceDate);
 
         String ageText = age.getYears() > 0
                 ? age.getYears() + " йош"

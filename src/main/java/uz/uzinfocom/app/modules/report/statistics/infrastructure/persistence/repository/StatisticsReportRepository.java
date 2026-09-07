@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsCategoryCountProjection;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsCounts;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsFormType;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsOrganizationCategoryCountProjection;
 
 import java.time.Instant;
@@ -14,20 +15,22 @@ import java.util.stream.Collectors;
 
 /**
  * "Statistika" — native SQL aggregation across {@code form058} and
- * {@code form058_1}, grouped by {@code patient.category_code}, over an
- * arbitrary caller-supplied {@code [fromInclusive, toExclusive)} range.
- * Structurally the CONFIRMED/PRIMARY split of {@code Form1ReportRepository}
- * (same {@code status = 'APPROVED'} vs {@code status not in ('APPROVED',
- * 'CANCELED')} bucketing, same {@code VALUES}-list org-id join instead of
- * {@code IN}/{@code = any(...)} — see that class for the full rationale)
- * crossed with the category-column grouping of {@code
- * Form281ReportRepository}: every FILTER-based aggregate is computed by
+ * {@code form058_1}, grouped by {@code form_type} (a {@code 'FORM058'} /
+ * {@code 'FORM0581'} literal selected per {@code UNION ALL} branch — the two
+ * forms are reported <b>separately</b>, never summed) and {@code
+ * patient.category_code}, over an arbitrary caller-supplied {@code
+ * [fromInclusive, toExclusive)} range. Structurally the CONFIRMED/PRIMARY
+ * split of {@code Form1ReportRepository} (same {@code status = 'APPROVED'} vs
+ * {@code status not in ('APPROVED', 'CANCELED')} bucketing, same {@code
+ * VALUES}-list org-id join instead of {@code IN}/{@code = any(...)} — see that
+ * class for the full rationale) crossed with the category-column grouping of
+ * {@code Form281ReportRepository}: every FILTER-based aggregate is computed by
  * Postgres in one pass per organization batch, and no case/patient row is
  * ever materialized in the JVM.
  * <p>
  * {@code category_code} is grouped as-is, including {@code null} (patients
  * with no category assigned) — the query service sums every group into the
- * node's overall total and keeps only the groups matching a known {@code
+ * block's overall total and keeps only the groups matching a known {@code
  * ref_catalog(type = 'CATEGORY')} code for the per-category breakdown, so a
  * caller never has to filter categories in SQL just to get an accurate grand
  * total. Age is {@code extract(year from age(f.created_at::date,
@@ -44,7 +47,7 @@ import java.util.stream.Collectors;
 public class StatisticsReportRepository {
 
     private static final String UNION_SOURCE_TEMPLATE = """
-            select p.category_code as category_code, p.gender_code as gender_code,
+            select 'FORM058'::text as form_type, p.category_code as category_code, p.gender_code as gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years,
                    'CONFIRMED' as metric
             from form058 f
@@ -54,7 +57,7 @@ public class StatisticsReportRepository {
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
-            select p.category_code, p.gender_code,
+            select 'FORM058'::text, p.category_code, p.gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int, 'PRIMARY'
             from form058 f
             join patient p on p.id = f.patient_id
@@ -63,7 +66,7 @@ public class StatisticsReportRepository {
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
-            select p.category_code, p.gender_code,
+            select 'FORM0581'::text, p.category_code, p.gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int, 'CONFIRMED'
             from form058_1 f
             join patient p on p.id = f.patient_id
@@ -72,7 +75,7 @@ public class StatisticsReportRepository {
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
-            select p.category_code, p.gender_code,
+            select 'FORM0581'::text, p.category_code, p.gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int, 'PRIMARY'
             from form058_1 f
             join patient p on p.id = f.patient_id
@@ -84,7 +87,8 @@ public class StatisticsReportRepository {
 
     /** Same as {@link #UNION_SOURCE_TEMPLATE} but also keeps {@code sender_organization_id} for the org grouping. */
     private static final String UNION_SOURCE_WITH_ORG_TEMPLATE = """
-            select f.sender_organization_id, p.category_code as category_code, p.gender_code as gender_code,
+            select f.sender_organization_id, 'FORM058'::text as form_type, p.category_code as category_code,
+                   p.gender_code as gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years,
                    'CONFIRMED' as metric
             from form058 f
@@ -94,7 +98,7 @@ public class StatisticsReportRepository {
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
-            select f.sender_organization_id, p.category_code, p.gender_code,
+            select f.sender_organization_id, 'FORM058'::text, p.category_code, p.gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int, 'PRIMARY'
             from form058 f
             join patient p on p.id = f.patient_id
@@ -103,7 +107,7 @@ public class StatisticsReportRepository {
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
-            select f.sender_organization_id, p.category_code, p.gender_code,
+            select f.sender_organization_id, 'FORM0581'::text, p.category_code, p.gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int, 'CONFIRMED'
             from form058_1 f
             join patient p on p.id = f.patient_id
@@ -112,7 +116,7 @@ public class StatisticsReportRepository {
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             union all
-            select f.sender_organization_id, p.category_code, p.gender_code,
+            select f.sender_organization_id, 'FORM0581'::text, p.category_code, p.gender_code,
                    extract(year from age(f.created_at::date, p.birth_date))::int, 'PRIMARY'
             from form058_1 f
             join patient p on p.id = f.patient_id
@@ -138,9 +142,9 @@ public class StatisticsReportRepository {
     private final EntityManager entityManager;
 
     /**
-     * One aggregate row per distinct {@code category_code} value (including
-     * {@code null}) across the whole scope — the raw material for the
-     * report's root node.
+     * One aggregate row per (form, distinct {@code category_code} value —
+     * including {@code null}) across the whole scope — the raw material for
+     * the report's root node.
      */
     public List<StatisticsCategoryCountProjection> countByCategory(
             List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
@@ -149,21 +153,23 @@ public class StatisticsReportRepository {
             return List.of();
         }
 
-        String sql = "select t.category_code as category_code, " + METRIC_COLUMNS
-                + " from (" + unionSource(organizationIds) + ") t group by t.category_code";
+        String sql = "select t.form_type as form_type, t.category_code as category_code, " + METRIC_COLUMNS
+                + " from (" + unionSource(organizationIds) + ") t group by t.form_type, t.category_code";
 
         List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {
                     Object[] r = (Object[]) row;
-                    return new StatisticsCategoryCountProjection((String) r[0], readCounts(r, 1));
+                    return new StatisticsCategoryCountProjection(
+                            StatisticsFormType.valueOf((String) r[0]), (String) r[1], readCounts(r, 2)
+                    );
                 })
                 .toList();
     }
 
     /**
-     * One aggregate row per (organization id, {@code category_code}) pair —
+     * One aggregate row per (organization id, form, {@code category_code}) —
      * the raw material for the geography drill-down.
      */
     public List<StatisticsOrganizationCategoryCountProjection> countGroupedByOrganizationAndCategory(
@@ -173,10 +179,10 @@ public class StatisticsReportRepository {
             return List.of();
         }
 
-        String sql = "select t.sender_organization_id as organization_id, t.category_code as category_code, "
-                + METRIC_COLUMNS
+        String sql = "select t.sender_organization_id as organization_id, t.form_type as form_type, "
+                + "t.category_code as category_code, " + METRIC_COLUMNS
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t"
-                + " group by t.sender_organization_id, t.category_code";
+                + " group by t.sender_organization_id, t.form_type, t.category_code";
 
         List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
 
@@ -184,7 +190,8 @@ public class StatisticsReportRepository {
                 .map(row -> {
                     Object[] r = (Object[]) row;
                     return new StatisticsOrganizationCategoryCountProjection(
-                            ((Number) r[0]).longValue(), (String) r[1], readCounts(r, 2)
+                            ((Number) r[0]).longValue(), StatisticsFormType.valueOf((String) r[1]),
+                            (String) r[2], readCounts(r, 3)
                     );
                 })
                 .toList();

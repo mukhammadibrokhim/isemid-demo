@@ -11,15 +11,20 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.app.modules.report.forecast.application.export.ForecastExcelExportSource;
+import uz.uzinfocom.app.modules.report.forecast.application.export.ForecastExportFilter;
 import uz.uzinfocom.app.modules.report.forecast.application.query.ForecastReportQueryService;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastBucketUnit;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastDiseaseRiskResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastMethod;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastNodeResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -62,6 +67,8 @@ public class ForecastReportController {
 
     private final ForecastReportQueryService forecastReportQueryService;
     private final MessageResolver messageResolver;
+    private final ExportJobService exportJobService;
+    private final ForecastExcelExportSource forecastExcelExportSource;
 
     @Operation(
             summary = "География: первый уровень + «Jami»",
@@ -191,6 +198,37 @@ public class ForecastReportController {
                 messageResolver.resolve("common.success"),
                 forecastReportQueryService.getTopDiseases(
                         regionCode, districtCode, bucket, horizon, method, from, to, limit, minCases
+                )
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт географической разбивки прогноза в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по всей доступной иерархии "
+                    + "(регион→район→организация) — те же компактные сводки прогноза, что и /root и "
+                    + "/children. Прогресс и скачивание готового файла — через /v1/exports."
+    )
+    @PostMapping(ApiPaths.ForecastReport.EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> export(
+            @Parameter(description = "Фильтр по коду МКБ-10 (первичный или заключительный). Необязательный.")
+            @RequestParam(required = false) String diagnosisCode,
+            @Parameter(description = "Интервал агрегации: DAY, WEEK (по умолчанию) или MONTH.")
+            @RequestParam(required = false) ForecastBucketUnit bucket,
+            @Parameter(description = "Сколько интервалов прогнозировать вперёд. По умолчанию 8; обрезается до 90/52/24.")
+            @RequestParam(required = false) @Positive @Max(120) Integer horizon,
+            @Parameter(description = "Модель: AUTO (по умолчанию), NAIVE_MEAN, SES, HOLT, HOLT_WINTERS_ADDITIVE.")
+            @RequestParam(required = false) ForecastMethod method,
+            @Parameter(description = "Начало окна обучения (включительно). По умолчанию — look-back по умолчанию.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "Конец окна обучения (включительно). По умолчанию — сегодня.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(
+                        forecastExcelExportSource,
+                        new ForecastExportFilter(diagnosisCode, bucket, horizon, method, from, to)
                 )
         );
     }

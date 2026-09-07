@@ -20,6 +20,7 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.modules.form129.domain.enums.Form129Status;
 import uz.uzinfocom.app.modules.form129.domain.exception.InvalidForm129StateException;
 import uz.uzinfocom.app.modules.form129.domain.model.embedded.Form129CancellationInfo;
+import uz.uzinfocom.app.modules.form129.domain.model.embedded.Form129DeleteInfo;
 import uz.uzinfocom.app.modules.form129.domain.model.embedded.Form129LabResults;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
@@ -35,8 +36,11 @@ import java.util.Map;
  * submitted by AKP/hospital/blood-transfusion-center laboratories. Sibling
  * of {@link uz.uzinfocom.app.modules.form0581.domain.model.Form0581} (same
  * sender/receiver-SES shape), but a deliberately smaller lifecycle: create →
- * receiver accept/reject, with no card-linking, approval, update or delete —
- * a pure registry, never carrying attachments.
+ * receiver accept/reject, with no card-linking, approval or update — a pure
+ * registry, never carrying attachments. The one write path beyond that is an
+ * {@code isemid_admin}/{@code isemid_super_admin}-only soft delete (see
+ * {@code DeleteForm129Service}); ordinary sender/receiver users cannot remove
+ * a form.
  */
 @Getter
 @Setter
@@ -127,6 +131,15 @@ public class Form129 extends AbsEntity implements AuditableFields {
     @Builder.Default
     private Form129CancellationInfo cancellationInfo = new Form129CancellationInfo();
 
+    /**
+     * Soft-delete state. Form129 is otherwise a pure registry (no update, no
+     * approval); the one exception is an admin / super admin cleanup — see
+     * {@code DeleteForm129Service}.
+     */
+    @Embedded
+    @Builder.Default
+    private Form129DeleteInfo deleteInfo = new Form129DeleteInfo();
+
     public void accept(String receiverFullName) {
         ensureDecisionPending();
         this.status = Form129Status.ACCEPTED;
@@ -161,6 +174,17 @@ public class Form129 extends AbsEntity implements AuditableFields {
     }
 
     /**
+     * Admin / super-admin-only soft delete. See {@code DeleteForm129Service}
+     * and {@code Form129DeleteInfo}.
+     */
+    public void softDelete(Long deletedBy, String reason) {
+        if (this.deleteInfo == null) {
+            this.deleteInfo = new Form129DeleteInfo();
+        }
+        this.deleteInfo.softDelete(deletedBy, reason);
+    }
+
+    /**
      * Flattened, scalar-only snapshot for {@code AuditFieldDiff} — never a
      * reference to {@link #labResults} or {@link #patient} themselves
      * (mutable), only their leaf values.
@@ -169,6 +193,7 @@ public class Form129 extends AbsEntity implements AuditableFields {
     public Map<String, Object> auditFields() {
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("status", status);
+        fields.put("deleted", deleteInfo != null && deleteInfo.isDeleted());
         fields.put("source", source);
         fields.put("senderOrganizationId", senderOrganizationId);
         fields.put("receiverOrganizationId", receiverOrganizationId);

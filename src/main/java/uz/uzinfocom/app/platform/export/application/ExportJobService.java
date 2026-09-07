@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.export.application;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -143,22 +145,32 @@ public class ExportJobService {
      * whichever worker thread ends up running the task - {@code CurrentOrganizationContext}
      * holds an already-detached {@code Organization} (see {@code OrganizationContextFilter}),
      * so reusing it after the request's own transaction has closed is safe.
+     * <p>
+     * Also captures/restores {@link LocaleContextHolder}'s thread-local locale for the same
+     * reason - every {@code ExcelExportSource.availableColumns()} that resolves its column
+     * headers via {@code MessageResolver}/{@code LocalizedTextResolver} depends on it, and
+     * without this it would silently fall back to the JVM default locale on the worker thread
+     * instead of the caller's actual {@code Accept-Language}, since neither resolver has any
+     * other way to learn which language the export was requested in.
      */
     private Runnable withCallerContext(Runnable task) {
         Organization callerOrganization = CurrentOrganizationContext.getOptional().orElse(null);
         SecurityContext callerSecurityContext = SecurityContextHolder.getContext();
+        Locale callerLocale = LocaleContextHolder.getLocale();
 
         return () -> {
             if (callerOrganization != null) {
                 CurrentOrganizationContext.set(callerOrganization);
             }
             SecurityContextHolder.setContext(callerSecurityContext);
+            LocaleContextHolder.setLocale(callerLocale);
 
             try {
                 task.run();
             } finally {
                 CurrentOrganizationContext.clear();
                 SecurityContextHolder.clearContext();
+                LocaleContextHolder.resetLocaleContext();
             }
         };
     }

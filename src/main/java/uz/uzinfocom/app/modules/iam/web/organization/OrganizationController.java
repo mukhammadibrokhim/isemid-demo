@@ -16,6 +16,7 @@ import uz.uzinfocom.app.modules.iam.application.organization.query.dto.request.O
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.request.OrganizationUserLookupRequest;
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationDetailResponse;
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationLookupResponse;
+import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationShortResponse;
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationTableResponse;
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationUserLookupResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
@@ -58,6 +59,19 @@ public class OrganizationController {
             @PathVariable(ApiPaths.Organization.ID) Long id
     ) {
         OrganizationDetailResponse response = queryService.findDetail(id);
+        return ApiResponse.success(messageResolver.resolve("common.success"), response);
+    }
+
+    @Operation(
+            summary = "Получить иерархию организации",
+            description = "Возвращает цепочку организаций от корневой до указанной (для вкладки «Иерархия»)."
+    )
+    @GetMapping(ApiPaths.Organization.HIERARCHY_BY_ORGANIZATION_ID)
+    public ApiResponse<List<OrganizationShortResponse>> getHierarchy(
+            @Parameter(description = "Идентификатор организации.", required = true)
+            @PathVariable(ApiPaths.Organization.ID) Long id
+    ) {
+        List<OrganizationShortResponse> response = queryService.findHierarchy(id);
         return ApiResponse.success(messageResolver.resolve("common.success"), response);
     }
 

@@ -13,6 +13,8 @@ import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationLookupResponse;
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationTableResponse;
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationUserLookupResponse;
+import uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationShortResponse;
+import uz.uzinfocom.app.modules.iam.application.organization.query.mapper.OrganizationMapperHelper;
 import uz.uzinfocom.app.modules.iam.application.organization.query.mapper.OrganizationQueryMapper;
 import uz.uzinfocom.app.modules.iam.application.organization.query.projection.OrganizationTableProjection;
 import uz.uzinfocom.app.modules.iam.application.organization.query.specification.OrganizationSpecification;
@@ -27,6 +29,7 @@ import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +41,7 @@ public class OrganizationQueryService {
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final OrganizationQueryMapper organizationQueryMapper;
+    private final OrganizationMapperHelper organizationMapperHelper;
     private final AuditResolver auditResolver;
     private final OrganizationSpecification organizationSpecification;
     private final OrganizationScopeResolver organizationScopeResolver;
@@ -72,6 +76,25 @@ public class OrganizationQueryService {
                 .orElseThrow(() -> new NotFoundException("organization.not_found"));
 
         return organizationQueryMapper.toDetailedResponse(organization, auditResolver.resolve(organization));
+    }
+
+    /**
+     * Ancestor chain for the "Hierarchy" tab: root organization first, the
+     * requested organization last. Depth is a handful of levels (org up to
+     * republic), so walking the lazy {@code parent} association is cheap
+     * enough to not warrant a recursive query.
+     */
+    @Transactional(readOnly = true)
+    public List<OrganizationShortResponse> findHierarchy(Long id) {
+        Organization organization = organizationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("organization.not_found"));
+
+        LinkedList<OrganizationShortResponse> chain = new LinkedList<>();
+        for (Organization current = organization; current != null; current = current.getParent()) {
+            chain.addFirst(organizationMapperHelper.toResponse(current));
+        }
+
+        return chain;
     }
 
     @Transactional(readOnly = true)

@@ -69,6 +69,7 @@ public class Form0581PdfMapper {
         return new Form0581PdfResponse(
                 form0581.getId(),
                 form0581.getUuid(),
+                form0581.getCreatedAt(),
                 form0581.getStatus(),
                 organizationMappingHelper.activeOrganizationNameById(form0581.getSenderOrganizationId()),
                 organizationMappingHelper.activeOrganizationNameById(form0581.getReceiverOrganizationId()),

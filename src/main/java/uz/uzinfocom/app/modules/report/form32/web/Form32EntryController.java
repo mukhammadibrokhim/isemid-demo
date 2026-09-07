@@ -23,9 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.report.form32.application.command.Form32EntryCommandService;
 import uz.uzinfocom.app.modules.report.form32.application.command.dto.Form32EntryCreateRequest;
 import uz.uzinfocom.app.modules.report.form32.application.command.dto.Form32EntryUpdateRequest;
+import uz.uzinfocom.app.modules.report.form32.application.export.Form32EntryExcelExportSource;
 import uz.uzinfocom.app.modules.report.form32.application.query.Form32EntryQueryService;
 import uz.uzinfocom.app.modules.report.form32.application.query.dto.Form32EntryFilterRequest;
 import uz.uzinfocom.app.modules.report.form32.application.query.dto.Form32EntryTableResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -49,6 +52,8 @@ public class Form32EntryController {
     private final Form32EntryCommandService form32EntryCommandService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
+    private final ExportJobService exportJobService;
+    private final Form32EntryExcelExportSource form32EntryExcelExportSource;
 
     @Operation(
             summary = "Создать ручную запись Shakl №3-2",
@@ -118,5 +123,21 @@ public class Form32EntryController {
     ) {
         form32EntryCommandService.delete(id);
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
+    }
+
+    @Operation(
+            summary = "Экспорт записей Shakl №3-2 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по тем же фильтрам, что и таблица "
+                    + "записей. Прогресс и скачивание готового файла — через /v1/exports."
+    )
+    @PostMapping(ApiPaths.Form32Entry.EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> export(
+            @ParameterObject @Valid Form32EntryFilterRequest filter
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(form32EntryExcelExportSource, filter)
+        );
     }
 }

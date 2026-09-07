@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.report.analytic.application.command.AnalyticReportCommandService;
 import uz.uzinfocom.app.modules.report.analytic.application.command.dto.AnalyticReportCreateRequest;
 import uz.uzinfocom.app.modules.report.analytic.application.command.dto.AnalyticReportUpdateRequest;
+import uz.uzinfocom.app.modules.report.analytic.application.export.AnalyticReportExcelExportSource;
 import uz.uzinfocom.app.modules.report.analytic.application.query.AnalyticReportComputeService;
 import uz.uzinfocom.app.modules.report.analytic.application.query.AnalyticReportQueryService;
 import uz.uzinfocom.app.modules.report.analytic.application.query.dto.AnalyticReportComputeRequest;
@@ -30,6 +31,8 @@ import uz.uzinfocom.app.modules.report.analytic.application.query.dto.AnalyticRe
 import uz.uzinfocom.app.modules.report.analytic.application.query.dto.AnalyticReportFilterRequest;
 import uz.uzinfocom.app.modules.report.analytic.application.query.dto.AnalyticReportResponse;
 import uz.uzinfocom.app.modules.report.analytic.application.query.dto.AnalyticReportTableResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -54,6 +57,8 @@ public class AnalyticReportController {
     private final AnalyticReportCommandService analyticReportCommandService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
+    private final ExportJobService exportJobService;
+    private final AnalyticReportExcelExportSource analyticReportExcelExportSource;
 
     @Operation(
             summary = "Ko'rsatkichlarni oldindan hisoblash",
@@ -146,5 +151,22 @@ public class AnalyticReportController {
     ) {
         analyticReportCommandService.delete(id);
         return ApiResponse.success(messageResolver.resolve("common.deleted"), null);
+    }
+
+    @Operation(
+            summary = "Экспорт Analitik hisobot в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по тем же фильтрам, что и таблица "
+                    + "записей, включая сохранённый текст (content). Прогресс и скачивание готового файла — "
+                    + "через /v1/exports."
+    )
+    @PostMapping(ApiPaths.AnalyticReport.EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> export(
+            @ParameterObject @Valid AnalyticReportFilterRequest filter
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(analyticReportExcelExportSource, filter)
+        );
     }
 }

@@ -58,6 +58,7 @@ public final class ApiPaths {
         public static final String LOOKUP = "/lookup";
         public static final String BY_ID = "/{id}";
         public static final String USERS_BY_ORGANIZATION_ID = "/{id}/users";
+        public static final String HIERARCHY_BY_ORGANIZATION_ID = "/{id}/hierarchy";
 
         public static final String ID = "id";
 
@@ -574,6 +575,26 @@ public final class ApiPaths {
     }
 
     /**
+     * "Xarita" (case map) — flat list of form058 cases carrying coordinates
+     * ({@code fm058_location.latitude}/{@code longitude}) for plotting on a
+     * frontend map, filterable by territory (region/district, same
+     * scope-checked resolution every other report uses via {@code
+     * report.shared.ReportHierarchyService#resolveNode}) and by diagnosis
+     * code. Unlike every other report under {@code modules.report}, this is
+     * not an aggregated hierarchy — no root/children drill-down, just one
+     * endpoint returning the matching points. form058_1 has no coordinate
+     * field anywhere in the schema, so it is not included. See {@code
+     * MapReportController} under {@code modules.report.map}.
+     */
+    public static final class MapReport {
+        private MapReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/map";
+        public static final String POINTS = "/points";
+    }
+
+    /**
      * "Form 1" — «Мониторинг инфекционных и паразитарных заболеваний»
      * (confirmed/primary case counts, age/gender cut), form058 + form0581
      * combined, organization-hierarchy drill-down (republic→region→district
@@ -588,6 +609,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-1";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -607,6 +629,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-4";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -626,6 +649,7 @@ public final class ApiPaths {
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
         public static final String AGE_BREAKDOWN = "/age-breakdown";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -646,6 +670,7 @@ public final class ApiPaths {
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
         public static final String CATEGORY_BREAKDOWN = "/category-breakdown";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -667,6 +692,7 @@ public final class ApiPaths {
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
         public static final String MONTHLY_BREAKDOWN = "/monthly-breakdown";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -689,6 +715,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-10";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -709,6 +736,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-11";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -735,8 +763,10 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-12";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
         public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
         public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
+        public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
     }
 
     /**
@@ -761,8 +791,10 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-13";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
         public static final String BY_DISEASE_ROOT_NODE = "/by-disease/root";
         public static final String BY_DISEASE_CHILDREN = "/by-disease/children";
+        public static final String BY_DISEASE_EXPORT = "/by-disease/export";
     }
 
     /**
@@ -792,8 +824,10 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-28-1";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
         public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
         public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
+        public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
     }
 
     /**
@@ -819,8 +853,10 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-28-2";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
         public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
         public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
+        public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
     }
 
     /**
@@ -853,6 +889,9 @@ public final class ApiPaths {
 
         /** Risk-ranked "which diseases might rise" list for one geography node — one independent forecast per ICD-10 code seen in the training window. */
         public static final String TOP_DISEASES = "/top-diseases";
+
+        /** Background Excel export of the geography breakdown (root/children rows only — see ForecastExcelExportSource). */
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -876,6 +915,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/statistics";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -897,6 +937,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-7/entries";
         public static final String PREFILL = "/prefill";
         public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -913,6 +954,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-2/manual-entries";
         public static final String PREFILL = "/prefill";
         public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -932,6 +974,7 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/analytic";
         public static final String COMPUTE = "/compute";
         public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -949,6 +992,7 @@ public final class ApiPaths {
 
         public static final String ROOT = Report.ROOT + "/form-3-1/entries";
         public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
     }
 
     /**
@@ -966,6 +1010,7 @@ public final class ApiPaths {
 
         public static final String ROOT = Report.ROOT + "/form-3-2/entries";
         public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
     }
 
     public static final class Card {

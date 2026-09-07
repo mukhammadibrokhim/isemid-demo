@@ -13,6 +13,10 @@ import java.util.Optional;
 public interface Form129JpaRepository extends JpaRepository<Form129, Long>, JpaSpecificationExecutor<Form129> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT f FROM Form129 f WHERE f.id = :id")
+    @Query("SELECT f FROM Form129 f WHERE f.id = :id AND f.deleteInfo.deleted = false")
     Optional<Form129> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT f FROM Form129 f WHERE f.id = :id AND f.deleteInfo.deleted = false")
+    Optional<Form129> findActiveByIdForUpdate(@Param("id") Long id);
 }
