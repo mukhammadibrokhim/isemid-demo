@@ -15,7 +15,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import uz.uzinfocom.app.modules.report.statistics.application.export.StatisticsExcelExportSource;
 import uz.uzinfocom.app.modules.report.statistics.application.export.StatisticsExportFilter;
 import uz.uzinfocom.app.modules.report.statistics.application.query.StatisticsReportQueryService;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsAgeGroup;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsNodeResponse;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsSeriesBucket;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsSeriesResponse;
+import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsTopDiseaseResponse;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Positive;
 import uz.uzinfocom.app.platform.export.application.ExportJobService;
 import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -65,11 +71,19 @@ public class StatisticsReportController {
                     + "periodB отсутствует (null).")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromB,
             @Parameter(description = "Davr B (для сравнения): конец периода.")
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toB
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toB,
+            @Parameter(description = "Кросс-фильтр: пол пациента (patient.gender_code — MALE/FEMALE). Необязательный.")
+            @RequestParam(required = false) String genderCode,
+            @Parameter(description = "Кросс-фильтр: возрастная группа (UNDER_18 / ADULT, граница 18 лет "
+                    + "на дату создания случая). Необязательный.")
+            @RequestParam(required = false) StatisticsAgeGroup ageGroup,
+            @Parameter(description = "Кросс-фильтр: социальная категория пациента (ref_catalog(type = CATEGORY) "
+                    + "код). Необязательный.")
+            @RequestParam(required = false) String categoryCode
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                statisticsReportQueryService.getRoot(fromA, toA, fromB, toB)
+                statisticsReportQueryService.getRoot(fromA, toA, fromB, toB, genderCode, ageGroup, categoryCode)
         );
     }
 
@@ -95,11 +109,20 @@ public class StatisticsReportController {
                     + "periodB отсутствует (null).")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromB,
             @Parameter(description = "Davr B (для сравнения): конец периода.")
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toB
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toB,
+            @Parameter(description = "Кросс-фильтр: пол пациента (patient.gender_code — MALE/FEMALE). Необязательный.")
+            @RequestParam(required = false) String genderCode,
+            @Parameter(description = "Кросс-фильтр: возрастная группа (UNDER_18 / ADULT). Необязательный.")
+            @RequestParam(required = false) StatisticsAgeGroup ageGroup,
+            @Parameter(description = "Кросс-фильтр: социальная категория пациента (ref_catalog(type = CATEGORY) код). "
+                    + "Необязательный.")
+            @RequestParam(required = false) String categoryCode
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                statisticsReportQueryService.getChildren(regionCode, districtCode, fromA, toA, fromB, toB)
+                statisticsReportQueryService.getChildren(
+                        regionCode, districtCode, fromA, toA, fromB, toB, genderCode, ageGroup, categoryCode
+                )
         );
     }
 
@@ -120,11 +143,75 @@ public class StatisticsReportController {
                     + "periodB отсутствует (null).")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromB,
             @Parameter(description = "Davr B (для сравнения): конец периода.")
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toB
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toB,
+            @Parameter(description = "Кросс-фильтр: пол пациента (MALE/FEMALE). Необязательный.")
+            @RequestParam(required = false) String genderCode,
+            @Parameter(description = "Кросс-фильтр: возрастная группа (UNDER_18 / ADULT). Необязательный.")
+            @RequestParam(required = false) StatisticsAgeGroup ageGroup,
+            @Parameter(description = "Кросс-фильтр: социальная категория пациента (ref_catalog код). Необязательный.")
+            @RequestParam(required = false) String categoryCode
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("export.job.submitted"),
-                exportJobService.submit(statisticsExcelExportSource, new StatisticsExportFilter(fromA, toA, fromB, toB))
+                exportJobService.submit(
+                        statisticsExcelExportSource,
+                        new StatisticsExportFilter(fromA, toA, fromB, toB, genderCode, ageGroup, categoryCode)
+                )
+        );
+    }
+
+    @Operation(
+            summary = "Динамика во времени (график тренда)",
+            description = "Число случаев по временным интервалам (DAY/WEEK/MONTH) за выбранный период для "
+                    + "одного узла географии (весь доступ вызывающего либо конкретный regionCode/districtCode "
+                    + "в его рамках). Формы №058, №058-1 и №129 — три отдельные серии, никогда не суммируются. "
+                    + "Пустые интервалы присутствуют с нулями. Без from — look-back по умолчанию (60 дней / "
+                    + "26 недель / 12 месяцев); без to — сегодня."
+    )
+    @GetMapping(ApiPaths.StatisticsReport.SERIES)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<StatisticsSeriesResponse> series(
+            @Parameter(description = "Код региона (необязательный).")
+            @RequestParam(required = false) String regionCode,
+            @Parameter(description = "Код района (необязательный).")
+            @RequestParam(required = false) String districtCode,
+            @Parameter(description = "Начало периода (включительно).")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "Конец периода (включительно). По умолчанию — сегодня.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @Parameter(description = "Интервал агрегации: DAY, WEEK (по умолчанию) или MONTH.")
+            @RequestParam(required = false) StatisticsSeriesBucket bucket
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                statisticsReportQueryService.getSeries(regionCode, districtCode, from, to, bucket)
+        );
+    }
+
+    @Operation(
+            summary = "Рейтинг преобладающих болезней",
+            description = "Для одного узла географии (весь доступ вызывающего либо конкретный regionCode/"
+                    + "districtCode в его рамках) — коды МКБ-10 по убыванию числа подтверждённых (status = "
+                    + "APPROVED) случаев форм №058 + №058-1 за период, отнесённых по ЗАКЛЮЧИТЕЛЬНОМУ коду "
+                    + "(final_icd10_code, без отката к первичному). Отдельная панель — форму отчёта не меняет."
+    )
+    @GetMapping(ApiPaths.StatisticsReport.TOP_DISEASES)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<List<StatisticsTopDiseaseResponse>> topDiseases(
+            @Parameter(description = "Код региона (необязательный).")
+            @RequestParam(required = false) String regionCode,
+            @Parameter(description = "Код района (необязательный).")
+            @RequestParam(required = false) String districtCode,
+            @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "Конец периода (включительно). По умолчанию — сегодня.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @Parameter(description = "Сколько кодов вернуть. По умолчанию 10, максимум 50.")
+            @RequestParam(required = false) @Positive @Max(50) Integer limit
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                statisticsReportQueryService.getTopDiseases(regionCode, districtCode, from, to, limit)
         );
     }
 }

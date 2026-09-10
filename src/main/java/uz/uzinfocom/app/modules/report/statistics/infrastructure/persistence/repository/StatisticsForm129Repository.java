@@ -5,6 +5,7 @@ import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.form129.domain.enums.Form129Status;
+import uz.uzinfocom.app.modules.report.statistics.application.query.StatisticsFilter;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsForm129CountProjection;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsOrganizationForm129CountProjection;
 
@@ -54,6 +55,15 @@ public class StatisticsForm129Repository {
             where f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             """;
 
+    /** See {@code StatisticsReportRepository.FILTER_CLAUSE} — identical gender / age-band / category no-op filter. */
+    private static final String FILTER_CLAUSE = """
+             and ((:genderCode)::text is null or t.gender_code = (:genderCode)::text)
+             and ((:ageFilter)::text is null
+                  or ((:ageFilter)::text = 'UNDER_18' and t.age_years < 18)
+                  or ((:ageFilter)::text = 'ADULT' and t.age_years >= 18))
+             and ((:categoryCode)::text is null or t.category_code = (:categoryCode)::text)
+            """;
+
     private static final String METRIC_COLUMNS = """
             count(*)                                            as total,
             count(*) filter (where t.gender_code = 'FEMALE')    as female,
@@ -66,16 +76,17 @@ public class StatisticsForm129Repository {
 
     /** One aggregate row per ({@code category_code}, {@link Form129Status}) across the whole scope — the report's root node. */
     public List<StatisticsForm129CountProjection> countByCategoryAndStatus(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, StatisticsFilter filter
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
         }
 
         String sql = "select t.category_code as category_code, t.status as status, " + METRIC_COLUMNS
-                + " from (" + source(organizationIds) + ") t group by t.category_code, t.status";
+                + " from (" + source(organizationIds) + ") t where true " + FILTER_CLAUSE
+                + " group by t.category_code, t.status";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -90,7 +101,7 @@ public class StatisticsForm129Repository {
 
     /** One aggregate row per (organization id, {@code category_code}, {@link Form129Status}) — the geography drill-down. */
     public List<StatisticsOrganizationForm129CountProjection> countGroupedByOrganization(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, StatisticsFilter filter
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
@@ -98,10 +109,10 @@ public class StatisticsForm129Repository {
 
         String sql = "select t.sender_organization_id as organization_id, t.category_code as category_code, "
                 + "t.status as status, " + METRIC_COLUMNS
-                + " from (" + sourceWithOrg(organizationIds) + ") t"
+                + " from (" + sourceWithOrg(organizationIds) + ") t where true " + FILTER_CLAUSE
                 + " group by t.sender_organization_id, t.category_code, t.status";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -126,10 +137,13 @@ public class StatisticsForm129Repository {
         return organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
     }
 
-    private Query bindRange(Query query, Instant fromInclusive, Instant toExclusive) {
+    private Query bind(Query query, Instant fromInclusive, Instant toExclusive, StatisticsFilter filter) {
         return query
                 .setParameter("fromInclusive", fromInclusive)
-                .setParameter("toExclusive", toExclusive);
+                .setParameter("toExclusive", toExclusive)
+                .setParameter("genderCode", filter.genderCode())
+                .setParameter("ageFilter", filter.ageGroup() == null ? null : filter.ageGroup().name())
+                .setParameter("categoryCode", filter.categoryCode());
     }
 
     private long count(Object[] row, int index) {

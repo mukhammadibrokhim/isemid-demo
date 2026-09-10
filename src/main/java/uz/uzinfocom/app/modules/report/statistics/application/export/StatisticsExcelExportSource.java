@@ -57,12 +57,14 @@ public class StatisticsExcelExportSource implements ExcelExportSource<Statistics
 
     private List<StatisticsNodeResponse> flattenAll(StatisticsExportFilter filter) {
         List<StatisticsNodeResponse> root = statisticsReportQueryService.getRoot(
-                filter.fromA(), filter.toA(), filter.fromB(), filter.toB()
+                filter.fromA(), filter.toA(), filter.fromB(), filter.toB(),
+                filter.genderCode(), filter.ageGroup(), filter.categoryCode()
         );
         return flattener.flattenAll(
                 root,
                 (regionCode, districtCode) -> statisticsReportQueryService.getChildren(
-                        regionCode, districtCode, filter.fromA(), filter.toA(), filter.fromB(), filter.toB()
+                        regionCode, districtCode, filter.fromA(), filter.toA(), filter.fromB(), filter.toB(),
+                        filter.genderCode(), filter.ageGroup(), filter.categoryCode()
                 ),
                 StatisticsNodeResponse::code,
                 StatisticsNodeResponse::hasChildren

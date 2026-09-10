@@ -916,6 +916,12 @@ public final class ApiPaths {
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
         public static final String EXPORT = "/export";
+
+        /** Time dynamics — case counts per DAY/WEEK/MONTH bucket for one geography node, forms №058/№058-1/№129 kept separate. */
+        public static final String SERIES = "/series";
+
+        /** Disease dimension — confirmed (APPROVED, final ICD-10) case ranking by ICD-10 code for one geography node over a period. */
+        public static final String TOP_DISEASES = "/top-diseases";
     }
 
     /**

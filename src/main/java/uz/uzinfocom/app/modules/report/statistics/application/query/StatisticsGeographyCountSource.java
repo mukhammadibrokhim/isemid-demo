@@ -65,31 +65,34 @@ public final class StatisticsGeographyCountSource implements ReportCountSource<S
     private final StatisticsActRepository statisticsActRepository;
     private final StatisticsForm129Repository statisticsForm129Repository;
     private final Set<String> knownCategoryCodes;
+    private final StatisticsFilter filter;
 
     public StatisticsGeographyCountSource(
             StatisticsReportRepository statisticsReportRepository,
             StatisticsCardRepository statisticsCardRepository,
             StatisticsActRepository statisticsActRepository,
             StatisticsForm129Repository statisticsForm129Repository,
-            Set<String> knownCategoryCodes
+            Set<String> knownCategoryCodes,
+            StatisticsFilter filter
     ) {
         this.statisticsReportRepository = statisticsReportRepository;
         this.statisticsCardRepository = statisticsCardRepository;
         this.statisticsActRepository = statisticsActRepository;
         this.statisticsForm129Repository = statisticsForm129Repository;
         this.knownCategoryCodes = knownCategoryCodes;
+        this.filter = filter;
     }
 
     @Override
     public StatisticsNodeCounts total(List<Long> organizationIds, ReportDateRange range, String diagnosisCode) {
         List<StatisticsCategoryCountProjection> categoryRows = statisticsReportRepository
-                .countByCategory(organizationIds, range.fromInclusive(), range.toExclusive());
+                .countByCategory(organizationIds, range.fromInclusive(), range.toExclusive(), filter);
         List<StatisticsCardStatusCountProjection> cardRows = statisticsCardRepository
                 .countCells(organizationIds, range.fromInclusive(), range.toExclusive());
         List<StatisticsActStatusCountProjection> actRows = statisticsActRepository
                 .countCells(organizationIds, range.fromInclusive(), range.toExclusive());
         List<StatisticsForm129CountProjection> form129Rows = statisticsForm129Repository
-                .countByCategoryAndStatus(organizationIds, range.fromInclusive(), range.toExclusive());
+                .countByCategoryAndStatus(organizationIds, range.fromInclusive(), range.toExclusive(), filter);
 
         return rollUp(categoryRows, cardRows, actRows, form129Rows);
     }
@@ -100,7 +103,7 @@ public final class StatisticsGeographyCountSource implements ReportCountSource<S
     ) {
         Map<Long, List<StatisticsCategoryCountProjection>> categoryByOrg = new HashMap<>();
         for (StatisticsOrganizationCategoryCountProjection p : statisticsReportRepository
-                .countGroupedByOrganizationAndCategory(organizationIds, range.fromInclusive(), range.toExclusive())) {
+                .countGroupedByOrganizationAndCategory(organizationIds, range.fromInclusive(), range.toExclusive(), filter)) {
             categoryByOrg
                     .computeIfAbsent(p.organizationId(), _ -> new ArrayList<>())
                     .add(new StatisticsCategoryCountProjection(p.formType(), p.categoryCode(), p.counts()));
@@ -124,7 +127,7 @@ public final class StatisticsGeographyCountSource implements ReportCountSource<S
 
         Map<Long, List<StatisticsForm129CountProjection>> form129ByOrg = new HashMap<>();
         for (StatisticsOrganizationForm129CountProjection p : statisticsForm129Repository
-                .countGroupedByOrganization(organizationIds, range.fromInclusive(), range.toExclusive())) {
+                .countGroupedByOrganization(organizationIds, range.fromInclusive(), range.toExclusive(), filter)) {
             form129ByOrg
                     .computeIfAbsent(p.organizationId(), _ -> new ArrayList<>())
                     .add(new StatisticsForm129CountProjection(

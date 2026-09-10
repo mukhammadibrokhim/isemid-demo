@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import uz.uzinfocom.app.modules.report.statistics.application.query.StatisticsFilter;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsCategoryCountProjection;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsCounts;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsFormType;
@@ -126,6 +127,23 @@ public class StatisticsReportRepository {
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             """;
 
+    /**
+     * Optional case cross-filters (gender / 18-year age band / social
+     * category), AND-ed onto the flattened {@code t} sub-select. Every
+     * predicate is a {@code (:param)::text is null or …} no-op when its
+     * parameter is unbound, so the same SQL serves a filtered and an
+     * unfiltered request. {@code age_years} may be {@code null} (patient with
+     * no birth date) — both bands exclude it, matching {@link
+     * #METRIC_COLUMNS}.
+     */
+    private static final String FILTER_CLAUSE = """
+             and ((:genderCode)::text is null or t.gender_code = (:genderCode)::text)
+             and ((:ageFilter)::text is null
+                  or ((:ageFilter)::text = 'UNDER_18' and t.age_years < 18)
+                  or ((:ageFilter)::text = 'ADULT' and t.age_years >= 18))
+             and ((:categoryCode)::text is null or t.category_code = (:categoryCode)::text)
+            """;
+
     private static final String METRIC_COLUMNS = """
             count(*) filter (where t.metric = 'CONFIRMED')                              as confirmed_total,
             count(*) filter (where t.metric = 'CONFIRMED' and t.gender_code = 'FEMALE') as confirmed_female,
@@ -147,16 +165,17 @@ public class StatisticsReportRepository {
      * the report's root node.
      */
     public List<StatisticsCategoryCountProjection> countByCategory(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, StatisticsFilter filter
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
         }
 
         String sql = "select t.form_type as form_type, t.category_code as category_code, " + METRIC_COLUMNS
-                + " from (" + unionSource(organizationIds) + ") t group by t.form_type, t.category_code";
+                + " from (" + unionSource(organizationIds) + ") t where true " + FILTER_CLAUSE
+                + " group by t.form_type, t.category_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -173,7 +192,7 @@ public class StatisticsReportRepository {
      * the raw material for the geography drill-down.
      */
     public List<StatisticsOrganizationCategoryCountProjection> countGroupedByOrganizationAndCategory(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, StatisticsFilter filter
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
@@ -181,10 +200,10 @@ public class StatisticsReportRepository {
 
         String sql = "select t.sender_organization_id as organization_id, t.form_type as form_type, "
                 + "t.category_code as category_code, " + METRIC_COLUMNS
-                + " from (" + unionSourceWithOrg(organizationIds) + ") t"
+                + " from (" + unionSourceWithOrg(organizationIds) + ") t where true " + FILTER_CLAUSE
                 + " group by t.sender_organization_id, t.form_type, t.category_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -209,10 +228,13 @@ public class StatisticsReportRepository {
         return organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
     }
 
-    private Query bindRange(Query query, Instant fromInclusive, Instant toExclusive) {
+    private Query bind(Query query, Instant fromInclusive, Instant toExclusive, StatisticsFilter filter) {
         return query
                 .setParameter("fromInclusive", fromInclusive)
-                .setParameter("toExclusive", toExclusive);
+                .setParameter("toExclusive", toExclusive)
+                .setParameter("genderCode", filter.genderCode())
+                .setParameter("ageFilter", filter.ageGroup() == null ? null : filter.ageGroup().name())
+                .setParameter("categoryCode", filter.categoryCode());
     }
 
     private StatisticsCounts readCounts(Object[] row, int offset) {
