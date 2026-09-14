@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.map.application.query.dto.MapPointProjection;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +21,13 @@ import java.util.stream.Collectors;
  * <p>
  * {@code form058_1} has no coordinate column anywhere in the schema, so it
  * is intentionally not part of this query.
+ * <p>
+ * Unbounded (no {@code from}/{@code to}, republic-wide scope) this table
+ * has 600k+ matching rows — returning and serializing all of them is what
+ * actually makes the endpoint "slow", not a missing index. Every call is
+ * therefore capped with {@code order by created_at desc, id desc limit},
+ * so the DB and the response body stay bounded regardless of scope/date
+ * width; see {@code MapPointQueryService} for the default/max values.
  */
 @Repository
 @RequiredArgsConstructor
@@ -42,6 +48,8 @@ public class MapPointRepository {
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
             """;
 
+    private static final String ORDER_AND_LIMIT = " order by f.created_at desc, f.id desc limit (:limit)";
+
     private final EntityManager entityManager;
 
     public List<MapPointProjection> findPoints(
@@ -49,7 +57,8 @@ public class MapPointRepository {
             Instant fromInclusive,
             Instant toExclusive,
             String status,
-            String diagnosisCode
+            String diagnosisCode,
+            int limit
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
@@ -62,10 +71,12 @@ public class MapPointRepository {
         if (diagnosisCode != null) {
             sql.append(" and coalesce(upper(f.final_icd10_code), upper(f.icd10_code)) = (:diagnosisCode)");
         }
+        sql.append(ORDER_AND_LIMIT);
 
         Query query = entityManager.createNativeQuery(sql.toString())
                 .setParameter("fromInclusive", fromInclusive)
-                .setParameter("toExclusive", toExclusive);
+                .setParameter("toExclusive", toExclusive)
+                .setParameter("limit", limit);
         if (status != null) {
             query.setParameter("status", status);
         }
@@ -84,7 +95,7 @@ public class MapPointRepository {
                             (String) r[3],
                             (String) r[4],
                             (String) r[5],
-                            ((Timestamp) r[6]).toInstant()
+                            (Instant) r[6]
                     );
                 })
                 .toList();

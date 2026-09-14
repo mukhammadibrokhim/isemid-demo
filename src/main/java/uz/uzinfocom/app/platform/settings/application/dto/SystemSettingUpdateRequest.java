@@ -8,7 +8,7 @@ import uz.uzinfocom.app.platform.settings.domain.SystemSettingValueType;
 @Schema(description = "Данные для обновления настройки системы.")
 public record SystemSettingUpdateRequest(
         @Schema(description = "Значение настройки (хранится как текст, интерпретируется согласно valueType).")
-        @Size(max = 2000, message = "{settings.setting-value.size}")
+        @Size(max = 4000, message = "{settings.setting-value.size}")
         String settingValue,
 
         @Schema(

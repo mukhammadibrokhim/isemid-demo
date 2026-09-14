@@ -47,6 +47,14 @@ public class Form6ReportQueryService implements ReportCountSource<Long> {
     private record AgeGroupSpec(String code, String messageKey, ToLongFunction<Form6AgeBreakdownProjection> accessor) {
     }
 
+    /**
+     * One age group's stable code (matches {@link Form6AgeGroupRowResponse#code()}) plus its
+     * localized display label — for a caller (the Excel export) that needs to build one column
+     * group per age bucket without reaching into this service's own {@link AgeGroupSpec} list.
+     */
+    public record AgeGroupColumn(String code, String label) {
+    }
+
     /** Display order matches the reference screenshot: Jami first, then youngest to oldest. */
     private static final List<AgeGroupSpec> AGE_GROUPS = List.of(
             new AgeGroupSpec("TOTAL", "report.scope.total", Form6AgeBreakdownProjection::total),
@@ -100,6 +108,19 @@ public class Form6ReportQueryService implements ReportCountSource<Long> {
         );
 
         return zip(currentNodes, previousNodes);
+    }
+
+    /**
+     * The real age buckets ({@code AGE_GROUPS} minus its leading "Jami"/{@code TOTAL} entry,
+     * which duplicates a node's own overall count already shown by {@link #getRoot}/{@link
+     * #getChildren}) — for the Excel export to build one column group per age bucket, in the
+     * same youngest-to-oldest order {@link #getAgeBreakdown} itself returns.
+     */
+    public List<AgeGroupColumn> ageGroupColumns() {
+        return AGE_GROUPS.stream()
+                .filter(group -> !"TOTAL".equals(group.code()))
+                .map(group -> new AgeGroupColumn(group.code(), messageResolver.resolve(group.messageKey())))
+                .toList();
     }
 
     public Form6AgeBreakdownResponse getAgeBreakdown(

@@ -35,7 +35,27 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class ReportHierarchyExportFlattener {
 
+    /**
+     * Sentinel node code {@code ReportHierarchyService#loadRootBreakdown} gives its trailing
+     * grand-total row. Visited (see {@link NodeVisitor}) with {@code (null, null)} — "the
+     * caller's whole scope" — rather than being mistaken for a real region/district literally
+     * named "TOTAL".
+     */
+    private static final String TOTAL_NODE_CODE = "TOTAL";
+
     private final OrganizationScopeResolver organizationScopeResolver;
+
+    /**
+     * Callback for {@link #flattenAll(List, BiFunction, Function, Predicate, NodeVisitor)},
+     * invoked once per region- or district-level node with the {@code (regionCode,
+     * districtCode)} tuple identifying that node's own subtree — the same shape a node-scoped
+     * drill-down (e.g. an age/category breakdown) expects from {@code
+     * ReportHierarchyService#resolveNode}.
+     */
+    @FunctionalInterface
+    public interface NodeVisitor<N> {
+        void visit(N node, String regionCode, String districtCode);
+    }
 
     /**
      * @param rootBreakdown   the report's own {@code getRoot(...)} result — regions for an
@@ -57,42 +77,96 @@ public class ReportHierarchyExportFlattener {
             Function<N, String> codeOf,
             Predicate<N> hasChildrenOf
     ) {
+        return flattenAll(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, null);
+    }
+
+    /**
+     * Like {@link #flattenAll(List, BiFunction, Function, Predicate)}, but also calls {@code
+     * nodeVisitor} for every region- and district-level node the walk passes through (never for
+     * organization-level leaves — the deepest level this system models, and the "Jami" row,
+     * visited with a {@code (null, null)} whole-scope tuple instead of being treated as a real
+     * region/district). Lets a report attach one extra per-node dataset (e.g. an age-group
+     * breakdown) to its export in the same walk, instead of a second separate tree walk.
+     */
+    public <N> List<N> flattenAll(
+            List<N> rootBreakdown,
+            BiFunction<String, String, List<N>> childrenFetcher,
+            Function<N, String> codeOf,
+            Predicate<N> hasChildrenOf,
+            NodeVisitor<N> nodeVisitor
+    ) {
         ResolvedOrganizationScope scope = organizationScopeResolver.resolve(requireCurrentOrganization());
-        List<N> result = new ArrayList<>(rootBreakdown);
+        List<N> result = new ArrayList<>();
 
         switch (scope.mode()) {
-            case ALL -> {
-                for (N region : rootBreakdown) {
-                    if (!hasChildrenOf.test(region)) {
-                        continue;
-                    }
-                    List<N> districts = childrenFetcher.apply(codeOf.apply(region), null);
-                    result.addAll(districts);
-                    appendOrganizationsUnderDistricts(districts, childrenFetcher, codeOf, hasChildrenOf, result);
-                }
-            }
-            case REGION -> appendOrganizationsUnderDistricts(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, result);
-            case DISTRICT, ORGANIZATION -> {
-                // rootBreakdown is already the bottom of the tree (organizations, or the
-                // caller's own single-row total) — nothing more to fetch.
-            }
+            case ALL -> appendRegions(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor);
+            case REGION -> appendDistricts(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor);
+            case DISTRICT, ORGANIZATION -> result.addAll(rootBreakdown);
+            // rootBreakdown is already the bottom of the tree (organizations, or the
+            // caller's own single-row total) — nothing more to fetch, and no node-scoped
+            // breakdown to visit (organizations have none).
         }
 
         return result;
     }
 
-    private <N> void appendOrganizationsUnderDistricts(
+    /**
+     * Depth-first, pre-order: each region row is followed immediately by its own districts
+     * (each in turn followed immediately by its own organizations), not by every other
+     * region's rows first — so a spreadsheet reader always finds a parent directly above its
+     * children, e.g. "Andijon viloyati" directly above its districts rather than after every
+     * region in the scope.
+     */
+    private <N> void appendRegions(
+            List<N> regions,
+            BiFunction<String, String, List<N>> childrenFetcher,
+            Function<N, String> codeOf,
+            Predicate<N> hasChildrenOf,
+            List<N> result,
+            NodeVisitor<N> nodeVisitor
+    ) {
+        for (N region : regions) {
+            result.add(region);
+            String code = codeOf.apply(region);
+            visit(nodeVisitor, region, code, code, null);
+            if (!hasChildrenOf.test(region)) {
+                continue;
+            }
+            List<N> districts = childrenFetcher.apply(code, null);
+            appendDistricts(districts, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor);
+        }
+    }
+
+    private <N> void appendDistricts(
             List<N> districts,
             BiFunction<String, String, List<N>> childrenFetcher,
             Function<N, String> codeOf,
             Predicate<N> hasChildrenOf,
-            List<N> result
+            List<N> result,
+            NodeVisitor<N> nodeVisitor
     ) {
         for (N district : districts) {
+            result.add(district);
+            String code = codeOf.apply(district);
+            visit(nodeVisitor, district, code, null, code);
             if (!hasChildrenOf.test(district)) {
                 continue;
             }
-            result.addAll(childrenFetcher.apply(null, codeOf.apply(district)));
+            result.addAll(childrenFetcher.apply(null, code));
+            // Organizations added here are leaves (the deepest level this system models) and
+            // are never passed to nodeVisitor — there is no deeper node-scoped breakdown for
+            // a single organization via this walk.
+        }
+    }
+
+    private <N> void visit(NodeVisitor<N> nodeVisitor, N node, String code, String regionCode, String districtCode) {
+        if (nodeVisitor == null) {
+            return;
+        }
+        if (TOTAL_NODE_CODE.equals(code)) {
+            nodeVisitor.visit(node, null, null);
+        } else {
+            nodeVisitor.visit(node, regionCode, districtCode);
         }
     }
 

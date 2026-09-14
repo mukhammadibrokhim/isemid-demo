@@ -15,13 +15,15 @@ import java.util.Base64;
 
 /**
  * Best-effort calls to a provider's own OAuth2 cleanup endpoints during
- * logout - RFC 7009 token revocation and a separate end-session/logout
- * endpoint, both optional per provider (see {@code revokeUrl}/{@code
- * logoutUrl} on {@link ProviderProperties}). Deliberately never throws: the
- * local token blacklist (see {@code TokenBlacklistService}) is what actually
- * protects this backend immediately, so a network hiccup reaching the
- * provider must not fail the whole logout call and leave the caller's own
- * tokens un-blacklisted.
+ * logout - RFC 7009 token revocation ({@code revokeUrl}, form body +
+ * client_id/secret) and a separate end-session/logout endpoint ({@code
+ * logoutUrl}, {@code Authorization: Bearer <accessToken>}, no body - the
+ * shape confirmed live against SSO's {@code /api/auth/logout}), both
+ * optional per provider (see {@link ProviderProperties}). Deliberately never
+ * throws: the local token blacklist (see {@code TokenBlacklistService}) is
+ * what actually protects this backend immediately, so a network hiccup
+ * reaching the provider must not fail the whole logout call and leave the
+ * caller's own tokens un-blacklisted.
  */
 @Slf4j
 final class OAuth2RevocationClient {
@@ -69,19 +71,15 @@ final class OAuth2RevocationClient {
         }
     }
 
-    static void endSession(String providerKey, RestClient restClient, ProviderProperties properties) {
-        if (!StringUtils.hasText(properties.getLogoutUrl())) {
+    static void endSession(String providerKey, RestClient restClient, ProviderProperties properties, String accessToken) {
+        if (!StringUtils.hasText(properties.getLogoutUrl()) || !StringUtils.hasText(accessToken)) {
             return;
         }
 
         try {
-            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-            form.add("client_id", properties.getClientId());
-
             restClient.post()
                     .uri(properties.getLogoutUrl())
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(form)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientException exception) {

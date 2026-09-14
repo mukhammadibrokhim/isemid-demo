@@ -9,7 +9,9 @@ import uz.uzinfocom.app.modules.report.shared.ReportHierarchyExportFlattener;
 import uz.uzinfocom.app.platform.export.application.ExcelExportSource;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.excel.ExcelColumn;
+import uz.uzinfocom.app.shared.excel.ExcelTitleBlock;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -21,6 +23,8 @@ import java.util.function.Consumer;
 @Component
 @RequiredArgsConstructor
 public class Form4ExcelExportSource implements ExcelExportSource<Form4ExportFilter, Form4ReportNodeResponse> {
+
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private final Form4ReportQueryService form4ReportQueryService;
     private final ReportHierarchyExportFlattener flattener;
@@ -59,40 +63,64 @@ public class Form4ExcelExportSource implements ExcelExportSource<Form4ExportFilt
 
     @Override
     public List<ExcelColumn<Form4ReportNodeResponse>> availableColumns() {
-        String confirmed = messageResolver.resolve("report.export.block.confirmed");
-        String primary = messageResolver.resolve("report.export.block.primary");
+        String confirmedGroup = messageResolver.resolve("report.form4.export.group.confirmed");
+        String primaryGroup = messageResolver.resolve("report.form4.export.group.primary");
+        String total = messageResolver.resolve("report.export.block.total");
+        String unorganizedPreschool = messageResolver.resolve("report.form4.export.cat.unorganizedPreschool");
+        String organizedPreschool = messageResolver.resolve("report.form4.export.cat.organizedPreschool");
+        String schoolStudents = messageResolver.resolve("report.form4.export.cat.schoolStudents");
+        String vocationalStudents = messageResolver.resolve("report.form4.export.cat.vocationalStudents");
+        String universityStudents = messageResolver.resolve("report.form4.export.cat.universityStudents");
+        String employees = messageResolver.resolve("report.form4.export.cat.employees");
+        String workers = messageResolver.resolve("report.form4.export.cat.workers");
+        String medicalStaff = messageResolver.resolve("report.form4.export.cat.medicalStaff");
+        String unemployed = messageResolver.resolve("report.form4.export.cat.unemployed");
+        String pensioners = messageResolver.resolve("report.form4.export.cat.pensioners");
+        String unsheltered = messageResolver.resolve("report.form4.export.cat.unsheltered");
+
         return List.of(
                 ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form4ReportNodeResponse::code),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form4ReportNodeResponse::name),
-                ExcelColumn.of("confirmedTotal", cat(confirmed, "report.export.block.total"), row -> row.confirmed().total()),
-                ExcelColumn.of("confirmedUnorganizedPreschool", cat(confirmed, "report.form4.export.cat.unorganizedPreschool"), row -> row.confirmed().unorganizedPreschool()),
-                ExcelColumn.of("confirmedOrganizedPreschool", cat(confirmed, "report.form4.export.cat.organizedPreschool"), row -> row.confirmed().organizedPreschool()),
-                ExcelColumn.of("confirmedSchoolStudents", cat(confirmed, "report.form4.export.cat.schoolStudents"), row -> row.confirmed().schoolStudents()),
-                ExcelColumn.of("confirmedVocationalStudents", cat(confirmed, "report.form4.export.cat.vocationalStudents"), row -> row.confirmed().vocationalStudents()),
-                ExcelColumn.of("confirmedUniversityStudents", cat(confirmed, "report.form4.export.cat.universityStudents"), row -> row.confirmed().universityStudents()),
-                ExcelColumn.of("confirmedEmployees", cat(confirmed, "report.form4.export.cat.employees"), row -> row.confirmed().employees()),
-                ExcelColumn.of("confirmedWorkers", cat(confirmed, "report.form4.export.cat.workers"), row -> row.confirmed().workers()),
-                ExcelColumn.of("confirmedMedicalStaff", cat(confirmed, "report.form4.export.cat.medicalStaff"), row -> row.confirmed().medicalStaff()),
-                ExcelColumn.of("confirmedUnemployed", cat(confirmed, "report.form4.export.cat.unemployed"), row -> row.confirmed().unemployed()),
-                ExcelColumn.of("confirmedPensioners", cat(confirmed, "report.form4.export.cat.pensioners"), row -> row.confirmed().pensioners()),
-                ExcelColumn.of("confirmedUnsheltered", cat(confirmed, "report.form4.export.cat.unsheltered"), row -> row.confirmed().unsheltered()),
-                ExcelColumn.of("primaryTotal", cat(primary, "report.export.block.total"), row -> row.primary().total()),
-                ExcelColumn.of("primaryUnorganizedPreschool", cat(primary, "report.form4.export.cat.unorganizedPreschool"), row -> row.primary().unorganizedPreschool()),
-                ExcelColumn.of("primaryOrganizedPreschool", cat(primary, "report.form4.export.cat.organizedPreschool"), row -> row.primary().organizedPreschool()),
-                ExcelColumn.of("primarySchoolStudents", cat(primary, "report.form4.export.cat.schoolStudents"), row -> row.primary().schoolStudents()),
-                ExcelColumn.of("primaryVocationalStudents", cat(primary, "report.form4.export.cat.vocationalStudents"), row -> row.primary().vocationalStudents()),
-                ExcelColumn.of("primaryUniversityStudents", cat(primary, "report.form4.export.cat.universityStudents"), row -> row.primary().universityStudents()),
-                ExcelColumn.of("primaryEmployees", cat(primary, "report.form4.export.cat.employees"), row -> row.primary().employees()),
-                ExcelColumn.of("primaryWorkers", cat(primary, "report.form4.export.cat.workers"), row -> row.primary().workers()),
-                ExcelColumn.of("primaryMedicalStaff", cat(primary, "report.form4.export.cat.medicalStaff"), row -> row.primary().medicalStaff()),
-                ExcelColumn.of("primaryUnemployed", cat(primary, "report.form4.export.cat.unemployed"), row -> row.primary().unemployed()),
-                ExcelColumn.of("primaryPensioners", cat(primary, "report.form4.export.cat.pensioners"), row -> row.primary().pensioners()),
-                ExcelColumn.of("primaryUnsheltered", cat(primary, "report.form4.export.cat.unsheltered"), row -> row.primary().unsheltered())
+                ExcelColumn.of("confirmedTotal", confirmedGroup, total, row -> row.confirmed().total()),
+                ExcelColumn.of("confirmedUnorganizedPreschool", confirmedGroup, unorganizedPreschool, row -> row.confirmed().unorganizedPreschool()),
+                ExcelColumn.of("confirmedOrganizedPreschool", confirmedGroup, organizedPreschool, row -> row.confirmed().organizedPreschool()),
+                ExcelColumn.of("confirmedSchoolStudents", confirmedGroup, schoolStudents, row -> row.confirmed().schoolStudents()),
+                ExcelColumn.of("confirmedVocationalStudents", confirmedGroup, vocationalStudents, row -> row.confirmed().vocationalStudents()),
+                ExcelColumn.of("confirmedUniversityStudents", confirmedGroup, universityStudents, row -> row.confirmed().universityStudents()),
+                ExcelColumn.of("confirmedEmployees", confirmedGroup, employees, row -> row.confirmed().employees()),
+                ExcelColumn.of("confirmedWorkers", confirmedGroup, workers, row -> row.confirmed().workers()),
+                ExcelColumn.of("confirmedMedicalStaff", confirmedGroup, medicalStaff, row -> row.confirmed().medicalStaff()),
+                ExcelColumn.of("confirmedUnemployed", confirmedGroup, unemployed, row -> row.confirmed().unemployed()),
+                ExcelColumn.of("confirmedPensioners", confirmedGroup, pensioners, row -> row.confirmed().pensioners()),
+                ExcelColumn.of("confirmedUnsheltered", confirmedGroup, unsheltered, row -> row.confirmed().unsheltered()),
+                ExcelColumn.of("primaryTotal", primaryGroup, total, row -> row.primary().total()),
+                ExcelColumn.of("primaryUnorganizedPreschool", primaryGroup, unorganizedPreschool, row -> row.primary().unorganizedPreschool()),
+                ExcelColumn.of("primaryOrganizedPreschool", primaryGroup, organizedPreschool, row -> row.primary().organizedPreschool()),
+                ExcelColumn.of("primarySchoolStudents", primaryGroup, schoolStudents, row -> row.primary().schoolStudents()),
+                ExcelColumn.of("primaryVocationalStudents", primaryGroup, vocationalStudents, row -> row.primary().vocationalStudents()),
+                ExcelColumn.of("primaryUniversityStudents", primaryGroup, universityStudents, row -> row.primary().universityStudents()),
+                ExcelColumn.of("primaryEmployees", primaryGroup, employees, row -> row.primary().employees()),
+                ExcelColumn.of("primaryWorkers", primaryGroup, workers, row -> row.primary().workers()),
+                ExcelColumn.of("primaryMedicalStaff", primaryGroup, medicalStaff, row -> row.primary().medicalStaff()),
+                ExcelColumn.of("primaryUnemployed", primaryGroup, unemployed, row -> row.primary().unemployed()),
+                ExcelColumn.of("primaryPensioners", primaryGroup, pensioners, row -> row.primary().pensioners()),
+                ExcelColumn.of("primaryUnsheltered", primaryGroup, unsheltered, row -> row.primary().unsheltered())
         );
     }
 
-    private String cat(String prefix, String suffixKey) {
-        return prefix + " — " + messageResolver.resolve(suffixKey);
+    @Override
+    public List<ExcelTitleBlock> titleBlocks(Form4ExportFilter filter) {
+        int lastCol = availableColumns().size() - 1;
+        return List.of(
+                new ExcelTitleBlock(messageResolver.resolve("report.form4.export.title"), 0, 0, 0, lastCol),
+                new ExcelTitleBlock(periodText(filter), 1, 1, 0, lastCol)
+        );
+    }
+
+    private String periodText(Form4ExportFilter filter) {
+        String from = filter.from() == null ? "—" : DATE_FORMAT.format(filter.from());
+        String to = filter.to() == null ? "—" : DATE_FORMAT.format(filter.to());
+        return messageResolver.resolve("report.form4.export.period", from, to);
     }
 
     @Override

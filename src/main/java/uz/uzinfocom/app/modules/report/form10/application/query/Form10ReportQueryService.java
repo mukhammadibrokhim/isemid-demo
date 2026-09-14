@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.report.form10.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.modules.reference.application.lookup.PopulationLookupService;
 import uz.uzinfocom.app.modules.report.form10.application.query.dto.Form10Block;
@@ -16,6 +17,9 @@ import uz.uzinfocom.app.modules.report.shared.ReportHierarchyNode;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyService;
 import uz.uzinfocom.app.modules.report.shared.ReportPeriod;
 import uz.uzinfocom.app.modules.report.shared.ReportPeriodResolver;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
@@ -49,7 +53,13 @@ import java.util.stream.Collectors;
  * relevant year, looked up from {@code ref_population} via {@link
  * PopulationLookupService} — republic root code, region code, or district
  * code; organization rows and the "Jami" row reuse their parent district /
- * root-scope figure. The under-14 intensive uses the <b>same total territory
+ * root-scope figure. Which of those a given call's nodes are is read off the
+ * caller's {@link ResolvedOrganizationScope} / explicit {@code
+ * regionCode}/{@code districtCode} the same way {@code
+ * ReportHierarchyService#loadChildren} itself branches — <b>not</b> guessed
+ * from the node code's shape, since region/district codes (e.g. {@code
+ * "1726"}) are themselves plain digit strings indistinguishable that way from
+ * an organization id. The under-14 intensive uses the <b>same total territory
  * population</b> (there is no separate child-population source). {@code koef}
  * (default 100000) is a flat request parameter. Rate / growth-% / rounding
  * arithmetic lives here in Java, matching {@code Form11ReportQueryService}.
@@ -64,14 +74,16 @@ public class Form10ReportQueryService implements ReportCountSource<Form10Counts>
     private final ReportHierarchyService reportHierarchyService;
     private final ReportPeriodResolver reportPeriodResolver;
     private final PopulationLookupService populationLookupService;
+    private final OrganizationScopeResolver organizationScopeResolver;
 
     public List<Form10ReportNodeResponse> getRoot(int year, ReportPeriod period, String diagnosisCode, long koef) {
         Organization currentOrganization = requireCurrentOrganization();
         String rootCode = reportHierarchyService.resolveNode(currentOrganization, null, null).code();
+        boolean organizationLevel = isOrganizationLevel(currentOrganization);
 
         return build(
                 range -> reportHierarchyService.loadRootBreakdown(currentOrganization, this, range, diagnosisCode),
-                year, period, koef, rootCode
+                year, period, koef, rootCode, organizationLevel
         );
     }
 
@@ -80,13 +92,27 @@ public class Form10ReportQueryService implements ReportCountSource<Form10Counts>
     ) {
         Organization currentOrganization = requireCurrentOrganization();
         String rootCode = reportHierarchyService.resolveNode(currentOrganization, regionCode, districtCode).code();
+        boolean organizationLevel = StringUtils.hasText(districtCode)
+                || (!StringUtils.hasText(regionCode) && isOrganizationLevel(currentOrganization));
 
         return build(
                 range -> reportHierarchyService.loadChildren(
                         currentOrganization, regionCode, districtCode, this, range, diagnosisCode
                 ),
-                year, period, koef, rootCode
+                year, period, koef, rootCode, organizationLevel
         );
+    }
+
+    /**
+     * Whether a scope-driven (no explicit {@code regionCode}/{@code districtCode}) call returns
+     * organization-level nodes — mirrors {@code ReportHierarchyService#loadChildren}'s own scope
+     * switch: DISTRICT scope lists organizations, ORGANIZATION scope's single fallback row is
+     * the caller's own organization; ALL/REGION scope list regions/districts, which have their
+     * own {@code ref_population} row and must never reuse the root figure.
+     */
+    private boolean isOrganizationLevel(Organization currentOrganization) {
+        ResolvedOrganizationScope scope = organizationScopeResolver.resolve(currentOrganization);
+        return scope.mode() == OrganizationScopeMode.DISTRICT || scope.mode() == OrganizationScopeMode.ORGANIZATION;
     }
 
     private List<Form10ReportNodeResponse> build(
@@ -94,7 +120,8 @@ public class Form10ReportQueryService implements ReportCountSource<Form10Counts>
             int year,
             ReportPeriod period,
             long koef,
-            String rootCode
+            String rootCode,
+            boolean organizationLevel
     ) {
         int previousYear = year - 1;
 
@@ -110,7 +137,7 @@ public class Form10ReportQueryService implements ReportCountSource<Form10Counts>
         return currentNodes.stream()
                 .map(node -> {
                     String code = node.code();
-                    boolean useRootPopulation = TOTAL_ROW_CODE.equals(code) || isNumeric(code);
+                    boolean useRootPopulation = TOTAL_ROW_CODE.equals(code) || organizationLevel;
                     long populationCurrent = useRootPopulation
                             ? rootPopulationCurrent
                             : populationLookupService.resolveByNodeCode(code, year);
@@ -207,18 +234,6 @@ public class Form10ReportQueryService implements ReportCountSource<Form10Counts>
 
     private double round2(double value) {
         return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
-    }
-
-    private boolean isNumeric(String code) {
-        if (code == null || code.isEmpty()) {
-            return false;
-        }
-        for (int i = 0; i < code.length(); i++) {
-            if (!Character.isDigit(code.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private Organization requireCurrentOrganization() {

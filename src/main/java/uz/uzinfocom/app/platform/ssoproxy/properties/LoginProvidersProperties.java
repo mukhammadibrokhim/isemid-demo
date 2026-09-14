@@ -56,10 +56,16 @@ public class LoginProvidersProperties {
         private String revokeUrl;
 
         /**
-         * Provider's end-session/logout endpoint, called (best effort, POST
-         * client_id) in addition to {@link #revokeUrl} during logout - some
-         * providers require ending the upstream session separately from
-         * revoking the token itself. Left blank when the provider has none.
+         * Provider's end-session/logout endpoint, called (best effort) in
+         * addition to {@link #revokeUrl} during logout - some providers
+         * require ending the upstream session separately from revoking the
+         * token itself. Called as {@code POST logoutUrl} with {@code
+         * Authorization: Bearer <accessToken>} and no body - confirmed live
+         * against SSO's {@code /api/auth/logout} (returns 401
+         * "Unauthenticated." for an invalid/expired bearer token rather than
+         * 404, i.e. it authenticates via the access token itself, not
+         * client_id/secret). Skipped when the caller has no access token.
+         * Left blank when the provider has no such endpoint.
          */
         private String logoutUrl;
 

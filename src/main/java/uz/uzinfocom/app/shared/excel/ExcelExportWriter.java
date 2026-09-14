@@ -176,6 +176,13 @@ public class ExcelExportWriter {
     }
 
     private <T> int writeHeader(Sheet sheet, List<ExcelColumn<T>> columns, CellStyle headerStyle, int rowIndex) {
+        int maxDepth = columns.stream().mapToInt(column -> column.groupHeaders().size()).max().orElse(0);
+        return maxDepth == 0
+                ? writeFlatHeader(sheet, columns, headerStyle, rowIndex)
+                : writeGroupedHeader(sheet, columns, headerStyle, rowIndex, maxDepth);
+    }
+
+    private <T> int writeFlatHeader(Sheet sheet, List<ExcelColumn<T>> columns, CellStyle headerStyle, int rowIndex) {
         Row headerRow = sheet.createRow(rowIndex);
 
         for (int i = 0; i < columns.size(); i++) {
@@ -189,6 +196,89 @@ public class ExcelExportWriter {
         }
 
         return rowIndex + 1;
+    }
+
+    /**
+     * {@code maxDepth}-deep header for exports whose columns fall into nested named groups
+     * (e.g. "Joriy davr" over "Umumiy aholi" over "2025"/"2026"/"O'sish %", each with its own
+     * Absolyut/Intensiv sub-columns) - one merged cell per run of adjacent columns sharing the
+     * same group label at each level, matching however the frontend table nests the same
+     * headers. A column shallower than {@code maxDepth} (including one with no groups at all)
+     * has its own {@code header} vertically merged from the row after its last group level down
+     * through the leaf row, so it lines up with the deepest column's combined height - this is
+     * the {@code maxDepth == 1} case's "group == null -> header spans both rows" behavior,
+     * generalized to any depth.
+     */
+    private <T> int writeGroupedHeader(Sheet sheet, List<ExcelColumn<T>> columns, CellStyle headerStyle, int rowIndex, int maxDepth) {
+        Row[] rows = new Row[maxDepth + 1];
+        for (int r = 0; r <= maxDepth; r++) {
+            rows[r] = sheet.createRow(rowIndex + r);
+        }
+
+        for (int level = 0; level < maxDepth; level++) {
+            int i = 0;
+            while (i < columns.size()) {
+                List<String> path = columns.get(i).groupHeaders();
+                if (path.size() <= level) {
+                    i++;
+                    continue;
+                }
+
+                int runEnd = i;
+                while (runEnd + 1 < columns.size() && sharesGroupPrefix(columns.get(runEnd + 1).groupHeaders(), path, level)) {
+                    runEnd++;
+                }
+
+                setHeaderCell(rows[level].createCell(i), path.get(level), headerStyle);
+                for (int c = i + 1; c <= runEnd; c++) {
+                    setHeaderCell(rows[level].createCell(c), null, headerStyle);
+                }
+                if (runEnd > i) {
+                    sheet.addMergedRegion(new CellRangeAddress(rowIndex + level, rowIndex + level, i, runEnd));
+                }
+
+                i = runEnd + 1;
+            }
+        }
+
+        for (int c = 0; c < columns.size(); c++) {
+            ExcelColumn<T> column = columns.get(c);
+            int depth = column.groupHeaders().size();
+
+            if (depth == maxDepth) {
+                setHeaderCell(rows[maxDepth].createCell(c), column.header(), headerStyle);
+            } else {
+                setHeaderCell(rows[depth].createCell(c), column.header(), headerStyle);
+                for (int r = depth + 1; r <= maxDepth; r++) {
+                    setHeaderCell(rows[r].createCell(c), null, headerStyle);
+                }
+                sheet.addMergedRegion(new CellRangeAddress(rowIndex + depth, rowIndex + maxDepth, c, c));
+            }
+
+            sheet.setColumnWidth(c, Math.clamp(column.header().length() + 4, 12, 60) * 256);
+        }
+
+        return rowIndex + maxDepth + 1;
+    }
+
+    /** Whether two columns' group paths agree on every level up to and including {@code level}. */
+    private boolean sharesGroupPrefix(List<String> candidate, List<String> path, int level) {
+        if (candidate.size() <= level) {
+            return false;
+        }
+        for (int i = 0; i <= level; i++) {
+            if (!java.util.Objects.equals(candidate.get(i), path.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void setHeaderCell(Cell cell, String value, CellStyle style) {
+        cell.setCellStyle(style);
+        if (value != null) {
+            cell.setCellValue(value);
+        }
     }
 
     private CellStyle titleStyle(SXSSFWorkbook workbook, ExcelStyleSettings style) {

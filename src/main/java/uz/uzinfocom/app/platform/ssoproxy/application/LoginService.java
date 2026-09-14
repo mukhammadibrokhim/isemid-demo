@@ -50,13 +50,13 @@ public class LoginService {
     public void logout(String providerKey, LogoutRequest request) {
         LoginProvider provider = loginProviderRegistry.resolve(providerKey);
 
-        // The blacklist is what actually enforces logout on this backend (see
-        // TokenBlacklistService); provider.logout(...) below is best-effort
-        // upstream cleanup on top of that, not a substitute for it.
+        // Upstream session end-out first, then the local blacklist - see
+        // TokenBlacklistService for why the blacklist is still what actually
+        // enforces logout on this backend regardless of upstream outcome.
+        provider.logout(request.accessToken(), request.refreshToken());
+
         tokenBlacklistService.revoke(request.accessToken());
         tokenBlacklistService.revoke(request.refreshToken());
-
-        provider.logout(request.accessToken(), request.refreshToken());
     }
 
     private LoginResponse toResponse(LoginResult result) {

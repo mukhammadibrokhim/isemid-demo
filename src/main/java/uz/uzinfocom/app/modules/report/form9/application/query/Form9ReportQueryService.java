@@ -89,6 +89,28 @@ public class Form9ReportQueryService implements ReportCountSource<Form9Counts> {
         return zip(currentNodes, previousNodes);
     }
 
+    /**
+     * One calendar month's stable code (matches {@link Form9MonthRowResponse#monthCode()}) plus
+     * its localized display label — for a caller (the Excel export) that needs to build one
+     * column group per month without duplicating this service's own month-label lookup.
+     */
+    public record MonthColumn(String code, String label) {
+    }
+
+    /**
+     * The 12 calendar months (excluding the trailing "Jami"/{@code TOTAL_ROW_CODE} row, which
+     * duplicates a node's own overall counts already shown by {@link #getRoot}/{@link
+     * #getChildren}) — for the Excel export to build one column group per month, in the same
+     * January-to-December order {@link #getMonthlyBreakdown} itself returns.
+     */
+    public List<MonthColumn> monthColumns() {
+        List<MonthColumn> columns = new ArrayList<>(MONTHS_IN_YEAR);
+        for (int month = 1; month <= MONTHS_IN_YEAR; month++) {
+            columns.add(new MonthColumn(String.valueOf(month), messageResolver.resolve("report.form9.month." + month)));
+        }
+        return columns;
+    }
+
     public Form9MonthlyBreakdownResponse getMonthlyBreakdown(
             String regionCode,
             String districtCode,

@@ -49,6 +49,15 @@ public class Form8ReportQueryService implements ReportCountSource<Long> {
     ) {
     }
 
+    /**
+     * One social category's stable code (matches {@link Form8CategoryRowResponse#code()}) plus
+     * its localized display label — for a caller (the Excel export) that needs to build one
+     * column group per category without reaching into this service's own {@link CategorySpec}
+     * list.
+     */
+    public record CategoryColumn(String code, String label) {
+    }
+
     /** Display order matches the reference screenshot: Jami first, then the 11 broken-out categories. */
     private static final List<CategorySpec> CATEGORIES = List.of(
             new CategorySpec("TOTAL", "report.scope.total", Form8CategoryBreakdownProjection::total),
@@ -113,6 +122,19 @@ public class Form8ReportQueryService implements ReportCountSource<Long> {
         );
 
         return zip(currentNodes, previousNodes);
+    }
+
+    /**
+     * The real social categories ({@code CATEGORIES} minus its leading "Jami"/{@code TOTAL}
+     * entry, which duplicates a node's own overall count already shown by {@link #getRoot}/
+     * {@link #getChildren}) — for the Excel export to build one column group per category, in
+     * the same order {@link #getCategoryBreakdown} itself returns.
+     */
+    public List<CategoryColumn> categoryColumns() {
+        return CATEGORIES.stream()
+                .filter(category -> !"TOTAL".equals(category.code()))
+                .map(category -> new CategoryColumn(category.code(), messageResolver.resolve(category.messageKey())))
+                .toList();
     }
 
     public Form8CategoryBreakdownResponse getCategoryBreakdown(

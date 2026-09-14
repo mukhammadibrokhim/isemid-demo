@@ -3,6 +3,8 @@ package uz.uzinfocom.app.modules.report.map.web.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,11 +64,14 @@ public class MapReportController {
             @Parameter(description = "Davr boshlanishi (ixtiyoriy). Standart — butun tarix.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @Parameter(description = "Davr oxiri (ixtiyoriy). Standart — bugun.")
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @Parameter(description = "Qaytariladigan nuqtalar soni chegarasi (ixtiyoriy, standart 2000, "
+                    + "maksimal 10000) — eng so'nggi case'lardan boshlab.")
+            @RequestParam(required = false) @Positive @Max(10000) Integer limit
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                mapPointQueryService.getPoints(regionCode, districtCode, diagnosisCode, status, from, to)
+                mapPointQueryService.getPoints(regionCode, districtCode, diagnosisCode, status, from, to, limit)
         );
     }
 }

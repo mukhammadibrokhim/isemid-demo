@@ -36,23 +36,30 @@ public class MapPointQueryService {
 
     private static final String APPROVED_STATUS = "APPROVED";
 
+    /** Plotting a few thousand pins is already unreadable on a map; caps the default/worst-case payload. */
+    private static final int DEFAULT_LIMIT = 2000;
+    private static final int MAX_LIMIT = 10000;
+
     private final MapPointRepository mapPointRepository;
     private final ReportHierarchyService reportHierarchyService;
     private final ReportDateRangeResolver reportDateRangeResolver;
 
     public List<MapPointResponse> getPoints(
-            String regionCode, String districtCode, String diagnosisCode, String status, LocalDate from, LocalDate to
+            String regionCode, String districtCode, String diagnosisCode, String status,
+            LocalDate from, LocalDate to, Integer limitOrNull
     ) {
         Organization currentOrganization = requireCurrentOrganization();
         ResolvedReportNode node = reportHierarchyService.resolveNode(currentOrganization, regionCode, districtCode);
         ReportDateRange range = reportDateRangeResolver.resolve(from, to);
+        int limit = limitOrNull != null ? Math.clamp(limitOrNull, 1, MAX_LIMIT) : DEFAULT_LIMIT;
 
         List<MapPointProjection> points = mapPointRepository.findPoints(
                 node.organizationIds(),
                 range.fromInclusive(),
                 range.toExclusive(),
                 normalize(status),
-                normalize(diagnosisCode)
+                normalize(diagnosisCode),
+                limit
         );
 
         return points.stream()

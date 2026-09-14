@@ -9,7 +9,9 @@ import uz.uzinfocom.app.modules.report.shared.ReportHierarchyExportFlattener;
 import uz.uzinfocom.app.platform.export.application.ExcelExportSource;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.excel.ExcelColumn;
+import uz.uzinfocom.app.shared.excel.ExcelTitleBlock;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -18,11 +20,17 @@ import java.util.function.Function;
  * Excel export for "Form 11" (geography-first, year-over-year morbidity
  * indicators + urban/rural/under-18 cuts) — mirrors {@code
  * Form1ExcelExportSource}'s flatten step, over {@link
- * Form11ReportNodeResponse}'s 16 fields.
+ * Form11ReportNodeResponse}'s 16 fields, with a two-row grouped header
+ * ({@code Form6ExcelExportSource}/{@code Form8ExcelExportSource}-style) so
+ * the sheet reproduces the frontend table's "Абсолют кўрсаткич" / "Интенсив
+ * кўрсаткич" / "Шаҳар аҳолиси" / "Қишлоқ аҳолиси" / "18 ёшгача болалар"
+ * column groups instead of one flat header row.
  */
 @Component
 @RequiredArgsConstructor
 public class Form11ExcelExportSource implements ExcelExportSource<Form11ExportFilter, Form11ReportNodeResponse> {
+
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private final Form11ReportQueryService form11ReportQueryService;
     private final ReportHierarchyExportFlattener flattener;
@@ -62,28 +70,55 @@ public class Form11ExcelExportSource implements ExcelExportSource<Form11ExportFi
 
     @Override
     public List<ExcelColumn<Form11ReportNodeResponse>> availableColumns() {
+        String previousYear = messageResolver.resolve("report.export.block.previousYear");
+        String currentYear = messageResolver.resolve("report.export.block.currentYear");
+        String growthPercent = messageResolver.resolve("report.export.block.growthPercent");
+        String sharePercent = messageResolver.resolve("report.export.block.sharePercent");
+        String metricAbsolute = messageResolver.resolve("report.export.block.metricAbsolute");
+        String metricIntensive = messageResolver.resolve("report.export.block.metricIntensive");
+        String groupUrban = messageResolver.resolve("report.form11.export.group.urban");
+        String groupRural = messageResolver.resolve("report.form11.export.group.rural");
+        String groupChild = messageResolver.resolve("report.form11.export.group.child");
+
         return List.of(
                 ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form11ReportNodeResponse::code),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form11ReportNodeResponse::name),
-                col("absPreviousYear", "report.form11.export.absPreviousYear", Form11ReportNodeResponse::absPreviousYear),
-                col("absCurrentYear", "report.form11.export.absCurrentYear", Form11ReportNodeResponse::absCurrentYear),
-                col("absGrowthPercent", "report.form11.export.absGrowthPercent", Form11ReportNodeResponse::absGrowthPercent),
-                col("intensivePreviousYear", "report.form11.export.intensivePreviousYear", Form11ReportNodeResponse::intensivePreviousYear),
-                col("intensiveCurrentYear", "report.form11.export.intensiveCurrentYear", Form11ReportNodeResponse::intensiveCurrentYear),
-                col("intensiveGrowthPercent", "report.form11.export.intensiveGrowthPercent", Form11ReportNodeResponse::intensiveGrowthPercent),
-                col("cityAbs", "report.form11.export.cityAbs", Form11ReportNodeResponse::cityAbs),
-                col("cityIntensive", "report.form11.export.cityIntensive", Form11ReportNodeResponse::cityIntensive),
-                col("citySharePercent", "report.form11.export.citySharePercent", Form11ReportNodeResponse::citySharePercent),
-                col("ruralAbs", "report.form11.export.ruralAbs", Form11ReportNodeResponse::ruralAbs),
-                col("ruralIntensive", "report.form11.export.ruralIntensive", Form11ReportNodeResponse::ruralIntensive),
-                col("ruralSharePercent", "report.form11.export.ruralSharePercent", Form11ReportNodeResponse::ruralSharePercent),
-                col("childAbs", "report.form11.export.childAbs", Form11ReportNodeResponse::childAbs),
-                col("childIntensive", "report.form11.export.childIntensive", Form11ReportNodeResponse::childIntensive)
+                col("absPreviousYear", metricAbsolute, previousYear, Form11ReportNodeResponse::absPreviousYear),
+                col("absCurrentYear", metricAbsolute, currentYear, Form11ReportNodeResponse::absCurrentYear),
+                col("absGrowthPercent", metricAbsolute, growthPercent, Form11ReportNodeResponse::absGrowthPercent),
+                col("intensivePreviousYear", metricIntensive, previousYear, Form11ReportNodeResponse::intensivePreviousYear),
+                col("intensiveCurrentYear", metricIntensive, currentYear, Form11ReportNodeResponse::intensiveCurrentYear),
+                col("intensiveGrowthPercent", metricIntensive, growthPercent, Form11ReportNodeResponse::intensiveGrowthPercent),
+                col("cityAbs", groupUrban, metricAbsolute, Form11ReportNodeResponse::cityAbs),
+                col("cityIntensive", groupUrban, metricIntensive, Form11ReportNodeResponse::cityIntensive),
+                col("citySharePercent", groupUrban, sharePercent, Form11ReportNodeResponse::citySharePercent),
+                col("ruralAbs", groupRural, metricAbsolute, Form11ReportNodeResponse::ruralAbs),
+                col("ruralIntensive", groupRural, metricIntensive, Form11ReportNodeResponse::ruralIntensive),
+                col("ruralSharePercent", groupRural, sharePercent, Form11ReportNodeResponse::ruralSharePercent),
+                col("childAbs", groupChild, metricAbsolute, Form11ReportNodeResponse::childAbs),
+                col("childIntensive", groupChild, metricIntensive, Form11ReportNodeResponse::childIntensive)
         );
     }
 
-    private ExcelColumn<Form11ReportNodeResponse> col(String key, String headerKey, Function<Form11ReportNodeResponse, Object> extractor) {
-        return ExcelColumn.of(key, messageResolver.resolve(headerKey), extractor);
+    private ExcelColumn<Form11ReportNodeResponse> col(
+            String key, String groupHeader, String header, Function<Form11ReportNodeResponse, Object> extractor
+    ) {
+        return ExcelColumn.of(key, groupHeader, header, extractor);
+    }
+
+    @Override
+    public List<ExcelTitleBlock> titleBlocks(Form11ExportFilter filter) {
+        int lastCol = availableColumns().size() - 1;
+        return List.of(
+                new ExcelTitleBlock(messageResolver.resolve("report.form11.export.title"), 0, 0, 0, lastCol),
+                new ExcelTitleBlock(periodText(filter), 1, 1, 0, lastCol)
+        );
+    }
+
+    private String periodText(Form11ExportFilter filter) {
+        String from = filter.from() == null ? "—" : DATE_FORMAT.format(filter.from());
+        String to = filter.to() == null ? "—" : DATE_FORMAT.format(filter.to());
+        return messageResolver.resolve("report.form11.export.period", from, to);
     }
 
     @Override
