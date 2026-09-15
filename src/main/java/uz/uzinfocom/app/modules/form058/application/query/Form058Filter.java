@@ -9,7 +9,6 @@ import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
-import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 import java.time.LocalDate;
@@ -100,7 +99,7 @@ public record Form058Filter(
                 description = "Код диагноза по МКБ-10.",
                 example = "A09"
         )
-        String mkb10Code,
+        String icd10Code,
 
         @Schema(
                 description = """
@@ -146,7 +145,7 @@ public record Form058Filter(
         )
         Boolean hasLinkedCards
 
-) implements PageableRequest {
+) implements PageableRequest, Form058FilterFields {
 
         public boolean isAffiliationFilterEnabled() {
                 return Boolean.TRUE.equals(affiliation);
@@ -165,7 +164,7 @@ public record Form058Filter(
                         && dateTo == null
                         && id == null
                         && !StringUtils.hasText(documentValue)
-                        && !StringUtils.hasText(mkb10Code)
+                        && !StringUtils.hasText(icd10Code)
                         && organizationId == null
                         && !StringUtils.hasText(regionCode)
                         && !StringUtils.hasText(districtCode)

@@ -22,9 +22,7 @@ public class Form0581SourceResolver {
     private static final int MAX_SOURCE_LENGTH = 64;
 
     private static final List<String> ALLOWED_SOURCES = List.of(
-            "QR",
-            "MANUAL",
-            "DMED"
+            "MANUAL"
     );
 
     private final SystemSettingResolver systemSettingResolver;

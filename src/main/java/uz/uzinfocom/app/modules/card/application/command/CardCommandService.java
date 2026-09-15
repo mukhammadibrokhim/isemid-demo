@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.card.application.command;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -21,13 +22,25 @@ import uz.uzinfocom.app.modules.card.web.dto.request.AssignCardsRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
+import uz.uzinfocom.app.modules.form058.application.shared.Form058AffiliatedOrganizationsResolver;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
+import uz.uzinfocom.app.modules.form0581.application.shared.Form0581AffiliatedOrganizationsResolver;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
+import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -65,6 +78,9 @@ public class CardCommandService {
     private final UserRepository userRepository;
     private final CardTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
+    private final ApplicationEventPublisher eventPublisher;
+    private final AdminAccessGuard adminAccessGuard;
+    private final FormAccessScopeResolver formAccessScopeResolver;
 
     /**
      * Bulk-assigns one blank card per distinct requested type to a form,
@@ -84,23 +100,42 @@ public class CardCommandService {
         Form058 form = form058Repository.findByIdAndDeletedFalse(formId)
                 .orElseThrow(() -> new Form058NotFoundException(formId));
 
-        List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
-        cardRepository.saveAll(cards);
+        requireForm058Access(form);
 
+        List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
+        publishCardAssignedEvents(cardRepository.saveAll(cards), form.getReceiverOrganizationId());
+
+        String oldStatus = form.getStatus().name();
         form.linkCards();
         form058Repository.save(form);
+
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.FORM058, form.getId(), oldStatus, form.getStatus().name(),
+                currentUserProvider.userIdOrNull(), null, form058Routing(form)
+        ));
     }
 
     /**
      * Same shape as {@link #assignCards}, but for a form0581 (rabies/animal-bite)
-     * case — restricted to {@link #FORM0581_ALLOWED_TYPES}, and advances only
-     * {@code Form0581.hasLinkedCards} rather than a {@code FormStatus}-style
-     * status (form0581 has no CARD_LINKED-equivalent status).
+     * case — restricted to {@link #FORM0581_ALLOWED_TYPES}. Only the
+     * receiver organization (the one the form was sent to) may assign cards
+     * — this is its review step, distinct from the sender's later
+     * approve/not-approve decision.
      */
     @Transactional
     public void assignCardsToForm0581(Long form0581Id, AssignCardsRequest request) {
         Form0581 form = form0581Repository.findByIdAndDeletedFalse(form0581Id)
                 .orElseThrow(() -> new Form0581NotFoundException(form0581Id));
+
+        if (!adminAccessGuard.isSuperAdmin()) {
+            Long currentOrganizationId = CurrentOrganizationContext.getOptional()
+                    .map(Organization::getId)
+                    .orElseThrow(CardScopeViolationException::new);
+
+            if (!Objects.equals(currentOrganizationId, form.getReceiverOrganizationId())) {
+                throw new CardScopeViolationException();
+            }
+        }
 
         for (CardType cardType : request.cardTypes()) {
             if (cardType != null && !FORM0581_ALLOWED_TYPES.contains(cardType)) {
@@ -109,10 +144,99 @@ public class CardCommandService {
         }
 
         List<Card> cards = createBlankCards(request, card -> card.setForm0581(form));
-        cardRepository.saveAll(cards);
+        publishCardAssignedEvents(cardRepository.saveAll(cards), form.getReceiverOrganizationId());
 
+        String oldStatus = form.getStatus().name();
         form.linkCards();
         form0581Repository.save(form);
+
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.FORM0581, form.getId(), oldStatus, form.getStatus().name(),
+                currentUserProvider.userIdOrNull(), null, form0581Routing(form)
+        ));
+    }
+
+    /**
+     * Only an organization actually connected to the form — sender, receiver,
+     * or (the "external" case) the one the patient is affiliated with as
+     * their workplace or place of study — may assign cards to it. Mirrors
+     * the receiver-only check {@link #assignCardsToForm0581} already applies
+     * for form0581, extended with the affiliation path {@code
+     * Form058Specification} already grants read access through under
+     * {@code affiliation=true}.
+     */
+    private void requireForm058Access(Form058 form) {
+        if (adminAccessGuard.isSuperAdmin()) {
+            return;
+        }
+
+        Long currentOrganizationId = CurrentOrganizationContext.getOptional()
+                .map(Organization::getId)
+                .orElseThrow(CardScopeViolationException::new);
+
+        Long patientId = form.getPatient() != null ? form.getPatient().getId() : null;
+        if (!formAccessScopeResolver.canAccess(
+                currentOrganizationId, form.getSenderOrganizationId(), form.getReceiverOrganizationId(), patientId
+        )) {
+            throw new CardScopeViolationException();
+        }
+    }
+
+    /**
+     * Notifies {@code NotificationEventListener} (alongside the audit trail) that each
+     * card now exists with its attached employees set — card creation previously
+     * published nothing per-card, only the parent form's status change. Every card in
+     * one bulk-assign batch shares the same owning form, so {@code organizationId} (the
+     * form's receiver) is resolved once by the caller rather than per card.
+     */
+    private void publishCardAssignedEvents(List<Card> savedCards, Long organizationId) {
+        Long assignedById = currentUserProvider.userIdOrNull();
+        savedCards.forEach(card -> eventPublisher.publishEvent(new EntityCreatedEvent(
+                AuditEntityType.CARD, card.getId(), assignedById,
+                new NotificationRoutingContext.CardRouting(
+                        organizationId, card.getUsers().stream().map(User::getId).toList(), assignedById
+                )
+        )));
+    }
+
+    /**
+     * Card-linking ({@link #assignCards}/{@link #assignCardsToForm0581}) is the one
+     * card-module transition that also carries the owning form's affiliated-organization
+     * list — {@code NotificationEventListener}'s {@code *_AFFILIATED_CARD_LINKED}
+     * notification, mirroring {@code CreateForm058Service}'s "received" routing.
+     */
+    private NotificationRoutingContext.FormRouting form058Routing(Form058 form) {
+        Set<Long> affiliatedOrganizationIds = Form058AffiliatedOrganizationsResolver.resolve(form.getPatient());
+        affiliatedOrganizationIds.remove(form.getSenderOrganizationId());
+        affiliatedOrganizationIds.remove(form.getReceiverOrganizationId());
+        return new NotificationRoutingContext.FormRouting(
+                form.getSenderOrganizationId(), form.getReceiverOrganizationId(),
+                List.copyOf(affiliatedOrganizationIds), form.getSourceIntegrationClientId()
+        );
+    }
+
+    private NotificationRoutingContext.FormRouting form0581Routing(Form0581 form) {
+        Set<Long> affiliatedOrganizationIds = Form0581AffiliatedOrganizationsResolver.resolve(form.getPatient());
+        affiliatedOrganizationIds.remove(form.getSenderOrganizationId());
+        affiliatedOrganizationIds.remove(form.getReceiverOrganizationId());
+        return new NotificationRoutingContext.FormRouting(
+                form.getSenderOrganizationId(), form.getReceiverOrganizationId(),
+                List.copyOf(affiliatedOrganizationIds), form.getSourceIntegrationClientId()
+        );
+    }
+
+    /**
+     * Same resolution {@code NotificationEventListener} used to do itself after a
+     * repository re-fetch: a card's routing organization is its owning form's receiver.
+     */
+    private Long resolveCardOrganizationId(Card card) {
+        if (card.getForm058() != null) {
+            return card.getForm058().getReceiverOrganizationId();
+        }
+        if (card.getForm0581() != null) {
+            return card.getForm0581().getReceiverOrganizationId();
+        }
+        return null;
     }
 
     /**
@@ -165,10 +289,19 @@ public class CardCommandService {
             throw new UnsupportedCardTypeException(request.type());
         }
 
+        Map<String, Object> before = card.auditFields();
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
         handler.handleUpdate(card, request);
         card.setStatus(CardStatus.IN_PROGRESS);
         Card saved = cardRepository.save(card);
+
+        Map<String, Object> changes = AuditFieldDiff.compute(before, saved.auditFields());
+        if (!changes.isEmpty()) {
+            eventPublisher.publishEvent(new FieldsChangedEvent(
+                    AuditEntityType.CARD, saved.getId(), changes, currentUserProvider.userIdOrNull()
+            ));
+        }
+
         return handler.handleToResponse(saved);
     }
 
@@ -236,8 +369,10 @@ public class CardCommandService {
     public void acceptByUser(Long cardId) {
         Card card = requireAttachedUserCard(cardId);
         requireTransition(card.getStatus().canBeAcceptedByUser(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.ACCEPTED_BY_USER);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -247,9 +382,11 @@ public class CardCommandService {
     public void rejectByUser(Long cardId, String comment) {
         Card card = requireAttachedUserCard(cardId);
         requireTransition(card.getStatus().canBeRejectedByUser(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.REJECTED_BY_USER);
         card.setAttachedUserComment(comment);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -260,9 +397,11 @@ public class CardCommandService {
     public void complete(Long cardId) {
         Card card = requireAttachedUserCard(cardId);
         requireTransition(card.getStatus().canBeUpdated(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setCompletedDate(LocalDate.now());
         card.setStatus(CardStatus.COMPLETED);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -273,8 +412,10 @@ public class CardCommandService {
     public void approveBySupervisor(Long cardId) {
         Card card = requireAssignedSupervisorCard(cardId);
         requireTransition(card.getStatus().canBeApprovedBySupervisor(), card.getStatus());
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.APPROVED);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
     }
 
     /**
@@ -288,9 +429,41 @@ public class CardCommandService {
         if (!StringUtils.hasText(comment)) {
             throw new CardValidationException("error.card.rejection-reason-required");
         }
+        String oldStatus = card.getStatus().name();
         card.setStatus(CardStatus.REJECTED);
         card.setSupervisorComment(comment);
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
+        publishCardStatusChange(saved, oldStatus);
+    }
+
+    /**
+     * Drives {@code NotificationEventListener}'s card-status fan-out
+     * (assignee &lt;-&gt; supervisor, depending on which direction the
+     * transition went) alongside the audit trail — mirrors
+     * {@code ActCommandService.publishStatusChange}.
+     */
+    private void publishCardStatusChange(Card card, String oldStatus) {
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.CARD, card.getId(), oldStatus, card.getStatus().name(),
+                currentUserProvider.userIdOrNull(), null,
+                new NotificationRoutingContext.CardRouting(
+                        resolveCardOrganizationId(card),
+                        card.getUsers().stream().map(User::getId).toList(),
+                        card.getAssignedById()
+                )
+        ));
+    }
+
+    /**
+     * The sanctioned way for another module's aggregate (e.g. {@code Act#card})
+     * to obtain a managed {@link Card} reference to attach — callers outside
+     * this module must go through here instead of {@link CardRepository}
+     * directly, so this module's own invariants stay enforceable in one place.
+     */
+    @Transactional(readOnly = true)
+    public Card getExistingCard(Long cardId) {
+        return cardRepository.findById(cardId)
+                .orElseThrow(() -> new CardNotFoundException(cardId));
     }
 
     private Card requireAttachedUserCard(Long cardId) {
@@ -310,6 +483,10 @@ public class CardCommandService {
     private Card requireAssignedSupervisorCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
+
+        if (adminAccessGuard.isSuperAdmin()) {
+            return card;
+        }
 
         Long userId = currentUserProvider.userIdOrNull();
         if (userId == null || !userId.equals(card.getAssignedById())) {

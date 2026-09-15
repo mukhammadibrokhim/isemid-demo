@@ -1,7 +1,8 @@
 package uz.uzinfocom.app.platform.integrationclient.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationAuthType;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,14 +12,21 @@ public record IntegrationClientResponse(
         Long id,
         String clientId,
         String name,
+        IntegrationAuthType authType,
         String sourceKey,
         Long organizationId,
         String organizationName,
         List<String> scopes,
         boolean active,
 
+        @Schema(description = "IPv4-адреса/CIDR-блоки, с которых разрешено обращаться клиенту. Пусто — "
+                + "ограничений нет.")
+        List<String> allowedIps,
+
         @Schema(description = "Дата и время последнего успешного обмена токена этим клиентом.", nullable = true)
         Instant lastUsedAt,
+
+        IntegrationClientWebhookResponse webhook,
 
         AuditResponse audit
 ) {

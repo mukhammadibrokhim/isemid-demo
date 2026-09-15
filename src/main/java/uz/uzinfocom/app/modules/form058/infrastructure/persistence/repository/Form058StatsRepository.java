@@ -6,16 +6,16 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
-import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Icd10CountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058MonthlyOutcomeCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058SourceCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058StatusCountResponse;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
-import uz.uzinfocom.app.platform.stats.jpa.AbstractCaseStatsRepository;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.platform.stats.AbstractCaseStatsRepository;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -33,7 +33,7 @@ import java.util.List;
 public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058> {
 
     private static final List<FormStatus> PENDING_STATUSES = Arrays.stream(FormStatus.values())
-            .filter(FormStatus::isApprovalDecisionPending)
+            .filter(FormStatus::isPending)
             .toList();
 
     private final SenderReceiverScopePredicateFactory scopePredicateFactory;
@@ -50,8 +50,8 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
 
     /**
      * Count of cases without a final approval decision yet ({@link
-     * FormStatus#isApprovalDecisionPending()}) — a direct {@code COUNT(*)},
-     * not a Java-side filter+sum over {@link #countByStatus}.
+     * FormStatus#isPending()}) — a direct {@code COUNT(*)}, not a Java-side
+     * filter+sum over {@link #countByStatus}.
      */
     public long countActive(ResolvedOrganizationScope scope, Boolean received) {
         return countAll((root, cb) -> cb.and(
@@ -80,12 +80,12 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
         );
     }
 
-    public List<Form058Mkb10CountResponse> topMkb10(ResolvedOrganizationScope scope, Boolean received, int limit) {
+    public List<Form058Icd10CountResponse> topIcd10(ResolvedOrganizationScope scope, Boolean received, int limit) {
         return topGrouped(
-                this::mkb10Code,
+                this::icd10Code,
                 (root, cb) -> scopePredicateFactory.applyDirectionScope(root, cb, scope, received),
                 limit,
-                Form058Mkb10CountResponse::new
+                Form058Icd10CountResponse::new
         );
     }
 
@@ -175,16 +175,16 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
     }
 
     /**
-     * Unscoped (all organizations) version of {@link #topMkb10} — for the
+     * Unscoped (all organizations) version of {@link #topIcd10} — for the
      * admin dashboard only. Callers must gate this behind an admin-only
      * authorization check themselves.
      */
-    public List<Form058Mkb10CountResponse> topMkb10Unscoped(int limit) {
+    public List<Form058Icd10CountResponse> topIcd10Unscoped(int limit) {
         return topGrouped(
-                this::mkb10Code,
+                this::icd10Code,
                 null,
                 limit,
-                Form058Mkb10CountResponse::new
+                Form058Icd10CountResponse::new
         );
     }
 
@@ -221,7 +221,7 @@ public class Form058StatsRepository extends AbstractCaseStatsRepository<Form058>
         );
     }
 
-    private Path<String> mkb10Code(Root<Form058> root, CriteriaBuilder cb) {
-        return root.get("diagnosisInfo").get("mkb10Code");
+    private Path<String> icd10Code(Root<Form058> root, CriteriaBuilder cb) {
+        return root.get("diagnosisInfo").get("icd10Code");
     }
 }

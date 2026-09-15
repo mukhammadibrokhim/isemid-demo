@@ -4,7 +4,7 @@ import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
 import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
-import uz.uzinfocom.app.platform.reference.application.lookup.mapper.ReferenceMappingHelper;
+import uz.uzinfocom.app.modules.reference.application.lookup.mapper.ReferenceMappingHelper;
 
 import java.util.List;
 

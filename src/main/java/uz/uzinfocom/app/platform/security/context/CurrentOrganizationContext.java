@@ -1,6 +1,6 @@
 package uz.uzinfocom.app.platform.security.context;
 
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 
 import java.util.Optional;
 import java.util.UUID;

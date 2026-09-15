@@ -1,8 +1,11 @@
+${AnsiColor.BRIGHT_BLUE}
 ,--. ,---. ,------.,--.   ,--.,--.,------.
 |  |'   .-'|  .---'|   `.'   ||  ||  .-.  \
 |  |`.  `-.|  `--, |  |'.'|  ||  ||  |  \  :
 |  |.-'    |  `---.|  |   |  ||  ||  '--'  /
 `--'`-----'`------'`--'   `--'`--'`-------'
 ${application.title} ${application.version}
+${AnsiColor.BRIGHT_YELLOW}
 (ISEMID) Information system of epidemiological monitoring of infectious diseases' system.
 Powered by Spring Boot V${spring-boot.version}
+${AnsiColor.DEFAULT}

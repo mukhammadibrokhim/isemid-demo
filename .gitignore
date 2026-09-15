@@ -52,6 +52,9 @@ desktop.ini
 
 .env
 .env.*
+!.env.example
+!.env.prod.example
+!.env.local.example
 *.local
 application-local.yml
 application-local.yaml
@@ -66,3 +69,7 @@ replay_pid*
 *.bak
 *.swp
 *~
+/exports/
+
+.claude/
+CLAUDE.md

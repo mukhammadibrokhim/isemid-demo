@@ -23,7 +23,7 @@ public class InboundForm058Validator {
 
     public void validate(InboundCreateForm058Request request) {
         validateDateOrdering(request);
-        patientIdentifierFormatValidator.validate(request.patient());
+        patientIdentifierFormatValidator.validate(request.patient().identifiers());
     }
 
     private void validateDateOrdering(InboundCreateForm058Request request) {

@@ -2,20 +2,20 @@ package uz.uzinfocom.app.integration.inbound.form0581.application;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequestMapper;
 import uz.uzinfocom.app.integration.inbound.form0581.web.InboundCreateForm0581Request;
 import uz.uzinfocom.app.modules.form0581.application.command.OtherInjuredPersonCommand;
 import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm0581Command;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.OtherInjuredPersonRequest;
-import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
-@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})
+@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, IntegrationPatientRequestMapper.class})
 public interface InboundForm0581Mapper {
 
     @Mapping(target = "source", source = "source")
-    @Mapping(target = "mkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.diagnosisInfo.mkb10Name")
+    @Mapping(target = "icd10Code", source = "request.diagnosisInfo.mkb10Code")
+    @Mapping(target = "icd10Name", source = "request.diagnosisInfo.mkb10Name")
     @Mapping(target = "injuryLocalization", source = "request.diagnosisInfo.injuryLocalization")
 
     @Mapping(target = "injuryDateTime", source = "request.incidentInfo.injuryDateTime")
@@ -42,6 +42,7 @@ public interface InboundForm0581Mapper {
     @Mapping(target = "patient", source = "request.patient")
 
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
+    @Mapping(target = "sourceIntegrationClientId", source = "sourceIntegrationClientId")
     @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "activeOrganizationId")
 
     @Mapping(target = "otherPeopleInjured", source = "request.otherPeopleInjured")
@@ -54,7 +55,8 @@ public interface InboundForm0581Mapper {
     @Mapping(target = "notifierFullName", source = "request.reportInfo.notifierFullName")
     @Mapping(target = "receiverFullName", source = "request.reportInfo.receiverFullName")
     @Mapping(target = "messageSentAt", source = "request.reportInfo.messageSentAt")
-    CreateForm0581Command toCommand(InboundCreateForm0581Request request, String source, Long senderOrganizationId);
+    CreateForm0581Command toCommand(
+            InboundCreateForm0581Request request, String source, Long senderOrganizationId, Long sourceIntegrationClientId);
 
     OtherInjuredPersonCommand toCommand(OtherInjuredPersonRequest request);
 }

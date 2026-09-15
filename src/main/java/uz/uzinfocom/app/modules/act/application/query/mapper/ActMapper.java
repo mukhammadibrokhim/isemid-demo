@@ -16,5 +16,7 @@ public interface ActMapper {
 
     @Mapping(target = "status", source = "actStatus")
     @Mapping(target = "actTypeName", source = "actType", qualifiedByName = "actTypeName")
+    @Mapping(target = "cardId", source = "card.id")
+    @Mapping(target = "cardType", source = "card.cardType")
     ActTableResponse toTableResponse(ActTableProjection projection);
 }

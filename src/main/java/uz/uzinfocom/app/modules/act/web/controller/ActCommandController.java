@@ -51,7 +51,7 @@ public class ActCommandController {
                     + "после сохранения."
     )
     @PutMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
     public ApiResponse<ActDetailResponse> update(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -67,7 +67,7 @@ public class ActCommandController {
                     + "не удалась и ничего исправлять не требуется) в READY — подготовка к отправке в LIS."
     )
     @PatchMapping(ApiPaths.Act.READY)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
     public ApiResponse<Void> markReady(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -84,7 +84,7 @@ public class ActCommandController {
                     + "отправить повторно."
     )
     @PostMapping(ApiPaths.Act.SEND_TO_LIS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
     public ApiResponse<Void> sendToLis(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -101,6 +101,8 @@ public class ActCommandController {
                     + "же, как остальной API (SSO), отдельного механизма для LIS не заводится. Переводит акт "
                     + "из SENT в COMPLETED и сохраняет ответ целиком в формате JSON."
     )
+    // LIS itself calls this back (with an SSO bearer token) — it is not a
+    // human with ATTACH_ACT, so this stays isAuthenticated() only.
     @PostMapping(ApiPaths.Act.LIS_CALLBACK)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> receiveLisResponse(
@@ -133,7 +135,7 @@ public class ActCommandController {
                     + "READY, SEND_FAILED). Это мягкое удаление — запись остаётся в базе с отметкой об удалении."
     )
     @DeleteMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_DELETE')")
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,

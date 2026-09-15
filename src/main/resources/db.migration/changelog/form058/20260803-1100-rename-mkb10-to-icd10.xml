@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260803-1100-01-rename-form058-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="form058" columnName="mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="form058" oldColumnName="mkb10_code" newColumnName="icd10_code" columnDataType="VARCHAR(20)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-02-rename-form058-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="form058" columnName="mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="form058" oldColumnName="mkb10_name" newColumnName="icd10_name" columnDataType="VARCHAR(512)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-03-rename-form058-final-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="form058" columnName="final_mkb10_code"/>
+        </preConditions>
+        <renameColumn tableName="form058" oldColumnName="final_mkb10_code" newColumnName="final_icd10_code" columnDataType="VARCHAR(20)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-04-rename-form058-final-mkb10-name" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="form058" columnName="final_mkb10_name"/>
+        </preConditions>
+        <renameColumn tableName="form058" oldColumnName="final_mkb10_name" newColumnName="final_icd10_name" columnDataType="VARCHAR(512)"/>
+    </changeSet>
+    <changeSet id="20260803-1100-05-rename-form058-mkb10-usage-limit" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="form058" columnName="mkb10_usage_limit"/>
+        </preConditions>
+        <renameColumn tableName="form058" oldColumnName="mkb10_usage_limit" newColumnName="icd10_usage_limit" columnDataType="INTEGER"/>
+    </changeSet>
+
+    <changeSet id="20260803-1100-06-rename-idx-form058-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="form058" indexName="idx_form058_mkb10_code"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_form058_mkb10_code RENAME TO idx_form058_icd10_code;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-07-rename-idx-form058-final-mkb10-code" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="form058" indexName="idx_form058_final_mkb10_code"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_form058_final_mkb10_code RENAME TO idx_form058_final_icd10_code;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-08-rename-idx-form058-receiver-mkb10" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="form058" indexName="idx_form058_receiver_mkb10"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_form058_receiver_mkb10 RENAME TO idx_form058_receiver_icd10;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-09-rename-idx-form058-sender-mkb10" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="form058" indexName="idx_form058_sender_mkb10"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_form058_sender_mkb10 RENAME TO idx_form058_sender_icd10;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-10-rename-idx-form058-mkb10-not-deleted" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="form058" indexName="idx_form058_mkb10_not_deleted"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_form058_mkb10_not_deleted RENAME TO idx_form058_icd10_not_deleted;</sql>
+    </changeSet>
+    <changeSet id="20260803-1100-11-rename-idx-form058-mkb10-name-sort" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <indexExists tableName="form058" indexName="idx_form058_mkb10_name_sort"/>
+        </preConditions>
+        <sql dbms="postgresql">ALTER INDEX idx_form058_mkb10_name_sort RENAME TO idx_form058_icd10_name_sort;</sql>
+    </changeSet>
+
+</databaseChangeLog>

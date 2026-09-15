@@ -20,20 +20,20 @@ public interface PatientCaseMapper {
 
     PatientCaseResponse.PatientSummary toPatientSummary(Patient patient);
 
-    @Mapping(target = "mkb10Code", source = "diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "diagnosisInfo.mkb10Name")
-    @Mapping(target = "finalMkb10Code", source = "diagnosisInfo.finalMkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "diagnosisInfo.finalMkb10Name")
+    @Mapping(target = "mkb10Code", source = "diagnosisInfo.icd10Code")
+    @Mapping(target = "mkb10Name", source = "diagnosisInfo.icd10Name")
+    @Mapping(target = "finalMkb10Code", source = "diagnosisInfo.finalIcd10Code")
+    @Mapping(target = "finalMkb10Name", source = "diagnosisInfo.finalIcd10Name")
     @Mapping(target = "diseaseDate", source = "dateInfo.diseaseDate")
     @Mapping(target = "firstVisitDate", source = "dateInfo.firstVisitDate")
     @Mapping(target = "visitDate", source = "dateInfo.visitDate")
     @Mapping(target = "initialReportDateTime", source = "dateInfo.initialReportDateTime")
     PatientCaseResponse.Form058Summary toForm058Summary(Form058 form058);
 
-    @Mapping(target = "mkb10Code", source = "diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "diagnosisInfo.mkb10Name")
-    @Mapping(target = "finalMkb10Code", source = "diagnosisInfo.finalMkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "diagnosisInfo.finalMkb10Name")
+    @Mapping(target = "mkb10Code", source = "diagnosisInfo.icd10Code")
+    @Mapping(target = "mkb10Name", source = "diagnosisInfo.icd10Name")
+    @Mapping(target = "finalMkb10Code", source = "diagnosisInfo.finalIcd10Code")
+    @Mapping(target = "finalMkb10Name", source = "diagnosisInfo.finalIcd10Name")
     @Mapping(target = "injuryDateTime", source = "incidentInfo.injuryDateTime")
     @Mapping(target = "dpuVisitDateTime", source = "incidentInfo.dpuVisitDateTime")
     PatientCaseResponse.Form0581Summary toForm0581Summary(Form0581 form0581);

@@ -38,7 +38,7 @@ public class DmedForm058Validator {
 
     public void validate(DmedCreateForm058Request request) {
         validateDateOrdering(request);
-        patientIdentifierFormatValidator.validate(request.patient());
+        patientIdentifierFormatValidator.validate(request.patient().identifiers());
         requirePermanentAddress(request);
         requireNationalIdAndPassportIdentifiers(request);
     }

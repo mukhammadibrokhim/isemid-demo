@@ -7,9 +7,12 @@ import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateException;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
+import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -34,8 +37,8 @@ import java.time.Instant;
                 @Index(name = "idx_form058_sender_org_id", columnList = "sender_organization_id"),
                 @Index(name = "idx_form058_receiver_org_id", columnList = "receiver_organization_id"),
                 @Index(name = "idx_form058_created_at", columnList = "created_at"),
-                @Index(name = "idx_form058_mkb10_code", columnList = "mkb10_code"),
-                @Index(name = "idx_form058_final_mkb10_code", columnList = "final_mkb10_code"),
+                @Index(name = "idx_form058_icd10_code", columnList = "icd10_code"),
+                @Index(name = "idx_form058_final_icd10_code", columnList = "final_icd10_code"),
                 @Index(name = "idx_form058_deleted", columnList = "deleted"),
                 @Index(name = "idx_form058_deleted_sender_created", columnList = "deleted,sender_organization_id,created_at"),
                 @Index(name = "idx_form058_deleted_receiver_created", columnList = "deleted,receiver_organization_id,created_at"),
@@ -48,14 +51,14 @@ import java.time.Instant;
                 @Index(name = "idx_form058_source_created_fast", columnList = "source,created_at,id"),
                 @Index(name = "idx_form058_has_linked_cards_created_fast", columnList = "has_linked_cards,created_at,id"),
                 // partial (WHERE deleted = false) in reality — see Liquibase changelog
-                @Index(name = "idx_form058_receiver_mkb10", columnList = "receiver_organization_id,mkb10_code"),
-                @Index(name = "idx_form058_sender_mkb10", columnList = "sender_organization_id,mkb10_code"),
-                @Index(name = "idx_form058_mkb10_not_deleted", columnList = "mkb10_code"),
+                @Index(name = "idx_form058_receiver_icd10", columnList = "receiver_organization_id,icd10_code"),
+                @Index(name = "idx_form058_sender_icd10", columnList = "sender_organization_id,icd10_code"),
+                @Index(name = "idx_form058_icd10_not_deleted", columnList = "icd10_code"),
                 @Index(name = "idx_form058_receiver_source", columnList = "receiver_organization_id,source"),
                 @Index(name = "idx_form058_sender_source", columnList = "sender_organization_id,source")
         }
 )
-public class Form058 extends AbsEntity {
+public class Form058 extends AbsEntity implements AuditableFields {
 
     @Embedded
     private Form058DiagnosisInfo diagnosisInfo;
@@ -92,6 +95,16 @@ public class Form058 extends AbsEntity {
     private Long receiverOrganizationId;
 
     /**
+     * The submitting {@code IntegrationClient}'s numeric id, when this form
+     * was created through the inbound-integration API by a registered
+     * client — null for SSO/DHP-submitted forms. Drives the outbound
+     * status-change webhook: only the client that submitted a form is ever
+     * notified back about it.
+     */
+    @Column(name = "source_integration_client_id")
+    private Long sourceIntegrationClientId;
+
+    /**
      * Location is owned by Form058.
      * Persist and merge are enough. Remove is intentionally not cascaded.
      */
@@ -122,13 +135,6 @@ public class Form058 extends AbsEntity {
     @Builder.Default
     private boolean hasLinkedCards = false;
 
-    /**
-     * Legacy single-card link kept for existing API and database compatibility.
-     */
-    @Deprecated
-    @Column(name = "assigned_card_id")
-    private Long assignedCardId;
-
     @Embedded
     private Form058CancellationInfo cancellationInfo;
 
@@ -144,14 +150,6 @@ public class Form058 extends AbsEntity {
     @Builder.Default
     private Form058DeleteInfo deleteInfo = new Form058DeleteInfo();
 
-    public void attachLocation(Form058Location location) {
-        this.location = location;
-    }
-
-    public void refreshCardLinkState() {
-        this.hasLinkedCards = this.assignedCardId != null;
-    }
-
     public void markCardsLinked() {
         this.hasLinkedCards = true;
     }
@@ -161,18 +159,27 @@ public class Form058 extends AbsEntity {
     }
 
     /**
-     * Called once one or more cards exist on this form. Advances the
-     * workflow into {@link FormStatus#CARD_LINKED} — but only forward: a
-     * form already past that point (APPROVED_PENDING and beyond) must not
-     * be pushed backwards just because another card was added to it.
-     * {@link #ensureEditable()} already rules out CANCELED/APPROVED/deleted
-     * forms before this is ever reached.
+     * Called once one or more cards exist on this form. Cards may only be
+     * linked after the receiver has accepted the form ({@link #accept()} —
+     * {@code ACCEPTED}); a still-{@code SENT} (not yet decided) form must
+     * not have cards linked to it directly — see {@code Form058AcceptValidator}
+     * for why that decision has to happen first. From {@code ACCEPTED} this
+     * advances into {@link FormStatus#CARD_LINKED}, but only forward: a form
+     * already at {@code CARD_LINKED} must not be pushed backwards just
+     * because another card was added to it. {@link #ensureEditable()}
+     * already rules out CANCELED/APPROVED/deleted forms before this is ever
+     * reached.
      */
     public void linkCards() {
         ensureEditable();
+
+        if (status == FormStatus.SENT) {
+            throw new InvalidForm058StateException("error.form058.card-link-not-allowed", this.status);
+        }
+
         markCardsLinked();
 
-        if (status == FormStatus.NOT_APPROVED || status == FormStatus.SENT || status == FormStatus.RECEIVED) {
+        if (status == FormStatus.ACCEPTED) {
             status = FormStatus.CARD_LINKED;
         }
     }
@@ -186,6 +193,13 @@ public class Form058 extends AbsEntity {
         }
     }
 
+    /**
+     * Closes the form as {@code CANCELED} — shared by both organizations
+     * while the form is still {@code SENT}: the sender withdrawing it, or
+     * the receiver rejecting it (see {@code Form058CancelValidator} for the
+     * status/scope check; {@code canceledBy} is whichever org's user
+     * actually called it).
+     */
     public void cancel(String reason, Long canceledBy) {
         if (isCanceled()) {
             return;
@@ -200,8 +214,8 @@ public class Form058 extends AbsEntity {
     }
 
     public void approve(
-            String finalMkb10Code,
-            String finalMkb10Name,
+            String finalIcd10Code,
+            String finalIcd10Name,
             Long approvedBy,
             Long approvedOrganizationId
     ) {
@@ -209,24 +223,42 @@ public class Form058 extends AbsEntity {
         ensureApprovalInfo();
 
         this.status = FormStatus.APPROVED;
-        this.diagnosisInfo.setFinalMkb10Code(finalMkb10Code);
-        this.diagnosisInfo.setFinalMkb10Name(finalMkb10Name);
+        this.diagnosisInfo.setFinalIcd10Code(finalIcd10Code);
+        this.diagnosisInfo.setFinalIcd10Name(finalIcd10Name);
         this.approvalInfo.setApprovedBy(approvedBy);
         this.approvalInfo.setApprovedOrganizationId(approvedOrganizationId);
         this.approvalInfo.setApprovedAt(Instant.now());
     }
 
-    public void notApprove(String reason) {
-        ensureCancellationInfo();
-
-        this.status = FormStatus.NOT_APPROVED;
-        this.cancellationInfo.setNotApprovedReason(reason);
+    /**
+     * The receiver's acknowledgement of an incoming form — the only path
+     * from {@code SENT} into {@code ACCEPTED}. Cards cannot be linked
+     * ({@link #linkCards()}) before this happens; see
+     * {@code Form058AcceptValidator} for the status/scope check.
+     */
+    public void accept() {
+        ensureEditable();
+        this.status = FormStatus.ACCEPTED;
     }
 
-    public void updateFinalDiagnosis(String finalMkb10Code, String finalMkb10Name) {
+    /**
+     * Super-admin-only escape hatch out of {@code CANCELED} — puts the form
+     * back to {@code SENT} regardless of which organization called
+     * {@link #cancel(String, Long)}. See {@code Form058ReopenValidator} for
+     * the {@code requireSuperAdmin()} check; this method only re-asserts the
+     * state precondition.
+     */
+    public void reopen() {
+        if (!status.isReopenable()) {
+            throw new InvalidForm058StateException("error.form058.reopen-not-allowed", this.status);
+        }
+        this.status = FormStatus.SENT;
+    }
+
+    public void updateFinalDiagnosis(String finalIcd10Code, String finalIcd10Name) {
         ensureDiagnosisInfo();
-        this.diagnosisInfo.setFinalMkb10Code(finalMkb10Code);
-        this.diagnosisInfo.setFinalMkb10Name(finalMkb10Name);
+        this.diagnosisInfo.setFinalIcd10Code(finalIcd10Code);
+        this.diagnosisInfo.setFinalIcd10Name(finalIcd10Name);
     }
 
     public void softDelete(Long deletedBy, String reason) {
@@ -273,5 +305,35 @@ public class Form058 extends AbsEntity {
         if (this.deleteInfo == null) {
             this.deleteInfo = new Form058DeleteInfo();
         }
+    }
+
+    /**
+     * Flattened, scalar-only snapshot for {@code AuditFieldDiff} to compare
+     * before/after an update — never a reference to {@link #diagnosisInfo}
+     * or {@link #patient} themselves (mutable, and mutated in place by
+     * {@code Form058UpdateMapper}), only their leaf values, and never a
+     * collection.
+     */
+    @Override
+    public Map<String, Object> auditFields() {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("status", status);
+        fields.put("source", source);
+        fields.put("senderOrganizationId", senderOrganizationId);
+        fields.put("receiverOrganizationId", receiverOrganizationId);
+        if (diagnosisInfo != null) {
+            fields.put("icd10Code", diagnosisInfo.getIcd10Code());
+            fields.put("icd10Name", diagnosisInfo.getIcd10Name());
+            fields.put("finalIcd10Code", diagnosisInfo.getFinalIcd10Code());
+            fields.put("finalIcd10Name", diagnosisInfo.getFinalIcd10Name());
+        }
+        fields.put("hasLinkedCards", hasLinkedCards);
+        if (patient != null) {
+            fields.put("patientId", patient.getId());
+            fields.put("patientFirstName", patient.getFirstName());
+            fields.put("patientLastName", patient.getLastName());
+            fields.put("patientMiddleName", patient.getMiddleName());
+        }
+        return fields;
     }
 }

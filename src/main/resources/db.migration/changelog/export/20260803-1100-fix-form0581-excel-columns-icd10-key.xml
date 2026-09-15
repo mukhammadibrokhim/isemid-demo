@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form0581ExcelExportSource's column key changed from "mkb10" to "icd10"
+        (see Mkb10→Icd10 rename). Fix the seeded settings row so the export
+        column list still resolves to a known key.
+    -->
+    <changeSet id="20260803-1100-01-fix-form0581-excel-columns-icd10-key" author="codex">
+        <preConditions onFail="MARK_RAN" onError="CONTINUE">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM system_settings WHERE setting_key = 'export.excel.form0581.columns' AND setting_value LIKE '%,mkb10,%'
+            </sqlCheck>
+        </preConditions>
+        <update tableName="system_settings">
+            <column name="setting_value" value="id,createdAt,status,icd10,senderOrg,receiverOrg,patientFio,address,source"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form0581 Excel export. Available keys: id, createdAt, status, icd10, senderOrg, receiverOrg, patientFio, address, source."/>
+            <where>setting_key = 'export.excel.form0581.columns'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

@@ -24,7 +24,7 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card161.OutbreakDisinfectio
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ScreenedGroupRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.VaccinationRequest;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 
 import java.time.LocalDate;
 import java.util.List;

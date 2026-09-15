@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
+import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 public record ActFilterRequest(
@@ -13,7 +14,7 @@ public record ActFilterRequest(
         @Schema(description = "Размер страницы (количество записей).")
         @Min(1) @Max(200) Integer size,
 
-        @Schema(description = "Поле сортировки.")
+        @Schema(description = "Поле сортировки. Поддерживаются: id, actType, status, createdAt, updatedAt.")
         String sortBy,
 
         @Schema(description = "Направление сортировки (asc/desc).")
@@ -24,6 +25,9 @@ public record ActFilterRequest(
 
         @Schema(description = "Статус акта для фильтрации.")
         ActStatus status,
+
+        @Schema(description = "Тип акта для фильтрации (ACT153, ACT154, ACT156, ACT223, ACT224).")
+        ActType actType,
 
         @Schema(description = "Идентификатор прикреплённого сотрудника для фильтрации.")
         Long assignedToUserId,
@@ -39,6 +43,6 @@ public record ActFilterRequest(
      * a client-chosen id.
      */
     public ActFilterRequest scopedToAttachedUser(Long userId) {
-        return new ActFilterRequest(page, size, sortBy, sortDir, cardId, status, userId, assignedById);
+        return new ActFilterRequest(page, size, sortBy, sortDir, cardId, status, actType, userId, assignedById);
     }
 }

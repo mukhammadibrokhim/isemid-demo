@@ -10,10 +10,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
-import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
+import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
@@ -23,8 +25,8 @@ import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
 import uz.uzinfocom.app.platform.security.principal.IntegrationClientPrincipal;
 import uz.uzinfocom.app.platform.security.principal.PrincipalOrganization;
 import uz.uzinfocom.app.platform.security.principal.PrincipalUser;
-import uz.uzinfocom.app.platform.security.route.RequestPolicy;
-import uz.uzinfocom.app.platform.security.route.RequestPolicyResolver;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicy;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicyResolver;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,10 +46,12 @@ class OrganizationContextFilterTest {
     private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService =
             mock(SelectedOrganizationSecurityCacheService.class);
     private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
+    private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
     private final OrganizationContextFilter filter = new OrganizationContextFilter(
             requestPolicyResolver,
             selectedOrganizationSecurityCacheService,
-            organizationRepository
+            organizationRepository,
+            integrationClientRepository
     );
 
     @AfterEach
@@ -123,6 +127,8 @@ class OrganizationContextFilterTest {
         request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
 
         when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+        when(integrationClientRepository.findByClientId("ic_test"))
+                .thenReturn(Optional.of(integrationClient(organizationId, null)));
         when(organizationRepository.findById(organizationId)).thenReturn(Optional.of(organization));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -134,6 +140,81 @@ class OrganizationContextFilterTest {
 
         assertThat(CurrentOrganizationContext.getOptional()).isEmpty();
         verifyNoInteractions(selectedOrganizationSecurityCacheService);
+    }
+
+    @Test
+    void rejectsIntegrationTokenRequestWhenCallerIpIsNotOnTheClientsAllowList() {
+        Long organizationId = 42L;
+        UUID organizationUuid = UUID.randomUUID();
+
+        IntegrationClientPrincipal principal =
+                new IntegrationClientPrincipal("ic_test", "dmed", organizationId, organizationUuid);
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "ic_test").build();
+        IntegrationClientAuthenticationToken authentication =
+                new IntegrationClientAuthenticationToken(jwt, principal, Set.of());
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/integration/v1/dmed/form-058");
+        request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
+        request.setRemoteAddr("203.0.113.5");
+
+        when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+        when(integrationClientRepository.findByClientId("ic_test"))
+                .thenReturn(Optional.of(integrationClient(organizationId, "10.0.0.0/24")));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(), mock(FilterChain.class)))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("integration.ip.not_allowed");
+
+        verifyNoInteractions(organizationRepository);
+    }
+
+    @Test
+    void rejectsIntegrationTokenRequestWhenTheClientHasBeenDeactivated() {
+        Long organizationId = 42L;
+        UUID organizationUuid = UUID.randomUUID();
+
+        IntegrationClientPrincipal principal =
+                new IntegrationClientPrincipal("ic_test", "dmed", organizationId, organizationUuid);
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", "ic_test").build();
+        IntegrationClientAuthenticationToken authentication =
+                new IntegrationClientAuthenticationToken(jwt, principal, Set.of());
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/integration/v1/dmed/form-058");
+        request.addHeader(SecurityHeaders.ORGANIZATION_ID, organizationUuid.toString());
+
+        when(requestPolicyResolver.resolve(request)).thenReturn(RequestPolicy.defaultProtectedRoute());
+        when(integrationClientRepository.findByClientId("ic_test"))
+                .thenReturn(Optional.of(integrationClient(organizationId, null, false)));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Rejected here even though this is an already-issued, not-yet-expired Bearer JWT -
+        // deactivation is re-checked against the client's current row on every request, not
+        // just at token issuance.
+        assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(), mock(FilterChain.class)))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("integration.client.inactive");
+
+        verifyNoInteractions(organizationRepository);
+    }
+
+    private IntegrationClient integrationClient(Long organizationId, String allowedIps) {
+        return integrationClient(organizationId, allowedIps, true);
+    }
+
+    private IntegrationClient integrationClient(Long organizationId, String allowedIps, boolean active) {
+        return IntegrationClient.builder()
+                .clientId("ic_test")
+                .clientSecretHash("hash")
+                .organizationId(organizationId)
+                .sourceKey("dmed")
+                .name("Test Client")
+                .scopes("form058:submit")
+                .allowedIps(allowedIps)
+                .active(active)
+                .build();
     }
 
     @Test

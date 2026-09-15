@@ -3,7 +3,7 @@ package uz.uzinfocom.app.modules.form0581.application.query.dto.detail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientDetailResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.util.List;
 import java.util.UUID;

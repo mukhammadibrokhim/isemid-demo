@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.AnimalOwnerRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.OtherInjuredPersonRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,7 +51,7 @@ public record InboundCreateForm0581Request(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
         @NotNull(message = "{validation.form0581.patient.required}")
-        PatientRequest patient,
+        IntegrationPatientRequest patient,
 
         @Schema(description = "Идентификатор организации-получателя формы. Должна быть учреждением "
                 + "санитарно-эпидемиологической службы.", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -82,13 +82,13 @@ public record InboundCreateForm0581Request(
     @Schema(description = "Диагноз по МКБ-10.")
     public record DiagnosisInfo(
             @Schema(description = "Код диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-            @NotBlank(message = "{validation.form0581.mkb10-code.required}")
-            @Size(max = 20, message = "{validation.form0581.mkb10-code.size}")
+            @NotBlank(message = "{validation.form0581.icd10-code.required}")
+            @Size(max = 20, message = "{validation.form0581.icd10-code.size}")
             String mkb10Code,
 
             @Schema(description = "Наименование диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-            @NotBlank(message = "{validation.form0581.mkb10-name.required}")
-            @Size(max = 512, message = "{validation.form0581.mkb10-name.size}")
+            @NotBlank(message = "{validation.form0581.icd10-name.required}")
+            @Size(max = 512, message = "{validation.form0581.icd10-name.size}")
             String mkb10Name,
 
             @Schema(description = "Локализация повреждения на теле пациента.")

@@ -1,6 +1,6 @@
-# Auth login-proxy module (`uz.uzinfocom.app.platform.auth`)
+# Auth login-proxy module (`uz.uzinfocom.app.platform.ssoproxy`)
 
-Package: `uz.uzinfocom.app.platform.auth`. Implements a **login-proxy** —
+Package: `uz.uzinfocom.app.platform.ssoproxy`. Implements a **login-proxy** —
 two endpoints that exchange either an authorization code (Authorization
 Code + PKCE) or a refresh token for an access token, by calling an
 external authentication provider's (SSO, DHP) token endpoint on the
@@ -27,7 +27,7 @@ user already obtained from SSO/DHP and presents in an
 `AuthProvidersProperties` + `ProviderAuthenticationManagerRegistry` +
 `IdentityClaimExtractor`).
 
-`platform.auth` solves the reverse problem — **obtaining** that token: our
+`platform.ssoproxy` solves the reverse problem — **obtaining** that token: our
 backend itself calls the provider and exchanges an authorization code for
 a token, to hand back to the frontend. That's a separate, outbound
 operation — hence its own configuration (`app.auth.login.*`, not

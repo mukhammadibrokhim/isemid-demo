@@ -7,7 +7,7 @@ import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
-import uz.uzinfocom.app.platform.security.route.RequestPolicy;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicy;
 import uz.uzinfocom.app.platform.settings.config.SettingsCacheConfig;
 import uz.uzinfocom.app.platform.settings.domain.RouteAccessPolicy;
 import uz.uzinfocom.app.platform.settings.repository.RouteAccessPolicyRepository;

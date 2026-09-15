@@ -5,17 +5,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058DailyCountResponse;
-import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058Icd10CountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058MonthlyOutcomeCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058SourceCountResponse;
 import uz.uzinfocom.app.modules.form058.application.stats.query.dto.Form058StatusCountResponse;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058StatsRepository;
-import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.modules.form058.application.query.Form058Direction;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.time.LocalDate;
@@ -38,8 +38,8 @@ public class Form058StatsQueryService {
         return form058StatsRepository.countByDay(currentScope(), receivedFor(direction), from, to);
     }
 
-    public List<Form058Mkb10CountResponse> topMkb10(Form058Direction direction, int limit) {
-        return form058StatsRepository.topMkb10(currentScope(), receivedFor(direction), limit);
+    public List<Form058Icd10CountResponse> topIcd10(Form058Direction direction, int limit) {
+        return form058StatsRepository.topIcd10(currentScope(), receivedFor(direction), limit);
     }
 
     public List<Form058SourceCountResponse> countBySource(Form058Direction direction) {
@@ -92,9 +92,9 @@ public class Form058StatsQueryService {
         return form058StatsRepository.countByDayUnscoped(from, to);
     }
 
-    public List<Form058Mkb10CountResponse> adminTopMkb10(int limit) {
+    public List<Form058Icd10CountResponse> adminTopIcd10(int limit) {
         adminAccessGuard.requireAdmin();
-        return form058StatsRepository.topMkb10Unscoped(limit);
+        return form058StatsRepository.topIcd10Unscoped(limit);
     }
 
     /**

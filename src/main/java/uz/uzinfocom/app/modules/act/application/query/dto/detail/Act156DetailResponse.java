@@ -4,10 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act156.Act156GroupDetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act156.Act156KitchenUtensilResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +21,7 @@ public record Act156DetailResponse(
         CardMiniResponse card,
         Long assignedById,
         String resultComment,
+        String subject,
         ActInstitutionResponse institution,
 
         String title,
@@ -29,6 +31,7 @@ public record Act156DetailResponse(
         String activityTypeCode,
         LocalDateTime sampleTakenTime,
         Long lisOrganizationId,
+        String lisOrganizationName,
         String laboratoryAddress,
         LocalDateTime sampleDeliveryTime,
         String fullNameOfSampler,
@@ -38,6 +41,7 @@ public record Act156DetailResponse(
         List<Act156KitchenUtensilResponse> kitchenUtensils,
         List<Act156GroupDetailResponse> groupDetails,
 
+        ActLisInfoResponse lisInfo,
         AuditResponse audit
 ) implements ActDetailResponse {
 }

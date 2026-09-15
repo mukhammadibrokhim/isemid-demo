@@ -17,8 +17,8 @@ public record Form1ReportNodeResponse(
         @Schema(description = "Подтверждённые случаи (status = APPROVED) за выбранный период по created_at.")
         Form1CountBlockResponse confirmed,
 
-        @Schema(description = "Доля случаев, у которых итоговый диагноз (final_mkb10_code) отличается "
-                + "от первичного (mkb10_code), среди подтверждённых, в процентах.")
+        @Schema(description = "Доля случаев, у которых итоговый диагноз (final_icd10_code) отличается "
+                + "от первичного (icd10_code), среди подтверждённых, в процентах.")
         double diagnosisChangePercent,
 
         @Schema(description = "Первичные (ещё не решённые — не отменённые и не подтверждённые) случаи "

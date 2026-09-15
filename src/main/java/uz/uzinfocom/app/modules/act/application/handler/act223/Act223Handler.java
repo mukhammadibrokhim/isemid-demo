@@ -10,7 +10,7 @@ import uz.uzinfocom.app.modules.act.domain.model.act223.Act223;
 import uz.uzinfocom.app.modules.act.domain.model.act223.Act223Detail;
 import uz.uzinfocom.app.modules.act.mapper.act223.Act223Mapper;
 import uz.uzinfocom.app.modules.act.web.dto.request.Act223Request;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 
 @Component

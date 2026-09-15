@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        20260824-1000-drop-act155.xml dropped the act155/act155_detail
+        tables but left existing act rows with act_type='ACT155' untouched,
+        which broke ActType.valueOf(...) since the enum constant no longer
+        exists. ACT155 was absorbed into ACT154, so those rows are
+        reassigned to ACT154. Since the JOINED-inheritance subtype row
+        (act155) is already gone, a bare act154 row (id only, all
+        type-specific columns null) is backfilled first so the base act row
+        still resolves to a concrete subtype.
+    -->
+    <changeSet id="20260825-1100-01-backfill-act154-for-former-act155" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="act"/>
+            <tableExists tableName="act154"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            INSERT INTO act154 (id)
+            SELECT a.id FROM act a
+            WHERE a.act_type = 'ACT155'
+              AND NOT EXISTS (SELECT 1 FROM act154 c WHERE c.id = a.id);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260825-1100-02-migrate-act155-type-to-act154" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="act"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            UPDATE act SET act_type = 'ACT154' WHERE act_type = 'ACT155';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Seeds the outbound-webhook retry tunables (see RetryPolicyResolver) with the same
+        defaults the resolver already falls back to, so an untouched table never changes
+        behavior - this only makes the two knobs visible/editable from the dev panel
+        (/v1/dev/settings) immediately, same pattern as the resilience-circuitbreaker seed
+        (settings/20260729-1200-...).
+    -->
+    <changeSet id="20260805-1030-01-seed-outbound-webhook-settings" author="codex">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'webhook.dispatch.backoff-schedule', 'PT1M,PT5M,PT15M,PT1H,PT6H', 'STRING', 'Расписание задержек повторных попыток исходящего webhook (ISO-8601, через запятую). Число элементов определяет максимальное число попыток.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'webhook.dispatch.backoff-schedule');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'webhook.dispatch.batch-size', '50', 'NUMBER', 'Максимальное число исходящих webhook-задач, выбираемых планировщиком за один проход.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'webhook.dispatch.batch-size');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key IN ('webhook.dispatch.backoff-schedule', 'webhook.dispatch.batch-size');
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

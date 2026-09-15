@@ -6,9 +6,9 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViol
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ValidationException;
 import uz.uzinfocom.app.modules.form0581.application.validator.Form0581CreateValidator;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.List;
@@ -65,8 +65,8 @@ class Form0581CreateValidatorTest {
 
     private CreateForm0581Command command(Long receiverOrganizationId) {
         return new CreateForm0581Command(
-                "A82",                  // mkb10Code
-                "Rabies",               // mkb10Name
+                "A82",                  // icd10Code
+                "Rabies",               // icd10Name
                 null,                   // injuryLocalization
                 null,                   // injuryDateTime
                 null,                   // dpuVisitDateTime
@@ -90,6 +90,7 @@ class Form0581CreateValidatorTest {
                 null,                   // source
                 100L,                   // senderOrganizationId
                 receiverOrganizationId, // receiverOrganizationId
+                null,                   // sourceIntegrationClientId
                 null,                   // otherPeopleInjured
                 List.of(),              // otherInjuredPeople
                 null,                   // hospitalizedAt

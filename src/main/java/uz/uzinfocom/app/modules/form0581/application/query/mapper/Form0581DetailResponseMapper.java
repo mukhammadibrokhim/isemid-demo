@@ -7,7 +7,7 @@ import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581OtherInjuredPerson;
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.*;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 @Mapper(
@@ -41,6 +41,10 @@ public interface Form0581DetailResponseMapper {
     @Mapping(target = "audit", source = "audit")
     Form0581DetailResponse toDetailedResponse(Form0581 form0581, AuditResponse audit);
 
+    @Mapping(target = "icd10Code", source = "icd10Code")
+    @Mapping(target = "icd10Name", source = "icd10Name")
+    @Mapping(target = "finalIcd10Code", source = "finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "finalIcd10Name")
     Form0581DiagnosisDetailResponse toResponse(Form0581DiagnosisInfo source);
 
     Form0581IncidentDetailResponse toResponse(Form0581IncidentInfo source);

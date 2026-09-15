@@ -30,6 +30,10 @@ public interface CardTubeMapper {
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
     @Mapping(target = "type", source = "cardType")
+    @Mapping(target = "icd10Code", source = ".", qualifiedByName = "resolveCardTubeIcd10Code")
+    @Mapping(target = "icd10Name", source = ".", qualifiedByName = "resolveCardTubeIcd10Name")
+    @Mapping(target = "dgIcd10Code", source = ".", qualifiedByName = "resolveCardTubeDgIcd10Code")
+    @Mapping(target = "dgIcd10Name", source = ".", qualifiedByName = "resolveCardTubeDgIcd10Name")
     CardTubeDetailResponse toResponse(CardTube cardTube);
 
     @Mapping(target = "id", ignore = true)

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriBuilder;
+import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenAddressLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupSource;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
@@ -32,6 +33,7 @@ public class CitizenApi2Client {
     private static final String NNUZB_OPERATION = "CITIZEN_NNUZB_LOOKUP";
     private static final String PASSPORT_OPERATION = "CITIZEN_PPN_LOOKUP";
     private static final String CHILD_OPERATION = "CITIZEN_CZ_LOOKUP";
+    private static final String ADDRESS_OPERATION = "CITIZEN_ADDRESS_LOOKUP";
 
     private final RestClient restClient;
     private final Api2Properties properties;
@@ -87,6 +89,52 @@ public class CitizenApi2Client {
                         .queryParam("number", number)
                         .build()
         );
+    }
+
+    /**
+     * v3/citizenAddress - unlike the other three endpoints, its payload is PascalCase
+     * ({@code AnswereId}/{@code AnswereMessage}/{@code Data}, no lowercase {@code status}/{@code
+     * result}/{@code data}), so {@link Api2ErrorDecoder#isFailurePayload} would never recognize a
+     * payload-level failure here and is deliberately not consulted - only the HTTP status is used
+     * to distinguish success from error. A 200 with no {@code Data} (person has no registered
+     * address) is left for {@code CitizenAddressMapper} to interpret as "no addresses" rather than
+     * being raised as an exception, since this lookup is a best-effort enrichment of /citizen and
+     * must never fail the primary response.
+     */
+    public CitizenAddressLookupResult lookupAddress(String nnuzb, LocalDate birthDate) {
+        try {
+            return circuitBreakerLookup.forName(CircuitBreakerNames.API2).executeSupplier(() -> restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path(properties.endpoints().citizenAddress())
+                            .queryParam("nnuzb", nnuzb)
+                            .queryParam("birth_date", birthDate)
+                            .build())
+                    .exchange((request, response) -> handleAddressResponse(response)));
+        } catch (Api2Exception exception) {
+            throw exception;
+        } catch (CallNotPermittedException exception) {
+            throw errorDecoder.decodeCircuitBreakerOpen(ADDRESS_OPERATION, exception);
+        } catch (RestClientException exception) {
+            throw errorDecoder.decodeTransport(ADDRESS_OPERATION, exception);
+        }
+    }
+
+    private CitizenAddressLookupResult handleAddressResponse(ClientHttpResponse response) throws IOException {
+        HttpStatusCode statusCode = response.getStatusCode();
+        Api2ResponseBody body = responseBodyReader.read(response);
+
+        if (statusCode.isError()) {
+            throw errorDecoder.decodeCitizen(ADDRESS_OPERATION, statusCode, body);
+        }
+
+        if (!body.hasJson()) {
+            throw new Api2MalformedResponseException(
+                    ADDRESS_OPERATION,
+                    malformedResponse(statusCode, body)
+            );
+        }
+
+        return new CitizenAddressLookupResult(statusCode.value(), body.json());
     }
 
     private CitizenLookupResult execute(

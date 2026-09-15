@@ -16,10 +16,10 @@ public record Card174Request(
         Integer serialDocNumber,
 
         @Schema(description = "Код диагноза по МКБ-10.")
-        @Size(max = 64) String mkb10Code,
+        @Size(max = 64) String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        @Size(max = 500) String mkb10Name,
+        @Size(max = 500) String icd10Name,
 
         @Schema(description = "Вид возбудителя заболевания.")
         @Size(max = 255) String pathogenType,

@@ -7,8 +7,8 @@ public final class Form0581SortFields {
     public static final Map<String, String> ALLOWED = Map.ofEntries(
             Map.entry("id", "id"),
             Map.entry("status", "status"),
-            Map.entry("mkb10Code", "diagnosisInfo.mkb10Code"),
-            Map.entry("mkb10Name", "diagnosisInfo.mkb10Name"),
+            Map.entry("icd10Code", "diagnosisInfo.icd10Code"),
+            Map.entry("icd10Name", "diagnosisInfo.icd10Name"),
             Map.entry("injuryDateTime", "incidentInfo.injuryDateTime"),
             Map.entry("dpuVisitDateTime", "incidentInfo.dpuVisitDateTime"),
             Map.entry("senderOrganizationId", "senderOrganizationId"),

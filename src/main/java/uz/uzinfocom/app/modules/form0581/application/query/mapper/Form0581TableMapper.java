@@ -7,8 +7,8 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableResp
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.helper.Form0581TableAddressMapperHelper;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.helper.Form0581TableMapperHelper;
 import uz.uzinfocom.app.modules.form0581.application.query.projection.Form0581TableProjection;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581Direction;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 
 @Mapper(
         componentModel = "spring",
@@ -21,8 +21,8 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMapp
 public interface Form0581TableMapper {
 
     @Mapping(target = "status", source = ".", qualifiedByName = "toTableStatus")
-    @Mapping(target = "mkb10Code", source = "diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "diagnosisInfo.mkb10Name")
+    @Mapping(target = "icd10Code", source = "diagnosisInfo.icd10Code")
+    @Mapping(target = "icd10Name", source = "diagnosisInfo.icd10Name")
     @Mapping(target = "senderOrganizationName", source = "senderOrganizationId", qualifiedByName = "activeOrganizationNameById")
     @Mapping(target = "receiverOrganizationName", source = "receiverOrganizationId", qualifiedByName = "activeOrganizationNameById")
     Form0581TableResponse toTableResponse(Form0581TableProjection projection, @Context Form0581Direction direction);

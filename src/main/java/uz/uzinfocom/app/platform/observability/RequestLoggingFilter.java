@@ -10,14 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerMapping;
-import uz.uzinfocom.app.platform.devmonitoring.application.DevErrorLogWriter;
+import uz.uzinfocom.app.platform.devpanel.application.DevErrorLogWriter;
+import uz.uzinfocom.app.platform.devpanel.application.DevRequestLogWriter;
 import uz.uzinfocom.app.platform.http.SensitiveLoggingSanitizer;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -33,6 +34,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     private final SensitiveLoggingSanitizer sanitizer;
     private final TraceIdProvider traceIdProvider;
     private final DevErrorLogWriter devErrorLogWriter;
+    private final DevRequestLogWriter devRequestLogWriter;
     private final SystemSettingResolver systemSettingResolver;
 
     public RequestLoggingFilter(
@@ -40,12 +42,14 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             SensitiveLoggingSanitizer sanitizer,
             TraceIdProvider traceIdProvider,
             DevErrorLogWriter devErrorLogWriter,
+            DevRequestLogWriter devRequestLogWriter,
             SystemSettingResolver systemSettingResolver
     ) {
         this.properties = properties;
         this.sanitizer = sanitizer;
         this.traceIdProvider = traceIdProvider;
         this.devErrorLogWriter = devErrorLogWriter;
+        this.devRequestLogWriter = devRequestLogWriter;
         this.systemSettingResolver = systemSettingResolver;
     }
 
@@ -165,6 +169,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 || "error".equals(asyncOutcome)
                 || "timeout".equals(asyncOutcome);
 
+        persistRequestLog(request, response, traceId, durationMs, status, directFailure, asyncOutcome, config);
+
         if (success && !slow && !config.isLogSuccessfulRequests()) {
             return;
         }
@@ -172,7 +178,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             if (!HTTP_LOG.isErrorEnabled()) {
                 return;
             }
-        } else if (status >= 400 || slow || directFailure != null) {
+        } else if (status >= 400 || slow) {
             if (!HTTP_LOG.isWarnEnabled()) {
                 return;
             }
@@ -205,8 +211,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             append(event, "status", status);
             append(event, "durationMs", durationMs);
             append(event, "clientIp", sanitize(request.getRemoteAddr(), 64));
-            Principal principal = request.getUserPrincipal();
-            append(event, "principal", principal == null ? null : sanitize(principal.getName(), config.getMaxTextLength()));
+            String principal = RequestPrincipalContext.get(request).orElse(null);
+            append(event, "principal", principal == null ? null : sanitize(principal, config.getMaxTextLength()));
             append(event, "organizationId", sanitize(request.getHeader(config.getOrganizationHeader()), config.getMaxTextLength()));
             append(event, "dispatcherType", request.getDispatcherType());
             append(event, "requestContentType", sanitize(request.getContentType(), 100));
@@ -229,8 +235,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                         failure == null ? null : failure.getClass().getName(),
                         sanitizer.sanitizePath(request.getRequestURI(), config.isMaskPathIdentifiers(), config.getMaxTextLength()),
                         request.getMethod(),
-                        principal == null ? null : principal.getName(),
-                        message
+                        principal,
+                        sanitize(appendCause(message, failure, rootCause), config.getMaxTextLength())
                 );
             }
 
@@ -256,6 +262,64 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Persists one {@code dev_request_log} row per request, independent of
+     * {@code config.isLogSuccessfulRequests()} and the HTTP_REQUEST logger's
+     * level - those only govern what lands in the console/file log.
+     * "Which resources did this user use" (see {@code GET /v1/dev/requests})
+     * needs to stay complete regardless of that verbosity configuration.
+     */
+    private void persistRequestLog(
+            HttpServletRequest request,
+            ErrorMessageCaptureResponse response,
+            String traceId,
+            long durationMs,
+            int status,
+            Throwable directFailure,
+            String asyncOutcome,
+            ObservabilityProperties.HttpLogging config
+    ) {
+        try {
+            RequestLogErrorContext.ErrorDetails details = RequestLogErrorContext.get(request).orElse(null);
+            Throwable failure = details != null && details.throwable() != null
+                    ? details.throwable()
+                    : directFailure;
+            Throwable rootCause = rootCause(failure);
+            String message = details != null ? details.technicalMessage() : response.getErrorMessage();
+            if (message == null && failure != null) {
+                message = failure.getMessage();
+            }
+            String principal = RequestPrincipalContext.get(request).orElse(null);
+
+            devRequestLogWriter.record(
+                    traceId,
+                    sanitize(request.getMethod(), 16),
+                    sanitize(attribute(request), config.getMaxTextLength()),
+                    sanitizer.sanitizePath(request.getRequestURI(), config.isMaskPathIdentifiers(), config.getMaxTextLength()),
+                    sanitizer.sanitizeQuery(request.getQueryString(), config.getSensitiveQueryParameters(), config.getMaxTextLength()),
+                    status,
+                    outcome(status, failure, asyncOutcome),
+                    durationMs,
+                    sanitize(request.getRemoteAddr(), 64),
+                    principal == null ? null : sanitize(principal, config.getMaxTextLength()),
+                    sanitize(request.getHeader(config.getOrganizationHeader()), config.getMaxTextLength()),
+                    sanitize(request.getContentType(), 100),
+                    sanitize(response.getContentType(), 100),
+                    request.getContentLengthLong(),
+                    details == null ? null : sanitize(details.errorCode(), 100),
+                    failure == null ? null : failure.getClass().getName(),
+                    rootCause == null ? null : rootCause.getClass().getName(),
+                    sanitize(message, config.getMaxTextLength()),
+                    sanitize(request.getHeader("User-Agent"), config.getMaxUserAgentLength())
+            );
+        } catch (RuntimeException extractionFailure) {
+            HTTP_LOG.warn(
+                    "event=dev_request_log_extraction_failure traceId={} failureType={}",
+                    traceId, extractionFailure.getClass().getName()
+            );
+        }
+    }
+
     private String outcome(int status, Throwable failure, String asyncOutcome) {
         if (asyncOutcome != null) {
             return asyncOutcome;
@@ -267,6 +331,26 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             return "rejected";
         }
         return "success";
+    }
+
+    /**
+     * Appends the root cause's message to the (already resolved) technical
+     * message, e.g. "Validation failed | cause: Connection reset by peer" -
+     * only when the failure actually has a distinct nested cause and that
+     * cause's message isn't already part of {@code message}.
+     */
+    private String appendCause(String message, Throwable failure, Throwable rootCause) {
+        if (rootCause == null || rootCause == failure) {
+            return message;
+        }
+        String causeMessage = rootCause.getMessage();
+        if (!StringUtils.hasText(causeMessage)) {
+            causeMessage = rootCause.getClass().getSimpleName();
+        }
+        if (message != null && message.contains(causeMessage)) {
+            return message;
+        }
+        return message == null ? causeMessage : message + " | cause: " + causeMessage;
     }
 
     private Throwable rootCause(Throwable failure) {

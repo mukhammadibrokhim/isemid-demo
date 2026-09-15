@@ -11,8 +11,8 @@ import uz.uzinfocom.app.integration.lis.common.exception.LisException;
 import uz.uzinfocom.app.integration.lis.common.support.LisUrlFactory;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.act.web.dto.request.SendActToLisRequest;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 

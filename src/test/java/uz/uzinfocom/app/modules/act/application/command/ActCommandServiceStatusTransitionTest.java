@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.act.application.command;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
 import uz.uzinfocom.app.modules.act.application.exception.InvalidActStatusException;
@@ -18,9 +19,11 @@ import uz.uzinfocom.app.modules.act.domain.model.act154.Act154;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
 import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.Act153Request;
-import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.Map;
@@ -61,13 +64,19 @@ class ActCommandServiceStatusTransitionTest {
     @SuppressWarnings("unchecked")
     void setUp() {
         actRepository = mock(ActRepository.class);
-        CardRepository cardRepository = mock(CardRepository.class);
+        CardCommandService cardCommandService = mock(CardCommandService.class);
         UserRepository userRepository = mock(UserRepository.class);
         currentUserProvider = mock(CurrentUserProvider.class);
         handlerRegistry = mock(ActTypeHandlerRegistry.class);
         act153Handler = mock(ActTypeHandler.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+        AdminAccessGuard adminAccessGuard = mock(AdminAccessGuard.class);
+        FormAccessScopeResolver formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
-        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider);
+        service = new ActCommandService(
+                actRepository, cardCommandService, userRepository, handlerRegistry, currentUserProvider,
+                eventPublisher, adminAccessGuard, formAccessScopeResolver
+        );
 
         when(actRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         doReturn(act153Handler).when(handlerRegistry).get(ActType.ACT153);
@@ -75,11 +84,11 @@ class ActCommandServiceStatusTransitionTest {
             Act act = invocation.getArgument(0);
             return new Act153DetailResponse(
                     act.getId(), act.getActType(), act.getActStatus(), null,
-                    act.getAssignedById(), act.getResultComment(), null,
+                    act.getAssignedById(), act.getResultComment(), null, null,
                     null, null, null, null, null, null,
                     null, null, null, null, null,
-                    null, null, null, null, null, null,
-                    null
+                    null, null, null, null, null, null, null,
+                    null, null
             );
         });
     }
@@ -265,6 +274,66 @@ class ActCommandServiceStatusTransitionTest {
     }
 
     @Test
+    void receiveLisResponseMovesSentToReturnedWhenBodySignalsReturn() {
+        Act act = actWith(ActStatus.SENT, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+
+        service.receiveLisResponse(ACT_ID, 555L, Map.of("status", "RETURNED", "message", "namuna yetarli emas"));
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.RETURNED_BY_LIS);
+        assertThat(act.getLisInfo().getActId()).isEqualTo(555L);
+        assertThat(act.getLisInfo().getLastError()).isEqualTo("namuna yetarli emas");
+        assertThat(act.getLisInfo().getResponse()).containsEntry("status", "RETURNED");
+    }
+
+    @Test
+    void updateAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.update(ACT_ID, blankAct153Request());
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void markReadyAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.markReady(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.READY);
+    }
+
+    @Test
+    void markSendingToLisAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        act.getLisInfo().setLastError("LIS_RETURNED");
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.markSendingToLis(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.SENT);
+        assertThat(act.getLisInfo().getAttempt()).isEqualTo(1);
+        assertThat(act.getLisInfo().getLastError()).isNull();
+    }
+
+    @Test
+    void deleteBlockedOnceReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, Set.of());
+        givenAct(act);
+
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
+                .isInstanceOf(ActAlreadySentToLisException.class);
+
+        assertThat(act.isDeleted()).isFalse();
+    }
+
+    @Test
     void receiveLisResponseRejectsFromReady() {
         Act act = actWith(ActStatus.READY, attachedUserId(ATTACHED_USER_ID));
         givenAct(act);
@@ -338,7 +407,7 @@ class ActCommandServiceStatusTransitionTest {
 
     private ActRequest blankAct153Request() {
         return new Act153Request(
-                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null, null
         );
     }

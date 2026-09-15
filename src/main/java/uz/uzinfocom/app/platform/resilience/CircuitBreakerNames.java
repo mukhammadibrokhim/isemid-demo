@@ -22,6 +22,7 @@ public final class CircuitBreakerNames {
     public static final String IAM_REMOTE = "iam-remote";
     public static final String OAUTH2_LOGIN = "oauth2-login";
     public static final String RSA_PUBLIC_KEY = "rsa-public-key";
+    public static final String OUTBOUND_WEBHOOK = "outbound-webhook";
 
     private CircuitBreakerNames() {
     }

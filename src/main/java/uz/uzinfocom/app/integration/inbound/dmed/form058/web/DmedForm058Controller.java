@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundCallerContext;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundIntegrationClientResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.dto.InboundFormSubmissionResponse;
 import uz.uzinfocom.app.integration.inbound.dmed.form058.application.DmedForm058Mapper;
 import uz.uzinfocom.app.integration.inbound.dmed.form058.application.DmedForm058Validator;
@@ -41,6 +42,7 @@ public class DmedForm058Controller {
 
     private final DmedForm058Mapper dmedForm058Mapper;
     private final DmedForm058Validator dmedForm058Validator;
+    private final InboundIntegrationClientResolver inboundIntegrationClientResolver;
     private final CreateForm058Service createForm058Service;
 
     @Operation(
@@ -53,12 +55,14 @@ public class DmedForm058Controller {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public InboundFormSubmissionResponse create(@Valid @RequestBody DmedCreateForm058Request request) {
-        InboundCallerContext.requireScopeIfIntegrationClient(IntegrationScope.FORM058_SUBMIT);
+        InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT);
         InboundCallerContext.requireMatchingSourceKey(SOURCE);
         dmedForm058Validator.validate(request);
 
         Long senderOrganizationId = InboundCallerContext.resolveSenderOrganizationId();
-        CreateForm058Command command = dmedForm058Mapper.toCommand(request, SOURCE.toUpperCase(), senderOrganizationId);
+        Long sourceIntegrationClientId = inboundIntegrationClientResolver.resolveSourceIntegrationClientId();
+        CreateForm058Command command = dmedForm058Mapper.toCommand(
+                request, SOURCE.toUpperCase(), senderOrganizationId, sourceIntegrationClientId);
         CreateForm058Result result = createForm058Service.create(command);
 
         return new InboundFormSubmissionResponse(result.id(), result.uuid(), result.status().name());

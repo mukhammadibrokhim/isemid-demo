@@ -18,14 +18,11 @@ public class Form058SourceResolver {
     private static final String DEFAULT_SOURCE_KEY = "form058.default-source";
     private static final String ALLOWED_SOURCES_KEY = "form058.allowed-sources";
 
-    private static final String DEFAULT_SOURCE = "DMED";
+    private static final String DEFAULT_SOURCE = "MANUAL";
     private static final int MAX_SOURCE_LENGTH = 64;
 
     private static final List<String> ALLOWED_SOURCES = List.of(
-            "QR",
-            "MANUAL",
-            "DMED",
-            "HEPATITIS"
+            "MANUAL"
     );
 
     private final SystemSettingResolver systemSettingResolver;

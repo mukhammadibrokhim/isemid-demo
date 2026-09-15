@@ -1,8 +1,10 @@
 package uz.uzinfocom.app.modules.act.application.command;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.uzinfocom.app.integration.lis.client.callback.LisCallbackInterpreter;
 import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
 import uz.uzinfocom.app.modules.act.application.exception.ActNotFoundException;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
@@ -18,11 +20,22 @@ import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
 import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
-import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
+import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
-import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldDiff;
+import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.audit.event.FieldsChangedEvent;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.HashSet;
@@ -39,12 +52,14 @@ import java.util.stream.Collectors;
  * same split {@code CardCommandService} uses for {@code Card}.
  * <p>
  * The act's status ({@link ActStatus}) moves forward through {@link #update}
- * (NEW/READY/SEND_FAILED -> IN_PROGRESS), {@link #markReady}
- * (IN_PROGRESS/SEND_FAILED -> READY), {@link #markSendingToLis}
- * (READY/SEND_FAILED -> SENT), and {@link #receiveLisResponse}
- * (SENT -> COMPLETED, called back by LIS once it has processed the act).
- * {@link #recordLisSendFailure} is the one step back
- * (SENT -> SEND_FAILED), taken when the send itself failed.
+ * (NEW/READY/SEND_FAILED/RETURNED_BY_LIS -> IN_PROGRESS), {@link #markReady}
+ * (IN_PROGRESS/SEND_FAILED/RETURNED_BY_LIS -> READY), {@link #markSendingToLis}
+ * (READY/SEND_FAILED/RETURNED_BY_LIS -> SENT), and {@link #receiveLisResponse}
+ * (SENT -> COMPLETED or SENT -> RETURNED_BY_LIS, called back by LIS once it
+ * has processed the act). {@link #recordLisSendFailure} is one step back
+ * (SENT -> SEND_FAILED), taken when the send itself failed;
+ * RETURNED_BY_LIS is the other, taken when LIS accepted the act but sent it
+ * back for rework.
  * <p>
  * {@link #markSendingToLis}/{@link #recordLisSendSuccess}/
  * {@link #recordLisSendFailure} are deliberately three separate transactions
@@ -57,10 +72,13 @@ import java.util.stream.Collectors;
 public class ActCommandService {
 
     private final ActRepository actRepository;
-    private final CardRepository cardRepository;
+    private final CardCommandService cardCommandService;
     private final UserRepository userRepository;
     private final ActTypeHandlerRegistry handlerRegistry;
     private final CurrentUserProvider currentUserProvider;
+    private final ApplicationEventPublisher eventPublisher;
+    private final AdminAccessGuard adminAccessGuard;
+    private final FormAccessScopeResolver formAccessScopeResolver;
 
     /**
      * Bulk-assigns one blank act per distinct requested {@code actType} to a
@@ -71,8 +89,8 @@ public class ActCommandService {
      */
     @Transactional
     public void assignActs(Long cardId, AssignActsRequest request) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new CardNotFoundException(cardId));
+        Card card = cardCommandService.getExistingCard(cardId);
+        requireCardAccess(card);
 
         Long assignedById = currentUserProvider.userIdOrNull();
         if (assignedById == null) {
@@ -94,7 +112,49 @@ public class ActCommandService {
                 })
                 .toList();
 
-        actRepository.saveAll(acts);
+        List<Act> saved = actRepository.saveAll(acts);
+        Long organizationId = resolveOrganizationId(card);
+        saved.forEach(act -> eventPublisher.publishEvent(new EntityCreatedEvent(
+                AuditEntityType.ACT, act.getId(), assignedById,
+                new NotificationRoutingContext.ActRouting(
+                        organizationId, act.getUsers().stream().map(User::getId).toList()
+                )
+        )));
+    }
+
+    /**
+     * Only an organization actually connected to the card's underlying case
+     * may attach acts to it: for a form058-backed card, sender, receiver, or
+     * (the "external" case) the organization the patient is affiliated with
+     * as their workplace/place of study — the same rule {@code
+     * CardCommandService.requireForm058Access} applies to card assignment.
+     * A form0581-backed card stays receiver-only, matching {@code
+     * CardCommandService.assignCardsToForm0581}.
+     */
+    private void requireCardAccess(Card card) {
+        if (adminAccessGuard.isSuperAdmin()) {
+            return;
+        }
+
+        Long currentOrganizationId = CurrentOrganizationContext.getOptional()
+                .map(Organization::getId)
+                .orElseThrow(ActScopeViolationException::new);
+
+        Form058 form058 = card.getForm058();
+        boolean allowed;
+        if (form058 != null) {
+            Long patientId = form058.getPatient() != null ? form058.getPatient().getId() : null;
+            allowed = formAccessScopeResolver.canAccess(
+                    currentOrganizationId, form058.getSenderOrganizationId(), form058.getReceiverOrganizationId(), patientId
+            );
+        } else {
+            Form0581 form0581 = card.getForm0581();
+            allowed = form0581 != null && currentOrganizationId.equals(form0581.getReceiverOrganizationId());
+        }
+
+        if (!allowed) {
+            throw new ActScopeViolationException();
+        }
     }
 
     /**
@@ -115,10 +175,14 @@ public class ActCommandService {
             throw new UnsupportedActTypeException(request.type());
         }
 
+        String oldStatus = act.getActStatus().name();
+        Map<String, Object> before = act.auditFields();
         ActTypeHandler<?, ?, ?> handler = handlerRegistry.get(request.type());
         handler.handleUpdate(act, request);
         act.setActStatus(ActStatus.IN_PROGRESS);
         Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
+        publishFieldChanges(saved, before);
         return handler.handleToResponse(saved);
     }
 
@@ -132,11 +196,15 @@ public class ActCommandService {
     public void markReady(Long actId) {
         Act act = requireAttachedUserAct(actId);
         requireTransition(
-                act.getActStatus() == ActStatus.IN_PROGRESS || act.getActStatus() == ActStatus.SEND_FAILED,
+                act.getActStatus() == ActStatus.IN_PROGRESS
+                        || act.getActStatus() == ActStatus.SEND_FAILED
+                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS,
                 act.getActStatus()
         );
+        String oldStatus = act.getActStatus().name();
         act.setActStatus(ActStatus.READY);
-        actRepository.save(act);
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
     }
 
     /**
@@ -157,12 +225,17 @@ public class ActCommandService {
     public Act markSendingToLis(Long actId) {
         Act act = requireAttachedUserAct(actId);
         requireTransition(
-                act.getActStatus() == ActStatus.READY || act.getActStatus() == ActStatus.SEND_FAILED,
+                act.getActStatus() == ActStatus.READY
+                        || act.getActStatus() == ActStatus.SEND_FAILED
+                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS,
                 act.getActStatus()
         );
+        String oldStatus = act.getActStatus().name();
         act.getLisInfo().markSendAttempt();
         act.setActStatus(ActStatus.SENT);
-        return actRepository.save(act);
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
+        return saved;
     }
 
     /**
@@ -188,15 +261,22 @@ public class ActCommandService {
     public void recordLisSendFailure(Long actId, String errorDescription) {
         Act act = actRepository.findById(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
+        String oldStatus = act.getActStatus().name();
         act.setActStatus(ActStatus.SEND_FAILED);
         act.getLisInfo().setLastError(errorDescription);
-        actRepository.save(act);
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
     }
 
     /**
      * Called back by LIS once it has processed a sent act — stores its raw
-     * response and moves the act to {@link ActStatus#COMPLETED}, which
-     * concludes the act's lifecycle.
+     * response and either concludes the act ({@link ActStatus#COMPLETED},
+     * the laboratory result is in) or sends it back for rework
+     * ({@link ActStatus#RETURNED_BY_LIS}), depending on what the callback
+     * body says (see {@link LisCallbackInterpreter}). Either way the full
+     * body is kept in {@code lisInfo.response}; a return also records a
+     * short reason in {@code lisInfo.lastError} so the attached employee
+     * sees why without opening the raw JSON.
      */
     @Transactional
     public void receiveLisResponse(Long actId, Long lisActId, Map<String, Object> response) {
@@ -204,10 +284,57 @@ public class ActCommandService {
                 .orElseThrow(() -> new ActNotFoundException(actId));
         requireTransition(act.getActStatus() == ActStatus.SENT, act.getActStatus());
 
+        String oldStatus = act.getActStatus().name();
         act.getLisInfo().setActId(lisActId);
         act.getLisInfo().setResponse(response);
-        act.setActStatus(ActStatus.COMPLETED);
-        actRepository.save(act);
+
+        LisCallbackInterpreter.Result outcome = LisCallbackInterpreter.interpret(response);
+        if (outcome.outcome() == LisCallbackInterpreter.Outcome.RETURNED) {
+            act.getLisInfo().setLastError(outcome.reason());
+            act.setActStatus(ActStatus.RETURNED_BY_LIS);
+        } else {
+            act.setActStatus(ActStatus.COMPLETED);
+        }
+
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
+    }
+
+    private void publishStatusChange(Act act, String oldStatus) {
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.ACT, act.getId(), oldStatus, act.getActStatus().name(),
+                currentUserProvider.userIdOrNull(), null,
+                new NotificationRoutingContext.ActRouting(
+                        resolveOrganizationId(act.getCard()), act.getUsers().stream().map(User::getId).toList()
+                )
+        ));
+    }
+
+    /**
+     * Same resolution {@code NotificationEventListener} used to do itself after a
+     * repository re-fetch: an act's routing organization is its card's owning form's
+     * receiver.
+     */
+    private Long resolveOrganizationId(Card card) {
+        if (card == null) {
+            return null;
+        }
+        if (card.getForm058() != null) {
+            return card.getForm058().getReceiverOrganizationId();
+        }
+        if (card.getForm0581() != null) {
+            return card.getForm0581().getReceiverOrganizationId();
+        }
+        return null;
+    }
+
+    private void publishFieldChanges(Act act, Map<String, Object> before) {
+        Map<String, Object> changes = AuditFieldDiff.compute(before, act.auditFields());
+        if (!changes.isEmpty()) {
+            eventPublisher.publishEvent(new FieldsChangedEvent(
+                    AuditEntityType.ACT, act.getId(), changes, currentUserProvider.userIdOrNull()
+            ));
+        }
     }
 
     /**
@@ -223,7 +350,9 @@ public class ActCommandService {
         Act act = actRepository.findActiveByIdForUpdate(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
 
-        if (act.getActStatus() == ActStatus.SENT || act.getActStatus() == ActStatus.COMPLETED) {
+        if (act.getActStatus() == ActStatus.SENT
+                || act.getActStatus() == ActStatus.COMPLETED
+                || act.getActStatus() == ActStatus.RETURNED_BY_LIS) {
             throw new ActAlreadySentToLisException("error.act.already-sent-to-lis");
         }
 
@@ -232,12 +361,13 @@ public class ActCommandService {
 
     /**
      * NEW, IN_PROGRESS, READY, and SEND_FAILED all still precede a
-     * successful send to LIS, so saving is allowed from any of them; once
-     * SENT or COMPLETED, the act has left our hands.
+     * successful send to LIS, so saving is allowed from any of them;
+     * RETURNED_BY_LIS reopens editing after LIS sent the act back for
+     * rework. Once SENT or COMPLETED, the act has left our hands.
      */
     private boolean canBeUpdated(ActStatus status) {
         return switch (status) {
-            case NEW, IN_PROGRESS, READY, SEND_FAILED -> true;
+            case NEW, IN_PROGRESS, READY, SEND_FAILED, RETURNED_BY_LIS -> true;
             case SENT, COMPLETED -> false;
         };
     }

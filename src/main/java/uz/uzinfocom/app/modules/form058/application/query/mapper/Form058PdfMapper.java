@@ -17,10 +17,10 @@ import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
-import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserMiniResponse;
-import uz.uzinfocom.app.platform.iam.application.user.query.mapper.UserMapperHelper;
-import uz.uzinfocom.app.platform.reference.application.lookup.mapper.ReferenceMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.user.query.dto.UserMiniResponse;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
+import uz.uzinfocom.app.modules.reference.application.lookup.mapper.ReferenceMappingHelper;
 
 import java.util.List;
 import java.util.Locale;
@@ -66,6 +66,7 @@ public class Form058PdfMapper {
         return new Form058PdfResponse(
                 form058.getId(),
                 form058.getUuid(),
+                form058.getCreatedAt(),
                 form058.getStatus(),
                 organizationMappingHelper.activeOrganizationNameById(form058.getSenderOrganizationId()),
                 organizationMappingHelper.activeOrganizationNameById(form058.getReceiverOrganizationId()),

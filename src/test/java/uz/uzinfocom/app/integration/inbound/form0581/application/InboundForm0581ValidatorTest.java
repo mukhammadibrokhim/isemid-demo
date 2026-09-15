@@ -3,9 +3,9 @@ package uz.uzinfocom.app.integration.inbound.form0581.application;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.integration.inbound.common.exception.InboundValidationException;
 import uz.uzinfocom.app.integration.inbound.common.validation.PatientIdentifierFormatValidator;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.integration.inbound.form0581.web.InboundCreateForm0581Request;
 import uz.uzinfocom.app.modules.patient.web.request.CreatePatientIdentifierRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,8 +35,8 @@ class InboundForm0581ValidatorTest {
         ))).isInstanceOf(InboundValidationException.class);
     }
 
-    private PatientRequest patient() {
-        return new PatientRequest(
+    private IntegrationPatientRequest patient() {
+        return new IntegrationPatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
                 List.of(new CreatePatientIdentifierRequest("PINFL", "51506123456785", null, null)),

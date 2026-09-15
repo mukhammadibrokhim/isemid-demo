@@ -24,7 +24,7 @@ public final class ApiPaths {
     /**
      * Login-proxy surface: exchanges an end user's credentials for a token
      * by calling an external authentication provider's token endpoint on the
-     * caller's behalf (see platform.auth) - one endpoint regardless of which
+     * caller's behalf (see platform.ssoproxy) - one endpoint regardless of which
      * OAuth2 grant the resolved provider speaks. Public - see
      * the {@code /v1/auth/**} row in {@code RouteAccessPolicy}.
      */
@@ -35,6 +35,7 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/auth";
         public static final String LOGIN = "/login/{provider}";
         public static final String REFRESH = "/refresh/{provider}";
+        public static final String LOGOUT = "/logout/{provider}";
         public static final String PROVIDER = "provider";
     }
 
@@ -57,6 +58,7 @@ public final class ApiPaths {
         public static final String LOOKUP = "/lookup";
         public static final String BY_ID = "/{id}";
         public static final String USERS_BY_ORGANIZATION_ID = "/{id}/users";
+        public static final String HIERARCHY_BY_ORGANIZATION_ID = "/{id}/hierarchy";
 
         public static final String ID = "id";
 
@@ -154,7 +156,10 @@ public final class ApiPaths {
         public static final String NEIGHBORHOODS = ROOT + "/neighborhood";
         public static final String CATALOGS = ROOT + "/catalogs";
         public static final String MANUAL_REPORTS = ROOT + "/manual-reports";
-        public static final String MKB10 = ROOT + "/mkb10";
+        public static final String ICD10 = ROOT + "/icd10";
+        public static final String POPULATIONS = ROOT + "/populations";
+        public static final String SYNC = "/sync";
+        public static final String YEARS = "/years";
 
         public static final String BY_ID = "/{id}";
         public static final String BY_CODE = "/code/{code}";
@@ -162,9 +167,32 @@ public final class ApiPaths {
         public static final String BY_TYPE = "/types/{type}";
         public static final String BY_TYPE_AND_CODE = "/types/{type}/codes/{code}";
         public static final String BY_TYPE_AND_PARENT_CODE = "/types/{type}/parents/{parentCode}";
-        public static final String BY_MKB10_CODE = "/mkb10/{code}";
+        public static final String BY_ICD10_CODE = "/icd10/{code}";
         public static final String ROOTS = "/roots";
         public static final String CHILDREN = "/{id}/children";
+    }
+
+    /**
+     * LIS's own public read-only dictionaries (organizations, departments,
+     * conditions, professions, research types, categories, item types),
+     * proxied+cached by this backend rather than called by the frontend
+     * directly — see {@code LisReferenceController}/{@code
+     * LisReferenceQueryService} and {@code docs/act-lis-frontend-guide.md}
+     * for why. Deliberately not nested under {@link Reference}: that root is
+     * this app's own multi-language catalogs, these are LIS's.
+     */
+    public static final class LisReference {
+        private LisReference() {
+        }
+
+        public static final String ROOT = API_V1 + "/lis-reference";
+        public static final String ORGANIZATIONS = "/organizations";
+        public static final String DEPARTMENTS = "/organizations/{organizationId}/departments";
+        public static final String CONDITIONS = "/conditions";
+        public static final String PROFESSIONS = "/professions";
+        public static final String RESEARCH_TYPES = "/research-types";
+        public static final String CATEGORIES = "/categories";
+        public static final String ITEM_TYPES = "/item-types";
     }
 
     public static final class SystemSetting {
@@ -181,7 +209,7 @@ public final class ApiPaths {
      * Runtime-editable route-access rules — replaces the old, restart-only
      * {@code SecurityRouteCatalog}. Lives under {@link Admin} (SSO-admin
      * authenticated), mirrored read/write under {@link Dev} for the
-     * dev-monitoring panel (see {@code DevRoutePolicyController}).
+     * dev panel (see {@code DevRoutePolicyController}).
      */
     public static final class RouteAccessPolicy {
         private RouteAccessPolicy() {
@@ -196,7 +224,9 @@ public final class ApiPaths {
      * (see {@link Integration}) — lives under the existing {@link Admin} root,
      * not under {@code Integration.ROOT}, since it's authenticated the same
      * way as every other admin endpoint (human SSO JWT + adminAccessGuard),
-     * not by the machine clients it manages.
+     * not by the machine clients it manages. Mirrored read/write under
+     * {@link Dev} for the dev panel (see
+     * {@code DevIntegrationClientController}), same as {@link RouteAccessPolicy}.
      */
     public static final class IntegrationClient {
         private IntegrationClient() {
@@ -205,6 +235,15 @@ public final class ApiPaths {
         public static final String ROOT = Admin.ROOT + "/integration-clients";
         public static final String BY_ID = "/{id}";
         public static final String REVOKE = "/{id}/revoke";
+        public static final String ALLOWED_IPS = "/{id}/allowed-ips";
+        public static final String WEBHOOK = "/{id}/webhook";
+
+        /**
+         * Distinct {@code sourceKey} values of active clients — lets a caller
+         * populate the {@code {source}} path segment of {@link Integration}'s
+         * endpoints from a live list instead of a hand-typed string.
+         */
+        public static final String SOURCE_KEYS = "/source-keys";
     }
 
     /**
@@ -224,30 +263,191 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/dev";
         public static final String ERRORS = "/errors";
         public static final String ERROR_BY_ID = "/errors/{id}";
+
+        /**
+         * Login-attempt (success and failure) history against
+         * {@code /v1/auth/login/{provider}}. {@link #LOGINS} returns the
+         * table/list view (summary columns); {@link #LOGIN_BY_ID} returns
+         * the full detail (failure reason, user agent, trace id) for one row.
+         */
         public static final String LOGINS = "/logins";
-        public static final String METRICS_SYSTEM = "/metrics/system";
-        public static final String METRICS_HTTP = "/metrics/http";
+        public static final String LOGIN_BY_ID = "/logins/{id}";
+
+        /**
+         * Full per-request resource-usage log (every request, not just
+         * failures - see {@link #ERRORS}) captured by {@code RequestLoggingFilter}
+         * into {@code dev_request_log}. {@link #REQUESTS} returns the table/list
+         * view (summary columns); {@link #REQUEST_BY_ID} returns the full
+         * detail (query string, content types, exception/root-cause, message)
+         * for one row.
+         */
+        public static final String REQUESTS = "/requests";
+        public static final String REQUEST_BY_ID = "/requests/{id}";
+
+        /**
+         * Single multiplexed SSE connection for the dev panel - pushes
+         * {@code system}, {@code http} (periodic metrics snapshots, replacing
+         * what used to be plain {@code GET /metrics/system} / {@code /metrics/http}
+         * polling endpoints) and {@code error} (new {@link #ERRORS} row) named
+         * events over one stream instead of one connection per data source, to
+         * stay well under the browser's per-origin connection limit.
+         */
+        public static final String METRICS_STREAM = "/metrics/stream";
         public static final String SETTINGS = "/settings";
         public static final String SETTINGS_BY_ID = "/settings/{id}";
         public static final String SETTINGS_BY_KEY = "/settings/by-key/{key}";
         public static final String SETTINGS_RESTORE = "/settings/{id}/restore";
         public static final String ROUTE_POLICIES = "/settings/route-policies";
         public static final String ROUTE_POLICY_BY_ID = "/settings/route-policies/{id}";
+        public static final String FILES = "/files";
+        public static final String FILES_DOWNLOAD = "/files/download";
+        public static final String AUDIT = "/audit";
+        public static final String AUDIT_BY_ID = "/audit/{id}";
+        public static final String INTEGRATION_CLIENTS = "/integration-clients";
+        public static final String INTEGRATION_CLIENT_BY_ID = "/integration-clients/{id}";
+        public static final String INTEGRATION_CLIENT_REVOKE = "/integration-clients/{id}/revoke";
+        public static final String INTEGRATION_CLIENT_ALLOWED_IPS = "/integration-clients/{id}/allowed-ips";
+        public static final String INTEGRATION_CLIENT_WEBHOOK = "/integration-clients/{id}/webhook";
+        public static final String INTEGRATION_CLIENT_SOURCE_KEYS = "/integration-clients/source-keys";
+
+        /**
+         * Operational visibility for the outbound status-change webhook queue
+         * (see {@code orchestration.webhook}) - dev-panel only, no admin-facing
+         * equivalent: this is purely operational (dispatch status, manual
+         * retry), not something an org admin configures.
+         */
+        public static final String WEBHOOK_DISPATCHES = "/webhook-dispatches";
+        public static final String WEBHOOK_DISPATCH_BY_ID = "/webhook-dispatches/{id}";
+        public static final String WEBHOOK_DISPATCH_RETRY = "/webhook-dispatches/{id}/retry";
+
+        /**
+         * Dev-panel account management (list/create/update/revoke) -
+         * deliberately NOT under {@link Admin}: not even an SSO
+         * {@code isemid_super_admin} may manage these accounts. See
+         * {@code DevUserController} for the per-endpoint role gates.
+         */
+        public static final String DEV_USERS = "/dev-users";
+        public static final String DEV_USER_BY_ID = "/dev-users/{id}";
+        public static final String DEV_USER_REVOKE = "/dev-users/{id}/revoke";
+
+        /**
+         * The counterpart to {@link #DEV_USER_REVOKE} - re-enables a
+         * previously revoked account.
+         */
+        public static final String DEV_USER_UNBLOCK = "/dev-users/{id}/unblock";
+
+        /**
+         * Admin-initiated password reset for another account (SUPER_ADMIN
+         * only) - distinct from the self-service {@link #DEV_USER_ME_PASSWORD}.
+         */
+        public static final String DEV_USER_RESET_PASSWORD = "/dev-users/{id}/reset-password";
+
+        /**
+         * Self-service, for the calling account only - reachable regardless
+         * of role, and deliberately exempted from
+         * {@code DevPasswordChangeGuardFilter}'s must-change-password block
+         * (it's the one endpoint that lets an account escape that block).
+         */
+        public static final String DEV_USER_ME = "/dev-users/me";
+        public static final String DEV_USER_ME_PASSWORD = "/dev-users/me/password";
+
+        /**
+         * Dev-panel-only lookups ("spravochnik") - separate from the org-facing,
+         * multi-language {@link Reference} dictionaries. Positions/departments
+         * ({@code DevPosition}), assignable to a {@code DevUser}'s profile (see
+         * {@code DevPositionController}).
+         */
+        public static final String REF_POSITIONS = "/ref/positions";
+        public static final String REF_POSITION_BY_ID = "/ref/positions/{id}";
+
+        /**
+         * Read-only organization lookup by id/uuid/name search, reusing
+         * {@code OrganizationQueryService.lookup()} - the same data as
+         * {@link Organization#LOOKUP}, but reachable from the dev panel's own
+         * Basic-Auth chain. Exists because {@code /v1/dev/**} is a fully
+         * separate {@code SecurityFilterChain} from the SSO/DHP bearer-token
+         * chain the main {@link Organization} endpoints sit on (see
+         * {@code DevPanelSecurityConfig}) - a dev-panel account has no business
+         * session token to call {@link Organization#LOOKUP} with, so without
+         * this the panel could only ever refer to an organization by a
+         * hand-typed uuid, never show or search by its name (e.g. when
+         * registering an {@code IntegrationClient}, see
+         * {@code DevIntegrationClientController}).
+         */
+        public static final String REF_ORGANIZATIONS = "/ref/organizations";
+
+        /**
+         * Dev-panel access to the same RBAC {@code Permission} ("subject"),
+         * {@code Action} and {@code Role} entities managed by {@link Permission} /
+         * {@link Action} / {@link Role} - reachable from the dev panel's own
+         * Basic-Auth chain since a dev-panel account has no SSO {@code isemid_}-role
+         * JWT to satisfy {@code @adminAccessGuard} with. See
+         * {@code DevPermissionController} / {@code DevActionController} /
+         * {@code DevRoleController}.
+         */
+        public static final String PERMISSIONS = "/permissions";
+        public static final String PERMISSION_BY_ID = "/permissions/{id}";
+        public static final String PERMISSION_RESTORE = "/permissions/{id}/restore";
+        public static final String ACTIONS = "/actions";
+        public static final String ACTION_BY_ID = "/actions/{id}";
+        public static final String ACTION_RESTORE = "/actions/{id}/restore";
+        public static final String ROLES = "/roles";
+        public static final String ROLE_BY_ID = "/roles/{id}";
+        public static final String ROLE_RESTORE = "/roles/{id}/restore";
+        public static final String ROLE_PERMISSIONS = "/roles/{id}/permissions";
+        public static final String ROLE_REMOVE_PERMISSIONS = "/roles/{id}/permissions/remove";
     }
 
     /**
-     * Human-facing admin tooling for provisioning {@link Dev} panel accounts -
-     * lives under {@link Admin} since it's provisioned by an SSO-authenticated
-     * admin, exactly like {@link IntegrationClient}, not by the dev-panel
-     * accounts it manages.
+     * Audit trail for business events (creation, status change, receiving-organization
+     * reassignment) on Form058/Form0581/Act — see {@code AuditEventListener}. Read-only
+     * here: {@code isemid_super_admin} and {@code isemid_admin} may both list/inspect
+     * (see {@code @adminAccessGuard.isAdmin()} on {@code AuditQueryController}); the
+     * dev-panel gets the same data, unrestricted, under {@link Dev#AUDIT}.
      */
-    public static final class DevUser {
-        private DevUser() {
+    public static final class Audit {
+        private Audit() {
         }
 
-        public static final String ROOT = Admin.ROOT + "/dev-users";
+        public static final String ROOT = Admin.ROOT + "/audit";
         public static final String BY_ID = "/{id}";
-        public static final String REVOKE = "/{id}/revoke";
+    }
+
+    /**
+     * Background Excel export jobs (see {@code platform.export}) - one generic surface
+     * shared by every module wired up as an {@code ExcelExportSource}: submission stays
+     * per-module (e.g. {@link Form058#EXPORT}), but "my files" listing, SSE progress and
+     * download are the same three endpoints regardless of which module produced the job.
+     */
+    public static final class Export {
+        private Export() {
+        }
+
+        public static final String ROOT = API_V1 + "/exports";
+        public static final String BY_ID = "/{id}";
+        public static final String PROGRESS = "/{id}/progress";
+        public static final String DOWNLOAD = "/{id}/download";
+    }
+
+    /**
+     * In-app notifications — no message broker in this deployment, so events
+     * (Form058/Form058-1 received, Card/Act assigned, LIS response) are fanned
+     * out to {@code notification} rows in-process (see {@code orchestration.notification})
+     * and delivered here: paged list, unread badge, mark-read, and an SSE stream
+     * for live updates. Per-type enablement lives in the existing
+     * {@code system_settings} store, editable from {@link Dev#SETTINGS} — no
+     * separate admin surface for that.
+     */
+    public static final class Notification {
+        private Notification() {
+        }
+
+        public static final String ROOT = API_V1 + "/notifications";
+        public static final String UNREAD_COUNT = "/unread-count";
+        public static final String UNREAD_COUNT_BY_TYPE = "/unread-count/by-type";
+        public static final String BY_ID_READ = "/{id}/read";
+        public static final String READ_ALL = "/read-all";
+        public static final String STREAM = "/stream";
     }
 
     public static final class Form058 {
@@ -256,12 +456,23 @@ public final class ApiPaths {
 
         public static final String ROOT = API_V1 + "/form-058";
         public static final String BY_ID = "/{id}";
+        public static final String ACCEPT = "/{id}/accept";
         public static final String APPROVE = "/{id}/approve";
-        public static final String NOT_APPROVE = "/{id}/not-approve";
         public static final String CANCEL = "/{id}/cancel";
+        public static final String REOPEN = "/{id}/reopen";
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
         public static final String PDF = "/{id}/pdf";
+        public static final String EXPORT = "/export";
+
+        // Separate from the root listing (direction-scoped: sender/receiver)
+        // on purpose — an "affiliated" form is visible for a completely
+        // different reason (the patient's workplace/place of study matches
+        // the current organization, regardless of who sent/received it), so
+        // it gets its own endpoint/filter instead of a hidden mode-switch
+        // query flag. Mirrors how GET /cards/mine stays separate from the
+        // root card listing.
+        public static final String AFFILIATED = "/affiliated";
 
     }
 
@@ -272,7 +483,7 @@ public final class ApiPaths {
         public static final String ROOT = Form058.ROOT + "/stats";
         public static final String BY_STATUS = "/by-status";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     public static final class Form058AdminStats {
@@ -284,7 +495,7 @@ public final class ApiPaths {
         public static final String BY_SENDER_ORGANIZATION = "/by-sender-organization";
         public static final String BY_RECEIVER_ORGANIZATION = "/by-receiver-organization";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     public static final class Form0581 {
@@ -294,11 +505,30 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/form-058-1";
         public static final String BY_ID = "/{id}";
         public static final String BY_DOCUMENT_VALUE = "/by-document";
+        public static final String ACCEPT = "/{id}/accept";
         public static final String APPROVE = "/{id}/approve";
-        public static final String NOT_APPROVE = "/{id}/not-approve";
         public static final String CANCEL = "/{id}/cancel";
+        public static final String REOPEN = "/{id}/reopen";
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
+        public static final String PDF = "/{id}/pdf";
+        public static final String EXPORT = "/export";
+
+        // Same rationale as Form058.AFFILIATED - a form058-1 visible because
+        // the patient's workplace/place of study matches the current
+        // organization gets its own endpoint/filter instead of a hidden
+        // mode-switch query flag.
+        public static final String AFFILIATED = "/affiliated";
+    }
+
+    public static final class Form129 {
+        private Form129() {
+        }
+
+        public static final String ROOT = API_V1 + "/form-129";
+        public static final String BY_ID = "/{id}";
+        public static final String ACCEPT = "/{id}/accept";
+        public static final String REJECT = "/{id}/reject";
     }
 
     public static final class Form0581Stats {
@@ -308,7 +538,7 @@ public final class ApiPaths {
         public static final String ROOT = Form0581.ROOT + "/stats";
         public static final String BY_STATUS = "/by-status";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     public static final class Form0581AdminStats {
@@ -320,7 +550,7 @@ public final class ApiPaths {
         public static final String BY_SENDER_ORGANIZATION = "/by-sender-organization";
         public static final String BY_RECEIVER_ORGANIZATION = "/by-receiver-organization";
         public static final String BY_DATE = "/by-date";
-        public static final String TOP_MKB10 = "/top-mkb10";
+        public static final String TOP_ICD10 = "/top-icd10";
     }
 
     /**
@@ -345,6 +575,26 @@ public final class ApiPaths {
     }
 
     /**
+     * "Xarita" (case map) — flat list of form058 cases carrying coordinates
+     * ({@code fm058_location.latitude}/{@code longitude}) for plotting on a
+     * frontend map, filterable by territory (region/district, same
+     * scope-checked resolution every other report uses via {@code
+     * report.shared.ReportHierarchyService#resolveNode}) and by diagnosis
+     * code. Unlike every other report under {@code modules.report}, this is
+     * not an aggregated hierarchy — no root/children drill-down, just one
+     * endpoint returning the matching points. form058_1 has no coordinate
+     * field anywhere in the schema, so it is not included. See {@code
+     * MapReportController} under {@code modules.report.map}.
+     */
+    public static final class MapReport {
+        private MapReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/map";
+        public static final String POINTS = "/points";
+    }
+
+    /**
      * "Form 1" — «Мониторинг инфекционных и паразитарных заболеваний»
      * (confirmed/primary case counts, age/gender cut), form058 + form0581
      * combined, organization-hierarchy drill-down (republic→region→district
@@ -359,36 +609,417 @@ public final class ApiPaths {
         public static final String ROOT = Report.ROOT + "/form-1";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
     }
 
     /**
-     * "Form 2" — social/occupation composition of primary (not yet
-     * resolved) case notifications, form058 + form0581 combined, same
-     * organization-hierarchy drill-down as {@link Form1Report} — see
-     * {@code Form2ReportController} under {@code modules.report.form2}.
+     * "Form 4" — «Kasallanishning ijtimoiy tarkibi» (social/occupation
+     * composition of illness), confirmed/primary case counts broken down by
+     * {@code patient.category_code} (children, students, workers, medical
+     * staff, pensioners, homeless, ...), form058 + form0581 combined,
+     * organization-hierarchy drill-down (republic→region→district
+     * →organization), one level per call, over an arbitrary caller-supplied
+     * date range — see {@code Form4ReportController} under {@code
+     * modules.report.form4}.
      */
-    public static final class Form2Report {
-        private Form2Report() {
+    public static final class Form4Report {
+        private Form4Report() {
         }
 
-        public static final String ROOT = Report.ROOT + "/form-2";
+        public static final String ROOT = Report.ROOT + "/form-4";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
     }
 
     /**
-     * "Form 3" — year-over-year comparison (current period vs. the same
-     * calendar dates one year earlier) of primary case notifications, same
-     * organization-hierarchy drill-down as {@link Form1Report} — see
-     * {@code Form3ReportController} under {@code modules.report.form3}.
+     * "Form 6" — infectious/parasitic disease age-structure comparison
+     * (primary/not-yet-decided notifications only, form058 + form0581
+     * combined), organization-hierarchy drill-down (republic→region→district
+     * →organization) same as Form 1, each node showing "O'tgan yil"/"Joriy
+     * yil"/"O'sish-Kamayish" (current period vs. the same calendar dates one
+     * year earlier), plus a per-node age-group breakdown — see {@code
+     * Form6ReportController} under {@code modules.report.form6}.
      */
-    public static final class Form3Report {
-        private Form3Report() {
+    public static final class Form6Report {
+        private Form6Report() {
         }
 
-        public static final String ROOT = Report.ROOT + "/form-3";
+        public static final String ROOT = Report.ROOT + "/form-6";
         public static final String ROOT_NODE = "/root";
         public static final String CHILDREN = "/children";
+        public static final String AGE_BREAKDOWN = "/age-breakdown";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Form 8" — «Инфекционные и паразитарные заболевания по социальному
+     * составу», сравнительный анализ подтверждённых извещений (status =
+     * APPROVED), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация) с колонками "O'tgan yil"/"Joriy yil"/"O'sish-Kamayish"
+     * (как Form 6), плюс разбивка каждого узла по социальным категориям
+     * (patient.category_code, тот же набор, что разбивает Form 4) — см.
+     * {@code Form8ReportController} под {@code modules.report.form8}.
+     */
+    public static final class Form8Report {
+        private Form8Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-8";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String CATEGORY_BREAKDOWN = "/category-breakdown";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Form 9" — «Юкумли касалликлар бўйича қиёсий маълумот»,
+     * сравнительный анализ первичных извещений (status NOT IN (APPROVED,
+     * CANCELED)), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация) с двумя метриками на узел («зарегистрировано по
+     * первичному извещению»; «госпитализировано»), каждая — "O'tgan yil"/
+     * "Joriy yil"/"Taqqoslash (+/-)" (как Form 6/8), плюс разбивка каждого
+     * узла по календарным месяцам (12 + "Jami") — см. {@code
+     * Form9ReportController} под {@code modules.report.form9}.
+     */
+    public static final class Form9Report {
+        private Form9Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-9";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String MONTHLY_BREAKDOWN = "/monthly-breakdown";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Form 10" — «Respublika bo'yicha ma'muriy hududlar kesimida yuqumli
+     * kasalliklar bilan kasallanish to'g'risidagi ma'lumotlar»: подтверждённые
+     * извещения (status = APPROVED), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация), только география. Параметры — {@code year} + {@code
+     * period} ({@code ReportPeriod}: месяц / квартал / полугодие / 9 месяцев /
+     * год): два блока столбцов «Joriy davr» (месячный интервал периода) и
+     * «Yig'ma» (с января по конец периода), каждый — прошлый год / текущий год
+     * / прирост %, с абсолютным и интенсивным (на koef населения территории из
+     * {@code ref_population}) показателями и отдельным срезом по детям до 14
+     * лет. См. {@code Form10ReportController} под {@code modules.report.form10}.
+     */
+    public static final class Form10Report {
+        private Form10Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-10";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Form 11" — «Yuqumli va parazitar kasalliklar bilan kasallanish
+     * ko'rsatkichlari», показатели заболеваемости: подтверждённые извещения
+     * (status = APPROVED), формы №058 + №058-1 объединены,
+     * организационно-иерархический drill-down (республика→регион→район
+     * →организация) с абсолютным и интенсивным (на koef населения) показателями,
+     * каждый — "O'tgan yil"/"Joriy yil"/"O'sish-Pasayish %" (как Form 6/8/9),
+     * плюс городской / сельский / детский (до 18 лет) срезы текущего периода;
+     * разбивки узла нет — только география. См. {@code Form11ReportController}
+     * под {@code modules.report.form11}.
+     */
+    public static final class Form11Report {
+        private Form11Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-11";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Form 12" — «Nozologik shakllar bo'yicha yuqumli va parazitar
+     * kasalliklar», данные по инфекционным и паразитарным болезням в разрезе
+     * нозологических форм. Корневой уровень — не география, а плоский список
+     * записей справочника ручных отчётов ({@code /v1/references/manual-reports})
+     * с тегом типа {@code FORM_12}: числа строки — подтверждённые (status =
+     * APPROVED) случаи форм №058 + №058-1, чей подтверждённый диагноз входит в
+     * набор кодов МКБ-10 записи (всего / до 14 лет / до 18 лет), за выбранный
+     * период рядом с тем же периодом год назад, плюс строка "Jami" (только
+     * записи с includeInTotal). Раскрытие строки — drill-down по
+     * административной иерархии (республика→регион→район→организация) для этой
+     * нозологической формы. См. {@code Form12ReportController} под {@code
+     * modules.report.form12}. У отчёта также есть «перевёрнутый» (по территориям)
+     * вариант — строки география, столбцы болезни (те же записи FORM_12, каждая
+     * ячейка — за выбранный период рядом с тем же периодом год назад, без
+     * разницы), как «Form 13» — см. {@code Form12ByTerritoryReportController} под
+     * {@code BY_TERRITORY_*}. {@code COMBINED_EXPORT} ставит в очередь один
+     * фоновый Excel-экспорт с обоими вариантами на двух листах одного файла.
+     */
+    public static final class Form12Report {
+        private Form12Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-12";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
+        public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
+        public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
+        public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
+        public static final String COMBINED_EXPORT = "/export/combined";
+    }
+
+    /**
+     * "Form 13" — тот же материал, что и «Form 12» (подтверждённые, status =
+     * APPROVED, случаи форм №058 + №058-1, диагноз — только заключительный код
+     * final_icd10_code, без отката к первичному icd10_code, набор болезней —
+     * записи справочника ручных отчётов), но
+     * «перевёрнутый»: строки — география (республика→регион→район→организация,
+     * drill-down по одному уровню за вызов), столбцы — болезни (каждая запись
+     * справочника ручных отчётов с тегом {@code FORM_13}), для каждой болезни
+     * пара «O'tgan yil / Joriy yil» × «Jami / до 14 лет / до 18 лет». Прироста
+     * (delta) нет. См. {@code Form13ReportController} под {@code
+     * modules.report.form13}. У отчёта также есть «прямой» (по нозологическим
+     * формам) вариант — корневой уровень плоский список записей FORM_13 (как
+     * «Form 12»), с раскрытием строки по географии для одной формы — см. {@code
+     * Form13ByDiseaseReportController} под {@code BY_DISEASE_*}.
+     */
+    public static final class Form13Report {
+        private Form13Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-13";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
+        public static final String BY_DISEASE_ROOT_NODE = "/by-disease/root";
+        public static final String BY_DISEASE_CHILDREN = "/by-disease/children";
+        public static final String BY_DISEASE_EXPORT = "/by-disease/export";
+    }
+
+    /**
+     * "Form 28.1" — «Ayrim yuqumli va parazitar kasalliklar haqida ma'lumotlar»,
+     * структурно — клон «Form 12»: корневой уровень — плоский список записей
+     * справочника ручных отчётов ({@code /v1/references/manual-reports}) с тегом
+     * типа {@code FORM_28_1}, раскрытие строки — drill-down по административной
+     * иерархии (республика→регион→район→организация) для этой нозологической
+     * формы тем же движком {@code ReportHierarchyService}. Числа строки —
+     * подтверждённые (status = APPROVED, deleted = false) случаи форм №058 +
+     * №058-1, чей заключительный код МКБ-10 ({@code final_icd10_code}, без отката
+     * к первичному {@code icd10_code}) входит в набор кодов записи. В отличие от
+     * «Form 12» — один произвольный период {@code [from, to]} без сравнения год
+     * назад, а метрики варакаи: всего / женщины / до 17 включ. / до 14 включ. /
+     * до 1 года / 1–2 года / 3–5 лет, и те же возрастные срезы отдельно по
+     * сельскому населению ({@code patient.population_type_code =
+     * 'VILLAGE_RESIDENT'}). Последней строкой — «Jami» (только записи с
+     * includeInTotal). См. {@code Form281ReportController} под {@code
+     * modules.report.form281}. У отчёта также есть «перевёрнутый» (по территориям)
+     * вариант — строки география, столбцы болезни, как «Form 13» к «Form 12» — см.
+     * {@code Form281ByTerritoryReportController} под {@code BY_TERRITORY_*}.
+     */
+    public static final class Form281Report {
+        private Form281Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-28-1";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
+        public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
+        public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
+        public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
+    }
+
+    /**
+     * "Form 28.2" — «Kasalxona ichki infeksiyalari haqida ma'lumotlar»,
+     * структурно клон «Form 28.1» / «Form 12»: корневой уровень — плоский список
+     * записей справочника ручных отчётов с тегом типа {@code FORM_28_2},
+     * раскрытие строки — drill-down по административной иерархии
+     * (республика→регион→район→организация). Числа строки — подтверждённые
+     * (status = APPROVED, deleted = false) случаи форм №058 + №058-1, чей
+     * заключительный код МКБ-10 ({@code final_icd10_code}, без отката к
+     * первичному {@code icd10_code}) входит в набор кодов записи, за один
+     * произвольный период {@code [from, to]}. Метрики варакаи: всего / до 17
+     * включ. (лет) / до 1 месяца / от 1 месяца до 1 года. Последней строкой —
+     * «Jami» (только записи с includeInTotal). См. {@code Form282ReportController}
+     * под {@code modules.report.form282}. У отчёта также есть «перевёрнутый» (по
+     * территориям) вариант — строки география, столбцы болезни — см. {@code
+     * Form282ByTerritoryReportController} под {@code BY_TERRITORY_*}.
+     */
+    public static final class Form282Report {
+        private Form282Report() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-28-2";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
+        public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
+        public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
+        public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
+    }
+
+    /**
+     * "Forecast" — surveillance forecasting over form058 + form058_1. Not a
+     * geography drill-down: one geography node (the caller's whole access
+     * scope, or an explicit {@code regionCode}/{@code districtCode} inside
+     * it) is resolved via {@code ReportHierarchyService.resolveNode}, its
+     * whole sub-tree pulled as one DAY/WEEK/MONTH-bucketed time series over
+     * the training window, and extrapolated {@code horizon} buckets ahead
+     * (exponential smoothing / Holt / Holt-Winters, auto-selected) with a
+     * ~95% prediction band and the classical endemic-channel epidemic
+     * threshold. Filters: geography, ICD-10 ({@code diagnosisCode}, initial
+     * or final code), training window ({@code from}/{@code to}). See {@code
+     * ForecastReportController} under {@code modules.report.forecast}.
+     */
+    public static final class ForecastReport {
+        private ForecastReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/forecast";
+
+        /** Geography breakdown — first hierarchy level of the caller's scope + "Jami", one compact forecast row each. */
+        public static final String ROOT_NODE = "/root";
+
+        /** Geography breakdown — next hierarchy level (region → districts, district → organizations). */
+        public static final String CHILDREN = "/children";
+
+        /** Full history + horizon-ahead forecast + endemic channel for one geography node (the chart). */
+        public static final String SERIES = "/series";
+
+        /** Risk-ranked "which diseases might rise" list for one geography node — one independent forecast per ICD-10 code seen in the training window. */
+        public static final String TOP_DISEASES = "/top-diseases";
+
+        /** Background Excel export of the geography breakdown (root/children rows only — see ForecastExcelExportSource). */
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Statistika" — geography-first statistics report: root level is the
+     * administrative hierarchy (republic→region→district→organization, one
+     * level per call via {@code ReportHierarchyService}, drilling all the
+     * way down to the individual organization — the lowest level this
+     * system models), same as every other report. Numbers are confirmed
+     * (status = APPROVED) vs primary/not-yet-decided (status not in
+     * (APPROVED, CANCELED)) cases of forms №058 + №058-1, an age (18
+     * years)/gender cut, a per-category breakdown driven by the live
+     * {@code ref_catalog(type = CATEGORY)} catalog rather than a hardcoded
+     * set, plus card ({@code modules.card}) and act ({@code modules.act})
+     * status breakdowns for the same node — see {@code
+     * StatisticsReportController} under {@code modules.report.statistics}.
+     */
+    public static final class StatisticsReport {
+        private StatisticsReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/statistics";
+        public static final String ROOT_NODE = "/root";
+        public static final String CHILDREN = "/children";
+        public static final String EXPORT = "/export";
+
+        /** Time dynamics — case counts per DAY/WEEK/MONTH bucket for one geography node, forms №058/№058-1/№129 kept separate. */
+        public static final String SERIES = "/series";
+
+        /** Disease dimension — confirmed (APPROVED, final ICD-10) case ranking by ICD-10 code for one geography node over a period. */
+        public static final String TOP_DISEASES = "/top-diseases";
+    }
+
+    /**
+     * "Shakl №7" manual statistics entry — infectious-disease registry
+     * movement for a reporting period: cases open at the start of the
+     * period, patients newly registered during the period (with age/gender/
+     * urban-rural cuts and follow-up columns — examined, to be examined,
+     * primary diagnosis confirmed, hospitalized), cases open at the end of
+     * the period, and the period-over-period change. The age/gender cuts and
+     * "primary diagnosis confirmed" are auto-computed server-side from
+     * form058 + form058_1 case data (see {@link #PREFILL}, mirroring {@link
+     * Form2ManualEntry}); every other count is operator-entered. See {@code
+     * Form7EntryController} under {@code modules.report.form7}.
+     */
+    public static final class Form7Entry {
+        private Form7Entry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-7/entries";
+        public static final String PREFILL = "/prefill";
+        public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Shakl №2" manual statistics entry — counts that have no source of
+     * truth anywhere else in the system (disinfection, inspections, fines,
+     * prosecutor referrals, ...), entered by hand per creating organization
+     * and period. See {@code Form2ManualEntryController} under {@code
+     * modules.report.form2.manual}.
+     */
+    public static final class Form2ManualEntry {
+        private Form2ManualEntry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-2/manual-entries";
+        public static final String PREFILL = "/prefill";
+        public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Analitik hisobot" — the ad-hoc analytical report builder: caller picks
+     * a date range plus multi-select regions/ICD-10 diagnoses, previews the
+     * computed per-region population (current-year {@code ref_population})
+     * and confirmed-case rate via {@link #COMPUTE}, free-edits the result
+     * into rich-text {@code content}, then saves it either as a reusable
+     * "Shablon sifatida saqlash" template or a finished "Saqlash" report
+     * (same shape, distinguished by {@code status}). See {@code
+     * AnalyticReportController} under {@code modules.report.analytic}.
+     */
+    public static final class AnalyticReport {
+        private AnalyticReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/analytic";
+        public static final String COMPUTE = "/compute";
+        public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Shakl №3-1" manual statistics entry — weekly ILI/SARI
+     * (influenza-like illness / severe acute respiratory infection)
+     * sentinel surveillance counts plus flu vaccination coverage, entered
+     * by hand per creating organization and period. Unlike {@link
+     * Form2ManualEntry}, none of these counts have any other source of
+     * truth in the system — see {@code Form31EntryController} under
+     * {@code modules.report.form31}.
+     */
+    public static final class Form31Entry {
+        private Form31Entry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-3-1/entries";
+        public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
+    }
+
+    /**
+     * "Shakl №3-2" manual statistics entry — sanitary inspection activity
+     * counts (inspected objects, identified deficiencies, officials held
+     * liable, suspended/closed objects), each broken down by object type,
+     * entered by hand per creating organization and period. Same as {@link
+     * Form31Entry}, none of these counts have any other source of truth in
+     * the system — see {@code Form32EntryController} under {@code
+     * modules.report.form32}.
+     */
+    public static final class Form32Entry {
+        private Form32Entry() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/form-3-2/entries";
+        public static final String BY_ID = "/{id}";
+        public static final String EXPORT = "/export";
     }
 
     public static final class Card {
@@ -401,9 +1032,9 @@ public final class ApiPaths {
 
         // Personal, server-scoped list view — never trust a client-supplied
         // user id for this, always resolve from the authenticated principal.
-        // For a broader-scope organization (region/republic level SANEPID),
-        // this widens from "assigned to me" to the whole organization scope
-        // — see CardQueryService.findMine.
+        // Always stays personal (assigned-to-me), regardless of organization
+        // scope — see CardQueryService.findMine. The organization-wide view
+        // lives at the root listing (GET /v1/cards, no path suffix) instead.
         public static final String MINE = "/mine";
 
         // Attached-employee actions (the user working the card).
@@ -481,6 +1112,16 @@ public final class ApiPaths {
         public static final String DMED_FORM058 = ROOT + "/DMED/form-058";
 
         /**
+         * DMED-specific form058-1 endpoint, kept separate from
+         * {@link #FORM0581} for the same reason as {@link #DMED_FORM058}:
+         * DMED integrates against a fixed, flat request shape
+         * ({@code DmedCreateForm0581Request}) that must not shift to the
+         * generic endpoint's entity-mirroring nested structure. A literal
+         * path, not a {@code {source}} pattern.
+         */
+        public static final String DMED_FORM0581 = ROOT + "/DMED/form-058-1";
+
+        /**
          * Outbound side of the same integration surface: instead of an
          * external system pushing case data to us ({@link #FORM058}/
          * {@link #FORM0581}), this is where a registered integration client
@@ -492,6 +1133,14 @@ public final class ApiPaths {
          * inbound side.
          */
         public static final String PATIENT_CASE = ROOT + "/{source}/patients/case";
+
+        /**
+         * Form129 inbound submission — one generic {@code {source}} endpoint
+         * for every registered source, DMED included. Unlike
+         * {@link #FORM058}/{@link #FORM0581}, there is no separate
+         * DMED-specific fixed-contract path for Form129.
+         */
+        public static final String FORM129 = ROOT + "/{source}/form-129";
     }
 
 }

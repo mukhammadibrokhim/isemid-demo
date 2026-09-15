@@ -13,7 +13,7 @@ import java.util.List;
  * bean at all - {@code SecurityConfig}'s {@code .cors(Customizer
  * .withDefaults())} had nothing to consult, so every cross-origin
  * browser request (including the login-proxy endpoints in {@code
- * platform.auth}, meant to be called directly from a frontend) was
+ * platform.ssoproxy}, meant to be called directly from a frontend) was
  * silently rejected by the browser itself, before this app ever saw the
  * request.
  */

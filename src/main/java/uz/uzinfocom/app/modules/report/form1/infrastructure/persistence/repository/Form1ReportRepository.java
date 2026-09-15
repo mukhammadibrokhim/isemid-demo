@@ -73,7 +73,15 @@ import java.util.stream.Collectors;
  * CONFIRMED = {@code status = 'APPROVED'}, PRIMARY = {@code status NOT IN
  * ('APPROVED', 'CANCELED')} — both bucketed by {@code created_at}, not by
  * any diagnosis/report date field (those differ in shape between form058
- * and form058_1, created_at does not).
+ * and form058_1, created_at does not). A form058 rejected by the receiver
+ * is stored as {@code CANCELED} (see {@code FormStatus}), so it is already
+ * excluded here — there is no separate "rejected" status to account for.
+ * <p>
+ * The optional {@code diagnosisCode} filter is matched differently per block:
+ * the CONFIRMED block matches the <b>final</b> code alone ({@code
+ * final_icd10_code = :diagnosisCode}) — every confirmed-only report does, a
+ * confirmed case is defined by its final diagnosis — while the PRIMARY block,
+ * whose cases usually have no final code yet, still matches "initial OR final".
  * <p>
  * Every {@code ::type} cast below wraps its named parameter in parentheses —
  * {@code (:param)::type}, never {@code :param::type} — because Hibernate's
@@ -89,7 +97,7 @@ public class Form1ReportRepository {
             select f.sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years,
                    p.gender_code,
-                   (f.final_mkb10_code is not null and f.final_mkb10_code <> f.mkb10_code) as diagnosis_changed,
+                   (f.final_icd10_code is not null and f.final_icd10_code <> f.icd10_code) as diagnosis_changed,
                    'CONFIRMED' as metric
             from form058 f
             join patient p on p.id = f.patient_id
@@ -97,7 +105,7 @@ public class Form1ReportRepository {
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
@@ -108,19 +116,19 @@ public class Form1ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
                    p.gender_code,
-                   (f.final_mkb10_code is not null and f.final_mkb10_code <> f.mkb10_code), 'CONFIRMED'
+                   (f.final_icd10_code is not null and f.final_icd10_code <> f.icd10_code), 'CONFIRMED'
             from form058_1 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
             select f.sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
@@ -131,7 +139,7 @@ public class Form1ReportRepository {
             where f.deleted = false
               and f.status not in ('APPROVED', 'CANCELED')
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
+              and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             """;
 
     private static final String AGGREGATE_COLUMNS = """

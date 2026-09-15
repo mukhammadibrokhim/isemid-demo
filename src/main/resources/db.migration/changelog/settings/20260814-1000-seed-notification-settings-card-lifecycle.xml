@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Extends 20260811-1000-seed-notification-settings.xml with the five
+        Card status transitions that previously fired no notification at
+        all: accepted-by-user and rejected-by-user (-> assignedById),
+        completed (-> assignedById), and approved/rejected-by-supervisor
+        (-> Card.users). See
+        NotificationEventListener.handleCardStatusChanged for the matched
+        transitions.
+
+        Same WHERE NOT EXISTS guard, same ACTIVE/'true' seeding as the
+        original changeset - a no-op for behavior since resolveBoolean
+        already defaults an unseeded key to enabled.
+    -->
+    <changeSet id="20260814-1000-01-seed-notification-settings-card-lifecycle" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.card-accepted-by-user.enabled', 'true', 'BOOLEAN', 'Notify the assigning supervisor when the attached user accepts a Card (NEW -> ACCEPTED_BY_USER).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.card-accepted-by-user.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.card-rejected-by-user.enabled', 'true', 'BOOLEAN', 'Notify the assigning supervisor when the attached user rejects a Card (-> REJECTED_BY_USER).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.card-rejected-by-user.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.card-completed.enabled', 'true', 'BOOLEAN', 'Notify the assigning supervisor when the attached user marks a Card completed and ready for review (-> COMPLETED).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.card-completed.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.card-approved.enabled', 'true', 'BOOLEAN', 'Notify the attached user(s) when the supervisor approves a Card (COMPLETED -> APPROVED).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.card-approved.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.card-rejected.enabled', 'true', 'BOOLEAN', 'Notify the attached user(s) when the supervisor sends a Card back for rework (COMPLETED -> REJECTED).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.card-rejected.enabled');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key IN (
+                    'notification.card-accepted-by-user.enabled',
+                    'notification.card-rejected-by-user.enabled',
+                    'notification.card-completed.enabled',
+                    'notification.card-approved.enabled',
+                    'notification.card-rejected.enabled'
+                );
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

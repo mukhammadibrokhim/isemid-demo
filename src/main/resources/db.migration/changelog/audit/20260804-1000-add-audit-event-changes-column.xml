@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Backs AuditEventType.FIELD_CHANGED: a generic old/new diff of whatever
+        scalar fields the edited entity (Form058/Form0581 today) declares via
+        AuditableFields.auditFields(), for plain edits that previously only
+        audited a receiver-organization reassignment and ignored every other
+        changed field.
+    -->
+    <changeSet id="20260804-1000-01-add-audit-event-changes-column" author="codex">
+        <addColumn tableName="audit_event">
+            <column name="changes" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

@@ -8,8 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form058.web.dto.request.LocationRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,17 +28,17 @@ import java.util.UUID;
 @Schema(description = "Запрос на создание формы №058 через интеграционный API DMED.")
 public record DmedCreateForm058Request(
         @Schema(description = "Код диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "{validation.form058.mkb10-code.required}")
-        @Size(max = 20, message = "{validation.form058.mkb10-code.size}")
+        @NotBlank(message = "{validation.form058.icd10-code.required}")
+        @Size(max = 20, message = "{validation.form058.icd10-code.size}")
         String mkb10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "{validation.form058.mkb10-name.required}")
-        @Size(max = 512, message = "{validation.form058.mkb10-name.size}")
+        @NotBlank(message = "{validation.form058.icd10-name.required}")
+        @Size(max = 512, message = "{validation.form058.icd10-name.size}")
         String mkb10Name,
 
         @Schema(description = "Лимит использования данного кода МКБ-10 (при наличии ограничений).")
-        @PositiveOrZero(message = "{validation.form058.mkb10-usage-limit.positive_or_zero}")
+        @PositiveOrZero(message = "{validation.form058.icd10-usage-limit.positive_or_zero}")
         Integer mkb10UsageLimit,
 
         @Schema(description = "Итоговый (подтверждённый) код диагноза по МКБ-10, если он уже известен "
@@ -53,7 +53,7 @@ public record DmedCreateForm058Request(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
         @NotNull(message = "{validation.form058.patient.required}")
-        PatientRequest patient,
+        IntegrationPatientRequest patient,
 
         @Schema(description = "Признак лабораторного подтверждения диагноза.")
         Boolean labConfirmation,

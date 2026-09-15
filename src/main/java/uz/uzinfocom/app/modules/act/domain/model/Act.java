@@ -25,10 +25,13 @@ import uz.uzinfocom.app.modules.act.domain.model.embedded.ActDeleteInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
-import uz.uzinfocom.app.platform.iam.domain.User;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldReflector;
+import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
+import uz.uzinfocom.app.modules.iam.domain.User;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,8 +40,8 @@ import java.util.Set;
  * number of times; the act is then sent to the external LIS (Laboratory
  * Information System, {@link #lisInfo}) and its response is received back.
  * That is the entire lifecycle — one status ({@link ActStatus}), no
- * accept/reject or supervisor-approval gate, unlike {@link Card}. The 6
- * concrete subtypes (act153/154/155/156/223/224, one {@code @Entity} each
+ * accept/reject or supervisor-approval gate, unlike {@link Card}. The 5
+ * concrete subtypes (act153/154/156/223/224, one {@code @Entity} each
  * under this package's sibling packages) carry the type-specific structured
  * data; JOINED inheritance keeps each subtype's ~15-30 fields out of a
  * single sprawling table.
@@ -57,7 +60,7 @@ import java.util.Set;
 )
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor
-public abstract class Act extends AbsEntity {
+public abstract class Act extends AbsEntity implements AuditableFields {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "act_type", nullable = false, length = 50)
@@ -69,6 +72,24 @@ public abstract class Act extends AbsEntity {
 
     @Embedded
     private Institution institution;
+
+    /**
+     * Free-text "what is this act about" — the one field an operator fills in
+     * that every act type has, so the registry row and other list views can
+     * say which case an act belongs to. Present on all 5 subtypes; lives here
+     * rather than per-subtype for that reason.
+     */
+    @Column(name = "subject", length = 500)
+    private String subject;
+
+    /**
+     * The act number from the paper form. Only meaningful for the three
+     * sample-collection types (act153/154/155→154/223); {@code null} for
+     * act156/act224. Kept on the base table (not per-subtype) so list views
+     * can show and search it without a subtype join.
+     */
+    @Column(name = "act_number")
+    private Long actNumber;
 
     @Embedded
     private LisInfo lisInfo = new LisInfo();
@@ -134,5 +155,21 @@ public abstract class Act extends AbsEntity {
         if (this.deleteInfo == null) {
             this.deleteInfo = new ActDeleteInfo();
         }
+    }
+
+    /**
+     * Delegates to {@link AuditFieldReflector} rather than hand-listing
+     * fields: each of the 5 subtypes (act153/154/156/223/224) has its
+     * own set of scalar columns and {@code @Embeddable} value objects
+     * (e.g. {@code Purpose}, {@code EmployeeInfo}, {@code ConditionInfo}),
+     * and a hand-written list would drift out of sync as those evolve. The
+     * reflector flattens embeddables and excludes collections/child lists
+     * and entity-typed associations (e.g. {@link #card}, {@link #users}) by
+     * their declared type, stopping at {@link AbsEntity} so
+     * version/updatedAt/etc. never pollute the diff.
+     */
+    @Override
+    public Map<String, Object> auditFields() {
+        return AuditFieldReflector.reflect(this, AbsEntity.class);
     }
 }

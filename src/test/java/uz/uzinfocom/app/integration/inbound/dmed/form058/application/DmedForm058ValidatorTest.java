@@ -3,11 +3,11 @@ package uz.uzinfocom.app.integration.inbound.dmed.form058.application;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.integration.inbound.common.exception.InboundValidationException;
 import uz.uzinfocom.app.integration.inbound.common.validation.PatientIdentifierFormatValidator;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.integration.inbound.dmed.form058.web.DmedCreateForm058Request;
 import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
 import uz.uzinfocom.app.modules.patient.web.request.CreatePatientAddressRequest;
 import uz.uzinfocom.app.modules.patient.web.request.CreatePatientIdentifierRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -62,7 +62,7 @@ class DmedForm058ValidatorTest {
 
     @Test
     void rejectsAPatientWithNoPermanentAddress() {
-        PatientRequest patient = new PatientRequest(
+        IntegrationPatientRequest patient = new IntegrationPatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
                 List.of(new CreatePatientIdentifierRequest("PINFL", "51506123456785", null, null)),
@@ -81,7 +81,7 @@ class DmedForm058ValidatorTest {
 
     @Test
     void rejectsAPatientWithNoNationalIdIdentifier() {
-        PatientRequest patient = new PatientRequest(
+        IntegrationPatientRequest patient = new IntegrationPatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
                 List.of(new CreatePatientIdentifierRequest("PPN", "AB1234567", null, null)),
@@ -100,7 +100,7 @@ class DmedForm058ValidatorTest {
 
     @Test
     void rejectsAPatientWithNoPassportIdentifier() {
-        PatientRequest patient = new PatientRequest(
+        IntegrationPatientRequest patient = new IntegrationPatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
                 List.of(new CreatePatientIdentifierRequest("NNUZB", "51506123456785", null, null)),
@@ -117,8 +117,8 @@ class DmedForm058ValidatorTest {
         ))).isInstanceOf(InboundValidationException.class);
     }
 
-    private PatientRequest patientWithPinfl(String value) {
-        return new PatientRequest(
+    private IntegrationPatientRequest patientWithPinfl(String value) {
+        return new IntegrationPatientRequest(
                 "First", "Last", null, null, null, null,
                 null, null, null, null, null, null, null,
                 List.of(
@@ -135,7 +135,7 @@ class DmedForm058ValidatorTest {
             LocalDateTime diseaseDate,
             LocalDateTime firstVisitDate,
             LocalDateTime visitDate,
-            PatientRequest patient
+            IntegrationPatientRequest patient
     ) {
         return new DmedCreateForm058Request(
                 "A09", "Diarrhoea", null,

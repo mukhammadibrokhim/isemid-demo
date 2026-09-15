@@ -8,7 +8,7 @@ import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058Location;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 import java.time.LocalDate;
@@ -44,6 +44,10 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "cards", source = "cards")
     Form058DetailResponse toDetailedResponse(Form058 form058, AuditResponse audit, List<CardTableResponse> cards);
 
+    @Mapping(target = "icd10Code", source = "icd10Code")
+    @Mapping(target = "icd10Name", source = "icd10Name")
+    @Mapping(target = "finalIcd10Code", source = "finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "finalIcd10Name")
     Form058DiagnosisDetailResponse toResponse(Form058DiagnosisInfo source);
 
     Form058ClinicalDetailResponse toResponse(Form058ClinicalInfo source);
@@ -67,7 +71,6 @@ public interface Form058DetailResponseMapper {
     Form058ApprovalDetailResponse toResponse(Form058ApprovalInfo source);
 
     @Mapping(target = "hasLinkedCards", source = "hasLinkedCards")
-    @Mapping(target = "assignedCardId", source = "assignedCardId")
     Form058CardLinkDetailResponse toCardLinkResponse(Form058 source);
 
     @Mapping(target = "deleted", source = "source.deleteInfo.deleted")

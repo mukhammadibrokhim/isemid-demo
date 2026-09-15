@@ -8,9 +8,10 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uz.uzinfocom.app.platform.iam.application.shared.cache.AuditCacheConfig;
-import uz.uzinfocom.app.platform.iam.application.shared.cache.OrganizationCacheConfig;
-import uz.uzinfocom.app.platform.reference.config.ReferenceCacheConfig;
+import uz.uzinfocom.app.integration.lis.reference.config.LisReferenceCacheConfig;
+import uz.uzinfocom.app.modules.iam.application.shared.cache.AuditCacheConfig;
+import uz.uzinfocom.app.modules.iam.application.shared.cache.OrganizationCacheConfig;
+import uz.uzinfocom.app.modules.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.platform.settings.config.SettingsCacheConfig;
 
 import java.time.Duration;
@@ -31,6 +32,12 @@ public class ApplicationCacheConfig {
                 // 23h is safer than 24h because it leaves a small rotation buffer.
                 cache(SecurityCacheNames.PUBLIC_KEY_DECODER_BY_PROVIDER, 32, Duration.ofHours(23)),
 
+                // 6h TTL: long enough to outlive any SSO/DHP-issued token's own
+                // lifetime (so a blacklisted token is never accepted again before
+                // it would have expired anyway), short enough to bound cache size
+                // without a separate cleanup job - see SecurityCacheNames javadoc.
+                cache(SecurityCacheNames.REVOKED_TOKEN_BLACKLIST, 100_000, Duration.ofHours(6)),
+
                 cache(SecurityCacheNames.ORGANIZATION_SYNC_BY_PROVIDER_AND_UUID, 20_000, Duration.ofMinutes(30)),
                 cache(SecurityCacheNames.ROLE_BY_NAME, 1_000, Duration.ofHours(2)),
                 cache(SecurityCacheNames.SECURITY_USER_BY_ID, 20_000, Duration.ofMinutes(15)),
@@ -40,6 +47,10 @@ public class ApplicationCacheConfig {
                 cache(SecurityCacheNames.SCOPE_ORGANIZATION_IDS, 5_000, Duration.ofDays(1)),
                 cache(SecurityCacheNames.FILTER_ORGANIZATION_IDS_BY_REGION_DISTRICT, 5_000, Duration.ofDays(1)),
 
+                // Small size: handful of dev-panel accounts. 5m TTL bounds how
+                // long a revoked account keeps authenticating from cache.
+                cache(SecurityCacheNames.DEV_PANEL_AUTHENTICATION, 200, Duration.ofMinutes(5)),
+
                 cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
                 cache(OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID, 20_000, Duration.ofHours(12)),
                 cache(OrganizationCacheConfig.ORGANIZATION_NAME_BY_ID, 20_000, Duration.ofHours(12)),
@@ -48,13 +59,10 @@ public class ApplicationCacheConfig {
                 cache(ReferenceCacheConfig.REF_COUNTRY_BY_CODE, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_REGIONS, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_REGION_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_REGIONS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_DISTRICTS, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_DISTRICT_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_DISTRICTS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_NEIGHBORHOODS, 50_000, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_NEIGHBORHOOD_BY_CODE, 50_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_NEIGHBORHOODS_BY_PARENT_CODE, 50_000, Duration.ofHours(1)),
 
                 cache(ReferenceCacheConfig.REF_LOOKUP_COUNTRIES, 10, Duration.ofHours(1)),
                 cache(ReferenceCacheConfig.REF_LOOKUP_REGIONS, 10, Duration.ofHours(1)),
@@ -63,10 +71,12 @@ public class ApplicationCacheConfig {
                 cache(ReferenceCacheConfig.REF_CATALOG_BY_TYPE, 1_000, Duration.ofHours(1)),
 
                 cache(ReferenceCacheConfig.REF_MANUAL_REPORT_BY_CODE, 5_000, Duration.ofHours(1)),
-                cache(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_MKB10_CODE, 20_000, Duration.ofHours(1)),
+                cache(ReferenceCacheConfig.REF_MANUAL_REPORTS_BY_ICD10_CODE, 20_000, Duration.ofHours(1)),
 
-                cache(ReferenceCacheConfig.REF_MKB10_BY_CODE, 50_000, Duration.ofHours(2)),
-                cache(ReferenceCacheConfig.REF_MKB10_CHILDREN_BY_PARENT_ID, 20_000, Duration.ofHours(2)),
+                cache(ReferenceCacheConfig.REF_ICD10_BY_CODE, 50_000, Duration.ofHours(2)),
+                // Small size: at most one entry per supported locale (uz/uz-Cyrl/ru/kaa).
+                cache(ReferenceCacheConfig.REF_ICD10_ROOTS, 20, Duration.ofHours(2)),
+                cache(ReferenceCacheConfig.REF_ICD10_CHILDREN_BY_PARENT_ID, 20_000, Duration.ofHours(2)),
 
                 // Short TTL by design: these back runtime-editable configuration
                 // (see SystemSettingResolver/RouteAccessPolicyResolver) - a write
@@ -74,7 +84,22 @@ public class ApplicationCacheConfig {
                 // safety net so a value never goes stale for more than ~30s even
                 // if an eviction is ever missed.
                 cache(SettingsCacheConfig.SYSTEM_SETTING_BY_KEY, 2_000, Duration.ofSeconds(30)),
-                cache(SettingsCacheConfig.ROUTE_ACCESS_POLICIES, 4, Duration.ofSeconds(30))
+                cache(SettingsCacheConfig.ROUTE_ACCESS_POLICIES, 4, Duration.ofSeconds(30)),
+
+                // LIS's own dictionaries, not this app's data - see
+                // docs/act-lis-frontend-guide.md for why this backend proxies
+                // them instead of the frontend calling LIS directly. 1h TTL
+                // for the small, non-paginated lookups (organizations,
+                // departments, conditions); 30m for the four paginated ones,
+                // bounded to a few thousand distinct (search, page, limit)
+                // keys since each caller-chosen search term is its own entry.
+                cache(LisReferenceCacheConfig.LIS_ORGANIZATIONS, 5_000, Duration.ofHours(1)),
+                cache(LisReferenceCacheConfig.LIS_DEPARTMENTS, 5_000, Duration.ofHours(1)),
+                cache(LisReferenceCacheConfig.LIS_CONDITIONS, 4, Duration.ofHours(1)),
+                cache(LisReferenceCacheConfig.LIS_PROFESSIONS, 2_000, Duration.ofMinutes(30)),
+                cache(LisReferenceCacheConfig.LIS_RESEARCH_TYPES, 2_000, Duration.ofMinutes(30)),
+                cache(LisReferenceCacheConfig.LIS_CATEGORIES, 2_000, Duration.ofMinutes(30)),
+                cache(LisReferenceCacheConfig.LIS_ITEM_TYPES, 2_000, Duration.ofMinutes(30))
         ));
 
         return manager;

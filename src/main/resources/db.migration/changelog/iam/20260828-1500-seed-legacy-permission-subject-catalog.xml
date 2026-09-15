@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        permission.subject katalogining to'liq legacy ro'yxati.
+
+        Muammo: toza (yangi) bazaga Liquibase seed'i faqat kod qat'iy talab
+        qiladigan yoki front menyusi uchun zarur bo'lgan 12 ta subject'ni
+        yozadi (STAFF, ORGANIZATIONS, FORM058_SENDER, FORM058_RECEIVER,
+        FORM0581, ATTACHED_CARDS, REPORTS, ATTACH_ACT + FORM129, ACTS,
+        CATALOGS, ANALYTICAL_REPORT). Ishlab turgan legacy bazada (public2)
+        esa `permission` jadvalida shu 12 tadan tashqari yana ~34 ta subject
+        bor - ular admin-panel menyusi/ruxsatlar matritsasi uchun ishlatiladi
+        (backend ularni PERMISSION_* authority bilan cheklamaydi, tegishli
+        kontrollerlar isAuthenticated()/@adminAccessGuard bilan himoyalangan).
+        Toza bazaga o'tilganda bu qatorlar tushib qolardi.
+
+        Yechim: legacy `permission` dump'idan olingan barcha subject'lar shu
+        yerda seed qilinadi (tarjimalar ham dump'dan - uz/ru/uz_cyril/kaa).
+        ON CONFLICT (subject) DO NOTHING - idempotent, mavjud bazadagi
+        qatorlarga (jumladan admin tomonidan tahrirlangan tavsiflarga)
+        tegmaydi. Bu changeSet iam/ papkasida bo'lgani uchun
+        zzz-rbac-grants/20260828-1200 (runAlways super_admin/admin sync)'dan
+        OLDIN ishlaydi - shu sababli yangi qatorlar birinchi yugurishdayoq
+        isemid_super_admin / isemid_admin matritsasiga tushadi.
+
+        Chiqarib tashlanganlar:
+        - REPORTS, ANALYTICAL_REPORT - allaqachon boshqa changeSet'larda
+          (20260730-1200-02, 20260828-1200-01a/01b) seed/qayta faollashtirilgan.
+        - ALL - legacy'da id=1 "Barcha ruxsatlar" wildcard subject; front uni
+          "hammasini ko'rsat" deb talqin qiladi. Toza bazada ham bo'lishi
+          uchun qo'shiladi (super_admin baribir CROSS JOIN orqali oladi).
+        - FOR_DELETE va boshqa soft-delete qilingan test qatorlari - o'tkazib
+          yuborildi.
+    -->
+    <changeSet id="20260828-1500-01-seed-legacy-permission-subject-catalog" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('ALL', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Barcha ruxsatlar', 'Все разрешения', 'Барча рухсатлар', 'Bardıq ruqsatlar'),
+                ('EMPLOYEES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Xodimlar', 'Сотрудники', 'Ходимлар', 'Qızmetkerler'),
+                ('ROLES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Rollar', 'Роли', 'Роллар', 'Rollar'),
+                ('PERMISSIONS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Ruxsatlar', 'Разрешения', 'Рухсатлар', 'Ruqsatlar'),
+                ('FORM058', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Ekstren xabarnoma', 'Экстренное извещение', 'Экстрен хабарнома', 'Täsirli xabarnama'),
+                ('FORM058_ATTACHED_CARDS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Form058ga biriktirilgan kartalar', 'Карты, прикрепленные к Form058',
+                 'Форм058га бириктирилган карталар', 'Form058-ge baylanısqan kartalar'),
+                ('FORM058_CHANGE_ORGANIZATION', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Form058 organizatsiyasini o''zgartirish', 'Изменение организации Form058',
+                 'Форм058 ташкилотини ўзгартириш', 'Form058 uyımın özgertiw'),
+                ('RECEIVED', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Qabul qilingan formalar', 'Полученные формы', 'Қабул қилинган формалар', 'Qabıl etilgen formalár'),
+                ('FORM058_COMPLETE_BY_SUPERVISOR', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Form058ni rahbar tomonidan tasdiqlash', 'Подтверждение Form058 руководителем',
+                 'Форм058ни раҳбар томонидан тасдиқлаш', 'Form058 baslıq tastıyıqlawı arqalı'),
+                ('USER_INCOMINGS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Menga biriktirilgan kartalar', 'Карты, прикрепленные ко мне',
+                 'Менга бириктирилган карталар', 'Maǵan baylanısqan kartalar'),
+                ('CARD_FULL_INFO', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Kartaning to''liq ma''lumoti', 'Дополнительная информация о карте',
+                 'Картанинг тўлиқ маълумоти', 'Kartanın tolıq malıumatı'),
+                ('MKB_LIST', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'MKBlаr ro''yxati', 'Список МКБ', 'МКБлар рўйхати', 'MKB-lar tizimi'),
+                ('COUNTRIES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Davlatlar', 'Страны', 'Давлатлар', 'Memleketler'),
+                ('STATES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Viloyatlar', 'Области', 'Вилоятлар', 'Oblıstar'),
+                ('CITIES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Shaharlar', 'Города', 'Шаҳарлар', 'Qalalar'),
+                ('NEIGHBORHOODS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tumanlar', 'Районы', 'Туманлар', 'Awdanlar'),
+                ('STREETS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Ko''chalar', 'Улицы', 'Кўчалар', 'Kósheler'),
+                ('RESIDENCES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Yashash joyi', 'Место жительства', 'Яшаш жойи', 'Turaq jayi'),
+                ('FORM_CATEGORIES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Yagona forma', 'Единая форма', 'Ягона форма', 'Birgeshe forma'),
+                ('SICK_PATIENT_CATEGORIES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Kasallangan bemor toifasi', 'Категория больного пациента',
+                 'Касалланган бемор тоифаси', 'Aǵırǵan naǵras toifası'),
+                ('DISEASE_PLACES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Kasallik joylari', 'Места расположения больного', 'Касаллик жойлари', 'Aǵırǵan orınlar'),
+                ('POPULATION_TYPES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Aholi turlari', 'Тип населения', 'Аҳоли турлари', 'Xalıqtıń túrleri'),
+                ('GRAPH1', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 '1-Grafik', 'Первый график', '1-График', '1-Grafik'),
+                ('MANUAL_REPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Qo''llanma hisoboti', 'Отчет по руководствам', 'Қўлланма ҳисоботи', 'Qollanba esabatı'),
+                ('FORM1', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 '1-shakl', 'Форма №1', '1-шакл', '1-shakil'),
+                ('FORM12', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 '12-shakl', 'Форма №12', '12-шакл', '12-shakil'),
+                ('MAP_GRAPHIC', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Xarita grafikasi', 'Тематический график', 'Харита графикаси', 'Harita grafikası'),
+                ('REFERENCE_COUNTRY_READ', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Davlatlarni ko''rish', 'Просмотр стран', 'Давлатларни кўриш', 'Mámleketlerdi kóriw'),
+                ('REFERENCE_COUNTRY_MANAGE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Davlatlarni boshqarish', 'Управление странами', 'Давлатларни бошқариш', 'Mámleketlerdi basqarıw'),
+                ('REFERENCE_REGION_READ', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Viloyatlarni ko''rish', 'Просмотр регионов', 'Вилоятларни кўриш', 'Wálayatlardı kóriw'),
+                ('REFERENCE_REGION_MANAGE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Viloyatlarni boshqarish', 'Управление регионами', 'Вилоятларни бошқариш', 'Wálayatlardı basqarıw'),
+                ('REFERENCE_DISTRICT_READ', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tumanlarni ko''rish', 'Просмотр районов', 'Туманларни кўриш', 'Rayonlardı kóriw'),
+                ('REFERENCE_DISTRICT_MANAGE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tumanlarni boshqarish', 'Управление районами', 'Туманларни бошқариш', 'Rayonlardı basqarıw'),
+                ('REFERENCE_NEIGHBORHOOD_READ', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Mahallalarni ko''rish', 'Просмотр махаллей', 'Маҳаллаларни кўриш', 'Máhállelerdi kóriw'),
+                ('REFERENCE_NEIGHBORHOOD_MANAGE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Mahallalarni boshqarish', 'Управление махаллями', 'Маҳаллаларни бошқариш', 'Máhállelerdi basqarıw')
+            ON CONFLICT (subject) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

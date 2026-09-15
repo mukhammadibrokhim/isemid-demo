@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.integration.inbound.oauth.application.exception.InvalidIntegrationCredentialsException;
 import uz.uzinfocom.app.integration.inbound.oauth.web.dto.IntegrationTokenRequest;
 import uz.uzinfocom.app.integration.inbound.oauth.web.dto.IntegrationTokenResponse;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.jwt.integration.IntegrationTokenIssuer;

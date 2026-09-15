@@ -17,7 +17,10 @@ public final class OpenApiGroups {
 
     private static final String[] REFERENCES_PATHS = {
             "/v1/references",
-            "/v1/references/**"
+            "/v1/references/**",
+
+            ApiPaths.LisReference.ROOT,
+            ApiPaths.LisReference.ROOT + "/**"
     };
 
     private static final String[] ACCESS_CONTROL_PATHS = {
@@ -37,21 +40,35 @@ public final class OpenApiGroups {
             "/v1/actions/**"
     };
 
-    private static final String[] ADMIN_PATHS = {
+    /**
+     * The admin group is meant to be a one-stop view of everything an
+     * {@code isemid_super_admin}/{@code isemid_admin} can do, not just the
+     * {@code /v1/admin/**} subtree - directory/reference management
+     * ({@link #REFERENCES_PATHS}) and role/permission/action management
+     * ({@link #ACCESS_CONTROL_PATHS}) are just as admin-gated
+     * ({@code @adminAccessGuard.isAdmin()}), even though they live under
+     * their own path roots and keep their own dedicated groups too.
+     */
+    private static final String[] ADMIN_OWN_PATHS = {
             "/v1/admin",
             "/v1/admin/**"
     };
 
+    private static final String[] ADMIN_PATHS = Stream.of(ADMIN_OWN_PATHS, REFERENCES_PATHS, ACCESS_CONTROL_PATHS)
+            .flatMap(Arrays::stream)
+            .toArray(String[]::new);
+
     /**
-     * The developer monitoring panel itself ({@code /v1/dev/**}) -
+     * The developer panel itself ({@code /v1/dev/**}) -
      * authenticated via a separate local {@code DevUser} HTTP Basic chain
      * (see {@code DevPanelSecurityConfig}), not the SSO/DHP bearer JWT the
-     * rest of the API requires. Kept out of {@link #ADMIN_PATHS}: account
-     * provisioning ({@code POST /v1/admin/dev-users}) stays in the Admin
-     * group since it IS SSO-admin-authenticated, but the panel's own
-     * read/resolve endpoints are not.
+     * rest of the API requires. Kept out of {@link #ADMIN_PATHS} entirely:
+     * dev-panel account management ({@code /v1/dev/dev-users/**}) is also
+     * reached and authenticated through this same chain now, gated to
+     * {@code ROLE_DEV_ROOT} rather than any SSO admin authority - not even
+     * {@code isemid_super_admin} can manage these accounts.
      */
-    private static final String[] DEV_MONITORING_PATHS = {
+    private static final String[] DEV_PANEL_PATHS = {
             ApiPaths.Dev.ROOT,
             ApiPaths.Dev.ROOT + "/**"
     };
@@ -122,14 +139,15 @@ public final class OpenApiGroups {
             ADMIN_PATHS
     );
 
-    public static final ApiDocumentationGroup DEV_MONITORING = new ApiDocumentationGroup(
-            "dev-monitoring",
-            "Dev Monitoring",
-            "Dev Monitoring",
-            "Панель разработчика: история неудачных запросов, попытки входа и метрики CPU/RAM/диска/HTTP. "
+    public static final ApiDocumentationGroup DEV_PANEL = new ApiDocumentationGroup(
+            "dev-panel",
+            "Dev Panel",
+            "Dev Panel",
+            "Панель разработчика: история неудачных запросов, попытки входа, метрики CPU/RAM/диска/HTTP и "
+                    + "управление самими учётными записями панели (только для root-аккаунтов). "
                     + "Аутентификация через отдельную локальную учётную запись DevUser (HTTP Basic), а не "
                     + "через SSO/DHP bearer-токен, как весь остальной API.",
-            DEV_MONITORING_PATHS
+            DEV_PANEL_PATHS
     );
 
     public static final ApiDocumentationGroup REPORT = new ApiDocumentationGroup(
@@ -179,7 +197,7 @@ public final class OpenApiGroups {
                         ADMIN.pathsToMatch(),
                         REPORT.pathsToMatch(),
                         INTEGRATION.pathsToMatch(),
-                        DEV_MONITORING.pathsToMatch()
+                        DEV_PANEL.pathsToMatch()
                 )
                 .flatMap(Arrays::stream)
                 .toArray(String[]::new);

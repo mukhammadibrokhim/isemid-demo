@@ -9,11 +9,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
-import uz.uzinfocom.app.platform.iam.domain.Role;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.RoleRepository;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
-import uz.uzinfocom.app.platform.security.authorization.AuthorityNames;
+import uz.uzinfocom.app.modules.iam.domain.Role;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.RoleRepository;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.security.auth.AuthorityNames;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
