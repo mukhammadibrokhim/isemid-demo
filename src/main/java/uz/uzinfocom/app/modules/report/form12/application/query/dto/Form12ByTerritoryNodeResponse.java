@@ -20,7 +20,8 @@ public record Form12ByTerritoryNodeResponse(
         boolean hasChildren,
 
         @Schema(description = "По одной ячейке на каждую нозологическую форму (запись справочника FORM_12), в "
-                + "стабильном порядке по коду записи.")
+                + "стабильном порядке по коду записи — каждая ячейка за выбранный период и за тот же период "
+                + "год назад.")
         List<Form12DiseaseCellResponse> diseases
 ) {
 }

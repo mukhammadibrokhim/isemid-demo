@@ -47,9 +47,11 @@ public class ExcelExportWriter {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     /**
-     * Opens a new workbook for writing. The caller must {@link ExcelRowWriter#write} every
-     * row and then {@link ExcelRowWriter#close()} it (ideally via try-with-resources) to
-     * flush the workbook to {@code out} - nothing is written to {@code out} before then.
+     * Opens a new workbook for writing one sheet (rolling over to further same-named
+     * sheets automatically past {@link ExcelStyleSettings#rowsPerSheet()}). The caller must
+     * {@link ExcelRowWriter#write} every row and then {@link ExcelRowWriter#close()} it
+     * (ideally via try-with-resources) to flush the workbook to {@code out} - nothing is
+     * written to {@code out} before then.
      */
     public <T> ExcelRowWriter<T> open(
             OutputStream out,
@@ -58,16 +60,79 @@ public class ExcelExportWriter {
             List<ExcelColumn<T>> columns,
             ExcelStyleSettings style
     ) {
-        return new SheetCursor<>(out, sheetBaseName, titleBlocks, columns, style);
+        SXSSFWorkbook workbook = newWorkbook();
+        SheetCursor<T> cursor = new SheetCursor<>(workbook, sheetBaseName, titleBlocks, columns, style);
+
+        return new ExcelRowWriter<T>() {
+            @Override
+            public void write(T item) {
+                cursor.write(item);
+            }
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    workbook.write(out);
+                } finally {
+                    workbook.close();
+                }
+            }
+        };
+    }
+
+    /**
+     * Opens a new workbook that can hold several independent sheets - see
+     * {@link ExcelWorkbookWriter} for how it differs from {@link #open}. Nothing is written
+     * to {@code out} until the returned writer's own {@code close()}.
+     */
+    public ExcelWorkbookWriter openWorkbook(OutputStream out) {
+        SXSSFWorkbook workbook = newWorkbook();
+
+        return new ExcelWorkbookWriter() {
+            @Override
+            public <T> ExcelRowWriter<T> newSheet(
+                    String sheetBaseName, List<ExcelTitleBlock> titleBlocks, List<ExcelColumn<T>> columns, ExcelStyleSettings style
+            ) {
+                SheetCursor<T> cursor = new SheetCursor<>(workbook, sheetBaseName, titleBlocks, columns, style);
+                return new ExcelRowWriter<T>() {
+                    @Override
+                    public void write(T item) {
+                        cursor.write(item);
+                    }
+
+                    @Override
+                    public void close() {
+                        // No-op: this workbook's own close() below finalizes the whole file
+                        // once, after every sheet has been written.
+                    }
+                };
+            }
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    workbook.write(out);
+                } finally {
+                    workbook.close();
+                }
+            }
+        };
+    }
+
+    private SXSSFWorkbook newWorkbook() {
+        SXSSFWorkbook workbook = new SXSSFWorkbook(ROW_ACCESS_WINDOW_SIZE);
+        workbook.setCompressTempFiles(true);
+        return workbook;
     }
 
     /**
      * Mutable, single-use cursor tracking which sheet is currently being written to and
      * how many data rows have landed on it - rolls over to a new sheet transparently once
-     * {@link ExcelStyleSettings#rowsPerSheet()} is reached.
+     * {@link ExcelStyleSettings#rowsPerSheet()} is reached. Writes into a workbook it is
+     * handed, never creates or finalizes one itself - that is the caller's job ({@link #open}
+     * or {@link #openWorkbook}), since a multi-sheet workbook holds several of these.
      */
-    private final class SheetCursor<T> implements ExcelRowWriter<T> {
-        private final OutputStream out;
+    private final class SheetCursor<T> {
         private final SXSSFWorkbook workbook;
         private final String sheetBaseName;
         private final List<ExcelTitleBlock> titleBlocks;
@@ -83,15 +148,13 @@ public class ExcelExportWriter {
         private int rowsOnCurrentSheet;
 
         private SheetCursor(
-                OutputStream out,
+                SXSSFWorkbook workbook,
                 String sheetBaseName,
                 List<ExcelTitleBlock> titleBlocks,
                 List<ExcelColumn<T>> columns,
                 ExcelStyleSettings style
         ) {
-            this.out = out;
-            this.workbook = new SXSSFWorkbook(ROW_ACCESS_WINDOW_SIZE);
-            this.workbook.setCompressTempFiles(true);
+            this.workbook = workbook;
             this.sheetBaseName = sheetBaseName;
             this.titleBlocks = titleBlocks;
             this.columns = columns;
@@ -103,8 +166,7 @@ public class ExcelExportWriter {
             startNewSheet();
         }
 
-        @Override
-        public void write(T item) {
+        private void write(T item) {
             if (rowsOnCurrentSheet >= rowsPerSheet) {
                 startNewSheet();
             }
@@ -114,15 +176,6 @@ public class ExcelExportWriter {
                 writeCell(row.createCell(i), columns.get(i).valueExtractor().apply(item), dataStyle);
             }
             rowsOnCurrentSheet++;
-        }
-
-        @Override
-        public void close() throws IOException {
-            try {
-                workbook.write(out);
-            } finally {
-                workbook.close();
-            }
         }
 
         private void startNewSheet() {

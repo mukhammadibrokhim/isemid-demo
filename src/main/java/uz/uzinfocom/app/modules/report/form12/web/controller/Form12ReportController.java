@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
+import uz.uzinfocom.app.modules.report.form12.application.export.Form12CombinedExcelExportSource;
 import uz.uzinfocom.app.modules.report.form12.application.export.Form12ExcelExportSource;
 import uz.uzinfocom.app.modules.report.form12.application.export.Form12ExportFilter;
 import uz.uzinfocom.app.modules.report.form12.application.query.Form12ReportQueryService;
@@ -46,7 +47,9 @@ import java.util.List;
  * (республика→регион→район→организация), по одному уровню за вызов, тем же
  * движком {@code ReportHierarchyService}, что и остальные отчёты; разбивки узла
  * нет. Администратор наполняет справочник и проставляет тег {@code FORM_12} —
- * см. {@code ManualReportController}. Excel-экспорт таблицы строит фронтенд.
+ * см. {@code ManualReportController}. Кроме собственного постранично-фонового
+ * Excel-экспорта ({@link #export}), есть и объединённый двухлистовой экспорт
+ * (этот отчёт + «Form 12 by territory» в одном файле) — см. {@code combinedExport}.
  */
 @Tag(
         name = "Report — Form 12",
@@ -67,6 +70,7 @@ public class Form12ReportController {
     private final MessageResolver messageResolver;
     private final ExportJobService exportJobService;
     private final Form12ExcelExportSource form12ExcelExportSource;
+    private final Form12CombinedExcelExportSource form12CombinedExcelExportSource;
 
     @Operation(
             summary = "Нозологические формы + итого",
@@ -133,6 +137,27 @@ public class Form12ReportController {
         return ApiResponse.success(
                 messageResolver.resolve("export.job.submitted"),
                 exportJobService.submit(form12ExcelExportSource, new Form12ExportFilter(from, to))
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт Form 12 в Excel — оба варианта одним файлом",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel, дающую один файл с двумя листами "
+                    + "— «Kasalliklar bo'yicha» (нозологические формы) и «Hududlar bo'yicha» (территории) — "
+                    + "за выбранный период, вместо двух отдельных экспортов. Прогресс и скачивание готового "
+                    + "файла — через /v1/exports."
+    )
+    @PostMapping(ApiPaths.Form12Report.COMBINED_EXPORT)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<ExportJobResponse> combinedExport(
+            @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "Конец периода (включительно). По умолчанию — сегодня.")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submitMultiSheet(form12CombinedExcelExportSource, new Form12ExportFilter(from, to))
         );
     }
 }

@@ -20,13 +20,14 @@ import java.util.function.Consumer;
 
 /**
  * Excel export for "Form 12 by territory" (geography-first rows, one column
- * triple — total/under14/under18 — per {@code FORM_12}-tagged nosological
- * form). Unlike the fixed columns of every other geography-first export,
- * this report's column set is data-driven: {@link #availableColumns()}
- * queries the same {@code FORM_12} catalog entries {@link
- * Form12ByTerritoryReportQueryService} itself uses, in the same stable
- * sort order, so each generated column's index-based lookup into a row's
- * {@code diseases[]} lines up with what that row actually contains.
+ * group — prev/current × total/under14/under18, no delta — per {@code
+ * FORM_12}-tagged nosological form, same shape as "Form 13"). Unlike the
+ * fixed columns of every other geography-first export, this report's column
+ * set is data-driven: {@link #availableColumns()} queries the same {@code
+ * FORM_12} catalog entries {@link Form12ByTerritoryReportQueryService}
+ * itself uses, in the same stable sort order, so each generated column's
+ * index-based lookup into a row's {@code diseases[]} lines up with what that
+ * row actually contains.
  */
 @Component
 @RequiredArgsConstructor
@@ -73,9 +74,12 @@ public class Form12ByTerritoryExcelExportSource
         columns.add(ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form12ByTerritoryNodeResponse::code));
         columns.add(ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form12ByTerritoryNodeResponse::name));
 
-        String totalSuffix = messageResolver.resolve("report.export.disease.total");
-        String under14Suffix = messageResolver.resolve("report.export.disease.upTo14");
-        String under18Suffix = messageResolver.resolve("report.export.disease.upTo18");
+        String totalPrev = messageResolver.resolve("report.export.disease.totalPrevYear");
+        String totalCurr = messageResolver.resolve("report.export.disease.totalCurrYear");
+        String under14Prev = messageResolver.resolve("report.export.disease.upTo14PrevYear");
+        String under14Curr = messageResolver.resolve("report.export.disease.upTo14CurrYear");
+        String under18Prev = messageResolver.resolve("report.export.disease.upTo18PrevYear");
+        String under18Curr = messageResolver.resolve("report.export.disease.upTo18CurrYear");
 
         List<ManualReportResponse> entries = orderedEntries();
         for (int i = 0; i < entries.size(); i++) {
@@ -83,18 +87,12 @@ public class Form12ByTerritoryExcelExportSource
             ManualReportResponse entry = entries.get(i);
             String label = entry.code() != null ? entry.code() : String.valueOf(entry.id());
 
-            columns.add(ExcelColumn.of(
-                    "disease" + index + "Total", label + " — " + totalSuffix,
-                    row -> cell(row, index).total()
-            ));
-            columns.add(ExcelColumn.of(
-                    "disease" + index + "Under14", label + " — " + under14Suffix,
-                    row -> cell(row, index).under14()
-            ));
-            columns.add(ExcelColumn.of(
-                    "disease" + index + "Under18", label + " — " + under18Suffix,
-                    row -> cell(row, index).under18()
-            ));
+            columns.add(ExcelColumn.of("disease" + index + "TotalPrev", label + " — " + totalPrev, row -> cell(row, index).totalPreviousYear()));
+            columns.add(ExcelColumn.of("disease" + index + "TotalCurr", label + " — " + totalCurr, row -> cell(row, index).totalCurrentYear()));
+            columns.add(ExcelColumn.of("disease" + index + "Under14Prev", label + " — " + under14Prev, row -> cell(row, index).under14PreviousYear()));
+            columns.add(ExcelColumn.of("disease" + index + "Under14Curr", label + " — " + under14Curr, row -> cell(row, index).under14CurrentYear()));
+            columns.add(ExcelColumn.of("disease" + index + "Under18Prev", label + " — " + under18Prev, row -> cell(row, index).under18PreviousYear()));
+            columns.add(ExcelColumn.of("disease" + index + "Under18Curr", label + " — " + under18Curr, row -> cell(row, index).under18CurrentYear()));
         }
 
         return columns;

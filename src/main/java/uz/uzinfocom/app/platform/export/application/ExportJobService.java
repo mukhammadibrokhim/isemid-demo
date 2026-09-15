@@ -32,6 +32,7 @@ import uz.uzinfocom.app.shared.excel.ExcelExportWriter;
 import uz.uzinfocom.app.shared.excel.ExcelRowWriter;
 import uz.uzinfocom.app.shared.excel.ExcelStyleSettings;
 import uz.uzinfocom.app.shared.excel.ExcelTitleBlock;
+import uz.uzinfocom.app.shared.excel.ExcelWorkbookWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -135,6 +136,44 @@ public class ExportJobService {
     }
 
     /**
+     * Same as {@link #submit}, generalized to a {@link MultiSheetExcelExportSource} - counts
+     * every sheet's matching rows up front (summed for the {@code app.export.max-rows} check),
+     * then runs the whole multi-sheet workbook as one background job. {@code source.sheets}
+     * is called exactly once, here on the submitting request's own thread, and the resulting
+     * list is reused by the worker thread in {@link #runMultiSheetExport} - see {@link
+     * MultiSheetExcelExportSource#sheets} for why that is safe (and preferable) for locale-
+     * dependent column headers.
+     */
+    public <F> ExportJobResponse submitMultiSheet(MultiSheetExcelExportSource<F> source, F filter) {
+        List<ExcelExportSheet<F>> sheets = source.sheets(filter);
+        long matchedRows = sheets.stream().mapToLong(sheet -> sheet.count(filter)).sum();
+        if (matchedRows > exportProperties.getMaxRows()) {
+            throw new ExportTooLargeException(matchedRows, exportProperties.getMaxRows());
+        }
+
+        ExportJob job = ExportJob.builder()
+                .exportType(source.exportType())
+                .status(ExportStatus.PENDING)
+                .totalRows(matchedRows)
+                .processedRows(0L)
+                .build();
+        job = exportJobRepository.save(job);
+
+        Long jobId = job.getId();
+        Runnable exportTask = withCallerContext(() -> runMultiSheetExport(jobId, source, sheets, filter));
+
+        try {
+            applicationTaskExecutor.execute(exportTask);
+        } catch (RejectedExecutionException saturated) {
+            log.error("event=export_job_rejected jobId={} exportType={}", jobId, source.exportType());
+            failJob(jobId, "Export queue is saturated");
+            throw saturated;
+        }
+
+        return toResponse(job);
+    }
+
+    /**
      * {@code runExport} re-resolves the caller's organization scope (and, for direction=ALL
      * exports, their super-admin authority) from scratch via the same
      * {@code resolveSpecification} the list endpoint uses - but it runs on an
@@ -198,6 +237,39 @@ public class ExportJobService {
                         updateProgress(jobId, count);
                     }
                 });
+            }
+
+            long fileSize = Files.size(targetFile);
+            completeJob(jobId, targetFile, fileSize);
+        } catch (Exception exception) {
+            log.error("event=export_job_failed jobId={} exportType={}", jobId, source.exportType(), exception);
+            failJob(jobId, exception.getMessage());
+            deleteQuietly(targetFile);
+        }
+    }
+
+    private <F> void runMultiSheetExport(
+            Long jobId, MultiSheetExcelExportSource<F> source, List<ExcelExportSheet<F>> sheets, F filter
+    ) {
+        markProcessing(jobId);
+
+        Path targetFile = resolveTargetFile(jobId, source.fileNamePrefix());
+        AtomicLong processed = new AtomicLong();
+
+        try {
+            Files.createDirectories(targetFile.getParent());
+
+            try (OutputStream out = Files.newOutputStream(targetFile);
+                 ExcelWorkbookWriter workbook = excelExportWriter.openWorkbook(out)) {
+
+                for (ExcelExportSheet<F> sheet : sheets) {
+                    sheet.writeInto(filter, workbook, () -> {
+                        long count = processed.incrementAndGet();
+                        if (count % PROGRESS_UPDATE_EVERY_N_ROWS == 0) {
+                            updateProgress(jobId, count);
+                        }
+                    });
+                }
             }
 
             long fileSize = Files.size(targetFile);

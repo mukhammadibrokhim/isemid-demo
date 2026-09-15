@@ -752,9 +752,11 @@ public final class ApiPaths {
      * административной иерархии (республика→регион→район→организация) для этой
      * нозологической формы. См. {@code Form12ReportController} под {@code
      * modules.report.form12}. У отчёта также есть «перевёрнутый» (по территориям)
-     * вариант — строки география, столбцы болезни (те же записи FORM_12, без
-     * сравнения год назад), как «Form 28.1»/«Form 28.2» — см. {@code
-     * Form12ByTerritoryReportController} под {@code BY_TERRITORY_*}.
+     * вариант — строки география, столбцы болезни (те же записи FORM_12, каждая
+     * ячейка — за выбранный период рядом с тем же периодом год назад, без
+     * разницы), как «Form 13» — см. {@code Form12ByTerritoryReportController} под
+     * {@code BY_TERRITORY_*}. {@code COMBINED_EXPORT} ставит в очередь один
+     * фоновый Excel-экспорт с обоими вариантами на двух листах одного файла.
      */
     public static final class Form12Report {
         private Form12Report() {
@@ -767,6 +769,7 @@ public final class ApiPaths {
         public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
         public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
         public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
+        public static final String COMBINED_EXPORT = "/export/combined";
     }
 
     /**

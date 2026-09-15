@@ -27,13 +27,14 @@ import java.util.List;
 
 /**
  * "Form 12 by territory" — the geography-first counterpart of «Form 12», the
- * same relationship «Form 28.1 by territory» has to «Form 28.1»: rows are the
+ * same relationship «Form 13» has to «Form 12» itself: rows are the
  * administrative hierarchy (republic→region→district→organization, one level
  * per call via the shared {@code ReportHierarchyService}), columns are
  * nosological forms — every manual-report catalog entry tagged {@code
- * FORM_12}, in a stable per-response order. Same underlying data and access
- * rules as {@code Form12ReportController}; only the row/column axes are
- * swapped.
+ * FORM_12}, in a stable per-response order, each shown for the chosen period
+ * next to the same period a year earlier (no delta). Same underlying data and
+ * access rules as {@code Form12ReportController}; only the row/column axes
+ * are swapped.
  */
 @Tag(
         name = "Report — Form 12 (by territory)",
@@ -41,7 +42,8 @@ import java.util.List;
                 + "иерархия (республика→регион→район→организация) в рамках доступа текущей организации; "
                 + "столбцы — записи справочника ручных отчётов с тегом FORM_12. Числа — подтверждённые (status "
                 + "= APPROVED) случаи форм №058 + №058-1, чей заключительный код МКБ-10 (final_icd10_code) "
-                + "входит в набор кодов записи, за выбранный период. Один период — без сравнения год назад."
+                + "входит в набор кодов записи, за выбранный период рядом с тем же периодом год назад (без "
+                + "разницы)."
 )
 @Validated
 @RestController
