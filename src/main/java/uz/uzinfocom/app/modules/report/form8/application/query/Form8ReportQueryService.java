@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.report.form8.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryBreakdownByOrganizationProjection;
 import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryBreakdownProjection;
 import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryBreakdownResponse;
 import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryRowResponse;
@@ -20,6 +21,7 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.ToLongFunction;
@@ -158,6 +160,55 @@ public class Form8ReportQueryService implements ReportCountSource<Long> {
         );
 
         return new Form8CategoryBreakdownResponse(node.code(), node.name(), zipCategories(currentCounts, previousCounts));
+    }
+
+    /**
+     * Social-category breakdown for a batch of organization-level (leaf) export rows in one
+     * pair of grouped queries, keyed by {@link Form8ReportNodeResponse#code()} (the
+     * organization id as a string) — the counterpart to {@link #getCategoryBreakdown} for
+     * nodes with no region/district code to resolve a subtree from, avoiding one query per
+     * organization on a countrywide export. An organization absent from the result (no
+     * matching cases in either period) still gets a zero-filled row.
+     */
+    public Map<String, List<Form8CategoryRowResponse>> getCategoryBreakdownByOrganization(
+            List<Long> organizationIds, LocalDate from, LocalDate to, String diagnosisCode
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty()) {
+            return Map.of();
+        }
+
+        ReportDateRange currentRange = reportDateRangeResolver.resolve(from, to);
+        ReportDateRange previousRange = reportDateRangeResolver.resolve(from, to, 1);
+
+        Map<Long, Form8CategoryBreakdownProjection> currentByOrganization = groupByOrganizationId(
+                form8ReportRepository.countCategoryBreakdownGroupedByOrganization(
+                        organizationIds, currentRange.fromInclusive(), currentRange.toExclusive(), diagnosisCode
+                )
+        );
+        Map<Long, Form8CategoryBreakdownProjection> previousByOrganization = groupByOrganizationId(
+                form8ReportRepository.countCategoryBreakdownGroupedByOrganization(
+                        organizationIds, previousRange.fromInclusive(), previousRange.toExclusive(), diagnosisCode
+                )
+        );
+
+        Map<String, List<Form8CategoryRowResponse>> result = new HashMap<>();
+        for (Long organizationId : organizationIds) {
+            Form8CategoryBreakdownProjection current =
+                    currentByOrganization.getOrDefault(organizationId, Form8CategoryBreakdownProjection.EMPTY);
+            Form8CategoryBreakdownProjection previous =
+                    previousByOrganization.getOrDefault(organizationId, Form8CategoryBreakdownProjection.EMPTY);
+            result.put(String.valueOf(organizationId), zipCategories(current, previous));
+        }
+        return result;
+    }
+
+    private Map<Long, Form8CategoryBreakdownProjection> groupByOrganizationId(
+            List<Form8CategoryBreakdownByOrganizationProjection> rows
+    ) {
+        return rows.stream().collect(Collectors.toMap(
+                Form8CategoryBreakdownByOrganizationProjection::organizationId,
+                Form8CategoryBreakdownByOrganizationProjection::breakdown
+        ));
     }
 
     @Override

@@ -121,14 +121,34 @@ public class Form9ReportQueryService implements ReportCountSource<Form9Counts> {
         Organization currentOrganization = requireCurrentOrganization();
         ResolvedReportNode node = reportHierarchyService.resolveNode(currentOrganization, regionCode, districtCode);
 
+        return buildMonthlyBreakdown(node.code(), node.name(), node.organizationIds(), from, to, diagnosisCode);
+    }
+
+    /**
+     * Same monthly breakdown as {@link #getMonthlyBreakdown}, but for a single organization leaf
+     * — the one level {@link ReportHierarchyService#resolveNode} cannot reach (it only resolves a
+     * region or a district). The caller is trusted to pass an organization id it already obtained
+     * from its own scoped {@link #getRoot}/{@link #getChildren} call (e.g. the Excel export's
+     * per-node walk), so there is no separate scope check here.
+     */
+    public Form9MonthlyBreakdownResponse getMonthlyBreakdownForOrganization(
+            Long organizationId, LocalDate from, LocalDate to, String diagnosisCode
+    ) {
+        String code = String.valueOf(organizationId);
+        return buildMonthlyBreakdown(code, code, List.of(organizationId), from, to, diagnosisCode);
+    }
+
+    private Form9MonthlyBreakdownResponse buildMonthlyBreakdown(
+            String code, String name, List<Long> organizationIds, LocalDate from, LocalDate to, String diagnosisCode
+    ) {
         ReportDateRange currentRange = reportDateRangeResolver.resolve(from, to);
         ReportDateRange previousRange = reportDateRangeResolver.resolve(from, to, 1);
 
         Map<Integer, Form9Counts> currentByMonth = indexByMonth(form9ReportRepository.countMonthlyBreakdown(
-                node.organizationIds(), currentRange.fromInclusive(), currentRange.toExclusive(), diagnosisCode
+                organizationIds, currentRange.fromInclusive(), currentRange.toExclusive(), diagnosisCode
         ));
         Map<Integer, Form9Counts> previousByMonth = indexByMonth(form9ReportRepository.countMonthlyBreakdown(
-                node.organizationIds(), previousRange.fromInclusive(), previousRange.toExclusive(), diagnosisCode
+                organizationIds, previousRange.fromInclusive(), previousRange.toExclusive(), diagnosisCode
         ));
 
         List<Form9MonthRowResponse> rows = new ArrayList<>(MONTHS_IN_YEAR + 1);
@@ -144,7 +164,7 @@ public class Form9ReportQueryService implements ReportCountSource<Form9Counts> {
         }
         rows.add(row(TOTAL_ROW_CODE, messageResolver.resolve("report.scope.total"), previousTotal, currentTotal));
 
-        return new Form9MonthlyBreakdownResponse(node.code(), node.name(), rows);
+        return new Form9MonthlyBreakdownResponse(code, name, rows);
     }
 
     @Override

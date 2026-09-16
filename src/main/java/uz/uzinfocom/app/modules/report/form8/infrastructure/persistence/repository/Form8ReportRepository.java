@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryBreakdownByOrganizationProjection;
 import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryBreakdownProjection;
 import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8OrganizationCountProjection;
 
@@ -144,7 +145,41 @@ public class Form8ReportRepository {
         List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
-        return rows.isEmpty() ? Form8CategoryBreakdownProjection.EMPTY : toCategoryBreakdown((Object[]) rows.getFirst());
+        return rows.isEmpty() ? Form8CategoryBreakdownProjection.EMPTY : toCategoryBreakdown((Object[]) rows.getFirst(), 0);
+    }
+
+    /**
+     * Same social-category buckets as {@link #countCategoryBreakdown}, but one row per
+     * organization id instead of one aggregate over the whole list — for a report's
+     * organization-level (leaf) export rows, which have no region/district code to resolve
+     * a sub-tree from and so cannot use {@link #countCategoryBreakdown} one node at a time
+     * without an N+1 query per organization. An organization with zero matching cases in
+     * the range is simply absent from the result (see {@code countGroupedByOrganization}).
+     */
+    public List<Form8CategoryBreakdownByOrganizationProjection> countCategoryBreakdownGroupedByOrganization(
+            List<Long> organizationIds,
+            Instant fromInclusive,
+            Instant toExclusive,
+            String diagnosisCode
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = "select t.sender_organization_id as organization_id, " + CATEGORY_BREAKDOWN_COLUMNS
+                + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
+
+        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+                .getResultList();
+
+        return rows.stream()
+                .map(row -> {
+                    Object[] r = (Object[]) row;
+                    return new Form8CategoryBreakdownByOrganizationProjection(
+                            ((Number) r[0]).longValue(), toCategoryBreakdown(r, 1)
+                    );
+                })
+                .toList();
     }
 
     private String unionSource(List<Long> organizationIds) {
@@ -164,11 +199,11 @@ public class Form8ReportRepository {
                 .setParameter("diagnosisCode", diagnosisCode);
     }
 
-    private Form8CategoryBreakdownProjection toCategoryBreakdown(Object[] row) {
+    private Form8CategoryBreakdownProjection toCategoryBreakdown(Object[] row, int offset) {
         return new Form8CategoryBreakdownProjection(
-                count(row, 0), count(row, 1), count(row, 2), count(row, 3),
-                count(row, 4), count(row, 5), count(row, 6), count(row, 7),
-                count(row, 8), count(row, 9), count(row, 10), count(row, 11)
+                count(row, offset), count(row, offset + 1), count(row, offset + 2), count(row, offset + 3),
+                count(row, offset + 4), count(row, offset + 5), count(row, offset + 6), count(row, offset + 7),
+                count(row, offset + 8), count(row, offset + 9), count(row, offset + 10), count(row, offset + 11)
         );
     }
 

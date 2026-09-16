@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.report.form6.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uz.uzinfocom.app.modules.report.form6.application.query.dto.Form6AgeBreakdownByOrganizationProjection;
 import uz.uzinfocom.app.modules.report.form6.application.query.dto.Form6AgeBreakdownProjection;
 import uz.uzinfocom.app.modules.report.form6.application.query.dto.Form6AgeBreakdownResponse;
 import uz.uzinfocom.app.modules.report.form6.application.query.dto.Form6AgeGroupRowResponse;
@@ -20,6 +21,7 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.ToLongFunction;
@@ -144,6 +146,55 @@ public class Form6ReportQueryService implements ReportCountSource<Long> {
         );
 
         return new Form6AgeBreakdownResponse(node.code(), node.name(), zipAgeGroups(currentCounts, previousCounts));
+    }
+
+    /**
+     * Age-group breakdown for a batch of organization-level (leaf) export rows in one pair of
+     * grouped queries, keyed by {@link Form6ReportNodeResponse#code()} (the organization id as
+     * a string) — the counterpart to {@link #getAgeBreakdown} for nodes with no region/district
+     * code to resolve a subtree from, avoiding one query per organization on a countrywide
+     * export. An organization absent from the result (no matching cases in either period) still
+     * gets a zero-filled row.
+     */
+    public Map<String, List<Form6AgeGroupRowResponse>> getAgeBreakdownByOrganization(
+            List<Long> organizationIds, LocalDate from, LocalDate to, String diagnosisCode
+    ) {
+        if (organizationIds == null || organizationIds.isEmpty()) {
+            return Map.of();
+        }
+
+        ReportDateRange currentRange = reportDateRangeResolver.resolve(from, to);
+        ReportDateRange previousRange = reportDateRangeResolver.resolve(from, to, 1);
+
+        Map<Long, Form6AgeBreakdownProjection> currentByOrganization = groupByOrganizationId(
+                form6ReportRepository.countAgeBreakdownGroupedByOrganization(
+                        organizationIds, currentRange.fromInclusive(), currentRange.toExclusive(), diagnosisCode
+                )
+        );
+        Map<Long, Form6AgeBreakdownProjection> previousByOrganization = groupByOrganizationId(
+                form6ReportRepository.countAgeBreakdownGroupedByOrganization(
+                        organizationIds, previousRange.fromInclusive(), previousRange.toExclusive(), diagnosisCode
+                )
+        );
+
+        Map<String, List<Form6AgeGroupRowResponse>> result = new HashMap<>();
+        for (Long organizationId : organizationIds) {
+            Form6AgeBreakdownProjection current =
+                    currentByOrganization.getOrDefault(organizationId, Form6AgeBreakdownProjection.EMPTY);
+            Form6AgeBreakdownProjection previous =
+                    previousByOrganization.getOrDefault(organizationId, Form6AgeBreakdownProjection.EMPTY);
+            result.put(String.valueOf(organizationId), zipAgeGroups(current, previous));
+        }
+        return result;
+    }
+
+    private Map<Long, Form6AgeBreakdownProjection> groupByOrganizationId(
+            List<Form6AgeBreakdownByOrganizationProjection> rows
+    ) {
+        return rows.stream().collect(Collectors.toMap(
+                Form6AgeBreakdownByOrganizationProjection::organizationId,
+                Form6AgeBreakdownByOrganizationProjection::breakdown
+        ));
     }
 
     @Override

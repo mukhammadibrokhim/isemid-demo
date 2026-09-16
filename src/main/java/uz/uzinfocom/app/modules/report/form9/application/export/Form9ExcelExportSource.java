@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.report.form9.application.query.Form9ReportQueryService;
 import uz.uzinfocom.app.modules.report.form9.application.query.Form9ReportQueryService.MonthColumn;
 import uz.uzinfocom.app.modules.report.form9.application.query.dto.Form9MonthRowResponse;
+import uz.uzinfocom.app.modules.report.form9.application.query.dto.Form9MonthlyBreakdownResponse;
 import uz.uzinfocom.app.modules.report.form9.application.query.dto.Form9ReportNodeResponse;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyExportFlattener;
 import uz.uzinfocom.app.platform.export.application.ExcelExportSource;
@@ -28,12 +29,11 @@ import java.util.stream.Collectors;
  * registered + hospitalized) — mirrors {@code Form6ExcelExportSource} for the base geography
  * columns (code/name/previous year/current year/delta per metric), plus one extra column group
  * per calendar month (the same breakdown the UI's per-row "Ойлик кесим" popup shows, both
- * metrics), fetched for every region- and district-level row via {@link
- * ReportHierarchyExportFlattener}'s node-visitor overload so it happens in the same tree walk
- * instead of a second pass. Organization-level rows (the deepest level this system models)
- * leave the month columns blank — {@code Form9ReportQueryService#getMonthlyBreakdown} only
- * resolves a region or a district, never a single organization, so there is nothing genuine to
- * put there rather than a fabricated number.
+ * metrics), fetched for every row — region, district, and organization alike — via {@link
+ * ReportHierarchyExportFlattener}'s node-visitor overloads so it happens in the same tree walk
+ * instead of a second pass. Region/district rows go through {@code
+ * Form9ReportQueryService#getMonthlyBreakdown}; organization leaves (the one level {@code
+ * resolveNode} can't reach) go through {@code #getMonthlyBreakdownForOrganization} instead.
  */
 @Component
 @RequiredArgsConstructor
@@ -46,9 +46,9 @@ public class Form9ExcelExportSource implements ExcelExportSource<Form9ExportFilt
     private final MessageResolver messageResolver;
 
     /**
-     * One export row: the node's own overall counts, plus (for a region/district row) its
-     * monthly breakdown keyed by {@link Form9MonthRowResponse#monthCode()} — empty for an
-     * organization-level row, never {@code null}, so column extractors need no null-check.
+     * One export row: the node's own overall counts, plus its monthly breakdown keyed by {@link
+     * Form9MonthRowResponse#monthCode()} — populated for every row (region, district, and
+     * organization), never {@code null}, so column extractors need no null-check.
      */
     public record Form9ExportRow(Form9ReportNodeResponse node, Map<String, Form9MonthRowResponse> monthsByCode) {
     }
@@ -86,17 +86,26 @@ public class Form9ExcelExportSource implements ExcelExportSource<Form9ExportFilt
                 Form9ReportNodeResponse::hasChildren,
                 (node, regionCode, districtCode) -> monthsByNodeCode.put(
                         node.code(),
-                        form9ReportQueryService.getMonthlyBreakdown(
-                                        regionCode, districtCode, filter.from(), filter.to(), filter.diagnosisCode()
-                                )
-                                .rows().stream()
-                                .collect(Collectors.toMap(Form9MonthRowResponse::monthCode, Function.identity()))
+                        toMonthsByCode(form9ReportQueryService.getMonthlyBreakdown(
+                                regionCode, districtCode, filter.from(), filter.to(), filter.diagnosisCode()
+                        ))
+                ),
+                (node, organizationCode) -> monthsByNodeCode.put(
+                        node.code(),
+                        toMonthsByCode(form9ReportQueryService.getMonthlyBreakdownForOrganization(
+                                Long.valueOf(organizationCode), filter.from(), filter.to(), filter.diagnosisCode()
+                        ))
                 )
         );
 
         return flattened.stream()
                 .map(node -> new Form9ExportRow(node, monthsByNodeCode.getOrDefault(node.code(), Map.of())))
                 .toList();
+    }
+
+    private Map<String, Form9MonthRowResponse> toMonthsByCode(Form9MonthlyBreakdownResponse breakdown) {
+        return breakdown.rows().stream()
+                .collect(Collectors.toMap(Form9MonthRowResponse::monthCode, Function.identity()));
     }
 
     @Override

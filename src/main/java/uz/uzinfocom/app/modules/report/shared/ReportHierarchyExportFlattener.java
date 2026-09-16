@@ -58,6 +58,18 @@ public class ReportHierarchyExportFlattener {
     }
 
     /**
+     * Callback invoked once per organization-level leaf node — the one level {@code
+     * ReportHierarchyService#resolveNode} cannot reach (it only resolves a region or a district),
+     * so a per-node breakdown for an organization needs its own id rather than a
+     * {@code (regionCode, districtCode)} tuple. {@code organizationCode} is the node's own code
+     * (an organization id, per {@code codeOf}), not a geography code.
+     */
+    @FunctionalInterface
+    public interface OrganizationVisitor<N> {
+        void visit(N node, String organizationCode);
+    }
+
+    /**
      * @param rootBreakdown   the report's own {@code getRoot(...)} result — regions for an
      *                        ALL-scope caller, districts for REGION scope, organizations for
      *                        DISTRICT scope, or a single row for ORGANIZATION scope, plus the
@@ -77,15 +89,14 @@ public class ReportHierarchyExportFlattener {
             Function<N, String> codeOf,
             Predicate<N> hasChildrenOf
     ) {
-        return flattenAll(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, null);
+        return flattenAll(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, null, null);
     }
 
     /**
      * Like {@link #flattenAll(List, BiFunction, Function, Predicate)}, but also calls {@code
-     * nodeVisitor} for every region- and district-level node the walk passes through (never for
-     * organization-level leaves — the deepest level this system models, and the "Jami" row,
-     * visited with a {@code (null, null)} whole-scope tuple instead of being treated as a real
-     * region/district). Lets a report attach one extra per-node dataset (e.g. an age-group
+     * nodeVisitor} for every region- and district-level node the walk passes through (the "Jami"
+     * row visited with a {@code (null, null)} whole-scope tuple instead of being treated as a
+     * real region/district). Lets a report attach one extra per-node dataset (e.g. an age-group
      * breakdown) to its export in the same walk, instead of a second separate tree walk.
      */
     public <N> List<N> flattenAll(
@@ -95,16 +106,37 @@ public class ReportHierarchyExportFlattener {
             Predicate<N> hasChildrenOf,
             NodeVisitor<N> nodeVisitor
     ) {
+        return flattenAll(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, nodeVisitor, null);
+    }
+
+    /**
+     * Like {@link #flattenAll(List, BiFunction, Function, Predicate, NodeVisitor)}, but also
+     * calls {@code organizationVisitor} for every organization-level leaf the walk passes through
+     * — the one level {@code nodeVisitor} never reaches, since a region/district-scoped
+     * breakdown (via {@code ReportHierarchyService#resolveNode}) can't resolve a single
+     * organization. Pass {@code null} for either visitor to skip it.
+     */
+    public <N> List<N> flattenAll(
+            List<N> rootBreakdown,
+            BiFunction<String, String, List<N>> childrenFetcher,
+            Function<N, String> codeOf,
+            Predicate<N> hasChildrenOf,
+            NodeVisitor<N> nodeVisitor,
+            OrganizationVisitor<N> organizationVisitor
+    ) {
         ResolvedOrganizationScope scope = organizationScopeResolver.resolve(requireCurrentOrganization());
         List<N> result = new ArrayList<>();
 
         switch (scope.mode()) {
-            case ALL -> appendRegions(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor);
-            case REGION -> appendDistricts(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor);
-            case DISTRICT, ORGANIZATION -> result.addAll(rootBreakdown);
-            // rootBreakdown is already the bottom of the tree (organizations, or the
-            // caller's own single-row total) — nothing more to fetch, and no node-scoped
-            // breakdown to visit (organizations have none).
+            case ALL -> appendRegions(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor, organizationVisitor);
+            case REGION -> appendDistricts(rootBreakdown, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor, organizationVisitor);
+            case DISTRICT, ORGANIZATION -> {
+                // rootBreakdown is already the bottom of the tree: organizations for a
+                // DISTRICT-scope caller, or the caller's own single-row total for an
+                // ORGANIZATION-scope caller — either way every row here IS an organization leaf.
+                result.addAll(rootBreakdown);
+                visitOrganizations(organizationVisitor, rootBreakdown, codeOf);
+            }
         }
 
         return result;
@@ -123,7 +155,8 @@ public class ReportHierarchyExportFlattener {
             Function<N, String> codeOf,
             Predicate<N> hasChildrenOf,
             List<N> result,
-            NodeVisitor<N> nodeVisitor
+            NodeVisitor<N> nodeVisitor,
+            OrganizationVisitor<N> organizationVisitor
     ) {
         for (N region : regions) {
             result.add(region);
@@ -133,7 +166,7 @@ public class ReportHierarchyExportFlattener {
                 continue;
             }
             List<N> districts = childrenFetcher.apply(code, null);
-            appendDistricts(districts, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor);
+            appendDistricts(districts, childrenFetcher, codeOf, hasChildrenOf, result, nodeVisitor, organizationVisitor);
         }
     }
 
@@ -143,7 +176,8 @@ public class ReportHierarchyExportFlattener {
             Function<N, String> codeOf,
             Predicate<N> hasChildrenOf,
             List<N> result,
-            NodeVisitor<N> nodeVisitor
+            NodeVisitor<N> nodeVisitor,
+            OrganizationVisitor<N> organizationVisitor
     ) {
         for (N district : districts) {
             result.add(district);
@@ -152,10 +186,9 @@ public class ReportHierarchyExportFlattener {
             if (!hasChildrenOf.test(district)) {
                 continue;
             }
-            result.addAll(childrenFetcher.apply(null, code));
-            // Organizations added here are leaves (the deepest level this system models) and
-            // are never passed to nodeVisitor — there is no deeper node-scoped breakdown for
-            // a single organization via this walk.
+            List<N> organizations = childrenFetcher.apply(null, code);
+            result.addAll(organizations);
+            visitOrganizations(organizationVisitor, organizations, codeOf);
         }
     }
 
@@ -167,6 +200,17 @@ public class ReportHierarchyExportFlattener {
             nodeVisitor.visit(node, null, null);
         } else {
             nodeVisitor.visit(node, regionCode, districtCode);
+        }
+    }
+
+    private <N> void visitOrganizations(
+            OrganizationVisitor<N> organizationVisitor, List<N> organizations, Function<N, String> codeOf
+    ) {
+        if (organizationVisitor == null) {
+            return;
+        }
+        for (N organization : organizations) {
+            organizationVisitor.visit(organization, codeOf.apply(organization));
         }
     }
 

@@ -161,13 +161,23 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         ObservabilityProperties.HttpLogging config = properties.getHttpLogging();
         long durationMs = (System.nanoTime() - startedAtNanos) / 1_000_000L;
         int status = response.getStatus();
-        boolean slow = durationMs >= config.getSlowRequestThresholdMs();
-        boolean success = status < 400 && directFailure == null && asyncOutcome == null;
+        // A long-lived SSE stream (notification bell, export progress) is designed to run
+        // until its own emitter timeout fires, complete cleanly, and let the client
+        // reconnect - that's a routine lifecycle event, not a hung request. Only treat
+        // "timeout" as a failure when the response never made it to a successful,
+        // already-committed state (i.e. the handler genuinely never produced a result).
+        boolean gracefulStreamTimeout = "timeout".equals(asyncOutcome)
+                && directFailure == null
+                && response.isCommitted()
+                && status > 0 && status < 400;
+        boolean slow = !gracefulStreamTimeout && durationMs >= config.getSlowRequestThresholdMs();
+        boolean success = gracefulStreamTimeout
+                || (status < 400 && directFailure == null && asyncOutcome == null);
         boolean serverFailure = status >= 500
                 || directFailure instanceof Error
                 || (directFailure != null && status < 400)
                 || "error".equals(asyncOutcome)
-                || "timeout".equals(asyncOutcome);
+                || ("timeout".equals(asyncOutcome) && !gracefulStreamTimeout);
 
         persistRequestLog(request, response, traceId, durationMs, status, directFailure, asyncOutcome, config);
 

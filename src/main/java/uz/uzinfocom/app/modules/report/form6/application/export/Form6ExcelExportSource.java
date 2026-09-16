@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
@@ -27,12 +28,12 @@ import java.util.stream.Collectors;
  * Excel export for "Form 6" (geography-first, year-over-year) — mirrors {@code
  * Form1ExcelExportSource} for the base geography columns (code/name/previous year/current
  * year/delta), plus one extra column group per age bucket (the same breakdown the UI's
- * per-row "Yosh tarkibi" popup shows), fetched for every region- and district-level row via
- * {@link ReportHierarchyExportFlattener}'s node-visitor overload so it happens in the same
- * tree walk instead of a second pass. Organization-level rows (the deepest level this system
- * models) leave the age-group columns blank — {@code Form6ReportQueryService#getAgeBreakdown}
- * only resolves a region or a district, never a single organization, so there is nothing
- * genuine to put there rather than a fabricated number.
+ * per-row "Yosh tarkibi" popup shows). Region- and district-level rows get it via {@link
+ * ReportHierarchyExportFlattener}'s node-visitor overload, in the same tree walk. Organization-
+ * level rows (the deepest level this system models) have no region/district code to resolve a
+ * subtree from, so they are filled separately in one batch via {@code
+ * Form6ReportQueryService#getAgeBreakdownByOrganization} after the walk — one pair of grouped
+ * queries for every organization leaf in the export, instead of one query each.
  */
 @Component
 @RequiredArgsConstructor
@@ -93,9 +94,32 @@ public class Form6ExcelExportSource implements ExcelExportSource<Form6ExportFilt
                 )
         );
 
+        List<Long> organizationIds = flattened.stream()
+                .map(Form6ReportNodeResponse::code)
+                .filter(code -> !ageGroupsByNodeCode.containsKey(code))
+                .map(this::parseOrganizationId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        form6ReportQueryService.getAgeBreakdownByOrganization(
+                        organizationIds, filter.from(), filter.to(), filter.diagnosisCode()
+                )
+                .forEach((code, rows) -> ageGroupsByNodeCode.put(
+                        code, rows.stream().collect(Collectors.toMap(Form6AgeGroupRowResponse::code, Function.identity()))
+                ));
+
         return flattened.stream()
                 .map(node -> new Form6ExportRow(node, ageGroupsByNodeCode.getOrDefault(node.code(), Map.of())))
                 .toList();
+    }
+
+    /** {@code null} for a region/district code (letters/dashes) rather than a numeric organization id. */
+    private Long parseOrganizationId(String code) {
+        try {
+            return Long.parseLong(code);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Override
