@@ -11,6 +11,7 @@ import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.orchestration.notification.application.dto.NotificationFilterRequest;
 import uz.uzinfocom.app.orchestration.notification.application.dto.NotificationResponse;
+import uz.uzinfocom.app.orchestration.notification.application.specification.NotificationSpecification;
 import uz.uzinfocom.app.orchestration.notification.domain.Notification;
 import uz.uzinfocom.app.orchestration.notification.domain.NotificationType;
 import uz.uzinfocom.app.orchestration.notification.repository.NotificationRepository;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class NotificationQueryService {
 
     private final NotificationRepository notificationRepository;
+    private final NotificationSpecification notificationSpecification;
     private final MessageResolver messageResolver;
     private final JsonMapper objectMapper;
 
@@ -34,9 +36,10 @@ public class NotificationQueryService {
                 Sort.by(Sort.Direction.DESC, "occurredAt")
         );
 
-        Page<Notification> page = Boolean.TRUE.equals(filter.unreadOnly())
-                ? notificationRepository.findByRecipientUserIdAndReadFalseOrderByOccurredAtDesc(currentUserId, pageable)
-                : notificationRepository.findByRecipientUserIdOrderByOccurredAtDesc(currentUserId, pageable);
+        Page<Notification> page = notificationRepository.findAll(
+                notificationSpecification.byFilter(currentUserId, filter),
+                pageable
+        );
 
         return page.map(this::toResponse);
     }

@@ -3,6 +3,7 @@ package uz.uzinfocom.app.orchestration.notification.application;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
+import uz.uzinfocom.app.orchestration.notification.application.specification.NotificationSpecification;
 import uz.uzinfocom.app.orchestration.notification.domain.NotificationType;
 import uz.uzinfocom.app.orchestration.notification.repository.NotificationRepository;
 
@@ -16,10 +17,11 @@ import static org.mockito.Mockito.when;
 class NotificationQueryServiceTest {
 
     private final NotificationRepository notificationRepository = mock(NotificationRepository.class);
+    private final NotificationSpecification notificationSpecification = mock(NotificationSpecification.class);
     private final MessageResolver messageResolver = mock(MessageResolver.class);
 
     private final NotificationQueryService service = new NotificationQueryService(
-            notificationRepository, messageResolver, JsonMapper.builder().build()
+            notificationRepository, notificationSpecification, messageResolver, JsonMapper.builder().build()
     );
 
     @Test
