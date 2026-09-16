@@ -59,7 +59,7 @@ public class ActQueryService {
 
         Specification<Act> spec = ActSpecification.byFilter(filter)
                 .and((root, query, cb) -> CardCaseScopeSpecification.scopePredicate(
-                        root.get("card"), cb, scopePredicateFactory, scope, CaseFormType.ANY));
+                        root.join("card"), cb, scopePredicateFactory, scope, CaseFormType.ANY));
 
         return queryTable(spec, filter);
     }

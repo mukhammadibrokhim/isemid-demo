@@ -99,10 +99,20 @@ public class CardQueryService {
         return organizationScopeResolver.resolve(organization);
     }
 
+    /**
+     * Single-card lookup scoped the same way as {@link #findAll} — a card
+     * outside the caller's organization scope 404s here rather than being
+     * returned to anyone who knows its id.
+     */
+    private Card findVisible(Long id) {
+        return cardRepository
+                .findOne(CardCaseScopeSpecification.visibleById(id, scopePredicateFactory, currentScope()))
+                .orElseThrow(() -> new CardNotFoundException(id));
+    }
+
     @Transactional(readOnly = true)
     public CardDetailResponse getById(Long id) {
-        Card card = cardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new CardNotFoundException(id));
+        Card card = findVisible(id);
 
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
         return handler.handleToResponse(card);
@@ -118,8 +128,7 @@ public class CardQueryService {
      */
     @Transactional(readOnly = true)
     public CardPdfResponse getPdf(Long id) {
-        Card card = cardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new CardNotFoundException(id));
+        Card card = findVisible(id);
 
         if (card.isAttachedToForm0581()) {
             // PDF export for form0581-owned cards isn't built yet — Form0581PdfMapper

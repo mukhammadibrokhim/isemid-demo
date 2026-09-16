@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapper;
@@ -18,6 +19,7 @@ import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFact
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,7 +35,8 @@ import static org.mockito.Mockito.when;
  * (assignedToUserId forced to the caller, mirroring {@code ActQueryService});
  * it no longer widens for broader-scope (REGION/ALL) organizations, since
  * that org-wide view now lives in {@code findAll} instead — plus {@code
- * findAll}'s organization-selection gate.
+ * findAll}/{@code getById}/{@code getPdf}'s organization-selection gate, and
+ * {@code getById}/{@code getPdf} 404ing on a card outside the caller's scope.
  */
 class CardQueryServiceScopedViewsTest {
 
@@ -109,6 +112,42 @@ class CardQueryServiceScopedViewsTest {
     @Test
     void findAllRefusesWhenNoOrganizationIsSelected() {
         assertThatThrownBy(() -> service.findAll(emptyFilter()))
+                .isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
+    void getByIdNotFoundWhenCardOutsideCallerScope() {
+        CurrentOrganizationContext.set(organization());
+        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ORGANIZATION));
+        when(cardRepository.findOne(any(Specification.class))).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getById(1L))
+                .isInstanceOf(CardNotFoundException.class);
+
+        verify(cardRepository, times(1)).findOne(any(Specification.class));
+    }
+
+    @Test
+    void getByIdRefusesWhenNoOrganizationIsSelected() {
+        assertThatThrownBy(() -> service.getById(1L))
+                .isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
+    void getPdfNotFoundWhenCardOutsideCallerScope() {
+        CurrentOrganizationContext.set(organization());
+        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ORGANIZATION));
+        when(cardRepository.findOne(any(Specification.class))).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getPdf(1L))
+                .isInstanceOf(CardNotFoundException.class);
+
+        verify(cardRepository, times(1)).findOne(any(Specification.class));
+    }
+
+    @Test
+    void getPdfRefusesWhenNoOrganizationIsSelected() {
+        assertThatThrownBy(() -> service.getPdf(1L))
                 .isInstanceOf(CardScopeViolationException.class);
     }
 

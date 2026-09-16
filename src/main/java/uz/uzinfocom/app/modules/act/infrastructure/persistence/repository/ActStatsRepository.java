@@ -75,6 +75,6 @@ public class ActStatsRepository extends AbstractCaseStatsRepository<Act> {
     }
 
     private Predicate ownerScope(Root<Act> root, CriteriaBuilder cb, ResolvedOrganizationScope scope, CaseFormType formType) {
-        return CardCaseScopeSpecification.scopePredicate(root.get("card"), cb, scopePredicateFactory, scope, formType);
+        return CardCaseScopeSpecification.scopePredicate(root.join("card"), cb, scopePredicateFactory, scope, formType);
     }
 }
