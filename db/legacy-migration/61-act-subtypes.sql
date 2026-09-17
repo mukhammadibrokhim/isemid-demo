@@ -6,6 +6,12 @@
 --         lis_act_id, lis_response, subject_type, tin(->identifier), delivered_date).
 --   sampler_identifier_type/value <- legacy `tin` ('TIN' + tin::text).
 --   participant_identifier_* -> NULL.  *_detail: +version=0.
+--   2026-09-17 yangilanish: target sxema 02-mapping yozilgandan beri siljigan
+--   (isemid-v2 "act LIS return flow" o'zgarishi) — act_number va subject
+--   act153/154/223'dan bazaviy act'ga ko'chirilgan; act1XX.lis_protocol_response/
+--   lis_act_response endi bazaviy act.lis_response'ga birlashtirilib yoziladi
+--   (pastda, act_number bilan birga backfill qilinadi). `subject`ga legacy'da
+--   mos maydon yo'q -> NULL qoladi.
 -- Bog'liqlik: 60-act bajarilgan.
 -- =====================================================================
 \set ON_ERROR_STOP on
@@ -14,7 +20,7 @@ SET TIME ZONE 'Asia/Tashkent';
 
 -- ================= act153 =================
 INSERT INTO public2.act153 (
-    id, act_number, activity_type_code, sampling_documents, goal,
+    id, activity_type_code, sampling_documents, goal,
     sample_taken_date_time, delivered_date_time, purpose_id,
     sampling_purpose_uz, sampling_purpose_ru, sampling_purpose_loinc,
     sampler_full_name, sampler_position_id, sampler_position_uz, sampler_position_ru,
@@ -26,7 +32,7 @@ INSERT INTO public2.act153 (
     sampler_identifier_type, sampler_identifier_value, participant_identifier_type, participant_identifier_value
 )
 SELECT
-    l.id, l.act_number, l.activity_type_code, l.sampling_documents, l.goal,
+    l.id, l.activity_type_code, l.sampling_documents, l.goal,
     l.sample_taken_date_time, l.delivered_date_time, l.purpose_id,
     l.sampling_purpose_uz, l.sampling_purpose_ru, l.sampling_purpose_loinc,
     l.sampler_full_name, l.sampler_position_id, l.sampler_position_uz, l.sampler_position_ru,
@@ -65,7 +71,7 @@ JOIN public2.act153 p ON p.id = d.act153_id;
 
 -- ================= act154 =================
 INSERT INTO public2.act154 (
-    id, title, act_number, activity_type_code, sample_taken_date_time, delivered_date_time,
+    id, title, activity_type_code, sample_taken_date_time, delivered_date_time,
     document_confirm_sampling, goal, purpose_id,
     sampling_purpose_uz, sampling_purpose_ru, sampling_purpose_loinc,
     sampler_full_name, sampler_position_id, sampler_position_uz, sampler_position_ru,
@@ -78,7 +84,7 @@ INSERT INTO public2.act154 (
     sampler_identifier_type, sampler_identifier_value, participant_identifier_type, participant_identifier_value
 )
 SELECT
-    l.id, l.title, l.act_number, l.activity_type_code, l.sample_taken_date_time, l.delivered_date_time,
+    l.id, l.title, l.activity_type_code, l.sample_taken_date_time, l.delivered_date_time,
     l.document_confirm_sampling, l.goal, l.purpose_id,
     l.sampling_purpose_uz, l.sampling_purpose_ru, l.sampling_purpose_loinc,
     l.sampler_full_name, l.sampler_position_id, l.sampler_position_uz, l.sampler_position_ru,
@@ -111,6 +117,22 @@ SELECT
     d.sample_qt_unit, d.sample_volume, d.sample_volume_unit, d.note
 FROM public.act154_detail d
 JOIN public2.act154 p ON p.id = d.act154_id;
+
+-- name_of_object/object_address: target'da alohida ustun yo'q -> additional_info'ga
+-- qo'shib qo'yamiz (ma'lumot yo'qolmasin), + note-log.
+UPDATE public2.act154 a
+SET additional_info = trim(both ' | ' from concat_ws(' | ', NULLIF(a.additional_info, ''),
+      concat_ws(', ',
+        CASE WHEN l.name_of_object IS NOT NULL THEN 'Ob''ekt: '||l.name_of_object END,
+        CASE WHEN l.object_address IS NOT NULL THEN 'Manzil: '||l.object_address END)))
+FROM public.act154 l
+WHERE a.id = l.id AND (l.name_of_object IS NOT NULL OR l.object_address IS NOT NULL);
+
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act154', l.id, 'name_of_object/object_address additional_info''ga qo''shildi (target''da alohida ustun yo''q)',
+       concat_ws('; ', l.name_of_object, l.object_address)
+FROM public.act154 l
+WHERE l.name_of_object IS NOT NULL OR l.object_address IS NOT NULL;
 
 -- ================= act156 =================
 INSERT INTO public2.act156 (
@@ -159,7 +181,7 @@ JOIN public2.act156 p ON p.id = d.act156_id;
 
 -- ================= act223 =================
 INSERT INTO public2.act223 (
-    id, act_number, supporting_documents_for_sampling, goal, activity_type_code,
+    id, supporting_documents_for_sampling, goal, activity_type_code,
     sampler_full_name, sampler_position_id, sampler_position_uz, sampler_position_ru,
     participant_full_name, participant_position_id, participant_position_uz, participant_position_ru,
     purpose_id, sampling_purpose_uz, sampling_purpose_ru, sampling_purpose_loinc,
@@ -171,7 +193,7 @@ INSERT INTO public2.act223 (
     sampler_identifier_type, sampler_identifier_value, participant_identifier_type, participant_identifier_value
 )
 SELECT
-    l.id, l.act_number, l.supporting_documents_for_sampling, l.goal, l.activity_type_code,
+    l.id, l.supporting_documents_for_sampling, l.goal, l.activity_type_code,
     l.sampler_full_name, l.sampler_position_id, l.sampler_position_uz, l.sampler_position_ru,
     l.participant_full_name, l.participant_position_id, l.participant_position_uz, l.participant_position_ru,
     l.purpose_id, l.sampling_purpose_uz, l.sampling_purpose_ru, l.sampling_purpose_loinc,
@@ -202,6 +224,54 @@ SELECT
 FROM public.act223_detail d
 JOIN public2.act223 p ON p.id = d.act223_id;
 
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act223_detail', d.id, 'target''da ustun yo''q — tashlandi',
+       concat_ws('; ',
+         CASE WHEN d.delivery_conditions_uz IS NOT NULL THEN 'delivery_conditions_uz='||d.delivery_conditions_uz END,
+         CASE WHEN d.storage_conditions_uz IS NOT NULL THEN 'storage_conditions_uz='||d.storage_conditions_uz END)
+FROM public.act223_detail d
+JOIN public2.act223_detail x ON x.id = d.id
+WHERE d.delivery_conditions_uz IS NOT NULL OR d.storage_conditions_uz IS NOT NULL;
+
+-- ---- act153/154/223 act_number -> base act.act_number ----
+-- 02-mapping-5434.md yozilgandan keyin target sxema o'zgargan: act_number endi
+-- act153/154/223'da EMAS, bazaviy act'da (subject bilan birga, isemid-v2
+-- "act LIS return flow" o'zgarishi). Backfill.
+UPDATE public2.act a SET act_number = l.act_number FROM public.act153 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
+UPDATE public2.act a SET act_number = l.act_number FROM public.act154 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
+UPDATE public2.act a SET act_number = l.act_number FROM public.act223 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
+
+-- ---- act153/154/223 lis_protocol_response + lis_act_response -> act.lis_response ----
+-- Bu ikkisi subtype jadvalining O'ZIDA (base act.lis_response'dan alohida) LIS
+-- laboratoriya javobi. Target'da faqat bitta act.lis_response bor -> ikkalasini
+-- birlashtirib shunga yozamiz (base qiymat bo'lsa unga tegilmaydi).
+UPDATE public2.act a
+SET lis_response = COALESCE(a.lis_response, x.merged)
+FROM (
+  SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
+           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response)) AS merged
+  FROM public.act153 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION ALL
+  SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
+           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response))
+  FROM public.act154 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION ALL
+  SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
+           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response))
+  FROM public.act223 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+) x
+WHERE a.id = x.id;
+
+INSERT INTO public2._migration_notes (source_table, source_id, note)
+SELECT 'act', y.id, 'act1XX.lis_protocol_response/lis_act_response birlashtirilib act.lis_response''ga yozildi'
+FROM (
+  SELECT s.id FROM public.act153 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION
+  SELECT s.id FROM public.act154 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION
+  SELECT s.id FROM public.act223 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+) y;
+
 -- ================= act224 =================
 INSERT INTO public2.act224 (
     id, tin, institution_name, institution_address, activity_type_code,
@@ -230,6 +300,17 @@ SELECT
     d.recommended_activities, d.execution_period
 FROM public.act224_detail d
 JOIN public2.act224 p ON p.id = d.act224_id;
+
+-- region_code: target'da alohida ustun yo'q -> additional_info'ga qo'shib qo'yamiz.
+UPDATE public2.act224 a
+SET additional_info = trim(both ' | ' from concat_ws(' | ', NULLIF(a.additional_info, ''), 'Region: '||l.region_code))
+FROM public.act224 l
+WHERE a.id = l.id AND l.region_code IS NOT NULL;
+
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act224', l.id, 'region_code additional_info''ga qo''shildi (target''da alohida ustun yo''q)', l.region_code
+FROM public.act224 l
+WHERE l.region_code IS NOT NULL;
 
 COMMIT;
 

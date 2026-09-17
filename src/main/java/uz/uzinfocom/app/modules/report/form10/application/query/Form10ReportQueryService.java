@@ -60,9 +60,16 @@ import java.util.stream.Collectors;
  * from the node code's shape, since region/district codes (e.g. {@code
  * "1726"}) are themselves plain digit strings indistinguishable that way from
  * an organization id. The under-14 intensive uses the <b>same total territory
- * population</b> (there is no separate child-population source). {@code koef}
- * (default 100000) is a flat request parameter. Rate / growth-% / rounding
- * arithmetic lives here in Java, matching {@code Form11ReportQueryService}.
+ * population</b> (there is no separate child-population source).
+ * <p>
+ * {@code koef} (default 100000) is a flat request parameter. Rate / rounding
+ * arithmetic lives here in Java. Two figures deliberately diverge from
+ * {@code Form11ReportQueryService}, both per the published "Shakl 10"
+ * template rather than Form 11's plainer conventions: the absolute-count
+ * "growth" figure is a plain {@code |curr - prev|} case-count difference,
+ * not a percentage; and the intensive-rate growth ({@link #growthDisplay})
+ * is a bounded/"X marta" display string, not the plain unbounded percentage
+ * Form 11 still returns.
  */
 @Service
 @RequiredArgsConstructor
@@ -172,8 +179,8 @@ public class Form10ReportQueryService implements ReportCountSource<Form10Counts>
         double intensivePrev = intensity(absPrev, popPrev, koef);
         double intensiveCurr = intensity(absCurr, popCurr, koef);
         return new Form10Metric(
-                absPrev, absCurr, round2(growthPercent(absPrev, absCurr)),
-                round2(intensivePrev), round2(intensiveCurr), round2(growthPercent(intensivePrev, intensiveCurr))
+                absPrev, absCurr, Math.abs(absCurr - absPrev),
+                round2(intensivePrev), round2(intensiveCurr), growthDisplay(intensivePrev, intensiveCurr)
         );
     }
 
@@ -221,15 +228,48 @@ public class Form10ReportQueryService implements ReportCountSource<Form10Counts>
     }
 
     /**
-     * {@code ((curr - prev) / prev) * 100}. When {@code prev == 0}: {@code 0}
-     * if {@code curr == 0}, else {@code 100}. Matches {@code
-     * Form11ReportQueryService#growthPercent}.
+     * Reproduces the published "Shakl 10" template's growth-display formula (the {@code IFS(...)}
+     * behind the sample workbook's "o'sish/pasayish %" column) rather than a plain {@code
+     * ((curr - prev) / prev) * 100} — that plain formula is unbounded on the increase side (a
+     * 10x jump reads "900%"), so the template instead switches to a "X marta" ("X-fold") text
+     * once either direction's ratio reaches 2, and otherwise reports a percentage bounded under
+     * 100% by dividing against whichever of {@code prev}/{@code curr} is larger — not always
+     * {@code prev} as a plain formula would. Only diverges from the plain formula on increases;
+     * decreases (and the zero/equal edge cases) come out numerically identical either way, since
+     * {@code prev} is already the larger value there.
+     * <p>
+     * Branches, in order: equal → {@code "0"}; {@code prev == 0} → {@code "100"}; {@code curr ==
+     * 0} → {@code "-100"}; ratio ≥ 2 either direction → {@code "X marta"} / {@code "-X marta"}
+     * (one decimal, per the template); otherwise a plain-formatted percentage (two decimals).
+     * Form10-only — does <b>not</b> match {@code Form11ReportQueryService#growthPercent}, which
+     * still returns the plain unbounded percentage.
      */
-    private double growthPercent(double prev, double curr) {
-        if (prev == 0d) {
-            return curr == 0d ? 0d : 100d;
+    private String growthDisplay(double prev, double curr) {
+        if (prev == curr) {
+            return formatNumber(0d, 2);
         }
-        return ((curr - prev) / prev) * 100d;
+        if (prev == 0d) {
+            return formatNumber(100d, 2);
+        }
+        if (curr == 0d) {
+            return formatNumber(-100d, 2);
+        }
+        if (prev / curr >= 2d) {
+            return "-" + formatNumber(prev / curr, 1) + " marta";
+        }
+        if (curr / prev >= 2d) {
+            return formatNumber(curr / prev, 1) + " marta";
+        }
+        if (prev > curr) {
+            return formatNumber((100d - (curr * 100d / prev)) * -1d, 2);
+        }
+        return formatNumber(100d - (prev * 100d / curr), 2);
+    }
+
+    /** Fixed-scale decimal formatting with trailing zeros stripped (e.g. {@code -12.22}, {@code 4}, not {@code 4.0}). */
+    private String formatNumber(double value, int scale) {
+        BigDecimal rounded = BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_UP).stripTrailingZeros();
+        return rounded.scale() < 0 ? rounded.toBigInteger().toString() : rounded.toPlainString();
     }
 
     private double round2(double value) {

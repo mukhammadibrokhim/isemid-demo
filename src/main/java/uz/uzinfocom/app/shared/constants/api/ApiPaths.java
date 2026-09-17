@@ -59,8 +59,10 @@ public final class ApiPaths {
         public static final String BY_ID = "/{id}";
         public static final String USERS_BY_ORGANIZATION_ID = "/{id}/users";
         public static final String HIERARCHY_BY_ORGANIZATION_ID = "/{id}/hierarchy";
+        public static final String SYNC_BY_UUID = "/{uuid}/sync";
 
         public static final String ID = "id";
+        public static final String UUID = "uuid";
 
     }
 
@@ -720,14 +722,17 @@ public final class ApiPaths {
 
     /**
      * "Form 11" — «Yuqumli va parazitar kasalliklar bilan kasallanish
-     * ko'rsatkichlari», показатели заболеваемости: подтверждённые извещения
-     * (status = APPROVED), формы №058 + №058-1 объединены,
-     * организационно-иерархический drill-down (республика→регион→район
-     * →организация) с абсолютным и интенсивным (на koef населения) показателями,
-     * каждый — "O'tgan yil"/"Joriy yil"/"O'sish-Pasayish %" (как Form 6/8/9),
-     * плюс городской / сельский / детский (до 18 лет) срезы текущего периода;
-     * разбивки узла нет — только география. См. {@code Form11ReportController}
-     * под {@code modules.report.form11}.
+     * ko'rsatkichlari»: подтверждённые извещения (status = APPROVED), формы
+     * №058 + №058-1 объединены, организационно-иерархический drill-down
+     * (республика→регион→район→организация), только география. Структурно
+     * идентичен {@code Form10Report}: параметры — {@code year} + {@code
+     * period} ({@code ReportPeriod}: месяц / квартал / полугодие / 9 месяцев /
+     * год): два блока столбцов «Joriy davr» (месячный интервал периода) и
+     * «Yig'ma» (с января по конец периода), каждый — прошлый год / текущий год
+     * / прирост, с абсолютным и интенсивным (на koef населения территории из
+     * {@code ref_population}) показателями, отдельно по всему населению,
+     * городскому, сельскому населению и детям до 18 лет. См. {@code
+     * Form11ReportController} под {@code modules.report.form11}.
      */
     public static final class Form11Report {
         private Form11Report() {
@@ -984,6 +989,9 @@ public final class ApiPaths {
         public static final String COMPUTE = "/compute";
         public static final String BY_ID = "/{id}";
         public static final String EXPORT = "/export";
+
+        /** Single-record, synchronous Word (.docx) download of one saved report's content — see {@code AnalyticReportDocxExportService}. */
+        public static final String DOCX = "/{id}/docx";
     }
 
     /**

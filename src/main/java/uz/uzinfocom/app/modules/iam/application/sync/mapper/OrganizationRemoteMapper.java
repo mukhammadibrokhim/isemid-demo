@@ -17,12 +17,13 @@ import java.util.UUID;
 @Component
 public class OrganizationRemoteMapper {
 
-    public Organization toEntity(RemoteOrganizationPayload payload) {
+    public Organization toEntity(RemoteOrganizationPayload payload, String providerKey) {
         UUID uuid = payload.uuid();
         String resolvedName = resolveName(payload);
 
         return Organization.builder()
                 .uuid(uuid)
+                .providerKey(providerKey)
                 .name(resolvedName)
                 .nameUz(payload.nameUz())
                 .nameUzCyril(payload.nameUzCyril())
@@ -35,6 +36,28 @@ public class OrganizationRemoteMapper {
                 .regionCode(payload.regionCode())
                 .districtCode(payload.districtCode())
                 .build();
+    }
+
+    /**
+     * Refreshes an already-persisted organization in place from a fresh
+     * remote payload — unlike {@link #toEntity}, this never touches
+     * {@code uuid} (the lookup identity) or {@code id}/audit fields.
+     */
+    public void updateEntity(Organization entity, RemoteOrganizationPayload payload, String providerKey) {
+        UUID uuid = payload.uuid();
+
+        entity.setProviderKey(providerKey);
+        entity.setName(resolveName(payload));
+        entity.setNameUz(payload.nameUz());
+        entity.setNameUzCyril(payload.nameUzCyril());
+        entity.setNameRu(payload.nameRu());
+        entity.setNameKaa(payload.nameKaa());
+        entity.setActive(payload.active() == null || payload.active());
+        entity.setLevelType(parseLevel(payload.levelCode(), uuid));
+        entity.setMedicalType(parseMedicalType(payload.medicalTypeCode(), uuid));
+        entity.setServiceTypes(parseServiceTypes(payload.serviceTypeCodes(), uuid));
+        entity.setRegionCode(payload.regionCode());
+        entity.setDistrictCode(payload.districtCode());
     }
 
     /**

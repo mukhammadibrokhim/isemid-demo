@@ -86,13 +86,17 @@ Params (all optional):
 
 `POST /v1/reports/form-11/export`
 
+Restructured 2026‑09‑17 into a structural clone of Shakl №10 — same params,
+**no more flat `population`/`from`/`to`**. Territory population is now
+resolved automatically per row from the "Aholi soni" reference (`ref_population`);
+see `form-10-form-11-report-frontend-guide.md` §3 for how.
+
 | Param | Type | Default | Notes |
 |---|---|---|---|
-| `from` | `date` | whole history | |
-| `to` | `date` | today | |
-| `diagnosisCode` | string | — | |
-| `koef` | long | `100000` | intensive‑rate coefficient |
-| `population` | long | `10000` | denominator of the intensive rate |
+| `year` | int | current year | reporting year |
+| `period` | enum | current month | `JANUARY`…`DECEMBER`, `Q1`…`Q4`, `HALF_YEAR`, `NINE_MONTHS`, `YEAR` |
+| `diagnosisCode` | string | — | ICD‑10 filter |
+| `koef` | long | `100000` | intensive‑rate coefficient (per N population) |
 
 ### 2.4 Disease‑first & by‑territory reports — `from` / `to` only
 

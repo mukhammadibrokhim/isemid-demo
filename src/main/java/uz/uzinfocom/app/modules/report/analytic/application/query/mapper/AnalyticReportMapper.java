@@ -8,6 +8,9 @@ import uz.uzinfocom.app.modules.report.analytic.application.query.dto.AnalyticRe
 import uz.uzinfocom.app.modules.report.analytic.application.query.dto.AnalyticReportTableResponse;
 import uz.uzinfocom.app.modules.report.analytic.domain.AnalyticReport;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * Enriches a persisted {@link AnalyticReport} row (which only stores a scalar
  * {@code organizationId}) with the creating organization's display name —
@@ -40,8 +43,8 @@ public class AnalyticReportMapper {
                 entity.getStatus(),
                 entity.getFromDate(),
                 entity.getToDate(),
-                entity.getRegionCodes(),
-                entity.getIcd10Codes(),
+                copyOf(entity.getRegionCodes()),
+                copyOf(entity.getIcd10Codes()),
                 entity.getKoef(),
                 entity.getContent(),
                 entity.getOrganizationId(),
@@ -49,5 +52,17 @@ public class AnalyticReportMapper {
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
+    }
+
+    /**
+     * Materializes the entity's lazy {@code @ElementCollection} into a plain
+     * {@code Set} while the persistence context is still open — the caller
+     * (e.g. {@code GET /{id}}'s controller, or {@code AnalyticReportDocxExportService})
+     * reads the DTO after the transaction has closed, and {@code open-in-view=false}
+     * means a Hibernate-backed proxy would throw {@code LazyInitializationException}
+     * at that point instead.
+     */
+    private Set<String> copyOf(Set<String> lazyBackedSet) {
+        return new LinkedHashSet<>(lazyBackedSet);
     }
 }

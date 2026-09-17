@@ -6,9 +6,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.report.analytic.application.command.AnalyticReportCommandService;
 import uz.uzinfocom.app.modules.report.analytic.application.command.dto.AnalyticReportCreateRequest;
 import uz.uzinfocom.app.modules.report.analytic.application.command.dto.AnalyticReportUpdateRequest;
+import uz.uzinfocom.app.modules.report.analytic.application.export.AnalyticReportDocxExportService;
 import uz.uzinfocom.app.modules.report.analytic.application.export.AnalyticReportExcelExportSource;
 import uz.uzinfocom.app.modules.report.analytic.application.query.AnalyticReportComputeService;
 import uz.uzinfocom.app.modules.report.analytic.application.query.AnalyticReportQueryService;
@@ -59,6 +66,7 @@ public class AnalyticReportController {
     private final PagedResponseAssembler pagedResponseAssembler;
     private final ExportJobService exportJobService;
     private final AnalyticReportExcelExportSource analyticReportExcelExportSource;
+    private final AnalyticReportDocxExportService analyticReportDocxExportService;
 
     @Operation(
             summary = "Ko'rsatkichlarni oldindan hisoblash",
@@ -168,5 +176,32 @@ public class AnalyticReportController {
                 messageResolver.resolve("export.job.submitted"),
                 exportJobService.submit(analyticReportExcelExportSource, filter)
         );
+    }
+
+    @Operation(
+            summary = "Bitta analitik hisobotni Word (.docx) sifatida yuklab olish",
+            description = "Saqlangan yozuvning metama'lumotlari (davr, hududlar, tashxislar, koeffitsiyent) va " +
+                    "muharrirdan saqlangan matnni bitta .docx faylga yig'ib, to'g'ridan-to'g'ri qaytaradi — " +
+                    "boshqa eksportlardan farqli, bu fon vazifasiga navbatga qo'yilmaydi, chunki bitta yozuv uchun " +
+                    "hisoblash shart emas."
+    )
+    @GetMapping(ApiPaths.AnalyticReport.DOCX)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ResponseEntity<ByteArrayResource> docx(
+            @Parameter(description = "Ichki identifikator.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
+        AnalyticReportResponse report = analyticReportQueryService.getById(id);
+        byte[] content = analyticReportDocxExportService.generate(report);
+        String fileName = "analitik_hisobot_" + id + ".docx";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                .contentLength(content.length)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(fileName, StandardCharsets.UTF_8)
+                        .build()
+                        .toString())
+                .body(new ByteArrayResource(content));
     }
 }

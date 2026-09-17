@@ -97,7 +97,7 @@ class IamSyncServiceTest {
 
         when(organizationRepository.findByUuid(organizationUuid)).thenReturn(Optional.empty());
         when(remoteClient.fetchOrganization(providerKey, organizationUuid, rawToken)).thenReturn(remoteOrganization);
-        when(organizationMapper.toEntity(remoteOrganization)).thenReturn(organization);
+        when(organizationMapper.toEntity(remoteOrganization, providerKey)).thenReturn(organization);
         when(organizationRepository.saveAndFlush(organization)).thenReturn(organization);
 
         when(roleRepository.findByNormalizedName("isemid_doctor")).thenReturn(Optional.of(role));
@@ -114,7 +114,8 @@ class IamSyncServiceTest {
         OrganizationSyncService organizationSyncService = new OrganizationSyncService(
                 organizationRepository,
                 remoteClient,
-                organizationMapper
+                organizationMapper,
+                new ConcurrentMapCacheManager(SecurityCacheNames.ORGANIZATION_SYNC_BY_PROVIDER_AND_UUID)
         );
         RoleSyncService roleSyncService = new RoleSyncService(
                 roleRepository,

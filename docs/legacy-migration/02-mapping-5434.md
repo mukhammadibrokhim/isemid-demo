@@ -110,10 +110,22 @@ SQL yozishда har jadval alohida ko'rib chiqiladi. Element jadvallar (`*_affect
 - `act_users` — 1:1 (`ACT155` act'ларини filtrlab)
 
 ### act153 / act154 / act223 (JOINED subtype)
-- **~34 ustun bir xil** (triplet'lar, `act_number`, `goal`, `sampling_purpose_*`, `package_type_*`, `special_condition_id`, `storage_delivery_condition_id`, `lis_organization_id`, `laboratory_address`, ...)
-- **drop:** `institution_address, institution_name, institution_legal_address, lis_act_id, lis_response, tin, subject_type, position, position_id, participant_position, delivered_date` (+ act223: `full_name_of_participant, full_nameof_sampler, position_of_participant, position_of_sampler, reason_inspectoring_loinc, reason_of_inspectoring, sample_taken_date` — bular **eski nusxa**, yangi ekvivalentlari `*_full_name`/`*_position_uz`/`sampling_purpose_loinc`/`sample_taken_date_time` da bor)
+- **~34 ustun bir xil** (triplet'lar, `goal`, `sampling_purpose_*`, `package_type_*`, `special_condition_id`, `storage_delivery_condition_id`, `lis_organization_id`, `laboratory_address`, ...)
+- **drop:** `institution_address, institution_name, institution_legal_address, lis_act_id, tin, subject_type, position, position_id, participant_position, delivered_date` (+ act223: `full_name_of_participant, full_nameof_sampler, position_of_participant, position_of_sampler, reason_inspectoring_loinc, reason_of_inspectoring, sample_taken_date` — bular **eski nusxa**, yangi ekvivalentlari `*_full_name`/`*_position_uz`/`sampling_purpose_loinc`/`sample_taken_date_time` da bor)
 - **target-only (backfill):** `sampler_identifier_type/value` ← legacy `tin` (`type='TIN'`, `value=tin::text`); `participant_identifier_type/value` → NULL
 - act154 qo'shimcha drop: `serial_number`
+- **2026-09-17 tuzatish — sxema shu hujjat yozilgandan beri siljigan** (isemid-v2
+  "act LIS return flow"): `act_number` va `subject` endi act153/154/223'da EMAS,
+  bazaviy `act` jadvalida. `61-act-subtypes.sql` endi `act_number`ni act153/154/223
+  ustunlariga INSERT qilmaydi — bajarilgandan keyin `UPDATE public2.act ... SET
+  act_number = ...` bilan bazaviy jadvalga backfill qiladi (`subject`ga legacy
+  manba yo'q, NULL qoladi). Xuddi shunday, act153/154/223'ning O'Z
+  `lis_protocol_response`/`lis_act_response` (JSONB, base `act.lis_response`dan
+  ALOHIDA — avval "drop" deb yozilgan `lis_response` faqat bazaviy ustunga
+  tegishli edi) haqiqiy LIS laboratoriya javobi saqlaydi va endi tashlanmaydi —
+  `jsonb_build_object('protocolResponse', ..., 'actResponse', ...)` bilan
+  birlashtirilib bazaviy `act.lis_response`ga yoziladi (COALESCE — mavjud
+  qiymatga tegilmaydi). Haqiqiy dev-backup'da bu 25 qatorda topildi.
 
 ### act156
 - **13 bir xil** · **rename:** `full_nameof_sampler`→`full_name_of_sampler` · **drop:** `institution_legal_address, lis_act_id, subject_type`

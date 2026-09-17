@@ -33,6 +33,9 @@ public class Organization extends AuditableEntity {
     @Column(nullable = false)
     private UUID uuid;
 
+    @Column(name = "provider_key", length = 50)
+    private String providerKey;
+
     @Column(length = 50)
     private String tin;
 

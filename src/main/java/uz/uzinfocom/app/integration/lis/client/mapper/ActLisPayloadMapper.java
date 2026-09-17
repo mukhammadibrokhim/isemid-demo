@@ -6,6 +6,7 @@ import uz.uzinfocom.app.integration.lis.client.dto.LisActPushRequest.LisDataDict
 import uz.uzinfocom.app.integration.lis.client.dto.LisActPushRequest.SelectionActItem;
 import uz.uzinfocom.app.integration.lis.client.dto.LisPriority;
 import uz.uzinfocom.app.integration.lis.client.dto.LisResearchCode;
+import uz.uzinfocom.app.integration.lis.client.dto.LisSampleUnit;
 import uz.uzinfocom.app.integration.lis.common.exception.LisUnsupportedActTypeException;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.act.domain.model.act153.Act153;
@@ -22,6 +23,8 @@ import uz.uzinfocom.app.modules.act.domain.model.embedded.PackageTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.Purpose;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ResearchItemTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.SampleTypeInfo;
+import uz.uzinfocom.app.modules.act.domain.enums.SampleQtUnit;
+import uz.uzinfocom.app.modules.act.domain.enums.SampleVolumeUnit;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -105,10 +108,12 @@ public class ActLisPayloadMapper {
     private SelectionActItem toSelectionItem(Act153Detail detail) {
         return SelectionActItem.builder()
                 .itemTypeId(itemTypeIdOf(detail.getResearchItemTypeInfo()))
-                // sampleQtUnit is deliberately NOT sent for ACT153: 153's quantity
-                // lives in sampleVolume/sampleVolumeUnit (distinct from sampleQtUnit),
-                // and a lone unit with no value is more misleading than none.
-                // TODO(LIS-spec): which quantity pair does LIS want for water (153)?
+                // 153's quantity is a volume, so it goes through LIS's
+                // sampleWeight/sampleUnit pair (which accepts MILLILITER/LITER),
+                // not sampleQt/sampleQtUnit (mass-only) — confirmed against
+                // LIS's public SelectionActItemRequest schema.
+                .sampleWeight(lisSampleWeightOf(detail.getSampleVolume(), detail.getSampleVolumeUnit()))
+                .sampleUnit(lisSampleUnitOf(detail.getSampleVolumeUnit()))
                 .samplingAddress(detail.getAddress())
                 .samplingDepth(toStringOrNull(detail.getSamplingDepth()))
                 .depthUnit(detail.getDepthUnit())
@@ -160,9 +165,11 @@ public class ActLisPayloadMapper {
         return SelectionActItem.builder()
                 .itemTypeId(itemTypeIdOf(detail.getResearchItemTypeInfo()))
                 .groupSize(toStringOrNull(detail.getGroupSize()))
-                .sampleWeight(toStringOrNull(detail.getSampleWeight()))
-                // TODO(LIS-spec): confirm LIS accepts our SampleQtUnit enum name as-is.
-                .sampleQtUnit(detail.getSampleQtUnit())
+                // sampleWeight pairs with sampleUnit (GRAM/KILOGRAM/MILLILITER/LITER)
+                // in LIS's schema, not sampleQtUnit — our SampleQtUnit has values
+                // LIS doesn't accept (MILLIGRAM, CENTNER, TONN), so convert.
+                .sampleWeight(lisSampleWeightOf(detail.getSampleWeight(), detail.getSampleQtUnit()))
+                .sampleUnit(lisSampleUnitOf(detail.getSampleQtUnit()))
                 .build();
     }
 
@@ -266,6 +273,59 @@ public class ActLisPayloadMapper {
 
     private String toStringOrNull(Object value) {
         return value == null ? null : value.toString();
+    }
+
+    /**
+     * Converts a volume into the value LIS's {@code sampleWeight} expects,
+     * scaling into whichever of MILLILITER/LITER {@link #lisSampleUnitOf(SampleVolumeUnit)}
+     * picks for the same unit (LIS has no cubic-metric/millimeter equivalents).
+     */
+    private String lisSampleWeightOf(Double volume, SampleVolumeUnit unit) {
+        if (volume == null || unit == null) {
+            return null;
+        }
+        return switch (unit) {
+            case CUBIC_MILLIMETER -> toStringOrNull(volume * 0.001);
+            case CUBIC_METER -> toStringOrNull(volume * 1000);
+            case CUBIC_CENTIMETER, MILLILITER, LITER -> toStringOrNull(volume);
+        };
+    }
+
+    private LisSampleUnit lisSampleUnitOf(SampleVolumeUnit unit) {
+        if (unit == null) {
+            return null;
+        }
+        return switch (unit) {
+            case CUBIC_MILLIMETER, CUBIC_CENTIMETER, MILLILITER -> LisSampleUnit.MILLILITER;
+            case CUBIC_METER, LITER -> LisSampleUnit.LITER;
+        };
+    }
+
+    /**
+     * Converts a mass into the value LIS's {@code sampleWeight} expects,
+     * scaling into whichever of GRAM/KILOGRAM {@link #lisSampleUnitOf(SampleQtUnit)}
+     * picks for the same unit (LIS has no milligram/centner/tonn equivalents).
+     */
+    private String lisSampleWeightOf(Double weight, SampleQtUnit unit) {
+        if (weight == null || unit == null) {
+            return null;
+        }
+        return switch (unit) {
+            case MILLIGRAM -> toStringOrNull(weight * 0.001);
+            case CENTNER -> toStringOrNull(weight * 100);
+            case TONN -> toStringOrNull(weight * 1000);
+            case GRAM, KILOGRAM -> toStringOrNull(weight);
+        };
+    }
+
+    private LisSampleUnit lisSampleUnitOf(SampleQtUnit unit) {
+        if (unit == null) {
+            return null;
+        }
+        return switch (unit) {
+            case MILLIGRAM, GRAM -> LisSampleUnit.GRAM;
+            case KILOGRAM, CENTNER, TONN -> LisSampleUnit.KILOGRAM;
+        };
     }
 
     /**

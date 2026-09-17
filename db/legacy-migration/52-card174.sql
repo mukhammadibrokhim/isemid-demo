@@ -105,6 +105,19 @@ FROM (
   SELECT 'card174_preventive_measure', card174_id FROM public.card174_preventive_measure GROUP BY card174_id HAVING count(*)>1
 ) t;
 
+-- card174_preventive_measure.measure_count/measure_date/measure_location: faqat
+-- pm.measures target'ga ko'chadi (precautionary_measures); qolgan 3tasi uchun
+-- target'da alohida ustun yo'q -> log.
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'card174_preventive_measure', z.id, 'target''da ustun yo''q — tashlandi',
+       concat_ws('; ',
+         CASE WHEN z.measure_count IS NOT NULL THEN 'measure_count='||z.measure_count END,
+         CASE WHEN z.measure_date IS NOT NULL THEN 'measure_date' END,
+         CASE WHEN z.measure_location IS NOT NULL THEN 'measure_location='||z.measure_location END)
+FROM public.card174_preventive_measure z
+JOIN public2.card174 c ON c.id = z.card174_id
+WHERE z.measure_count IS NOT NULL OR z.measure_date IS NOT NULL OR z.measure_location IS NOT NULL;
+
 -- legacy-only ustunlar (target'da yo'q, drop) — ma'lumot bo'lsa log
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
 SELECT 'card174', l.id, 'target''da ustun yo''q — tashlandi',
@@ -112,11 +125,19 @@ SELECT 'card174', l.id, 'target''da ustun yo''q — tashlandi',
          CASE WHEN l.reported_cases IS NOT NULL THEN 'reported_cases='||l.reported_cases END,
          CASE WHEN l.reported_human_vet_date IS NOT NULL THEN 'reported_human_vet_date' END,
          CASE WHEN l.reported_sanepid_date IS NOT NULL THEN 'reported_sanepid_date' END,
-         CASE WHEN l.vaccination_by_epizootic IS NOT NULL THEN 'vaccination_by_epizootic' END)
+         CASE WHEN l.vaccination_by_epizootic IS NOT NULL THEN 'vaccination_by_epizootic' END,
+         -- baza jadvalining o'z measures/measures_count/measures_date/measures_location
+         -- ustunlari (card174_preventive_measure'dan olinadigan pm.measures'dan FARQLI)
+         CASE WHEN l.measures IS NOT NULL THEN 'measures='||l.measures END,
+         CASE WHEN l.measures_count IS NOT NULL THEN 'measures_count' END,
+         CASE WHEN l.measures_date IS NOT NULL THEN 'measures_date' END,
+         CASE WHEN l.measures_location IS NOT NULL THEN 'measures_location' END)
 FROM public.card174 l
 JOIN public2.card174 x ON x.id = l.id
 WHERE l.reported_cases IS NOT NULL OR l.reported_human_vet_date IS NOT NULL
-   OR l.reported_sanepid_date IS NOT NULL OR l.vaccination_by_epizootic IS NOT NULL;
+   OR l.reported_sanepid_date IS NOT NULL OR l.vaccination_by_epizootic IS NOT NULL
+   OR l.measures IS NOT NULL OR l.measures_count IS NOT NULL
+   OR l.measures_date IS NOT NULL OR l.measures_location IS NOT NULL;
 
 -- ---- element jadvallar (1:1) --------------------------------------
 INSERT INTO public2.card174_affected_animals (card174_id, catalog_code)
