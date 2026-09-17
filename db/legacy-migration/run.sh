@@ -1,14 +1,29 @@
 #!/usr/bin/env bash
-# Legacy -> public2 ko'chirish — barcha fayllar ketma-ket.
-# Foydalanish:  PGPASSWORD=... ./run.sh [host] [port] [db] [user]
+# Legacy -> public2 migration runner — runs all files in sequence.
+# Usage:  ./run.sh [host] [port] [db] [user]
+# Prompts once for DB name, port and password (if not given via args/env).
 set -euo pipefail
 
 HOST="${1:-localhost}"
-PORT="${2:-5434}"
-DB="${3:-isemid}"
+PORT="${2:-}"
+DB="${3:-}"
 USER="${4:-postgres}"
 
-export PGOPTIONS='-c client_min_messages=warning'   # NOTICE shovqinini kamaytirish
+if [[ -z "$DB" ]]; then
+  read -r -p "Database name [isemid]: " db_input
+  DB="${db_input:-isemid}"
+fi
+if [[ -z "$PORT" ]]; then
+  read -r -p "Port [5434]: " port_input
+  PORT="${port_input:-5434}"
+fi
+if [[ -z "${PGPASSWORD:-}" ]]; then
+  read -rs -p "Password for user $USER: " PGPASSWORD
+  echo
+  export PGPASSWORD
+fi
+
+export PGOPTIONS='-c client_min_messages=warning'   # reduce NOTICE noise
 PSQL=(psql -h "$HOST" -p "$PORT" -U "$USER" -d "$DB" -v ON_ERROR_STOP=1 -X -q)
 
 FILES=(
@@ -30,13 +45,13 @@ FILES=(
 )
 
 cd "$(dirname "$0")"
-echo "!!! DIQQAT: 00-prep public2 biznes jadvallarini TOZALAYDI. Backup bormi? (Ctrl-C to'xtatish)"
-read -r -p "Davom etilsinmi? [yes/NO] " ans
-[[ "$ans" == "yes" ]] || { echo "bekor qilindi"; exit 1; }
+echo "!!! WARNING: 00-prep TRUNCATEs public2 business tables. Backup ready? (Ctrl-C to abort)"
+read -r -p "Continue? [yes/NO] " ans
+[[ "$ans" == "yes" ]] || { echo "aborted"; exit 1; }
 
 for f in "${FILES[@]}"; do
   echo "=== $f ==="
   "${PSQL[@]}" -f "$f"
 done
 
-echo "TUGADI. public2._migration_skipped ni ko'rib chiqing."
+echo "DONE. Check public2._migration_skipped."

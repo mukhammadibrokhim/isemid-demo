@@ -1,11 +1,12 @@
 # Legacy -> public2 migration runner (Windows PowerShell). ASCII only.
 # Usage:
-#   $env:PGPASSWORD='root123'; .\run.ps1 -Db isemid_test -Psql "C:\Program Files\PostgreSQL\17\bin\psql.exe"
+#   .\run.ps1 -Psql "C:\Program Files\PostgreSQL\17\bin\psql.exe"
 #   Log:  .\run.ps1 ... *> migration-log.txt
+# Prompts once for DB name, port and password; pass them as params to skip a prompt.
 param(
     [string]$DbHost = 'localhost',
-    [int]$Port      = 5434,
-    [string]$Db     = 'isemid',
+    [int]$Port      = 0,
+    [string]$Db     = '',
     [string]$User   = 'postgres',
     [string]$Psql   = 'psql'
 )
@@ -13,6 +14,21 @@ param(
 $ErrorActionPreference = 'Continue'
 $env:PGOPTIONS = '-c client_min_messages=warning'
 $env:PGCLIENTENCODING = 'UTF8'
+
+if (-not $Db) {
+    $Db = Read-Host "Database name [isemid]"
+    if (-not $Db) { $Db = 'isemid' }
+}
+if ($Port -eq 0) {
+    $portInput = Read-Host "Port [5434]"
+    if ($portInput) { $Port = [int]$portInput } else { $Port = 5434 }
+}
+if (-not $env:PGPASSWORD) {
+    $securePwd = Read-Host "Password for user $User" -AsSecureString
+    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePwd)
+    $env:PGPASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+}
 
 $files = @(
     '00-prep.sql','10-organization.sql','20-users.sql','30-patient.sql',
