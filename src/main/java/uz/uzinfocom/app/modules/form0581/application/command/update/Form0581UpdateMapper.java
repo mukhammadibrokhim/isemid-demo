@@ -197,7 +197,6 @@ public interface Form0581UpdateMapper {
     private void updateReportInfo(UpdateForm0581Command command, Form0581 form0581) {
         if (command.antirabicAssistanceInfo() == null
                 && command.notifierFullName() == null
-                && command.receiverFullName() == null
                 && command.messageSentAt() == null) {
             return;
         }
@@ -210,9 +209,6 @@ public interface Form0581UpdateMapper {
         }
         if (command.notifierFullName() != null) {
             form0581.getReportInfo().setNotifierFullName(command.notifierFullName());
-        }
-        if (command.receiverFullName() != null) {
-            form0581.getReportInfo().setReceiverFullName(command.receiverFullName());
         }
         if (command.messageSentAt() != null) {
             form0581.getReportInfo().setMessageSentAt(command.messageSentAt());

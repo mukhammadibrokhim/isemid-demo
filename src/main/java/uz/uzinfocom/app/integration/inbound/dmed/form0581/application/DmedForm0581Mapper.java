@@ -53,7 +53,6 @@ public interface DmedForm0581Mapper {
 
     @Mapping(target = "antirabicAssistanceInfo", source = "request.antirabicAssistanceInfo")
     @Mapping(target = "notifierFullName", source = "request.notifierFullName")
-    @Mapping(target = "receiverFullName", source = "request.receiverFullName")
     @Mapping(target = "messageSentAt", source = "request.messageSentAt")
     CreateForm0581Command toCommand(
             DmedCreateForm0581Request request, String source, Long senderOrganizationId, Long sourceIntegrationClientId);

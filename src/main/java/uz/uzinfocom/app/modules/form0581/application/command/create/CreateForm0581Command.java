@@ -49,7 +49,6 @@ public record CreateForm0581Command(
 
         String antirabicAssistanceInfo,
         String notifierFullName,
-        String receiverFullName,
         LocalDateTime messageSentAt
 ) {
 

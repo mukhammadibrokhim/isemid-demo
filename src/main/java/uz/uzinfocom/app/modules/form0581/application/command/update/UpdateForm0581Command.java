@@ -52,7 +52,6 @@ public record UpdateForm0581Command(
 
         String antirabicAssistanceInfo,
         String notifierFullName,
-        String receiverFullName,
         LocalDateTime messageSentAt,
 
         UpdatePatientCommand patient

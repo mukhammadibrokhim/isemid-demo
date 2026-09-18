@@ -53,7 +53,7 @@ public abstract class Form0581CreateMapper {
 
     @Mapping(target = "reportInfo.antirabicAssistanceInfo", source = "antirabicAssistanceInfo")
     @Mapping(target = "reportInfo.notifierFullName", source = "notifierFullName")
-    @Mapping(target = "reportInfo.receiverFullName", source = "receiverFullName")
+    @Mapping(target = "reportInfo.receiverFullName", ignore = true)
     @Mapping(target = "reportInfo.messageSentAt", source = "messageSentAt")
 
     @Mapping(target = "cancellationInfo", ignore = true)

@@ -97,7 +97,6 @@ class Form0581CreateValidatorTest {
                 null,                   // hospitalOrganizationId
                 null,                   // antirabicAssistanceInfo
                 null,                   // notifierFullName
-                null,                   // receiverFullName
                 null                    // messageSentAt
         );
     }

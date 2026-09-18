@@ -91,10 +91,6 @@ public record UpdateForm0581Request(
         @Size(max = 255, message = "{validation.form0581.notifier-full-name.size}")
         String notifierFullName,
 
-        @Schema(description = "ФИО лица, принявшего сообщение в организации-получателе.")
-        @Size(max = 255, message = "{validation.form0581.receiver-full-name.size}")
-        String receiverFullName,
-
         @Schema(description = "Дата и время отправки сообщения.")
         LocalDateTime messageSentAt,
 
