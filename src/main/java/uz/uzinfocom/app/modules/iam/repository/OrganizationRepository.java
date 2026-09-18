@@ -1,6 +1,5 @@
 package uz.uzinfocom.app.modules.iam.repository;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -11,8 +10,6 @@ import uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationLevelCoun
 import uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationLocalizedName;
 import uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationNameProjection;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
-import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
-import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,36 +18,6 @@ import java.util.UUID;
 public interface OrganizationRepository extends JpaRepository<Organization, Long>, JpaSpecificationExecutor<Organization> {
 
     Optional<Organization> findByUuid(UUID uuid);
-
-    @Query("""
-        select o
-        from Organization o
-        where (:id is null or o.id = :id)
-          and (
-                :search = ''
-             or lower(coalesce(o.name, '')) like concat('%', :search, '%')
-             or lower(coalesce(o.tin, '')) like concat('%', :search, '%')
-             or lower(coalesce(o.phone, '')) like concat('%', :search, '%')
-             or lower(coalesce(o.regionCode, '')) like concat('%', :search, '%')
-             or lower(coalesce(o.districtCode, '')) like concat('%', :search, '%')
-          )
-          and (:levelType is null or o.levelType = :levelType)
-          and (:medicalType is null or o.medicalType = :medicalType)
-          and (:active is null or o.active = :active)
-          and (:regionCode is null or o.regionCode = :regionCode)
-          and (:districtCode is null or o.districtCode = :districtCode)
-        order by o.name asc, o.id desc
-        """)
-    List<Organization> lookupOrganizations(
-            @Param("search") String search,
-            @Param("id") Long id,
-            @Param("levelType") OrganizationLevel levelType,
-            @Param("medicalType") MedicalType medicalType,
-            @Param("active") Boolean active,
-            @Param("regionCode") String regionCode,
-            @Param("districtCode") String districtCode,
-            Pageable pageable
-    );
 
     @Query("SELECT o.id FROM Organization o WHERE o.uuid = :uuid and o.active =true")
     Optional<Long> findActiveIdByUuid(@Param("uuid") UUID uuid);

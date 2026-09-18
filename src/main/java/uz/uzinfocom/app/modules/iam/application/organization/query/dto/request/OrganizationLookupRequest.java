@@ -5,6 +5,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.modules.iam.domain.enums.ServiceType;
+
+import java.util.List;
+import java.util.Objects;
 
 @Schema(description = "Параметры поиска организаций для справочного выбора.")
 public record OrganizationLookupRequest(
@@ -18,8 +22,11 @@ public record OrganizationLookupRequest(
         @Schema(description = "Уровень организации.")
         OrganizationLevel levelType,
 
-        @Schema(description = "Тип медицинской организации.")
-        MedicalType medicalType,
+        @Schema(description = "Типы медицинской организации.")
+        List<MedicalType> medicalTypes,
+
+        @Schema(description = "Виды услуг организации.")
+        List<ServiceType> serviceTypes,
 
         @Schema(description = "Фильтр по признаку активности записи.", example = "true")
         Boolean active,
@@ -49,5 +56,24 @@ public record OrganizationLookupRequest(
         }
 
         return search.trim().toLowerCase();
+    }
+
+    public List<MedicalType> normalizedMedicalTypes() {
+        return normalizedList(medicalTypes);
+    }
+
+    public List<ServiceType> normalizedServiceTypes() {
+        return normalizedList(serviceTypes);
+    }
+
+    private static <T> List<T> normalizedList(List<T> values) {
+        if (values == null || values.isEmpty()) {
+            return List.of();
+        }
+
+        return values.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
     }
 }

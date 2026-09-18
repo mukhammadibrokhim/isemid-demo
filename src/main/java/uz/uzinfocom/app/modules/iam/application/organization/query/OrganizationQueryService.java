@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.iam.application.organization.query.dto.request.OrganizationFilerRequest;
@@ -122,18 +123,14 @@ public class OrganizationQueryService {
 
     @Transactional(readOnly = true)
     public List<OrganizationLookupResponse> lookup(OrganizationLookupRequest request) {
-        Pageable pageable = PageRequest.of(0, request.normalizedLimit());
+        Pageable pageable = PageRequest.of(
+                0,
+                request.normalizedLimit(),
+                Sort.by(Sort.Order.asc("name"), Sort.Order.desc("id"))
+        );
 
-        return organizationRepository.lookupOrganizations(
-                request.normalizedSearch(),
-                request.id(),
-                request.levelType(),
-                request.medicalType(),
-                request.active(),
-                request.regionCode(),
-                request.districtCode(),
-                pageable
-        ).stream()
+        return organizationRepository.findAll(organizationSpecification.byLookupFilter(request), pageable)
+                .stream()
                 .map(organizationQueryMapper::toLookupResponse)
                 .toList();
     }
