@@ -36,4 +36,10 @@ public class UserMapperHelper {
                 user.getFullName()
         );
     }
+
+    @Named("toUserFullName")
+    public String toUserFullName(Long id) {
+        UserMiniResponse user = toUserMiniResponse(id);
+        return user == null ? null : user.fullName();
+    }
 }

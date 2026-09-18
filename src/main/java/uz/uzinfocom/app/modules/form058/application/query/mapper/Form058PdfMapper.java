@@ -85,7 +85,7 @@ public class Form058PdfMapper {
                 epidemicInfo == null ? null : epidemicInfo.getDiseaseCause(),
                 epidemicInfo == null ? null : epidemicInfo.getEpidemicMeasures(),
                 resolveNotifierFullName(form058, reportInfo),
-                resolveReceiverFullName(cards),
+                resolveReceiverFullName(form058, cards),
                 reportInfo == null ? null : reportInfo.getJournalFormCode(),
                 reportInfo == null ? null : reportInfo.getComment(),
                 form058DetailResponseMapper.toResponse(form058.getLocation())
@@ -107,11 +107,21 @@ public class Form058PdfMapper {
     }
 
     /**
-     * The person who attached a card to the form is treated as having received it ("Xabarni
-     * qabul qilgan") - taken from whichever linked card was assigned first, since a single
-     * assignCards call attaches every requested card type to the same assignee(s) at once.
+     * The receiver's signature ("Xabarni qabul qilgan") is whoever called accept() on this
+     * form - recorded on {@code acceptInfo.acceptedBy}. Forms accepted before that field
+     * existed fall back to the old proxy: the person who attached a card to the form,
+     * taken from whichever linked card was assigned first, since a single assignCards call
+     * attaches every requested card type to the same assignee(s) at once.
      */
-    private String resolveReceiverFullName(List<CardTableResponse> cards) {
+    private String resolveReceiverFullName(Form058 form058, List<CardTableResponse> cards) {
+        Long acceptedBy = form058.getAcceptInfo() == null ? null : form058.getAcceptInfo().getAcceptedBy();
+        if (acceptedBy != null) {
+            UserMiniResponse acceptor = userMapperHelper.toUserMiniResponse(acceptedBy);
+            if (acceptor != null && StringUtils.hasText(acceptor.fullName())) {
+                return acceptor.fullName();
+            }
+        }
+
         if (cards == null) {
             return null;
         }

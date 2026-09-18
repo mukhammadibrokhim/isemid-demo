@@ -47,13 +47,15 @@ class Form0581WorkflowTest {
     }
 
     @Test
-    void acceptMovesSentFormToAccepted() {
+    void acceptMovesSentFormToAcceptedAndStoresAcceptInfo() {
         Form0581 form0581 = new Form0581();
         form0581.setStatus(Form0581Status.SENT);
 
-        form0581.accept();
+        form0581.accept(40L);
 
         assertThat(form0581.getStatus()).isEqualTo(Form0581Status.ACCEPTED);
+        assertThat(form0581.getAcceptInfo().getAcceptedBy()).isEqualTo(40L);
+        assertThat(form0581.getAcceptInfo().getAcceptedAt()).isNotNull();
     }
 
     @Test

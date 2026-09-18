@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.form058.application.query.dto.detail.*;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058Location;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
@@ -18,7 +19,8 @@ import java.util.List;
 @Mapper(
         config = CentralMapperConfig.class,
         uses = {
-                PatientDetailResponseMapper.class
+                PatientDetailResponseMapper.class,
+                UserMapperHelper.class
         }
 )
 public interface Form058DetailResponseMapper {
@@ -37,6 +39,7 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "reportInfo", source = "form058.reportInfo")
     @Mapping(target = "cancellationInfo", source = "form058.cancellationInfo")
     @Mapping(target = "approvalInfo", source = "form058.approvalInfo")
+    @Mapping(target = "acceptInfo", source = "form058.acceptInfo")
     @Mapping(target = "deleteInfo", source = "form058.deleteInfo")
 
     @Mapping(target = "patient", source = "form058.patient")
@@ -69,6 +72,11 @@ public interface Form058DetailResponseMapper {
     Form058CancellationDetailResponse toResponse(Form058CancellationInfo source);
 
     Form058ApprovalDetailResponse toResponse(Form058ApprovalInfo source);
+
+    @Mapping(target = "acceptedBy", source = "acceptedBy")
+    @Mapping(target = "acceptedAt", source = "acceptedAt")
+    @Mapping(target = "acceptedFullName", source = "acceptedBy", qualifiedByName = "toUserFullName")
+    Form058AcceptDetailResponse toResponse(Form058AcceptInfo source);
 
     @Mapping(target = "hasLinkedCards", source = "hasLinkedCards")
     Form058CardLinkDetailResponse toCardLinkResponse(Form058 source);

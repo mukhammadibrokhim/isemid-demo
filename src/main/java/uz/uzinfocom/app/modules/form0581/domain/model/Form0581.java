@@ -133,6 +133,9 @@ public class Form0581 extends AbsEntity implements AuditableFields {
     @Embedded
     private Form0581ApprovalInfo approvalInfo;
 
+    @Embedded
+    private Form0581AcceptInfo acceptInfo;
+
     /**
      * Denormalized flag for fast table filtering — mirrors {@code Form058.hasLinkedCards}.
      */
@@ -192,10 +195,15 @@ public class Form0581 extends AbsEntity implements AuditableFields {
      * from {@code SENT} into {@code ACCEPTED}. Cards cannot be linked
      * ({@link #linkCards()}) before this happens; see
      * {@code Form0581AcceptValidator} for the status/scope check.
+     * {@code acceptedBy} is recorded so the printed form can show who at
+     * the receiving organization accepted it - mirrors {@code Form058#accept}.
      */
-    public void accept() {
+    public void accept(Long acceptedBy) {
         ensureEditable();
+        ensureAcceptInfo();
         this.status = Form0581Status.ACCEPTED;
+        this.acceptInfo.setAcceptedBy(acceptedBy);
+        this.acceptInfo.setAcceptedAt(Instant.now());
     }
 
     /**
@@ -292,6 +300,12 @@ public class Form0581 extends AbsEntity implements AuditableFields {
     private void ensureApprovalInfo() {
         if (this.approvalInfo == null) {
             this.approvalInfo = new Form0581ApprovalInfo();
+        }
+    }
+
+    private void ensureAcceptInfo() {
+        if (this.acceptInfo == null) {
+            this.acceptInfo = new Form0581AcceptInfo();
         }
     }
 

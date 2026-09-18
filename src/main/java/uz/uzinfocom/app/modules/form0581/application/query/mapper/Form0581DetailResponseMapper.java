@@ -6,6 +6,7 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.*;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581OtherInjuredPerson;
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.*;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
@@ -13,7 +14,8 @@ import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 @Mapper(
         config = CentralMapperConfig.class,
         uses = {
-                PatientDetailResponseMapper.class
+                PatientDetailResponseMapper.class,
+                UserMapperHelper.class
         }
 )
 public interface Form0581DetailResponseMapper {
@@ -35,6 +37,7 @@ public interface Form0581DetailResponseMapper {
     @Mapping(target = "reportInfo", source = "form0581.reportInfo")
     @Mapping(target = "cancellationInfo", source = "form0581.cancellationInfo")
     @Mapping(target = "approvalInfo", source = "form0581.approvalInfo")
+    @Mapping(target = "acceptInfo", source = "form0581.acceptInfo")
     @Mapping(target = "deleteInfo", source = "form0581.deleteInfo")
 
     @Mapping(target = "patient", source = "form0581.patient")
@@ -66,6 +69,11 @@ public interface Form0581DetailResponseMapper {
     Form0581CancellationDetailResponse toResponse(Form0581CancellationInfo source);
 
     Form0581ApprovalDetailResponse toResponse(Form0581ApprovalInfo source);
+
+    @Mapping(target = "acceptedBy", source = "acceptedBy")
+    @Mapping(target = "acceptedAt", source = "acceptedAt")
+    @Mapping(target = "acceptedFullName", source = "acceptedBy", qualifiedByName = "toUserFullName")
+    Form0581AcceptDetailResponse toResponse(Form0581AcceptInfo source);
 
     Form0581DeleteDetailResponse toResponse(Form0581DeleteInfo source);
 

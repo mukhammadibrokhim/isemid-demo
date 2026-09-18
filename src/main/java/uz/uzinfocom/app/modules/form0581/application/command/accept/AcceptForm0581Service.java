@@ -33,7 +33,7 @@ public class AcceptForm0581Service {
         form0581AcceptValidator.validateAccept(form0581);
         String oldStatus = form0581.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
-        form0581.accept();
+        form0581.accept(actorUserId);
         UpdateForm0581Result result = form0581UpdateMapper.toResult(form0581JpaRepository.save(form0581));
 
         eventPublisher.publishEvent(new StatusChangedEvent(

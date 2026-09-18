@@ -141,6 +141,9 @@ public class Form058 extends AbsEntity implements AuditableFields {
     @Embedded
     private Form058ApprovalInfo approvalInfo;
 
+    @Embedded
+    private Form058AcceptInfo acceptInfo;
+
     /**
      * Soft delete state.
      * Columns remain in form058 table:
@@ -235,10 +238,16 @@ public class Form058 extends AbsEntity implements AuditableFields {
      * from {@code SENT} into {@code ACCEPTED}. Cards cannot be linked
      * ({@link #linkCards()}) before this happens; see
      * {@code Form058AcceptValidator} for the status/scope check.
+     * {@code acceptedBy} is recorded so the printed form can show who at
+     * the receiving organization accepted it, rather than proxying that
+     * off whoever later attached a card.
      */
-    public void accept() {
+    public void accept(Long acceptedBy) {
         ensureEditable();
+        ensureAcceptInfo();
         this.status = FormStatus.ACCEPTED;
+        this.acceptInfo.setAcceptedBy(acceptedBy);
+        this.acceptInfo.setAcceptedAt(Instant.now());
     }
 
     /**
@@ -298,6 +307,12 @@ public class Form058 extends AbsEntity implements AuditableFields {
     private void ensureApprovalInfo() {
         if (this.approvalInfo == null) {
             this.approvalInfo = new Form058ApprovalInfo();
+        }
+    }
+
+    private void ensureAcceptInfo() {
+        if (this.acceptInfo == null) {
+            this.acceptInfo = new Form058AcceptInfo();
         }
     }
 

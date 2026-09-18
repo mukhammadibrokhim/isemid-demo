@@ -58,6 +58,9 @@ public record Form0581DetailResponse(
         @Schema(description = "Сведения об утверждении.")
         Form0581ApprovalDetailResponse approvalInfo,
 
+        @Schema(description = "Сведения о приёме формы получателем.")
+        Form0581AcceptDetailResponse acceptInfo,
+
         @Schema(description = "Сведения об удалении.")
         Form0581DeleteDetailResponse deleteInfo,
 

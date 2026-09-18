@@ -87,7 +87,7 @@ public class Form0581PdfMapper {
                 toHospitalizationResponse(hospitalizationInfo),
                 reportInfo == null ? null : reportInfo.getAntirabicAssistanceInfo(),
                 resolveNotifierFullName(form0581, reportInfo),
-                reportInfo == null ? null : reportInfo.getReceiverFullName(),
+                resolveReceiverFullName(form0581, reportInfo),
                 reportInfo == null ? null : reportInfo.getMessageSentAt()
         );
     }
@@ -104,6 +104,23 @@ public class Form0581PdfMapper {
             return creator.fullName();
         }
         return reportInfo == null ? null : reportInfo.getNotifierFullName();
+    }
+
+    /**
+     * The receiver's signature ("Xabarni qabul qilgan") is whoever called accept() on this
+     * form - recorded on {@code acceptInfo.acceptedBy}. Forms accepted before that field
+     * existed fall back to the free-text {@code reportInfo.receiverFullName} submitted
+     * manually at creation. Mirrors {@code Form058PdfMapper#resolveReceiverFullName}.
+     */
+    private String resolveReceiverFullName(Form0581 form0581, Form0581ReportInfo reportInfo) {
+        Long acceptedBy = form0581.getAcceptInfo() == null ? null : form0581.getAcceptInfo().getAcceptedBy();
+        if (acceptedBy != null) {
+            UserMiniResponse acceptor = userMapperHelper.toUserMiniResponse(acceptedBy);
+            if (acceptor != null && StringUtils.hasText(acceptor.fullName())) {
+                return acceptor.fullName();
+            }
+        }
+        return reportInfo == null ? null : reportInfo.getReceiverFullName();
     }
 
     private Form0581PdfPatientResponse toPatientResponse(Patient patient) {
