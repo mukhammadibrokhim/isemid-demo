@@ -209,7 +209,7 @@ app.auth.login.providers.sso-web.extra-params.claims=organization
 # DHP - does require a client_secret (see the verification note below).
 # Key "dhp-web", not "dhp" - see the key-naming note above for why.
 app.auth.login.providers.dhp-web.enabled=true
-app.auth.login.providers.dhp-web.token-url=${DHP_WEB_LOGIN_TOKEN_URL:https://dev.dhp.uz/sso/oauth/token}
+app.auth.login.providers.dhp-web.token-url=${DHP_WEB_LOGIN_TOKEN_URL:https://playground.dhp.uz/sso/oauth/token}
 app.auth.login.providers.dhp-web.client-id=${DHP_WEB_LOGIN_CLIENT_ID:...}
 app.auth.login.providers.dhp-web.client-secret=${DHP_WEB_LOGIN_CLIENT_SECRET:...}
 app.auth.login.providers.dhp-web.credentials-in-basic-header=false
@@ -289,6 +289,12 @@ origin gets no CORS headers at all (browser blocks it client-side).
   the request body (omitting it - the public-PKCE-only shape used for
   `sso-web` - returns `invalid_client` again) - `require-client-secret` is
   left at its default (`true`) for `dhp-web`, unlike `sso-web`.
+  **2026-09-18 update:** `token-url` was switched back to
+  `https://playground.dhp.uz/sso/oauth/token` (env-driven, `dev` profile
+  default). The `client_id`/`client_secret` above have not been
+  re-verified against `playground.dhp.uz` since the `invalid_client`
+  finding described above - re-confirm live before relying on this
+  provider again.
 - **Separately verified and documented** (while the password grant still
   existed): SSO issues two independent clients with different allowed
   grant_type sets - the password-grant client isn't accepted for

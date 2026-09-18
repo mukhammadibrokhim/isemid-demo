@@ -20,6 +20,7 @@ triplet'lar bor). Faqat **`card174/175/205/card_tube` BAZA jadvallari** hali esk
 - **drop:** `country_code, district, email, service_area_code`
 - **backfill:** `version`→0; `created_by_id`/`updated_by_id`→NULL; `name_uz`←`name`, `name_ru/kaa/uz_cyril`→NULL; `created_at`/`updated_at` NULL bo'lsa `now()`
 - `organization_service_types` — 1:1
+- **2026-09-18 tuzatish:** `provider_key` (`iam/20260917-1400-add-organization-provider-key.xml`) — hujjat yozilgandan keyin qo'shilgan ustun, `10-organization.sql`da yo'q edi (barcha migratsiya qilingan tashkilotlarda NULL qolib ketardi → `OrganizationSyncService#syncByUuid` admin-refresh oqimi `providerKey` berilmasa xato beradi). Legacy `isemid` DHP paydo bo'lishidan oldingi tizim — barcha tashkilotlar SSV SSO orqali sinxronlangan, shuning uchun backfill qiymati `'sso'`. Fix qilindi.
 
 ### users
 - **to'g'ridan (14):** `active, birth_date, country_code, created_at, first_name, gender_code, id, last_name, line, middle_name, nnuzb, phone_number, updated_at, uuid`

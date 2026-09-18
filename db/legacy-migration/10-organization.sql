@@ -14,11 +14,16 @@ SET TIME ZONE 'Asia/Tashkent';
 --           level_type NULL -> 'NOT_DEFINED'; medical_type NULL -> 'OTHER'
 --           (MedicalType has no NOT_DEFINED constant — its sentinel is OTHER);
 --           created_at/updated_at NULL -> now()
+--           provider_key -> 'sso' (legacy predates the DHP provider; every
+--           legacy organization was synced through SSV SSO. Needed so
+--           OrganizationSyncService#syncByUuid can resync a migrated org
+--           without the caller having to pass providerKeyOverride.)
 -- parent_id: 2-bosqich (self-FK) — avval NULL, keyin UPDATE.
 INSERT INTO public2.organization (
     id, version, created_at, created_by_id, updated_at, updated_by_id,
     active, district_code, level_type, medical_type, name, phone, region_code,
-    tin, uuid, address_line, name_kaa, name_ru, name_uz, name_uz_cyril, parent_id
+    tin, uuid, address_line, name_kaa, name_ru, name_uz, name_uz_cyril, parent_id,
+    provider_key
 )
 SELECT
     o.id,
@@ -39,7 +44,8 @@ SELECT
     left(o.line, 255),                    -- address_line
     NULL, NULL, NULL,
     left(o.name, 500),                    -- name_uz <- name
-    NULL
+    NULL,
+    'sso'
 FROM public.organization o;
 
 -- parent_id (self-FK) — endi barcha qatorlar bor
