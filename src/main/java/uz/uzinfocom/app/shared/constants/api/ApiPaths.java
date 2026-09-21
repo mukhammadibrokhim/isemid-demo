@@ -146,6 +146,21 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/legal-entity";
     }
 
+    /**
+     * Outbound DHP lookups over the server-to-server (client_credentials)
+     * client: data we fetch from DHP-hosted systems on a caller's behalf
+     * and map into our own shapes - employment (egov MOL) and immunization
+     * (DHP FHIR).
+     */
+    public static final class Dhp {
+        private Dhp() {
+        }
+
+        public static final String ROOT = API_V1 + "/dhp";
+        public static final String EMPLOYMENT = ROOT + "/employment";
+        public static final String IMMUNIZATION = ROOT + "/immunization";
+    }
+
     public static final class Reference {
         private Reference() {
         }

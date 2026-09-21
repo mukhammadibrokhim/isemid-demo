@@ -87,7 +87,7 @@ public final class OpenApiGroups {
     /**
      * Every endpoint whose data comes from an external system rather than
      * being native ISEMID business data — API2's citizen/legal-entity
-     * lookups. Kept in one group so a consumer integrating with an outside
+     * lookups and DHP's employment/immunization lookups. Kept in one group so a consumer integrating with an outside
      * system never has to go hunting for these across the main business-API
      * group.
      *
@@ -101,7 +101,8 @@ public final class OpenApiGroups {
             ApiPaths.Citizen.ROOT,
             ApiPaths.Citizen.ROOT + "/**",
             ApiPaths.LegalEntity.ROOT,
-            ApiPaths.LegalEntity.ROOT + "/**"
+            ApiPaths.LegalEntity.ROOT + "/**",
+            ApiPaths.Dhp.ROOT + "/**"
     };
 
     public static final ApiDocumentationGroup AUTH = new ApiDocumentationGroup(

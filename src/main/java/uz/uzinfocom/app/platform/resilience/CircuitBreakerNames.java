@@ -7,7 +7,7 @@ package uz.uzinfocom.app.platform.resilience;
  * place doesn't silently create a fresh, unconfigured breaker instead of
  * reusing the tuned one.
  *
- * <p>{@link #API2} and {@link #LIS} are single shared instance names
+ * <p>{@link #API2}, {@link #LIS} and {@link #DHP} are single shared instance names
  * (registered directly under {@code resilience4j.circuitbreaker.instances.*}).
  * The rest are per-tenant config <em>templates</em> (registered under
  * {@code resilience4j.circuitbreaker.configs.*}) - each client builds its
@@ -19,6 +19,7 @@ public final class CircuitBreakerNames {
 
     public static final String API2 = "api2";
     public static final String LIS = "lis";
+    public static final String DHP = "dhp";
     public static final String IAM_REMOTE = "iam-remote";
     public static final String OAUTH2_LOGIN = "oauth2-login";
     public static final String RSA_PUBLIC_KEY = "rsa-public-key";
