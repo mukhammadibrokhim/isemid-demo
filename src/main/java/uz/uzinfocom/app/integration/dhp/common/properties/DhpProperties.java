@@ -44,8 +44,17 @@ public record DhpProperties(
     public record Fhir(
             @NotBlank String baseUrl,
             @DefaultValue("/Immunization") @NotBlank String immunizationEndpoint,
-            /* Search parameter that resolves the Immunization's patient by the citizen's NI. */
-            @DefaultValue("patient.identifier") @NotBlank String patientSearchParam,
+            /*
+             * Resolves the citizen's Patient resource by NI first. Confirmed live
+             * against the playground 2026-09-21: this FHIR server does not support
+             * filtering Immunization by patient identifier directly - the chained
+             * form (patient.identifier=) is rejected as an unsupported parameter
+             * type and returns every Immunization unfiltered, and the :identifier
+             * reference modifier (patient:identifier=) is accepted but never
+             * matches. Only a plain reference search (patient=Patient/<id>) against
+             * an id resolved via this endpoint actually filters correctly.
+             */
+            @DefaultValue("/Patient") @NotBlank String patientEndpoint,
             /* Optional identifier system; when set the search value becomes "system|ni". */
             String identifierSystem,
             @DefaultValue("100") @Min(1) int pageSize,

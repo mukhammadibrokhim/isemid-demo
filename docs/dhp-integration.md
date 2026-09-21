@@ -21,7 +21,7 @@ role validation on - same as `/v1/citizen/**`).
 | Endpoint | Upstream | Result |
 |---|---|---|
 | `/v1/dhp/employment?ni=<14 digits>` | `GET https://egov.dhp.uz/mol/citizen/employment/by-ni?ni=` | `{nnuzb, items[{organizationName, organizationTin, position, startDate, endDate, current, raw}]}` |
-| `/v1/dhp/immunization?ni=<14 digits>` | DHP FHIR R5 `GET /Immunization?patient.identifier=` (paged) | `{nnuzb, items[{fhirId, status, vaccineCode, vaccinationName, serialNumber, vaccinationDate, expirationDate, doseVolume, doseUnit, doseNumber, targetDiseases[], performerName}]}` |
+| `/v1/dhp/immunization?ni=<14 digits>` | DHP FHIR R5 `GET /Patient?identifier=` then `GET /Immunization?patient=Patient/<id>` (paged) | `{nnuzb, items[{fhirId, status, vaccineCode, vaccinationName, serialNumber, vaccinationDate, expirationDate, doseVolume, doseUnit, doseNumber, targetDiseases[], performerName}]}` |
 
 No data (upstream 404, empty body, empty Bundle) is an empty `items`, not an
 error. An invalid `ni` is `400 VALIDATION_FAILED` (`validation.nnuzb.format`)
@@ -47,10 +47,14 @@ directly. `entered-in-error` records are dropped; items are newest first.
    `404` -> empty, other 4xx/5xx/transport -> `DhpIntegrationException`
    (502/504). Rejected/denied are `ignore-exceptions` on the breaker.
 
-The immunization client follows Bundle `next` links (max `fhir.max-pages`,
-page size `fhir.page-size`) **only** while they stay under
-`integration.dhp.fhir.base-url` - a next-link is server-supplied, so following
-one elsewhere would leak the bearer token.
+The immunization client resolves the citizen's `Patient` id by NI first (`GET
+<fhir-base>/Patient?identifier=[<identifier-system>|]<NNUZB>`), then searches
+`Immunization?patient=Patient/<id>` - a direct patient-identifier search on
+Immunization does **not** work on this server (see Known gaps). It follows
+the Immunization Bundle's `next` links (max `fhir.max-pages`, page size
+`fhir.page-size`) **only** while they stay under `integration.dhp.fhir.base-url`
+- a next-link is server-supplied, so following one elsewhere would leak the
+bearer token.
 
 ## Configuration
 
@@ -62,23 +66,32 @@ app still boots without them - the DHP calls fail with
   `client-secret` [`DHP_M2M_CLIENT_SECRET`]
 - `employment.base-url` [`DHP_EMPLOYMENT_BASE_URL`], `employment.by-ni-endpoint`
 - `fhir.base-url` [`DHP_FHIR_BASE_DOMAIN`], `fhir.immunization-endpoint`,
-  `fhir.patient-search-param` [`DHP_IMMUNIZATION_PATIENT_PARAM`],
+  `fhir.patient-endpoint` [`DHP_IMMUNIZATION_PATIENT_ENDPOINT`; resolves the
+  Patient id searched by NI before the Immunization call],
   `fhir.identifier-system` [`DHP_IMMUNIZATION_IDENTIFIER_SYSTEM`; when set the
   search value becomes `system|ni`], `fhir.page-size`, `fhir.max-pages`
 - `connect-timeout`, `read-timeout`, `token-expiry-skew`
 
-## Known gaps (verified 2026-09-21 against playground)
+## Known gaps / verified behavior (live against playground, 2026-09-21)
 
-- **FHIR access is not granted to the M2M client.** Every FHIR resource
-  (`Immunization`, `Patient`, `Organization`) answered `403 access denied`,
-  and the client may request no scopes (`invalid_scope` for anything). Until
-  DHP grants it, `/v1/dhp/immunization` returns `502 dhp.error.access_denied`.
-- **The immunization search parameter is unverified.** `patient.identifier`
-  (optionally with `fhir.identifier-system`) is the assumed way to resolve the
-  patient by NI; confirm against a real patient and adjust the two properties.
-- **The employment payload shape is unverified.** No successful response has
-  been seen (only `400 {"code":"bad_request","message":"incorrect NI"}` for
-  dummy NIs). `DhpEmploymentMapper` therefore matches several likely field
-  names and every item carries the untouched source record in `raw`. Once a
-  real sample exists: tighten the candidate lists to the real names, replace
-  the synthetic fixtures in `DhpEmploymentMapperTest`, then drop `raw`.
+- **FHIR access is now granted to the M2M client** (previously every FHIR
+  resource answered `403`). `Patient`, `Immunization` and `metadata` all
+  return `200`; the server reports `fhirVersion 5.0.0`.
+- **Immunization cannot be filtered by patient identifier directly - fixed by
+  a two-step search.** Both standard FHIR forms fail on this server:
+  the chained `patient.identifier=<ni>` is rejected as an unsupported
+  parameter type and silently returns **every** Immunization in the system
+  unfiltered (entries from unrelated patients mixed in - a real data-exposure
+  risk if used as-is); the `patient:identifier=<system>|<ni>` reference
+  modifier is syntactically accepted but never matches, even against an
+  identifier confirmed to exist on a real `Patient` resource. A plain
+  reference search - `Patient?identifier=<ni>` to resolve an id, then
+  `Immunization?patient=Patient/<id>` - is the only form that actually
+  filters correctly, and is what `DhpImmunizationClient` now does.
+- **The employment payload shape is confirmed**: a JSON-RPC envelope,
+  `{"result":{"name":...,"surname":...,"positions":[{"org":...,"org_tin":...,
+  "position":...,"begin_date":...}, ...]}}` (no `end_date` sample seen yet -
+  nothing in the captured response had ended). `DhpEmploymentMapper` matches
+  these real names plus several likely synonyms (prod may differ from the
+  playground) and every item still carries the untouched source record in
+  `raw`.

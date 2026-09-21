@@ -26,7 +26,7 @@ public final class DhpTestProperties {
                 Duration.ofSeconds(1),
                 Duration.ofSeconds(60),
                 new DhpProperties.Employment(EMPLOYMENT_BASE, "/mol/citizen/employment/by-ni"),
-                new DhpProperties.Fhir(FHIR_BASE, "/Immunization", "patient.identifier", identifierSystem, 100, 3)
+                new DhpProperties.Fhir(FHIR_BASE, "/Immunization", "/Patient", identifierSystem, 100, 3)
         );
     }
 }

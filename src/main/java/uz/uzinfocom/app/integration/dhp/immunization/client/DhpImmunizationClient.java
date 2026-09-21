@@ -16,16 +16,23 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * FHIR search {@code GET <fhir>/Immunization?<patient-param>=<ni>&_count=N},
- * following the Bundle's {@code next} links. Returns the raw Bundles;
- * mapping happens in the service layer.
+ * Two-step FHIR search: {@code GET <fhir>/Patient?identifier=<ni>} resolves
+ * the citizen's Patient id, then {@code GET <fhir>/Immunization?patient=
+ * Patient/<id>&_count=N} fetches their records, following the Bundle's
+ * {@code next} links. A direct reference search is used rather than a
+ * patient-identifier search on Immunization itself because DHP's FHIR server
+ * does not support the latter - confirmed live against the playground
+ * 2026-09-21 (see {@link DhpProperties.Fhir#patientEndpoint()}). Returns the
+ * raw Immunization Bundles; mapping happens in the service layer.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DhpImmunizationClient {
 
-    private static final String OPERATION = "DHP_IMMUNIZATION_SEARCH";
+    private static final String PATIENT_LOOKUP_OPERATION = "DHP_IMMUNIZATION_PATIENT_LOOKUP";
+    private static final String SEARCH_OPERATION = "DHP_IMMUNIZATION_SEARCH";
+    private static final String PATIENT_RESOURCE_TYPE = "Patient";
 
     private final DhpHttpClient httpClient;
     private final DhpProperties properties;
@@ -34,13 +41,14 @@ public class DhpImmunizationClient {
     public List<JsonNode> searchByNi(String ni) {
         DhpProperties.Fhir fhir = properties.fhir();
 
-        String searchValue = StringUtils.hasText(fhir.identifierSystem())
-                ? fhir.identifierSystem().trim() + "|" + ni
-                : ni;
+        Optional<String> patientId = resolvePatientId(ni, fhir);
+        if (patientId.isEmpty()) {
+            return List.of();
+        }
 
         URI next = UriComponentsBuilder.fromUriString(fhir.baseUrl())
                 .path(fhir.immunizationEndpoint())
-                .queryParam(fhir.patientSearchParam(), searchValue)
+                .queryParam("patient", PATIENT_RESOURCE_TYPE + "/" + patientId.get())
                 .queryParam("_count", fhir.pageSize())
                 .build()
                 .encode()
@@ -49,7 +57,7 @@ public class DhpImmunizationClient {
         List<JsonNode> bundles = new ArrayList<>();
 
         for (int page = 0; page < fhir.maxPages() && next != null; page++) {
-            Optional<JsonNode> bundle = httpClient.getJson(OPERATION, next);
+            Optional<JsonNode> bundle = httpClient.getJson(SEARCH_OPERATION, next);
             if (bundle.isEmpty()) {
                 next = null;
                 break;
@@ -65,6 +73,43 @@ public class DhpImmunizationClient {
         }
 
         return bundles;
+    }
+
+    /** The citizen's Patient id resolved by identifier search; empty when DHP has no matching Patient. */
+    private Optional<String> resolvePatientId(String ni, DhpProperties.Fhir fhir) {
+        String searchValue = StringUtils.hasText(fhir.identifierSystem())
+                ? fhir.identifierSystem().trim() + "|" + ni
+                : ni;
+
+        URI uri = UriComponentsBuilder.fromUriString(fhir.baseUrl())
+                .path(fhir.patientEndpoint())
+                .queryParam("identifier", searchValue)
+                .build()
+                .encode()
+                .toUri();
+
+        Optional<JsonNode> bundle = httpClient.getJson(PATIENT_LOOKUP_OPERATION, uri);
+        if (bundle.isEmpty()) {
+            return Optional.empty();
+        }
+
+        JsonNode entries = DhpJson.child(bundle.get(), "entry");
+        if (entries == null || !entries.isArray()) {
+            return Optional.empty();
+        }
+
+        for (JsonNode entry : entries) {
+            JsonNode resource = DhpJson.child(entry, "resource");
+            if (resource == null || !PATIENT_RESOURCE_TYPE.equals(DhpJson.text(resource, "resourceType"))) {
+                continue;
+            }
+            String id = DhpJson.text(resource, "id");
+            if (id != null) {
+                return Optional.of(id);
+            }
+        }
+
+        return Optional.empty();
     }
 
     /**

@@ -11,14 +11,42 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The upstream payload shape is unconfirmed (see {@link DhpEmploymentMapper}),
- * so these pin the tolerant behavior against representative synthetic shapes.
- * Replace with a real captured response once one is available.
+ * Pins the tolerant matching in {@link DhpEmploymentMapper} against both the
+ * real egov MOL JSON-RPC shape (confirmed live against the playground
+ * 2026-09-21) and representative synthetic shapes, in case prod ever differs.
  */
 class DhpEmploymentMapperTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 9, 21);
     private final JsonMapper jsonMapper = JsonMapper.builder().build();
+
+    @Test
+    void mapsTheRealEgovMolJsonRpcShape() {
+        List<EmploymentItem> items = map("""
+                {"error":null,"id":300491849,"jsonrpc":"2.0","result":{
+                  "id":4624952,"name":"FIRSTNAME","surname":"LASTNAME","pnfl":"12345678901234",
+                  "result_code":1,"result_message":"OK",
+                  "positions":[
+                    {"begin_date":"2021-11-08","dep_id":1,"dep_name":"N/A","doc_begin_num":"5",
+                     "org":"EXAMPLE LLC","org_id":"111111111","org_tin":"111111111",
+                     "position":"Muhandis","position_id":1,"rate":"1.00"},
+                    {"begin_date":"2018-01-15","end_date":"2019-12-31","dep_id":2,
+                     "org":"OLD CLINIC","org_id":"222222222","org_tin":"222222222",
+                     "position":"Intern","position_id":2,"rate":"0.50"}
+                  ]
+                }}""");
+
+        assertThat(items).hasSize(2);
+        assertThat(items.get(0).organizationName()).isEqualTo("EXAMPLE LLC");
+        assertThat(items.get(0).organizationTin()).isEqualTo("111111111");
+        assertThat(items.get(0).position()).isEqualTo("Muhandis");
+        assertThat(items.get(0).startDate()).isEqualTo(LocalDate.of(2021, 11, 8));
+        assertThat(items.get(0).endDate()).isNull();
+        assertThat(items.get(0).current()).isTrue();
+        assertThat(items.get(1).organizationName()).isEqualTo("OLD CLINIC");
+        assertThat(items.get(1).endDate()).isEqualTo(LocalDate.of(2019, 12, 31));
+        assertThat(items.get(1).current()).isFalse();
+    }
 
     @Test
     void mapsFlatSnakeCaseRecordsFromARootArray() {

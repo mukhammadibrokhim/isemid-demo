@@ -12,25 +12,26 @@ import java.util.Map;
 /**
  * Maps the egov MOL {@code employment/by-ni} payload into {@link EmploymentItem}s.
  *
- * <p><b>The upstream field names have not been confirmed against a real
- * response yet</b> (the playground only rejected dummy NIs with
- * {@code "incorrect NI"}). So this reads defensively: the list may be the
- * root array or sit under a common wrapper key, an item's employer may be a
+ * <p>Confirmed live against the playground 2026-09-21: the response is a
+ * JSON-RPC envelope, {@code {"result":{"positions":[{"org":...,"org_tin":...,
+ * "position":...,"begin_date":...}, ...]}}}. This still reads defensively -
+ * the list may sit under a common wrapper key, an item's employer may be a
  * nested object, and every field is looked up under several likely names
- * (matched ignoring case, {@code _} and {@code -}). Every item also carries
- * the untouched source record in {@code raw}. Once a real sample is
- * available, tighten the candidate lists below to the actual names.
+ * (matched ignoring case, {@code _} and {@code -}) - since prod may differ
+ * from the playground and no {@code end_date} sample has been seen yet
+ * (nothing in the captured response had ended). Every item also carries the
+ * untouched source record in {@code raw}.
  */
 public final class DhpEmploymentMapper {
 
     private static final List<String> LIST_KEYS = List.of(
-            "data", "items", "content", "employments", "employment", "records", "results", "result");
+            "data", "items", "content", "employments", "employment", "positions", "records", "results", "result");
     private static final List<String> EMPLOYER_OBJECT_KEYS = List.of(
             "organization", "employer", "company", "workplace", "org");
 
     private static final List<String> NAME_KEYS = List.of(
             "organizationname", "orgname", "companyname", "employername", "employer", "company",
-            "workplace", "workplacename", "organization");
+            "workplace", "workplacename", "organization", "org");
     /** Inside a nested employer object a bare "name" is the employer's; on the record itself it could be the person's. */
     private static final List<String> EMPLOYER_NAME_KEYS = List.of(
             "organizationname", "orgname", "companyname", "employername", "name");

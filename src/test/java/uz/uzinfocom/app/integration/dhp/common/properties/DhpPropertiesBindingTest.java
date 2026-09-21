@@ -37,7 +37,7 @@ class DhpPropertiesBindingTest {
             assertThat(properties.tokenExpirySkew()).isEqualTo(Duration.ofSeconds(60));
             assertThat(properties.employment().byNiEndpoint()).isEqualTo("/mol/citizen/employment/by-ni");
             assertThat(properties.fhir().immunizationEndpoint()).isEqualTo("/Immunization");
-            assertThat(properties.fhir().patientSearchParam()).isEqualTo("patient.identifier");
+            assertThat(properties.fhir().patientEndpoint()).isEqualTo("/Patient");
             assertThat(properties.fhir().pageSize()).isEqualTo(100);
             assertThat(properties.fhir().maxPages()).isEqualTo(10);
         });
