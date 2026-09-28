@@ -26,7 +26,9 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card161.VaccinationRequest;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,7 +69,7 @@ class Card161HandlerTest {
         when(entityManager.getReference(Organization.class, 7L)).thenReturn(polyclinic);
 
         Card161Request request = requestWith("initial symptoms", 7L,
-                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, 2, true)),
+                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, BigDecimal.valueOf(2), true, null, null, null, null, null, null, null)),
                 List.of(new Card161RiskFactorRequest(null, "RF1", "Somewhere", "Summer")),
                 new InfectionSourceDetailRequest("NOT_FOUND", "John Doe", "PERIOD1", "DOG"));
 
@@ -90,9 +92,32 @@ class Card161HandlerTest {
     }
 
     @Test
+    void updateKeepsEveryFieldOfAVaccinationPrefilledFromDhpImmunization() {
+        VaccinationRequest fromDhp = new VaccinationRequest(null, null, "Engerix-B", "AB123",
+                LocalDateTime.of(2026, 3, 14, 10, 30), new BigDecimal("0.5"), null,
+                "imm-42", "HEPB", LocalDate.of(2027, 1, 31), "ml", 2,
+                List.of("Hepatitis B", " ", "Tetanus"), "Dr. Karimova");
+
+        Card161 card161 = cardWith(requestWith("x", null, List.of(fromDhp), List.of(), null));
+
+        Vaccination saved = card161.getVaccinations().getFirst();
+        assertThat(saved.getDoseVolume()).isEqualByComparingTo("0.5");
+        assertThat(saved.getFhirId()).isEqualTo("imm-42");
+        assertThat(saved.getVaccineCode()).isEqualTo("HEPB");
+        assertThat(saved.getExpirationDate()).isEqualTo(LocalDate.of(2027, 1, 31));
+        assertThat(saved.getDoseUnit()).isEqualTo("ml");
+        assertThat(saved.getDoseNumber()).isEqualTo(2);
+        assertThat(saved.getTargetDiseases()).isEqualTo("Hepatitis B; Tetanus");
+        assertThat(saved.getPerformerName()).isEqualTo("Dr. Karimova");
+
+        Card161MapperImpl mapper = new Card161MapperImpl();
+        assertThat(mapper.toResponse(saved).targetDiseases()).containsExactly("Hepatitis B", "Tetanus");
+    }
+
+    @Test
     void updateReplacesChildrenInPlaceWithoutReassigningTheCollection() {
         Card161Request initial = requestWith("first", null,
-                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, 2, true)),
+                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, BigDecimal.valueOf(2), true, null, null, null, null, null, null, null)),
                 List.of(new Card161RiskFactorRequest(null, "RF1", "Somewhere", "Summer")),
                 new InfectionSourceDetailRequest("NOT_FOUND", "John Doe", "PERIOD1", "DOG"));
         Card161 card161 = cardWith(initial);
@@ -119,8 +144,8 @@ class Card161HandlerTest {
     void updatePreservesExistingChildIdsAndDropsChildrenOmittedFromTheRequest() {
         Card161Request initial = requestWith("first", null,
                 List.of(
-                        new VaccinationRequest(null, "V1", "BCG", "SN-1", null, 1, true),
-                        new VaccinationRequest(null, "V2", "OPV", "SN-2", null, 2, false)
+                        new VaccinationRequest(null, "V1", "BCG", "SN-1", null, BigDecimal.valueOf(1), true, null, null, null, null, null, null, null),
+                        new VaccinationRequest(null, "V2", "OPV", "SN-2", null, BigDecimal.valueOf(2), false, null, null, null, null, null, null, null)
                 ),
                 List.of(), null);
         Card161 card161 = cardWith(initial);
@@ -134,8 +159,8 @@ class Card161HandlerTest {
 
         Card161Request updated = requestWith("second", null,
                 List.of(
-                        new VaccinationRequest(100L, "V1-EDITED", "BCG", "SN-1", null, 9, true),
-                        new VaccinationRequest(null, "V3-NEW", "MMR", "SN-3", null, 3, false)
+                        new VaccinationRequest(100L, "V1-EDITED", "BCG", "SN-1", null, BigDecimal.valueOf(9), true, null, null, null, null, null, null, null),
+                        new VaccinationRequest(null, "V3-NEW", "MMR", "SN-3", null, BigDecimal.valueOf(3), false, null, null, null, null, null, null, null)
                 ),
                 List.of(), null);
         handler.update(card161, updated);
@@ -150,13 +175,13 @@ class Card161HandlerTest {
                 .orElseThrow();
         assertThat(stillFirstDose).isSameAs(firstDose);
         assertThat(stillFirstDose.getVaccinationVerifiedCode()).isEqualTo("V1-EDITED");
-        assertThat(stillFirstDose.getDoseVolume()).isEqualTo(9);
+        assertThat(stillFirstDose.getDoseVolume()).isEqualByComparingTo("9");
     }
 
     @Test
     void toResponseRoundTripsFieldsAndChildren() {
         Card161Request request = requestWith("initial symptoms", null,
-                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, 2, true)),
+                List.of(new VaccinationRequest(null, "VERIFIED", "BCG", "SN-1", null, BigDecimal.valueOf(2), true, null, null, null, null, null, null, null)),
                 List.of(new Card161RiskFactorRequest(null, "RF1", "Somewhere", "Summer")),
                 new InfectionSourceDetailRequest("NOT_FOUND", "John Doe", "PERIOD1", "DOG"));
         Card161 card161 = cardWith(request);

@@ -27,9 +27,14 @@ No data (upstream 404, empty body, empty Bundle) is an empty `items`, not an
 error. An invalid `ni` is `400 VALIDATION_FAILED` (`validation.nnuzb.format`)
 before any upstream call.
 
-`vaccinationName`, `serialNumber`, `vaccinationDate`, `doseVolume` intentionally
-match `VaccinationResponse` (Card161) so a vaccination row can be prefilled
-directly. `entered-in-error` records are dropped; items are newest first.
+Every `ImmunizationItem` field except `status` has a same-named field on
+Card161's `VaccinationRequest`/`VaccinationResponse`, so the frontend can drop
+a DHP record straight into a card's `vaccinations[]` and save it with nothing
+lost: `doseVolume` is fractional (`NUMERIC(10,3)`, e.g. `0.5`), `fhirId` links
+the row back to its DHP source (null for hand-entered rows), and
+`targetDiseases` is stored `"; "`-joined in one column
+(migration `zzz-card-act/20260928-1000`). `entered-in-error` records are
+dropped; items are newest first.
 
 ## How a call works
 

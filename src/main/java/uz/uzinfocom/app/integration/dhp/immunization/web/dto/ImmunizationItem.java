@@ -8,10 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Field names {@code vaccinationName}, {@code serialNumber},
- * {@code vaccinationDate} and {@code doseVolume} deliberately match
- * {@code VaccinationResponse} (Card161), so the frontend can prefill a
- * vaccination row straight from this record.
+ * Every field except {@code status} deliberately matches Card161's
+ * {@code VaccinationRequest}, so the frontend can submit this record as a
+ * card vaccination row as is.
  */
 @Schema(description = "Одна запись о вакцинации.")
 public record ImmunizationItem(
