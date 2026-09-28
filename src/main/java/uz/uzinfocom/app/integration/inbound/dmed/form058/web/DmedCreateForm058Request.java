@@ -44,9 +44,11 @@ public record DmedCreateForm058Request(
         @Schema(description = "Итоговый (подтверждённый) код диагноза по МКБ-10, если он уже известен "
                 + "на момент отправки и отличается от предварительного mkb10Code. Если не указан, "
                 + "принимается равным mkb10Code.")
+        @Size(max = 20, message = "{validation.form058.icd10-code.size}")
         String finalMkb10Code,
 
         @Schema(description = "Итоговое (подтверждённое) наименование диагноза по МКБ-10 — см. finalMkb10Code.")
+        @Size(max = 512, message = "{validation.form058.icd10-name.size}")
         String finalMkb10Name,
 
         @Schema(description = "Сведения о пациенте, по которому регистрируется случай.",

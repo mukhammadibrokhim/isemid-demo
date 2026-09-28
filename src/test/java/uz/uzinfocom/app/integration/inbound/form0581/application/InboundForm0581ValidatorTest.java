@@ -57,7 +57,7 @@ class InboundForm0581ValidatorTest {
                 null,
                 null,
                 null,
-                new InboundCreateForm0581Request.ReportInfo(null, "Notifier Full Name", null, null)
+                new InboundCreateForm0581Request.ReportInfo(null, "Notifier Full Name", null)
         );
     }
 }
