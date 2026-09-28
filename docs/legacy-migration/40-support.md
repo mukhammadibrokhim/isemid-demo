@@ -85,6 +85,7 @@ marital_status_code, middle_name, phone_number, population_type_code,
 profession_code, residential_status_code`.
 
 Transform: `+ version = 0`, `created_at`/`updated_at` → `timestamptz` (legacy NN).
+`first_name` / `last_name` / `middle_name` → `upper(trim(...))` (NULL NULLligicha qoladi).
 
 ---
 
@@ -118,8 +119,9 @@ Transform: `+ version = 0`, `created_at`/`updated_at` → `timestamptz` (legacy 
 | legacy | yangi | transform |
 |---|---|---|
 | `id`, audit, `uuid` | bir xil | `+version`, `timestamptz` |
-| `period_start` / `period_end` / `value` NN | bir xil | to'g'ridan |
-| `type_code` (nullable) | `type_code` **NN** (varchar30) | ⚠️ legacy NULL qatorlar → QAROR (default `'UNKNOWN'`?) |
+| `period_start` / `period_end` | bir xil | to'g'ridan |
+| `value` NN | `value` NN (varchar100) | barcha bo'sh joylar (space/tab/NBSP) olib tashlanadi + UPPERCASE (`aa 1234567` → `AA1234567`). Bo'sh qolsa `'—'`, 100 dan uzun bo'lsa kesiladi — ikkalasi ham `_migration_notes` ga |
+| `type_code` (nullable) | `type_code` **NN** (varchar30) | `upper(trim)` + `ref_catalog` `IDENTIFIER_TYPE` ga o'giriladi: `NNUZB`/`PINFL`/`JSHSHIR`/`NI` → `NNUZB`; `PASSPORT`/`PPN` → `PPN`; NULL/bo'sh → `UNKNOWN`; qolganlari o'zgarmaydi. `_migration_notes` ga: har bir legacy→yangi kod juftligi soni, katalogda yo'q kodlar, 14 raqam bo'lmagan `NNUZB` qiymatlar, yetim (patient'i yo'q) qatorlar |
 | `patient_id` NN | `patient_id` NN | to'g'ridan |
 | — | `created_org_uuid` / `updated_org_uuid` | `NULL` |
 
