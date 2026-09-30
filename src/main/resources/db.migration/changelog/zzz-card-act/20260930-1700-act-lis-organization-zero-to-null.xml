@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Legacy isemid stored «no LIS organization» as 0 rather than NULL, and
+        db/legacy-migration/61-act-subtypes.sql copied it verbatim. 0 is never
+        a real organization id, so the act detail view failed resolving its
+        name («Актив ташкилот топилмади: 0»). Normalize to NULL; idempotent.
+    -->
+    <changeSet id="20260930-1700-01-act-lis-organization-zero-to-null" author="uzinfocom">
+        <sql>
+            UPDATE act153 SET lis_organization_id = NULL WHERE lis_organization_id = 0;
+            UPDATE act154 SET lis_organization_id = NULL WHERE lis_organization_id = 0;
+            UPDATE act156 SET lis_organization_id = NULL WHERE lis_organization_id = 0;
+            UPDATE act223 SET lis_organization_id = NULL WHERE lis_organization_id = 0;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

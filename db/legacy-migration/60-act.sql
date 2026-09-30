@@ -43,7 +43,10 @@ SELECT
     END,
     left(l.act_type, 50),
     (SELECT c.id FROM public2.card c WHERE c.id = l.card_id),   -- yetim -> NULL
-    NULL, NULL, left(l.subject_type, 50), l.tin::text,   -- act.tin 2026-09-29 dan VARCHAR
+    NULL, NULL,
+    -- subject_type = SubjectType enum; noma'lum qiymat entity yuklanishini yiqitadi -> NULL (+ note, pastda)
+    CASE WHEN l.subject_type IN ('LEGAL_ENTITY', 'GEOGRAPHIC_POINT', 'PHYSICAL_PERSON') THEN l.subject_type END,
+    l.tin::text,   -- act.tin 2026-09-29 dan VARCHAR
     l.institution_name, l.institution_address, l.institution_legal_address,
     COALESCE(l.lis_attempt, 0),
     l.lis_sent_date,
@@ -59,6 +62,13 @@ FROM public.act l;
 INSERT INTO public2._migration_notes (source_table, source_id, note)
 SELECT 'act', l.id, 'ACT155: bazaviy qator ko''chdi, act155/act155_detail detali target''da yo''q'
 FROM public.act l WHERE l.act_type = 'ACT155';
+
+-- subject_type enum'da yo'q -> NULL qilindi
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act', l.id, 'subject_type SubjectType enum''da yo''q -> NULL', l.subject_type
+FROM public.act l
+WHERE l.subject_type IS NOT NULL
+  AND l.subject_type NOT IN ('LEGAL_ENTITY', 'GEOGRAPHIC_POINT', 'PHYSICAL_PERSON');
 
 -- sentinel org ishlatilган
 INSERT INTO public2._migration_notes (source_table, source_id, note)

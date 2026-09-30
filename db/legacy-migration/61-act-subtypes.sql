@@ -4,8 +4,10 @@
 --   5434 legacy allaqachon refactor qilingan -> asosan 1:1.
 --   Drop: eski nusxa ustunlar (position, participant_position, institution_*,
 --         lis_act_id, lis_response, subject_type, tin(->identifier), delivered_date).
---   sampler_identifier_type/value <- legacy `tin` ('TIN' + tin::text).
---   participant_identifier_* -> NULL.  *_detail: +version=0.
+--   sampler_/participant_identifier_* -> NULL (2026-09-30: ilgari sampler'ga 'TIN'
+--   yozilardi, lekin ustun CitizenLookupType enum (NNUZB/PPN/CZ) -> Hibernate
+--   yiqilardi; legacy `tin` aslida subyekt STIR'i -> bazaviy act.tin'ga, pastda).
+--   *_detail: +version=0.
 --   2026-09-17 yangilanish: target sxema 02-mapping yozilgandan beri siljigan
 --   (isemid-v2 "act LIS return flow" o'zgarishi) — act_number va subject
 --   act153/154/223'dan bazaviy act'ga ko'chirilgan; act1XX.lis_protocol_response/
@@ -43,9 +45,9 @@ SELECT
     l.participant_full_name, l.participant_position_id, l.participant_position_uz, l.participant_position_ru,
     l.special_condition_id, l.special_sampling_conditions_uz, l.special_sampling_conditions_ru,
     l.storage_delivery_condition_id, l.storage_delivery_conditions_uz, l.storage_delivery_conditions_ru,
-    l.lis_organization_id, l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
+    NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
     l.conservation_method_id, l.conservation_methods_uz, l.conservation_methods_ru, l.additional_info,
-    CASE WHEN l.tin IS NOT NULL THEN 'TIN' END, l.tin::text, NULL, NULL
+    NULL, NULL, NULL, NULL   -- legacy tin = subyekt STIR'i, sampler hujjati emas -> pastda act.tin'ga
 FROM public.act153 l
 JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT153';
 
@@ -96,9 +98,9 @@ SELECT
     l.manufacturing_company, l.manufacture_date, l.doc_number_of_taken_object,
     l.special_condition_id, l.special_sampling_conditions_uz, l.special_sampling_conditions_ru,
     l.storage_delivery_condition_id, l.storage_delivery_conditions_uz, l.storage_delivery_conditions_ru,
-    l.lis_organization_id, l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
+    NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
     l.additional_info,
-    CASE WHEN l.tin IS NOT NULL THEN 'TIN' END, l.tin::text, NULL, NULL
+    NULL, NULL, NULL, NULL   -- legacy tin = subyekt STIR'i, sampler hujjati emas -> pastda act.tin'ga
 FROM public.act154 l
 JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT154';
 
@@ -147,7 +149,7 @@ INSERT INTO public2.act156 (
 )
 SELECT
     l.id, l.title, l.activity_type_code,
-    l.sample_taken_time, l.lis_organization_id, l.laboratory_address, l.sample_delivery_time,
+    l.sample_taken_time, NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.sample_delivery_time,
     l.full_nameof_sampler, l.position_of_sampler,
     l.full_name_of_object_representative, l.position_of_object_representative
 FROM public.act156 l
@@ -206,9 +208,9 @@ SELECT
     l.sample_taken_date_time, l.delivered_date_time,
     l.special_condition_id, l.special_sampling_conditions_uz, l.special_sampling_conditions_ru,
     l.storage_delivery_condition_id, l.storage_delivery_conditions_uz, l.storage_delivery_conditions_ru,
-    l.lis_organization_id, l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
+    NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
     l.additional_info,
-    CASE WHEN l.tin IS NOT NULL THEN 'TIN' END, l.tin::text, NULL, NULL
+    NULL, NULL, NULL, NULL   -- legacy tin = subyekt STIR'i, sampler hujjati emas -> pastda act.tin'ga
 FROM public.act223 l
 JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT223';
 
@@ -238,6 +240,18 @@ SELECT 'act223_detail', d.id, 'target''da ustun yo''q — tashlandi',
 FROM public.act223_detail d
 JOIN public2.act223_detail x ON x.id = d.id
 WHERE d.delivery_conditions_uz IS NOT NULL OR d.storage_conditions_uz IS NOT NULL;
+
+-- ---- act153/154/223 tin -> base act subject block (2026-09-30) ----
+-- Legacy subtype `tin` = tekshirilgan tashkilot STIR'i (subyekt), shaxs hujjati emas.
+UPDATE public2.act a SET
+    tin          = coalesce(a.tin, x.tin::text),
+    subject_type = coalesce(a.subject_type, 'LEGAL_ENTITY')
+FROM (
+  SELECT id, tin FROM public.act153 WHERE tin IS NOT NULL
+  UNION ALL SELECT id, tin FROM public.act154 WHERE tin IS NOT NULL
+  UNION ALL SELECT id, tin FROM public.act223 WHERE tin IS NOT NULL
+) x
+WHERE a.id = x.id;
 
 -- ---- act156/act224 tin/institution_* -> base act subject block ----
 -- Target'da bu takroriy ustunlar yo'q (2026-09-29); bazaviy qiymat ustun.

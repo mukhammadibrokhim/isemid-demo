@@ -94,7 +94,7 @@ public class ActDetailMapper {
                 act.getSampleTakenDateTime(), act.getDeliveredDateTime(), purpose(act.getPurpose()),
                 employee(act.getSampler()), employee(act.getParticipant()), condition(act.getSpecialCondition()),
                 condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
-                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
+                organizationMappingHelper.activeOrganizationNameByIdOrNull(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), conservationType(act.getConservationTypeInfo()),
                 act.getAdditionalInfo(), act153Samples(act.getAct153Details()), lisInfo(act), audit
         );
@@ -110,7 +110,7 @@ public class ActDetailMapper {
                 employee(act.getSampler()), employee(act.getParticipant()), act.getManufacturingCompany(),
                 act.getManufactureDate(), act.getDocNumberOfTakenObject(), condition(act.getSpecialCondition()),
                 condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
-                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
+                organizationMappingHelper.activeOrganizationNameByIdOrNull(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), act.getAdditionalInfo(), act154Samples(act.getAct154Details()),
                 lisInfo(act), audit
         );
@@ -121,7 +121,7 @@ public class ActDetailMapper {
                 act.getId(), act.getActType(), act.getActStatus(), cardMini(act.getCard()), act.getAssignedById(),
                 act.getResultComment(), subject(act.getSubject()),
                 act.getTitle(), act.getActivityTypeCode(), act.getSampleTakenTime(), act.getLisOrganizationId(),
-                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
+                organizationMappingHelper.activeOrganizationNameByIdOrNull(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 act.getSampleDeliveryTime(), act.getFullNameOfSampler(), act.getPositionOfSampler(),
                 act.getFullNameOfObjectRepresentative(), act.getPositionOfObjectRepresentative(),
                 act.getIdentifierTypeOfObjectRepresentative(), act.getIdentifierValueOfObjectRepresentative(),
@@ -138,7 +138,7 @@ public class ActDetailMapper {
                 employee(act.getSampler()), employee(act.getParticipant()), purpose(act.getPurpose()),
                 act.getSampleTakenDateTime(), act.getDeliveredDateTime(), condition(act.getSpecialCondition()),
                 condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
-                organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
+                organizationMappingHelper.activeOrganizationNameByIdOrNull(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), act.getAdditionalInfo(), act223Samples(act.getAct223Details()),
                 lisInfo(act), audit
         );
@@ -183,7 +183,8 @@ public class ActDetailMapper {
         return items.stream()
                 .map(item -> new Act156KitchenUtensilResponse(
                         item.getId(), item.getKnifeForBread(), item.getFruitCuttingBoard(), item.getDistributionTable(),
-                        item.getContainerForFinishedProducts(), item.getFullNameOfChef(), item.getHandsOfChef(),
+                        item.getContainerForFinishedProducts(), item.getFullNameOfChef(),
+                        item.getIdentifierTypeOfChef(), item.getIdentifierValueOfChef(), item.getHandsOfChef(),
                         item.getClothesOfChef()
                 ))
                 .toList();
@@ -192,10 +193,12 @@ public class ActDetailMapper {
     private List<Act156GroupDetailResponse> act156GroupDetails(List<Act156GroupDetail> items) {
         return items.stream()
                 .map(item -> new Act156GroupDetailResponse(
-                        item.getId(), item.getGroupNumber(), item.getFullNameOfEducator(), item.getHandsOfEducator(), item.getFirstFoodBowl(),
+                        item.getId(), item.getGroupNumber(), item.getFullNameOfEducator(),
+                        item.getIdentifierTypeOfEducator(), item.getIdentifierValueOfEducator(), item.getHandsOfEducator(), item.getFirstFoodBowl(),
                         item.getSecondFoodBowl(), item.getTables(), item.getChairs(), item.getWindowSill(),
                         item.getDoorHandles(), item.getToys(), item.getToyShelf(), item.getCarpets(),
-                        item.getClothesRack(), item.getFullNameOfPlaceOwner(), item.getBedClothes(),
+                        item.getClothesRack(), item.getFullNameOfPlaceOwner(),
+                        item.getIdentifierTypeOfPlaceOwner(), item.getIdentifierValueOfPlaceOwner(), item.getBedClothes(),
                         item.getBathroomWall(), item.getTowels(), item.getTowelRack(), item.getWaterTapFaucet(),
                         item.getWcSeats()
                 ))

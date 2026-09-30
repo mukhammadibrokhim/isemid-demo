@@ -99,7 +99,7 @@ detail qatoridan?
 | `additional_info` | `additional_info` | 1:1 |
 | `"position"` | `sampler_position_uz` (+ `sampler_position_id`=NULL) | ⚠️ triplet |
 | `participant_position` | `participant_position_uz` (+ `_id`=NULL) | ⚠️ triplet |
-| `tin` (integer) | `sampler_identifier_type='TIN'`, `sampler_identifier_value = tin::text` | ⚠️ tasdiqlash |
+| `tin` (integer) | bazaviy `act.tin` (subyekt STIR'i, coalesce) — sampler_identifier_* NULL | ✅ 2026-09-30 |
 | `loinc` (text) | `sampling_purpose_loinc` (varchar100) | ⚠️ |
 | `document_send_date` | — | ⚠️ yangi'да yo'q — tashlanadimi? |
 | `hospitalization_date` | — | ⚠️ yangi'да yo'q |
@@ -109,7 +109,7 @@ detail qatoridan?
 | — | `purpose_id`+`sampling_purpose_uz/ru`, `special_condition_id`+triplet, `storage_delivery_condition_id`+triplet, `package_type_id`+triplet, `conservation_method_id`+triplet | legacy `act153_detail` (`sampling_purpose`, `special_sampling_conditions`, `storage_conditions`, `delivery_conditions`, `conservation_methods`) dan — ⚠️ detail→header |
 | — | `lis_organization_id` | legacy `act153_detail.organization_id` dan — ⚠️ detail→header |
 | — | `laboratory_address` | legacy `act153_detail.laboratory_address` dan — ⚠️ detail→header |
-| — | `sampler_identifier_type/value`, `participant_identifier_type/value` | `tin` dan (yuqorida) |
+| — | `sampler_identifier_type/value`, `participant_identifier_type/value` | NULL (ustun CitizenLookupType: NNUZB/PPN/CZ — 'TIN' yaroqsiz) |
 
 **`public.act153_detail` → `public2.act153_detail`:**
 
@@ -151,7 +151,7 @@ detail qatoridan?
 | `sampler_full_name` | `sampler_full_name` | 1:1 |
 | `"position"` | `sampler_position_uz` (+`_id`=NULL) | ⚠️ triplet |
 | `serial_number` (bigint) | base `act.act_number` (§1) | 2026-09-02 dan base `act` da |
-| `tin` (integer) | `sampler_identifier_type='TIN'` + `..._value` | ⚠️ |
+| `tin` (integer) | bazaviy `act.tin` (subyekt STIR'i, coalesce) | ✅ 2026-09-30 |
 | `document_send_date` | — | ⚠️ yangi'да yo'q |
 | `hospitalization_date` | — | ⚠️ yangi'да yo'q |
 | — | `act_number`, `activity_type_code`, `sample_taken_date_time`, `delivered_date_time`, `goal`, `document_confirm_sampling`, `manufacturing_company`, `manufacture_date`, `doc_number_of_taken_object`, `purpose_id`+triplet, `special_condition_id`+triplet, `storage_delivery_condition_id`+triplet, `package_type_id`+triplet, `lis_organization_id`, `laboratory_address` | ⚠️ ko'pi legacy `act154_detail` dan header'ga (`manufacturing_company`, `manufacture_date`, `doc_number_of_taken_object`, `document_confirm_sampling`, `purpose_of_sampling`, `laboratory_address`, `organization_id`, `package_type`, `storage_condition`, `delivery_term`) |
@@ -206,7 +206,7 @@ qolgan barcha `boolean` maydonlar 1:1. `+version`, `tz`.
 | `reason_of_inspectoring` | `goal` yoki `activity_type_code` | ⚠️ |
 | `reason_inspectoring_loinc` | `sampling_purpose_loinc` | ⚠️ |
 | `sample_taken_date` | `sample_taken_date_time` | tip kengaydi |
-| `tin` | `sampler_identifier_type='TIN'` + value | ⚠️ |
+| `tin` | bazaviy `act.tin` (subyekt STIR'i, coalesce) | ✅ 2026-09-30 |
 | `loinc` | `sampling_purpose_loinc` | ⚠️ (`reason_inspectoring_loinc` bilan to'qnashuv — ⚠️) |
 | `institution_name` / `institution_address` | — | ⚠️ yangi `act223` da yo'q (act base'da ham `institution_*` bor lekin qaror bo'yicha ko'chirilmaydi) |
 | `document_send_date` | — | ⚠️ yo'q |
@@ -264,7 +264,7 @@ qo'shimcha bir qator qilib kiritish kerakmi, yoki child jadval yetarlimi?
 1. **`status` mapping:** `NOT_VIEWED → NEW`, `ACT_ATTACHED → COMPLETED` to'g'rimi? (§3)
 2. **`act.created_org_uuid NOT NULL`** — legacy NULL qatorlar uchun manba.
 3. **Reference triplet strategiyasi** (§4): matn saqlash (a) yoki `ref_catalog` join (b)?
-4. **`tin` (subtype'lardagi)** → `*_identifier_type='TIN'` + `*_identifier_value` to'g'rimi? Kimning TIN'i — sampler yoki participant?
+4. **`tin` (subtype'lardagi)** → `*_identifier_type='TIN'` + `*_identifier_value` to'g'rimi? Kimning TIN'i — sampler yoki participant? **Hal qilindi (2026-09-30):** hech kimniki emas — tashkilot (subyekt) STIR'i → bazaviy `act.tin`; 'TIN' CitizenLookupType'da yo'q edi, entity yuklanishi yiqilardi (Liquibase `20260930-1800-act-legacy-tin-to-subject` mavjud bazani tuzatadi).
 5. **Detail → header ko'tarilган maydonlar** (§4): qaysi `detail` qatoridan header qiymati olinadi (birinchi? MODE?)?
 6. **`document_send_date`, `hospitalization_date`, `sample_object_name`, `name_of_object`, `object_address`, `region_code` (act224), act153/223 `institution_*`** — yangi sxemada mos ustun yo'q. Har biri: tashlanadimi yoki qayerga?
 7. **`act153.loinc` va `act223.loinc` + `reason_inspectoring_loinc`** — bittasi `sampling_purpose_loinc` ga; ikkinchisi?

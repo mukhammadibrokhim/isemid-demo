@@ -2,6 +2,8 @@ package uz.uzinfocom.app.modules.act.domain.model.act156;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
@@ -12,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
 import uz.uzinfocom.app.platform.persistence.entity.UuidAuditableEntity;
 
 @Getter
@@ -34,6 +37,13 @@ public class Act156GroupDetail extends UuidAuditableEntity {
 
     @Column(name = "full_name_of_educator")
     private String fullNameOfEducator;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "identifier_type_of_educator", length = 20)
+    private CitizenLookupType identifierTypeOfEducator;
+
+    @Column(name = "identifier_value_of_educator")
+    private String identifierValueOfEducator;
 
     @Column(name = "hands_of_educator")
     private Boolean handsOfEducator;
@@ -70,6 +80,13 @@ public class Act156GroupDetail extends UuidAuditableEntity {
 
     @Column(name = "full_name_of_place_owner")
     private String fullNameOfPlaceOwner;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "identifier_type_of_place_owner", length = 20)
+    private CitizenLookupType identifierTypeOfPlaceOwner;
+
+    @Column(name = "identifier_value_of_place_owner")
+    private String identifierValueOfPlaceOwner;
 
     @Column(name = "bed_clothes")
     private Boolean bedClothes;
