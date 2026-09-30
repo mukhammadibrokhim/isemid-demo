@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.act.application.query.projection;
 
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
+import uz.uzinfocom.app.modules.act.domain.enums.SubjectType;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 
 import java.time.Instant;
@@ -21,7 +22,7 @@ public interface ActTableProjection {
 
     ActStatus getActStatus();
 
-    String getSubject();
+    SubjectRef getSubject();
 
     Long getActNumber();
 
@@ -30,6 +31,19 @@ public interface ActTableProjection {
     Instant getCreatedAt();
 
     CardRef getCard();
+
+    /** {@code Act.subject} embeddable — enough for the row's label. */
+    interface SubjectRef {
+        SubjectType getType();
+
+        String getTin();
+
+        String getName();
+
+        String getLegalAddress();
+
+        String getActualAddress();
+    }
 
     interface CardRef {
         Long getId();

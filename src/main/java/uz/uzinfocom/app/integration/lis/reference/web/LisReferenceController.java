@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.integration.lis.reference.application.LisReferenceQueryService;
+import uz.uzinfocom.app.integration.lis.reference.application.dto.LisProfessionLookupResponse;
 import uz.uzinfocom.app.integration.lis.reference.client.dto.LisCategoryResponse;
 import uz.uzinfocom.app.integration.lis.reference.client.dto.LisConditionResponse;
 import uz.uzinfocom.app.integration.lis.reference.client.dto.LisItemTypeResponse;
@@ -18,7 +19,10 @@ import uz.uzinfocom.app.integration.lis.reference.client.dto.LisOrganizationResp
 import uz.uzinfocom.app.integration.lis.reference.client.dto.LisProfessionResponse;
 import uz.uzinfocom.app.integration.lis.reference.client.dto.LisReferencePage;
 import uz.uzinfocom.app.integration.lis.reference.client.dto.LisResearchTypeResponse;
+import uz.uzinfocom.app.platform.i18n.LocalizedTextResolver;
+import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.util.List;
 
@@ -39,6 +43,8 @@ import java.util.List;
 public class LisReferenceController {
 
     private final LisReferenceQueryService queryService;
+    private final LocalizedTextResolver localizedTextResolver;
+    private final MessageResolver messageResolver;
 
     @Operation(summary = "Организации LIS", description = "Необязательный фильтр по названию — поиск выполняет сама LIS.")
     @GetMapping(ApiPaths.LisReference.ORGANIZATIONS)
@@ -69,12 +75,22 @@ public class LisReferenceController {
     @Operation(summary = "Справочник профессий", description = "Постраничный список — задайте search для поиска по названию.")
     @GetMapping(ApiPaths.LisReference.PROFESSIONS)
     @PreAuthorize("isAuthenticated()")
-    public LisReferencePage<LisProfessionResponse> professions(
+    public ApiResponse<LisReferencePage<LisProfessionLookupResponse>> professions(
             @Parameter(description = "Фрагмент названия профессии.") @RequestParam(required = false) String search,
             @Parameter(description = "Номер страницы, начиная с 0.") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Размер страницы, максимум 200.") @RequestParam(defaultValue = "50") int limit
     ) {
-        return queryService.professions(search, page, limit);
+        // Localized after the cache on purpose: the cached LIS page stays
+        // locale-independent, one entry per (search, page, limit).
+        LisReferencePage<LisProfessionResponse> lisPage = queryService.professions(search, page, limit);
+        List<LisProfessionLookupResponse> list = lisPage.list() == null
+                ? List.of()
+                : lisPage.list().stream().map(this::toLookup).toList();
+
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                new LisReferencePage<>(list, lisPage.total())
+        );
     }
 
     @Operation(summary = "Справочник видов исследований", description = "Постраничный список — задайте search для поиска по названию.")
@@ -108,5 +124,13 @@ public class LisReferenceController {
             @Parameter(description = "Размер страницы, максимум 200.") @RequestParam(defaultValue = "50") int limit
     ) {
         return queryService.itemTypes(search, page, limit);
+    }
+
+    private LisProfessionLookupResponse toLookup(LisProfessionResponse profession) {
+        return new LisProfessionLookupResponse(
+                profession.id(),
+                profession.code(),
+                localizedTextResolver.resolve(profession.nameUz(), profession.nameUzCyrl(), profession.nameRu(), null)
+        );
     }
 }

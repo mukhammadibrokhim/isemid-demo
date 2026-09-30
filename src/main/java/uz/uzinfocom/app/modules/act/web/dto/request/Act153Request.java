@@ -8,33 +8,29 @@ import uz.uzinfocom.app.modules.act.web.dto.request.act153.Act153SampleRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ConditionInfoRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ConservationTypeInfoRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.EmployeeInfoRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.embedded.InstitutionRequest;
+import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ActSubjectRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.PackageTypeInfoRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.embedded.PurposeRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Schema(description = "Акт 153 — далолатнома по отбору проб.")
 public record Act153Request(
-        InstitutionRequest institution,
+        @Schema(description = "Субъект акта (блок «Tashkilot turi»).")
+        @Valid ActSubjectRequest subject,
 
-        @Schema(description = "Тема/предмет далолатномы — что это за акт (свободный текст).")
-        @Size(max = 500) String subject,
-
-        Long actNumber,
+        @Schema(description = "Вид деятельности («Faoliyat turi») — код из ref_catalog (type=ACTIVITY_TYPE).")
         @Size(max = 255) String activityTypeCode,
-        String samplingDocuments,
-        @Size(max = 500) String goal,
+        @Schema(description = "Основание для отбора проб («Namuna olish uchun asos») — код из ref_catalog (type=SAMPLING_BASIS).")
+        @Size(max = 50) String samplingBasisCode,
         LocalDateTime sampleTakenDateTime,
         LocalDateTime deliveredDateTime,
-        PurposeRequest purpose,
+        @Schema(description = "Цель проверки/отбора — код из ref_catalog (type=PURPOSE).")
+        @Size(max = 50) String purposeCode,
         EmployeeInfoRequest sampler,
         EmployeeInfoRequest participant,
         ConditionInfoRequest specialCondition,
         ConditionInfoRequest storageAndDeliveryCondition,
-        Long lisOrganizationId,
-        @Size(max = 500) String laboratoryAddress,
         PackageTypeInfoRequest packageTypeInfo,
         ConservationTypeInfoRequest conservationTypeInfo,
         String additionalInfo,

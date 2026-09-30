@@ -1,9 +1,10 @@
 package uz.uzinfocom.app.modules.act.application.query.dto.detail;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act156.Act156GroupDetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act156.Act156KitchenUtensilResponse;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActSubjectResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
@@ -21,13 +22,9 @@ public record Act156DetailResponse(
         CardMiniResponse card,
         Long assignedById,
         String resultComment,
-        String subject,
-        ActInstitutionResponse institution,
+        ActSubjectResponse subject,
 
         String title,
-        Integer tin,
-        String institutionName,
-        String institutionAddress,
         String activityTypeCode,
         LocalDateTime sampleTakenTime,
         Long lisOrganizationId,
@@ -38,6 +35,8 @@ public record Act156DetailResponse(
         String positionOfSampler,
         String fullNameOfObjectRepresentative,
         String positionOfObjectRepresentative,
+        CitizenLookupType identifierTypeOfObjectRepresentative,
+        String identifierValueOfObjectRepresentative,
         List<Act156KitchenUtensilResponse> kitchenUtensils,
         List<Act156GroupDetailResponse> groupDetails,
 

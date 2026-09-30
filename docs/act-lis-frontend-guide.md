@@ -66,7 +66,7 @@ sequenceDiagram
 }
 ```
 
-Nothing else is sent here — the rest of the LIS payload (`institution`,
+Nothing else is sent here — the rest of the LIS payload (`subject`,
 `purpose`, samples, ...) is built server-side from the act's already-saved
 fields (`ActLisPayloadMapper`). There is no standalone `POST /v1/acts` —
 acts are only created via `POST /v1/cards/{id}/acts` (see
@@ -166,6 +166,13 @@ catalog" — each `(search, page, limit)` combination is cached as its own
 entry instead, and `limit` is capped server-side at 200 regardless of what's
 requested. Build the picker as a search-as-you-type/paginated control, not a
 static preloaded dropdown, for these 4.
+
+**`professions` response shape:** wrapped in the app's standard
+`ApiResponse` and localized — `{"success", "message", "data": {"list":
+[{"id", "code", "name"}], "total"}}`, where `name` follows the request
+locale (`Accept-Language`: `ru` → `nameRu`, `uz-Cyrl` → `nameUzCyrl`,
+otherwise `nameUz`). The other three paginated lookups still return LIS's
+raw `{"list", "total"}` page unwrapped.
 
 `organizations`, `departments`, and `conditions` show no pagination envelope
 and returned their full matching set in testing (48 organizations, 7
@@ -287,7 +294,7 @@ one-to-one — it does not fill in defaults or reject incomplete data. For
 
 | `LisActPushRequest` field | Source on the act | Notes |
 |---|---|---|
-| `tin`, `organizationName`, `organizationAddress`, `organizationLegalAddress` | `institution.*` | null if `institution` was never filled in |
+| `tin`, `organizationName`, `organizationAddress`, `organizationLegalAddress` | `subject.tin` / `.name` / `.actualAddress` / `.legalAddress` | a complete `subject` is required before READY/send |
 | `purpose` | `purpose.purposeId` + `purpose.samplingPurposeUz` | **Uz name only** — `samplingPurposeRu` is captured on the act but never sent to LIS |
 | `conditions`, `noteConditions` | `storageAndDeliveryCondition` / `specialCondition` | same Uz-only pattern (`description.uz`) |
 | `packageType`, `preservationMethod` (153 only) | `packageTypeInfo` / `conservationTypeInfo` | Uz name only |
@@ -378,7 +385,7 @@ DTO (`InstitutionRequest`, `PurposeRequest`, `ConditionInfoRequest`, ...)
 have **no `@NotNull`/`@NotBlank` on any content field** — only `@Size` (max
 length) constraints. `markReady` and `send-to-lis` don't check field
 completeness either, only the status transition. In practice this means an
-act with an empty `institution`, no `purpose`, no `sampleTakenDateTime`, etc.
+act with an empty `subject`, no `purpose`, no `sampleTakenDateTime`, etc.
 can legally reach `READY` and then LIS — the fields above simply go over as
 `null`. If LIS actually requires some of these, that has to be enforced
 client-side (disable "mark ready" / "send" until the required fields are

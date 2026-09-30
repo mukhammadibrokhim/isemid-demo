@@ -23,7 +23,7 @@ import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ActCloseInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ActDeleteInfo;
-import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActSubject;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.platform.audit.domain.AuditFieldReflector;
@@ -63,6 +63,12 @@ import java.util.Set;
 @NoArgsConstructor
 public abstract class Act extends AbsEntity implements AuditableFields {
 
+    /** {@code ref_catalog} type of «Namuna olish uchun asos» entries (act153/act154). */
+    public static final String SAMPLING_BASIS_CATALOG_TYPE = "SAMPLING_BASIS";
+
+    /** {@code ref_catalog} type of «Faoliyat turi» entries (every act type's {@code activityTypeCode}). */
+    public static final String ACTIVITY_TYPE_CATALOG_TYPE = "ACTIVITY_TYPE";
+
     @Enumerated(EnumType.STRING)
     @Column(name = "act_type", nullable = false, length = 50)
     private ActType actType;
@@ -71,23 +77,20 @@ public abstract class Act extends AbsEntity implements AuditableFields {
     @Column(name = "act_status", nullable = false, length = 32)
     private ActStatus actStatus = ActStatus.NEW;
 
-    @Embedded
-    private Institution institution;
-
     /**
-     * Free-text "what is this act about" — the one field an operator fills in
-     * that every act type has, so the registry row and other list views can
-     * say which case an act belongs to. Present on all 5 subtypes; lives here
-     * rather than per-subtype for that reason.
+     * Who or what the act is about (the form's «Tashkilot turi» block) —
+     * every act type has one, so it lives here rather than per-subtype, and
+     * list views label an act by {@link ActSubject#label()}.
      */
-    @Column(name = "subject", length = 500)
-    private String subject;
+    @Embedded
+    private ActSubject subject = new ActSubject();
 
     /**
-     * The act number from the paper form. Only meaningful for the three
-     * sample-collection types (act153/154/155→154/223); {@code null} for
-     * act156/act224. Kept on the base table (not per-subtype) so list views
-     * can show and search it without a subtype join.
+     * The act's number. Server-generated: set to the act's own {@code id} on
+     * {@code assignActs} (the same value sent to LIS as
+     * {@code senderActNumber}), never taken from the request. Legacy-migrated
+     * acts keep their original paper-form number. Kept on the base table (not
+     * per-subtype) so list views can show and search it without a subtype join.
      */
     @Column(name = "act_number")
     private Long actNumber;

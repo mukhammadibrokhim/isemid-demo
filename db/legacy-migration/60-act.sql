@@ -43,7 +43,7 @@ SELECT
     END,
     left(l.act_type, 50),
     (SELECT c.id FROM public2.card c WHERE c.id = l.card_id),   -- yetim -> NULL
-    NULL, NULL, left(l.subject_type, 50), l.tin,
+    NULL, NULL, left(l.subject_type, 50), l.tin::text,   -- act.tin 2026-09-29 dan VARCHAR
     l.institution_name, l.institution_address, l.institution_legal_address,
     COALESCE(l.lis_attempt, 0),
     l.lis_sent_date,

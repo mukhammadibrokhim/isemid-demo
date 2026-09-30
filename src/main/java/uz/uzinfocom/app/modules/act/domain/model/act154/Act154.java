@@ -48,6 +48,18 @@ public class Act154 extends Act {
     @Column(name = "document_confirm_sampling")
     private String documentConfirmSampling;
 
+    /**
+     * «Namuna olish uchun asos» select — a {@code ref_catalog} code of type
+     * {@link #SAMPLING_BASIS_CATALOG_TYPE}; names are resolved on read.
+     */
+    @Column(name = "sampling_basis_code", length = 50)
+    private String samplingBasisCode;
+
+    /** «Namuna olish uchun asos» free-text detail next to the select (e.g. the GOST number). */
+    @Column(name = "sampling_basis_text", length = 500)
+    private String samplingBasisText;
+
+    /** Legacy form's combined basis string ("GOST …"); legacy-migrated acts only, never written for new ones. */
     @Column(name = "goal")
     private String goal;
 

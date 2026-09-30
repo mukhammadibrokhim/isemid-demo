@@ -3,7 +3,7 @@ package uz.uzinfocom.app.modules.act.application.query.dto.detail;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActSubjectResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
@@ -57,12 +57,10 @@ public sealed interface ActDetailResponse
     String resultComment();
 
     /**
-     * Free-text "what this act is about" — every act type has it (see
-     * {@code Act.subject}). {@code null} until an operator fills it in.
+     * Who or what the act is about (see {@code Act.subject}) — the form's
+     * «Tashkilot turi» block. {@code null} until an operator fills it in.
      */
-    String subject();
-
-    ActInstitutionResponse institution();
+    ActSubjectResponse subject();
 
     /**
      * The act's LIS transmission state — always present. Lets the frontend

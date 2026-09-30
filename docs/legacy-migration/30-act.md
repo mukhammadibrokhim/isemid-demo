@@ -117,8 +117,8 @@ detail qatoridan?
 |---|---|---|
 | `id`, `created_at`, `created_by_id`, `updated_at`, `updated_by_id`, `uuid` | bir xil | `+version`, `timestamptz` |
 | `act153_id` | `act153_id` NN | to'g'ridan |
-| `object_code` | `object_code` | 1:1 |
-| `object_name` | ⚠️ | yangi'да `object_type_id`+? — ⚠️ triplet yoki `object_code` |
+| `object_code` | — | ❌ ko'chirilmaydi — ustun 2026-09-30 da o'chirildi (LIS ga yuborilmas edi) |
+| `object_name` | — | ❌ ko'chirilmaydi |
 | `address` | `address` | 1:1 |
 | `sample_location` | `sample_location` | 1:1 |
 | `sample_type` | `sample_type_uz` (+`sample_type_id`=NULL) | ⚠️ triplet |
@@ -134,7 +134,7 @@ detail qatoridan?
 | `laboratory_address` / `organization_id` | ⚠️ | header'га |
 | `sample_name` | ⚠️ | yangi detail'да yo'q |
 | `sample_type` | `sample_type_uz` | ⚠️ |
-| — | `research_type_id/uz/ru`, `category_id/uz/ru`, `item_type_id/uz/ru`, `object_type_id` | ⚠️ manba? yangi klassifikatsiya — legacy'да yo'q bo'lsa NULL |
+| — | `research_type_id/uz/ru`, `category_id/uz/ru`, `item_type_id/uz/ru` | ⚠️ manba? yangi klassifikatsiya — legacy'да yo'q bo'lsa NULL |
 | — | `sample_qt_unit` | ⚠️ |
 
 ### 4b. `act154` + `act154_detail`
@@ -231,8 +231,8 @@ qolgan barcha `boolean` maydonlar 1:1. `+version`, `tz`.
 | legacy | yangi | izoh |
 |---|---|---|
 | `id` | `id` | saqlanadi |
-| `name_of_institution` | `name_of_institution` | 1:1 |
-| `address_of_institution` | `address_of_institution` | 1:1 |
+| `name_of_institution` | bazaviy `act.institution_name` (subject) | 2026-09-29: act224 ustuni o'chirildi, coalesce |
+| `address_of_institution` | bazaviy `act.institution_address` (subject) | 2026-09-29: act224 ustuni o'chirildi, coalesce |
 | `name_of_regulatory_acts` | `name_of_regulatory_acts` | 1:1 |
 | `checking_fulfillment_of_requirements` | `checking_fulfillment_of_requirements` | 1:1 (tip kengaydi) |
 | `full_name_of_epid_staff` / `position_of_epid_staff` | bir xil | 1:1 |

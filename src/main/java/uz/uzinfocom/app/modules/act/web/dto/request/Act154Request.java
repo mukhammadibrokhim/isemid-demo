@@ -7,9 +7,8 @@ import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.act.web.dto.request.act154.Act154SampleRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ConditionInfoRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.EmployeeInfoRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.embedded.InstitutionRequest;
+import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ActSubjectRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.PackageTypeInfoRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.embedded.PurposeRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,19 +16,19 @@ import java.util.List;
 
 @Schema(description = "Акт 154 — далолатнома по отбору проб.")
 public record Act154Request(
-        InstitutionRequest institution,
+        @Schema(description = "Субъект акта (блок «Tashkilot turi»).")
+        @Valid ActSubjectRequest subject,
 
-        @Schema(description = "Тема/предмет далолатномы — что это за акт (свободный текст).")
-        @Size(max = 500) String subject,
-
-        @Size(max = 255) String title,
-        Long actNumber,
+        @Schema(description = "Вид деятельности («Faoliyat turi») — код из ref_catalog (type=ACTIVITY_TYPE).")
         @Size(max = 255) String activityTypeCode,
         LocalDateTime sampleTakenDateTime,
         LocalDateTime deliveredDateTime,
-        @Size(max = 500) String documentConfirmSampling,
-        @Size(max = 500) String goal,
-        PurposeRequest purpose,
+        @Schema(description = "Основание для отбора проб («Namuna olish uchun asos») — код из ref_catalog (type=SAMPLING_BASIS).")
+        @Size(max = 50) String samplingBasisCode,
+        @Schema(description = "Уточнение основания (текстовое поле рядом с селектом, например номер ГОСТ).")
+        @Size(max = 500) String samplingBasisText,
+        @Schema(description = "Цель проверки/отбора — код из ref_catalog (type=PURPOSE).")
+        @Size(max = 50) String purposeCode,
         EmployeeInfoRequest sampler,
         EmployeeInfoRequest participant,
         @Size(max = 255) String manufacturingCompany,
@@ -37,8 +36,6 @@ public record Act154Request(
         @Size(max = 255) String docNumberOfTakenObject,
         ConditionInfoRequest specialCondition,
         ConditionInfoRequest storageAndDeliveryCondition,
-        Long lisOrganizationId,
-        @Size(max = 500) String laboratoryAddress,
         PackageTypeInfoRequest packageTypeInfo,
         String additionalInfo,
 

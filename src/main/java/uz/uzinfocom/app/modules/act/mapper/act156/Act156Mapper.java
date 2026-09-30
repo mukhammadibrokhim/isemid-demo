@@ -48,7 +48,11 @@ public interface Act156Mapper {
     @Mapping(target = "assignedById", ignore = true)
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "resultComment", ignore = true)
-    @Mapping(target = "actNumber", ignore = true) // act156 has no paper act number
+    @Mapping(target = "actNumber", ignore = true) // generated from id on assign
+    @Mapping(target = "activityTypeCode", ignore = true) // validated against ref_catalog by the handler
+    // act156 never goes to LIS; kept on the entity only for legacy-migrated data.
+    @Mapping(target = "lisOrganizationId", ignore = true)
+    @Mapping(target = "laboratoryAddress", ignore = true)
     @Mapping(target = "act156KitchenUtensils", ignore = true)
     @Mapping(target = "act156GroupDetails", ignore = true)
     void copyOwnFields(@MappingTarget Act156 target, Act156Request request);

@@ -36,6 +36,14 @@ public class Act153 extends Act {
     @Column(name = "activity_type_code")
     private String activityTypeCode;
 
+    /**
+     * «Namuna olish uchun asos» — a {@code ref_catalog} code of type
+     * {@link #SAMPLING_BASIS_CATALOG_TYPE}; names are resolved on read.
+     */
+    @Column(name = "sampling_basis_code", length = 50)
+    private String samplingBasisCode;
+
+    /** Free-text basis carried by legacy-migrated acts only; never written for new ones. */
     @Column(name = "sampling_documents", columnDefinition = "TEXT")
     private String samplingDocuments;
 

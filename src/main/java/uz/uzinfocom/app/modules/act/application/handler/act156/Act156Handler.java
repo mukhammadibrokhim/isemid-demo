@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.act.application.handler.act156;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.app.modules.act.application.handler.ActActivityTypeResolver;
 import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandler;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act156DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.mapper.ActDetailMapper;
@@ -19,6 +20,7 @@ import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 public class Act156Handler implements ActTypeHandler<Act156, Act156Request, Act156DetailResponse> {
 
     private final Act156Mapper mapper;
+    private final ActActivityTypeResolver activityTypeResolver;
     private final ActDetailMapper actDetailMapper;
     private final AuditResolver auditResolver;
 
@@ -35,9 +37,10 @@ public class Act156Handler implements ActTypeHandler<Act156, Act156Request, Act1
     @Override
     public void update(Act156 act, Act156Request request) {
         mapper.copyOwnFields(act, request);
+        act.setActivityTypeCode(activityTypeResolver.resolve(request.activityTypeCode()));
 
-        if (act.getInstitution() != null) {
-            act.getInstitution().normalize();
+        if (act.getSubject() != null) {
+            act.getSubject().normalize();
         }
 
         ChildCollectionSync.sync(

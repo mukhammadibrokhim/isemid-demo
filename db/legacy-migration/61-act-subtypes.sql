@@ -10,8 +10,12 @@
 --   (isemid-v2 "act LIS return flow" o'zgarishi) — act_number va subject
 --   act153/154/223'dan bazaviy act'ga ko'chirilgan; act1XX.lis_protocol_response/
 --   lis_act_response endi bazaviy act.lis_response'ga birlashtirilib yoziladi
---   (pastda, act_number bilan birga backfill qilinadi). `subject`ga legacy'da
---   mos maydon yo'q -> NULL qoladi.
+--   (pastda, act_number bilan birga backfill qilinadi). Erkin matnli `act.subject`
+--   2026-09-29 da o'chirildi (subyekt bloki = subject_type/tin/institution_*).
+--   2026-09-29: act156/act224'dagi tin/institution_name/institution_address
+--   takroriy ustunlari o'chirildi -> bazaviy act'ga coalesce qilinadi (pastda).
+--   2026-09-29: act224 name_of_institution/address_of_institution ham o'chirildi
+--   -> bazaviy act subject'ga coalesce qilinadi (pastda, act224 bo'limida).
 -- Bog'liqlik: 60-act bajarilgan.
 -- =====================================================================
 \set ON_ERROR_STOP on
@@ -50,7 +54,7 @@ INSERT INTO public2.act153_detail (
     research_type_id, research_type_name_uz, research_type_name_ru,
     category_id, category_name_uz, category_name_ru,
     item_type_id, item_type_name_uz, item_type_name_ru,
-    object_type_id, object_code, address, sampling_depth, depth_unit,
+    address, sampling_depth, depth_unit,
     distance_from_shore, distance_from_shore_unit, sample_volume, sample_volume_unit,
     sample_qt_unit, sample_location, weather_at_sampling, water_temperature,
     sample_type_id, sample_type_uz, sample_type_ru
@@ -62,7 +66,7 @@ SELECT
     d.research_type_id, d.research_type_name_uz, d.research_type_name_ru,
     d.category_id, d.category_name_uz, d.category_name_ru,
     d.item_type_id, d.item_type_name_uz, d.item_type_name_ru,
-    d.object_type_id, d.object_code, d.address, d.sampling_depth, d.depth_unit,
+    d.address, d.sampling_depth, d.depth_unit,
     d.distance_from_shore, d.distance_from_shore_unit, d.sample_volume, d.sample_volume_unit,
     d.sample_qt_unit, d.sample_location, d.weather_at_sampling, d.water_temperature,
     d.sample_type_id, d.sample_type_uz, d.sample_type_ru
@@ -136,19 +140,21 @@ WHERE l.name_of_object IS NOT NULL OR l.object_address IS NOT NULL;
 
 -- ================= act156 =================
 INSERT INTO public2.act156 (
-    id, title, tin, institution_name, institution_address, activity_type_code,
+    id, title, activity_type_code,
     sample_taken_time, lis_organization_id, laboratory_address, sample_delivery_time,
     full_name_of_sampler, position_of_sampler,
     full_name_of_object_representative, position_of_object_representative
 )
 SELECT
-    l.id, l.title, l.tin, l.institution_name, l.institution_address, l.activity_type_code,
+    l.id, l.title, l.activity_type_code,
     l.sample_taken_time, l.lis_organization_id, l.laboratory_address, l.sample_delivery_time,
     l.full_nameof_sampler, l.position_of_sampler,
     l.full_name_of_object_representative, l.position_of_object_representative
 FROM public.act156 l
 JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT156';
 
+-- group_number (2026-09-29): legacy'da manba yo'q (forma «Guruh raqami»ni qator id'siga
+-- bog'lagan edi) -> NULL qoladi.
 INSERT INTO public2.act156_group_detail (
     id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act156_id,
     full_name_of_educator, hands_of_educator, first_food_bowl, second_food_bowl, tables, chairs,
@@ -233,6 +239,28 @@ FROM public.act223_detail d
 JOIN public2.act223_detail x ON x.id = d.id
 WHERE d.delivery_conditions_uz IS NOT NULL OR d.storage_conditions_uz IS NOT NULL;
 
+-- ---- act156/act224 tin/institution_* -> base act subject block ----
+-- Target'da bu takroriy ustunlar yo'q (2026-09-29); bazaviy qiymat ustun.
+UPDATE public2.act a SET
+    tin                 = coalesce(a.tin, l.tin::text),
+    institution_name    = coalesce(a.institution_name, l.institution_name),
+    institution_address = coalesce(a.institution_address, l.institution_address),
+    subject_type        = coalesce(a.subject_type,
+                                   CASE WHEN l.tin IS NOT NULL OR l.institution_name IS NOT NULL THEN 'LEGAL_ENTITY' END)
+FROM public.act156 l
+WHERE a.id = l.id
+  AND (l.tin IS NOT NULL OR l.institution_name IS NOT NULL OR l.institution_address IS NOT NULL);
+
+UPDATE public2.act a SET
+    tin                 = coalesce(a.tin, l.tin::text),
+    institution_name    = coalesce(a.institution_name, l.institution_name),
+    institution_address = coalesce(a.institution_address, l.institution_address),
+    subject_type        = coalesce(a.subject_type,
+                                   CASE WHEN l.tin IS NOT NULL OR l.institution_name IS NOT NULL THEN 'LEGAL_ENTITY' END)
+FROM public.act224 l
+WHERE a.id = l.id
+  AND (l.tin IS NOT NULL OR l.institution_name IS NOT NULL OR l.institution_address IS NOT NULL);
+
 -- ---- act153/154/223 act_number -> base act.act_number ----
 -- 02-mapping-5434.md yozilgandan keyin target sxema o'zgargan: act_number endi
 -- act153/154/223'da EMAS, bazaviy act'da (subject bilan birga, isemid-v2
@@ -240,6 +268,8 @@ WHERE d.delivery_conditions_uz IS NOT NULL OR d.storage_conditions_uz IS NOT NUL
 UPDATE public2.act a SET act_number = l.act_number FROM public.act153 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
 UPDATE public2.act a SET act_number = l.act_number FROM public.act154 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
 UPDATE public2.act a SET act_number = l.act_number FROM public.act223 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
+-- Raqami yo'q actlar (act156/224 va bo'shlar): yangi actlar kabi act_number = id (2026-09-29).
+UPDATE public2.act SET act_number = id WHERE act_number IS NULL;
 
 -- ---- act153/154/223 lis_protocol_response + lis_act_response -> act.lis_response ----
 -- Bu ikkisi subtype jadvalining O'ZIDA (base act.lis_response'dan alohida) LIS
@@ -274,17 +304,17 @@ FROM (
 
 -- ================= act224 =================
 INSERT INTO public2.act224 (
-    id, tin, institution_name, institution_address, activity_type_code,
+    id, activity_type_code,
     full_name_of_epid_staff, position_of_epid_staff,
     full_name_of_participant_epid, position_of_participant_epid,
-    name_of_institution, address_of_institution, name_of_regulatory_acts,
+    name_of_regulatory_acts,
     checking_fulfillment_of_requirements, full_name_of_participant, additional_info
 )
 SELECT
-    l.id, l.tin, l.institution_name, l.institution_address, l.activity_type_code,
+    l.id, l.activity_type_code,
     l.full_name_of_epid_staff, l.position_of_epid_staff,
     l.full_name_of_participant_epid, l.position_of_participant_epid,
-    l.name_of_institution, l.address_of_institution, l.name_of_regulatory_acts,
+    l.name_of_regulatory_acts,
     l.checking_fulfillment_of_requirements, l.full_name_of_participant, l.additional_info
 FROM public.act224 l
 JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT224';
@@ -300,6 +330,18 @@ SELECT
     d.recommended_activities, d.execution_period
 FROM public.act224_detail d
 JOIN public2.act224 p ON p.id = d.act224_id;
+
+-- name_of_institution/address_of_institution: target'da yo'q (2026-09-29) ->
+-- bazaviy act subject blokiga coalesce qilinadi (bazaviy qiymat ustun).
+-- address_of_institution legacy formada yuridik manzil yorlig'i edi -> institution_legal_address.
+UPDATE public2.act a SET
+    institution_name          = coalesce(a.institution_name, l.name_of_institution),
+    institution_legal_address = coalesce(a.institution_legal_address, l.address_of_institution),
+    subject_type              = coalesce(a.subject_type,
+                                         CASE WHEN l.name_of_institution IS NOT NULL THEN 'LEGAL_ENTITY' END)
+FROM public.act224 l
+WHERE a.id = l.id
+  AND (l.name_of_institution IS NOT NULL OR l.address_of_institution IS NOT NULL);
 
 -- region_code: target'da alohida ustun yo'q -> additional_info'ga qo'shib qo'yamiz.
 UPDATE public2.act224 a

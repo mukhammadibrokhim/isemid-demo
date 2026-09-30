@@ -210,6 +210,8 @@ biriktirish. `403` kelsa — foydalanuvchida tegishli amal yo'q.
 
 ### 3.1. `subject` (dalolatnoma mavzusi)
 
+> ⚠️ **2026-09-29 dan eskirgan** — erkin matnli `subject` o'chirildi, endi `subject` = subyekt bloki (5-blok).
+
 **Holat:** ✅ bajarildi.
 
 **Backendda:** `subject` (matn, 500 belgi) — bazaviy `act` jadvalida yangi ustun. Beshala
@@ -235,7 +237,7 @@ o'qiydi. Deploy'dan keyin o'sha kuniyoq ishlaydi.
   "actType": "ACT153", "actTypeName": "...",
   "status": "IN_PROGRESS",
   "subject": "5-sonli maktab oshxonasi",   // yangi
-  "actNumber": 128,                        // yangi — ACT153/154/223 da, aks holda null
+  "actNumber": 128,                        // server generatsiya qiladi (= act id), so'rovda yuborilmaydi
   "cardId": 1001,                          // yangi
   "cardType": "CARD_161",                  // yangi
   "assignedById": 55,                      // yangi — biriktirgan (supervayzer) id
@@ -287,6 +289,8 @@ qabul qiladimi?** Javob kelgach `LisUrlFactory` + controller'ga bir necha qator 
 
 ### 3.5. Tekshirilayotgan obyekt 2–3 marta saqlanadi
 
+> ✅ **2026-09-29 da hal qilindi** — 156/224 takroriy uchligi o'chirildi (5-blok). `Act224.nameOfInstitution`/`addressOfInstitution` ham o'chirildi (qiymatlari `subject.name`/`subject.legalAddress` ga ko'chirildi).
+
 **Holat:** ⏳ kutiladi — product qarori + bir tomonlama migratsiya.
 
 Tasdiqlandi:
@@ -310,7 +314,7 @@ o'tkazamiz, ortiqcha ustunlarni tashlaymiz.
 | Savol | Javob |
 |---|---|
 | **156 — guruh raqami** | ⏳ `Act156GroupDetailRequest` da yo'q. Kichik migratsiya + maydon — so'rasangiz qo'shamiz. |
-| **153 — `objectTypeId`** | ⏳ qaysi katalogdan olinishi aniqlanmagan. LIS / spec javobi kerak. |
+| **153 — `objectTypeId` / `objectCode`** | ✅ ikkalasi ham DTO va bazadan o'chirildi (LIS ga yuborilmas edi). Frontend yubormasin. |
 | **224 — `fullNameOfParticipant`** | ✅ tasdiq: ishtirok etganlar ro'yxati, bitta qatorda. To'g'ri. |
 
 ---
@@ -330,6 +334,81 @@ takrorlang. `409` → `LisBadRequestException`. Domen kodi (`duplicate.selection
 javobiga bog'liq — aniq matnni LIS test muhitidan tasdiqlang.
 
 ---
+
+## 5-blok — 2026-09-29: subyekt bloki («Tashkilot turi») va `actNumber`
+
+**Nima o'zgardi (API buziladi, beshala akt turi):**
+
+| Oldin | Endi |
+|---|---|
+| `institution: { subjectType, tin (number), institutionName, institutionAddress, institutionLegalAddress }` | `subject: { type, tin (string, 9 raqam), name, legalAddress, actualAddress }` |
+| `subject: "erkin matn"` | **o'chirildi** — reyestr yorlig'i `subject.label` (javobda) |
+| ACT156/224 tekis `tin` / `institutionName` / `institutionAddress` | **o'chirildi** — `subject` ichida |
+| `actNumber` so'rovda | **o'chirildi** — server beradi (`= id`, LIS'ga ketadigan `senderActNumber` bilan bir xil) |
+| ACT153: `goal`, `lisOrganizationId`, `laboratoryAddress`, namunada `sampleQtUnit` | so'rovdan **o'chirildi** (formada yo'q). LIS `goal` ← `purpose.samplingPurposeUz` |
+
+**Forma → maydon:**
+
+| «Tashkilot turi» | `subject.type` | Maydonlar |
+|---|---|---|
+| Tashkilot | `LEGAL_ENTITY` | STIR → `tin`, Muassasa nomi → `name`, Obyektning manzili → `legalAddress`, Muassasaning amaldagi manzili → `actualAddress` |
+| Geografik joylashuv | `GEOGRAPHIC_POINT` | Amaldagi manzili → `actualAddress` |
+| Jismoniy shaxs | `PHYSICAL_PERSON` | Amaldagi manzili → `actualAddress` |
+
+`LEGAL_ENTITY` bo'lmasa `tin`/`name`/`legalAddress` server tomonidan tozalanadi.
+
+**Maqsad («Tekshirish yoki namuna olish maqsadi», ACT153/154/223):** `purpose: {purposeId, samplingPurposeUz, ...}`
+o'rniga so'rovda faqat **`purposeCode`** — `ref_catalog` dagi `type=PURPOSE` kodi (ro'yxat:
+`GET` catalog lookup, `type=PURPOSE`). Noma'lum kod → `400 error.act.purpose-not-found`. Javobda
+`purpose: { code, name }` (nom — joriy tilda; legacy actlarda `code=null`, `name` = saqlangan uz nomi).
+`goal` so'rov va javobdan **o'chirildi** (154/223 ham); LIS `goal` ← maqsad nomi. Migratsiya:
+`zzz-card-act/20260929-1400-act-purpose-code.xml`.
+
+**Katalog seed'i:** `reference/20260929-1800-seed-act-purpose-sampling-basis-catalogs.xml`.
+`PURPOSE` — LIS'ning `reference-dictionaries?type=PURPOSE` ro'yxati bilan bir xil, **kod = LIS purpose id**
+(`1,2,3,4,5,6,7,8,9,44,45,46,47,115`), chunki LIS'ga maqsad id'si sifatida kod raqami ketadi. LIS'da yangi
+maqsad paydo bo'lsa — shu id bilan yangi qator qo'shiladi. `SAMPLING_BASIS` — LIS'da bunday lug'at yo'q
+(LIS faqat uz nomini `document` matni sifatida oladi), kodlar tizimning o'ziniki: `PLANNED`, `UNPLANNED`,
+`EPID_INDICATION`, `APPLICATION`, `CONTRACT`, `AUTHORITY_REQUEST`, `NORMATIVE_DOC`, `MONITORING`, `OTHER`
+(⚠️ ro'yxat taklif — product tasdiqlashi kerak).
+
+**Namuna olish uchun asos (faqat ACT153):** erkin matnli `samplingDocuments` o'rniga so'rovda
+**`samplingBasisCode`** — `ref_catalog` dagi `type=SAMPLING_BASIS` kodi (select ro'yxati: `GET` catalog
+lookup, `type=SAMPLING_BASIS`). Noma'lum kod → `400 error.act.sampling-basis-not-found`. Javobda
+`samplingDocuments` o'rniga `samplingBasis: { code, name }` (legacy actlarda `code=null`, `name` = saqlangan
+matn). LIS `document` ← asos nomi (uz). Migratsiya: `zzz-card-act/20260929-1500-act153-sampling-basis-code.xml`.
+
+**Namuna olish uchun asos (ACT154):** formada select + matn maydoni. So'rovda **`samplingBasisCode`** (xuddi shu
+`type=SAMPLING_BASIS` katalogi, 153 bilan umumiy) + **`samplingBasisText`** (max 500, masalan GOST raqami).
+Javobda `samplingBasis: { code, name }` + `samplingBasisText` (legacy actlarda `code=null`, `name` = eski `goal`
+satri "GOST …"). LIS `document` ← "asos nomi (uz) + matn". Migratsiya: `zzz-card-act/20260929-1600-act154-sampling-basis.xml`.
+
+**Namuna olish uchun asos (ACT223):** formada faqat select (ACT153 kabi). Erkin matnli
+`supportingDocumentsForSampling` o'rniga so'rovda **`samplingBasisCode`** (`type=SAMPLING_BASIS`, 153/154 bilan umumiy).
+Javobda `supportingDocumentsForSampling` o'rniga `samplingBasis: { code, name }` (legacy actlarda `code=null`,
+`name` = saqlangan matn). LIS `document` ← asos nomi (uz). Migratsiya: `zzz-card-act/20260929-1700-act223-sampling-basis-code.xml`.
+
+**ACT156 so'rovidan olib tashlandi:** `lisOrganizationId`, `laboratoryAddress` — 156 LIS'ga bormaydi. Javobda legacy
+ma'lumot uchun qoldi (faqat o'qish).
+
+**ACT224 dan olib tashlandi:** `nameOfInstitution`, `addressOfInstitution` — so'rovdan ham, javobdan ham. Ular
+`subject` blokini takrorlardi; mavjud qiymatlar `subject.name` / `subject.legalAddress` ga ko'chirildi (bazada
+qiymat bo'lsa, o'sha qoladi), ustunlar o'chirildi. Migratsiya: `zzz-card-act/20260929-1800-drop-act224-institution-duplicate.xml`.
+
+**ACT223 so'rovidan olib tashlandi (formada yo'q):** `lisOrganizationId`, `laboratoryAddress`. Javobda legacy
+ma'lumot uchun qoldi (faqat o'qish).
+
+**ACT154 so'rovidan olib tashlandi (formada yo'q):** `title`, `documentConfirmSampling`, `lisOrganizationId`,
+`laboratoryAddress`, namunadagi `sampleName`. Javoblarda legacy ma'lumot uchun qoldi (faqat o'qish).
+
+**Validatsiya:** saqlashda faqat format (`tin` — 9 raqam). To'liqlik (`type` majburiy; `LEGAL_ENTITY` → `tin` + `name`;
+qolganlari → `actualAddress`) — **READY ga o'tkazishda / LIS'ga yuborishda**, aks holda `400`
+`error.act.subject-incomplete`. Qoralama istalgancha saqlanadi.
+
+**Javoblar:** `ActDetailResponse.subject` va `ActTableResponse.subject` — `{ type, tin, name, legalAddress, actualAddress, label }`.
+
+**Migratsiyalar:** `zzz-card-act/20260929-1200-backfill-act-number-from-id.xml`, `zzz-card-act/20260929-1300-act-subject.xml`
+(`act.tin` → VARCHAR, 156/224 uchligi bazaga ko'chirilib o'chiriladi, `act.subject` ustuni o'chiriladi).
 
 ## Qisqacha — deploy'dan keyin frontendda (`yarn api:types`)
 
@@ -352,4 +431,4 @@ javobiga bog'liq — aniq matnni LIS test muhitidan tasdiqlang.
 | 4 | ACT153 `sampleQt` juftligi + `sampleQtUnit` enum nomlari (1.3) | LIS |
 | 5 | `packageType` / `manufacturer` nesting (1.4) | LIS |
 | 6 | 4 ta LIS lug'ati turlari nomi + bo'sh `id` bilan qabul (3.4) | LIS |
-| 7 | Kanonik institution to'plami (3.5), `objectTypeId` katalogi (3.6) | product / LIS |
+| 7 | Kanonik institution to'plami (3.5) | product / LIS |

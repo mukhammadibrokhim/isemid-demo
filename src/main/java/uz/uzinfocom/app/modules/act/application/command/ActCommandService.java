@@ -5,6 +5,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.integration.lis.client.callback.LisCallbackInterpreter;
+import uz.uzinfocom.app.integration.lis.client.dto.LisResearchCode;
+import uz.uzinfocom.app.integration.lis.common.exception.LisUnsupportedActTypeException;
 import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
 import uz.uzinfocom.app.modules.act.application.exception.ActNotFoundException;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
@@ -17,6 +19,7 @@ import uz.uzinfocom.app.modules.act.application.query.dto.detail.ActDetailRespon
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActSubject;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
 import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
@@ -116,6 +119,9 @@ public class ActCommandService {
                 .toList();
 
         List<Act> saved = actRepository.saveAll(acts);
+        // The act number is the act's own id — the same value LIS receives as
+        // senderActNumber — never client-supplied.
+        saved.forEach(act -> act.setActNumber(act.getId()));
         Long organizationId = resolveOrganizationId(card);
         saved.forEach(act -> eventPublisher.publishEvent(new EntityCreatedEvent(
                 AuditEntityType.ACT, act.getId(), assignedById,
@@ -205,6 +211,7 @@ public class ActCommandService {
                         || act.getActStatus() == ActStatus.RESULT_RECEIVED,
                 act.getActStatus()
         );
+        requireCompleteSubject(act);
         String oldStatus = act.getActStatus().name();
         act.setActStatus(ActStatus.READY);
         Act saved = actRepository.save(act);
@@ -228,6 +235,11 @@ public class ActCommandService {
     @Transactional
     public Act markSendingToLis(Long actId) {
         Act act = requireAttachedUserAct(actId);
+        // act156/act224 never reach a laboratory — reject before the status
+        // moves, instead of committing SENT and failing right after.
+        if (!LisResearchCode.isSupported(act.getActType())) {
+            throw new LisUnsupportedActTypeException(act.getActType());
+        }
         requireTransition(
                 act.getActStatus() == ActStatus.READY
                         || act.getActStatus() == ActStatus.SEND_FAILED
@@ -235,6 +247,7 @@ public class ActCommandService {
                         || act.getActStatus() == ActStatus.RESULT_RECEIVED,
                 act.getActStatus()
         );
+        requireCompleteSubject(act);
         String oldStatus = act.getActStatus().name();
         act.getLisInfo().markSendAttempt();
         act.setActStatus(ActStatus.SENT);
@@ -369,11 +382,14 @@ public class ActCommandService {
      * {@code DeleteForm058Service}): the row stays, marked via
      * {@code deleteInfo}, and {@link ActRepository#findActiveByIdForUpdate}
      * plus {@code ActSpecification} keep it out of further lookups/listings.
+     * Only an organization that may attach acts to the card may delete them
+     * (same rule as {@link #assignActs}).
      */
     @Transactional
     public void delete(Long actId, String reason) {
         Act act = actRepository.findActiveByIdForUpdate(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
+        requireCardAccess(act.getCard());
 
         if (act.getActStatus() == ActStatus.SENT
                 || act.getActStatus() == ActStatus.COMPLETED
@@ -400,7 +416,7 @@ public class ActCommandService {
     }
 
     private Act requireAttachedUserAct(Long actId) {
-        Act act = actRepository.findById(actId)
+        Act act = actRepository.findByIdAndDeletedFalse(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
 
         Long userId = currentUserProvider.userIdOrNull();
@@ -411,6 +427,17 @@ public class ActCommandService {
             throw new ActScopeViolationException();
         }
         return act;
+    }
+
+    /**
+     * The subject block is optional while the act is a draft (saved any
+     * number of times) but must be complete for its type before the act is
+     * marked ready or sent — see {@link ActSubject#isComplete()}.
+     */
+    private void requireCompleteSubject(Act act) {
+        if (act.getSubject() == null || !act.getSubject().isComplete()) {
+            throw new ActValidationException("error.act.subject-incomplete");
+        }
     }
 
     private void requireTransition(boolean allowed, ActStatus current) {

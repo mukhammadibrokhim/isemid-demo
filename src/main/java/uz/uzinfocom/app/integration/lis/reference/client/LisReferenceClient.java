@@ -195,9 +195,14 @@ public class LisReferenceClient {
                 .constructParametricType(LisReferenceListEnvelope.class, elementType);
     }
 
+    /**
+     * {@code LisReferencePageEnvelope<T>} already declares {@code data} as
+     * {@code LisReferencePage<T>}, so the type parameter bound here is the
+     * element type itself — binding {@code LisReferencePage<X>} instead would
+     * deserialize every row as a nested (empty) page.
+     */
     private JavaType pageEnvelopeType(Class<?> elementType) {
-        JavaType pageType = objectMapper.getTypeFactory().constructParametricType(LisReferencePage.class, elementType);
-        return objectMapper.getTypeFactory().constructParametricType(LisReferencePageEnvelope.class, pageType);
+        return objectMapper.getTypeFactory().constructParametricType(LisReferencePageEnvelope.class, elementType);
     }
 
     private <T> List<T> nullToEmpty(List<T> list) {

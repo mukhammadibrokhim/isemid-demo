@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Сведения об организации группового питания (детсад/лагерь и т.п.), проверенные в рамках акта 156.")
 public record Act156GroupDetailResponse(
         Long id,
+        @Schema(description = "Guruh raqami (masalan, «5-A»).")
+        String groupNumber,
         String fullNameOfEducator,
         Boolean handsOfEducator,
         Boolean firstFoodBowl,

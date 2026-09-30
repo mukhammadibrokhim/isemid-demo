@@ -138,6 +138,7 @@ Responding to the ISEMID/YKEM frontend's question list (see
   deletable. See the Lifecycle section above.
 - **`lisInfo` on every `Act…DetailResponse`** (`ActLisInfoResponse`) — was
   entity-only.
+- *(superseded 2026-09-29: the free-text column was dropped; `subject` is now the `ActSubject` embeddable — the «Tashkilot turi» block — see `act-backend-answers.md` §5)*
 - **`subject`** — new free-text column on the base `act` table (500 chars),
   on all 5 `Act…Request`/`Act…DetailResponse` and `ActTableResponse`. The
   one "what is this act about" field every type has.

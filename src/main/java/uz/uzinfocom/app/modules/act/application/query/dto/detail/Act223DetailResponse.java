@@ -2,12 +2,13 @@ package uz.uzinfocom.app.modules.act.application.query.dto.detail;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act223.Act223SampleResponse;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActSubjectResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ConditionInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.EmployeeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.PackageTypeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.PurposeResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.SamplingBasisResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
@@ -24,12 +25,10 @@ public record Act223DetailResponse(
         CardMiniResponse card,
         Long assignedById,
         String resultComment,
-        String subject,
-        ActInstitutionResponse institution,
+        ActSubjectResponse subject,
 
         Long actNumber,
-        String supportingDocumentsForSampling,
-        String goal,
+        SamplingBasisResponse samplingBasis,
         String activityTypeCode,
         EmployeeInfoResponse sampler,
         EmployeeInfoResponse participant,

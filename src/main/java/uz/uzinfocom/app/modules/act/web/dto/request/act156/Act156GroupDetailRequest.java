@@ -6,7 +6,10 @@ import uz.uzinfocom.app.platform.persistence.sync.ChildRequest;
 
 @Schema(description = "Сведения об организации группового питания (детсад/лагерь и т.п.), проверяемые в рамках акта 156.")
 public record Act156GroupDetailRequest(
+        @Schema(description = "Mavjud qatorni yangilash uchun ID. Guruh raqami emas — u groupNumber'da.")
         Long id,
+        @Schema(description = "Guruh raqami (masalan, «5-A»).")
+        @Size(max = 50) String groupNumber,
         @Size(max = 255) String fullNameOfEducator,
         Boolean handsOfEducator,
         Boolean firstFoodBowl,

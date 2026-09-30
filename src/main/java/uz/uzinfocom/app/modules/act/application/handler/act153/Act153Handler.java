@@ -2,6 +2,9 @@ package uz.uzinfocom.app.modules.act.application.handler.act153;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.app.modules.act.application.handler.ActPurposeResolver;
+import uz.uzinfocom.app.modules.act.application.handler.ActSamplingBasisResolver;
+import uz.uzinfocom.app.modules.act.application.handler.ActActivityTypeResolver;
 import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandler;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act153DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.mapper.ActDetailMapper;
@@ -18,6 +21,9 @@ import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 public class Act153Handler implements ActTypeHandler<Act153, Act153Request, Act153DetailResponse> {
 
     private final Act153Mapper mapper;
+    private final ActActivityTypeResolver activityTypeResolver;
+    private final ActPurposeResolver purposeResolver;
+    private final ActSamplingBasisResolver samplingBasisResolver;
     private final ActDetailMapper actDetailMapper;
     private final AuditResolver auditResolver;
 
@@ -34,9 +40,12 @@ public class Act153Handler implements ActTypeHandler<Act153, Act153Request, Act1
     @Override
     public void update(Act153 act, Act153Request request) {
         mapper.copyOwnFields(act, request);
+        act.setActivityTypeCode(activityTypeResolver.resolve(request.activityTypeCode()));
+        act.setPurpose(purposeResolver.resolve(request.purposeCode(), act.getPurpose()));
+        act.setSamplingBasisCode(samplingBasisResolver.resolve(request.samplingBasisCode()));
 
-        if (act.getInstitution() != null) {
-            act.getInstitution().normalize();
+        if (act.getSubject() != null) {
+            act.getSubject().normalize();
         }
 
         ChildCollectionSync.sync(

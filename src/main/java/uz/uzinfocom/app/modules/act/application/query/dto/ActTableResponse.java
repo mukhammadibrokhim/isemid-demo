@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.act.application.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActSubjectResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
@@ -21,10 +22,11 @@ public record ActTableResponse(
         @Schema(description = "Текущий статус акта.")
         ActStatus status,
 
-        @Schema(description = "Тема/предмет далолатномы — что это за акт. Есть у всех типов; null пока не заполнено.")
-        String subject,
+        @Schema(description = "Субъект акта (блок «Tashkilot turi»); subject.label — готовая подпись для строки. "
+                + "null пока не заполнено.")
+        ActSubjectResponse subject,
 
-        @Schema(description = "Номер акта из бумажного бланка. Только для ACT153/154/223, иначе null.")
+        @Schema(description = "Номер акта. Генерируется сервером (равен id акта); у мигрированных актов — номер из бумажного бланка.")
         Long actNumber,
 
         @Schema(description = "Идентификатор карты, к которой привязан акт.")

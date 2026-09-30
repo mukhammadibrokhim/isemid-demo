@@ -1,6 +1,8 @@
 package uz.uzinfocom.app.integration.lis.client.mapper;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.integration.lis.client.dto.LisActPushRequest;
 import uz.uzinfocom.app.integration.lis.client.dto.LisActPushRequest.LisDataDictionary;
 import uz.uzinfocom.app.integration.lis.client.dto.LisActPushRequest.SelectionActItem;
@@ -18,13 +20,15 @@ import uz.uzinfocom.app.modules.act.domain.model.act223.Act223Detail;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ConditionInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ConservationTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.EmployeeInfo;
-import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActSubject;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.PackageTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.Purpose;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ResearchItemTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.SampleTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.enums.SampleQtUnit;
 import uz.uzinfocom.app.modules.act.domain.enums.SampleVolumeUnit;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
+import uz.uzinfocom.app.modules.reference.application.lookup.dto.ReferenceItem;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -32,6 +36,8 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Builds the LIS push payload straight from an {@code Act} entity, in one
@@ -46,9 +52,12 @@ import java.util.List;
  * {@link LisResearchCode}.
  */
 @Component
+@RequiredArgsConstructor
 public class ActLisPayloadMapper {
 
     private static final ZoneId TASHKENT = ZoneId.of("Asia/Tashkent");
+
+    private final ReferenceLookupService referenceLookupService;
 
     /**
      * @param actTemplateId   resolved separately via {@code LisActClient},
@@ -81,10 +90,10 @@ public class ActLisPayloadMapper {
         return LisActPushRequest.builder()
                 .actTemplateId(actTemplateId)
                 .priority(priority)
-                .tin(tinOf(act.getInstitution()))
-                .organizationName(nameOf(act.getInstitution()))
-                .organizationAddress(addressOf(act.getInstitution()))
-                .organizationLegalAddress(legalAddressOf(act.getInstitution()))
+                .tin(tinOf(act.getSubject()))
+                .organizationName(nameOf(act.getSubject()))
+                .organizationAddress(addressOf(act.getSubject()))
+                .organizationLegalAddress(legalAddressOf(act.getSubject()))
                 .purpose(dictionaryOf(act.getPurpose()))
                 .sampleTakenDate(toUtcInstant(act.getSampleTakenDateTime()))
                 .deliveryDateToLaboratory(toUtcInstant(act.getDeliveredDateTime()))
@@ -93,8 +102,8 @@ public class ActLisPayloadMapper {
                 .involvedPersonName(fullNameOf(act.getParticipant()))
                 .involvedProfessionId(positionOf(act.getParticipant()))
                 .packageType(dictionaryOf(act.getPackageTypeInfo()))
-                .document(act.getSamplingDocuments())
-                .goal(act.getGoal())
+                .document(samplingBasisOf(act))
+                .goal(goalOf(act.getGoal(), act.getPurpose()))
                 .noteConditions(dictionaryOf(act.getSpecialCondition()))
                 .fullNameOfDoctor(fullNameOfDoctor)
                 .collectorProfessionId(positionOf(act.getSampler()))
@@ -133,10 +142,10 @@ public class ActLisPayloadMapper {
         return LisActPushRequest.builder()
                 .actTemplateId(actTemplateId)
                 .priority(priority)
-                .tin(tinOf(act.getInstitution()))
-                .organizationName(nameOf(act.getInstitution()))
-                .organizationAddress(addressOf(act.getInstitution()))
-                .organizationLegalAddress(legalAddressOf(act.getInstitution()))
+                .tin(tinOf(act.getSubject()))
+                .organizationName(nameOf(act.getSubject()))
+                .organizationAddress(addressOf(act.getSubject()))
+                .organizationLegalAddress(legalAddressOf(act.getSubject()))
                 .purpose(dictionaryOf(act.getPurpose()))
                 .sampleTakenDate(toUtcInstant(act.getSampleTakenDateTime()))
                 .deliveryDateToLaboratory(toUtcInstant(act.getDeliveredDateTime()))
@@ -145,8 +154,8 @@ public class ActLisPayloadMapper {
                 .involvedPersonName(fullNameOf(act.getParticipant()))
                 .involvedProfessionId(positionOf(act.getParticipant()))
                 .packageType(dictionaryOf(act.getPackageTypeInfo()))
-                .document(act.getDocumentConfirmSampling())
-                .goal(act.getGoal())
+                .document(samplingBasisOf(act))
+                .goal(goalOf(act.getGoal(), act.getPurpose()))
                 .noteConditions(dictionaryOf(act.getSpecialCondition()))
                 .fullNameOfDoctor(fullNameOfDoctor)
                 .collectorProfessionId(positionOf(act.getSampler()))
@@ -180,10 +189,10 @@ public class ActLisPayloadMapper {
         return LisActPushRequest.builder()
                 .actTemplateId(actTemplateId)
                 .priority(priority)
-                .tin(tinOf(act.getInstitution()))
-                .organizationName(nameOf(act.getInstitution()))
-                .organizationAddress(addressOf(act.getInstitution()))
-                .organizationLegalAddress(legalAddressOf(act.getInstitution()))
+                .tin(tinOf(act.getSubject()))
+                .organizationName(nameOf(act.getSubject()))
+                .organizationAddress(addressOf(act.getSubject()))
+                .organizationLegalAddress(legalAddressOf(act.getSubject()))
                 .purpose(dictionaryOf(act.getPurpose()))
                 .sampleTakenDate(toUtcInstant(act.getSampleTakenDateTime()))
                 .deliveryDateToLaboratory(toUtcInstant(act.getDeliveredDateTime()))
@@ -192,8 +201,8 @@ public class ActLisPayloadMapper {
                 .involvedPersonName(fullNameOf(act.getParticipant()))
                 .involvedProfessionId(positionOf(act.getParticipant()))
                 .packageType(dictionaryOf(act.getPackageTypeInfo()))
-                .document(act.getSupportingDocumentsForSampling())
-                .goal(act.getGoal())
+                .document(samplingBasisOf(act))
+                .goal(goalOf(act.getGoal(), act.getPurpose()))
                 .noteConditions(dictionaryOf(act.getSpecialCondition()))
                 .fullNameOfDoctor(fullNameOfDoctor)
                 .collectorProfessionId(positionOf(act.getSampler()))
@@ -213,20 +222,82 @@ public class ActLisPayloadMapper {
                 .build();
     }
 
-    private String tinOf(Institution institution) {
-        return institution == null || institution.getTin() == null ? null : institution.getTin().toString();
+    private String tinOf(ActSubject subject) {
+        return subject == null ? null : subject.getTin();
     }
 
-    private String nameOf(Institution institution) {
-        return institution == null ? null : institution.getInstitutionName();
+    private String nameOf(ActSubject subject) {
+        return subject == null ? null : subject.getName();
     }
 
-    private String addressOf(Institution institution) {
-        return institution == null ? null : institution.getInstitutionAddress();
+    private String addressOf(ActSubject subject) {
+        return subject == null ? null : subject.getActualAddress();
     }
 
-    private String legalAddressOf(Institution institution) {
-        return institution == null ? null : institution.getInstitutionLegalAddress();
+    private String legalAddressOf(ActSubject subject) {
+        return subject == null ? null : subject.getLegalAddress();
+    }
+
+    /**
+     * The act forms have no separate free-text "goal" — only «Tekshirish
+     * yoki namuna olish maqsadi», the purpose dictionary — so LIS's goal
+     * gets the purpose's name; a legacy-migrated act that still carries its
+     * own goal text keeps it.
+     */
+    private String goalOf(String legacyGoal, Purpose purpose) {
+        if (legacyGoal != null && !legacyGoal.isBlank()) {
+            return legacyGoal;
+        }
+        LisDataDictionary dictionary = dictionaryOf(purpose);
+        return dictionary == null ? null : dictionary.name();
+    }
+
+    /**
+     * «Namuna olish uchun asos»: new acts — the Uz name of their
+     * {@code ref_catalog} SAMPLING_BASIS entry; legacy-migrated acts — their
+     * stored free text.
+     */
+    private String samplingBasisOf(Act153 act) {
+        if (act.getSamplingBasisCode() == null) {
+            return act.getSamplingDocuments();
+        }
+        ReferenceItem item = referenceLookupService.findCatalog(
+                Act.SAMPLING_BASIS_CATALOG_TYPE, act.getSamplingBasisCode()
+        );
+        return item == null ? null : item.nameUz();
+    }
+
+    /** Same as act153's; legacy-migrated act223s keep their stored free text. */
+    private String samplingBasisOf(Act223 act) {
+        if (act.getSamplingBasisCode() == null) {
+            return act.getSupportingDocumentsForSampling();
+        }
+        ReferenceItem item = referenceLookupService.findCatalog(
+                Act.SAMPLING_BASIS_CATALOG_TYPE, act.getSamplingBasisCode()
+        );
+        return item == null ? null : item.nameUz();
+    }
+
+    /**
+     * act154's «Namuna olish uchun asos» is a select plus a free-text detail
+     * (e.g. "GOST" + the standard's number), sent joined; legacy-migrated
+     * acts keep their stored document text.
+     */
+    private String samplingBasisOf(Act154 act) {
+        if (act.getSamplingBasisCode() == null) {
+            return StringUtils.hasText(act.getSamplingBasisText())
+                    ? act.getSamplingBasisText()
+                    : act.getDocumentConfirmSampling();
+        }
+        ReferenceItem item = referenceLookupService.findCatalog(
+                Act.SAMPLING_BASIS_CATALOG_TYPE, act.getSamplingBasisCode()
+        );
+        String name = item == null ? null : item.nameUz();
+        String joined = Stream.of(name, act.getSamplingBasisText())
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .collect(Collectors.joining(" "));
+        return joined.isEmpty() ? null : joined;
     }
 
     private String fullNameOf(EmployeeInfo info) {
@@ -237,8 +308,28 @@ public class ActLisPayloadMapper {
         return info == null ? null : info.getPositionId();
     }
 
+    /**
+     * New acts: the {@code ref_catalog} PURPOSE entry — Uz name, and the code
+     * as LIS's id when it is numeric (the catalog codes are expected to be
+     * LIS's purpose ids). Legacy-migrated acts: their stored id + Uz name.
+     */
     private LisDataDictionary dictionaryOf(Purpose purpose) {
-        return purpose == null ? null : new LisDataDictionary(purpose.getPurposeId(), purpose.getSamplingPurposeUz());
+        if (purpose == null) {
+            return null;
+        }
+        if (purpose.getCode() != null) {
+            ReferenceItem item = referenceLookupService.findCatalog(Purpose.CATALOG_TYPE, purpose.getCode());
+            return new LisDataDictionary(numericOrNull(purpose.getCode()), item == null ? null : item.nameUz());
+        }
+        return new LisDataDictionary(purpose.getPurposeId(), purpose.getSamplingPurposeUz());
+    }
+
+    private Integer numericOrNull(String code) {
+        try {
+            return Integer.valueOf(code);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private LisDataDictionary dictionaryOf(ConditionInfo info) {

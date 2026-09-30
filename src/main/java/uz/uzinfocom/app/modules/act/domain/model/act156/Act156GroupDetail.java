@@ -29,6 +29,9 @@ public class Act156GroupDetail extends UuidAuditableEntity {
     @JoinColumn(name = "act156_id", nullable = false, foreignKey = @ForeignKey(name = "fk_act156_group_detail_act156"))
     private Act156 act156;
 
+    @Column(name = "group_number", length = 50)
+    private String groupNumber;
+
     @Column(name = "full_name_of_educator")
     private String fullNameOfEducator;
 

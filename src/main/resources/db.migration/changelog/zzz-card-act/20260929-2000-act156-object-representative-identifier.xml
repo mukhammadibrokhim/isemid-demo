@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        «Obyekt vakili» on act156: «Hujjat turi» / «Hujjat raqami» (PINFL or
+        passport) the representative was looked up by — the act156 counterpart
+        of participant_identifier_* on act153/act154/act223 (see
+        20260824-1100-add-employee-identifier-columns). Kept flat like act156's
+        existing *_of_object_representative columns. Existing rows stay NULL.
+    -->
+    <changeSet id="20260929-2000-01-act156-object-representative-identifier" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act156" columnName="identifier_type_of_object_representative"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act156">
+            <column name="identifier_type_of_object_representative" type="VARCHAR(20)"/>
+            <column name="identifier_value_of_object_representative" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
