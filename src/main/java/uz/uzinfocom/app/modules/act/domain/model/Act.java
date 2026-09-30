@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActCloseInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ActDeleteInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
@@ -94,6 +95,13 @@ public abstract class Act extends AbsEntity implements AuditableFields {
     @Embedded
     private LisInfo lisInfo = new LisInfo();
 
+    /**
+     * Set when the attached employee closes the act after reviewing the LIS
+     * result ({@code RESULT_RECEIVED -> COMPLETED}).
+     */
+    @Embedded
+    private ActCloseInfo closeInfo = new ActCloseInfo();
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "card_id",
@@ -149,6 +157,13 @@ public abstract class Act extends AbsEntity implements AuditableFields {
 
     public boolean isDeleted() {
         return this.deleteInfo != null && this.deleteInfo.isDeleted();
+    }
+
+    public void close(Long closedBy) {
+        if (this.closeInfo == null) {
+            this.closeInfo = new ActCloseInfo();
+        }
+        this.closeInfo.close(closedBy);
     }
 
     private void ensureDeleteInfo() {

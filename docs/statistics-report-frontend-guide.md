@@ -59,7 +59,7 @@ geography node — the only report that reads these two modules directly:
   `created_at` (not the case's).
 - **Acts** — every act whose owning card is in scope, bucketed by
   `ActStatus` (`NEW`, `IN_PROGRESS`, `READY`, `SENT`, `SEND_FAILED`,
-  `RETURNED_BY_LIS`, `COMPLETED`). Filtered by the **act's own** `created_at`.
+  `RETURNED_BY_LIS`, `RESULT_RECEIVED`, `COMPLETED`). Filtered by the **act's own** `created_at`.
 
 Cards/acts are **not** split by confirmed/primary or by category — they get
 one flat status breakdown per period, independent of the form058/form058_1

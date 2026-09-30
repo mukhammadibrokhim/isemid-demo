@@ -25,6 +25,27 @@ yangilandi.
 
 ---
 
+## Yangi (2026-09-30): LIS natijasidan keyin vrach aktni yopadi — `RESULT_RECEIVED`
+
+LIS natija yuborganda akt endi darhol `COMPLETED` bo'lmaydi — `RESULT_RECEIVED`
+ga o'tadi. Biriktirilgan xodim (vrach) natijani ko'radi va:
+
+- **rozi bo'lsa** — `PATCH /v1/acts/{id}/close` (body yo'q) → `COMPLETED`.
+  Kim/qachon yopgani `lisInfo.closedById` / `lisInfo.closedAt` da. `COMPLETED` — yakuniy,
+  tahrirlash/qayta yuborish/o'chirish yo'q.
+- **rozi bo'lmasa** — aktni yopmaydi: `PUT /v1/acts/{id}` → `IN_PROGRESS`,
+  `PATCH .../ready` → `READY`, `POST .../send-to-lis` → `SENT` (yoki to'g'ridan-to'g'ri
+  `send-to-lis`). LIS da **yangi zayavka** bo'lib tushadi — backend `force` ni o'zi qo'yadi
+  (`lisInfo.actId` bor bo'lsa), frontend `force: true` yuborishi shart emas.
+- `RESULT_RECEIVED` aktni **o'chirib bo'lmaydi**.
+- `ACT_LIS_RESPONSE` bildirishnomasi endi `RESULT_RECEIVED` / `RETURNED_BY_LIS` da keladi;
+  yopishda bildirishnoma yo'q.
+
+```
+SENT ──(LIS natija)──→ RESULT_RECEIVED ──(vrach: close)──→ COMPLETED
+                             └──(vrach rozi emas: tahrirlash / qayta yuborish)──→ SENT
+```
+
 ## Yangi: LIS aktni qayta ishlashga qaytarishi mumkin — `RETURNED_BY_LIS`
 
 Bu savolda yo'q edi, lekin kiritildi.
@@ -45,18 +66,20 @@ NEW → IN_PROGRESS → READY → SENT → COMPLETED
 | `RETURNED_BY_LIS` | LIS aktni qabul qildi, keyin natija o'rniga **qayta ishlashga qaytardi** | Tahrirlash → `ready` → `send-to-lis` (qayta yuborishda **`force: true`**); **o'chirib bo'lmaydi** |
 
 - `RETURNED_BY_LIS` dan chiqish: `PUT /v1/acts/{id}` → `IN_PROGRESS`,
-  `PATCH .../ready` → `READY`, `POST .../send-to-lis` `{ "force": true, ... }` → `SENT`.
-  `force: true` majburiy — bir xil `senderActNumber` ni LIS dublikat deб hisoblaydi,
-  `force` bilan uni yangi zayavka sifatida qabul qiladi.
+  `PATCH .../ready` → `READY`, `POST .../send-to-lis` → `SENT`.
+  Bir xil `senderActNumber` ni LIS dublikat deb hisoblaydi — `force` bilan uni yangi
+  zayavka sifatida qabul qiladi. 2026-09-30 dan backend `force` ni o'zi qo'yadi
+  (`lisInfo.actId` bor bo'lsa); `force: true` yuborish ham zarar qilmaydi.
 - Sababi `lisInfo.lastError` da, LIS javobi to'liq `lisInfo.response` da.
-- Bildirishnoma: `ACT_LIS_RESPONSE` endi `COMPLETED` va `RETURNED_BY_LIS` ikkalasida ham
+- Bildirishnoma: `ACT_LIS_RESPONSE` endi `RESULT_RECEIVED` va `RETURNED_BY_LIS` ikkalasida ham
   keladi. Bildirishnomaning o'zi qaysi biri ekanini aytmaydi — aktni o'qib
   (`GET /v1/acts/{id}`) `status` / `lisInfo` ni tekshiring.
 
 > ⚠️ **LIS contract noaniq.** LIS callback body'da "qaytarildi" ni qanday belgilashini
 > bilmaymiz. Backend keng heuristika ishlatadi (`status`/`state`/`decision` kalitlarida
-> `return`/`reject`/... yoki `rejected`/`returned` boolean) va **default `COMPLETED`**.
-> Ya'ni heuristikaga tushmagan haqiqiy qaytarish hozir `COMPLETED` ko'rinadi. LIS'ning
+> `return`/`reject`/... yoki `rejected`/`returned` boolean) va **default `RESULT_RECEIVED`**.
+> Ya'ni heuristikaga tushmagan haqiqiy qaytarish hozir natija sifatida ko'rinadi (vrach
+> baribir qayta yuborishi mumkin). LIS'ning
 > haqiqiy signalini `Act.xlsx` yoki LIS jamoasidan olish kerak — keyin aniqlashtiramiz.
 
 ---

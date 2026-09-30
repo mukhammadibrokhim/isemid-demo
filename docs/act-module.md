@@ -67,34 +67,42 @@ One `ActStatus` for every type, no accept/reject/supervisor-approval gate
 (unlike `Card`/`Form058`):
 
 ```
-NEW → IN_PROGRESS → READY → SENT → COMPLETED
-                       ↑       │ │
-       SEND_FAILED ────┘       │ └──→ RETURNED_BY_LIS
-            ↑ └────────────────┘            │
-            │ (send itself failed)          │ (LIS accepted, then
+NEW → IN_PROGRESS → READY → SENT → RESULT_RECEIVED ──(close)──→ COMPLETED
+                       ↑       │ │          │
+       SEND_FAILED ────┘       │ │          │ (doctor disagrees:
+            ↑ └────────────────┘ │          │  edit / re-send)
+            │ (send failed)      └──→ RETURNED_BY_LIS
+            │                               │ (LIS accepted, then
             └───────────────────────────────┘  sent back for rework)
 ```
 
 - `update` (`PUT /acts/{id}`): freely re-saveable from NEW/IN_PROGRESS/READY/
-  SEND_FAILED/RETURNED_BY_LIS, always lands on IN_PROGRESS. Blocked once
-  SENT/COMPLETED.
-- `markReady`: IN_PROGRESS, SEND_FAILED, or RETURNED_BY_LIS → READY.
-- `markSendingToLis` / `ActLisSendService.send`: READY, SEND_FAILED, or
-  RETURNED_BY_LIS → SENT (records `LisInfo.attempt`/`sentDate`, clears any
-  previous `lastError`). On a re-send the frontend passes `force: true` so
-  LIS accepts the duplicate `senderActNumber` as a fresh request.
+  SEND_FAILED/RETURNED_BY_LIS/RESULT_RECEIVED, always lands on IN_PROGRESS.
+  Blocked once SENT/COMPLETED.
+- `markReady`: IN_PROGRESS, SEND_FAILED, RETURNED_BY_LIS, or RESULT_RECEIVED → READY.
+- `markSendingToLis` / `ActLisSendService.send`: READY, SEND_FAILED,
+  RETURNED_BY_LIS, or RESULT_RECEIVED → SENT (records `LisInfo.attempt`/
+  `sentDate`, clears any previous `lastError`). Once LIS has accepted the act
+  before (`LisInfo.actId` set) the backend sends with `force=true` on its own,
+  so a re-send lands in LIS as a fresh request; the client's `force` still
+  covers the case where LIS's id was never learned (e.g. timeout).
 - `recordLisSendSuccess` / `recordLisSendFailure`: called after the actual
   HTTP call — success attaches the LIS-side act id; failure moves SENT →
   SEND_FAILED with a reason, staying editable/re-sendable.
 - `receiveLisResponse` (`POST /acts/{id}/lis/callback`, called by LIS itself
   — see [`act-lis-frontend-guide.md`](./act-lis-frontend-guide.md)): stores
   the full LIS response JSON and, based on what the body says
-  (`LisCallbackInterpreter`), either SENT → COMPLETED (the result is in) or
-  SENT → RETURNED_BY_LIS (sent back for rework; short reason also written to
-  `LisInfo.lastError`). **TODO(LIS-spec):** the exact "returned" signal in
-  LIS's callback body is unconfirmed — the interpreter uses a broad
-  status/flag heuristic and defaults to COMPLETED.
-- `delete`: soft-delete, blocked once SENT, COMPLETED, or RETURNED_BY_LIS
+  (`LisCallbackInterpreter`), either SENT → RESULT_RECEIVED (the result is
+  in, awaiting the doctor's review) or SENT → RETURNED_BY_LIS (sent back for
+  rework; short reason also written to `LisInfo.lastError`).
+  **TODO(LIS-spec):** the exact "returned" signal in LIS's callback body is
+  unconfirmed — the interpreter uses a broad status/flag heuristic and
+  defaults to RESULT_RECEIVED.
+- `close` (`PATCH /acts/{id}/close`, attached employee only): RESULT_RECEIVED
+  → COMPLETED, stamps `Act.closeInfo` (`closed_by_id`/`closed_at`, exposed as
+  `lisInfo.closedById`/`closedAt`). COMPLETED is terminal. Acts completed
+  before this step existed (2026-09-30) keep `closeInfo` null.
+- `delete`: soft-delete, blocked once SENT, RESULT_RECEIVED, COMPLETED, or RETURNED_BY_LIS
   (`ActAlreadySentToLisException`) — LIS has seen the act, so it is
   reworked/re-sent, never removed.
 
@@ -106,6 +114,17 @@ research code LIS expects — updated when Act155 was removed.
 `LisUnsupportedActTypeException` fires if a type has no mapping.
 
 ## Recent changes
+
+### Doctor closes the act after the LIS result (2026-09-30)
+
+- New `RESULT_RECEIVED` status: the LIS callback no longer completes the act
+  itself. The attached employee reviews the result and either closes it
+  (`PATCH /acts/{id}/close` → `COMPLETED`, who/when in `Act.closeInfo`,
+  migration `20260930-1000-act-close-info.xml`) or, disagreeing, edits and
+  re-sends it — `ActLisSendService` forces `force=true` whenever
+  `LisInfo.actId` is already set, so LIS creates a new request.
+- `ACT_LIS_RESPONSE` notification now fires on SENT → RESULT_RECEIVED /
+  RETURNED_BY_LIS; closing sends none.
 
 ### Frontend-driven changes (2026-09-02)
 

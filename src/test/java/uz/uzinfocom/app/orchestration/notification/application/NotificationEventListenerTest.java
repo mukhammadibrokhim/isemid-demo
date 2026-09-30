@@ -192,14 +192,19 @@ class NotificationEventListenerTest {
     }
 
     @Test
-    void actLisResponseFiresOnlyForTheSentToCompletedTransition() {
+    void actLisResponseFiresOnlyForTheSentToResultReceivedTransition() {
         when(systemSettingResolver.resolveBoolean(anyString(), anyBoolean())).thenReturn(true);
 
         listener.on(new StatusChangedEvent(AuditEntityType.ACT, 3L, "IN_PROGRESS", "READY", 1L, null,
                 new ActRouting(null, List.of())));
         verify(notificationRepository, never()).saveAll(any());
 
-        listener.on(new StatusChangedEvent(AuditEntityType.ACT, 3L, "SENT", "COMPLETED", 1L, null,
+        // The doctor closing the act afterwards is not a LIS response.
+        listener.on(new StatusChangedEvent(AuditEntityType.ACT, 3L, "RESULT_RECEIVED", "COMPLETED", 1L, null,
+                new ActRouting(null, List.of(200L))));
+        verify(notificationRepository, never()).saveAll(any());
+
+        listener.on(new StatusChangedEvent(AuditEntityType.ACT, 3L, "SENT", "RESULT_RECEIVED", 1L, null,
                 new ActRouting(null, List.of(200L))));
 
         ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);

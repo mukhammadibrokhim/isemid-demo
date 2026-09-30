@@ -4,9 +4,17 @@ package uz.uzinfocom.app.modules.act.domain.enums;
  * The act's entire lifecycle in one status: created ({@link #NEW}), being
  * filled in by its attached employee(s) ({@link #IN_PROGRESS}), marked
  * ready ({@link #READY}), sent to the external LIS — Laboratory Information
- * System — ({@link #SENT}), and its response received back
- * ({@link #COMPLETED}), which concludes the act. There is no accept/reject
- * or supervisor-approval gate anywhere in this sequence.
+ * System — ({@link #SENT}), its laboratory result received back
+ * ({@link #RESULT_RECEIVED}), and finally closed by the attached employee
+ * (the doctor) after reviewing that result ({@link #COMPLETED}), which
+ * concludes the act. There is no supervisor-approval gate anywhere in this
+ * sequence.
+ *
+ * <p>{@link #RESULT_RECEIVED} is not final: if the doctor disagrees with the
+ * result, the act reopens for editing and re-sending exactly like
+ * {@link #RETURNED_BY_LIS} — re-sending then lands on the LIS side as a new
+ * request (sent with {@code force}, see {@code ActLisSendService}). Like
+ * {@link #RETURNED_BY_LIS} it can no longer be deleted.
  *
  * <p>{@link #SEND_FAILED} is one branch off that line: the LIS call
  * itself failed (network, upstream rejection, malformed response), so the
@@ -30,5 +38,6 @@ public enum ActStatus {
     SENT,
     SEND_FAILED,
     RETURNED_BY_LIS,
+    RESULT_RECEIVED,
     COMPLETED
 }

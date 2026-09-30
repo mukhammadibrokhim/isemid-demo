@@ -35,6 +35,7 @@ import uz.uzinfocom.app.modules.act.domain.model.act223.Act223;
 import uz.uzinfocom.app.modules.act.domain.model.act223.Act223Detail;
 import uz.uzinfocom.app.modules.act.domain.model.act224.Act224;
 import uz.uzinfocom.app.modules.act.domain.model.act224.Act224Detail;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActCloseInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ConditionInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ConservationTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.EmployeeInfo;
@@ -50,6 +51,7 @@ import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -91,7 +93,7 @@ public class ActDetailMapper {
                 condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
                 organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), conservationType(act.getConservationTypeInfo()),
-                act.getAdditionalInfo(), act153Samples(act.getAct153Details()), lisInfo(act.getLisInfo()), audit
+                act.getAdditionalInfo(), act153Samples(act.getAct153Details()), lisInfo(act), audit
         );
     }
 
@@ -106,7 +108,7 @@ public class ActDetailMapper {
                 condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
                 organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), act.getAdditionalInfo(), act154Samples(act.getAct154Details()),
-                lisInfo(act.getLisInfo()), audit
+                lisInfo(act), audit
         );
     }
 
@@ -120,7 +122,7 @@ public class ActDetailMapper {
                 act.getSampleDeliveryTime(), act.getFullNameOfSampler(), act.getPositionOfSampler(),
                 act.getFullNameOfObjectRepresentative(), act.getPositionOfObjectRepresentative(),
                 act156KitchenUtensils(act.getAct156KitchenUtensils()), act156GroupDetails(act.getAct156GroupDetails()),
-                lisInfo(act.getLisInfo()), audit
+                lisInfo(act), audit
         );
     }
 
@@ -134,7 +136,7 @@ public class ActDetailMapper {
                 condition(act.getStorageAndDeliveryCondition()), act.getLisOrganizationId(),
                 organizationMappingHelper.activeOrganizationNameById(act.getLisOrganizationId()), act.getLaboratoryAddress(),
                 packageType(act.getPackageTypeInfo()), act.getAdditionalInfo(), act223Samples(act.getAct223Details()),
-                lisInfo(act.getLisInfo()), audit
+                lisInfo(act), audit
         );
     }
 
@@ -146,7 +148,7 @@ public class ActDetailMapper {
                 act.getFullNameOfEpidStaff(), act.getPositionOfEpidStaff(), act.getFullNameOfParticipantEpid(),
                 act.getPositionOfParticipantEpid(), act.getNameOfInstitution(), act.getAddressOfInstitution(),
                 act.getNameOfRegulatoryActs(), act.getCheckingFulfillmentOfRequirements(), act.getFullNameOfParticipant(),
-                act.getAdditionalInfo(), act224Recommendations(act.getAct224Details()), lisInfo(act.getLisInfo()), audit
+                act.getAdditionalInfo(), act224Recommendations(act.getAct224Details()), lisInfo(act), audit
         );
     }
 
@@ -237,12 +239,17 @@ public class ActDetailMapper {
      * first send attempt {@code attempt} is {@code 0} with the rest null,
      * which the frontend reads as "not sent yet".
      */
-    private ActLisInfoResponse lisInfo(LisInfo info) {
+    private ActLisInfoResponse lisInfo(Act act) {
+        LisInfo info = act.getLisInfo();
+        ActCloseInfo close = act.getCloseInfo();
+        Long closedById = close == null ? null : close.getClosedById();
+        LocalDateTime closedAt = close == null ? null : close.getClosedAt();
         if (info == null) {
-            return new ActLisInfoResponse(0, null, null, null, null);
+            return new ActLisInfoResponse(0, null, null, null, null, closedById, closedAt);
         }
         return new ActLisInfoResponse(
-                info.getAttempt(), info.getSentDate(), info.getActId(), info.getLastError(), info.getResponse()
+                info.getAttempt(), info.getSentDate(), info.getActId(), info.getLastError(), info.getResponse(),
+                closedById, closedAt
         );
     }
 

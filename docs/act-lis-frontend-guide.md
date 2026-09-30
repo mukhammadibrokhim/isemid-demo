@@ -217,11 +217,11 @@ mapping to work around.
 ## Status lifecycle
 
 ```
-NEW → IN_PROGRESS → READY → SENT → COMPLETED
-                       ↑       │ │
-       SEND_FAILED ────┘       │ └──→ RETURNED_BY_LIS ──┐
-            ↑ └────────────────┘                        │
-            └────────────────────────────(rework)───────┘
+NEW → IN_PROGRESS → READY → SENT → RESULT_RECEIVED ──(close)──→ COMPLETED
+                       ↑       │ │          │
+       SEND_FAILED ────┘       │ │          └──(doctor disagrees: edit / re-send)──┐
+            ↑ └────────────────┘ └──→ RETURNED_BY_LIS ──┐                          │
+            └────────────────────────────(rework)───────┴──────────────────────────┘
 ```
 
 | Status | Meaning | Frontend affordances |
@@ -231,26 +231,40 @@ NEW → IN_PROGRESS → READY → SENT → COMPLETED
 | `SENT` | LIS accepted it, result pending | Read-only — no edit/delete |
 | `SEND_FAILED` | The *send itself* failed (network/LIS rejection) — never reached LIS | Fix and retry (`ready` → `send-to-lis` again); still deletable |
 | `RETURNED_BY_LIS` | LIS accepted the act, then sent it back for rework instead of a result | Edit → `ready` → `send-to-lis` again (pass `force: true` — see below). **Not** deletable |
-| `COMPLETED` | LIS's result has been received | Read-only, terminal |
+| `RESULT_RECEIVED` | LIS's result is in, waiting for the attached employee (doctor) to review it | **Close** (`PATCH /v1/acts/{id}/close`) to accept it, **or** edit → `ready` → `send-to-lis` again if the doctor disagrees (lands in LIS as a new request). **Not** deletable |
+| `COMPLETED` | The doctor accepted the result and closed the act | Read-only, terminal |
 
 `lisInfo` is now on every `Act…DetailResponse` (always present):
 `lisInfo.attempt` (0 = never sent), `lisInfo.sentDate`, `lisInfo.actId`
 (LIS's own id), `lisInfo.lastError` (why the last send failed **or** why LIS
 returned the act — cleared on the next attempt), and `lisInfo.response` (the
-full LIS callback body, available once `COMPLETED` or `RETURNED_BY_LIS`).
+full LIS callback body, available once `RESULT_RECEIVED`, `COMPLETED` or
+`RETURNED_BY_LIS`), plus `lisInfo.closedById` / `lisInfo.closedAt` (who
+closed the act and when — set once `COMPLETED`; null on acts completed before
+2026-09-30).
 
-> **On `RETURNED_BY_LIS`:** re-sending is a fresh LIS request under the same
-> `senderActNumber`, so LIS treats it as a duplicate unless the frontend
-> passes `force: true` on that `send-to-lis` call. **TODO(LIS-spec):** how
+### Closing the act
+
+`PATCH /v1/acts/{id}/close` — no body, attached employee only
+(`PERMISSION_ATTACH_ACT_UPDATE`), only from `RESULT_RECEIVED`
+(otherwise `409` invalid status). Show a **Yopish** button on a
+`RESULT_RECEIVED` act next to the result; after it succeeds the act is
+`COMPLETED` and read-only.
+
+> **On re-sending (`RETURNED_BY_LIS` or a disputed `RESULT_RECEIVED`):**
+> re-sending is a fresh LIS request under the same `senderActNumber`. The
+> backend now sends it with `force` automatically whenever LIS has already
+> accepted the act (`lisInfo.actId` is set), so the frontend no longer has to
+> pass `force: true` for these — passing it is harmless. **TODO(LIS-spec):** how
 > LIS marks a "returned" act in its callback body is not confirmed — the
 > backend uses a broad heuristic (`LisCallbackInterpreter`) and defaults to
-> `COMPLETED`, so a genuine return that doesn't match the heuristic will
-> currently look completed. Confirm the real signal against `Act.xlsx`/LIS.
+> `RESULT_RECEIVED`, so a genuine return that doesn't match the heuristic
+> will currently look like a result (the doctor can still re-send it). Confirm the real signal against `Act.xlsx`/LIS.
 
 ## Notification on result
 
 Already wired up — no extra backend work needed. When the callback moves an
-act `SENT → COMPLETED` **or `SENT → RETURNED_BY_LIS`**, every employee
+act `SENT → RESULT_RECEIVED` **or `SENT → RETURNED_BY_LIS`**, every employee
 attached to that act gets an `ACT_LIS_RESPONSE` notification (feature-flagged
 via `notification.act-lis-response.enabled`, default on). The notification
 does not itself say which of the two happened — read the act

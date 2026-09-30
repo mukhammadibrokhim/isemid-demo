@@ -69,7 +69,7 @@ public class ActLisSendService {
             );
 
             Long lisActId = lisActClient.createAct(
-                    request.labId(), actId, Boolean.TRUE.equals(request.force()), payload, organizationUuid
+                    request.labId(), actId, forceNewLisRequest(act, request), payload, organizationUuid
             );
 
             actCommandService.recordLisSendSuccess(actId, lisActId);
@@ -81,6 +81,19 @@ public class ActLisSendService {
             actCommandService.recordLisSendFailure(actId, "UNEXPECTED_ERROR: " + exception.getMessage());
             throw exception;
         }
+    }
+
+    /**
+     * Once LIS has accepted this act before (it holds a {@code lisInfo.actId}
+     * — e.g. a re-send after {@code RETURNED_BY_LIS}, or after the doctor
+     * disagreed with a {@code RESULT_RECEIVED} result), the same
+     * {@code senderActNumber} would be rejected as a duplicate, so the
+     * re-send always goes with {@code force} and lands in LIS as a new
+     * request. The client's own {@code force} still covers the ambiguous
+     * case (e.g. a timeout) where we never learned LIS's id.
+     */
+    private boolean forceNewLisRequest(Act act, SendActToLisRequest request) {
+        return Boolean.TRUE.equals(request.force()) || act.getLisInfo().getActId() != null;
     }
 
     private String currentEmployeeFullName() {

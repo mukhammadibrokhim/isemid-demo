@@ -120,10 +120,11 @@ public class NotificationEventListener {
         if (!"SENT".equals(event.oldStatus())) {
             return;
         }
-        // LIS answered on a sent act — either the result is in (COMPLETED) or
-        // it sent the act back for rework (RETURNED_BY_LIS). Both are the
-        // "LIS responded" notification the attached employees are waiting on.
-        if ("COMPLETED".equals(event.newStatus()) || "RETURNED_BY_LIS".equals(event.newStatus())) {
+        // LIS answered on a sent act — either the result is in, awaiting the
+        // doctor's review (RESULT_RECEIVED), or it sent the act back for rework
+        // (RETURNED_BY_LIS). Both are the "LIS responded" notification the
+        // attached employees are waiting on.
+        if ("RESULT_RECEIVED".equals(event.newStatus()) || "RETURNED_BY_LIS".equals(event.newStatus())) {
             handleActLisResponse(event);
         }
     }

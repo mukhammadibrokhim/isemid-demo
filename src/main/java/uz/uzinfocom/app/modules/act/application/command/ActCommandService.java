@@ -52,14 +52,17 @@ import java.util.stream.Collectors;
  * same split {@code CardCommandService} uses for {@code Card}.
  * <p>
  * The act's status ({@link ActStatus}) moves forward through {@link #update}
- * (NEW/READY/SEND_FAILED/RETURNED_BY_LIS -> IN_PROGRESS), {@link #markReady}
- * (IN_PROGRESS/SEND_FAILED/RETURNED_BY_LIS -> READY), {@link #markSendingToLis}
- * (READY/SEND_FAILED/RETURNED_BY_LIS -> SENT), and {@link #receiveLisResponse}
- * (SENT -> COMPLETED or SENT -> RETURNED_BY_LIS, called back by LIS once it
- * has processed the act). {@link #recordLisSendFailure} is one step back
- * (SENT -> SEND_FAILED), taken when the send itself failed;
- * RETURNED_BY_LIS is the other, taken when LIS accepted the act but sent it
- * back for rework.
+ * (NEW/READY/SEND_FAILED/RETURNED_BY_LIS/RESULT_RECEIVED -> IN_PROGRESS),
+ * {@link #markReady} (IN_PROGRESS/SEND_FAILED/RETURNED_BY_LIS/RESULT_RECEIVED
+ * -> READY), {@link #markSendingToLis} (READY/SEND_FAILED/RETURNED_BY_LIS/
+ * RESULT_RECEIVED -> SENT), {@link #receiveLisResponse} (SENT ->
+ * RESULT_RECEIVED or SENT -> RETURNED_BY_LIS, called back by LIS once it has
+ * processed the act), and {@link #close} (RESULT_RECEIVED -> COMPLETED, the
+ * attached employee accepting the result). {@link #recordLisSendFailure} is
+ * one step back (SENT -> SEND_FAILED), taken when the send itself failed;
+ * RETURNED_BY_LIS is another, taken when LIS accepted the act but sent it
+ * back for rework; and a RESULT_RECEIVED act the doctor disagrees with is
+ * simply edited/re-sent instead of closed.
  * <p>
  * {@link #markSendingToLis}/{@link #recordLisSendSuccess}/
  * {@link #recordLisSendFailure} are deliberately three separate transactions
@@ -198,7 +201,8 @@ public class ActCommandService {
         requireTransition(
                 act.getActStatus() == ActStatus.IN_PROGRESS
                         || act.getActStatus() == ActStatus.SEND_FAILED
-                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS,
+                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS
+                        || act.getActStatus() == ActStatus.RESULT_RECEIVED,
                 act.getActStatus()
         );
         String oldStatus = act.getActStatus().name();
@@ -227,7 +231,8 @@ public class ActCommandService {
         requireTransition(
                 act.getActStatus() == ActStatus.READY
                         || act.getActStatus() == ActStatus.SEND_FAILED
-                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS,
+                        || act.getActStatus() == ActStatus.RETURNED_BY_LIS
+                        || act.getActStatus() == ActStatus.RESULT_RECEIVED,
                 act.getActStatus()
         );
         String oldStatus = act.getActStatus().name();
@@ -270,8 +275,10 @@ public class ActCommandService {
 
     /**
      * Called back by LIS once it has processed a sent act — stores its raw
-     * response and either concludes the act ({@link ActStatus#COMPLETED},
-     * the laboratory result is in) or sends it back for rework
+     * response and either hands the laboratory result to the attached
+     * employee for review ({@link ActStatus#RESULT_RECEIVED}; they then
+     * {@link #close} it or, disagreeing, edit and re-send it) or sends it
+     * back for rework
      * ({@link ActStatus#RETURNED_BY_LIS}), depending on what the callback
      * body says (see {@link LisCallbackInterpreter}). Either way the full
      * body is kept in {@code lisInfo.response}; a return also records a
@@ -293,9 +300,27 @@ public class ActCommandService {
             act.getLisInfo().setLastError(outcome.reason());
             act.setActStatus(ActStatus.RETURNED_BY_LIS);
         } else {
-            act.setActStatus(ActStatus.COMPLETED);
+            act.setActStatus(ActStatus.RESULT_RECEIVED);
         }
 
+        Act saved = actRepository.save(act);
+        publishStatusChange(saved, oldStatus);
+    }
+
+    /**
+     * The attached employee (the doctor) has reviewed the LIS result and
+     * accepts it — concludes the act ({@link ActStatus#RESULT_RECEIVED} ->
+     * {@link ActStatus#COMPLETED}) and records who closed it and when. After
+     * this the act is final: no edit, no re-send, no delete.
+     */
+    @Transactional
+    public void close(Long actId) {
+        Act act = requireAttachedUserAct(actId);
+        requireTransition(act.getActStatus() == ActStatus.RESULT_RECEIVED, act.getActStatus());
+
+        String oldStatus = act.getActStatus().name();
+        act.close(currentUserProvider.userIdOrNull());
+        act.setActStatus(ActStatus.COMPLETED);
         Act saved = actRepository.save(act);
         publishStatusChange(saved, oldStatus);
     }
@@ -352,7 +377,8 @@ public class ActCommandService {
 
         if (act.getActStatus() == ActStatus.SENT
                 || act.getActStatus() == ActStatus.COMPLETED
-                || act.getActStatus() == ActStatus.RETURNED_BY_LIS) {
+                || act.getActStatus() == ActStatus.RETURNED_BY_LIS
+                || act.getActStatus() == ActStatus.RESULT_RECEIVED) {
             throw new ActAlreadySentToLisException("error.act.already-sent-to-lis");
         }
 
@@ -363,11 +389,12 @@ public class ActCommandService {
      * NEW, IN_PROGRESS, READY, and SEND_FAILED all still precede a
      * successful send to LIS, so saving is allowed from any of them;
      * RETURNED_BY_LIS reopens editing after LIS sent the act back for
-     * rework. Once SENT or COMPLETED, the act has left our hands.
+     * rework, RESULT_RECEIVED when the doctor disagrees with the result.
+     * Once SENT or COMPLETED, the act has left our hands.
      */
     private boolean canBeUpdated(ActStatus status) {
         return switch (status) {
-            case NEW, IN_PROGRESS, READY, SEND_FAILED, RETURNED_BY_LIS -> true;
+            case NEW, IN_PROGRESS, READY, SEND_FAILED, RETURNED_BY_LIS, RESULT_RECEIVED -> true;
             case SENT, COMPLETED -> false;
         };
     }

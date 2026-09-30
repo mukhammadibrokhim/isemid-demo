@@ -1087,6 +1087,9 @@ public final class ApiPaths {
         public static final String READY = "/{id}/ready";
         public static final String SEND_TO_LIS = "/{id}/send-to-lis";
 
+        // Attached employee (the doctor) accepts the LIS result and closes the act.
+        public static final String CLOSE = "/{id}/close";
+
         // LIS posts its result here once it has finished processing the act —
         // the URL we hand LIS as the payload's redirectUrl (see LisUrlFactory).
         // An ordinary authenticated /v1/acts/** endpoint like any other, not a

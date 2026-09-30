@@ -262,13 +262,14 @@ class ActCommandServiceStatusTransitionTest {
     }
 
     @Test
-    void receiveLisResponseMovesSentToCompleted() {
+    void receiveLisResponseMovesSentToResultReceived() {
         Act act = actWith(ActStatus.SENT, attachedUserId(ATTACHED_USER_ID));
         givenAct(act);
 
         service.receiveLisResponse(ACT_ID, 555L, Map.of("result", "ok"));
 
-        assertThat(act.getActStatus()).isEqualTo(ActStatus.COMPLETED);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.RESULT_RECEIVED);
+        assertThat(act.getCloseInfo().getClosedAt()).isNull();
         assertThat(act.getLisInfo().getActId()).isEqualTo(555L);
         assertThat(act.getLisInfo().getResponse()).containsEntry("result", "ok");
     }
@@ -330,6 +331,79 @@ class ActCommandServiceStatusTransitionTest {
         assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
                 .isInstanceOf(ActAlreadySentToLisException.class);
 
+        assertThat(act.isDeleted()).isFalse();
+    }
+
+    @Test
+    void closeMovesResultReceivedToCompletedAndRecordsWhoClosed() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.close(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.COMPLETED);
+        assertThat(act.getCloseInfo().getClosedById()).isEqualTo(ATTACHED_USER_ID);
+        assertThat(act.getCloseInfo().getClosedAt()).isNotNull();
+    }
+
+    @Test
+    void closeRejectsAnUnattachedUser() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(999L);
+
+        assertThatThrownBy(() -> service.close(ACT_ID))
+                .isInstanceOf(ActScopeViolationException.class);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.RESULT_RECEIVED);
+    }
+
+    @Test
+    void closeRejectsBeforeTheResultIsIn() {
+        for (ActStatus status : Set.of(ActStatus.SENT, ActStatus.RETURNED_BY_LIS, ActStatus.COMPLETED)) {
+            Act act = actWith(status, attachedUserId(ATTACHED_USER_ID));
+            givenAct(act);
+            when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+            assertThatThrownBy(() -> service.close(ACT_ID))
+                    .isInstanceOf(InvalidActStatusException.class);
+            assertThat(act.getActStatus()).isEqualTo(status);
+        }
+    }
+
+    @Test
+    void doctorDisagreeingWithResultCanEditAndResend() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.update(ACT_ID, blankAct153Request());
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.IN_PROGRESS);
+
+        act.setActStatus(ActStatus.RESULT_RECEIVED);
+        service.markSendingToLis(ACT_ID);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.SENT);
+    }
+
+    @Test
+    void completedActCanNoLongerBeEdited() {
+        Act act = actWith(ActStatus.COMPLETED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        assertThatThrownBy(() -> service.update(ACT_ID, blankAct153Request()))
+                .isInstanceOf(InvalidActStatusException.class);
+        assertThatThrownBy(() -> service.markSendingToLis(ACT_ID))
+                .isInstanceOf(InvalidActStatusException.class);
+    }
+
+    @Test
+    void deleteBlockedOnceResultReceived() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, Set.of());
+        givenAct(act);
+
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
+                .isInstanceOf(ActAlreadySentToLisException.class);
         assertThat(act.isDeleted()).isFalse();
     }
 

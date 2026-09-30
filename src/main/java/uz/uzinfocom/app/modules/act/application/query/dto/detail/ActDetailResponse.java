@@ -66,8 +66,8 @@ public sealed interface ActDetailResponse
 
     /**
      * The act's LIS transmission state — always present. Lets the frontend
-     * show why an act is {@code SEND_FAILED} / {@code RETURNED_BY_LIS} or
-     * what the {@code COMPLETED} result was.
+     * show why an act is {@code SEND_FAILED} / {@code RETURNED_BY_LIS}, what
+     * the {@code RESULT_RECEIVED}/{@code COMPLETED} result was, and who closed it.
      */
     ActLisInfoResponse lisInfo();
 

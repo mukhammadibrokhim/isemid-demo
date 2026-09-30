@@ -7,8 +7,10 @@ import java.util.Map;
 
 /**
  * The act's LIS transmission state, surfaced on every {@code Act…DetailResponse}
- * so the frontend can explain a {@code SEND_FAILED}, {@code RETURNED_BY_LIS}
- * or {@code COMPLETED} act rather than just showing the status.
+ * so the frontend can explain a {@code SEND_FAILED}, {@code RETURNED_BY_LIS},
+ * {@code RESULT_RECEIVED} or {@code COMPLETED} act rather than just showing
+ * the status — including who closed it after reviewing the result
+ * ({@code closedById}/{@code closedAt}, from {@code Act.closeInfo}).
  *
  * <p>Always present (never {@code null}); before the first send attempt
  * {@code attempt} is {@code 0} and everything else is {@code null}. Mirrors
@@ -29,7 +31,14 @@ public record ActLisInfoResponse(
                 + "Очищается при следующей попытке.")
         String lastError,
 
-        @Schema(description = "Ответ LIS целиком, в исходном виде — доступен после COMPLETED или RETURNED_BY_LIS.")
-        Map<String, Object> response
+        @Schema(description = "Ответ LIS целиком, в исходном виде — доступен после RESULT_RECEIVED, "
+                + "COMPLETED или RETURNED_BY_LIS.")
+        Map<String, Object> response,
+
+        @Schema(description = "Кто закрыл акт (врач, принявший результат LIS) — заполнено после COMPLETED.")
+        Long closedById,
+
+        @Schema(description = "Когда акт был закрыт — заполнено после COMPLETED.")
+        LocalDateTime closedAt
 ) {
 }
