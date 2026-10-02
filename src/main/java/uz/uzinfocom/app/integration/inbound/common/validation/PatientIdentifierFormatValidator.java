@@ -3,7 +3,6 @@ package uz.uzinfocom.app.integration.inbound.common.validation;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.integration.inbound.common.exception.InboundValidationException;
 import uz.uzinfocom.app.modules.patient.web.request.CreatePatientIdentifierRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.util.List;
 import java.util.Set;
@@ -33,9 +32,7 @@ public class PatientIdentifierFormatValidator {
     private static final Pattern DIGITS_14_PATTERN = Pattern.compile("\\d{14}");
     private static final int[] CHECK_DIGIT_WEIGHTS = {7, 3, 1, 7, 3, 1, 7, 3, 1, 7, 3, 1, 7};
 
-    public void validate(PatientRequest patient) {
-        List<CreatePatientIdentifierRequest> identifiers = patient.identifiers();
-
+    public void validate(List<CreatePatientIdentifierRequest> identifiers) {
         if (identifiers == null) {
             return;
         }

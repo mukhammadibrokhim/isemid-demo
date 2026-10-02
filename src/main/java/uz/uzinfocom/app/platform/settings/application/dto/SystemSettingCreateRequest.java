@@ -18,7 +18,7 @@ public record SystemSettingCreateRequest(
         String settingKey,
 
         @Schema(description = "Значение настройки (хранится как текст, интерпретируется согласно valueType).")
-        @Size(max = 2000, message = "{settings.setting-value.size}")
+        @Size(max = 4000, message = "{settings.setting-value.size}")
         String settingValue,
 
         @Schema(

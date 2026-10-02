@@ -36,9 +36,6 @@ public class Act154 extends Act {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "act_number")
-    private Long actNumber;
-
     @Column(name = "activity_type_code")
     private String activityTypeCode;
 
@@ -51,6 +48,18 @@ public class Act154 extends Act {
     @Column(name = "document_confirm_sampling")
     private String documentConfirmSampling;
 
+    /**
+     * «Namuna olish uchun asos» select — a {@code ref_catalog} code of type
+     * {@link #SAMPLING_BASIS_CATALOG_TYPE}; names are resolved on read.
+     */
+    @Column(name = "sampling_basis_code", length = 50)
+    private String samplingBasisCode;
+
+    /** «Namuna olish uchun asos» free-text detail next to the select (e.g. the GOST number). */
+    @Column(name = "sampling_basis_text", length = 500)
+    private String samplingBasisText;
+
+    /** Legacy form's combined basis string ("GOST …"); legacy-migrated acts only, never written for new ones. */
     @Column(name = "goal")
     private String goal;
 
@@ -62,7 +71,9 @@ public class Act154 extends Act {
             @AttributeOverride(name = "fullName", column = @Column(name = "sampler_full_name")),
             @AttributeOverride(name = "positionId", column = @Column(name = "sampler_position_id")),
             @AttributeOverride(name = "positionUz", column = @Column(name = "sampler_position_uz")),
-            @AttributeOverride(name = "positionRu", column = @Column(name = "sampler_position_ru"))
+            @AttributeOverride(name = "positionRu", column = @Column(name = "sampler_position_ru")),
+            @AttributeOverride(name = "identifierType", column = @Column(name = "sampler_identifier_type")),
+            @AttributeOverride(name = "identifierValue", column = @Column(name = "sampler_identifier_value"))
     })
     private EmployeeInfo sampler;
 
@@ -71,7 +82,9 @@ public class Act154 extends Act {
             @AttributeOverride(name = "fullName", column = @Column(name = "participant_full_name")),
             @AttributeOverride(name = "positionId", column = @Column(name = "participant_position_id")),
             @AttributeOverride(name = "positionUz", column = @Column(name = "participant_position_uz")),
-            @AttributeOverride(name = "positionRu", column = @Column(name = "participant_position_ru"))
+            @AttributeOverride(name = "positionRu", column = @Column(name = "participant_position_ru")),
+            @AttributeOverride(name = "identifierType", column = @Column(name = "participant_identifier_type")),
+            @AttributeOverride(name = "identifierValue", column = @Column(name = "participant_identifier_value"))
     })
     private EmployeeInfo participant;
 

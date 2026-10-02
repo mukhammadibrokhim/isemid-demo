@@ -11,9 +11,6 @@ public record Form058ReportDetailResponse(
         String comment,
 
         @Schema(description = "ФИО лица, сообщившего о случае заболевания.")
-        String notifierFullName,
-
-        @Schema(description = "ФИО сотрудника, прикрепившего карту к форме.")
-        String cardByFullName
+        String notifierFullName
 ) {
 }

@@ -2,3 +2,4 @@ databaseChangeLog:
   - includeAll:
       path: changelog/
       relativeToChangelogFile: true
+      endsWithFilter: .xml

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        StatisticsExcelExportSource's column keys changed when the "Statistika"
+        report split its single combined overall/cards/acts block into three
+        independent per-form blocks (form058, form058-1, form129) - see
+        StatisticsNodeCounts. Every old key (e.g. "periodAConfirmedTotal")
+        was renamed to carry the form it belongs to (e.g.
+        "periodA058ConfirmedTotal"), plus new form129-only columns
+        (periodA129Total/Under18/Adult/Female/Male). Reseed the settings row
+        so the default export column list resolves to known keys again - see
+        the sibling 20260906-1200-... changeset for the previous shape.
+    -->
+    <changeSet id="20260907-1400-01-reseed-statistics-report-excel-export-columns" author="codex">
+        <update tableName="system_settings">
+            <column name="setting_value" value="code,name,periodA058ConfirmedTotal,periodA058PrimaryTotal,periodA058ConfirmedUnder18,periodA058ConfirmedAdult,periodA058PrimaryUnder18,periodA058PrimaryAdult,periodA058ConfirmedFemale,periodA058ConfirmedMale,periodA058PrimaryFemale,periodA058PrimaryMale,periodA058CardsTotal,periodA058ActsTotal,periodA0581ConfirmedTotal,periodA0581PrimaryTotal,periodA0581ConfirmedUnder18,periodA0581ConfirmedAdult,periodA0581PrimaryUnder18,periodA0581PrimaryAdult,periodA0581ConfirmedFemale,periodA0581ConfirmedMale,periodA0581PrimaryFemale,periodA0581PrimaryMale,periodA0581CardsTotal,periodA0581ActsTotal,periodA129Total,periodA129Under18,periodA129Adult,periodA129Female,periodA129Male,periodB058ConfirmedTotal,periodB058PrimaryTotal,periodB058ConfirmedUnder18,periodB058ConfirmedAdult,periodB058PrimaryUnder18,periodB058PrimaryAdult,periodB058ConfirmedFemale,periodB058ConfirmedMale,periodB058PrimaryFemale,periodB058PrimaryMale,periodB058CardsTotal,periodB058ActsTotal,periodB0581ConfirmedTotal,periodB0581PrimaryTotal,periodB0581ConfirmedUnder18,periodB0581ConfirmedAdult,periodB0581PrimaryUnder18,periodB0581PrimaryAdult,periodB0581ConfirmedFemale,periodB0581ConfirmedMale,periodB0581PrimaryFemale,periodB0581PrimaryMale,periodB0581CardsTotal,periodB0581ActsTotal,periodB129Total,periodB129Under18,periodB129Adult,periodB129Female,periodB129Male"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Statistika Excel export. code/name plus, per period (A/B), three form blocks: 058, 0581 (each: confirmed/primary total, age, gender, cards/acts totals) and 129 (total, age, gender - no confirmed/primary split, no cards/acts)."/>
+            <where>setting_key = 'export.excel.statistics.columns'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

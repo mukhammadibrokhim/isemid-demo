@@ -2,7 +2,7 @@ package uz.uzinfocom.app.integration.api2.citizen.validation;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
+import uz.uzinfocom.app.integration.api2.web.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupRequest;
 import uz.uzinfocom.app.integration.api2.citizen.exception.CitizenLookupValidationException;
 import uz.uzinfocom.app.integration.api2.citizen.exception.UnsupportedCitizenLookupTypeException;

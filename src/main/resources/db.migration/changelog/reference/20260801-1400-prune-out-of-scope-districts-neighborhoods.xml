@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Foydalanuvchi bergan manbalar (035-1-002.xlsx — viloyat/tuman SOATO
+        ro'yxati, 035-3-004.json — mahalla uzcad ro'yxati) doirasidan chiqmagan
+        qatorlar soft-delete qilinadi (deleted = true), hard-delete emas —
+        boshqa jadvallardan (masalan pt_address) kod bo'yicha bog'lanishlar
+        buzilmasligi uchun.
+
+        Istisno: NG-401365 va NG-401367 (Namangan shahridagi 2023-yildagi
+        yangi ichki tuman bo'linishi) qasddan o'chirilmadi — ularning haqiqiy,
+        to'g'ri soato_id qiymati bor (1714401365 / 1714401367), shunchaki bu
+        excel fayl ularni umuman qamramaydi (excel yangi bo'linishdan oldingi
+        holatni aks ettiradi). O'chirish haqiqiy, to'g'ri ma'lumotni yo'qotish
+        bo'lardi.
+    -->
+    <changeSet
+            id="20260801-1400-01-prune-district-out-of-scope"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_district"/>
+        </preConditions>
+
+        <loadUpdateData
+                file="20260801-1400-district-prune-codes.csv"
+                relativeToChangelogFile="true"
+                tableName="ref_district"
+                primaryKey="code"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="code" name="code" type="STRING"/>
+            <column header="deleted" name="deleted" type="BOOLEAN"/>
+
+        </loadUpdateData>
+
+    </changeSet>
+
+    <changeSet
+            id="20260801-1400-02-prune-neighborhood-out-of-scope"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+        </preConditions>
+
+        <loadUpdateData
+                file="20260801-1400-neighborhood-prune-codes.csv"
+                relativeToChangelogFile="true"
+                tableName="ref_neighborhood"
+                primaryKey="code"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="code" name="code" type="STRING"/>
+            <column header="deleted" name="deleted" type="BOOLEAN"/>
+
+        </loadUpdateData>
+
+    </changeSet>
+
+</databaseChangeLog>

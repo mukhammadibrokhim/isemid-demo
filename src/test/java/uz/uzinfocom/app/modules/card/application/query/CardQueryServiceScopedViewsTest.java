@@ -5,36 +5,38 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapper;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * {@code CardFilterRequestTest} covers the actual filter-building logic
- * (pure, mockless). This test covers {@code findMine}'s two branches: a
- * personal (assignedToUserId-forced) view for a DISTRICT/ORGANIZATION-scope
- * account, and an organization-wide view (no user filter forced) for a
- * broader-scope (REGION/ALL) account — plus the auth gate for the personal
- * branch and the organization-selection gate shared by both.
+ * (pure, mockless). This test covers {@code findMine} — always personal
+ * (assignedToUserId forced to the caller, mirroring {@code ActQueryService});
+ * it no longer widens for broader-scope (REGION/ALL) organizations, since
+ * that org-wide view now lives in {@code findAll} instead — plus {@code
+ * findAll}/{@code getById}/{@code getPdf}'s organization-selection gate, and
+ * {@code getById}/{@code getPdf} 404ing on a card outside the caller's scope.
  */
 class CardQueryServiceScopedViewsTest {
 
@@ -69,9 +71,7 @@ class CardQueryServiceScopedViewsTest {
     }
 
     @Test
-    void findMineRunsForAnAuthenticatedUserInOrganizationScope() {
-        CurrentOrganizationContext.set(organization());
-        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ORGANIZATION));
+    void findMineRunsForAnAuthenticatedUser() {
         when(currentUserProvider.userIdOrNull()).thenReturn(42L);
 
         service.findMine(emptyFilter());
@@ -80,9 +80,7 @@ class CardQueryServiceScopedViewsTest {
     }
 
     @Test
-    void findMineRefusesAnUnauthenticatedCallerInOrganizationScope() {
-        CurrentOrganizationContext.set(organization());
-        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ORGANIZATION));
+    void findMineRefusesAnUnauthenticatedCaller() {
         when(currentUserProvider.userIdOrNull()).thenReturn(null);
 
         assertThatThrownBy(() -> service.findMine(emptyFilter()))
@@ -90,15 +88,9 @@ class CardQueryServiceScopedViewsTest {
     }
 
     @Test
-    void findMineRefusesWhenNoOrganizationIsSelected() {
-        assertThatThrownBy(() -> service.findMine(emptyFilter()))
-                .isInstanceOf(CardScopeViolationException.class);
-    }
-
-    @Test
-    void findMineStaysPersonalForDistrictLevelAccount() {
+    void findMineStaysPersonalForRegionLevelAccount() {
         CurrentOrganizationContext.set(organization());
-        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.DISTRICT));
+        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.REGION));
         when(currentUserProvider.userIdOrNull()).thenReturn(42L);
 
         service.findMine(emptyFilter());
@@ -108,25 +100,55 @@ class CardQueryServiceScopedViewsTest {
     }
 
     @Test
-    void findMineWidensToOrganizationScopeForRegionLevelAccountWithoutRequiringAnAttachedUser() {
+    void findAllRunsWhenAnOrganizationIsSelected() {
         CurrentOrganizationContext.set(organization());
-        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.REGION));
+        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ORGANIZATION));
 
-        service.findMine(emptyFilter());
+        service.findAll(emptyFilter());
 
-        verify(currentUserProvider, never()).userIdOrNull();
         verify(cardRepository, times(1)).findBy(any(Specification.class), any(Function.class));
     }
 
     @Test
-    void findMineWidensToOrganizationScopeForRepublicLevelAccountWithoutRequiringAnAttachedUser() {
+    void findAllRefusesWhenNoOrganizationIsSelected() {
+        assertThatThrownBy(() -> service.findAll(emptyFilter()))
+                .isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
+    void getByIdNotFoundWhenCardOutsideCallerScope() {
         CurrentOrganizationContext.set(organization());
-        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ALL));
+        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ORGANIZATION));
+        when(cardRepository.findOne(any(Specification.class))).thenReturn(Optional.empty());
 
-        service.findMine(emptyFilter());
+        assertThatThrownBy(() -> service.getById(1L))
+                .isInstanceOf(CardNotFoundException.class);
 
-        verify(currentUserProvider, never()).userIdOrNull();
-        verify(cardRepository, times(1)).findBy(any(Specification.class), any(Function.class));
+        verify(cardRepository, times(1)).findOne(any(Specification.class));
+    }
+
+    @Test
+    void getByIdRefusesWhenNoOrganizationIsSelected() {
+        assertThatThrownBy(() -> service.getById(1L))
+                .isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
+    void getPdfNotFoundWhenCardOutsideCallerScope() {
+        CurrentOrganizationContext.set(organization());
+        when(organizationScopeResolver.resolve(any())).thenReturn(scopeWith(OrganizationScopeMode.ORGANIZATION));
+        when(cardRepository.findOne(any(Specification.class))).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getPdf(1L))
+                .isInstanceOf(CardNotFoundException.class);
+
+        verify(cardRepository, times(1)).findOne(any(Specification.class));
+    }
+
+    @Test
+    void getPdfRefusesWhenNoOrganizationIsSelected() {
+        assertThatThrownBy(() -> service.getPdf(1L))
+                .isInstanceOf(CardScopeViolationException.class);
     }
 
     private ResolvedOrganizationScope scopeWith(OrganizationScopeMode mode) {

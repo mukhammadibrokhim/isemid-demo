@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        NG-243 (Davlatobod tumani) va NG-244 (Yangi namangan tumani) soato_id = 0
+        bilan qolgan eski qatorlar edi. Xuddi shu tumanlar CSV'da NG-401365 va
+        NG-401367 sifatida to'g'ri soato_id bilan allaqachon mavjud (yangi kod
+        sxemasi) — bu ikkisi dublikat, shuning uchun hard-delete emas, soft-delete
+        (deleted = true) qilinadi, boshqa jadvallardan FK-siz bog'lanishlar
+        (masalan patsient manzillari) buzilmasin deb.
+    -->
+    <changeSet
+            id="20260801-1220-01-softdelete-ng243-ng244"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_district"/>
+        </preConditions>
+
+        <update tableName="ref_district">
+            <column name="deleted" valueBoolean="true"/>
+            <where>code in ('NG-243', 'NG-244')</where>
+        </update>
+
+    </changeSet>
+
+</databaseChangeLog>

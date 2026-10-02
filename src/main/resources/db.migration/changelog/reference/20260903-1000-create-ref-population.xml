@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        ref_population — "Doimiy aholi soni" ma'lumotnomasi. Manba: stat.uz
+        SDMX (sdmx_data_246.json), MHOBT/SOATO tasniflagichi bo'yicha yillik
+        doimiy aholi soni. Bitta qator = (soato_id, year). population absolyut
+        kishida saqlanadi (SDMX "ming kishi" qiymati * 1000).
+
+        FK yo'q — region_code / district_code oddiy varchar (ref_region /
+        ref_district bilan bir xil uslub, ular ham o'zaro FK ishlatmaydi).
+        Bo'sh jadval bo'lsa base/population_reference.csv (2025-2026)
+        yuklanadi; keyinchalik POST /api/v1/references/populations/sync
+        jonli SDMXdan yangi yillarni qo'shadi / eski yillarni yangilaydi.
+    -->
+
+    <changeSet id="20260903-1000-01-create-ref-population" author="claude">
+        <!--
+            Jadval sxemasi ishlab chiqish jarayonida qayta ishlangan (ustunlar
+            to'plami o'zgardi) — allaqachon ishga tushirilgan dev bazalarda
+            checksum o'zgaradi, shu sababli eski va yangi checksumlar ikkalasi
+            ham qabul qilinadi.
+        -->
+        <validCheckSum>9:9ca87d75e644510f410bae8d18d64912</validCheckSum>
+        <validCheckSum>9:afe2b70cb710d40810ad46864cf51e4c</validCheckSum>
+
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_population"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="ref_population">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
+
+            <column name="created_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated_at"
+                    type="TIMESTAMP WITHOUT TIME ZONE"
+                    defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="geo_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="soato_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="region_code" type="VARCHAR(50)"/>
+            <column name="district_code" type="VARCHAR(50)"/>
+
+            <column name="stat_year" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="population" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="source" type="VARCHAR(20)" defaultValue="SDMX">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                tableName="ref_population"
+                columnNames="soato_id, stat_year"
+                constraintName="uk_ref_population_soato_year"/>
+    </changeSet>
+
+    <changeSet id="20260903-1000-02-create-idx-ref-population-year" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_population"/>
+            <not>
+                <indexExists tableName="ref_population" indexName="idx_ref_population_year"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="ref_population" indexName="idx_ref_population_year">
+            <column name="stat_year"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260903-1000-03-create-idx-ref-population-region-code" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_population"/>
+            <not>
+                <indexExists tableName="ref_population" indexName="idx_ref_population_region_code"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="ref_population" indexName="idx_ref_population_region_code">
+            <column name="region_code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260903-1000-04-create-idx-ref-population-district-code" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_population"/>
+            <not>
+                <indexExists tableName="ref_population" indexName="idx_ref_population_district_code"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="ref_population" indexName="idx_ref_population_district_code">
+            <column name="district_code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260903-1000-05-create-idx-ref-population-deleted" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_population"/>
+            <not>
+                <indexExists tableName="ref_population" indexName="idx_ref_population_deleted"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="ref_population" indexName="idx_ref_population_deleted">
+            <column name="deleted"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260903-1000-06-ref-population-default-values" author="claude" runInTransaction="true">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_population"/>
+        </preConditions>
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            ALTER TABLE ref_population
+                ALTER COLUMN version SET DEFAULT 0,
+                ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
+                ALTER COLUMN source SET DEFAULT 'SDMX',
+                ALTER COLUMN deleted SET DEFAULT FALSE;
+            ]]></sql>
+    </changeSet>
+
+    <!-- Bo'sh jadval bo'lsa 2025-2026 snapshoti yuklanadi -->
+    <changeSet id="20260903-1000-07-seed-ref-population" author="claude" runInTransaction="true">
+        <!--
+            Seed CSV / ustun map'i ishlab chiqish jarayonida qayta ishlangan —
+            allaqachon ishga tushirilgan dev bazalarda checksum o'zgaradi, shu
+            sababli eski va yangi checksumlar ikkalasi ham qabul qilinadi.
+        -->
+        <validCheckSum>9:21327bbd0982ae4c393cd6ec640a058f</validCheckSum>
+        <validCheckSum>9:32627ca79528d9708201249020faa123</validCheckSum>
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_population"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_population
+            </sqlCheck>
+        </preConditions>
+
+        <loadData
+                file="base/population_reference.csv"
+                relativeToChangelogFile="false"
+                tableName="ref_population"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="geo_type" name="geo_type" type="STRING"/>
+            <column header="soato_id" name="soato_id" type="NUMERIC"/>
+            <column header="region_code" name="region_code" type="STRING"/>
+            <column header="district_code" name="district_code" type="STRING"/>
+            <column header="year" name="stat_year" type="NUMERIC"/>
+            <column header="population" name="population" type="NUMERIC"/>
+            <column header="source" name="source" type="STRING"/>
+            <column header="deleted" name="deleted" type="BOOLEAN"/>
+        </loadData>
+    </changeSet>
+
+    <!--
+        Actor attribution for the detailed-audit view: Population extends
+        AuditableEntity, so Spring Data auditing fills created_by_id /
+        updated_by_id on manual CRUD. Nullable — SDMX-sync writes and the
+        seed have no actor.
+    -->
+    <changeSet id="20260903-1000-08-add-ref-population-audit-columns" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ref_population"/>
+            <not>
+                <columnExists tableName="ref_population" columnName="created_by_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="ref_population">
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_by_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

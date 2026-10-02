@@ -42,7 +42,7 @@ public class CardActQueryController {
                     + "возможностью фильтрации по статусу, прикреплённому сотруднику и супервайзеру."
     )
     @GetMapping(ApiPaths.Card.ROOT + ApiPaths.Card.ACTS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_READ')")
     public PagedResponse<ActTableResponse> findByCard(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,
@@ -56,6 +56,7 @@ public class CardActQueryController {
                 filter.sortDir(),
                 id,
                 filter.status(),
+                filter.actType(),
                 filter.assignedToUserId(),
                 filter.assignedById()
         );

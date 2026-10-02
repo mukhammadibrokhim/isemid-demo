@@ -1,0 +1,237 @@
+package uz.uzinfocom.app.modules.iam.application.user.query.specification;
+
+import jakarta.persistence.criteria.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Role;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.web.user.dto.request.UserFilterRequest;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+
+@Component
+@RequiredArgsConstructor
+public class UserSpecification {
+
+    private final UserScopePredicateFactory userScopePredicateFactory;
+
+    /**
+     * Every User list/search must stay within the caller's current organization
+     * scope — scope is mandatory here, not just another optional filter field.
+     */
+    public Specification<User> byFilter(UserFilterRequest filter, ResolvedOrganizationScope scope) {
+        Objects.requireNonNull(filter, "UserFilterRequest must not be null");
+        Objects.requireNonNull(scope, "ResolvedOrganizationScope must not be null");
+
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(userScopePredicateFactory.applyOrganizationScope(root, query, cb, scope));
+
+            addLike(predicates, root.get("firstName"), filter.firstName(), cb);
+            addLike(predicates, root.get("lastName"), filter.lastName(), cb);
+            addLike(predicates, root.get("middleName"), filter.middleName(), cb);
+
+            if (StringUtils.hasText(filter.nnuzb())) {
+                predicates.add(
+                        cb.equal(
+                                root.<String>get("nnuzb"),
+                                filter.nnuzb().trim()
+                        )
+                );
+            }
+
+            if (StringUtils.hasText(filter.phoneNumber())) {
+                predicates.add(
+                        cb.like(
+                                root.get("phoneNumber"),
+                                "%" + filter.phoneNumber().trim() + "%"
+                        )
+                );
+            }
+
+            if (filter.active() != null) {
+                predicates.add(
+                        cb.equal(
+                                root.get("active"),
+                                filter.active()
+                        )
+                );
+            }
+
+            addOrganizationFilter(
+                    predicates,
+                    root,
+                    query,
+                    cb,
+                    filter
+            );
+
+            addRoleFilter(
+                    predicates,
+                    root,
+                    query,
+                    cb,
+                    filter.roleIds()
+            );
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    private static void addOrganizationFilter(
+            List<Predicate> predicates,
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            UserFilterRequest filter
+    ) {
+        boolean hasRegionCode =
+                StringUtils.hasText(filter.organizationRegionCode());
+
+        boolean hasDistrictCode =
+                StringUtils.hasText(filter.organizationDistrictCode());
+
+        List<MedicalType> medicalTypes =
+                normalizeMedicalTypes(filter.organizationMedicalTypes());
+
+        boolean hasMedicalTypes = !medicalTypes.isEmpty();
+
+        if (!hasRegionCode && !hasDistrictCode && !hasMedicalTypes) {
+            return;
+        }
+
+        Subquery<Integer> subquery = query.subquery(Integer.class);
+
+        Root<User> correlatedUser = subquery.correlate(root);
+
+        Join<User, Organization> organization =
+                correlatedUser.join("organizations", JoinType.INNER);
+
+        List<Predicate> organizationPredicates = new ArrayList<>();
+
+        if (hasRegionCode) {
+            organizationPredicates.add(
+                    cb.equal(
+                            cb.lower(
+                                    organization.<String>get("regionCode")
+                            ),
+                            normalize(filter.organizationRegionCode())
+                    )
+            );
+        }
+
+        if (hasDistrictCode) {
+            organizationPredicates.add(
+                    cb.equal(
+                            cb.lower(
+                                    organization.<String>get("districtCode")
+                            ),
+                            normalize(filter.organizationDistrictCode())
+                    )
+            );
+        }
+
+        if (hasMedicalTypes) {
+            organizationPredicates.add(
+                    organization
+                            .<MedicalType>get("medicalType")
+                            .in(medicalTypes)
+            );
+        }
+
+        subquery
+                .select(cb.literal(1))
+                .where(
+                        cb.and(
+                                organizationPredicates.toArray(Predicate[]::new)
+                        )
+                );
+
+        predicates.add(cb.exists(subquery));
+    }
+
+    private static void addRoleFilter(
+            List<Predicate> predicates,
+            Root<User> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            List<Long> roleIds
+    ) {
+        List<Long> normalizedRoleIds = normalizeRoleIds(roleIds);
+
+        if (normalizedRoleIds.isEmpty()) {
+            return;
+        }
+
+        Subquery<Integer> subquery = query.subquery(Integer.class);
+
+        Root<User> correlatedUser = subquery.correlate(root);
+
+        Join<User, Role> role =
+                correlatedUser.join("roles", JoinType.INNER);
+
+        subquery
+                .select(cb.literal(1))
+                .where(
+                        role.<Long>get("id").in(normalizedRoleIds)
+                );
+
+        predicates.add(cb.exists(subquery));
+    }
+
+    private static void addLike(
+            List<Predicate> predicates,
+            Path<String> field,
+            String value,
+            CriteriaBuilder cb
+    ) {
+        if (!StringUtils.hasText(value)) {
+            return;
+        }
+
+        predicates.add(
+                cb.like(
+                        cb.lower(field),
+                        "%" + normalize(value) + "%"
+                )
+        );
+    }
+
+    private static List<Long> normalizeRoleIds(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+
+        return roleIds.stream()
+                .filter(Objects::nonNull)
+                .filter(id -> id > 0)
+                .distinct()
+                .toList();
+    }
+
+    private static List<MedicalType> normalizeMedicalTypes(
+            List<MedicalType> medicalTypes
+    ) {
+        if (medicalTypes == null || medicalTypes.isEmpty()) {
+            return List.of();
+        }
+
+        return medicalTypes.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+    }
+
+    private static String normalize(String value) {
+        return value.trim().toLowerCase(Locale.ROOT);
+    }
+}

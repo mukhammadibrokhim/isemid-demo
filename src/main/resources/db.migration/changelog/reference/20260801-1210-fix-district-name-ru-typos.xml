@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Rasmiy SOATO ro'yxatidagi (viloyat/tuman kodlari fayli) name_ru bilan
+        solishtirilganda 9 ta tuman uchun faqat ruscha nomda imlo farqi topildi
+        (soato_id to'g'ri edi). name_uz/name_uz_cyril/name_kaa manba faylda yo'q,
+        shu sababli tegilmadi.
+    -->
+    <changeSet
+            id="20260801-1210-01-fix-district-name-ru-typos"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_district"/>
+        </preConditions>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Заминский район"/>
+            <where>code = 'JI-218'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Зарбдорский район"/>
+            <where>code = 'JI-220'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Янгиабадский район"/>
+            <where>code = 'JI-237'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Бузатауский район"/>
+            <where>code = 'QR-209'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Тайлакский район"/>
+            <where>code = 'SA-238'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Сардобинский район"/>
+            <where>code = 'SI-226'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Хавастский район"/>
+            <where>code = 'SI-235'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Бандиханский район"/>
+            <where>code = 'SU-203'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="name_ru" value="Яшнабадский район"/>
+            <where>code = 'TK-290'</where>
+        </update>
+
+    </changeSet>
+
+</databaseChangeLog>

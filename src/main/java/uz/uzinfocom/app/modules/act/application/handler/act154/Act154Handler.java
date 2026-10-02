@@ -2,6 +2,9 @@ package uz.uzinfocom.app.modules.act.application.handler.act154;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.app.modules.act.application.handler.ActPurposeResolver;
+import uz.uzinfocom.app.modules.act.application.handler.ActSamplingBasisResolver;
+import uz.uzinfocom.app.modules.act.application.handler.ActActivityTypeResolver;
 import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandler;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act154DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.mapper.ActDetailMapper;
@@ -10,7 +13,7 @@ import uz.uzinfocom.app.modules.act.domain.model.act154.Act154;
 import uz.uzinfocom.app.modules.act.domain.model.act154.Act154Detail;
 import uz.uzinfocom.app.modules.act.mapper.act154.Act154Mapper;
 import uz.uzinfocom.app.modules.act.web.dto.request.Act154Request;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 
 @Component
@@ -18,6 +21,9 @@ import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 public class Act154Handler implements ActTypeHandler<Act154, Act154Request, Act154DetailResponse> {
 
     private final Act154Mapper mapper;
+    private final ActActivityTypeResolver activityTypeResolver;
+    private final ActPurposeResolver purposeResolver;
+    private final ActSamplingBasisResolver samplingBasisResolver;
     private final ActDetailMapper actDetailMapper;
     private final AuditResolver auditResolver;
 
@@ -34,9 +40,12 @@ public class Act154Handler implements ActTypeHandler<Act154, Act154Request, Act1
     @Override
     public void update(Act154 act, Act154Request request) {
         mapper.copyOwnFields(act, request);
+        act.setActivityTypeCode(activityTypeResolver.resolve(request.activityTypeCode()));
+        act.setPurpose(purposeResolver.resolve(request.purposeCode(), act.getPurpose()));
+        act.setSamplingBasisCode(samplingBasisResolver.resolve(request.samplingBasisCode()));
 
-        if (act.getInstitution() != null) {
-            act.getInstitution().normalize();
+        if (act.getSubject() != null) {
+            act.getSubject().normalize();
         }
 
         ChildCollectionSync.sync(

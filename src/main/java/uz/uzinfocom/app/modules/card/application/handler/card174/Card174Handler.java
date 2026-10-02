@@ -2,6 +2,8 @@ package uz.uzinfocom.app.modules.card.application.handler.card174;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card174DetailResponse;
@@ -37,6 +39,13 @@ public class Card174Handler implements CardTypeHandler<Card174, Card174Request, 
     public void validate(Card174 card174) {
         // No cross-field business rules beyond bean validation identified in
         // the legacy update strategies for this type.
+    }
+
+    @Override
+    public void validateForCompletion(Card174 card174) {
+        if (!StringUtils.hasText(card174.getPathogenType())) {
+            throw new CardValidationException("error.card174.pathogen-type-required");
+        }
     }
 
     @Override

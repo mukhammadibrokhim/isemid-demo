@@ -19,13 +19,18 @@
     <description>Production-grade modular backend foundation for ISEMID</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <mapstruct.version>1.6.3</mapstruct.version>
 
         <springdoc.version>3.0.3</springdoc.version>
+
+        <!-- Security patch overrides for CVEs flagged in dependencies inherited from spring-boot-starter-parent -->
+        <postgresql.version>42.7.12</postgresql.version>
+        <logback.version>1.5.34</logback.version>
+        <jackson-databind.version>2.21.5</jackson-databind.version>
 
         <datasource-micrometer.version>2.2.1</datasource-micrometer.version>
 
@@ -37,6 +42,9 @@
 
         <!-- Circuit breakers for outbound HTTP integrations (see platform.resilience) -->
         <resilience4j.version>2.3.0</resilience4j.version>
+
+        <!-- Excel export (see shared.excel.ExcelExportWriter) -->
+        <poi.version>5.5.1</poi.version>
     </properties>
 
     <dependencies>
@@ -116,6 +124,13 @@
             <artifactId>httpclient5</artifactId>
         </dependency>
 
+        <!-- Excel export (streaming SXSSF writer, see shared.excel) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
         <!-- Runtime -->
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -127,10 +142,13 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!--
+            Compile scope (not runtime): LiquibaseDataSourceConfig references
+            @LiquibaseDataSource to give migrations their own connection pool.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-liquibase</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Dev-only -->
@@ -138,6 +156,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Loads a .env file (if present, in the process's working directory) into the
+             Spring Environment on startup, so the ${VAR:default} placeholders in
+             application*.properties can be filled from a file instead of real env vars.
+             Works in every profile, dev and prod alike - real OS/container env vars are
+             added to the Environment after .env, so they always win when both are set;
+             .env only fills gaps. ignoreIfMissing defaults to true, so an absent .env
+             (the normal prod case, where vars come from the orchestrator/secret store
+             instead) is a no-op, not a startup failure. See .env.example (dev) and
+             .env.prod.example (prod) for the documented variable lists. -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>springboot4-dotenv</artifactId>
+            <version>5.1.0</version>
             <optional>true</optional>
         </dependency>
 
@@ -220,6 +254,16 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- logstash-logback-encoder and springdoc pull the Jackson 2.x line (not managed by
+                 Spring Boot 4's Jackson 3 BOM), so pin the whole family via its own BOM to a
+                 patched version instead of individual modules drifting out of sync. -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson-databind.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>net.ttddyy.observation</groupId>
                 <artifactId>datasource-micrometer-bom</artifactId>

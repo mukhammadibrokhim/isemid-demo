@@ -1,23 +1,12 @@
 package uz.uzinfocom.app.modules.card.domain.model.card161;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OrderBy;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import uz.uzinfocom.app.modules.card.domain.annotation.CatalogCode;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

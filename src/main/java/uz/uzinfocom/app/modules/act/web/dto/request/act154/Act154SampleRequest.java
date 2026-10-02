@@ -12,7 +12,6 @@ public record Act154SampleRequest(
         Long id,
         ResearchItemTypeInfoRequest researchItemTypeInfo,
         @Size(max = 100) String shiftCode,
-        @Size(max = 255) String sampleName,
         Long groupSize,
         Long serialNumberOfGroup,
         Double sampleWeight,

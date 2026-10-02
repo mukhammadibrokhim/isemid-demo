@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        base/mkb10_reference.csv oxiriga qo'shilgan partiyada (id 14442-14520
+        atrofida) 49 ta qator parent_id'siz (yoki boshqa shu partiyadagi
+        qatorga parent qilib) qo'shilgan bo'lib, ular H82/D63/F02/G05/G13/G32/
+        G46/G53/G55/G59/G63 kodlarining allaqachon to'g'ri bog'langan "*"
+        (asterisk) versiyalarini aynan takrorlaydi (masalan "G46.2" qatori
+        "G46.2*" ning dublikati). parent_id bo'sh bo'lgani uchun bular
+        /v1/references/icd10/roots'da soxta ildiz sifatida chiqib, /children
+        orqali hech qachon o'z guruhiga bog'lanmas edi. CSV shu qatorlarni olib
+        tashlash uchun to'g'irlandi (2026-08-05); bu changeset xuddi shu
+        tuzatishni CSV bo'sh jadvalga faqat bir marta yuklangani uchun
+        allaqachon urug'langan (seeded) bazalarga qo'llaydi.
+
+        49 tasi sof dublikat bo'lgani uchun soft-delete qilinadi (hard delete
+        emas — boshqa jadvallardan FK'siz havolalar, masalan bemor tashxis
+        yozuvlari, buzilmasin deb, xuddi 20260801-1220 dagi kabi). Qolgan 5
+        tasi (H82.1/.2/.3/.9 va D63.1) hech qayerda dublikat emas — bular
+        H82*/D63* ostiga to'g'ri parent_id bilan bog'lanadi, kodiga "*"
+        qo'shiladi va name_uz/name_uz_cyril ustunlari (partiyada teskari
+        joylashtirilgan edi) to'g'irlanadi. H82* (id 3908) endi bola
+        elementlarga ega bo'lgani uchun is_last_level=false qilinadi.
+    -->
+    <changeSet
+            id="20260805-1000-01-softdelete-icd10-duplicate-rows"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_icd10"/>
+        </preConditions>
+
+        <update tableName="ref_icd10">
+            <column name="deleted" valueBoolean="true"/>
+            <where>id in (
+                14442, 14448, 14449, 14451,
+                14461, 14462, 14463, 14464, 14465, 14466,
+                14472, 14473, 14474, 14475,
+                14478, 14479, 14480, 14481,
+                14485, 14486,
+                14488, 14489, 14490, 14491, 14492, 14493, 14494, 14495, 14496,
+                14498, 14499, 14500, 14501, 14502,
+                14504, 14505, 14506, 14507, 14508,
+                14510, 14511,
+                14513, 14514, 14515, 14516, 14517, 14518, 14519, 14520
+                )
+            </where>
+        </update>
+
+    </changeSet>
+
+    <changeSet
+            id="20260805-1000-02-relink-icd10-h82-subcodes"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_icd10"/>
+        </preConditions>
+
+        <update tableName="ref_icd10">
+            <column name="parent_id" valueNumeric="3908"/>
+            <column name="code" value="H82.1*"/>
+            <column name="is_last_level" valueBoolean="true"/>
+            <column name="name_uz" value="Boshqa joylarda tasniflangan kasalliklarda kuzatiladigan bosh aylanishi sindromlari, o‘ng quloq bilan bog‘liq"/>
+            <column name="name_uz_cyril" value="Бошқа жойларда таснифланган касалликларда кузатиладиган бош айланиши синдромлари, ўнг қулоқ билан боғлиқ"/>
+            <where>id = 14443</where>
+        </update>
+
+        <update tableName="ref_icd10">
+            <column name="parent_id" valueNumeric="3908"/>
+            <column name="code" value="H82.2*"/>
+            <column name="is_last_level" valueBoolean="true"/>
+            <column name="name_uz" value="Boshqa joylarda tasniflangan kasalliklarda kuzatiladigan bosh aylanishi sindromlari, chap quloq bilan bog‘liq"/>
+            <column name="name_uz_cyril" value="Бошқа жойларда таснифланган касалликларда кузатиладиган бош айланиши синдромлари, чап қулоқ билан боғлиқ"/>
+            <where>id = 14444</where>
+        </update>
+
+        <update tableName="ref_icd10">
+            <column name="parent_id" valueNumeric="3908"/>
+            <column name="code" value="H82.3*"/>
+            <column name="is_last_level" valueBoolean="true"/>
+            <column name="name_uz" value="Boshqa joylarda tasniflangan kasalliklarda kuzatiladigan bosh aylanishi sindromlari, ikkala quloqda"/>
+            <column name="name_uz_cyril" value="Бошқа жойларда таснифланган касалликларда кузатиладиган бош айланиши синдромлари, иккала қулоқда"/>
+            <where>id = 14445</where>
+        </update>
+
+        <update tableName="ref_icd10">
+            <column name="parent_id" valueNumeric="3908"/>
+            <column name="code" value="H82.9*"/>
+            <column name="is_last_level" valueBoolean="true"/>
+            <column name="name_uz" value="Boshqa joylarda tasniflangan kasalliklarda kuzatiladigan bosh aylanishi sindromlari, aniqlanmagan quloqda"/>
+            <column name="name_uz_cyril" value="Бошқа жойларда таснифланган касалликларда кузатиладиган бош айланиши синдромлари, аниқланмаган қулоқда"/>
+            <where>id = 14446</where>
+        </update>
+
+        <update tableName="ref_icd10">
+            <column name="parent_id" valueNumeric="2128"/>
+            <column name="code" value="D63.1*"/>
+            <column name="is_last_level" valueBoolean="true"/>
+            <column name="name_uz" value="Surunkali buyrak kasalligida kuzatiladigan kamqonlik"/>
+            <column name="name_uz_cyril" value="Сурункали буйрак касаллигида кузатиладиган камқонлик"/>
+            <where>id = 14450</where>
+        </update>
+
+        <update tableName="ref_icd10">
+            <column name="is_last_level" valueBoolean="false"/>
+            <where>id = 3908</where>
+        </update>
+
+    </changeSet>
+
+</databaseChangeLog>

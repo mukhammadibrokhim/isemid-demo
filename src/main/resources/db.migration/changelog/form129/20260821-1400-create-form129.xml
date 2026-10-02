@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260821-1400-01-create-form129" author="codex">
+        <createTable tableName="form_129">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_form129" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_form129_uuid"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="created_org_uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_org_uuid" type="UUID"/>
+
+            <column name="status" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reporting_institution_name" type="VARCHAR(500)"/>
+            <column name="medical_id" type="VARCHAR(128)"/>
+
+            <column name="patient_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_form129_patient" references="patient(id)"/>
+            </column>
+            <column name="sender_organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="receiver_organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_integration_client_id" type="BIGINT"/>
+
+            <column name="rw_outcome" type="VARCHAR(16)"/>
+            <column name="rw_result_text" type="VARCHAR(500)"/>
+            <column name="rpr_vdrl_outcome" type="VARCHAR(16)"/>
+            <column name="rpr_vdrl_result_text" type="VARCHAR(500)"/>
+            <column name="rpga_outcome" type="VARCHAR(16)"/>
+            <column name="rpga_result_text" type="VARCHAR(500)"/>
+            <column name="elisa_outcome" type="VARCHAR(16)"/>
+            <column name="elisa_result_text" type="VARCHAR(500)"/>
+            <column name="tpha_outcome" type="VARCHAR(16)"/>
+            <column name="tpha_result_text" type="VARCHAR(500)"/>
+            <column name="western_blot_outcome" type="VARCHAR(16)"/>
+            <column name="western_blot_result_text" type="VARCHAR(500)"/>
+            <column name="hbs_ag_outcome" type="VARCHAR(16)"/>
+            <column name="hbs_ag_result_text" type="VARCHAR(500)"/>
+            <column name="hbe_ag_outcome" type="VARCHAR(16)"/>
+            <column name="hbe_ag_result_text" type="VARCHAR(500)"/>
+            <column name="anti_hbc_igg_outcome" type="VARCHAR(16)"/>
+            <column name="anti_hbc_igg_result_text" type="VARCHAR(500)"/>
+            <column name="anti_hbc_igm_outcome" type="VARCHAR(16)"/>
+            <column name="anti_hbc_igm_result_text" type="VARCHAR(500)"/>
+            <column name="anti_hbe_outcome" type="VARCHAR(16)"/>
+            <column name="anti_hbe_result_text" type="VARCHAR(500)"/>
+            <column name="anti_hbs_outcome" type="VARCHAR(16)"/>
+            <column name="anti_hbs_result_text" type="VARCHAR(500)"/>
+            <column name="pcr_qualitative_outcome" type="VARCHAR(16)"/>
+            <column name="pcr_qualitative_result_text" type="VARCHAR(500)"/>
+            <column name="wright_heddelson_outcome" type="VARCHAR(16)"/>
+            <column name="wright_heddelson_result_text" type="VARCHAR(500)"/>
+
+            <column name="notifier_full_name" type="VARCHAR(255)"/>
+            <column name="receiver_full_name" type="VARCHAR(255)"/>
+
+            <column name="cancel_reason" type="VARCHAR(1000)"/>
+            <column name="canceled_by" type="BIGINT"/>
+            <column name="canceled_at" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+
+        <createIndex tableName="form_129" indexName="idx_form129_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="form_129" indexName="idx_form129_patient_id">
+            <column name="patient_id"/>
+        </createIndex>
+        <createIndex tableName="form_129" indexName="idx_form129_sender_org_id">
+            <column name="sender_organization_id"/>
+        </createIndex>
+        <createIndex tableName="form_129" indexName="idx_form129_receiver_org_id">
+            <column name="receiver_organization_id"/>
+        </createIndex>
+        <createIndex tableName="form_129" indexName="idx_form129_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="form_129" indexName="idx_form129_sender_created">
+            <column name="sender_organization_id"/>
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="form_129" indexName="idx_form129_receiver_created">
+            <column name="receiver_organization_id"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

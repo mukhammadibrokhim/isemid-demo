@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form129 gains an admin / super-admin-only soft delete, mirroring the
+        act/form058 pattern (zzz-card-act/20260724-1100-add-act-soft-delete.xml):
+        the row stays, marked via these columns, instead of DELETE FROM form_129.
+        See Form129DeleteInfo/Form129.softDelete and DeleteForm129Service.
+    -->
+    <changeSet id="20260907-1200-01-add-form129-soft-delete-columns" author="claude">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="form_129" columnName="deleted"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="form_129">
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="deleted_by_id" type="BIGINT"/>
+            <column name="delete_reason" type="VARCHAR(1000)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260907-1200-02-index-form129-deleted" author="claude">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <indexExists tableName="form_129" indexName="idx_form129_deleted"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_form129_deleted" tableName="form_129" using="btree">
+            <column name="deleted"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

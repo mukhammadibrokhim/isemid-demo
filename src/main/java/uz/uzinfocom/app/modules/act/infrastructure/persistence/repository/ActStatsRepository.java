@@ -12,9 +12,9 @@ import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.specification.CardCaseScopeSpecification;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
-import uz.uzinfocom.app.platform.stats.jpa.AbstractCaseStatsRepository;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.platform.stats.AbstractCaseStatsRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -75,6 +75,6 @@ public class ActStatsRepository extends AbstractCaseStatsRepository<Act> {
     }
 
     private Predicate ownerScope(Root<Act> root, CriteriaBuilder cb, ResolvedOrganizationScope scope, CaseFormType formType) {
-        return CardCaseScopeSpecification.scopePredicate(root.get("card"), cb, scopePredicateFactory, scope, formType);
+        return CardCaseScopeSpecification.scopePredicate(root.join("card"), cb, scopePredicateFactory, scope, formType);
     }
 }

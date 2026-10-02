@@ -3,6 +3,8 @@ package uz.uzinfocom.app;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.TimeZone;
+
 /**
  * Entry point of the ISEMID backend — the epidemiological surveillance and
  * case-management platform covering Form No. 058 notifications, the five
@@ -23,6 +25,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Application {
 
     public static void main(String[] args) {
+        // Must run before SpringApplication.run() — pinning the JVM default
+        // timezone via a @PostConstruct bean fires too late for beans that
+        // initialize early in context refresh (e.g. the DataSource, Liquibase),
+        // leaving a window where LocalDateTime.now()/new Date() would fall back
+        // to the host's system timezone instead of Asia/Tashkent.
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tashkent"));
         SpringApplication.run(Application.class, args);
     }
 }

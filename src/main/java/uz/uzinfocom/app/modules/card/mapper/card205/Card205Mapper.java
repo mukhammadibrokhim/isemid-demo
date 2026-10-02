@@ -12,6 +12,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card205.InformationAboutAnimaB
 import uz.uzinfocom.app.modules.card.domain.model.card205.InformationOtherBittenAnimals;
 import uz.uzinfocom.app.modules.card.domain.model.card205.InformationOtherBittenPeople;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card205Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationAboutAnimaBittenPeopleRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationOtherBittenAnimalsRequest;
@@ -21,12 +22,19 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationOtherBit
  * Field-level mapping only. Wiring a child's back-reference to its parent
  * is the handler's job.
  */
-@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
+@Mapper(componentModel = "spring", uses = {CardCaseFieldMapperHelper.class, CardFormMapperHelper.class})
 public interface Card205Mapper {
 
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
+    @Mapping(target = "form", source = ".", qualifiedByName = "resolveCardForm")
     @Mapping(target = "type", source = "cardType")
+    @Mapping(target = "icd10Code", source = ".", qualifiedByName = "resolveCard205Icd10Code")
+    @Mapping(target = "icd10Name", source = ".", qualifiedByName = "resolveCard205Icd10Name")
+    @Mapping(target = "animalType", source = ".", qualifiedByName = "resolveCard205AnimalType")
+    @Mapping(target = "dateOfBiteOccurrence", source = ".", qualifiedByName = "resolveCard205DateOfBiteOccurrence")
+    @Mapping(target = "addressOfBiteOccurrence", source = ".", qualifiedByName = "resolveCard205AddressOfBiteOccurrence")
+    @Mapping(target = "fullNameofAnimalOwner", source = ".", qualifiedByName = "resolveCard205FullNameOfAnimalOwner")
     Card205DetailResponse toResponse(Card205 card205);
 
     @Mapping(target = "id", ignore = true)

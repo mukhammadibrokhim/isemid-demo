@@ -2,6 +2,7 @@ package uz.uzinfocom.app.platform.security.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authorization.AuthenticatedAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -52,9 +53,10 @@ public class DynamicRouteAuthorizationManager implements AuthorizationManager<Re
 
     @Override
     public AuthorizationResult authorize(
-            Supplier<? extends Authentication> authentication,
+            @NotNull Supplier<? extends Authentication> authentication,
             RequestAuthorizationContext context
     ) {
+        assert context != null;
         boolean open = routeAccessPolicyResolver.resolve(path(context.getRequest())).publicRoute();
 
         if (open) {

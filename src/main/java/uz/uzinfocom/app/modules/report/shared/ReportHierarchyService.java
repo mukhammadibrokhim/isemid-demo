@@ -4,21 +4,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationGeoProjection;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationLocalizedName;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.OrganizationNameProjection;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationNameResolver;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
-import uz.uzinfocom.app.platform.reference.application.lookup.ReferenceLookupService;
-import uz.uzinfocom.app.platform.reference.domain.District;
-import uz.uzinfocom.app.platform.reference.domain.Region;
-import uz.uzinfocom.app.platform.reference.repository.DistrictRepository;
-import uz.uzinfocom.app.platform.reference.repository.RegionRepository;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.OrganizationScopeOrganizationIdResolver;
+import uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationGeoProjection;
+import uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationLocalizedName;
+import uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationNameProjection;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationNameResolver;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
+import uz.uzinfocom.app.modules.reference.domain.District;
+import uz.uzinfocom.app.modules.reference.domain.Region;
+import uz.uzinfocom.app.modules.reference.repository.DistrictRepository;
+import uz.uzinfocom.app.modules.reference.repository.RegionRepository;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.OrganizationScopeOrganizationIdResolver;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.util.ArrayList;
@@ -153,6 +153,49 @@ public class ReportHierarchyService {
             case DISTRICT -> buildOrganizationBreakdown(scope.districtCode(), countSource, range, diagnosisCode);
             case ORGANIZATION -> List.of();
         };
+    }
+
+    /**
+     * Resolves an explicit {@code regionCode}/{@code districtCode} (or, with
+     * both omitted, the caller's whole access scope) into a single node
+     * identity plus the flat list of organization ids under it — for a
+     * report that needs one aggregate over a node's whole sub-tree rather
+     * than a one-level-deeper breakdown (e.g. an age-structure drill-down
+     * triggered from a specific row of {@link #loadRootBreakdown}/{@link
+     * #loadChildren}). Reuses the exact same scope validation {@link
+     * #loadChildren} applies to {@code regionCode}/{@code districtCode}, so
+     * a request outside the caller's access scope is rejected the same way.
+     */
+    public ResolvedReportNode resolveNode(
+            Organization currentOrganization, String regionCode, String districtCode
+    ) {
+        ResolvedOrganizationScope scope = organizationScopeResolver.resolve(currentOrganization);
+
+        if (StringUtils.hasText(districtCode)) {
+            String validDistrict = requireInScopeDistrict(scope, districtCode);
+            return new ResolvedReportNode(
+                    validDistrict,
+                    referenceLookupService.getDistrictName(validDistrict),
+                    organizationScopeOrganizationIdResolver.resolveScopeOrganizationIds(
+                            OrganizationScopeMode.DISTRICT, null, validDistrict
+                    )
+            );
+        }
+
+        if (StringUtils.hasText(regionCode)) {
+            String validRegion = requireInScopeRegion(scope, regionCode);
+            return new ResolvedReportNode(
+                    validRegion,
+                    referenceLookupService.getRegionName(validRegion),
+                    organizationScopeOrganizationIdResolver.resolveScopeOrganizationIds(
+                            OrganizationScopeMode.REGION, validRegion, null
+                    )
+            );
+        }
+
+        return new ResolvedReportNode(
+                rootCode(scope), rootName(scope, currentOrganization), rootOrganizationIds(scope)
+        );
     }
 
     private String requireInScopeRegion(ResolvedOrganizationScope scope, String regionCode) {

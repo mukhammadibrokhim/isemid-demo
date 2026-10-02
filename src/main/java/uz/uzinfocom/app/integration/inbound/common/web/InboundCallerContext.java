@@ -5,7 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
-import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
+import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthentication;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 /**
@@ -14,27 +14,28 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
  * InboundForm058Controller}/{@code InboundForm0581Controller}/{@code
  * DmedForm058Controller}) and the outbound lookup endpoints ({@code
  * PatientCaseController}) accept a caller authenticated through ANY
- * registered provider — a self-issued integration-client token (external
- * systems provisioned via the admin API), or a human/service SSO or DHP
+ * registered provider — a self-issued integration-client credential
+ * (client-credentials JWT, API key, Basic Auth, or IP allow-list — see
+ * {@link IntegrationClientAuthentication}), or a human/service SSO or DHP
  * token (our own internal systems, already holding one of those). Both are
  * handled uniformly here, for either direction.
  * <p>
  * Organization resolution is identical for both caller types by the time a
  * controller runs: {@code OrganizationContextFilter} already requires and
  * validates an {@code X-Organization-Id} header for either token type (for
- * an integration-client token, validated against the organization baked
- * into the token at issuance — a client can state its own organization,
- * never claim a different one), populating {@link CurrentOrganizationContext}
+ * an integration-client credential, validated against the organization
+ * bound to the client — a client can state its own organization, never
+ * claim a different one), populating {@link CurrentOrganizationContext}
  * the same way for both.
  * <p>
  * Scope gating ({@code form058:submit}/{@code form0581:submit}/
- * {@code patient-case:read}) and source-key matching only apply to
- * integration-client tokens, since only those carry a fixed, per-client
- * scope/source identity at all — an SSO/DHP-authenticated caller is gated
- * the same way the frontend already is, by {@code Form058CreateValidator}'s
- * existing sender-organization-must-match-current-organization check (for
- * writes) or the outbound query's own organization-scoped specification
- * (for reads).
+ * {@code patient-case:read}) applies to every caller: an integration-client
+ * credential satisfies it via its {@code SCOPE_*} authority, an SSO/DHP
+ * caller via the equivalent {@code PERMISSION_*} authority granted through
+ * the ordinary Role/Permission/Action admin CRUD (see {@link
+ * IntegrationScope#permissionAuthority()}). Source-key matching stays
+ * integration-client-only, since only those callers carry a fixed,
+ * per-client source identity at all.
  */
 public final class InboundCallerContext {
 
@@ -45,18 +46,11 @@ public final class InboundCallerContext {
         return CurrentOrganizationContext.require().getId();
     }
 
-    public static void requireScopeIfIntegrationClient(IntegrationScope scope) {
+    public static void requireScope(IntegrationScope scope) {
         Authentication authentication = currentAuthentication();
 
-        if (!(authentication instanceof IntegrationClientAuthenticationToken)) {
-            return;
-        }
-
-        String requiredAuthority = "SCOPE_" + scope.getClaim();
-
-        boolean granted = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(requiredAuthority::equals);
+        boolean granted = hasAuthority(authentication, "SCOPE_" + scope.getClaim())
+                || hasAuthority(authentication, scope.permissionAuthority());
 
         if (!granted) {
             // Message is a localization key, not free text - JsonAccessDeniedHandler only
@@ -77,13 +71,19 @@ public final class InboundCallerContext {
     public static void requireMatchingSourceKey(String pathSource) {
         Authentication authentication = currentAuthentication();
 
-        if (!(authentication instanceof IntegrationClientAuthenticationToken integrationToken)) {
+        if (!(authentication instanceof IntegrationClientAuthentication integrationAuthentication)) {
             return;
         }
 
-        if (!integrationToken.getPrincipal().sourceKey().equalsIgnoreCase(pathSource)) {
+        if (!integrationAuthentication.getPrincipal().sourceKey().equalsIgnoreCase(pathSource)) {
             throw new AccessDeniedException("integration.source_key.mismatch");
         }
+    }
+
+    private static boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(authority::equals);
     }
 
     private static Authentication currentAuthentication() {

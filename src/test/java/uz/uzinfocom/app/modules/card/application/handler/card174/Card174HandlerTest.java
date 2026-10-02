@@ -8,16 +8,20 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card174.Card174;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card174.Card174MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card174Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.InfectionMonitoringRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.OutbreakControlMeasureRequest;
+import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058DiagnosisInfo;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +42,9 @@ class Card174HandlerTest {
     void setUp() {
         Card174MapperImpl mapper = new Card174MapperImpl();
         ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        ReflectionTestUtils.setField(mapper, "cardFormMapperHelper", new CardFormMapperHelper(
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper.class),
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService.class)));
         handler = new Card174Handler(mapper);
 
         form = mock(Form058.class);
@@ -46,7 +53,7 @@ class Card174HandlerTest {
 
     @Test
     void updateBuildsEntityGraphAndWiresBackReferences() {
-        Card174Request request = requestWith("MKB-1",
+        Card174Request request = requestWith("Pathogen-1",
                 List.of(new InfectionMonitoringRequest(null, 1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
                 List.of(new OutbreakControlMeasureRequest(null, 5, 1, 2, "PM1", 10, true)));
 
@@ -54,7 +61,7 @@ class Card174HandlerTest {
 
         assertThat(card174.getForm058()).isSameAs(form);
         assertThat(card174.getCardType()).isEqualTo(CardType.CARD174);
-        assertThat(card174.getMkb10Code()).isEqualTo("MKB-1");
+        assertThat(card174.getPathogenType()).isEqualTo("Pathogen-1");
 
         assertThat(card174.getInfectionMonitoring()).hasSize(1);
         assertThat(card174.getInfectionMonitoring().getFirst().getCard174()).isSameAs(card174);
@@ -65,23 +72,23 @@ class Card174HandlerTest {
 
     @Test
     void updateReplacesChildrenInPlaceWithoutReassigningTheCollection() {
-        Card174Request initial = requestWith("MKB-1",
+        Card174Request initial = requestWith("Pathogen-1",
                 List.of(new InfectionMonitoringRequest(null, 1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
                 List.of(new OutbreakControlMeasureRequest(null, 5, 1, 2, "PM1", 10, true)));
         Card174 card174 = cardWith(initial);
         List<?> originalList = card174.getInfectionMonitoring();
 
-        Card174Request updated = requestWith("MKB-2", List.of(), List.of());
+        Card174Request updated = requestWith("Pathogen-2", List.of(), List.of());
         handler.update(card174, updated);
 
-        assertThat(card174.getMkb10Code()).isEqualTo("MKB-2");
+        assertThat(card174.getPathogenType()).isEqualTo("Pathogen-2");
         assertThat(card174.getInfectionMonitoring()).isSameAs(originalList).isEmpty();
         assertThat(card174.getOutbreakControlMeasures()).isEmpty();
     }
 
     @Test
     void toResponseRoundTripsFieldsAndChildren() {
-        Card174Request request = requestWith("MKB-1",
+        Card174Request request = requestWith("Pathogen-1",
                 List.of(new InfectionMonitoringRequest(null, 1, "Doe", "John", null, "M", null, null, null, null, null, null, null, null)),
                 List.of(new OutbreakControlMeasureRequest(null, 5, 1, 2, "PM1", 10, true)));
         Card174 card174 = cardWith(request);
@@ -91,11 +98,41 @@ class Card174HandlerTest {
         assertThat(response.type()).isEqualTo(CardType.CARD174);
         assertThat(response.status()).isEqualTo(CardStatus.NEW);
         assertThat(response.formId()).isEqualTo(99L);
-        assertThat(response.mkb10Code()).isEqualTo("MKB-1");
+        assertThat(response.pathogenType()).isEqualTo("Pathogen-1");
         assertThat(response.infectionMonitoring()).hasSize(1);
         assertThat(response.infectionMonitoring().getFirst().lastName()).isEqualTo("Doe");
         assertThat(response.outbreakControlMeasures()).hasSize(1);
         assertThat(response.outbreakControlMeasures().getFirst().processingMethodCode()).isEqualTo("PM1");
+    }
+
+    @Test
+    void toResponseTakesDiagnosisFromTheNotificationNotTheCard() {
+        Form058DiagnosisInfo diagnosisInfo = new Form058DiagnosisInfo();
+        diagnosisInfo.setIcd10Code("A22.0");
+        diagnosisInfo.setIcd10Name("Anthrax");
+        when(form.getDiagnosisInfo()).thenReturn(diagnosisInfo);
+
+        Card174 card174 = cardWith(requestWith("Pathogen-1", List.of(), List.of()));
+        card174.setIcd10Code("LEGACY");
+        card174.setIcd10Name("Legacy name");
+        card174.setHumanPrimaryDiagnosis("Legacy diagnosis");
+
+        Card174DetailResponse response = handler.toResponse(card174);
+
+        assertThat(response.icd10Code()).isEqualTo("A22.0");
+        assertThat(response.icd10Name()).isEqualTo("Anthrax");
+        assertThat(response.humanPrimaryDiagnosis()).isEqualTo("Anthrax");
+    }
+
+    @Test
+    void completionRequiresPathogenType() {
+        Card174 card174 = cardWith(requestWith(" ", List.of(), List.of()));
+
+        assertThatThrownBy(() -> handler.validateForCompletion(card174))
+                .isInstanceOf(CardValidationException.class);
+
+        handler.update(card174, requestWith("Pathogen-1", List.of(), List.of()));
+        handler.validateForCompletion(card174);
     }
 
     private Card174 cardWith(Card174Request request) {
@@ -106,14 +143,14 @@ class Card174HandlerTest {
     }
 
     private Card174Request requestWith(
-            String mkb10Code,
+            String pathogenType,
             List<InfectionMonitoringRequest> infectionMonitoring,
             List<OutbreakControlMeasureRequest> outbreakControlMeasures
     ) {
         return new Card174Request(
-                1, mkb10Code, "Name", "PathogenType",
+                1, pathogenType,
                 LocalDate.now().minusDays(5), LocalDate.now().minusDays(4),
-                "AnimalDx", "HumanDx",
+                "AnimalDx",
                 LocalDate.now().minusDays(3), LocalDate.now().minusYears(1), LocalDate.now(),
                 "Localization", "Owner", "Address",
                 "ANIMALTYPE1", 3, "OWNERSHIP1",

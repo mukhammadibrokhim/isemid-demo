@@ -48,18 +48,18 @@ public interface Form0581UpdateMapper {
     }
 
     private void updateDiagnosisInfo(UpdateForm0581Command command, Form0581 form0581) {
-        if (command.mkb10Code() == null && command.mkb10Name() == null && command.injuryLocalization() == null) {
+        if (command.icd10Code() == null && command.icd10Name() == null && command.injuryLocalization() == null) {
             return;
         }
 
         if (form0581.getDiagnosisInfo() == null) {
             form0581.setDiagnosisInfo(new Form0581DiagnosisInfo());
         }
-        if (command.mkb10Code() != null) {
-            form0581.getDiagnosisInfo().setMkb10Code(command.mkb10Code());
+        if (command.icd10Code() != null) {
+            form0581.getDiagnosisInfo().setIcd10Code(command.icd10Code());
         }
-        if (command.mkb10Name() != null) {
-            form0581.getDiagnosisInfo().setMkb10Name(command.mkb10Name());
+        if (command.icd10Name() != null) {
+            form0581.getDiagnosisInfo().setIcd10Name(command.icd10Name());
         }
         if (command.injuryLocalization() != null) {
             form0581.getDiagnosisInfo().setInjuryLocalization(command.injuryLocalization());
@@ -197,7 +197,6 @@ public interface Form0581UpdateMapper {
     private void updateReportInfo(UpdateForm0581Command command, Form0581 form0581) {
         if (command.antirabicAssistanceInfo() == null
                 && command.notifierFullName() == null
-                && command.receiverFullName() == null
                 && command.messageSentAt() == null) {
             return;
         }
@@ -210,9 +209,6 @@ public interface Form0581UpdateMapper {
         }
         if (command.notifierFullName() != null) {
             form0581.getReportInfo().setNotifierFullName(command.notifierFullName());
-        }
-        if (command.receiverFullName() != null) {
-            form0581.getReportInfo().setReceiverFullName(command.receiverFullName());
         }
         if (command.messageSentAt() != null) {
             form0581.getReportInfo().setMessageSentAt(command.messageSentAt());

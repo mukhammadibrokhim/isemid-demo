@@ -3,7 +3,6 @@ package uz.uzinfocom.app.modules.form058.web.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.form058.application.command.approve.ApproveForm058Command;
-import uz.uzinfocom.app.modules.form058.application.command.approve.NotApproveForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.cancel.CancelForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Command;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Result;
@@ -12,15 +11,16 @@ import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058
 import uz.uzinfocom.app.modules.form058.web.dto.request.ApproveForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CancelForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CreateForm058Request;
-import uz.uzinfocom.app.modules.form058.web.dto.request.NotApproveForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
 import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.patient.web.mapper.UpdatePatientRequestMapper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
-@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})
+@Mapper(config = CentralMapperConfig.class,
+        uses = {OrganizationMappingHelper.class, PatientRequestMapper.class, UpdatePatientRequestMapper.class})
 public interface Form058WebMapper {
 
     @Mapping(target = "source", source = "source")
@@ -47,19 +47,20 @@ public interface Form058WebMapper {
     @Mapping(target = "initialReportDateTime", source = "request.dateInfo.initialReportDateTime")
 
     @Mapping(target = "patient", source = "request.patient")
-    @Mapping(target = "mkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.diagnosisInfo.mkb10Name")
-    @Mapping(target = "finalMkb10Code", source = "request.diagnosisInfo.mkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.diagnosisInfo.mkb10Name")
-    @Mapping(target = "mkb10UsageLimit", source = "request.diagnosisInfo.mkb10UsageLimit")
+    @Mapping(target = "icd10Code", source = "request.diagnosisInfo.icd10Code")
+    @Mapping(target = "icd10Name", source = "request.diagnosisInfo.icd10Name")
+    @Mapping(target = "finalIcd10Code", source = "request.diagnosisInfo.icd10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.diagnosisInfo.icd10Name")
+    @Mapping(target = "icd10UsageLimit", source = "request.diagnosisInfo.icd10UsageLimit")
     @Mapping(target = "labConfirmation", source = "request.clinicalInfo.labConfirmation")
+    @Mapping(target = "sourceIntegrationClientId", ignore = true)
     CreateForm058Command toCommand(CreateForm058Request request, String source);
 
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "nullableActiveOrganizationId")
-    @Mapping(target = "mkb10Code", source = "request.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.mkb10Name")
+    @Mapping(target = "icd10Code", source = "request.icd10Code")
+    @Mapping(target = "icd10Name", source = "request.icd10Name")
     @Mapping(target = "diseaseDate", source = "request.diseaseDate")
     @Mapping(target = "firstVisitDate", source = "request.firstVisitDate")
     @Mapping(target = "visitDate", source = "request.visitDate")
@@ -80,13 +81,9 @@ public interface Form058WebMapper {
     UpdateForm058Response toResponse(UpdateForm058Result result);
 
     @Mapping(target = "formId", source = "id")
-    @Mapping(target = "finalMkb10Code", source = "request.finalMkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.finalMkb10Name")
+    @Mapping(target = "finalIcd10Code", source = "request.finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.finalIcd10Name")
     ApproveForm058Command toCommand(Long id, ApproveForm058Request request);
-
-    @Mapping(target = "formId", source = "id")
-    @Mapping(target = "reason", source = "request.reason")
-    NotApproveForm058Command toCommand(Long id, NotApproveForm058Request request);
 
     @Mapping(target = "formId", source = "id")
     @Mapping(target = "reason", source = "request.reason")

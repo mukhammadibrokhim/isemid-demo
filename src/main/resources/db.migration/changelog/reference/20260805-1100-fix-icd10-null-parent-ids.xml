@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Ildiz sabab: Icd10ReferenceSeeder (Spring ApplicationRunner) parent_id
+        bog'lashni ikki bosqichda qiladi - avval parentsiz saqlaydi
+        (saveAllAndFlush), keyin xotiradagi obyektlarga .setParent(...) qo'yadi.
+        Lekin ExternallyIdentifiedEntity'dagi @Version maydoni
+        @Builder.Default bilan 0L (null emas) qilib qurilgani uchun Spring
+        Data JPA bu obyektlarni "yangi emas" deb hisoblaydi va persist()
+        o'rniga merge() ishlatadi - merge() esa ALOHIDA, boshqa boshqariladigan
+        nusxa qaytaradi. Ikkinchi bosqich xuddi o'sha eski (allaqachon
+        detached) obyektlarga .setParent() qo'yadi, shu sababli bu o'zgarish
+        hech qachon flush bo'lmaydi va parent_id doim NULL bo'lib qoladi.
+        (Java tomondagi tuzatish: Icd10ReferenceSeeder.java, saveAllAndFlush
+        natijasidan qaytgan boshqariladigan obyektlardan foydalanadi endi.)
+
+        Bu xato tufayli ushbu seeder orqali to'ldirilgan har qanday bazada
+        ref_icd10.parent_id AMALDA BARCHA qatorlarda NULL bo'lib qolgan -
+        shuning uchun /v1/references/icd10/roots barcha (~14 ming) qatorni
+        "ildiz" deb qaytargan, /children esa doim bo'sh qaytargan.
+
+        Bu changeset shu buzilgan parent_id qiymatlarini manba CSV asosida
+        qayta tiklaydi. 20260805-1000-fix-icd10-duplicate-root-nodes.xml da
+        alohida to'g'irlangan 54 ta qator (dublikat + qayta bog'langan)
+        bu yerga kiritilmagan - ularning joriy holati saqlanib qoladi.
+    -->
+    <changeSet
+            id="20260805-1100-01-resync-icd10-parent-ids"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_icd10"/>
+        </preConditions>
+
+        <loadUpdateData
+                file="20260805-1100-icd10-parent-id-resync.csv"
+                relativeToChangelogFile="true"
+                tableName="ref_icd10"
+                primaryKey="id"
+                onlyUpdate="true"
+                encoding="UTF-8"
+                separator=","
+                usePreparedStatements="true">
+
+            <column header="id" name="id" type="NUMERIC"/>
+            <column header="parent_id" name="parent_id" type="NUMERIC"/>
+
+        </loadUpdateData>
+
+    </changeSet>
+
+</databaseChangeLog>

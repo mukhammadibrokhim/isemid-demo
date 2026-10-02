@@ -47,7 +47,8 @@ class ProviderAuthenticationManagerRegistryTest {
             decoderConfig.integrationJwtDecoder(),
             new IntegrationJwtAuthenticationConverter(),
             integrationTokenProperties,
-            mock(SystemSettingResolver.class)
+            mock(SystemSettingResolver.class),
+            mock(TokenBlacklistService.class)
     );
 
     @Test

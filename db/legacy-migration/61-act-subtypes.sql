@@ -1,0 +1,378 @@
+-- =====================================================================
+-- 61-act-subtypes.sql  —  act153/154/156/223/224 (JOINED, id=act.id) + *_detail
+-- Mapping: docs/legacy-migration/02-mapping-5434.md §4
+--   5434 legacy allaqachon refactor qilingan -> asosan 1:1.
+--   Drop: eski nusxa ustunlar (position, participant_position, institution_*,
+--         lis_act_id, lis_response, subject_type, tin(->identifier), delivered_date).
+--   sampler_/participant_identifier_* -> NULL (2026-09-30: ilgari sampler'ga 'TIN'
+--   yozilardi, lekin ustun CitizenLookupType enum (NNUZB/PPN/CZ) -> Hibernate
+--   yiqilardi; legacy `tin` aslida subyekt STIR'i -> bazaviy act.tin'ga, pastda).
+--   *_detail: +version=0.
+--   2026-09-17 yangilanish: target sxema 02-mapping yozilgandan beri siljigan
+--   (isemid-v2 "act LIS return flow" o'zgarishi) — act_number va subject
+--   act153/154/223'dan bazaviy act'ga ko'chirilgan; act1XX.lis_protocol_response/
+--   lis_act_response endi bazaviy act.lis_response'ga birlashtirilib yoziladi
+--   (pastda, act_number bilan birga backfill qilinadi). Erkin matnli `act.subject`
+--   2026-09-29 da o'chirildi (subyekt bloki = subject_type/tin/institution_*).
+--   2026-09-29: act156/act224'dagi tin/institution_name/institution_address
+--   takroriy ustunlari o'chirildi -> bazaviy act'ga coalesce qilinadi (pastda).
+--   2026-09-29: act224 name_of_institution/address_of_institution ham o'chirildi
+--   -> bazaviy act subject'ga coalesce qilinadi (pastda, act224 bo'limida).
+-- Bog'liqlik: 60-act bajarilgan.
+-- =====================================================================
+\set ON_ERROR_STOP on
+BEGIN;
+SET TIME ZONE 'Asia/Tashkent';
+
+-- ================= act153 =================
+INSERT INTO public2.act153 (
+    id, activity_type_code, sampling_documents, goal,
+    sample_taken_date_time, delivered_date_time, purpose_id,
+    sampling_purpose_uz, sampling_purpose_ru, sampling_purpose_loinc,
+    sampler_full_name, sampler_position_id, sampler_position_uz, sampler_position_ru,
+    participant_full_name, participant_position_id, participant_position_uz, participant_position_ru,
+    special_condition_id, special_sampling_conditions_uz, special_sampling_conditions_ru,
+    storage_delivery_condition_id, storage_delivery_conditions_uz, storage_delivery_conditions_ru,
+    lis_organization_id, laboratory_address, package_type_id, package_type_uz, package_type_ru,
+    conservation_method_id, conservation_methods_uz, conservation_methods_ru, additional_info,
+    sampler_identifier_type, sampler_identifier_value, participant_identifier_type, participant_identifier_value
+)
+SELECT
+    l.id, l.activity_type_code, l.sampling_documents, l.goal,
+    l.sample_taken_date_time, l.delivered_date_time, l.purpose_id,
+    l.sampling_purpose_uz, l.sampling_purpose_ru, l.sampling_purpose_loinc,
+    l.sampler_full_name, l.sampler_position_id, l.sampler_position_uz, l.sampler_position_ru,
+    l.participant_full_name, l.participant_position_id, l.participant_position_uz, l.participant_position_ru,
+    l.special_condition_id, l.special_sampling_conditions_uz, l.special_sampling_conditions_ru,
+    l.storage_delivery_condition_id, l.storage_delivery_conditions_uz, l.storage_delivery_conditions_ru,
+    NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
+    l.conservation_method_id, l.conservation_methods_uz, l.conservation_methods_ru, l.additional_info,
+    NULL, NULL, NULL, NULL   -- legacy tin = subyekt STIR'i, sampler hujjati emas -> pastda act.tin'ga
+FROM public.act153 l
+JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT153';
+
+INSERT INTO public2.act153_detail (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act153_id,
+    research_type_id, research_type_name_uz, research_type_name_ru,
+    category_id, category_name_uz, category_name_ru,
+    item_type_id, item_type_name_uz, item_type_name_ru,
+    address, sampling_depth, depth_unit,
+    distance_from_shore, distance_from_shore_unit, sample_volume, sample_volume_unit,
+    sample_qt_unit, sample_location, weather_at_sampling, water_temperature,
+    sample_type_id, sample_type_uz, sample_type_ru
+)
+SELECT
+    d.id, 0,
+    d.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
+    d.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id, d.uuid, d.act153_id,
+    d.research_type_id, d.research_type_name_uz, d.research_type_name_ru,
+    d.category_id, d.category_name_uz, d.category_name_ru,
+    d.item_type_id, d.item_type_name_uz, d.item_type_name_ru,
+    d.address, d.sampling_depth, d.depth_unit,
+    d.distance_from_shore, d.distance_from_shore_unit, d.sample_volume, d.sample_volume_unit,
+    d.sample_qt_unit, d.sample_location, d.weather_at_sampling, d.water_temperature,
+    d.sample_type_id, d.sample_type_uz, d.sample_type_ru
+FROM public.act153_detail d
+JOIN public2.act153 p ON p.id = d.act153_id;
+
+-- ================= act154 =================
+INSERT INTO public2.act154 (
+    id, title, activity_type_code, sample_taken_date_time, delivered_date_time,
+    document_confirm_sampling, goal, purpose_id,
+    sampling_purpose_uz, sampling_purpose_ru, sampling_purpose_loinc,
+    sampler_full_name, sampler_position_id, sampler_position_uz, sampler_position_ru,
+    participant_full_name, participant_position_id, participant_position_uz, participant_position_ru,
+    manufacturing_company, manufacture_date, doc_number_of_taken_object,
+    special_condition_id, special_sampling_conditions_uz, special_sampling_conditions_ru,
+    storage_delivery_condition_id, storage_delivery_conditions_uz, storage_delivery_conditions_ru,
+    lis_organization_id, laboratory_address, package_type_id, package_type_uz, package_type_ru,
+    additional_info,
+    sampler_identifier_type, sampler_identifier_value, participant_identifier_type, participant_identifier_value
+)
+SELECT
+    l.id, l.title, l.activity_type_code, l.sample_taken_date_time, l.delivered_date_time,
+    l.document_confirm_sampling, l.goal, l.purpose_id,
+    l.sampling_purpose_uz, l.sampling_purpose_ru, l.sampling_purpose_loinc,
+    l.sampler_full_name, l.sampler_position_id, l.sampler_position_uz, l.sampler_position_ru,
+    l.participant_full_name, l.participant_position_id, l.participant_position_uz, l.participant_position_ru,
+    l.manufacturing_company, l.manufacture_date, l.doc_number_of_taken_object,
+    l.special_condition_id, l.special_sampling_conditions_uz, l.special_sampling_conditions_ru,
+    l.storage_delivery_condition_id, l.storage_delivery_conditions_uz, l.storage_delivery_conditions_ru,
+    NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
+    l.additional_info,
+    NULL, NULL, NULL, NULL   -- legacy tin = subyekt STIR'i, sampler hujjati emas -> pastda act.tin'ga
+FROM public.act154 l
+JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT154';
+
+INSERT INTO public2.act154_detail (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act154_id,
+    research_type_id, research_type_name_uz, research_type_name_ru,
+    category_id, category_name_uz, category_name_ru,
+    item_type_id, item_type_name_uz, item_type_name_ru,
+    shift_code, sample_name, group_size, serial_number_of_group, sample_weight,
+    sample_qt_unit, sample_volume, sample_volume_unit, note
+)
+SELECT
+    d.id, 0,
+    d.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
+    d.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id, d.uuid, d.act154_id,
+    d.research_type_id, d.research_type_name_uz, d.research_type_name_ru,
+    d.category_id, d.category_name_uz, d.category_name_ru,
+    d.item_type_id, d.item_type_name_uz, d.item_type_name_ru,
+    d.shift_code, d.sample_name, d.group_size, d.serial_number_of_group, d.sample_weight,
+    d.sample_qt_unit, d.sample_volume, d.sample_volume_unit, d.note
+FROM public.act154_detail d
+JOIN public2.act154 p ON p.id = d.act154_id;
+
+-- name_of_object/object_address: target'da alohida ustun yo'q -> additional_info'ga
+-- qo'shib qo'yamiz (ma'lumot yo'qolmasin), + note-log.
+UPDATE public2.act154 a
+SET additional_info = trim(both ' | ' from concat_ws(' | ', NULLIF(a.additional_info, ''),
+      concat_ws(', ',
+        CASE WHEN l.name_of_object IS NOT NULL THEN 'Ob''ekt: '||l.name_of_object END,
+        CASE WHEN l.object_address IS NOT NULL THEN 'Manzil: '||l.object_address END)))
+FROM public.act154 l
+WHERE a.id = l.id AND (l.name_of_object IS NOT NULL OR l.object_address IS NOT NULL);
+
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act154', l.id, 'name_of_object/object_address additional_info''ga qo''shildi (target''da alohida ustun yo''q)',
+       concat_ws('; ', l.name_of_object, l.object_address)
+FROM public.act154 l
+WHERE l.name_of_object IS NOT NULL OR l.object_address IS NOT NULL;
+
+-- ================= act156 =================
+INSERT INTO public2.act156 (
+    id, title, activity_type_code,
+    sample_taken_time, lis_organization_id, laboratory_address, sample_delivery_time,
+    full_name_of_sampler, position_of_sampler,
+    full_name_of_object_representative, position_of_object_representative
+)
+SELECT
+    l.id, l.title, l.activity_type_code,
+    l.sample_taken_time, NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.sample_delivery_time,
+    l.full_nameof_sampler, l.position_of_sampler,
+    l.full_name_of_object_representative, l.position_of_object_representative
+FROM public.act156 l
+JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT156';
+
+-- group_number (2026-09-29): legacy'da manba yo'q (forma «Guruh raqami»ni qator id'siga
+-- bog'lagan edi) -> NULL qoladi.
+INSERT INTO public2.act156_group_detail (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act156_id,
+    full_name_of_educator, hands_of_educator, first_food_bowl, second_food_bowl, tables, chairs,
+    window_sill, door_handles, toys, toy_shelf, carpets, clothes_rack, full_name_of_place_owner,
+    bed_clothes, bathroom_wall, towels, towel_rack, water_tap_faucet, wc_seats
+)
+SELECT
+    d.id, 0,
+    d.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
+    d.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id, d.uuid, d.act156_id,
+    d.full_name_of_educator, d.hands_of_educator, d.first_food_bowl, d.second_food_bowl, d.tables, d.chairs,
+    d.window_sill, d.door_handles, d.toys, d.toy_shelf, d.carpets, d.clothes_rack, d.full_name_of_place_owner,
+    d.bed_clothes, d.bathroom_wall, d.towels, d.towel_rack, d.water_tap_faucet, d.wcseats
+FROM public.act156_group_detail d
+JOIN public2.act156 p ON p.id = d.act156_id;
+
+INSERT INTO public2.act156_kitchen_utensil (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act156_id,
+    knife_for_bread, fruit_cutting_board, distribution_table, container_for_finished_products,
+    full_name_of_chef, hands_of_chef, clothes_of_chef
+)
+SELECT
+    d.id, 0,
+    d.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
+    d.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id, d.uuid, d.act156_id,
+    d.knife_for_bread, d.fruit_cutting_board, d.distribution_table, d.container_for_finished_products,
+    d.full_name_of_chef, d.hands_of_chef, d.clothes_of_chef
+FROM public.act156_kitchen_utensil d
+JOIN public2.act156 p ON p.id = d.act156_id;
+
+-- ================= act223 =================
+INSERT INTO public2.act223 (
+    id, supporting_documents_for_sampling, goal, activity_type_code,
+    sampler_full_name, sampler_position_id, sampler_position_uz, sampler_position_ru,
+    participant_full_name, participant_position_id, participant_position_uz, participant_position_ru,
+    purpose_id, sampling_purpose_uz, sampling_purpose_ru, sampling_purpose_loinc,
+    sample_taken_date_time, delivered_date_time,
+    special_condition_id, special_sampling_conditions_uz, special_sampling_conditions_ru,
+    storage_delivery_condition_id, storage_delivery_conditions_uz, storage_delivery_conditions_ru,
+    lis_organization_id, laboratory_address, package_type_id, package_type_uz, package_type_ru,
+    additional_info,
+    sampler_identifier_type, sampler_identifier_value, participant_identifier_type, participant_identifier_value
+)
+SELECT
+    l.id, l.supporting_documents_for_sampling, l.goal, l.activity_type_code,
+    l.sampler_full_name, l.sampler_position_id, l.sampler_position_uz, l.sampler_position_ru,
+    l.participant_full_name, l.participant_position_id, l.participant_position_uz, l.participant_position_ru,
+    l.purpose_id, l.sampling_purpose_uz, l.sampling_purpose_ru, l.sampling_purpose_loinc,
+    l.sample_taken_date_time, l.delivered_date_time,
+    l.special_condition_id, l.special_sampling_conditions_uz, l.special_sampling_conditions_ru,
+    l.storage_delivery_condition_id, l.storage_delivery_conditions_uz, l.storage_delivery_conditions_ru,
+    NULLIF(l.lis_organization_id, 0), l.laboratory_address, l.package_type_id, l.package_type_uz, l.package_type_ru,
+    l.additional_info,
+    NULL, NULL, NULL, NULL   -- legacy tin = subyekt STIR'i, sampler hujjati emas -> pastda act.tin'ga
+FROM public.act223 l
+JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT223';
+
+INSERT INTO public2.act223_detail (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act223_id,
+    research_type_id, research_type_name_uz, research_type_name_ru,
+    category_id, category_name_uz, category_name_ru,
+    item_type_id, item_type_name_uz, item_type_name_ru,
+    exact_location_point_sampling, amount, depth_of_obtained_area, depth_unit
+)
+SELECT
+    d.id, 0,
+    d.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
+    d.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id, d.uuid, d.act223_id,
+    d.research_type_id, d.research_type_name_uz, d.research_type_name_ru,
+    d.category_id, d.category_name_uz, d.category_name_ru,
+    d.item_type_id, d.item_type_name_uz, d.item_type_name_ru,
+    d.exact_location_point_sampling, d.amount, d.depth_of_obtained_area, d.depth_unit
+FROM public.act223_detail d
+JOIN public2.act223 p ON p.id = d.act223_id;
+
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act223_detail', d.id, 'target''da ustun yo''q — tashlandi',
+       concat_ws('; ',
+         CASE WHEN d.delivery_conditions_uz IS NOT NULL THEN 'delivery_conditions_uz='||d.delivery_conditions_uz END,
+         CASE WHEN d.storage_conditions_uz IS NOT NULL THEN 'storage_conditions_uz='||d.storage_conditions_uz END)
+FROM public.act223_detail d
+JOIN public2.act223_detail x ON x.id = d.id
+WHERE d.delivery_conditions_uz IS NOT NULL OR d.storage_conditions_uz IS NOT NULL;
+
+-- ---- act153/154/223 tin -> base act subject block (2026-09-30) ----
+-- Legacy subtype `tin` = tekshirilgan tashkilot STIR'i (subyekt), shaxs hujjati emas.
+UPDATE public2.act a SET
+    tin          = coalesce(a.tin, x.tin::text),
+    subject_type = coalesce(a.subject_type, 'LEGAL_ENTITY')
+FROM (
+  SELECT id, tin FROM public.act153 WHERE tin IS NOT NULL
+  UNION ALL SELECT id, tin FROM public.act154 WHERE tin IS NOT NULL
+  UNION ALL SELECT id, tin FROM public.act223 WHERE tin IS NOT NULL
+) x
+WHERE a.id = x.id;
+
+-- ---- act156/act224 tin/institution_* -> base act subject block ----
+-- Target'da bu takroriy ustunlar yo'q (2026-09-29); bazaviy qiymat ustun.
+UPDATE public2.act a SET
+    tin                 = coalesce(a.tin, l.tin::text),
+    institution_name    = coalesce(a.institution_name, l.institution_name),
+    institution_address = coalesce(a.institution_address, l.institution_address),
+    subject_type        = coalesce(a.subject_type,
+                                   CASE WHEN l.tin IS NOT NULL OR l.institution_name IS NOT NULL THEN 'LEGAL_ENTITY' END)
+FROM public.act156 l
+WHERE a.id = l.id
+  AND (l.tin IS NOT NULL OR l.institution_name IS NOT NULL OR l.institution_address IS NOT NULL);
+
+UPDATE public2.act a SET
+    tin                 = coalesce(a.tin, l.tin::text),
+    institution_name    = coalesce(a.institution_name, l.institution_name),
+    institution_address = coalesce(a.institution_address, l.institution_address),
+    subject_type        = coalesce(a.subject_type,
+                                   CASE WHEN l.tin IS NOT NULL OR l.institution_name IS NOT NULL THEN 'LEGAL_ENTITY' END)
+FROM public.act224 l
+WHERE a.id = l.id
+  AND (l.tin IS NOT NULL OR l.institution_name IS NOT NULL OR l.institution_address IS NOT NULL);
+
+-- ---- act153/154/223 act_number -> base act.act_number ----
+-- 02-mapping-5434.md yozilgandan keyin target sxema o'zgargan: act_number endi
+-- act153/154/223'da EMAS, bazaviy act'da (subject bilan birga, isemid-v2
+-- "act LIS return flow" o'zgarishi). Backfill.
+UPDATE public2.act a SET act_number = l.act_number FROM public.act153 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
+UPDATE public2.act a SET act_number = l.act_number FROM public.act154 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
+UPDATE public2.act a SET act_number = l.act_number FROM public.act223 l WHERE a.id = l.id AND l.act_number IS NOT NULL;
+-- Raqami yo'q actlar (act156/224 va bo'shlar): yangi actlar kabi act_number = id (2026-09-29).
+UPDATE public2.act SET act_number = id WHERE act_number IS NULL;
+
+-- ---- act153/154/223 lis_protocol_response + lis_act_response -> act.lis_response ----
+-- Bu ikkisi subtype jadvalining O'ZIDA (base act.lis_response'dan alohida) LIS
+-- laboratoriya javobi. Target'da faqat bitta act.lis_response bor -> ikkalasini
+-- birlashtirib shunga yozamiz (base qiymat bo'lsa unga tegilmaydi).
+UPDATE public2.act a
+SET lis_response = COALESCE(a.lis_response, x.merged)
+FROM (
+  SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
+           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response)) AS merged
+  FROM public.act153 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION ALL
+  SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
+           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response))
+  FROM public.act154 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION ALL
+  SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
+           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response))
+  FROM public.act223 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+) x
+WHERE a.id = x.id;
+
+INSERT INTO public2._migration_notes (source_table, source_id, note)
+SELECT 'act', y.id, 'act1XX.lis_protocol_response/lis_act_response birlashtirilib act.lis_response''ga yozildi'
+FROM (
+  SELECT s.id FROM public.act153 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION
+  SELECT s.id FROM public.act154 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  UNION
+  SELECT s.id FROM public.act223 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+) y;
+
+-- ================= act224 =================
+INSERT INTO public2.act224 (
+    id, activity_type_code,
+    full_name_of_epid_staff, position_of_epid_staff,
+    full_name_of_participant_epid, position_of_participant_epid,
+    name_of_regulatory_acts,
+    checking_fulfillment_of_requirements, full_name_of_participant, additional_info
+)
+SELECT
+    l.id, l.activity_type_code,
+    l.full_name_of_epid_staff, l.position_of_epid_staff,
+    l.full_name_of_participant_epid, l.position_of_participant_epid,
+    l.name_of_regulatory_acts,
+    l.checking_fulfillment_of_requirements, l.full_name_of_participant, l.additional_info
+FROM public.act224 l
+JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT224';
+
+INSERT INTO public2.act224_detail (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act224_id,
+    recommended_activities, execution_period
+)
+SELECT
+    d.id, 0,
+    d.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
+    d.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id, d.uuid, d.act224_id,
+    d.recommended_activities, d.execution_period
+FROM public.act224_detail d
+JOIN public2.act224 p ON p.id = d.act224_id;
+
+-- name_of_institution/address_of_institution: target'da yo'q (2026-09-29) ->
+-- bazaviy act subject blokiga coalesce qilinadi (bazaviy qiymat ustun).
+-- address_of_institution legacy formada yuridik manzil yorlig'i edi -> institution_legal_address.
+UPDATE public2.act a SET
+    institution_name          = coalesce(a.institution_name, l.name_of_institution),
+    institution_legal_address = coalesce(a.institution_legal_address, l.address_of_institution),
+    subject_type              = coalesce(a.subject_type,
+                                         CASE WHEN l.name_of_institution IS NOT NULL THEN 'LEGAL_ENTITY' END)
+FROM public.act224 l
+WHERE a.id = l.id
+  AND (l.name_of_institution IS NOT NULL OR l.address_of_institution IS NOT NULL);
+
+-- region_code: target'da alohida ustun yo'q -> additional_info'ga qo'shib qo'yamiz.
+UPDATE public2.act224 a
+SET additional_info = trim(both ' | ' from concat_ws(' | ', NULLIF(a.additional_info, ''), 'Region: '||l.region_code))
+FROM public.act224 l
+WHERE a.id = l.id AND l.region_code IS NOT NULL;
+
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act224', l.id, 'region_code additional_info''ga qo''shildi (target''da alohida ustun yo''q)', l.region_code
+FROM public.act224 l
+WHERE l.region_code IS NOT NULL;
+
+COMMIT;
+
+\echo '61-act-subtypes OK'
+SELECT 'act153' t,(SELECT count(*) FROM public2.act153) dst UNION ALL
+SELECT 'act154',  (SELECT count(*) FROM public2.act154) UNION ALL
+SELECT 'act156',  (SELECT count(*) FROM public2.act156) UNION ALL
+SELECT 'act223',  (SELECT count(*) FROM public2.act223) UNION ALL
+SELECT 'act224',  (SELECT count(*) FROM public2.act224);

@@ -30,7 +30,16 @@ class LisActClientCircuitBreakerTest {
             "test-api-key",
             Duration.ofMillis(100),
             Duration.ofMillis(100),
-            new LisProperties.Endpoints("/create-act/{labId}", "/act-code")
+            new LisProperties.Endpoints(
+                    "/create-act/{labId}",
+                    "/act-code",
+                    "/sesorgs",
+                    "/departments",
+                    "/reference-dictionaries",
+                    "/professions",
+                    "/research-types",
+                    "/categories",
+                    "/item-types")
     );
 
     @Test

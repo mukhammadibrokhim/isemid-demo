@@ -28,6 +28,9 @@ public record Card205DetailResponse(
         @Schema(description = "Тип формы, к которой привязана карта — FORM058 или FORM0581.")
         CaseFormType formType,
 
+        @Schema(description = "Сведения из извещения (№058 или №058-1), к которому привязана карта — только для чтения.")
+        CardFormResponse form,
+
         @Schema(description = "Идентификатор супервайзера, назначившего карту.")
         Long assignedById,
 
@@ -41,10 +44,10 @@ public record Card205DetailResponse(
         LocalDate completedDate,
 
         @Schema(description = "Код диагноза по МКБ-10.")
-        String mkb10Code,
+        String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        String mkb10Name,
+        String icd10Name,
 
         @Schema(description = "Дата эпидемиологического наблюдения.")
         LocalDate epidemiologicalObservationDate,

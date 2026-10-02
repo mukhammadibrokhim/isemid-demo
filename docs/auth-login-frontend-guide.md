@@ -86,12 +86,16 @@ client is public, it doesn't have a secret at all.
 
 ## 2. `dhp-web`
 
-Status: **verified live, working** — initially configured against the
-wrong server (`playground.dhp.uz`, where this client_id/secret returned
-`invalid_client`); the real server for this client is `dev.dhp.uz`. After
-fixing `token-url` to `https://dev.dhp.uz/sso/oauth/token`, a direct
-request with a fake code returned `invalid_grant` (client accepted, only
-the test code rejected) - meaning the client_id/client_secret are working.
+Status: **not re-verified against the current token-url.** Earlier,
+`token-url` was moved from `playground.dhp.uz` (where this client_id/secret
+returned `invalid_client`) to `dev.dhp.uz`, and a direct request with a
+fake code there returned `invalid_grant` (client accepted, only the test
+code rejected) — meaning the client_id/client_secret worked against
+`dev.dhp.uz`. As of 2026-09-18, `token-url` was switched back to
+`https://playground.dhp.uz/sso/oauth/token`; the client_id/secret have not
+been re-confirmed live against `playground.dhp.uz` since the earlier
+`invalid_client` finding, so treat this provider as unverified until that
+check is redone.
 Unlike `sso-web`, this client **does** require sending `client_secret`
 (despite being called a "public spa") - that's already handled on the
 backend, nothing extra for the frontend to pass; `client_secret` stays

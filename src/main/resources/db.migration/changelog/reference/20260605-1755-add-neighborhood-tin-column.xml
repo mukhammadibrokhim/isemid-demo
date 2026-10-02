@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        ref_neighborhood.tin ("STIR" - mahalla fuqarolar yig'ini soliq to'lovchi
+        raqami). Entity: platform/reference/domain/Neighborhood.java.
+
+        base/neighborhood_reference.csv 2026-08-01 da uzcad manbasi asosida
+        yangilanганда "tin" ustuni sarlavhasi qo'shildi. Liquibase `loadData`
+        CSV sarlavhasidagi HAR BIR ustunni INSERT'ga qo'shadi (<column>
+        elementlari faqat tur/nomni aniqlashtiradi, ustunni chiqarib
+        tashlamaydi) - shuning uchun toza bazada
+        20260605-1800-04-seed-neighborhood changeset'i "tin" ustuni hali
+        yo'q paytda ishga tushib "column tin does not exist" bilan yiqiladi.
+
+        Bu changeset xuddi 20260605-1750-add-district-administrative-type.xml
+        kabi - ustunni CSV seed'idan OLDIN qo'shish uchun ikki sana orasiga
+        (1700-create ... 1800-seed) qo'yilgan. Asl 20260801-1230 faylidagi
+        addColumn changeset'i olib tashlandi (u endi ortiqcha va har toza
+        bazada MARK_RAN bo'lib log shovqini berardi); o'sha fayldagi backfill
+        changeset'i seed'dan keyin o'z joyida qoladi.
+    -->
+    <changeSet id="20260605-1755-01-add-ref-neighborhood-tin-column" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <tableExists tableName="ref_neighborhood"/>
+            <not>
+                <columnExists tableName="ref_neighborhood" columnName="tin"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="ref_neighborhood">
+            <column name="tin" type="VARCHAR(20)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

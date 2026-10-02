@@ -16,10 +16,10 @@ public record TBHistoryResponse(
         LocalDate infectionDate,
 
         @Schema(description = "Код диагноза по МКБ-10.")
-        String mkb10Code,
+        String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        String mkb10Name,
+        String icd10Name,
 
         @Schema(description = "Группа диспансерного учёта при регистрации случая.")
         String registrationGroup

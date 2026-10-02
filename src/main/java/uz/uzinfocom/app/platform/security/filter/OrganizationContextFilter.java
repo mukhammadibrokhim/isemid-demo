@@ -13,16 +13,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
+import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.auth.FederatedAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.CachedSecurityOrganization;
-import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
+import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthentication;
 import uz.uzinfocom.app.platform.security.auth.SelectedOrganizationSecurityCacheService;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
-import uz.uzinfocom.app.platform.security.route.RequestPolicy;
-import uz.uzinfocom.app.platform.security.route.RequestPolicyResolver;
+import uz.uzinfocom.app.platform.security.ip.IpAllowlistMatcher;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicy;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicyResolver;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -35,6 +38,7 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
     private final RequestPolicyResolver requestPolicyResolver;
     private final SelectedOrganizationSecurityCacheService selectedOrganizationSecurityCacheService;
     private final OrganizationRepository organizationRepository;
+    private final IntegrationClientRepository integrationClientRepository;
 
     @Override
     protected void doFilterInternal(
@@ -52,21 +56,38 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication instanceof IntegrationClientAuthenticationToken integrationToken) {
+        if (authentication instanceof IntegrationClientAuthentication integrationAuthentication) {
             // X-Organization-Id is required here too, exactly like the human path below -
             // not because the client could be bound to more than one organization (it can't,
             // see IntegrationClient), but so a client can never silently submit for whatever
-            // organization happens to be baked into its token without saying so explicitly.
-            // It must still match that bound organization: a client can state its own
-            // organization, never claim a different one.
+            // organization happens to be bound to it without saying so explicitly. It must
+            // still match that bound organization: a client can state its own organization,
+            // never claim a different one.
             String requestedOrganizationHeader = resolveOrganizationHeader(request);
             if (!StringUtils.hasText(requestedOrganizationHeader)) {
                 throw new AccessDeniedException("organization.required");
             }
 
             UUID requestedOrganizationUuid = parseUuid(requestedOrganizationHeader);
-            if (!requestedOrganizationUuid.equals(integrationToken.getPrincipal().organizationUuid())) {
+            if (!requestedOrganizationUuid.equals(integrationAuthentication.getPrincipal().organizationUuid())) {
                 throw new AccessDeniedException("organization.not_allowed");
+            }
+
+            // Re-checked per request against the client's current row (not baked into a
+            // JWT at issuance, for credential kinds that even involve one) so revoking,
+            // deactivating, or narrowing the allow-list takes effect immediately on the
+            // very next request - including one carrying an already-issued, not-yet-
+            // expired Bearer JWT - rather than only blocking new token issuance.
+            IntegrationClient integrationClient = integrationClientRepository
+                    .findByClientId(integrationAuthentication.getPrincipal().clientId())
+                    .orElseThrow(() -> new AccessDeniedException("integration.ip.not_allowed"));
+
+            if (!integrationClient.isActive()) {
+                throw new AccessDeniedException("integration.client.inactive");
+            }
+
+            if (!IpAllowlistMatcher.isAllowed(request.getRemoteAddr(), integrationClient.getAllowedIps())) {
+                throw new AccessDeniedException("integration.ip.not_allowed");
             }
 
             // findById, not getReferenceById: this filter runs with no active transaction
@@ -76,7 +97,7 @@ public class OrganizationContextFilter extends OncePerRequestFilter {
             // executes its query eagerly (Spring Data wraps each repository call in its own
             // short transaction) and returns a fully hydrated, genuinely detached entity.
             Organization organization = organizationRepository.findById(
-                            integrationToken.getPrincipal().organizationId())
+                            integrationAuthentication.getPrincipal().organizationId())
                     .orElseThrow(() -> new AccessDeniedException("organization.not_allowed"));
 
             try {

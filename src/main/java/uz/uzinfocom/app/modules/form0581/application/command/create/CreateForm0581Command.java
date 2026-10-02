@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record CreateForm0581Command(
-        String mkb10Code,
-        String mkb10Name,
+        String icd10Code,
+        String icd10Name,
         String injuryLocalization,
 
         LocalDateTime injuryDateTime,
@@ -39,6 +39,8 @@ public record CreateForm0581Command(
         Long senderOrganizationId,
         Long receiverOrganizationId,
 
+        Long sourceIntegrationClientId,
+
         Boolean otherPeopleInjured,
         List<OtherInjuredPersonCommand> otherInjuredPeople,
 
@@ -47,7 +49,6 @@ public record CreateForm0581Command(
 
         String antirabicAssistanceInfo,
         String notifierFullName,
-        String receiverFullName,
         LocalDateTime messageSentAt
 ) {
 

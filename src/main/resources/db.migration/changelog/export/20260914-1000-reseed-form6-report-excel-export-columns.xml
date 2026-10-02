@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form6ExcelExportSource gained one age-group column group (previousYear/
+        currentYear/delta per Form6ReportQueryService#ageGroupColumns - the same
+        breakdown the UI's per-row "Yosh tarkibi" popup shows), but
+        ExcelExportSettingsResolver#resolveColumns resolves strictly against the
+        persisted "export.excel.form6.columns" key when it is present, so the
+        seed from the sibling 20260906-1100-... changeset (code,name,
+        previousYear,currentYear,delta only) silently dropped every new
+        ageGroup_* column from the export. Reseed the settings row to include
+        them, in the same youngest-to-oldest order the UI popup uses.
+    -->
+    <changeSet id="20260914-1000-01-reseed-form6-report-excel-export-columns" author="codex">
+        <update tableName="system_settings">
+            <column name="setting_value" value="code,name,previousYear,currentYear,delta,ageGroup_NEWBORN_previousYear,ageGroup_NEWBORN_currentYear,ageGroup_NEWBORN_delta,ageGroup_AGE_1_2_previousYear,ageGroup_AGE_1_2_currentYear,ageGroup_AGE_1_2_delta,ageGroup_AGE_3_5_previousYear,ageGroup_AGE_3_5_currentYear,ageGroup_AGE_3_5_delta,ageGroup_AGE_6_14_previousYear,ageGroup_AGE_6_14_currentYear,ageGroup_AGE_6_14_delta,ageGroup_AGE_15_17_previousYear,ageGroup_AGE_15_17_currentYear,ageGroup_AGE_15_17_delta,ageGroup_UNDER_18_previousYear,ageGroup_UNDER_18_currentYear,ageGroup_UNDER_18_delta,ageGroup_AGE_19_25_previousYear,ageGroup_AGE_19_25_currentYear,ageGroup_AGE_19_25_delta,ageGroup_AGE_26_40_previousYear,ageGroup_AGE_26_40_currentYear,ageGroup_AGE_26_40_delta,ageGroup_AGE_41_55_previousYear,ageGroup_AGE_41_55_currentYear,ageGroup_AGE_41_55_delta,ageGroup_AGE_56_70_previousYear,ageGroup_AGE_56_70_currentYear,ageGroup_AGE_56_70_delta,ageGroup_OVER_70_previousYear,ageGroup_OVER_70_currentYear,ageGroup_OVER_70_delta"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 6 Excel export. code/name/previousYear/currentYear/delta plus one previousYear/currentYear/delta triple per age group (newborn through over-70), matching the UI's per-row age-breakdown popup."/>
+            <where>setting_key = 'export.excel.form6.columns'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

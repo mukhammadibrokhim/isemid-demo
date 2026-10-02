@@ -3,7 +3,7 @@ package uz.uzinfocom.app.platform.persistence.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.platform.persistence.audit.OrganizationAuditListener;
 
 import java.util.UUID;

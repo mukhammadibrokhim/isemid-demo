@@ -4,8 +4,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
 import uz.uzinfocom.app.modules.card.application.query.projection.CardTableProjection;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
-import uz.uzinfocom.app.platform.iam.application.user.query.mapper.UserMapperHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 
 @Mapper(
         componentModel = "spring",

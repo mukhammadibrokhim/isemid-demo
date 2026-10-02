@@ -32,10 +32,21 @@ public record SystemSettingFilterRequest(
         @Size(max = 200, message = "{settings.setting-key.size}")
         String search,
 
+        @Schema(description = "Текст поиска по значению настройки.")
+        @Size(max = 2000, message = "{settings.setting-value.size}")
+        String settingValue,
+
         @Schema(description = "Фильтр по типу значения настройки.", example = "STRING")
         SystemSettingValueType valueType,
 
         @Schema(description = "Фильтр по признаку активности.", example = "true")
-        Boolean active
+        Boolean active,
+
+        @Schema(description = "Фильтр по признаку удаления (мягкое удаление). По умолчанию (не указано) "
+                + "возвращаются только неудалённые записи — как и раньше. Укажите true, чтобы найти "
+                + "удалённую запись (например, чтобы восстановить её через PATCH .../{id}/restore, если id "
+                + "уже неизвестен вызывающей стороне), или false, чтобы явно исключить удалённые (то же, "
+                + "что и поведение по умолчанию).", example = "true")
+        Boolean deleted
 ) implements PageableRequest {
 }

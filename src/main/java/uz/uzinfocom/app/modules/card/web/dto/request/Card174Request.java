@@ -15,12 +15,6 @@ public record Card174Request(
         @Schema(description = "Порядковый номер документа.")
         Integer serialDocNumber,
 
-        @Schema(description = "Код диагноза по МКБ-10.")
-        @Size(max = 64) String mkb10Code,
-
-        @Schema(description = "Наименование диагноза по МКБ-10.")
-        @Size(max = 500) String mkb10Name,
-
         @Schema(description = "Вид возбудителя заболевания.")
         @Size(max = 255) String pathogenType,
 
@@ -32,9 +26,6 @@ public record Card174Request(
 
         @Schema(description = "Предварительный диагноз у животного.")
         @Size(max = 500) String animalPrimaryDiagnosis,
-
-        @Schema(description = "Предварительный диагноз у человека.")
-        @Size(max = 500) String humanPrimaryDiagnosis,
 
         @Schema(description = "Дата проведения расследования.")
         LocalDate investigationDate,

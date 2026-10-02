@@ -2,6 +2,8 @@ package uz.uzinfocom.app.platform.integrationclient.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -42,8 +44,22 @@ public class IntegrationClient extends AuditableEntity {
     @Column(name = "client_id", nullable = false, length = 100)
     private String clientId;
 
-    @Column(name = "client_secret_hash", nullable = false, length = 255)
+    /** Only populated for {@link IntegrationAuthType#CLIENT_CREDENTIALS}. */
+    @Column(name = "client_secret_hash", length = 255)
     private String clientSecretHash;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_type", nullable = false, length = 32)
+    private IntegrationAuthType authType = IntegrationAuthType.CLIENT_CREDENTIALS;
+
+    /** Only populated for {@link IntegrationAuthType#API_KEY}. */
+    @Column(name = "api_key_hash", length = 255)
+    private String apiKeyHash;
+
+    /** Only populated for {@link IntegrationAuthType#BASIC_AUTH}. */
+    @Column(name = "basic_auth_secret_hash", length = 255)
+    private String basicAuthSecretHash;
 
     @Column(name = "organization_id", nullable = false)
     private Long organizationId;
@@ -58,6 +74,15 @@ public class IntegrationClient extends AuditableEntity {
     @Column(nullable = false, length = 500)
     private String scopes;
 
+    /**
+     * Comma-separated IPv4 literals/CIDR blocks this client may call from,
+     * e.g. {@code "10.0.5.0/24,10.0.6.7"}. Null or blank means unrestricted -
+     * every existing client predates this column and must keep working
+     * unchanged until an admin opts it into a whitelist.
+     */
+    @Column(name = "allowed_ips", length = 1000)
+    private String allowedIps;
+
     @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
@@ -65,7 +90,49 @@ public class IntegrationClient extends AuditableEntity {
     @Column(name = "last_used_at")
     private Instant lastUsedAt;
 
+    /**
+     * Outbound "callback" configuration — where and how this client wants to
+     * be notified when a form it submitted changes status. Independent of
+     * {@link #authType}: that describes how the client authenticates to us,
+     * this describes how we authenticate to it.
+     */
+    @Column(name = "webhook_callback_url", length = 500)
+    private String webhookCallbackUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "webhook_http_method", length = 10)
+    private OutboundHttpMethod webhookHttpMethod;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "webhook_auth_type", length = 32)
+    private OutboundWebhookAuthType webhookAuthType = OutboundWebhookAuthType.NONE;
+
+    /** Only populated for {@link OutboundWebhookAuthType#BASIC_AUTH}. */
+    @Column(name = "webhook_auth_username", length = 255)
+    private String webhookAuthUsername;
+
+    /** Only populated for {@link OutboundWebhookAuthType#API_KEY_HEADER}. */
+    @Column(name = "webhook_auth_header_name", length = 100)
+    private String webhookAuthHeaderName;
+
+    /**
+     * AES/GCM-encrypted webhook credential (see {@code WebhookSecretCipher}) -
+     * decrypted only immediately before the outbound HTTP call, never logged
+     * and never returned in any response DTO.
+     */
+    @Column(name = "webhook_auth_secret_encrypted", length = 1000)
+    private String webhookAuthSecretEncrypted;
+
+    @Builder.Default
+    @Column(name = "webhook_active", nullable = false)
+    private Boolean webhookActive = false;
+
     public boolean isActive() {
         return Boolean.TRUE.equals(active);
+    }
+
+    public boolean isWebhookActive() {
+        return Boolean.TRUE.equals(webhookActive);
     }
 }

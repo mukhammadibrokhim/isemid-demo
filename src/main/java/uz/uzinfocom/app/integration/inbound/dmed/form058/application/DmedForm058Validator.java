@@ -18,9 +18,11 @@ import java.util.stream.Collectors;
 /**
  * Additional validation applied only to the DMED form058 submission path, on
  * top of (not instead of) the existing, unmodified {@code Form058CreateValidator}
- * that {@code CreateForm058Service} always runs. Same rules as the generic
- * inbound-integration path ({@code InboundForm058Validator}), just applied to
- * DMED's flat request shape instead of the nested one.
+ * that {@code CreateForm058Service} always runs. Same date-ordering and
+ * identifier-format rules as the generic inbound-integration path
+ * ({@code InboundForm058Validator}), applied to DMED's flat request shape
+ * instead of the nested one, plus DMED-only requirements: a permanent address
+ * and both NNUZB/PINFL and passport identifiers.
  */
 @Component
 @RequiredArgsConstructor
@@ -38,7 +40,7 @@ public class DmedForm058Validator {
 
     public void validate(DmedCreateForm058Request request) {
         validateDateOrdering(request);
-        patientIdentifierFormatValidator.validate(request.patient());
+        patientIdentifierFormatValidator.validate(request.patient().identifiers());
         requirePermanentAddress(request);
         requireNationalIdAndPassportIdentifiers(request);
     }

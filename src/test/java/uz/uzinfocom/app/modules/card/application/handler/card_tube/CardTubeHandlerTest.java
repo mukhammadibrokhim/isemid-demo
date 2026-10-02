@@ -8,6 +8,7 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card_tube.CardTube;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card_tube.CardTubeMapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardTubeRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.ContactMonitoringRequest;
@@ -38,6 +39,9 @@ class CardTubeHandlerTest {
     void setUp() {
         CardTubeMapperImpl mapper = new CardTubeMapperImpl();
         ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        ReflectionTestUtils.setField(mapper, "cardFormMapperHelper", new CardFormMapperHelper(
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper.class),
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService.class)));
         handler = new CardTubeHandler(mapper);
 
         form = mock(Form058.class);

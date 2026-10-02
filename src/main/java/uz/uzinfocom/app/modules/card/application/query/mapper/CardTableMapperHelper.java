@@ -9,7 +9,7 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 
 /**
  * Resolves locale display names for {@link CardType}/{@link CardStatus} —

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        FormStatus was reworked to split the receiver's decision into two
+        distinct steps: an initial accept/reject on a freshly SENT form, and
+        a separate final approve (by the sender) once a card is linked.
+
+        - NOT_APPROVED -> REJECTED -> CANCELED: the old NOT_APPROVED meaning
+          ("sent back for rework, still editable") is gone. It was first
+          replaced with a standalone REJECTED status (locked, super-admin
+          reopenable), then that was folded into the existing CANCELED
+          status entirely — rejecting a form now closes it exactly the same
+          way the sender's own cancel() does; there is no separate
+          "rejected" outcome anymore, and reopen() works uniformly on any
+          CANCELED form. Both historical intermediate values are remapped
+          here so this is correct regardless of which point in that history
+          a given row/environment is coming from.
+        - RECEIVED -> ACCEPTED: same status, renamed for clarity now that it
+          is an actively reachable step (previously dead code — nothing ever
+          set it).
+        - APPROVED_PENDING was removed from the enum entirely: it was never
+          reachable by any code path either, so no row can hold that value —
+          no data migration needed for its removal.
+    -->
+    <!--
+        form058_status_check is a stale, untracked check constraint present
+        on some environments' form058 table (not created by any changeset in
+        this changelog) that still only allows the old 7-value status set —
+        the same situation already hit once with the act module (see
+        zzz-card-act/20260723-1200-drop-stale-act-status-check.xml) and would
+        block every rename below with "violates check constraint
+        form058_status_check". Dropped rather than redefined, matching this
+        codebase's convention that status columns are validated at the
+        Java/@Enumerated(EnumType.STRING) layer only, not by a DB constraint
+        that would just drift out of sync on the next status change.
+    -->
+    <changeSet id="20260806-1199-form058-drop-stale-status-check" author="claude">
+        <sql>ALTER TABLE form058 DROP CONSTRAINT IF EXISTS form058_status_check;</sql>
+    </changeSet>
+
+    <changeSet id="20260806-1200-form058-reject-status-rename" author="claude">
+        <update tableName="form058">
+            <column name="status" value="REJECTED"/>
+            <where>status = 'NOT_APPROVED'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260806-1201-form058-received-to-accepted-rename" author="claude">
+        <update tableName="form058">
+            <column name="status" value="ACCEPTED"/>
+            <where>status = 'RECEIVED'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260806-1202-form058-rejected-into-canceled-merge" author="claude">
+        <update tableName="form058">
+            <column name="status" value="CANCELED"/>
+            <where>status = 'REJECTED'</where>
+        </update>
+    </changeSet>
+
+    <!--
+        reject() was folded entirely into cancel(): there is only one shared
+        endpoint/reason field now (sender withdrawal and receiver rejection
+        both use cancellationInfo.cancelReason), so the separate
+        not_approved_reason column is dead. Any reason text already sitting
+        in it is preserved by copying it into cancel_reason first (only where
+        cancel_reason is still empty, so a genuine cancellation's reason is
+        never overwritten) before the column is dropped.
+    -->
+    <changeSet id="20260806-1203-form058-merge-not-approved-reason-into-cancel-reason" author="claude">
+        <update tableName="form058">
+            <column name="cancel_reason" valueComputed="not_approved_reason"/>
+            <where>not_approved_reason is not null and (cancel_reason is null or cancel_reason = '')</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260806-1204-form058-drop-not-approved-reason-column" author="claude">
+        <dropColumn tableName="form058" columnName="not_approved_reason"/>
+    </changeSet>
+</databaseChangeLog>

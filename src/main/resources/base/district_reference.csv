@@ -1,8 +1,8 @@
-﻿code,parent_code,parent_soato_id,parent_legacy_soato_id,soato_id,legacy_soato_id,administrative_type,name_uz,name_uz_cyril,name_ru,name_kaa,deleted
+code,parent_code,parent_soato_id,parent_legacy_soato_id,soato_id,legacy_soato_id,administrative_type,name_uz,name_uz_cyril,name_ru,name_kaa,deleted
 AN-202,UZ-AN,1703,17,1703202,1702,DISTRICT,Oltinko‘l tumani,Олтинкўл тумани,Алтынкульский район,Oltinkól rayonı,false
 AN-203,UZ-AN,1703,17,1703203,1701,DISTRICT,Andijon tumani,Андижон тумани,Андижанский район,Andijon rayonı,false
 AN-206,UZ-AN,1703,17,1703206,1704,DISTRICT,Baliqchi tumani,Балиқчи тумани,Балыкчинский район,Baliqchi rayonı,false
-AN-209,UZ-AN,1703,17,1703209,1705,DISTRICT,Bo‘ston tumani,Бўстон тумани,Бустонский район,Bóston rayonı,false
+AN-209,UZ-AN,1703,17,0,1705,DISTRICT,Bo‘ston tumani,Бўстон тумани,Бустонский район,Bóston rayonı,true
 AN-210,UZ-AN,1703,17,1703210,1713,DISTRICT,Buloqboshi tumani,Булоқбоши тумани,Булакбашинский район,Buloqboshi rayonı,false
 AN-211,UZ-AN,1703,17,1703211,1709,DISTRICT,Jalaquduq tumani,Жалақудуқ тумани,Жалакудукский район,Jalaquduq rayonı,false
 AN-214,UZ-AN,1703,17,1703214,1712,DISTRICT,Izboskan tumani,Избоскан тумани,Избасканский район,Izboskan rayonı,false
@@ -15,10 +15,10 @@ AN-232,UZ-AN,1703,17,1703232,1714,DISTRICT,Paxtaobod tumani,Пахтаобод �
 AN-236,UZ-AN,1703,17,1703236,1710,DISTRICT,Xo‘jaobod tumani,Хўжаобод тумани,Ходжаабадский район,Xójaobod rayonı,false
 AN-401,UZ-AN,1703,17,1703401,1715,CITY,Andijon shahri,Андижон шаҳри,Андижан,Andijon qalası,false
 AN-408,UZ-AN,1703,17,1703408,1717,CITY,Xonobod shahri,Хонобод шаҳри,Ханабад,Xonobod qalası,false
-AN-237,UZ-AN,1703,17,0,0,DISTRICT,Bo‘z tumani,Бўз тумани,Бозский район,Bóz rayonı,false
-AN-409,UZ-AN,1703,17,0,0,CITY,Asaka shahri,Асака шаҳри,Город Асака,Asaka qalası,false
-AN-410,UZ-AN,1703,17,0,0,CITY,Qorasuv shahri,Қорасув шаҳри,Город Карасув,Qorasuv qalası,false
-AN-411,UZ-AN,1703,17,0,0,CITY,Shahrixon shahri,Шаҳрихон шаҳри,Город Шахрихан,Shahrixon qalası,false
+AN-237,UZ-AN,1703,17,1703209,0,DISTRICT,Bo‘z tumani,Бўз тумани,Бозский район,Bóz rayonı,false
+AN-409,UZ-AN,1703,17,0,0,CITY,Asaka shahri,Асака шаҳри,Город Асака,Asaka qalası,true
+AN-410,UZ-AN,1703,17,0,0,CITY,Qorasuv shahri,Қорасув шаҳри,Город Карасув,Qorasuv qalası,true
+AN-411,UZ-AN,1703,17,0,0,CITY,Shahrixon shahri,Шаҳрихон шаҳри,Город Шахрихан,Shahrixon qalası,true
 BU-204,UZ-BU,1706,20,1706204,2004,DISTRICT,Olot tumani,Олот тумани,Алатский район,Olot rayonı,false
 BU-207,UZ-BU,1706,20,1706207,2010,DISTRICT,Buxoro tumani,Бухоро тумани,Бухарский район,Buxoro rayonı,false
 BU-212,UZ-BU,1706,20,1706212,2002,DISTRICT,Vobkent tumani,Вобкент тумани,Вабкентский район,Vobkent rayonı,false
@@ -32,10 +32,10 @@ BU-246,UZ-BU,1706,20,1706246,2005,DISTRICT,Jondor tumani,Жондор туман
 BU-258,UZ-BU,1706,20,1706258,2007,DISTRICT,Shofirkon tumani,Шофиркон тумани,Шафирканский район,Shofirkon rayonı,false
 BU-401,UZ-BU,1706,20,1706401,2013,CITY,Buxoro shahri,Бухоро шаҳри,Бухара,Buxoro qalası,false
 BU-403,UZ-BU,1706,20,1706403,2015,CITY,Kogon shahri,Когон шаҳри,Каган,Kogon qalası,false
-BU-259,UZ-BU,1706,20,0,0,DISTRICT,F.Xo‘jayev tumani,Ф.Хўжаев тумани,Ф.Ходжаевский район,F.Xójayev rayonı,false
-BU-260,UZ-BU,1706,20,0,0,DISTRICT,To‘qimachi tumani,Тўқимачи тумани,Тукумачинский район,Tóqimachi rayonı,false
-BU-404,UZ-BU,1706,20,0,0,CITY,G‘ijduvon shahri,Ғиждувон шаҳри,Город Гиждуван,Ǵijduvon qalası,false
-BU-405,UZ-BU,1706,20,0,0,CITY,Gazli shahri,Газли шаҳри,Город Газли,Gazli qalası,false
+BU-259,UZ-BU,1706,20,0,0,DISTRICT,F.Xo‘jayev tumani,Ф.Хўжаев тумани,Ф.Ходжаевский район,F.Xójayev rayonı,true
+BU-260,UZ-BU,1706,20,0,0,DISTRICT,To‘qimachi tumani,Тўқимачи тумани,Тукумачинский район,Tóqimachi rayonı,true
+BU-404,UZ-BU,1706,20,0,0,CITY,G‘ijduvon shahri,Ғиждувон шаҳри,Город Гиждуван,Ǵijduvon qalası,true
+BU-405,UZ-BU,1706,20,0,0,CITY,Gazli shahri,Газли шаҳри,Город Газли,Gazli qalası,true
 FA-203,UZ-FA,1730,15,1730203,1507,DISTRICT,Oltiariq tumani,Олтиариқ тумани,Алтыарыкский район,Oltiariq rayonı,false
 FA-206,UZ-FA,1730,15,1730206,2434,DISTRICT,Qo‘shtepa tumani,Қўштепа тумани,Куштепинский район,Qóshtepa rayonı,false
 FA-209,UZ-FA,1730,15,1730209,1508,DISTRICT,Bag‘dod tumani,Бағдод тумани,Багдадский район,Baǵdod rayonı,false
@@ -55,24 +55,24 @@ FA-401,UZ-FA,1730,15,1730401,1521,CITY,Farg‘ona shahri,Фарғона шаҳр
 FA-405,UZ-FA,1730,15,1730405,1519,CITY,Qo‘qon shahri,Қўқон шаҳри,Коканд,Qóqon qalası,false
 FA-408,UZ-FA,1730,15,1730408,1517,CITY,Quvasoy shahri,Қувасой шаҳри,Кувасай,Quvasoy qalası,false
 FA-412,UZ-FA,1730,15,1730412,1520,CITY,Marg‘ilon shahri,Марғилон шаҳри,Маргилан,Marǵilon qalası,false
-FA-243,UZ-FA,1730,15,0,15,DISTRICT,Kirguli tumani,Киргули тумани,Киргулинский район,Kirguli rayonı,false
-FA-244,UZ-FA,1730,15,0,15,DISTRICT,Oxunboboyev tumani,Охунбобоев тумани,Ахунбобоевский район,Oxunboboyev rayonı,false
-FA-413,UZ-FA,1730,15,0,15,CITY,Kirguli shahri,Киргули шаҳри,Город Киргули,Kirguli qalası,false
-FA-414,UZ-FA,1730,15,0,15,CITY,Quva shahri,Қува шаҳри,Город Кува,Quva qalası,false
+FA-243,UZ-FA,1730,15,0,15,DISTRICT,Kirguli tumani,Киргули тумани,Киргулинский район,Kirguli rayonı,true
+FA-244,UZ-FA,1730,15,0,15,DISTRICT,Oxunboboyev tumani,Охунбобоев тумани,Ахунбобоевский район,Oxunboboyev rayonı,true
+FA-413,UZ-FA,1730,15,0,15,CITY,Kirguli shahri,Киргули шаҳри,Город Киргули,Kirguli qalası,true
+FA-414,UZ-FA,1730,15,0,15,CITY,Quva shahri,Қува шаҳри,Город Кува,Quva qalası,true
 JI-201,UZ-JI,1708,13,1708201,1310,DISTRICT,Arnasoy tumani,Арнасой тумани,Арнасайский район,Arnasoy rayonı,false
 JI-204,UZ-JI,1708,13,1708204,1307,DISTRICT,Baxmal tumani,Бахмал тумани,Бахмальский район,Baxmal rayonı,false
 JI-209,UZ-JI,1708,13,1708209,1306,DISTRICT,G‘allaorol tumani,Ғаллаорол тумани,Галляаральский район,Ǵallaorol rayonı,false
 JI-212,UZ-JI,1708,13,1708212,1305,DISTRICT,Sharof rashidov tumani,Шароф рашидов тумани,Шароф рашидовский район,Sharof rashidov rayonı,false
 JI-215,UZ-JI,1708,13,1708215,1302,DISTRICT,Do‘stlik tumani,Дўстлик тумани,Дустликский район,Dóstlik rayonı,false
-JI-218,UZ-JI,1708,13,1708218,1311,DISTRICT,Zomin tumani,Зомин тумани,Зааминский район,Zomin rayonı,false
-JI-220,UZ-JI,1708,13,1708220,1301,DISTRICT,Zarbdor tumani,Зарбдор тумани,Зарбдарский район,Zarbdor rayonı,false
+JI-218,UZ-JI,1708,13,1708218,1311,DISTRICT,Zomin tumani,Зомин тумани,Заминский район,Zomin rayonı,false
+JI-220,UZ-JI,1708,13,1708220,1301,DISTRICT,Zarbdor tumani,Зарбдор тумани,Зарбдорский район,Zarbdor rayonı,false
 JI-223,UZ-JI,1708,13,1708223,1312,DISTRICT,Mirzacho‘l tumani,Мирзачўл тумани,Мирзачульский район,Mirzachól rayonı,false
 JI-225,UZ-JI,1708,13,1708225,1309,DISTRICT,Zafarobod tumani,Зафаробод тумани,Зафарабадский район,Zafarobod rayonı,false
 JI-228,UZ-JI,1708,13,1708228,1308,DISTRICT,Paxtakor tumani,Пахтакор тумани,Пахтакорский район,Paxtakor rayonı,false
 JI-235,UZ-JI,1708,13,1708235,1304,DISTRICT,Forish tumani,Фориш тумани,Фаришский район,Forish rayonı,false
-JI-237,UZ-JI,1708,13,1708237,1313,DISTRICT,Yangiobod tumani,Янгиобод тумани,Янгиободский район,Yangiobod rayonı,false
+JI-237,UZ-JI,1708,13,1708237,1313,DISTRICT,Yangiobod tumani,Янгиобод тумани,Янгиабадский район,Yangiobod rayonı,false
 JI-401,UZ-JI,1708,13,1708401,1314,CITY,Jizzax shahri,Жиззах шаҳри,Джизак,Jizzax qalası,false
-JI-238,UZ-JI,1708,13,0,0,DISTRICT,Jizzax tumani,Жиззах тумани,Джизакский район,Jizzax rayonı,false
+JI-238,UZ-JI,1708,13,0,0,DISTRICT,Jizzax tumani,Жиззах тумани,Джизакский район,Jizzax rayonı,true
 NG-401365,UZ-NG,1714,16,1714401365,0,DISTRICT,Davlatobod tumani,Давлатобод тумани,Давлатободский район,Davlatobod rayonı,false
 NG-401367,UZ-NG,1714,16,1714401367,0,DISTRICT,Yangi Namangan tumani,Янги Наманган тумани,Янги Наманганский район,Yangi Namangan rayonı,false
 NG-204,UZ-NG,1714,16,1714204,1602,DISTRICT,Mingbuloq tumani,Мингбулоқ тумани,Мингбулакский район,Mingbuloq rayonı,false
@@ -87,13 +87,13 @@ NG-236,UZ-NG,1714,16,1714236,1607,DISTRICT,Chortoq tumani,Чортоқ тума�
 NG-237,UZ-NG,1714,16,1714237,1610,DISTRICT,Chust tumani,Чуст тумани,Чустский район,Chust rayonı,false
 NG-242,UZ-NG,1714,16,1714242,1608,DISTRICT,Yangiqo‘rg‘on tumani,Янгиқўрғон тумани,Янгикурганский район,Yangiqórǵon rayonı,false
 NG-401,UZ-NG,1714,16,1714401,1613,CITY,Namangan shahri,Наманган шаҳри,Наманган,Namangan qalası,false
-NG-243,UZ-NG,1714,16,0,0,DISTRICT,Davlatobod tumani,Давлатобод тумани,Давлетабадский район,Davlatobod rayonı,false
-NG-244,UZ-NG,1714,16,0,0,DISTRICT,Yangi namangan tumani,Янги наманган тумани,Янги наманганский район,Yangi namangan rayonı,false
-NG-402,UZ-NG,1714,16,0,0,CITY,Chortoq shahri,Чортоқ шаҳри,Город Чарток,Chortoq qalası,false
-NG-403,UZ-NG,1714,16,0,0,CITY,Chust shahri,Чуст шаҳри,Город Чуст,Chust qalası,false
-NG-404,UZ-NG,1714,16,0,0,CITY,Kosonsoy shahri,Косонсой шаҳри,Город Косонсой,Kosonsoy qalası,false
-NG-405,UZ-NG,1714,16,0,0,CITY,Uchqo‘rg‘on shahri,Учқўрғон шаҳри,Город Учкурган,Uchqórǵon qalası,false
-NG-406,UZ-NG,1714,16,0,0,CITY,Xaqqulobod shahri,Хаққулобод шаҳри,Город Хаккулабад,Xaqqulobod qalası,false
+NG-243,UZ-NG,1714,16,0,0,DISTRICT,Davlatobod tumani,Давлатобод тумани,Давлетабадский район,Davlatobod rayonı,true
+NG-244,UZ-NG,1714,16,0,0,DISTRICT,Yangi namangan tumani,Янги наманган тумани,Янги наманганский район,Yangi namangan rayonı,true
+NG-402,UZ-NG,1714,16,0,0,CITY,Chortoq shahri,Чортоқ шаҳри,Город Чарток,Chortoq qalası,true
+NG-403,UZ-NG,1714,16,0,0,CITY,Chust shahri,Чуст шаҳри,Город Чуст,Chust qalası,true
+NG-404,UZ-NG,1714,16,0,0,CITY,Kosonsoy shahri,Косонсой шаҳри,Город Косонсой,Kosonsoy qalası,true
+NG-405,UZ-NG,1714,16,0,0,CITY,Uchqo‘rg‘on shahri,Учқўрғон шаҳри,Город Учкурган,Uchqórǵon qalası,true
+NG-406,UZ-NG,1714,16,0,0,CITY,Xaqqulobod shahri,Хаққулобод шаҳри,Город Хаккулабад,Xaqqulobod qalası,true
 NW-211,UZ-NW,1712,21,1712211,2102,DISTRICT,Konimex tumani,Конимех тумани,Канимехский район,Konimex rayonı,false
 NW-216,UZ-NW,1712,21,1712216,2109,DISTRICT,Qiziltepa tumani,Қизилтепа тумани,Кызылтепинский район,Qiziltepa rayonı,false
 NW-230,UZ-NW,1712,21,1712230,2105,DISTRICT,Navbahor tumani,Навбаҳор тумани,Навбахорский район,Navbahor rayonı,false
@@ -105,8 +105,8 @@ NW-251,UZ-NW,1712,21,1712251,2108,DISTRICT,Xatirchi tumani,Хатирчи тум
 NW-401,UZ-NW,1712,21,1712401,2111,CITY,Navoiy shahri,Навоий шаҳри,Навои,Navoiy qalası,false
 NW-408,UZ-NW,1712,21,1712408,2112,CITY,Zarafshon shahri,Зарафшон шаҳри,Зарафшан,Zarafshon qalası,false
 NW-412,UZ-NW,1712,21,1712412,2113,CITY,G‘ozg‘on shahar,Ғозғон шаҳар,Газган,Ǵozǵon qalası,false
-NW-252,UZ-NW,1712,21,0,0,DISTRICT,Navoiy tumani,Навоий тумани,Навоийский район,Navoiy rayonı,false
-NW-413,UZ-NW,1712,21,0,0,CITY,Uchquduq shahri,Учқудуқ шаҳри,Город Учкудук,Uchquduq qalası,false
+NW-252,UZ-NW,1712,21,0,0,DISTRICT,Navoiy tumani,Навоий тумани,Навоийский район,Navoiy rayonı,true
+NW-413,UZ-NW,1712,21,0,0,CITY,Uchquduq shahri,Учқудуқ шаҳри,Город Учкудук,Uchquduq qalası,true
 QA-207,UZ-QA,1710,18,1710207,1808,DISTRICT,G‘uzor tumani,Ғузор тумани,Гузарский район,Ǵuzor rayonı,false
 QA-212,UZ-QA,1710,18,1710212,1804,DISTRICT,Dexqonobod tumani,Дехқонобод тумани,Дехканабадский район,Dexqonobod rayonı,false
 QA-220,UZ-QA,1710,18,1710220,1805,DISTRICT,Qamashi tumani,Қамаши тумани,Камашинский район,Qamashi rayonı,false
@@ -122,11 +122,11 @@ QA-245,UZ-QA,1710,18,1710245,1803,DISTRICT,Shaxrisabz tumani,Шахрисабз 
 QA-250,UZ-QA,1710,18,1710250,1806,DISTRICT,Yakkabog‘ tumani,Яккабоғ тумани,Яккабагский район,Yakkaboǵ rayonı,false
 QA-401,UZ-QA,1710,18,1710401,1815,CITY,Qarshi shahri,Қарши шаҳри,Карши,Qarshi qalası,false
 QA-405,UZ-QA,1710,18,1710405,1816,CITY,Shaxrisabz shahri,Шахрисабз шаҳри,Шахрисабз,Shaxrisabz qalası,false
-QA-240,UZ-QA,1710,18,0,0,DISTRICT,Ko‘kdala tumani,Кўкдала тумани,Кукдалинский район,Kókdala rayonı,false
-QA-251,UZ-QA,1710,18,0,0,DISTRICT,Baxoriston tumani,Бахористон тумани,Бахористанский район,Baxoriston rayonı,false
+QA-240,UZ-QA,1710,18,0,0,DISTRICT,Ko‘kdala tumani,Кўкдала тумани,Кукдалинский район,Kókdala rayonı,true
+QA-251,UZ-QA,1710,18,0,0,DISTRICT,Baxoriston tumani,Бахористон тумани,Бахористанский район,Baxoriston rayonı,true
 QR-204,UZ-QR,1735,23,1735204,2308,DISTRICT,Amudaryo tumani,Амударё тумани,Амударьинский район,Amudaryo rayonı,false
 QR-207,UZ-QR,1735,23,1735207,2309,DISTRICT,Beruniy tumani,Беруний тумани,Берунийский район,Beruniy rayonı,false
-QR-209,UZ-QR,1735,23,1735209,2321,DISTRICT,Bozatov tumani,Бозатов тумани,Бозатауский район,Bozatov rayonı,false
+QR-209,UZ-QR,1735,23,1735209,2321,DISTRICT,Bozatov tumani,Бозатов тумани,Бузатауский район,Bozatov rayonı,false
 QR-211,UZ-QR,1735,23,1735211,2316,DISTRICT,Qorao‘zak tumani,Қораўзак тумани,Караузякский район,Qoraózak rayonı,false
 QR-212,UZ-QR,1735,23,1735212,2307,DISTRICT,Kegayli tumani,Кегайли тумани,Кегейлийский район,Kegayli rayonı,false
 QR-215,UZ-QR,1735,23,1735215,2302,DISTRICT,Qo‘ng‘irot tumani,Қўнғирот тумани,Кунградский район,Qónǵirot rayonı,false
@@ -141,12 +141,12 @@ QR-240,UZ-QR,1735,23,1735240,2311,DISTRICT,Chimboy tumani,Чимбой тума�
 QR-243,UZ-QR,1735,23,1735243,2312,DISTRICT,Shumanay tumani,Шуманай тумани,Шуманайский район,Shumanay rayonı,false
 QR-250,UZ-QR,1735,23,1735250,2306,DISTRICT,Ellikqal‘a tumani,Элликқалъа тумани,Элликкалинский район,Ellikqal‘a rayonı,false
 QR-401,UZ-QR,1735,23,1735401,2317,CITY,Nukus shahri,Нукус шаҳри,Нукус,Nukus qalası,false
-QR-402,UZ-QR,1735,23,0,0,CITY,Beruniy shahri,Беруний шаҳри,Город Беруни,Beruniy qalası,false
-QR-403,UZ-QR,1735,23,0,0,CITY,Chimboy shahri,Чимбой шаҳри,Город Чимбой,Chimboy qalası,false
-QR-404,UZ-QR,1735,23,0,0,CITY,Kungirot shahri,Кунгирот шаҳри,Город Кунгирот,Kungirot qalası,false
-QR-405,UZ-QR,1735,23,0,0,CITY,Takiyatosh shahri,Такиятош шаҳри,Город Такияташ,Takiyatosh qalası,false
-QR-406,UZ-QR,1735,23,0,0,CITY,To‘rtko‘l shahri,Тўрткўл шаҳри,Город Турткуль,Tórtkól qalası,false
-QR-407,UZ-QR,1735,23,0,0,CITY,Xojeli shahri,Хожели шаҳри,Город Ходжели,Xojeli qalası,false
+QR-402,UZ-QR,1735,23,0,0,CITY,Beruniy shahri,Беруний шаҳри,Город Беруни,Beruniy qalası,true
+QR-403,UZ-QR,1735,23,0,0,CITY,Chimboy shahri,Чимбой шаҳри,Город Чимбой,Chimboy qalası,true
+QR-404,UZ-QR,1735,23,0,0,CITY,Kungirot shahri,Кунгирот шаҳри,Город Кунгирот,Kungirot qalası,true
+QR-405,UZ-QR,1735,23,0,0,CITY,Takiyatosh shahri,Такиятош шаҳри,Город Такияташ,Takiyatosh qalası,true
+QR-406,UZ-QR,1735,23,0,0,CITY,To‘rtko‘l shahri,Тўрткўл шаҳри,Город Турткуль,Tórtkól qalası,true
+QR-407,UZ-QR,1735,23,0,0,CITY,Xojeli shahri,Хожели шаҳри,Город Ходжели,Xojeli qalası,true
 SA-203,UZ-SA,1718,14,1718203,1407,DISTRICT,Oqdaryo tumani,Оқдарё тумани,Акдарьинский район,Oqdaryo rayonı,false
 SA-206,UZ-SA,1718,14,1718206,1411,DISTRICT,Bulung‘ur tumani,Булунғур тумани,Булунгурский район,Bulunǵur rayonı,false
 SA-209,UZ-SA,1718,14,1718209,1403,DISTRICT,Jomboy tumani,Жомбой тумани,Джамбайский район,Jomboy rayonı,false
@@ -160,33 +160,33 @@ SA-230,UZ-SA,1718,14,1718230,1405,DISTRICT,Paxtachi tumani,Пахтачи тум
 SA-233,UZ-SA,1718,14,1718233,1413,DISTRICT,Samarqand tumani,Самарқанд тумани,Самаркандский район,Samarqand rayonı,false
 SA-235,UZ-SA,1718,14,1718235,1402,DISTRICT,Nurobod tumani,Нуробод тумани,Нурабадский район,Nurobod rayonı,false
 SA-236,UZ-SA,1718,14,1718236,1404,DISTRICT,Urgut tumani,Ургут тумани,Ургутский район,Urgut rayonı,false
-SA-238,UZ-SA,1718,14,1718238,1410,DISTRICT,Toyloq tumani,Тойлоқ тумани,Тайлякский район,Toyloq rayonı,false
+SA-238,UZ-SA,1718,14,1718238,1410,DISTRICT,Toyloq tumani,Тойлоқ тумани,Тайлакский район,Toyloq rayonı,false
 SA-401,UZ-SA,1718,14,1718401,1417,CITY,Samarqand shahri,Самарқанд шаҳри,Самарканд,Samarqand qalası,false
 SA-406,UZ-SA,1718,14,1718406,1421,CITY,Kattaqo‘rg‘on shahri,Каттақўрғон шаҳри,Каттакурган,Kattaqórǵon qalası,false
-SA-239,UZ-SA,1718,14,0,0,DISTRICT,Bog‘ishamol tumani,Боғишамол тумани,Багишамальский район,Boǵishamol rayonı,false
-SA-240,UZ-SA,1718,14,0,0,DISTRICT,Chelak tumani,Челак тумани,Челакский район,Chelak rayonı,false
-SA-241,UZ-SA,1718,14,0,0,DISTRICT,Go‘zalkent tumani,Гўзалкент тумани,Гузалкентский район,Gózalkent rayonı,false
-SA-242,UZ-SA,1718,14,0,0,DISTRICT,Siyob tumani,Сиёб тумани,Сиябский район,Siyob rayonı,false
-SA-243,UZ-SA,1718,14,0,0,DISTRICT,Temiryo‘l tumani,Темирйўл тумани,Темирйулский район,Temiryól rayonı,false
-SA-407,UZ-SA,1718,14,0,0,CITY,Oqtosh shahri,Оқтош шаҳри,Город Окташ,Oqtosh qalası,false
-SA-408,UZ-SA,1718,14,0,0,CITY,Urgut shahri,Ургут шаҳри,Город Ургут,Urgut qalası,false
+SA-239,UZ-SA,1718,14,0,0,DISTRICT,Bog‘ishamol tumani,Боғишамол тумани,Багишамальский район,Boǵishamol rayonı,true
+SA-240,UZ-SA,1718,14,0,0,DISTRICT,Chelak tumani,Челак тумани,Челакский район,Chelak rayonı,true
+SA-241,UZ-SA,1718,14,0,0,DISTRICT,Go‘zalkent tumani,Гўзалкент тумани,Гузалкентский район,Gózalkent rayonı,true
+SA-242,UZ-SA,1718,14,0,0,DISTRICT,Siyob tumani,Сиёб тумани,Сиябский район,Siyob rayonı,true
+SA-243,UZ-SA,1718,14,0,0,DISTRICT,Temiryo‘l tumani,Темирйўл тумани,Темирйулский район,Temiryól rayonı,true
+SA-407,UZ-SA,1718,14,0,0,CITY,Oqtosh shahri,Оқтош шаҳри,Город Окташ,Oqtosh qalası,true
+SA-408,UZ-SA,1718,14,0,0,CITY,Urgut shahri,Ургут шаҳри,Город Ургут,Urgut qalası,true
 SI-206,UZ-SI,1724,12,1724206,1207,DISTRICT,Oqoltin tumani,Оқолтин тумани,Акалтынский район,Oqoltin rayonı,false
 SI-212,UZ-SI,1724,12,1724212,1203,DISTRICT,Boyovut tumani,Боёвут тумани,Баяутский район,Boyovut rayonı,false
 SI-216,UZ-SI,1724,12,1724216,1201,DISTRICT,Sayxunobod tumani,Сайхунобод тумани,Сайхунабадский район,Sayxunobod rayonı,false
 SI-220,UZ-SI,1724,12,1724220,1202,DISTRICT,Guliston tumani,Гулистон тумани,Гулистанский район,Guliston rayonı,false
-SI-226,UZ-SI,1724,12,1724226,1215,DISTRICT,Sardoba tumani,Сардоба тумани,Сардобский район,Sardoba rayonı,false
+SI-226,UZ-SI,1724,12,1724226,1215,DISTRICT,Sardoba tumani,Сардоба тумани,Сардобинский район,Sardoba rayonı,false
 SI-228,UZ-SI,1724,12,1724228,1206,DISTRICT,Mirzaobod tumani,Мирзаобод тумани,Мирзаабадский район,Mirzaobod rayonı,false
 SI-231,UZ-SI,1724,12,1724231,1209,DISTRICT,Sirdaryo tumani,Сирдарё тумани,Сырдарьинский район,Sirdaryo rayonı,false
-SI-235,UZ-SI,1724,12,1724235,1205,DISTRICT,Xovos tumani,Ховос тумани,Хавасский район,Xovos rayonı,false
+SI-235,UZ-SI,1724,12,1724235,1205,DISTRICT,Xovos tumani,Ховос тумани,Хавастский район,Xovos rayonı,false
 SI-401,UZ-SI,1724,12,1724401,1210,CITY,Guliston shahri,Гулистон шаҳри,Гулистан,Guliston qalası,false
 SI-410,UZ-SI,1724,12,1724410,1212,CITY,Shirin shahri,Ширин шаҳри,Ширин,Shirin qalası,false
 SI-413,UZ-SI,1724,12,1724413,1213,CITY,Yangiyer shahri,Янгиер шаҳри,Янгиер,Yangiyer qalası,false
-SI-236,UZ-SI,1724,12,0,0,DISTRICT,Mexnatobod tumani,Мехнатобод тумани,Мехнатобадский район,Mexnatobod rayonı,false
-SI-414,UZ-SI,1724,12,0,0,CITY,Baxt shahri,Бахт шаҳри,Город Бахт,Baxt qalası,false
-SI-415,UZ-SI,1724,12,0,0,CITY,Sirdaryo shahri,Сирдарё шаҳри,Город Сырдарья,Sirdaryo qalası,false
+SI-236,UZ-SI,1724,12,0,0,DISTRICT,Mexnatobod tumani,Мехнатобод тумани,Мехнатобадский район,Mexnatobod rayonı,true
+SI-414,UZ-SI,1724,12,0,0,CITY,Baxt shahri,Бахт шаҳри,Город Бахт,Baxt qalası,true
+SI-415,UZ-SI,1724,12,0,0,CITY,Sirdaryo shahri,Сирдарё шаҳри,Город Сырдарья,Sirdaryo qalası,true
 SU-201,UZ-SU,1722,19,1722201,1907,DISTRICT,Oltinsoy tumani,Олтинсой тумани,Алтынсайский район,Oltinsoy rayonı,false
 SU-202,UZ-SU,1722,19,1722202,1911,DISTRICT,Angor tumani,Ангор тумани,Ангорский район,Angor rayonı,false
-SU-203,UZ-SU,1722,19,1722203,1917,DISTRICT,Bandixon tumani,Бандихон тумани,Бандихонский район,Bandixon rayonı,false
+SU-203,UZ-SU,1722,19,1722203,1917,DISTRICT,Bandixon tumani,Бандихон тумани,Бандиханский район,Bandixon rayonı,false
 SU-204,UZ-SU,1722,19,1722204,1902,DISTRICT,Boysun tumani,Бойсун тумани,Байсунский район,Boysun rayonı,false
 SU-207,UZ-SU,1722,19,1722207,1903,DISTRICT,Muzrobod tumani,Музробод тумани,Музрабадский район,Muzrobod rayonı,false
 SU-210,UZ-SU,1722,19,1722210,1914,DISTRICT,Denov tumani,Денов тумани,Денауский район,Denov rayonı,false
@@ -199,8 +199,8 @@ SU-221,UZ-SU,1722,19,1722221,1913,DISTRICT,Uzun tumani,Узун тумани,У�
 SU-223,UZ-SU,1722,19,1722223,1912,DISTRICT,Sherobod tumani,Шеробод тумани,Шерабадский район,Sherobod rayonı,false
 SU-226,UZ-SU,1722,19,1722226,1906,DISTRICT,Sho‘rchi tumani,Шўрчи тумани,Шурчинский район,Shórchi rayonı,false
 SU-401,UZ-SU,1722,19,1722401,1916,CITY,Termiz shahri,Термиз шаҳри,Термез,Termiz qalası,false
-SU-227,UZ-SU,1722,19,0,0,DISTRICT,Sharg‘un tumani,Шарғун тумани,Шаргунский район,Sharǵun rayonı,false
-SU-402,UZ-SU,1722,19,0,0,CITY,Denov shahri,Денов шаҳри,Город Денов,Denov qalası,false
+SU-227,UZ-SU,1722,19,0,0,DISTRICT,Sharg‘un tumani,Шарғун тумани,Шаргунский район,Sharǵun rayonı,true
+SU-402,UZ-SU,1722,19,0,0,CITY,Denov shahri,Денов шаҳри,Город Денов,Denov qalası,true
 TK-262,UZ-TK,1726,10,1726262,1001,CITY,Uchtepa tumani,Учтепа тумани,Учтепинский район,Uchtepa rayonı,false
 TK-264,UZ-TK,1726,10,1726264,1011,CITY,Bektemir tumani,Бектемир тумани,Бектемирский район,Bektemir rayonı,false
 TK-266,UZ-TK,1726,10,1726266,1010,CITY,Yunusobod tumani,Юнусобод тумани,Юнусабадский район,Yunusobod rayonı,false
@@ -210,7 +210,7 @@ TK-277,UZ-TK,1726,10,1726277,1006,CITY,Shayxontoxur tumani,Шайхонтоху�
 TK-280,UZ-TK,1726,10,1726280,1012,CITY,Olmazor tumani,Олмазор тумани,Алмазарский район,Olmazor rayonı,false
 TK-283,UZ-TK,1726,10,1726283,1008,CITY,Sergeli tumani,Сергели тумани,Сергелийский район,Sergeli rayonı,false
 TK-287,UZ-TK,1726,10,1726287,1005,CITY,Yakkasaroy tumani,Яккасарой тумани,Яккасарайский район,Yakkasaroy rayonı,false
-TK-290,UZ-TK,1726,10,1726290,739001080,CITY,Yashnobod tumani,Яшнобод тумани,Яшнободский район,Yashnobod rayonı,false
+TK-290,UZ-TK,1726,10,1726290,739001080,CITY,Yashnobod tumani,Яшнобод тумани,Яшнабадский район,Yashnobod rayonı,false
 TK-292,UZ-TK,1726,10,1726292,1013,CITY,Yangihayot tumani,Янгиҳаёт тумани,Янгихаётский район,Yangihayot rayonı,false
 TK-294,UZ-TK,1726,10,1726294,1007,CITY,Chilonzor tumani,Чилонзор тумани,Чиланзарский район,Chilonzor rayonı,false
 TO-206,UZ-TO,1727,11,1727206,1106,DISTRICT,Oqqo‘rg‘on tumani,Оққўрғон тумани,Аккурганский район,Oqqórǵon rayonı,false
@@ -235,7 +235,7 @@ TO-413,UZ-TO,1727,11,1727413,1117,CITY,Bekobod shahri,Бекобод шаҳри,
 TO-415,UZ-TO,1727,11,1727415,1123,CITY,Oxangaron shaxri,Охангарон шаҳри,Ахангаран,Oxangaron shaxri qalası,false
 TO-419,UZ-TO,1727,11,1727419,1120,CITY,Chirchiq shahri,Чирчиқ шаҳри,Чирчик,Chirchiq qalası,false
 TO-424,UZ-TO,1727,11,1727424,1122,CITY,Yangiyul shaxri,Янгийўл шаҳри,Янгиюль,Yangiyul shaxri qalası,false
-TO-425,UZ-TO,1727,11,0,0,CITY,Yangiobod shahri,Янгиобод шаҳри,Город Янгиабад,Yangiobod qalası,false
+TO-425,UZ-TO,1727,11,0,0,CITY,Yangiobod shahri,Янгиобод шаҳри,Город Янгиабад,Yangiobod qalası,true
 XO-204,UZ-XO,1733,22,1733204,2207,DISTRICT,Bog‘ot tumani,Боғот тумани,Багатский район,Boǵot rayonı,false
 XO-208,UZ-XO,1733,22,1733208,2203,DISTRICT,Gurlan tumani,Гурлан тумани,Гурленский район,Gurlan rayonı,false
 XO-212,UZ-XO,1733,22,1733212,2209,DISTRICT,Qo‘shko‘pir tumani,Қўшкўпир тумани,Кошкупырский район,Qóshkópir rayonı,false
@@ -249,4 +249,4 @@ XO-233,UZ-XO,1733,22,1733233,2202,DISTRICT,Yangiariq tumani,Янгиариқ т�
 XO-236,UZ-XO,1733,22,1733236,2208,DISTRICT,Yangibozor tumani,Янгибозор тумани,Янгибазарский район,Yangibozor rayonı,false
 XO-401,UZ-XO,1733,22,1733401,2211,CITY,Urganch shahri,Урганч шаҳри,Ургенч,Urganch qalası,false
 XO-406,UZ-XO,1733,22,1733406,2212,CITY,Xiva shahri,Хива шаҳри,Хива,Xiva qalası,false
-XO-237,UZ-XO,1733,22,0,0,CITY,Pitnak shahri,Питнак шаҳри,Город Питнак,Pitnak qalası,false
+XO-237,UZ-XO,1733,22,0,0,CITY,Pitnak shahri,Питнак шаҳри,Город Питнак,Pitnak qalası,true

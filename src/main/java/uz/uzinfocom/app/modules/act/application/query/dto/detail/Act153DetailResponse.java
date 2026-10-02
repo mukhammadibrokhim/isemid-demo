@@ -2,16 +2,18 @@ package uz.uzinfocom.app.modules.act.application.query.dto.detail;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act153.Act153SampleResponse;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActSubjectResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ConditionInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ConservationTypeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.EmployeeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.PackageTypeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.PurposeResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.SamplingBasisResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,12 +26,11 @@ public record Act153DetailResponse(
         CardMiniResponse card,
         Long assignedById,
         String resultComment,
-        ActInstitutionResponse institution,
+        ActSubjectResponse subject,
 
         Long actNumber,
         String activityTypeCode,
-        String samplingDocuments,
-        String goal,
+        SamplingBasisResponse samplingBasis,
         LocalDateTime sampleTakenDateTime,
         LocalDateTime deliveredDateTime,
         PurposeResponse purpose,
@@ -38,12 +39,14 @@ public record Act153DetailResponse(
         ConditionInfoResponse specialCondition,
         ConditionInfoResponse storageAndDeliveryCondition,
         Long lisOrganizationId,
+        String lisOrganizationName,
         String laboratoryAddress,
         PackageTypeInfoResponse packageTypeInfo,
         ConservationTypeInfoResponse conservationTypeInfo,
         String additionalInfo,
         List<Act153SampleResponse> samples,
 
+        ActLisInfoResponse lisInfo,
         AuditResponse audit
 ) implements ActDetailResponse {
 }

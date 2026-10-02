@@ -8,6 +8,7 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card205.Card205;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card205.Card205MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card205Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card205.InformationAboutAnimaBittenPeopleRequest;
@@ -37,6 +38,9 @@ class Card205HandlerTest {
     void setUp() {
         Card205MapperImpl mapper = new Card205MapperImpl();
         ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        ReflectionTestUtils.setField(mapper, "cardFormMapperHelper", new CardFormMapperHelper(
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper.class),
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService.class)));
         handler = new Card205Handler(mapper);
 
         form = mock(Form058.class);
@@ -54,7 +58,7 @@ class Card205HandlerTest {
 
         assertThat(card205.getForm058()).isSameAs(form);
         assertThat(card205.getCardType()).isEqualTo(CardType.CARD205);
-        assertThat(card205.getMkb10Code()).isEqualTo("MKB-1");
+        assertThat(card205.getIcd10Code()).isEqualTo("MKB-1");
 
         assertThat(card205.getInfoBittenPeople()).hasSize(1);
         assertThat(card205.getInfoBittenPeople().getFirst().getCard205()).isSameAs(card205);
@@ -78,7 +82,7 @@ class Card205HandlerTest {
         Card205Request updated = requestWith("MKB-2", List.of(), List.of(), List.of());
         handler.update(card205, updated);
 
-        assertThat(card205.getMkb10Code()).isEqualTo("MKB-2");
+        assertThat(card205.getIcd10Code()).isEqualTo("MKB-2");
         assertThat(card205.getInfoBittenPeople()).isSameAs(originalList).isEmpty();
         assertThat(card205.getInfoOtherBittenAnimal()).isEmpty();
         assertThat(card205.getInfoAbtAnimalBittenPeople()).isEmpty();
@@ -97,7 +101,7 @@ class Card205HandlerTest {
         assertThat(response.type()).isEqualTo(CardType.CARD205);
         assertThat(response.status()).isEqualTo(CardStatus.NEW);
         assertThat(response.formId()).isEqualTo(11L);
-        assertThat(response.mkb10Code()).isEqualTo("MKB-1");
+        assertThat(response.icd10Code()).isEqualTo("MKB-1");
         assertThat(response.infoBittenPeople()).hasSize(1);
         assertThat(response.infoBittenPeople().getFirst().lastName()).isEqualTo("Doe");
         assertThat(response.infoOtherBittenAnimal()).hasSize(1);
@@ -113,13 +117,13 @@ class Card205HandlerTest {
     }
 
     private Card205Request requestWith(
-            String mkb10Code,
+            String icd10Code,
             List<InformationOtherBittenPeopleRequest> infoBittenPeople,
             List<InformationOtherBittenAnimalsRequest> infoOtherBittenAnimal,
             List<InformationAboutAnimaBittenPeopleRequest> infoAbtAnimalBittenPeople
     ) {
         return new Card205Request(
-                mkb10Code, "Name",
+                icd10Code, "Name",
                 LocalDate.now(), LocalDate.now(),
                 "BiteAddress", LocalDate.now(),
                 "Institution", LocalDate.now(),
