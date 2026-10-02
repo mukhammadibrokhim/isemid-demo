@@ -29,6 +29,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card161.OutbreakDisinfectionMe
 import uz.uzinfocom.app.modules.card.domain.model.card161.ScreenedGroup;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Vaccination;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ContactPersonRequest;
@@ -51,11 +52,12 @@ import java.util.Objects;
  * (e.g. {@code Card161RiskFactor.card161}) is the handler's job — a mapper
  * invoked on a single child in isolation has no parent to wire it to.
  */
-@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
+@Mapper(componentModel = "spring", uses = {CardCaseFieldMapperHelper.class, CardFormMapperHelper.class})
 public interface Card161Mapper {
 
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
+    @Mapping(target = "form", source = ".", qualifiedByName = "resolveCardForm")
     @Mapping(target = "type", source = "cardType")
     Card161DetailResponse toResponse(Card161 card161);
 

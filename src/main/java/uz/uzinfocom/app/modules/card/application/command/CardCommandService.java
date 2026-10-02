@@ -397,6 +397,7 @@ public class CardCommandService {
     public void complete(Long cardId) {
         Card card = requireAttachedUserCard(cardId);
         requireTransition(card.getStatus().canBeUpdated(), card.getStatus());
+        handlerRegistry.get(card.getCardType()).handleValidateForCompletion(card);
         String oldStatus = card.getStatus().name();
         card.setCompletedDate(LocalDate.now());
         card.setStatus(CardStatus.COMPLETED);

@@ -30,6 +30,9 @@ public record CardTubeDetailResponse(
         @Schema(description = "Тип формы, к которой привязана карта — FORM058 или FORM0581.")
         CaseFormType formType,
 
+        @Schema(description = "Сведения из извещения (№058 или №058-1), к которому привязана карта — только для чтения.")
+        CardFormResponse form,
+
         @Schema(description = "Идентификатор супервайзера, назначившего карту.")
         Long assignedById,
 

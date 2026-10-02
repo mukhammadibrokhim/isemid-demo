@@ -73,16 +73,43 @@ public class CardCaseFieldMapperHelper {
         return firstNonNull(cardTube.getDgIcd10Name(), form058 != null ? form058.getDiagnosisInfo().getFinalIcd10Name() : null);
     }
 
+    /**
+     * Card174's diagnosis fields ({@code icd10Code}/{@code icd10Name}/{@code
+     * humanPrimaryDiagnosis}) are not editable on the card — unlike the other
+     * {@code resolveCardXxxYyy} methods here, the owning case's initial
+     * diagnosis always wins, so the card can never disagree with its
+     * notification. The card's own column is only a fallback for legacy rows
+     * whose case carries no value.
+     */
     @Named("resolveCard174Icd10Code")
     public String resolveCard174Icd10Code(Card174 card174) {
-        Form0581 form0581 = card174.getForm0581();
-        return firstNonNull(card174.getIcd10Code(), form0581 != null ? form0581.getDiagnosisInfo().getIcd10Code() : null);
+        return firstNonNull(caseIcd10Code(card174), card174.getIcd10Code());
     }
 
     @Named("resolveCard174Icd10Name")
     public String resolveCard174Icd10Name(Card174 card174) {
-        Form0581 form0581 = card174.getForm0581();
-        return firstNonNull(card174.getIcd10Name(), form0581 != null ? form0581.getDiagnosisInfo().getIcd10Name() : null);
+        return firstNonNull(caseIcd10Name(card174), card174.getIcd10Name());
+    }
+
+    @Named("resolveCard174HumanPrimaryDiagnosis")
+    public String resolveCard174HumanPrimaryDiagnosis(Card174 card174) {
+        return firstNonNull(caseIcd10Name(card174), card174.getHumanPrimaryDiagnosis());
+    }
+
+    private String caseIcd10Code(Card card) {
+        if (card.getForm058() != null) {
+            return card.getForm058().getDiagnosisInfo() != null ? card.getForm058().getDiagnosisInfo().getIcd10Code() : null;
+        }
+        Form0581 form0581 = card.getForm0581();
+        return form0581 != null && form0581.getDiagnosisInfo() != null ? form0581.getDiagnosisInfo().getIcd10Code() : null;
+    }
+
+    private String caseIcd10Name(Card card) {
+        if (card.getForm058() != null) {
+            return card.getForm058().getDiagnosisInfo() != null ? card.getForm058().getDiagnosisInfo().getIcd10Name() : null;
+        }
+        Form0581 form0581 = card.getForm0581();
+        return form0581 != null && form0581.getDiagnosisInfo() != null ? form0581.getDiagnosisInfo().getIcd10Name() : null;
     }
 
     @Named("resolveCard174AnimalType")

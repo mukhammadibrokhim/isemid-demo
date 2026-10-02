@@ -8,6 +8,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.exception.InvalidCardStatusException;
+import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
@@ -18,6 +19,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
 import uz.uzinfocom.app.modules.card.domain.model.card175.Card175;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card175.Card175MapperImpl;
 import uz.uzinfocom.app.modules.card.application.handler.card175.Card175Handler;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card175Request;
@@ -84,6 +86,8 @@ class CardCommandServiceStatusTransitionTest {
         );
 
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        // complete() asks the type handler for its completion rules — none for these tests.
+        doReturn(mock(CardTypeHandler.class)).when(handlerRegistry).get(any());
         // Other cards still exist for the form, so delete() never needs to
         // touch form058Repository (kept out of scope for these tests).
         when(cardRepository.existsByForm058_IdAndDeleteInfoDeletedFalse(any())).thenReturn(true);
@@ -369,6 +373,9 @@ class CardCommandServiceStatusTransitionTest {
         when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
         Card175MapperImpl card175Mapper = new Card175MapperImpl();
         ReflectionTestUtils.setField(card175Mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        ReflectionTestUtils.setField(card175Mapper, "cardFormMapperHelper", new CardFormMapperHelper(
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper.class),
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService.class)));
         doReturn(new Card175Handler(card175Mapper)).when(handlerRegistry).get(CardType.CARD175);
 
         CardDetailResponse response = service.update(CARD_ID, blankCard175Request());

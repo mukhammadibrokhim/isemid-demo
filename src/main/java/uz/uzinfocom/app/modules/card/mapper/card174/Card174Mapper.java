@@ -10,6 +10,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card174.Card174;
 import uz.uzinfocom.app.modules.card.domain.model.card174.InfectionMonitoring;
 import uz.uzinfocom.app.modules.card.domain.model.card174.OutbreakControlMeasure;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card174Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.InfectionMonitoringRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.OutbreakControlMeasureRequest;
@@ -18,14 +19,16 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card174.OutbreakControlMeas
  * Field-level mapping only. Wiring a child's back-reference to its parent
  * (e.g. {@code InfectionMonitoring.card174}) is the handler's job.
  */
-@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
+@Mapper(componentModel = "spring", uses = {CardCaseFieldMapperHelper.class, CardFormMapperHelper.class})
 public interface Card174Mapper {
 
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
+    @Mapping(target = "form", source = ".", qualifiedByName = "resolveCardForm")
     @Mapping(target = "type", source = "cardType")
     @Mapping(target = "icd10Code", source = ".", qualifiedByName = "resolveCard174Icd10Code")
     @Mapping(target = "icd10Name", source = ".", qualifiedByName = "resolveCard174Icd10Name")
+    @Mapping(target = "humanPrimaryDiagnosis", source = ".", qualifiedByName = "resolveCard174HumanPrimaryDiagnosis")
     @Mapping(target = "animalType", source = ".", qualifiedByName = "resolveCard174AnimalType")
     @Mapping(target = "investigationDate", source = ".", qualifiedByName = "resolveCard174InvestigationDate")
     @Mapping(target = "animalOwner", source = ".", qualifiedByName = "resolveCard174AnimalOwner")
@@ -77,6 +80,9 @@ public interface Card174Mapper {
     @Mapping(target = "attachedUserComment", ignore = true)
     @Mapping(target = "completedDate", ignore = true)
     @Mapping(target = "acts", ignore = true)
+    @Mapping(target = "icd10Code", ignore = true)
+    @Mapping(target = "icd10Name", ignore = true)
+    @Mapping(target = "humanPrimaryDiagnosis", ignore = true)
     @Mapping(target = "infectionMonitoring", ignore = true)
     @Mapping(target = "outbreakControlMeasures", ignore = true)
     void copyOwnFields(@MappingTarget Card174 target, Card174Request request);
