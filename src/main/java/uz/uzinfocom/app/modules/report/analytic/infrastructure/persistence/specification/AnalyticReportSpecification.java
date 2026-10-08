@@ -50,4 +50,17 @@ public class AnalyticReportSpecification {
             return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
+
+    /**
+     * Detail lookup under the same scope rule as {@link #byFilter} - a report
+     * outside the caller's scope is indistinguishable from a missing one.
+     */
+    public Specification<AnalyticReport> visibleById(Long id, ResolvedOrganizationScope scope) {
+        Objects.requireNonNull(scope, "ResolvedOrganizationScope must not be null");
+
+        return (root, query, cb) -> cb.and(
+                scopePredicateFactory.apply(root, cb, ORGANIZATION_ID, scope),
+                cb.equal(root.get("id"), id)
+        );
+    }
 }

@@ -1,9 +1,12 @@
 package uz.uzinfocom.app.platform.integrationclient.application.command;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import uz.uzinfocom.app.orchestration.webhook.config.OutboundWebhookProperties;
 import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
 import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
@@ -21,6 +24,7 @@ import uz.uzinfocom.app.platform.integrationclient.domain.OutboundHttpMethod;
 import uz.uzinfocom.app.platform.integrationclient.domain.OutboundWebhookAuthType;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,8 +43,11 @@ class IntegrationClientCommandServiceTest {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final WebhookSecretCipher webhookSecretCipher = mock(WebhookSecretCipher.class);
 
+    private final OutboundWebhookProperties webhookProperties =
+            new OutboundWebhookProperties(Duration.ofSeconds(3), Duration.ofSeconds(10), false);
+
     private final IntegrationClientCommandService service = new IntegrationClientCommandService(
-            integrationClientRepository, organizationLookup, passwordEncoder, webhookSecretCipher);
+            integrationClientRepository, organizationLookup, passwordEncoder, webhookSecretCipher, webhookProperties);
 
     @Test
     void createReturnsThePlaintextSecretOnlyOnceAndNeverPersistsIt() {
@@ -309,6 +316,28 @@ class IntegrationClientCommandServiceTest {
         assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
                 "http://partner.example.com/callback", OutboundHttpMethod.POST, OutboundWebhookAuthType.NONE,
                 null, null, null, true)))
+                .isInstanceOf(InvalidWebhookConfigException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "https://localhost/callback",
+            "https://127.0.0.1/callback",
+            "https://2130706433/callback",
+            "https://[::1]/callback",
+            "https://[::ffff:127.0.0.1]/callback",
+            "https://169.254.169.254/latest/meta-data",
+            "https://0.0.0.0/callback",
+            "https://10.0.0.5/callback",
+            "https://192.168.1.10/callback",
+            "https://[fd00::1]/callback"
+    })
+    void updateWebhookRejectsACallbackUrlPointingInsideOurNetwork(String callbackUrl) {
+        IntegrationClient client = webhookTestClient();
+        when(integrationClientRepository.findById(1L)).thenReturn(Optional.of(client));
+
+        assertThatThrownBy(() -> service.updateWebhook(1L, new IntegrationClientWebhookUpdateRequest(
+                callbackUrl, OutboundHttpMethod.POST, OutboundWebhookAuthType.NONE, null, null, null, true)))
                 .isInstanceOf(InvalidWebhookConfigException.class);
     }
 

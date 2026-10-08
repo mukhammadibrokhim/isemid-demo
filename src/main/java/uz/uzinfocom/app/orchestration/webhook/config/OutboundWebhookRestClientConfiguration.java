@@ -18,6 +18,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import uz.uzinfocom.app.platform.http.DynamicHttpTuningInterceptor;
 import uz.uzinfocom.app.platform.http.RestClientLoggingInterceptor;
+import uz.uzinfocom.app.platform.http.ssrf.GuardedDnsResolver;
 import uz.uzinfocom.app.platform.observability.TraceIdClientHttpRequestInterceptor;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
@@ -45,8 +46,10 @@ public class OutboundWebhookRestClientConfiguration {
                 .setSocketTimeout(Timeout.ofMilliseconds(properties.readTimeout().toMillis()))
                 .build();
 
+        // SSRF guard on the resolved addresses at connect time - see GuardedDnsResolver.
         return PoolingHttpClientConnectionManagerBuilder
                 .create()
+                .setDnsResolver(new GuardedDnsResolver(properties.allowPrivateNetwork()))
                 .setDefaultConnectionConfig(connectionConfig)
                 .build();
     }
@@ -64,6 +67,8 @@ public class OutboundWebhookRestClientConfiguration {
                 .setConnectionManager(connectionManager)
                 .setDefaultRequestConfig(requestConfig)
                 .disableCookieManagement()
+                // A partner's 3xx must not steer this client to a URL that was never validated.
+                .disableRedirectHandling()
                 .build();
     }
 

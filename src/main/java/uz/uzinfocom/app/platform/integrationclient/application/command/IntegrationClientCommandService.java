@@ -6,7 +6,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.orchestration.webhook.config.OutboundWebhookProperties;
 import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
+import uz.uzinfocom.app.platform.http.ssrf.OutboundAddressPolicy;
 import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
@@ -25,6 +27,7 @@ import uz.uzinfocom.app.platform.security.ip.IpAllowlistMatcher;
 import uz.uzinfocom.app.shared.exception.ConflictException;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 
+import java.net.URI;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
@@ -44,6 +47,7 @@ public class IntegrationClientCommandService {
     private final OrganizationLookup organizationLookup;
     private final PasswordEncoder passwordEncoder;
     private final WebhookSecretCipher webhookSecretCipher;
+    private final OutboundWebhookProperties outboundWebhookProperties;
 
     @Transactional
     public IntegrationClientCreateResponse create(IntegrationClientCreateRequest request) {
@@ -227,6 +231,9 @@ public class IntegrationClientCommandService {
                 || !request.callbackUrl().trim().toLowerCase(Locale.ROOT).startsWith("https://")) {
             throw new InvalidWebhookConfigException("integration-client.webhook.callback-url.https-required");
         }
+        if (isForbiddenWebhookHost(request.callbackUrl().trim())) {
+            throw new InvalidWebhookConfigException("integration-client.webhook.callback-url.host-forbidden");
+        }
         if (request.httpMethod() == null) {
             throw new InvalidWebhookConfigException("integration-client.webhook.http-method.required");
         }
@@ -294,5 +301,24 @@ public class IntegrationClientCommandService {
         byte[] randomBytes = new byte[CLIENT_SECRET_BYTES];
         SECURE_RANDOM.nextBytes(randomBytes);
         return URL_ENCODER.encodeToString(randomBytes);
+    }
+
+    /**
+     * SSRF guard for the outbound webhook: the dispatcher calls this URL from
+     * inside our network, so it must never resolve to this host, a link-local
+     * address such as the 169.254.169.254 cloud-metadata endpoint, or (unless
+     * {@code integration.webhook.allow-private-network}) a private network.
+     * Rejecting it here gives the admin an immediate error; the same policy is
+     * enforced again at connect time by the webhook client's DNS resolver.
+     * A malformed URL is rejected as forbidden too.
+     */
+    private boolean isForbiddenWebhookHost(String callbackUrl) {
+        String host;
+        try {
+            host = URI.create(callbackUrl).getHost();
+        } catch (IllegalArgumentException malformed) {
+            return true;
+        }
+        return OutboundAddressPolicy.isForbiddenHost(host, outboundWebhookProperties.allowPrivateNetwork());
     }
 }

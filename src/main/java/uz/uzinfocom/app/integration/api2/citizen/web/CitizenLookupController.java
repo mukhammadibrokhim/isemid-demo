@@ -33,10 +33,11 @@ public class CitizenLookupController {
 
     @Operation(
             summary = "Найти сведения о физическом лице через API2",
-            description = "Выполняет поиск физического лица во внешней системе API2 по ПИНФЛ, паспортным данным или свидетельству о рождении — в зависимости от указанного типа поиска."
+            description = "Выполняет поиск физического лица во внешней системе API2 по ПИНФЛ, паспортным данным или свидетельству о рождении — в зависимости от указанного типа поиска. "
+                    + "Доступно ролям, создающим или редактирующим формы 058/058-1, заполняющим карты или акты, и администраторам."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@api2LookupAccessGuard.canLookupCitizen()")
     public CitizenLookupResponse lookupCitizen(
             @Parameter(description = "Тип поиска: NNUZB (ПИНФЛ), PPN (паспорт) или CZ (свидетельство о рождении).", required = true)
             @RequestParam CitizenLookupType type,

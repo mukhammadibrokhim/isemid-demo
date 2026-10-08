@@ -25,10 +25,11 @@ public class LegalEntityLookupController {
 
     @Operation(
             summary = "Найти сведения о юридическом лице через API2",
-            description = "Выполняет поиск юридического лица во внешней системе API2 по ИНН (идентификационному номеру налогоплательщика)."
+            description = "Выполняет поиск юридического лица во внешней системе API2 по ИНН (идентификационному номеру налогоплательщика). "
+                    + "Доступно ролям, заполняющим карты или акты, и администраторам."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@api2LookupAccessGuard.canLookupLegalEntity()")
     public LegalEntityLookupResponse lookupLegalEntity(
             @Parameter(description = "9-значный идентификационный номер налогоплательщика (ИНН).", required = true)
             @RequestParam String tin

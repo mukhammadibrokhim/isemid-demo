@@ -19,6 +19,13 @@ public record OutboundWebhookProperties(
 
         @NotNull Duration connectTimeout,
 
-        @NotNull Duration readTimeout
+        @NotNull Duration readTimeout,
+
+        /*
+         * SSRF guard: callback URLs resolving to RFC 1918 / CGNAT / IPv6 ULA
+         * addresses are refused unless this is true. Loopback, link-local
+         * (cloud metadata) and other reserved ranges are refused regardless.
+         */
+        boolean allowPrivateNetwork
 ) {
 }

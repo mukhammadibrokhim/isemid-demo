@@ -53,7 +53,9 @@ public class IntegrationClientController {
                     + "доступна через GET .../{id}. Секреты не возвращаются."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    // Client ids, allowed IPs and webhook targets are an integration map an
+    // ordinary user has no reason to see - reads are admin-only like writes.
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public PagedResponse<IntegrationClientTableResponse> findAll(
             @ParameterObject @Valid @ModelAttribute IntegrationClientFilterRequest request,
             HttpServletRequest httpRequest
@@ -67,7 +69,7 @@ public class IntegrationClientController {
             description = "Возвращает детальную информацию об интеграционном клиенте. Секрет не возвращается."
     )
     @GetMapping(ApiPaths.IntegrationClient.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@adminAccessGuard.isAdmin()")
     public ApiResponse<IntegrationClientResponse> getById(
             @Parameter(description = "Внутренний идентификатор клиента.", required = true)
             @PathVariable @Positive Long id

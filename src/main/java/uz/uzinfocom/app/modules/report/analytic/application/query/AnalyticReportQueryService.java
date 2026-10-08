@@ -62,14 +62,12 @@ public class AnalyticReportQueryService {
 
     @Transactional(readOnly = true)
     public AnalyticReportResponse getById(Long id) {
-        AnalyticReport entity = requireEntity(id);
+        ResolvedOrganizationScope scope = organizationScopeResolver.resolve(requireCurrentOrganization());
+        AnalyticReport entity = analyticReportRepository
+                .findOne(analyticReportSpecification.visibleById(id, scope))
+                .orElseThrow(() -> new NotFoundException("report.analytic_report.not_found_by_id", id));
         Organization organization = organizationRepository.findById(entity.getOrganizationId()).orElse(null);
         return analyticReportMapper.toResponse(entity, organization);
-    }
-
-    private AnalyticReport requireEntity(Long id) {
-        return analyticReportRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("report.analytic_report.not_found_by_id", id));
     }
 
     private Organization requireCurrentOrganization() {
