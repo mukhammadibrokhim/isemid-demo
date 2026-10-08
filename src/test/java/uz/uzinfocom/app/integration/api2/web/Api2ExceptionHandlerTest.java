@@ -10,6 +10,7 @@ import org.slf4j.MDC;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.integration.api2.web.dto.Api2ErrorResponse;
 import uz.uzinfocom.app.integration.api2.web.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.citizen.exception.CitizenLookupValidationException;
+import uz.uzinfocom.app.integration.api2.common.exception.Api2CircuitOpenException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBody;
@@ -62,7 +64,7 @@ class Api2ExceptionHandlerTest {
         TraceIdProvider traceIdProvider =
                 mock(TraceIdProvider.class);
 
-        when(traceIdProvider.getTraceId(
+        when(traceIdProvider.getOrCreate(
                 any(HttpServletRequest.class)
         )).thenAnswer(invocation -> {
             HttpServletRequest request =
@@ -227,6 +229,35 @@ class Api2ExceptionHandlerTest {
 
         assertThat(body.traceId())
                 .isEqualTo(TRACE_ID);
+    }
+
+    @Test
+    void openCircuitBreakerAdvertisesHowLongToWait() {
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
+
+        Api2Exception exception = new Api2CircuitOpenException(
+                "CITIZEN_NNUZB_LOOKUP", 30, new RuntimeException("open"));
+
+        ResponseEntity<Api2ErrorResponse> response =
+                handler.handleApi2Exception(exception, request(CITIZEN_PATH));
+
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER))
+                .isEqualTo("30");
+
+        Api2ErrorResponse body = response.getBody();
+
+        assertThat(body).isNotNull();
+        assertThat(body.errorCode()).isEqualTo("API2_CIRCUIT_OPEN");
+        assertThat(body.retryAfterSeconds()).isEqualTo(30L);
+        assertThat(body.message())
+                .isEqualTo(messageSource.getMessage(
+                        "api2.error.circuit_open",
+                        null,
+                        Locale.ENGLISH
+                ))
+                .isNotEqualTo("api2.error.circuit_open");
     }
 
     @Test

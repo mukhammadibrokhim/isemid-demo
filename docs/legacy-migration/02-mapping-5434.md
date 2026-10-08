@@ -89,7 +89,7 @@ Nomlar deyarli disjoint. Juftlik taxminlari `20-card.md` §4a/§5a/§6a/§7a da 
 SQL yozishда har jadval alohida ko'rib chiqiladi. Element jadvallar (`*_affected_animals`,
 `*_disease_transmission_condition` va h.k.) — hammasi 1:1.
 
-- `card174_infection_monitoring` — rename: `apply_date`→`application_date`, `confirm_date`→`confirmation_date`, `possible_date`→`possible_infection_date`, `possible_factor`→`possible_infection_factor`, `possible_location`→`possible_infection_location`; **drop** `contact_infection_date, vaccination_summary`; target-only `sequential_number`→NULL
+- `card174_infection_monitoring` — rename: `apply_date`→`application_date`, `confirm_date`→`confirmation_date`, `possible_date`→`possible_infection_date`, `possible_factor`→`possible_infection_factor`, `possible_location`→`possible_infection_location`; `contact_infection_date` 1:1 (2026-10-02 dan); **drop** `vaccination_summary`; target-only `sequential_number`, `pinfl`→NULL
 - `card174_outbreak_control_measure` — 1:1 + version
 - `card174_disinfection_info` / `card174_external_sample_test` / `card174_preventive_measure` — **target'da jadval YO'Q** → §"7-band" (ma'lumot ota'ga jamlanadimi yoki drop — QAROR)
 - `card_tube_contact_monitoring` — `diag_date`→`diagnosis_date`, `notifier`→`notification_receiver`, `status_code`→`contact_status_code`, `work_study_place`→`workplace_or_study_place`
@@ -151,7 +151,7 @@ SQL yozishда har jadval alohida ko'rib chiqiladi. Element jadvallar (`*_affect
 3. **`card161_main_probable_infection_factor`** (legacy element) → target skalyar `card161.main_probable_infection_factor_code` ga **birinchi** `catalog_code`. Bittadan ko'p bo'lsa — log.
 4. **card174 bola jadvallari** (`disinfection_info`, `external_sample_test`, `preventive_measure`) → target'da yangi qanday bo'lsa shунday; legacy'da ma'lumot bo'lsa `card174` ota ustunlariga ko'chiriladi (birinchi qator; ko'p bo'lsa log):
    - `disinfection_info` → `card174.{execution_control_results, disinfected_factor_amount, disinfection_date, location_of_event}`
-   - `external_sample_test` → `card174.{test_sample_count, test_date, testing_method, test_result}` (`specimen` → target yo'q, drop)
-   - `preventive_measure` → `card174.precautionary_measures` (matn birlashtirib)
+   - `external_sample_test` → `card174_laboratory_test` (2026-10-02 dan: **hamma qatorlar**, `specimen`→`sample_name`, `sample_count`, `test_date`, `test_method`→`testing_method`, `test_result`)
+   - `preventive_measure` → `card174_animal_measure` (2026-10-02 dan: **hamma qatorlar**, `measures`→`measure_name`, `measure_date`, `measure_count`, `measure_location`); 1-qatorning `measures` matni avvalgidek `card174.precautionary_measures` ga ham ko'chadi
 5. **card174/175/205/tube baza** — SQL paytida jadval-jadval.
 6. **`user_roles`** → **ko'chirilmaydi** (umuman).

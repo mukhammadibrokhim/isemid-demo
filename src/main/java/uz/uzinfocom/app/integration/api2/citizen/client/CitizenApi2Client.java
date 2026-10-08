@@ -113,7 +113,8 @@ public class CitizenApi2Client {
         } catch (Api2Exception exception) {
             throw exception;
         } catch (CallNotPermittedException exception) {
-            throw errorDecoder.decodeCircuitBreakerOpen(ADDRESS_OPERATION, exception);
+            throw errorDecoder.decodeCircuitBreakerOpen(
+                    ADDRESS_OPERATION, exception, circuitBreakerLookup.retryAfterSeconds(CircuitBreakerNames.API2));
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(ADDRESS_OPERATION, exception);
         }
@@ -149,7 +150,8 @@ public class CitizenApi2Client {
         } catch (Api2Exception exception) {
             throw exception;
         } catch (CallNotPermittedException exception) {
-            throw errorDecoder.decodeCircuitBreakerOpen(operation, exception);
+            throw errorDecoder.decodeCircuitBreakerOpen(
+                    operation, exception, circuitBreakerLookup.retryAfterSeconds(CircuitBreakerNames.API2));
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(operation, exception);
         }

@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -19,6 +20,7 @@ import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
 import uz.uzinfocom.app.platform.observability.TraceIdProvider;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+import uz.uzinfocom.app.shared.exception.RetryAfterAware;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -47,20 +49,29 @@ public class Api2ExceptionHandler {
                 exception
         );
 
-        return ResponseEntity
-                .status(exception.getResponseStatus())
-                .body(error(
-                        exception.getResponseStatus(),
-                        exception.getErrorCode(),
-                        message,
-                        exception.getOperation(),
-                        exception.getUpstreamStatus(),
-                        safeUpstreamText(exception.getUpstreamCode()),
-                        safeUpstreamText(exception.getUpstreamMessage()),
-                        safeUpstreamText(exception.getUpstreamDetail()),
-                        traceId,
-                        fieldErrors
-                ));
+        Long retryAfterSeconds = exception instanceof RetryAfterAware retryable
+                ? retryable.getRetryAfterSeconds()
+                : null;
+
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(exception.getResponseStatus());
+        if (retryAfterSeconds != null) {
+            response.header(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds));
+        }
+
+        return response.body(new Api2ErrorResponse(
+                OffsetDateTime.now(),
+                exception.getResponseStatus().value(),
+                exception.getErrorCode(),
+                message,
+                exception.getOperation(),
+                exception.getUpstreamStatus(),
+                safeUpstreamText(exception.getUpstreamCode()),
+                safeUpstreamText(exception.getUpstreamMessage()),
+                safeUpstreamText(exception.getUpstreamDetail()),
+                traceId,
+                fieldErrors,
+                retryAfterSeconds
+        ));
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -171,7 +182,8 @@ public class Api2ExceptionHandler {
                 upstreamMessage,
                 upstreamDetail,
                 traceId,
-                fieldErrors == null ? List.of() : fieldErrors
+                fieldErrors == null ? List.of() : fieldErrors,
+                null
         );
     }
 

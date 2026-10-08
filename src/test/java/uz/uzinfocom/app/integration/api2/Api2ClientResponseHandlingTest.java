@@ -14,7 +14,7 @@ import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenAddressLookupResu
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2MalformedResponseException;
-import uz.uzinfocom.app.integration.api2.common.exception.Api2UnavailableException;
+import uz.uzinfocom.app.integration.api2.common.exception.Api2CircuitOpenException;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodyReader;
@@ -245,7 +245,10 @@ class Api2ClientResponseHandlingTest {
         // the test with an "unexpected request" error instead of this
         // assertion ever being reached.
         assertThatThrownBy(() -> openCitizenClient.lookupByNnuzb("12345678901234", LocalDate.of(2020, 1, 1)))
-                .isInstanceOf(Api2UnavailableException.class)
-                .hasFieldOrPropertyWithValue("errorCode", "API2_UNAVAILABLE");
+                .isInstanceOf(Api2CircuitOpenException.class)
+                .hasFieldOrPropertyWithValue("responseStatus", HttpStatus.SERVICE_UNAVAILABLE)
+                .hasFieldOrPropertyWithValue("errorCode", "API2_CIRCUIT_OPEN")
+                // CircuitBreakerConfig.ofDefaults() keeps the breaker open for 60s.
+                .hasFieldOrPropertyWithValue("retryAfterSeconds", 60L);
     }
 }

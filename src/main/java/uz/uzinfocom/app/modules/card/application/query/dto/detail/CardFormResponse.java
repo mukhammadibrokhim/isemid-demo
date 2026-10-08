@@ -44,6 +44,22 @@ public record CardFormResponse(
         String notifierFullName,
 
         @Schema(description = "Должность лица, направившего извещение. В извещении не хранится — всегда null.")
-        String notifierPosition
+        String notifierPosition,
+
+        @Schema(description = "Дата и время госпитализации (в т.ч. провизорной). Для №058 — admissionDate, "
+                + "для №058-1 — hospitalizedAt.")
+        LocalDateTime hospitalizedAt,
+
+        @Schema(description = "Место госпитализации для №058 — идентификатор организации. Для №058-1 — null.")
+        Long hospitalPlaceId,
+
+        @Schema(description = "Наименование места госпитализации для №058 (на языке запроса). Для №058-1 — null.")
+        String hospitalPlaceName,
+
+        @Schema(description = "Место госпитализации для №058-1 — идентификатор организации. Для №058 — null.")
+        Long hospitalOrganizationId,
+
+        @Schema(description = "Наименование организации госпитализации для №058-1 (на языке запроса).")
+        String hospitalOrganizationName
 ) {
 }

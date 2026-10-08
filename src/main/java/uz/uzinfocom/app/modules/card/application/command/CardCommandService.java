@@ -17,6 +17,7 @@ import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
+import uz.uzinfocom.app.modules.card.domain.model.card174.Card174;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.card.web.dto.request.AssignCardsRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardRequest;
@@ -103,7 +104,7 @@ public class CardCommandService {
         requireForm058Access(form);
 
         List<Card> cards = createBlankCards(request, card -> card.setForm058(form));
-        publishCardAssignedEvents(cardRepository.saveAll(cards), form.getReceiverOrganizationId());
+        publishCardAssignedEvents(saveBlankCards(cards), form.getReceiverOrganizationId());
 
         String oldStatus = form.getStatus().name();
         form.linkCards();
@@ -144,7 +145,7 @@ public class CardCommandService {
         }
 
         List<Card> cards = createBlankCards(request, card -> card.setForm0581(form));
-        publishCardAssignedEvents(cardRepository.saveAll(cards), form.getReceiverOrganizationId());
+        publishCardAssignedEvents(saveBlankCards(cards), form.getReceiverOrganizationId());
 
         String oldStatus = form.getStatus().name();
         form.linkCards();
@@ -237,6 +238,20 @@ public class CardCommandService {
             return card.getForm0581().getReceiverOrganizationId();
         }
         return null;
+    }
+
+    /**
+     * Card174's document number is the card's own id — never client-supplied —
+     * so it can only be set once the insert has produced that id.
+     */
+    private List<Card> saveBlankCards(List<Card> cards) {
+        List<Card> saved = cardRepository.saveAll(cards);
+        saved.forEach(card -> {
+            if (card instanceof Card174 card174) {
+                card174.setSerialDocNumber(card174.getId());
+            }
+        });
+        return saved;
     }
 
     /**

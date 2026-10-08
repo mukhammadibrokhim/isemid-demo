@@ -14,6 +14,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.integration.dhp.common.auth.DhpAccessTokenProvider;
 import uz.uzinfocom.app.integration.dhp.common.exception.DhpAccessDeniedException;
+import uz.uzinfocom.app.integration.dhp.common.exception.DhpCircuitOpenException;
 import uz.uzinfocom.app.integration.dhp.common.exception.DhpIntegrationException;
 import uz.uzinfocom.app.integration.dhp.common.exception.DhpRequestRejectedException;
 import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
@@ -87,7 +88,8 @@ public class DhpHttpClient {
         } catch (DhpIntegrationException exception) {
             throw exception;
         } catch (CallNotPermittedException exception) {
-            throw DhpIntegrationException.unavailable(operation, exception);
+            throw new DhpCircuitOpenException(
+                    operation, circuitBreakerLookup.retryAfterSeconds(CircuitBreakerNames.DHP), exception);
         } catch (RestClientException exception) {
             log.warn("DHP request failed before a response was received. operation={}, errorType={}",
                     operation, exception.getClass().getSimpleName());

@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.integration.dhp.common.client;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -11,12 +13,14 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.integration.dhp.common.auth.DhpAccessTokenProvider;
 import uz.uzinfocom.app.integration.dhp.common.exception.DhpAccessDeniedException;
+import uz.uzinfocom.app.integration.dhp.common.exception.DhpCircuitOpenException;
 import uz.uzinfocom.app.integration.dhp.common.exception.DhpIntegrationException;
 import uz.uzinfocom.app.integration.dhp.common.exception.DhpRequestRejectedException;
 import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
 import uz.uzinfocom.app.platform.resilience.TestCircuitBreakerLookups;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -141,6 +145,30 @@ class DhpHttpClientTest {
         assertThatThrownBy(() -> client.getJson("OP", URL))
                 .isExactlyInstanceOf(DhpIntegrationException.class)
                 .hasMessage("dhp.error.unavailable");
+    }
+
+    @Test
+    void openCircuitBreakerFailsFastWithRetryAfter() {
+        CircuitBreakerRegistry openRegistry = CircuitBreakerRegistry.of(
+                Map.of(CircuitBreakerNames.DHP, CircuitBreakerConfig.ofDefaults()));
+        openRegistry.circuitBreaker(CircuitBreakerNames.DHP, CircuitBreakerNames.DHP).transitionToOpenState();
+        when(tokenProvider.getAccessToken()).thenReturn("tok-1");
+
+        RestClient.Builder builder = RestClient.builder();
+        // No expectation registered: a request slipping past the breaker fails the test.
+        MockRestServiceServer.bindTo(builder).build();
+        DhpHttpClient openClient = new DhpHttpClient(
+                builder.build(),
+                tokenProvider,
+                TestCircuitBreakerLookups.withDefaults(openRegistry),
+                JsonMapper.builder().build()
+        );
+
+        assertThatThrownBy(() -> openClient.getJson("OP", URL))
+                .isInstanceOf(DhpCircuitOpenException.class)
+                .hasMessage("dhp.error.circuit_open")
+                // CircuitBreakerConfig.ofDefaults() keeps the breaker open for 60s.
+                .hasFieldOrPropertyWithValue("retryAfterSeconds", 60L);
     }
 
     @Test

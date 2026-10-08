@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.card.web.dto.request.card174;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.platform.persistence.sync.ChildRequest;
 
@@ -14,6 +15,9 @@ public record InfectionMonitoringRequest(
 
         @Schema(description = "ÐŸÐ¾Ñ€ÑÐ´ÐºÐ¾Ð²Ñ‹Ð¹ Ð½Ð¾Ð¼ÐµÑ€ Ð·Ð°Ð¿Ð¸ÑÐ¸ Ð² ÑÐ¿Ð¸ÑÐºÐµ.")
         Integer sequentialNumber,
+
+        @Schema(description = "ПИНФЛ пострадавшего (14 цифр).")
+        @Pattern(regexp = "\\d{14}") String pinfl,
 
         @Schema(description = "Ð¤Ð°Ð¼Ð¸Ð»Ð¸Ñ Ð¿Ð¾ÑÑ‚Ñ€Ð°Ð´Ð°Ð²ÑˆÐµÐ³Ð¾.")
         @Size(max = 255) String lastName,
@@ -41,6 +45,9 @@ public record InfectionMonitoringRequest(
 
         @Schema(description = "Ð”Ð°Ñ‚Ð° Ð¿Ð¾Ð´Ñ‚Ð²ÐµÑ€Ð¶Ð´ÐµÐ½Ð¸Ñ Ð´Ð¸Ð°Ð³Ð½Ð¾Ð·Ð°.")
         LocalDate confirmationDate,
+
+        @Schema(description = "Дата заражения данной инфекцией контактным путём.")
+        LocalDate contactInfectionDate,
 
         @Schema(description = "ÐŸÑ€ÐµÐ´Ð¿Ð¾Ð»Ð°Ð³Ð°ÐµÐ¼Ð¾Ðµ Ð¼ÐµÑÑ‚Ð¾ Ð·Ð°Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ.")
         @Size(max = 500) String possibleInfectionLocation,

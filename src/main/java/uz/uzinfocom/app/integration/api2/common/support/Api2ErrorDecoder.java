@@ -12,6 +12,7 @@ import uz.uzinfocom.app.integration.api2.common.exception.Api2AuthenticationExce
 import uz.uzinfocom.app.integration.api2.common.exception.Api2AuthorizationException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2BadGatewayException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2BadRequestException;
+import uz.uzinfocom.app.integration.api2.common.exception.Api2CircuitOpenException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2ConflictException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2RateLimitException;
@@ -75,12 +76,16 @@ public class Api2ErrorDecoder {
 
     /**
      * The "api2" circuit breaker is open - API2 is already known to be
-     * unhealthy, so this call was rejected without ever going out. Reported
-     * the same way a real transport failure would be, since callers of the
-     * API2 clients shouldn't need a separate branch for it.
+     * unhealthy, so this call was rejected without ever going out. Still a
+     * 503 like a real transport failure, but with its own error code and the
+     * breaker's wait duration so the client knows how long to back off.
      */
-    public Api2Exception decodeCircuitBreakerOpen(String operation, CallNotPermittedException exception) {
-        return new Api2UnavailableException(operation, exception);
+    public Api2Exception decodeCircuitBreakerOpen(
+            String operation,
+            CallNotPermittedException exception,
+            long retryAfterSeconds
+    ) {
+        return new Api2CircuitOpenException(operation, retryAfterSeconds, exception);
     }
 
     public boolean isFailurePayload(Api2ResponseBody body) {

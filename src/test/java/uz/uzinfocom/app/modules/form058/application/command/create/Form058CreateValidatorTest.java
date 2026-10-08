@@ -89,50 +89,11 @@ class Form058CreateValidatorTest {
                 .doesNotThrowAnyException();
     }
 
-    /**
-     * Matches the original (pre-existing) factory shape exactly — deliberately
-     * leaves {@code senderOrganizationId} unset, which is what the two
-     * pre-existing failing tests above ({@code acceptsCurrentSenderOrganization},
-     * {@code rejectsSameSenderAndReceiver}) already depend on; not fixed here,
-     * since that bug is unrelated to this validator's icd10 checks.
-     */
+    /** Sender is always org 100 — the current organization in the happy-path tests. */
     private CreateForm058Command command(Long receiverOrganizationId) {
-        return new CreateForm058Command(
-                "A00",          // icd10Code
-                "Cholera",      // icd10Name
-                null,           // finalIcd10Code
-                null,           // finalIcd10Name
-                null,           // icd10UsageLimit
-                patient(),      // patient
-                null,           // source
-                null,           // labConfirmation
-                null,           // diseaseDate
-                null,           // firstVisitDate
-                null,           // visitDate
-                null,           // admissionDate
-                null,           // diagnosisDate
-                null,           // initialReportDateTime
-                null,           // senderOrganizationId
-                receiverOrganizationId, // receiverOrganizationId
-                null,           // hospitalPlaceId
-                null,           // sourceIntegrationClientId
-                null,           // diseasePlaceCode
-                null,           // diseaseCause
-                null,           // epidemicMeasures
-                null,           // notifierFullName
-                null,           // journalFormCode
-                null,           // comment
-                null,           // locationLatitude
-                null,           // locationLongitude
-                null            // location
-        );
+        return commandWithSender(100L, receiverOrganizationId, "A00", null);
     }
 
-    /**
-     * Used only by the new icd10-code tests below, which need a valid
-     * sender/receiver pair to actually reach the icd10 validation branch
-     * (unlike {@link #command(Long)}, which never sets a sender at all).
-     */
     private CreateForm058Command commandWithSender(
             Long senderOrganizationId,
             Long receiverOrganizationId,

@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +32,7 @@ import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
 import uz.uzinfocom.app.shared.dto.response.FieldViolationResponse;
 import uz.uzinfocom.app.shared.exception.AppException;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
+import uz.uzinfocom.app.shared.exception.RetryAfterAware;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -58,6 +60,25 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String message = messages.resolve(exception.getMessageCode(), exception.getArgs());
+
+        if (exception instanceof RetryAfterAware retryable) {
+            ErrorCode code = exception.getErrorCode();
+            long retryAfterSeconds = retryable.getRetryAfterSeconds();
+            attachLogError(request, code.getCode(), exception);
+
+            return ResponseEntity
+                    .status(code.getStatus())
+                    .header(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds))
+                    .body(ErrorResponse.of(
+                            code.getCode(),
+                            message,
+                            traceIdProvider.getOrCreate(request),
+                            request.getRequestURI(),
+                            List.of(),
+                            retryAfterSeconds
+                    ));
+        }
+
         return respond(exception.getErrorCode(), message, request, exception, List.of());
     }
 

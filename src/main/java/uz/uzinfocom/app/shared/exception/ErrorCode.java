@@ -29,6 +29,14 @@ public enum ErrorCode {
     UPSTREAM_ERROR("UPSTREAM_ERROR", HttpStatus.BAD_GATEWAY, "error.upstream"),
     UPSTREAM_TIMEOUT("UPSTREAM_TIMEOUT", HttpStatus.GATEWAY_TIMEOUT, "error.upstream_timeout"),
 
+    // The outbound circuit breaker for that system is open: the call was
+    // rejected locally without going out. Distinct from UPSTREAM_ERROR so a
+    // client can back off for the advertised Retry-After instead of retrying
+    // straight away - see RetryAfterAware.
+    UPSTREAM_CIRCUIT_OPEN(
+            "UPSTREAM_CIRCUIT_OPEN", HttpStatus.SERVICE_UNAVAILABLE, "error.upstream_circuit_open"
+    ),
+
     // Distinct from FORBIDDEN so a dev-panel frontend can reliably detect
     // "must change password" from the `code` field alone, without matching
     // on the localized `message` text - see DevPasswordChangeGuardFilter.

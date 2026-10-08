@@ -1,7 +1,9 @@
 package uz.uzinfocom.app.modules.card.application.query.dto.detail;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.AnimalMeasureResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.InfectionMonitoringResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.LaboratoryTestResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.OutbreakControlMeasureResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
@@ -42,8 +44,8 @@ public record Card174DetailResponse(
         @Schema(description = "Дата завершения заполнения карты.")
         LocalDate completedDate,
 
-        @Schema(description = "Порядковый номер документа.")
-        Integer serialDocNumber,
+        @Schema(description = "Порядковый номер документа. Генерируется сервером (равен id карты); у мигрированных карт — номер из бумажного бланка.")
+        Long serialDocNumber,
 
         @Schema(description = "Код диагноза по МКБ-10.")
         String icd10Code,
@@ -69,8 +71,8 @@ public record Card174DetailResponse(
         @Schema(description = "Дата проведения расследования.")
         LocalDate investigationDate,
 
-        @Schema(description = "Год последнего зарегистрированного случая заболевания на данной территории.")
-        LocalDate lastDiseaseYear,
+        @Schema(description = "Год последнего зарегистрированного случая заболевания на данной территории (только год, например 2019).")
+        Integer lastDiseaseYear,
 
         @Schema(description = "Дата заражения животного в текущем случае.")
         LocalDate currentAnimalInfectionDate,
@@ -83,6 +85,13 @@ public record Card174DetailResponse(
 
         @Schema(description = "Адрес владельца животного.")
         String ownerAddress,
+
+        @Schema(description = "ПИНФЛ владельца животного (14 цифр).")
+        String ownerPinfl,
+
+        @Schema(description = "Код вида животного (по справочнику ANIMAL_TYPE). Пока не заполнен на карте — "
+                + "значение из извещения №058-1.")
+        String animalType,
 
         @Schema(description = "Код вида поражённого животного (по справочнику).")
         String affectedAnimalTypeCode,
@@ -117,20 +126,8 @@ public record Card174DetailResponse(
         @Schema(description = "Коды факторов, способствовавших возникновению заболевания (по справочнику).")
         List<String> diseaseFactorCodes,
 
-        @Schema(description = "Вид животного.")
-        String animalType,
-
-        @Schema(description = "Дата проведения лабораторного исследования.")
-        LocalDate testDate,
-
-        @Schema(description = "Количество отобранных проб для исследования.")
-        Integer testSampleCount,
-
-        @Schema(description = "Метод проведённого исследования.")
-        String testingMethod,
-
-        @Schema(description = "Результат проведённого исследования.")
-        String testResult,
+        @Schema(description = "Таблица лабораторных исследований.")
+        List<LaboratoryTestResponse> laboratoryTests,
 
         @Schema(description = "Коды поражённых видов животных (по справочнику).")
         List<String> affectedAnimalCodes,
@@ -183,7 +180,7 @@ public record Card174DetailResponse(
         @Schema(description = "Код проведённой дератизации (по справочнику).")
         String deratizationCode,
 
-        @Schema(description = "Площадь территории, охваченной дератизацией.")
+        @Schema(description = "Площадь территории, охваченной дератизацией, в квадратных метрах (м²).")
         Double deratizationArea,
 
         @Schema(description = "Лица, проводившие обследование очага.")
@@ -221,6 +218,9 @@ public record Card174DetailResponse(
 
         @Schema(description = "Список мероприятий по ликвидации очага заболевания.")
         List<OutbreakControlMeasureResponse> outbreakControlMeasures,
+
+        @Schema(description = "Список мер, применённых к животным в очаге.")
+        List<AnimalMeasureResponse> animalMeasures,
 
         @Schema(description = "Дополнительная информация о принятых мерах.")
         String additionalMeasuresInfo

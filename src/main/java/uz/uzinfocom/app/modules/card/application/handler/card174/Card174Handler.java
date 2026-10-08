@@ -8,8 +8,10 @@ import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card174DetailResponse;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+import uz.uzinfocom.app.modules.card.domain.model.card174.AnimalMeasure;
 import uz.uzinfocom.app.modules.card.domain.model.card174.Card174;
 import uz.uzinfocom.app.modules.card.domain.model.card174.InfectionMonitoring;
+import uz.uzinfocom.app.modules.card.domain.model.card174.LaboratoryTest;
 import uz.uzinfocom.app.modules.card.domain.model.card174.OutbreakControlMeasure;
 import uz.uzinfocom.app.modules.card.mapper.card174.Card174Mapper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card174Request;
@@ -56,7 +58,9 @@ public class Card174Handler implements CardTypeHandler<Card174, Card174Request, 
     private void apply(Card174 card174, Card174Request request) {
         mapper.copyOwnFields(card174, request);
 
+        ChildCollectionSync.sync(card174, card174.getLaboratoryTests(), request.laboratoryTests(), mapper::toEntity, mapper::update, LaboratoryTest::setCard174);
         ChildCollectionSync.sync(card174, card174.getInfectionMonitoring(), request.infectionMonitoring(), mapper::toEntity, mapper::update, InfectionMonitoring::setCard174);
         ChildCollectionSync.sync(card174, card174.getOutbreakControlMeasures(), request.outbreakControlMeasures(), mapper::toEntity, mapper::update, OutbreakControlMeasure::setCard174);
+        ChildCollectionSync.sync(card174, card174.getAnimalMeasures(), request.animalMeasures(), mapper::toEntity, mapper::update, AnimalMeasure::setCard174);
     }
 }

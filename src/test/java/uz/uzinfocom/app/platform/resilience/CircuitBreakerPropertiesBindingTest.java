@@ -2,7 +2,7 @@ package uz.uzinfocom.app.platform.resilience;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.common.CompositeCustomizer;
-import io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakerProperties;
+import io.github.resilience4j.springboot.circuitbreaker.autoconfigure.CircuitBreakerProperties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

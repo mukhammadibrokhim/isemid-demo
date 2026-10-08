@@ -104,6 +104,9 @@ class Icd10ReferenceSeederTest {
     @SuppressWarnings("unchecked")
     void seedsFromBundledCsvAndWiresParentLinksWhenTableIsEmpty() throws Exception {
         when(icd10Repository.count()).thenReturn(0L);
+        // The seeder wires parent links on the instances saveAllAndFlush returns
+        // (the managed copies), so the mock must hand the saved list back.
+        when(icd10Repository.saveAllAndFlush(anyIterable())).thenAnswer(invocation -> invocation.getArgument(0));
 
         seeder.run(mock(ApplicationArguments.class));
 

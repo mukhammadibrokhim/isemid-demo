@@ -18,7 +18,7 @@ the original, unrestricted `assignCards`/`Form058CardCommandController` path.
 | Type | Child entities | Notes |
 |---|---|---|
 | `CARD161` | 9 (`Vaccination`, `Card161RiskFactor`, `InfectionSource`, `EnvironmentalSource`, `EnvironmentalLabTest`, `ContactPerson`, `ScreenedGroup`, `HomePreventiveMeasure`, `OutbreakDisinfectionMeasure`) + 1:1 `InfectionSourceDetail` | Largest type; also the reference implementation for the child-collection sync pattern (see below). |
-| `CARD174` | 2 (`InfectionMonitoring`, `OutbreakControlMeasure`) | |
+| `CARD174` | 4 (`LaboratoryTest`, `InfectionMonitoring`, `OutbreakControlMeasure`, `AnimalMeasure`) | `serialDocNumber` is server-generated (= card id); `lastDiseaseYear` is a year (`Integer`); `deratizationArea` is in m²; `animalType` is an `ANIMAL_TYPE` catalog code (GET falls back to the 058-1 notification's animal type while empty). |
 | `CARD175` | none (flat) | Simplest type — no child collections at all. |
 | `CARD205` | 3 (`InformationOtherBittenPeople`, `InformationOtherBittenAnimals`, `InformationAboutAnimaBittenPeople`) | Two of the three children share an identical 6-field address breakdown, extracted into the `AdministrativeAddress` `@Embeddable`. |
 | `CARD_TUBE` | 4 (`ContactMonitoring`, `InfectionSource`, `TBHistory`, `XRay`) | Its own `InfectionSource`, distinct from CARD161's — both entities are given explicit `@Entity(name = ...)` values since Hibernate's default (bare class name) would otherwise collide across packages. |

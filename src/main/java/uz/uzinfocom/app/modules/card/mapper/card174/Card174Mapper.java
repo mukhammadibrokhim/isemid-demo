@@ -4,15 +4,21 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card174DetailResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.AnimalMeasureResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.InfectionMonitoringResponse;
+import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.LaboratoryTestResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card174.OutbreakControlMeasureResponse;
+import uz.uzinfocom.app.modules.card.domain.model.card174.AnimalMeasure;
 import uz.uzinfocom.app.modules.card.domain.model.card174.Card174;
 import uz.uzinfocom.app.modules.card.domain.model.card174.InfectionMonitoring;
+import uz.uzinfocom.app.modules.card.domain.model.card174.LaboratoryTest;
 import uz.uzinfocom.app.modules.card.domain.model.card174.OutbreakControlMeasure;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card174Request;
+import uz.uzinfocom.app.modules.card.web.dto.request.card174.AnimalMeasureRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.InfectionMonitoringRequest;
+import uz.uzinfocom.app.modules.card.web.dto.request.card174.LaboratoryTestRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.OutbreakControlMeasureRequest;
 
 /**
@@ -29,10 +35,22 @@ public interface Card174Mapper {
     @Mapping(target = "icd10Code", source = ".", qualifiedByName = "resolveCard174Icd10Code")
     @Mapping(target = "icd10Name", source = ".", qualifiedByName = "resolveCard174Icd10Name")
     @Mapping(target = "humanPrimaryDiagnosis", source = ".", qualifiedByName = "resolveCard174HumanPrimaryDiagnosis")
-    @Mapping(target = "animalType", source = ".", qualifiedByName = "resolveCard174AnimalType")
-    @Mapping(target = "investigationDate", source = ".", qualifiedByName = "resolveCard174InvestigationDate")
+    @Mapping(target = "dataObtainedDate", source = ".", qualifiedByName = "resolveCard174DataObtainedDate")
+    @Mapping(target = "locationOfEvent", source = ".", qualifiedByName = "resolveCard174LocationOfEvent")
+    @Mapping(target = "inspectors", source = ".", qualifiedByName = "resolveCard174Inspectors")
     @Mapping(target = "animalOwner", source = ".", qualifiedByName = "resolveCard174AnimalOwner")
+    @Mapping(target = "animalType", source = ".", qualifiedByName = "resolveCard174AnimalType")
     Card174DetailResponse toResponse(Card174 card174);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card174", ignore = true)
+    AnimalMeasure toEntity(AnimalMeasureRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card174", ignore = true)
+    void update(@MappingTarget AnimalMeasure entity, AnimalMeasureRequest request);
+
+    AnimalMeasureResponse toResponse(AnimalMeasure entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card174", ignore = true)
@@ -53,6 +71,16 @@ public interface Card174Mapper {
     void update(@MappingTarget OutbreakControlMeasure entity, OutbreakControlMeasureRequest request);
 
     OutbreakControlMeasureResponse toResponse(OutbreakControlMeasure entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card174", ignore = true)
+    LaboratoryTest toEntity(LaboratoryTestRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "card174", ignore = true)
+    void update(@MappingTarget LaboratoryTest entity, LaboratoryTestRequest request);
+
+    LaboratoryTestResponse toResponse(LaboratoryTest entity);
 
     /**
      * Copies only Card174's own scalar fields — child collections and every
@@ -80,10 +108,13 @@ public interface Card174Mapper {
     @Mapping(target = "attachedUserComment", ignore = true)
     @Mapping(target = "completedDate", ignore = true)
     @Mapping(target = "acts", ignore = true)
+    @Mapping(target = "serialDocNumber", ignore = true) // generated from id on assign
     @Mapping(target = "icd10Code", ignore = true)
     @Mapping(target = "icd10Name", ignore = true)
     @Mapping(target = "humanPrimaryDiagnosis", ignore = true)
+    @Mapping(target = "laboratoryTests", ignore = true)
     @Mapping(target = "infectionMonitoring", ignore = true)
     @Mapping(target = "outbreakControlMeasures", ignore = true)
+    @Mapping(target = "animalMeasures", ignore = true)
     void copyOwnFields(@MappingTarget Card174 target, Card174Request request);
 }

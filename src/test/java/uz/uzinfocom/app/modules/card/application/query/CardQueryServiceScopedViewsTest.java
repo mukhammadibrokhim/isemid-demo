@@ -11,6 +11,7 @@ import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapper;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
+import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581PdfMapper;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
@@ -55,10 +56,12 @@ class CardQueryServiceScopedViewsTest {
         organizationScopeResolver = mock(OrganizationScopeResolver.class);
         SenderReceiverScopePredicateFactory scopePredicateFactory = mock(SenderReceiverScopePredicateFactory.class);
         Form058PdfMapper form058PdfMapper = mock(Form058PdfMapper.class);
+        Form0581PdfMapper form0581PdfMapper = mock(Form0581PdfMapper.class);
 
         service = new CardQueryService(
                 cardRepository, cardTableMapper, handlerRegistry,
-                currentUserProvider, organizationScopeResolver, scopePredicateFactory, form058PdfMapper
+                currentUserProvider, organizationScopeResolver, scopePredicateFactory, form058PdfMapper,
+                form0581PdfMapper
         );
 
         when(cardRepository.findBy(any(Specification.class), any(Function.class)))

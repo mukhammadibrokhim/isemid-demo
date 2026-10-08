@@ -7,11 +7,13 @@ import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardFormRespon
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
+import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ClinicalInfo;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058DateInfo;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058DiagnosisInfo;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ReportInfo;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.Form0581DiagnosisInfo;
+import uz.uzinfocom.app.modules.form0581.domain.model.embedded.Form0581HospitalizationInfo;
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.Form0581IncidentInfo;
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.Form0581ReportInfo;
 import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
@@ -50,6 +52,7 @@ public class CardFormMapperHelper {
         Form058DiagnosisInfo diagnosis = form.getDiagnosisInfo();
         Form058DateInfo dateInfo = form.getDateInfo();
         Form058ReportInfo reportInfo = form.getReportInfo();
+        Form058ClinicalInfo clinicalInfo = form.getClinicalInfo();
 
         return build(
                 form.getId(), CaseFormType.FORM058, form.getCreatedAt(),
@@ -59,7 +62,10 @@ public class CardFormMapperHelper {
                 diagnosis != null ? diagnosis.getFinalIcd10Code() : null,
                 diagnosis != null ? diagnosis.getFinalIcd10Name() : null,
                 form.getSenderOrganizationId(),
-                reportInfo != null ? reportInfo.getNotifierFullName() : null
+                reportInfo != null ? reportInfo.getNotifierFullName() : null,
+                dateInfo != null ? dateInfo.getAdmissionDate() : null,
+                clinicalInfo != null ? clinicalInfo.getHospitalPlaceId() : null,
+                null
         );
     }
 
@@ -72,6 +78,7 @@ public class CardFormMapperHelper {
         Form0581DiagnosisInfo diagnosis = form.getDiagnosisInfo();
         Form0581IncidentInfo incidentInfo = form.getIncidentInfo();
         Form0581ReportInfo reportInfo = form.getReportInfo();
+        Form0581HospitalizationInfo hospitalizationInfo = form.getHospitalizationInfo();
 
         LocalDateTime initialReportDateTime = reportInfo != null ? reportInfo.getMessageSentAt() : null;
         if (initialReportDateTime == null && incidentInfo != null) {
@@ -86,14 +93,18 @@ public class CardFormMapperHelper {
                 diagnosis != null ? diagnosis.getFinalIcd10Code() : null,
                 diagnosis != null ? diagnosis.getFinalIcd10Name() : null,
                 form.getSenderOrganizationId(),
-                reportInfo != null ? reportInfo.getNotifierFullName() : null
+                reportInfo != null ? reportInfo.getNotifierFullName() : null,
+                hospitalizationInfo != null ? hospitalizationInfo.getHospitalizedAt() : null,
+                null,
+                hospitalizationInfo != null ? hospitalizationInfo.getHospitalOrganizationId() : null
         );
     }
 
     private CardFormResponse build(
             Long id, CaseFormType formType, Instant createdAt, LocalDateTime initialReportDateTime,
             String icd10Code, String storedIcd10Name, String finalIcd10Code, String storedFinalIcd10Name,
-            Long senderOrganizationId, String notifierFullName
+            Long senderOrganizationId, String notifierFullName,
+            LocalDateTime hospitalizedAt, Long hospitalPlaceId, Long hospitalOrganizationId
     ) {
         // The name stored on the form is whatever language the sender typed it
         // in — prefer the catalog's localized name, keep the stored one as fallback.
@@ -108,7 +119,13 @@ public class CardFormMapperHelper {
                 senderOrganizationId,
                 organizationMappingHelper.activeOrganizationNameByIdOrNull(senderOrganizationId),
                 notifierFullName,
-                null
+                null,
+                hospitalizedAt,
+                hospitalPlaceId,
+                // form058.hospital_place_id is an organization id — same lookup as Form058PdfMapper.
+                organizationMappingHelper.activeOrganizationNameByIdOrNull(hospitalPlaceId),
+                hospitalOrganizationId,
+                organizationMappingHelper.activeOrganizationNameByIdOrNull(hospitalOrganizationId)
         );
     }
 

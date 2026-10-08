@@ -32,7 +32,7 @@ public class DhpIntegrationException extends AppException {
         return new DhpIntegrationException(ErrorCode.INTERNAL_ERROR, "dhp.error.not_configured", operation);
     }
 
-    /** Transport failure (connection refused, DNS, read timeout, ...) or the breaker rejecting the call. */
+    /** Transport failure (connection refused, DNS, read timeout, ...). */
     public static DhpIntegrationException unavailable(String operation, Throwable cause) {
         boolean timeout = cause instanceof ResourceAccessException access
                 && access.getCause() instanceof SocketTimeoutException;

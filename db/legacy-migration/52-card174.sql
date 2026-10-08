@@ -3,9 +3,12 @@
 -- ⚠️ card174 BAZA jadvali: legacy va target ustun nomlari DEYARLI DISJOINT.
 --    Quyidagi juftliklar TAXMIN. `-- ??` bilan belgilanganlar TEKSHIRILSIN.
 --    Manba taxminlari: docs/legacy-migration/20-card.md §4a.
--- Orphan bola jadvallar (disinfection_info / external_sample_test /
---    preventive_measure) target'da yo'q -> ma'lumot card174 ota ustunlariga
---    (birinchi qator; ko'p bo'lsa log).  Qaror: 02-mapping §5.4.
+-- Orphan bola jadvallar (disinfection_info / preventive_measure) target'da
+--    yo'q -> ma'lumot card174 ota ustunlariga (birinchi qator; ko'p bo'lsa
+--    log).  Qaror: 02-mapping §5.4.
+-- card174_external_sample_test -> card174_laboratory_test (HAMMA qatorlar).
+-- card174_preventive_measure   -> card174_animal_measure  (HAMMA qatorlar;
+--    1-qatorning measures matni precautionary_measures'ga ham ko'chadi).
 -- Bog'liqlik: 50-card bajarilgan.
 -- =====================================================================
 \set ON_ERROR_STOP on
@@ -16,7 +19,7 @@ INSERT INTO public2.card174 (
     id,
     affected_animal_count, affected_animal_type_code, affected_humans, affected_in_outbreak,
     animal_disposal_date, animal_disposal_method_code, animal_owner, animal_ownership_code,
-    animal_primary_diagnosis, animal_type, blood_sucking_arthropods_increase,
+    animal_primary_diagnosis, blood_sucking_arthropods_increase,
     current_animal_infection_date, data_obtained_date, deratization_area, deratization_code,
     disinfected_factor_amount, disinfection_date, epizootology_existence, execution_control_results,
     human_primary_diagnosis, including_identified, including_industrial_conditions, including_who_applied,
@@ -24,7 +27,7 @@ INSERT INTO public2.card174 (
     measure_taken, meat_submission, icd10_code, icd10_name, outbreak_localization, owner_address,
     pathogen_type, precautionary_measures, quarantine_end_date, quarantine_start_date, quarantine_type_code,
     report_to_veterinary_department_date, rodent_increase, serial_doc_number, stray_animal_capture,
-    synanthropic_rodents_increase, test_date, test_result, test_sample_count, testing_method,
+    synanthropic_rodents_increase,
     treated_humans, treatment, vector_increase, wild_animal_culling, wild_rodents_increase,
     additional_measures_info
 )
@@ -39,7 +42,6 @@ SELECT
     l.owner_name,                           -- animal_owner
     l.ownership_code,                       -- animal_ownership_code
     l.animal_diag,                          -- animal_primary_diagnosis
-    NULL,                                   -- animal_type            -- ?? legacy manba yo'q
     l.arthropods_increased,                 -- blood_sucking_arthropods_increase
     l.current_animal_infection_date,
     l.data_date,                            -- data_obtained_date
@@ -57,7 +59,7 @@ SELECT
     l.investigation_date,
     l.is_exotic_area,                       -- is_area_exotic
     l.isolation,
-    l.last_case_year,                       -- last_disease_year
+    EXTRACT(YEAR FROM l.last_case_year)::int, -- last_disease_year (faqat yil)
     di.event_location,                      -- location_of_event      <- card174_disinfection_info
     l.action_taken,                         -- measure_taken
     l.meat_submission,
@@ -72,13 +74,9 @@ SELECT
     l.quarantine_code,                      -- quarantine_type_code
     l.reported_vet_date,                    -- report_to_veterinary_department_date -- ??
     l.rodents_increased,                    -- rodent_increase
-    NULL,                                   -- serial_doc_number      -- ?? legacy manba yo'q
+    l.id,                                   -- serial_doc_number      -- legacy manba yo'q; yangi kartalardagi kabi id
     l.stray_capture,                        -- stray_animal_capture
     l.synanthropic_rodents,                 -- synanthropic_rodents_increase
-    est.test_date,                          -- test_date              <- card174_external_sample_test
-    est.test_result,                        -- test_result            <- card174_external_sample_test
-    est.sample_count,                       -- test_sample_count      <- card174_external_sample_test
-    est.test_method,                        -- testing_method         <- card174_external_sample_test
     l.treated_humans,
     l.treatment,
     l.vectors_increased,                    -- vector_increase
@@ -89,8 +87,6 @@ FROM public.card174 l
 JOIN public2.card c ON c.id = l.id
 LEFT JOIN LATERAL (SELECT * FROM public.card174_disinfection_info z
                     WHERE z.card174_id = l.id ORDER BY z.id LIMIT 1) di ON true
-LEFT JOIN LATERAL (SELECT * FROM public.card174_external_sample_test z
-                    WHERE z.card174_id = l.id ORDER BY z.id LIMIT 1) est ON true
 LEFT JOIN LATERAL (SELECT * FROM public.card174_preventive_measure z
                     WHERE z.card174_id = l.id ORDER BY z.id LIMIT 1) pm ON true;
 
@@ -99,24 +95,7 @@ INSERT INTO public2._migration_notes (source_table, source_id, note)
 SELECT t.src, t.card174_id, 'orphan bola jadval: faqat 1-qator card174 ga jamlandi'
 FROM (
   SELECT 'card174_disinfection_info' src, card174_id FROM public.card174_disinfection_info GROUP BY card174_id HAVING count(*)>1
-  UNION ALL
-  SELECT 'card174_external_sample_test', card174_id FROM public.card174_external_sample_test GROUP BY card174_id HAVING count(*)>1
-  UNION ALL
-  SELECT 'card174_preventive_measure', card174_id FROM public.card174_preventive_measure GROUP BY card174_id HAVING count(*)>1
 ) t;
-
--- card174_preventive_measure.measure_count/measure_date/measure_location: faqat
--- pm.measures target'ga ko'chadi (precautionary_measures); qolgan 3tasi uchun
--- target'da alohida ustun yo'q -> log.
-INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'card174_preventive_measure', z.id, 'target''da ustun yo''q — tashlandi',
-       concat_ws('; ',
-         CASE WHEN z.measure_count IS NOT NULL THEN 'measure_count='||z.measure_count END,
-         CASE WHEN z.measure_date IS NOT NULL THEN 'measure_date' END,
-         CASE WHEN z.measure_location IS NOT NULL THEN 'measure_location='||z.measure_location END)
-FROM public.card174_preventive_measure z
-JOIN public2.card174 c ON c.id = z.card174_id
-WHERE z.measure_count IS NOT NULL OR z.measure_date IS NOT NULL OR z.measure_location IS NOT NULL;
 
 -- legacy-only ustunlar (target'da yo'q, drop) — ma'lumot bo'lsa log
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
@@ -150,10 +129,10 @@ INSERT INTO public2.card174_elimination_method (card174_id, catalog_code)
 SELECT x.card174_id, x.catalog_code FROM public.card174_elimination_method x JOIN public2.card174 c ON c.id=x.card174_id;
 
 -- ---- card174_infection_monitoring (rename'lar) --------------------
--- drop: contact_infection_date, vaccination_summary ; target-only sequential_number -> NULL
+-- drop: vaccination_summary ; target-only sequential_number, pinfl -> NULL
 INSERT INTO public2.card174_infection_monitoring (
     id, version, created_at, created_by_id, updated_at, updated_by_id, uuid,
-    address, application_date, birth_date, confirmation_date, first_name, gender_code,
+    address, application_date, birth_date, confirmation_date, contact_infection_date, first_name, gender_code,
     last_name, middle_name, possible_infection_date, possible_infection_factor,
     possible_infection_location, profession, sequential_number, card174_id
 )
@@ -161,7 +140,7 @@ SELECT
     d.id, 0,
     d.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
     d.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id, d.uuid,
-    d.address, d.apply_date, d.birth_date, d.confirm_date, d.first_name, d.gender_code,
+    d.address, d.apply_date, d.birth_date, d.confirm_date, d.contact_infection_date, d.first_name, d.gender_code,
     d.last_name, d.middle_name, d.possible_date, d.possible_factor,
     d.possible_location, d.profession, NULL, d.card174_id
 FROM public.card174_infection_monitoring d
@@ -169,12 +148,45 @@ JOIN public2.card174 c ON c.id = d.card174_id;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
 SELECT 'card174_infection_monitoring', d.id, 'target''da ustun yo''q — tashlandi',
-       concat_ws('; ',
-         CASE WHEN d.contact_infection_date IS NOT NULL THEN 'contact_infection_date' END,
-         CASE WHEN d.vaccination_summary IS NOT NULL THEN 'vaccination_summary' END)
+       'vaccination_summary'
 FROM public.card174_infection_monitoring d
 JOIN public2.card174 c ON c.id = d.card174_id
-WHERE d.contact_infection_date IS NOT NULL OR d.vaccination_summary IS NOT NULL;
+WHERE d.vaccination_summary IS NOT NULL;
+
+-- ---- card174_external_sample_test -> card174_laboratory_test ------
+-- hamma qatorlar ko'chadi; specimen -> sample_name. id target identity'dan,
+-- audit ustunlari ota kartadan (legacy bola jadvalining audit ustunlariga
+-- tayanilmaydi).
+INSERT INTO public2.card174_laboratory_test (
+    version, created_at, created_by_id, updated_at, updated_by_id, uuid,
+    sample_name, test_date, sample_count, testing_method, test_result, card174_id
+)
+SELECT
+    0, p.created_at, p.created_by_id, p.updated_at, p.updated_by_id, gen_random_uuid(),
+    z.specimen, z.test_date, z.sample_count, z.test_method, z.test_result, z.card174_id
+FROM public.card174_external_sample_test z
+JOIN public2.card174 c ON c.id = z.card174_id
+JOIN public2.card p ON p.id = z.card174_id
+ORDER BY z.id;
+
+-- ---- card174_preventive_measure -> card174_animal_measure --------
+-- hamma qatorlar ko'chadi; measures -> measure_name. id/audit — yuqoridagi
+-- laboratory_test bilan bir xil qoida.
+INSERT INTO public2.card174_animal_measure (
+    version, created_at, created_by_id, updated_at, updated_by_id, uuid,
+    measure_name, measure_date, measure_count, measure_location, card174_id
+)
+SELECT
+    0, p.created_at, p.created_by_id, p.updated_at, p.updated_by_id, gen_random_uuid(),
+    left(z.measures, 500),                  -- ?? legacy uzunligi tekshirilsin
+    z.measure_date,
+    z.measure_count,                        -- ?? legacy turi integer deb taxmin
+    left(z.measure_location, 500),
+    z.card174_id
+FROM public.card174_preventive_measure z
+JOIN public2.card174 c ON c.id = z.card174_id
+JOIN public2.card p ON p.id = z.card174_id
+ORDER BY z.id;
 
 -- ---- card174_outbreak_control_measure (1:1 + version) ------------
 INSERT INTO public2.card174_outbreak_control_measure (
