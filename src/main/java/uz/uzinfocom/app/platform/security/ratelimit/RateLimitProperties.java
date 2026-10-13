@@ -29,6 +29,13 @@ public class RateLimitProperties {
     /** {@code /v1/citizen/**} + {@code /v1/legal-entity/**} - keyed by authenticated user. */
     private Rule identityLookup = new Rule(60, Duration.ofMinutes(1));
 
+    /**
+     * Every other {@code /integration/v1/**} call - keyed by integration client once
+     * authenticated, by IP otherwise. Generous on purpose: it caps a runaway or
+     * hostile submitter, not normal batch traffic.
+     */
+    private Rule integrationApi = new Rule(600, Duration.ofMinutes(1));
+
     @Getter
     @Setter
     public static class Rule {

@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import uz.uzinfocom.app.platform.security.auth.VerifiedSecretCachingPasswordEncoder;
+
+import java.time.Duration;
 
 /**
  * Split out of {@link SecurityConfig} so that beans depending on {@link
@@ -23,10 +26,13 @@ public class PasswordEncoderConfig {
      * was written against - the dev-panel's separate {@code devUserPasswordEncoder}
      * (see {@code DevPanelSecurityConfig}) is newer and always injected by explicit
      * {@code @Qualifier}, so it must not become the ambiguous default.
+     *
+     * <p>Wrapped so the per-request API-key/Basic checks don't re-run BCrypt on every
+     * call - see {@link VerifiedSecretCachingPasswordEncoder}.
      */
     @Primary
     @Bean
     public PasswordEncoder integrationClientPasswordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new VerifiedSecretCachingPasswordEncoder(new BCryptPasswordEncoder(), Duration.ofMinutes(10), 10_000);
     }
 }

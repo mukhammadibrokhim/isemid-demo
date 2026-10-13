@@ -11,6 +11,7 @@ import uz.uzinfocom.app.platform.security.auth.IntegrationCredentialAuthenticati
 import uz.uzinfocom.app.platform.security.auth.IntegrationScopeAuthorities;
 import uz.uzinfocom.app.platform.security.principal.IntegrationClientPrincipal;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -24,6 +25,12 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class IntegrationCredentialAuthenticator {
+
+    /**
+     * {@code lastUsedAt} is an "is this client still alive" indicator, not an audit log -
+     * writing it on every request turned each integration read into a DB write.
+     */
+    private static final Duration LAST_USED_WRITE_INTERVAL = Duration.ofMinutes(5);
 
     private final OrganizationRepository organizationRepository;
     private final IntegrationClientRepository integrationClientRepository;
@@ -39,7 +46,10 @@ public class IntegrationCredentialAuthenticator {
         SecurityContextHolder.getContext().setAuthentication(new IntegrationCredentialAuthenticationToken(
                 client.getAuthType(), principal, IntegrationScopeAuthorities.from(client.getScopes())));
 
-        client.setLastUsedAt(Instant.now());
-        integrationClientRepository.save(client);
+        Instant now = Instant.now();
+        if (client.getLastUsedAt() == null || client.getLastUsedAt().isBefore(now.minus(LAST_USED_WRITE_INTERVAL))) {
+            integrationClientRepository.touchLastUsedAt(client.getId(), now, now.minus(LAST_USED_WRITE_INTERVAL));
+            client.setLastUsedAt(now);
+        }
     }
 }

@@ -20,13 +20,16 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.export.application.dto.ExportJobFilterRequest;
 import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.export.application.exception.ExportJobNotFoundException;
+import uz.uzinfocom.app.platform.export.application.exception.ExportLimitExceededException;
 import uz.uzinfocom.app.platform.export.application.exception.ExportNotReadyException;
 import uz.uzinfocom.app.platform.export.application.exception.ExportTooLargeException;
+import uz.uzinfocom.app.platform.export.config.ExportExecutorConfig;
 import uz.uzinfocom.app.platform.export.config.ExportProperties;
 import uz.uzinfocom.app.platform.export.domain.ExportJob;
 import uz.uzinfocom.app.platform.export.domain.ExportStatus;
 import uz.uzinfocom.app.platform.export.domain.event.ExportJobCompletedEvent;
 import uz.uzinfocom.app.platform.export.repository.ExportJobRepository;
+import uz.uzinfocom.app.platform.persistence.audit.CurrentAuditContext;
 import uz.uzinfocom.app.shared.excel.ExcelColumn;
 import uz.uzinfocom.app.shared.excel.ExcelExportWriter;
 import uz.uzinfocom.app.shared.excel.ExcelRowWriter;
@@ -38,6 +41,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -54,8 +58,8 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Runs {@link ExcelExportSource} implementations as background jobs: counts matching rows
  * up front (rejecting anything past {@link ExportProperties#getMaxRows()} before queuing
- * any work), streams the export to a local file off the request thread via the app's shared
- * {@code applicationTaskExecutor}, tracks progress on the {@link ExportJob} row, and exposes
+ * any work), streams the export to a local file off the request thread via the dedicated,
+ * size-capped {@code exportTaskExecutor} (see {@link ExportExecutorConfig}), tracks progress on the {@link ExportJob} row, and exposes
  * that progress over SSE for the "my files" panel. See {@link ExcelExportSource} for how a
  * new module plugs into this without touching anything below.
  */
@@ -65,12 +69,13 @@ public class ExportJobService {
 
     private static final long PROGRESS_UPDATE_EVERY_N_ROWS = 500;
     private static final long SSE_TIMEOUT_MILLIS = 15 * 60 * 1000L;
+    private static final Duration ACTIVE_JOB_LOOKBACK = Duration.ofHours(2);
 
     private final ExportJobRepository exportJobRepository;
     private final ExcelExportWriter excelExportWriter;
     private final ExcelExportSettingsResolver excelExportSettingsResolver;
     private final ExportProperties exportProperties;
-    private final Executor applicationTaskExecutor;
+    private final Executor exportTaskExecutor;
     private final ScheduledExecutorService sseScheduler;
     private final TransactionTemplate requiresNewTransactionTemplate;
     private final ApplicationEventPublisher eventPublisher;
@@ -80,7 +85,7 @@ public class ExportJobService {
             ExcelExportWriter excelExportWriter,
             ExcelExportSettingsResolver excelExportSettingsResolver,
             ExportProperties exportProperties,
-            @Qualifier("applicationTaskExecutor") Executor applicationTaskExecutor,
+            @Qualifier(ExportExecutorConfig.EXPORT_TASK_EXECUTOR) Executor exportTaskExecutor,
             PlatformTransactionManager transactionManager,
             ApplicationEventPublisher eventPublisher
     ) {
@@ -88,7 +93,7 @@ public class ExportJobService {
         this.excelExportWriter = excelExportWriter;
         this.excelExportSettingsResolver = excelExportSettingsResolver;
         this.exportProperties = exportProperties;
-        this.applicationTaskExecutor = applicationTaskExecutor;
+        this.exportTaskExecutor = exportTaskExecutor;
         this.eventPublisher = eventPublisher;
         this.sseScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "export-progress-sse");
@@ -108,6 +113,7 @@ public class ExportJobService {
     }
 
     public <F, T> ExportJobResponse submit(ExcelExportSource<F, T> source, F filter) {
+        requireActiveJobBudget();
         long matchedRows = source.count(filter);
         if (matchedRows > exportProperties.getMaxRows()) {
             throw new ExportTooLargeException(matchedRows, exportProperties.getMaxRows());
@@ -125,7 +131,7 @@ public class ExportJobService {
         Runnable exportTask = withCallerContext(() -> runExport(jobId, source, filter));
 
         try {
-            applicationTaskExecutor.execute(exportTask);
+            exportTaskExecutor.execute(exportTask);
         } catch (RejectedExecutionException saturated) {
             log.error("event=export_job_rejected jobId={} exportType={}", jobId, source.exportType());
             failJob(jobId, "Export queue is saturated");
@@ -145,6 +151,7 @@ public class ExportJobService {
      * dependent column headers.
      */
     public <F> ExportJobResponse submitMultiSheet(MultiSheetExcelExportSource<F> source, F filter) {
+        requireActiveJobBudget();
         List<ExcelExportSheet<F>> sheets = source.sheets(filter);
         long matchedRows = sheets.stream().mapToLong(sheet -> sheet.count(filter)).sum();
         if (matchedRows > exportProperties.getMaxRows()) {
@@ -163,7 +170,7 @@ public class ExportJobService {
         Runnable exportTask = withCallerContext(() -> runMultiSheetExport(jobId, source, sheets, filter));
 
         try {
-            applicationTaskExecutor.execute(exportTask);
+            exportTaskExecutor.execute(exportTask);
         } catch (RejectedExecutionException saturated) {
             log.error("event=export_job_rejected jobId={} exportType={}", jobId, source.exportType());
             failJob(jobId, "Export queue is saturated");
@@ -174,10 +181,30 @@ public class ExportJobService {
     }
 
     /**
+     * Checked before the (potentially heavy) row count so one user can't queue an
+     * unbounded number of exports and crowd everyone else out of the export pool.
+     * Only recent jobs count, so a job orphaned in PENDING/PROCESSING by a restart
+     * stops blocking its owner after {@link #ACTIVE_JOB_LOOKBACK}.
+     */
+    private void requireActiveJobBudget() {
+        Long currentUserId = CurrentAuditContext.currentUserId();
+        if (currentUserId == null) {
+            return;
+        }
+        long active = exportJobRepository.countByCreatedByAndStatusInAndCreatedAtAfter(
+                currentUserId,
+                List.of(ExportStatus.PENDING, ExportStatus.PROCESSING),
+                Instant.now().minus(ACTIVE_JOB_LOOKBACK));
+        if (active >= exportProperties.getMaxActiveJobsPerUser()) {
+            throw new ExportLimitExceededException(exportProperties.getMaxActiveJobsPerUser());
+        }
+    }
+
+    /**
      * {@code runExport} re-resolves the caller's organization scope (and, for direction=ALL
      * exports, their super-admin authority) from scratch via the same
      * {@code resolveSpecification} the list endpoint uses - but it runs on an
-     * {@code applicationTaskExecutor} worker thread, not the original request thread, so the
+     * {@code exportTaskExecutor} worker thread, not the original request thread, so the
      * plain {@link CurrentOrganizationContext} ThreadLocal and Spring Security's
      * thread-local {@link SecurityContext} are both empty there by default. Captured here,
      * on the calling (request) thread where they're actually populated, and re-applied on

@@ -8,11 +8,13 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import uz.uzinfocom.app.platform.security.principal.IntegrationClientPrincipal;
 import uz.uzinfocom.app.platform.web.response.ErrorResponseWriter;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,11 +91,31 @@ class RateLimitFilterTest {
         verify(chain, times(5)).doFilter(any(), any());
     }
 
+    @Test
+    void chargesIntegrationApiCallsToTheIntegrationClient() throws Exception {
+        RateLimitFilter filter = filter(1);
+        FilterChain chain = mock(FilterChain.class);
+
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                new IntegrationClientPrincipal("lab-a", "LAB_A", 1L, UUID.randomUUID()), null, List.of()));
+        filter.doFilter(request("/integration/v1/LAB_A/form-058", "10.0.0.1"), new MockHttpServletResponse(), chain);
+        filter.doFilter(request("/integration/v1/LAB_A/form-058", "10.0.0.1"), new MockHttpServletResponse(), chain);
+
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                new IntegrationClientPrincipal("lab-b", "LAB_B", 2L, UUID.randomUUID()), null, List.of()));
+        filter.doFilter(request("/integration/v1/LAB_B/form-058", "10.0.0.1"), new MockHttpServletResponse(), chain);
+
+        verify(chain, times(2)).doFilter(any(), any());
+        verify(errorResponseWriter, times(1))
+                .write(any(), any(), eq(HttpStatus.TOO_MANY_REQUESTS), eq(ErrorCode.TOO_MANY_REQUESTS));
+    }
+
     private RateLimitFilter filter(int limit) {
         RateLimitProperties properties = new RateLimitProperties();
         properties.setAuth(new RateLimitProperties.Rule(limit, Duration.ofMinutes(1)));
         properties.setIntegrationToken(new RateLimitProperties.Rule(limit, Duration.ofMinutes(1)));
         properties.setIdentityLookup(new RateLimitProperties.Rule(limit, Duration.ofMinutes(1)));
+        properties.setIntegrationApi(new RateLimitProperties.Rule(limit, Duration.ofMinutes(1)));
         return new RateLimitFilter(properties, errorResponseWriter);
     }
 

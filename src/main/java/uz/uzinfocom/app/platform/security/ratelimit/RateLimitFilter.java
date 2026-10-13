@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uz.uzinfocom.app.platform.security.principal.IntegrationClientPrincipal;
 import uz.uzinfocom.app.platform.web.response.ErrorResponseWriter;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
@@ -44,6 +45,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Cache<String, AtomicInteger> authCounters;
     private final Cache<String, AtomicInteger> integrationTokenCounters;
     private final Cache<String, AtomicInteger> identityLookupCounters;
+    private final Cache<String, AtomicInteger> integrationApiCounters;
 
     public RateLimitFilter(RateLimitProperties properties, ErrorResponseWriter errorResponseWriter) {
         this.properties = properties;
@@ -51,6 +53,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.authCounters = counters(properties.getAuth());
         this.integrationTokenCounters = counters(properties.getIntegrationToken());
         this.identityLookupCounters = counters(properties.getIdentityLookup());
+        this.integrationApiCounters = counters(properties.getIntegrationApi());
     }
 
     @Override
@@ -80,6 +83,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (isUnder(path, ApiPaths.Citizen.ROOT) || isUnder(path, ApiPaths.LegalEntity.ROOT)) {
             if (!tryAcquire(identityLookupCounters, properties.getIdentityLookup(), callerKey(request), response)) {
                 reject(request, response, "identity-lookup");
+                return;
+            }
+        } else if (isUnder(path, ApiPaths.Integration.ROOT)) {
+            if (!tryAcquire(integrationApiCounters, properties.getIntegrationApi(), callerKey(request), response)) {
+                reject(request, response, "integration-api");
                 return;
             }
         }
@@ -123,6 +131,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (authentication != null
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
+            if (authentication.getPrincipal() instanceof IntegrationClientPrincipal client) {
+                return "client:" + client.clientId();
+            }
             return "user:" + authentication.getName();
         }
         return "ip:" + request.getRemoteAddr();

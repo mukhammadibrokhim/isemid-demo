@@ -26,4 +26,16 @@ public class ExportProperties {
 
     @NotBlank
     private String cleanupCron = "0 0 3 * * *";
+
+    /** Exports running at once, per instance - see {@code ExportExecutorConfig}. */
+    @Min(1)
+    private int maxConcurrentJobs = 3;
+
+    /** Exports waiting for a free worker before new submits are rejected. */
+    @Min(1)
+    private int maxQueuedJobs = 50;
+
+    /** PENDING + PROCESSING jobs one user may have at a time. */
+    @Min(1)
+    private int maxActiveJobsPerUser = 3;
 }

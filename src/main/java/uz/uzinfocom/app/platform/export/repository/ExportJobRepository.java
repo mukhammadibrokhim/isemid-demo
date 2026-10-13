@@ -8,6 +8,7 @@ import uz.uzinfocom.app.platform.export.domain.ExportJob;
 import uz.uzinfocom.app.platform.export.domain.ExportStatus;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +23,8 @@ public interface ExportJobRepository extends JpaRepository<ExportJob, Long> {
             @Param("exportType") String exportType,
             Pageable pageable
     );
+
+    long countByCreatedByAndStatusInAndCreatedAtAfter(Long createdBy, Collection<ExportStatus> statuses, Instant createdAfter);
 
     List<ExportJob> findByStatusAndCompletedAtBefore(ExportStatus status, Instant completedBefore);
 }

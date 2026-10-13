@@ -9,6 +9,7 @@ import uz.uzinfocom.app.orchestration.notification.domain.Notification;
 import uz.uzinfocom.app.orchestration.notification.domain.NotificationType;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +28,15 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             """)
     List<UnreadCountByType> countByRecipientUserIdAndReadFalseGroupedByType(@Param("recipientUserId") Long recipientUserId);
 
+    @Query("""
+            SELECT n.recipientUserId as recipientUserId, COUNT(n) as count
+            FROM Notification n
+            WHERE n.recipientUserId IN :recipientUserIds
+              AND n.read = false
+            GROUP BY n.recipientUserId
+            """)
+    List<UnreadCountByRecipient> countUnreadByRecipientUserIds(@Param("recipientUserIds") Collection<Long> recipientUserIds);
+
     @Modifying
     @Query("""
             UPDATE Notification n
@@ -35,6 +45,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
               AND n.read = false
             """)
     void markAllRead(@Param("recipientUserId") Long recipientUserId, @Param("readAt") Instant readAt);
+
+    interface UnreadCountByRecipient {
+        Long getRecipientUserId();
+
+        long getCount();
+    }
 
     interface UnreadCountByType {
         NotificationType getType();
