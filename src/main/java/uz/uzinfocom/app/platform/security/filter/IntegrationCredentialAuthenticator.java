@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.platform.security.filter;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,10 +37,21 @@ public class IntegrationCredentialAuthenticator {
     private final OrganizationRepository organizationRepository;
     private final IntegrationClientRepository integrationClientRepository;
 
+    /**
+     * An organization's UUID never changes, and {@code OrganizationContextFilter} already
+     * re-loads the full organization on every request - this lookup only needs the UUID
+     * for the principal, so it doesn't have to hit the DB a second time per request.
+     */
+    private final Cache<Long, UUID> organizationUuidById = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(30))
+            .maximumSize(10_000)
+            .build();
+
     public void authenticate(IntegrationClient client) {
-        UUID organizationUuid = organizationRepository.findById(client.getOrganizationId())
-                .orElseThrow(() -> new AccessDeniedException("organization.not_allowed"))
-                .getUuid();
+        UUID organizationUuid = organizationUuidById.get(client.getOrganizationId(), organizationId ->
+                organizationRepository.findById(organizationId)
+                        .orElseThrow(() -> new AccessDeniedException("organization.not_allowed"))
+                        .getUuid());
 
         IntegrationClientPrincipal principal = new IntegrationClientPrincipal(
                 client.getClientId(), client.getSourceKey(), client.getOrganizationId(), organizationUuid);

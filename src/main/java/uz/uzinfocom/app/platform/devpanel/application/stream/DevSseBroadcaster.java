@@ -20,14 +20,32 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class DevSseBroadcaster {
 
+    /**
+     * The dev panel has a handful of operators; anything past this is a leak or abuse,
+     * and every extra emitter costs one Tomcat connection plus a send per broadcast.
+     * The oldest connection is closed to make room.
+     */
+    private static final int MAX_EMITTERS = 50;
+
+    /** Finite, so a client that vanished without a TCP reset is eventually released; the panel reconnects. */
+    private static final long EMITTER_TIMEOUT_MILLIS = 60 * 60 * 1000L;
+
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     public SseEmitter register() {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        SseEmitter emitter = new SseEmitter(EMITTER_TIMEOUT_MILLIS);
         emitter.onCompletion(() -> emitters.remove(emitter));
-        emitter.onTimeout(() -> emitters.remove(emitter));
+        emitter.onTimeout(() -> {
+            emitters.remove(emitter);
+            emitter.complete();
+        });
         emitter.onError(throwable -> emitters.remove(emitter));
         emitters.add(emitter);
+
+        while (emitters.size() > MAX_EMITTERS) {
+            SseEmitter oldest = emitters.removeFirst();
+            oldest.complete();
+        }
         return emitter;
     }
 

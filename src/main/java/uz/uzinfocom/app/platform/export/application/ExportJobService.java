@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.platform.export.application;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,13 +46,17 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -59,8 +64,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * Runs {@link ExcelExportSource} implementations as background jobs: counts matching rows
  * up front (rejecting anything past {@link ExportProperties#getMaxRows()} before queuing
  * any work), streams the export to a local file off the request thread via the dedicated,
- * size-capped {@code exportTaskExecutor} (see {@link ExportExecutorConfig}), tracks progress on the {@link ExportJob} row, and exposes
- * that progress over SSE for the "my files" panel. See {@link ExcelExportSource} for how a
+ * size-capped {@code exportTaskExecutor} (see {@link ExportExecutorConfig}), tracks progress
+ * on the {@link ExportJob} row, and exposes that progress over SSE for the "my files" panel. See {@link ExcelExportSource} for how a
  * new module plugs into this without touching anything below.
  */
 @Slf4j
@@ -70,6 +75,9 @@ public class ExportJobService {
     private static final long PROGRESS_UPDATE_EVERY_N_ROWS = 500;
     private static final long SSE_TIMEOUT_MILLIS = 15 * 60 * 1000L;
     private static final Duration ACTIVE_JOB_LOOKBACK = Duration.ofHours(2);
+    private static final long PROGRESS_TICK_MILLIS = 1_000L;
+    private static final long SSE_HEARTBEAT_INTERVAL_MILLIS = 25_000L;
+    private static final int MAX_STREAMS_PER_JOB = 3;
 
     private final ExportJobRepository exportJobRepository;
     private final ExcelExportWriter excelExportWriter;
@@ -79,6 +87,8 @@ public class ExportJobService {
     private final ScheduledExecutorService sseScheduler;
     private final TransactionTemplate requiresNewTransactionTemplate;
     private final ApplicationEventPublisher eventPublisher;
+    private final Map<Long, ProgressSubscription> progressSubscriptions = new ConcurrentHashMap<>();
+    private long lastProgressHeartbeatAt = System.currentTimeMillis();
 
     public ExportJobService(
             ExportJobRepository exportJobRepository,
@@ -100,6 +110,8 @@ public class ExportJobService {
             thread.setDaemon(true);
             return thread;
         });
+        this.sseScheduler.scheduleWithFixedDelay(
+                this::progressTick, PROGRESS_TICK_MILLIS, PROGRESS_TICK_MILLIS, TimeUnit.MILLISECONDS);
 
         // Progress updates are written while the exporting ExcelExportSource's own
         // read-only transaction is still open on the same thread (see forEachRow's
@@ -382,46 +394,141 @@ public class ExportJobService {
         return page.map(this::toResponse);
     }
 
+    /**
+     * Registers the emitter with the shared progress tick instead of giving every open
+     * stream its own once-a-second {@code findById} - with many users watching exports
+     * that was one query per stream per second. A job that is already finished gets
+     * its final state once and the stream closes; each job keeps at most
+     * {@link #MAX_STREAMS_PER_JOB} listeners (oldest closed first), and since only a
+     * user's own unfinished jobs are streamable (capped by
+     * {@code app.export.max-active-jobs-per-user}), streams per user stay bounded too.
+     */
     public SseEmitter streamProgress(Long jobId, Long currentUserId) {
         ExportJob job = exportJobRepository.findByIdAndCreatedBy(jobId, currentUserId)
                 .orElseThrow(() -> new ExportJobNotFoundException(jobId));
 
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MILLIS);
-        ScheduledFuture<?>[] futureHolder = new ScheduledFuture<?>[1];
+        ExportJobResponse current = toResponse(job);
 
-        futureHolder[0] = sseScheduler.scheduleAtFixedRate(
-                () -> pushProgress(job.getId(), emitter),
-                0, 1, TimeUnit.SECONDS
-        );
+        if (job.isTerminal()) {
+            sseScheduler.execute(() -> {
+                sendProgress(emitter, current);
+                emitter.complete();
+            });
+            return emitter;
+        }
 
-        emitter.onCompletion(() -> futureHolder[0].cancel(false));
+        SseEmitter[] evicted = new SseEmitter[1];
+        progressSubscriptions.compute(jobId, (id, subscription) -> {
+            ProgressSubscription target = subscription != null ? subscription : new ProgressSubscription();
+            target.emitters.addLast(emitter);
+            if (target.emitters.size() > MAX_STREAMS_PER_JOB) {
+                evicted[0] = target.emitters.pollFirst();
+            }
+            return target;
+        });
+
+        emitter.onCompletion(() -> unregisterProgress(jobId, emitter));
         emitter.onTimeout(() -> {
-            futureHolder[0].cancel(false);
+            unregisterProgress(jobId, emitter);
             emitter.complete();
         });
-        emitter.onError(exception -> futureHolder[0].cancel(false));
+        emitter.onError(exception -> unregisterProgress(jobId, emitter));
 
+        if (evicted[0] != null) {
+            evicted[0].complete();
+        }
+
+        sseScheduler.execute(() -> sendProgress(emitter, current));
         return emitter;
     }
 
-    private void pushProgress(Long jobId, SseEmitter emitter) {
-        exportJobRepository.findById(jobId).ifPresentOrElse(job -> {
-            try {
-                emitter.send(SseEmitter.event().name("progress").data(toResponse(job)));
-                if (job.isTerminal()) {
-                    emitter.complete();
-                }
-            } catch (IOException | IllegalStateException clientGone) {
-                // The listener (browser tab closed, network drop, emitter already timed out,
-                // etc.) is simply no longer there - a routine disconnect, not a server error.
-                // completeWithError() would hand this exception to Spring MVC's normal
-                // error-response machinery, which then fails trying to write a JSON
-                // ErrorResponse body onto a response already committed as
-                // text/event-stream ("No converter for ... with preset Content-Type
-                // 'text/event-stream'") - so this just stops quietly instead.
-                emitter.complete();
+    @PreDestroy
+    void shutdownProgressStreams() {
+        sseScheduler.shutdownNow();
+    }
+
+    private void unregisterProgress(Long jobId, SseEmitter emitter) {
+        progressSubscriptions.computeIfPresent(jobId, (id, subscription) -> {
+            subscription.emitters.remove(emitter);
+            return subscription.emitters.isEmpty() ? null : subscription;
+        });
+    }
+
+    /**
+     * One {@code findAllById} for every watched job per tick; a job's listeners only get
+     * an event when its progress actually changed. Must never throw - an exception
+     * escaping a {@code scheduleWithFixedDelay} task cancels every future run.
+     */
+    private void progressTick() {
+        try {
+            if (progressSubscriptions.isEmpty()) {
+                return;
             }
-        }, emitter::complete);
+
+            Map<Long, ExportJob> jobsById = new HashMap<>();
+            for (ExportJob job : exportJobRepository.findAllById(new ArrayList<>(progressSubscriptions.keySet()))) {
+                jobsById.put(job.getId(), job);
+            }
+
+            long now = System.currentTimeMillis();
+            boolean heartbeatDue = now - lastProgressHeartbeatAt >= SSE_HEARTBEAT_INTERVAL_MILLIS;
+            if (heartbeatDue) {
+                lastProgressHeartbeatAt = now;
+            }
+
+            for (Map.Entry<Long, ProgressSubscription> entry : progressSubscriptions.entrySet()) {
+                ProgressSubscription subscription = entry.getValue();
+                ExportJob job = jobsById.get(entry.getKey());
+
+                if (job == null) {
+                    subscription.emitters.forEach(SseEmitter::complete);
+                    continue;
+                }
+
+                ExportJobResponse response = toResponse(job);
+                if (!response.equals(subscription.lastSent)) {
+                    subscription.lastSent = response;
+                    subscription.emitters.forEach(emitter -> sendProgress(emitter, response));
+                } else if (heartbeatDue) {
+                    subscription.emitters.forEach(this::sendHeartbeat);
+                }
+
+                if (job.isTerminal()) {
+                    subscription.emitters.forEach(SseEmitter::complete);
+                }
+            }
+        } catch (RuntimeException exception) {
+            log.warn("event=export_progress_tick_failed watchedJobs={}", progressSubscriptions.size(), exception);
+        }
+    }
+
+    private void sendHeartbeat(SseEmitter emitter) {
+        try {
+            emitter.send(SseEmitter.event().comment("keep-alive"));
+        } catch (IOException | IllegalStateException clientGone) {
+            emitter.complete();
+        }
+    }
+
+    private static final class ProgressSubscription {
+        private final Deque<SseEmitter> emitters = new ConcurrentLinkedDeque<>();
+        private volatile ExportJobResponse lastSent;
+    }
+
+    private void sendProgress(SseEmitter emitter, ExportJobResponse response) {
+        try {
+            emitter.send(SseEmitter.event().name("progress").data(response));
+        } catch (IOException | IllegalStateException clientGone) {
+            // The listener (browser tab closed, network drop, emitter already timed out,
+            // etc.) is simply no longer there - a routine disconnect, not a server error.
+            // completeWithError() would hand this exception to Spring MVC's normal
+            // error-response machinery, which then fails trying to write a JSON
+            // ErrorResponse body onto a response already committed as
+            // text/event-stream ("No converter for ... with preset Content-Type
+            // 'text/event-stream'") - so this just stops quietly instead.
+            emitter.complete();
+        }
     }
 
     public Path resolveDownloadable(Long jobId, Long currentUserId) {

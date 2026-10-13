@@ -146,6 +146,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>42.7.14</version>
             <scope>runtime</scope>
         </dependency>
         <!--
@@ -178,7 +179,6 @@
             <groupId>me.paulschwarz</groupId>
             <artifactId>springboot4-dotenv</artifactId>
             <version>5.1.0</version>
-            <optional>true</optional>
         </dependency>
 
         <!-- Annotation processors -->
