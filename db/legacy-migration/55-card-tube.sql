@@ -64,7 +64,7 @@ JOIN public2.card c ON c.id = l.id;
 
 -- legacy-only (drop): unit_in_dose
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'card_tube', l.id, 'target''da ustun yo''q — tashlandi', 'unit_in_dose='||l.unit_in_dose
+SELECT 'card_tube', l.id, 'no column in target - dropped', 'unit_in_dose='||l.unit_in_dose
 FROM public.card_tube l
 JOIN public2.card_tube x ON x.id = l.id
 WHERE l.unit_in_dose IS NOT NULL;

@@ -53,13 +53,13 @@ FROM public.card c;
 
 -- note-log: sentinel/derive ishlatilган qatorlar
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'card', c.id, 'sentinel/derive ishlatildi',
+SELECT 'card', c.id, 'sentinel/derive used',
        concat_ws('; ',
          CASE WHEN c.created_org_uuid IS NULL THEN 'created_org_uuid -> form/sentinel' END,
-         CASE WHEN c.card_type IS NULL THEN 'card_type subtype''dan aniqlandi' END,
+         CASE WHEN c.card_type IS NULL THEN 'card_type derived from subtype' END,
          CASE WHEN c.status IS NULL THEN 'status -> NEW' END,
-         CASE WHEN c.form058_id IS NULL AND c.form058_1_id IS NOT NULL THEN 'form058_1 ga bog''landi' END,
-         CASE WHEN c.form058_id IS NULL AND c.form058_1_id IS NULL THEN 'formaga bog''lanmagan -> sentinel form058(0)' END,
+         CASE WHEN c.form058_id IS NULL AND c.form058_1_id IS NOT NULL THEN 'linked to form058_1' END,
+         CASE WHEN c.form058_id IS NULL AND c.form058_1_id IS NULL THEN 'formaga bog''unlinked -> sentinel form058(0)' END,
          CASE WHEN c.form058_id IS NOT NULL AND c.form058_1_id IS NOT NULL THEN 'ikkala form ham bor edi -> form058 saqlandi' END
        )
 FROM public.card c

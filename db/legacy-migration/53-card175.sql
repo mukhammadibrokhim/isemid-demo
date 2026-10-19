@@ -61,10 +61,10 @@ LEFT JOIN public2.form058 f ON f.id = c.form058_id;
 
 -- legacy-only (drop): animal_diagnosis_code, primary_diagnosis (erkin matn)
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'card175', l.id, 'target''da ustun yo''q — tashlandi',
+SELECT 'card175', l.id, 'no column in target - dropped',
        concat_ws('; ',
-         CASE WHEN l.animal_diagnosis_code IS NOT NULL THEN 'animal_diagnosis_code' END,
-         CASE WHEN l.primary_diagnosis IS NOT NULL THEN 'primary_diagnosis (erkin matn)' END)
+         CASE WHEN l.animal_diagnosis_code IS NOT NULL THEN 'animal_diagnosis_code='||l.animal_diagnosis_code END,
+         CASE WHEN l.primary_diagnosis IS NOT NULL THEN 'primary_diagnosis='||l.primary_diagnosis END)
 FROM public.card175 l
 JOIN public2.card175 x ON x.id = l.id
 WHERE l.animal_diagnosis_code IS NOT NULL OR l.primary_diagnosis IS NOT NULL;

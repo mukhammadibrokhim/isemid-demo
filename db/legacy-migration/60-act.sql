@@ -41,13 +41,17 @@ SELECT
         WHEN 'ACT_ATTACHED' THEN 'COMPLETED'
         ELSE 'NEW'
     END,
-    left(l.act_type, 50),
+    -- ACT155 target'da yo'q (2026-08-24): ACT154 ga aylantiriladi, detali 61-act-subtypes da act154 ga ko'chadi
+    CASE WHEN l.act_type = 'ACT155' THEN 'ACT154' ELSE left(l.act_type, 50) END,
     (SELECT c.id FROM public2.card c WHERE c.id = l.card_id),   -- yetim -> NULL
     NULL, NULL,
     -- subject_type = SubjectType enum; noma'lum qiymat entity yuklanishini yiqitadi -> NULL (+ note, pastda)
     CASE WHEN l.subject_type IN ('LEGAL_ENTITY', 'GEOGRAPHIC_POINT', 'PHYSICAL_PERSON') THEN l.subject_type END,
-    l.tin::text,   -- act.tin 2026-09-29 dan VARCHAR
-    l.institution_name, l.institution_address, l.institution_legal_address,
+    -- subject_* (legacy act'ning yangi variantida) -> tin / institution_* (asosiy qiymat ustun)
+    COALESCE(l.tin::text, to_jsonb(l)->>'subject_tin'),
+    COALESCE(l.institution_name, to_jsonb(l)->>'subject_legal_name'),
+    COALESCE(l.institution_address, to_jsonb(l)->>'subject_actual_address'),
+    COALESCE(l.institution_legal_address, to_jsonb(l)->>'subject_legal_address'),
     COALESCE(l.lis_attempt, 0),
     l.lis_sent_date,
     l.lis_act_id,
@@ -58,21 +62,21 @@ SELECT
     false, NULL, NULL, NULL
 FROM public.act l;
 
--- ACT155: bazaviy qator ko'chdi, subtype detali yo'q
+-- ACT155: ACT154 ga aylantirildi (detali 61-act-subtypes da act154/act154_detail ga)
 INSERT INTO public2._migration_notes (source_table, source_id, note)
-SELECT 'act', l.id, 'ACT155: bazaviy qator ko''chdi, act155/act155_detail detali target''da yo''q'
+SELECT 'act', l.id, 'ACT155 converted to ACT154 (act155/act155_detail migrated in 61-act-subtypes)'
 FROM public.act l WHERE l.act_type = 'ACT155';
 
 -- subject_type enum'da yo'q -> NULL qilindi
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'act', l.id, 'subject_type SubjectType enum''da yo''q -> NULL', l.subject_type
+SELECT 'act', l.id, 'subject_type not in SubjectType enum -> NULL', l.subject_type
 FROM public.act l
 WHERE l.subject_type IS NOT NULL
   AND l.subject_type NOT IN ('LEGAL_ENTITY', 'GEOGRAPHIC_POINT', 'PHYSICAL_PERSON');
 
 -- sentinel org ishlatilган
 INSERT INTO public2._migration_notes (source_table, source_id, note)
-SELECT 'act', l.id, 'created_org_uuid bo''sh -> card/sentinel org'
+SELECT 'act', l.id, 'created_org_uuid empty -> card/sentinel org'
 FROM public.act l
 WHERE l.created_org_uuid IS NULL;
 

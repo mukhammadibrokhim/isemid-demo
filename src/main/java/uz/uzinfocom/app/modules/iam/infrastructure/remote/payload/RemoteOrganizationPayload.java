@@ -6,8 +6,10 @@ import org.springframework.util.StringUtils;
 import tools.jackson.databind.JsonNode;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record RemoteOrganizationPayload(
@@ -148,22 +150,22 @@ public record RemoteOrganizationPayload(
      * default name at read time, so no fallback is needed at sync time.
      */
     public String nameUz() {
-        return aliasByLanguage("uz")
+        return aliasByLanguage(item -> "uz".equals(canonicalLanguage(item)))
                 .orElse(null);
     }
 
     public String nameRu() {
-        return aliasByLanguage("ru")
+        return aliasByLanguage(item -> "ru".equals(canonicalLanguage(item)))
                 .orElse(null);
     }
 
     public String nameUzCyril() {
-        return aliasByLanguage("uz-Cyrl")
+        return aliasByLanguage(item -> "uz-cyrl".equals(canonicalLanguage(item)))
                 .orElse(null);
     }
 
     public String nameKaa() {
-        return aliasByLanguage("kaa")
+        return aliasByLanguage(item -> "kaa".equals(canonicalLanguage(item)))
                 .orElse(null);
     }
 
@@ -200,15 +202,43 @@ public record RemoteOrganizationPayload(
                 .findFirst();
     }
 
-    private Optional<String> aliasByLanguage(String language) {
+    private Optional<String> aliasByLanguage(Predicate<String> languageMatches) {
         if (alias == null || alias.isEmpty()) {
             return Optional.empty();
         }
 
         return alias.stream()
-                .filter(item -> RemotePayloadSupport.equalsAnyIgnoreCase(item.language(), language))
+                .filter(item -> languageMatches.test(item.language()))
                 .map(RemoteAliasPayload::value)
                 .filter(StringUtils::hasText)
                 .findFirst();
+    }
+
+    /**
+     * Collapses the language tags the remote may send for an alias
+     * ("uz", "uz-Latn", "uz-UZ", "uz_Cyrl", "uz-Cyrillic", "oz", "ru-RU",
+     * "kaa-Latn", ...) into one of "uz" (Latin), "uz-cyrl", "ru", "kaa";
+     * anything else comes back lower-cased as-is.
+     */
+    private static String canonicalLanguage(String language) {
+        if (!StringUtils.hasText(language)) {
+            return "";
+        }
+
+        String tag = language.trim().toLowerCase(Locale.ROOT).replace('_', '-');
+
+        if (tag.equals("oz") || tag.startsWith("uz-cyr") || tag.startsWith("oz-")) {
+            return "uz-cyrl";
+        }
+        if (tag.equals("uz") || tag.startsWith("uz-")) {
+            return "uz";
+        }
+        if (tag.equals("ru") || tag.startsWith("ru-")) {
+            return "ru";
+        }
+        if (tag.equals("kaa") || tag.startsWith("kaa-")) {
+            return "kaa";
+        }
+        return tag;
     }
 }

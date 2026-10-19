@@ -1,7 +1,8 @@
 # Legacy `public` → yangi `public2`: ko'chirish mapping'i — umumiy qism
 
-**Holat:** Phase 1 — mapping loyihasi. Kod YOZILMAGAN. Bu hujjatlar tasdiqlanгач
-`db/legacy-migration/*.sql` yoziladi.
+**Holat:** skriptlar YOZILGAN: `db/legacy-migration/*.sql` (oxirgi yangilanish 2026-10-08).
+Bu hujjat dastlabki (2026-08-27) mapping loyihasi; amaldagi qarorlar uchun `01-decisions-locked.md`,
+`db/legacy-migration/README.md` va `GUIDE.md` ga qarang. Quyidagi ayrim qarorlar keyin o'zgargan.
 
 **Manba:** `localhost:5432/isemid`, `public` schema (eski struktura, `ddl-auto=update`,
 `databasechangelog` — eski loyihaники, yangisiga aloqasiz).
@@ -29,12 +30,12 @@ tayanch jadvallar (organization, users, patient, pt_*) ni qamrаб oladi.
 | **form058.source** | Yangi NOT NULL. **Legacy `public.form058` da `source` (yoki YKEM/DMED) ustuni UMUMAN YO'Q** (to'liq ustun ro'yxati tekshirildi). Shu sabab barcha ko'chirilган qatorlar → `'MANUAL'`. (Yangi `Form058SourceResolver` hozircha faqat `MANUAL` ni ruxsat etadi; `DMED` keyin qo'shiladi.) ⚠️ agar YKEM/DMED farqi boshqa yo'l bilan (masalan `created_by` user tashkiloti) aniqlanadigan bo'lsa — ayting. |
 | **form058.has_linked_cards** | Hisoblanadi: `EXISTS (SELECT 1 FROM public.card c WHERE c.form058_id = f.id)` → `true`, aks holda `false`. |
 | **form058.status** | ✅ `NEW→SENT`, `SENT→SENT`, `RECEIVED→ACCEPTED`, `APPROVED_PENDING→ACCEPTED`, `CARD_LINKED→CARD_LINKED`, `APPROVED→APPROVED`, `CANCELED→CANCELED`, `NOT_APPROVED→CANCELED`. |
-| **form058_1** | Legacy'dan **ko'chirilmaydi**. Barcha migratsiya qilingan `card` lar `form058_id` bilan bog'lanadi, `form058_1_id = NULL`. |
+| **form058_1** | ~~Ko'chirilmaydi~~ **BEKOR (keyin o'zgargan):** `45-form058-1.sql` form058_1 + fm0581_animal_owner + fm0581_bitten_person ni ko'chiradi ("hech narsa yo'qolmasin"). |
 | **act ↔ card** | Legacy `act.card_id` to'g'ri — yangi sxemada ham `act.card_id`. To'g'ridan-to'g'ri ko'chiriladi. |
 | **act.status** | ✅ `NEW→NEW`, `IN_PROGRESS→IN_PROGRESS`, `COMPLETED→COMPLETED`, `NOT_VIEWED→NEW`, `ACT_ATTACHED→COMPLETED`. |
 | **user_roles** | ✅ Ixtiyoriy — SSO token ma'lumotiga qarab rol avtomatik biriktiriladi. Ko'chirilsa: legacy↔yangi `role.name` bo'yicha crosswalk, mos kelmasa qator tashlanadi. Ko'chirmasa ham bo'ladi. |
 | **act155 / act155_detail** | Legacy qatorlar **ko'chirilmaydi** (yangi sxemada jadval yo'q). `act` dan ham `act_type='ACT155'` qatorlari tashlanadi. |
-| **act.subject_type / institution_* / lis_*** | Legacy'da manba yo'q → `NULL` qoldiriladi (yoki DDL default). |
+| **act.subject_type / institution_* / lis_*** | `subject_type`/`tin`/`institution_*` legacy'dan ko'chiriladi (2026-09-29 act subject refaktori: act156/act224 dublikat ustunlari bazaviy `act` ga yig'iladi, `61-act-subtypes.sql`). `lis_*` legacy'da manba bo'lsa ko'chiriladi. |
 | **users.password** | **Ko'chirilmaydi** (yangi tizim SSO/JWT). |
 
 Hal qilinishi kerak bo'lganlar `⚠️ QAROR` deb belgilanган — har hujjat oxirида ro'yxat bor.

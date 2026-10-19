@@ -48,6 +48,15 @@ SELECT
     'sso'
 FROM public.organization o;
 
+-- target'da ustuni yo'q: email, service_area_code -> qiymatlari log'ga (yo'qolmasin)
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'organization', o.id, 'no column in target - value recorded',
+       concat_ws('; ',
+         CASE WHEN o.email IS NOT NULL THEN 'email='||o.email END,
+         CASE WHEN o.service_area_code IS NOT NULL THEN 'service_area_code='||o.service_area_code END)
+FROM public.organization o
+WHERE o.email IS NOT NULL OR o.service_area_code IS NOT NULL;
+
 -- parent_id (self-FK) — endi barcha qatorlar bor
 UPDATE public2.organization t
 SET    parent_id = o.parent_id

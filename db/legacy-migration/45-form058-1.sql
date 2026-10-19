@@ -79,11 +79,11 @@ LEFT JOIN public.fm0581_animal_owner ao ON ao.id = l.animal_owner_id;
 
 -- fm0581_animal_owner.med_record_id / form058_1.med_record_id — target'da yo'q -> qayd
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'form058_1', l.id, 'target''da ustun yo''q — tashlandi', 'med_record_id='||l.med_record_id
+SELECT 'form058_1', l.id, 'no column in target - dropped', 'med_record_id='||l.med_record_id
 FROM public.form058_1 l WHERE l.med_record_id IS NOT NULL;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'form058_1', l.id, 'sentinel/fallback ishlatildi',
+SELECT 'form058_1', l.id, 'sentinel/fallback used',
        concat_ws('; ',
          CASE WHEN l.created_org_uuid IS NULL THEN 'created_org_uuid -> sentinel' END,
          CASE WHEN l.mkb10code IS NULL OR l.mkb10name IS NULL THEN 'icd10 -> ''—''' END,

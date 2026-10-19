@@ -98,12 +98,12 @@ FROM src e;
 -- allaqachon 30-patient.sql orqali ko'chirilgan) - shu note bu yerda faqat
 -- form058'ning o'z majburiy maydonlari (icd10/org/sanalar) haqida.
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'form058', f.id, 'sentinel/fallback ishlatildi',
+SELECT 'form058', f.id, 'sentinel/fallback used',
        concat_ws('; ',
-         CASE WHEN f.mkb10code IS NULL OR f.mkb10name IS NULL THEN 'icd10 bo''sh -> ''—''' END,
-         CASE WHEN f.sender_organization_id IS NULL THEN 'sender_org bo''sh -> 0' END,
-         CASE WHEN f.receiver_organization_id IS NULL THEN 'receiver_org bo''sh -> 0' END,
-         CASE WHEN COALESCE(f.disease_date,f.first_visit_date,f.visit_date) IS NULL THEN 'sanalar bo''sh -> created_at' END
+         CASE WHEN f.mkb10code IS NULL OR f.mkb10name IS NULL THEN 'icd10 empty -> placeholder' END,
+         CASE WHEN f.sender_organization_id IS NULL THEN 'sender_org empty -> 0' END,
+         CASE WHEN f.receiver_organization_id IS NULL THEN 'receiver_org empty -> 0' END,
+         CASE WHEN COALESCE(f.disease_date,f.first_visit_date,f.visit_date) IS NULL THEN 'dates empty -> created_at' END
        )
 FROM public.form058 f
 WHERE f.mkb10code IS NULL OR f.mkb10name IS NULL

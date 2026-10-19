@@ -41,15 +41,15 @@ BEGIN
   LOOP
     v_seq := pg_get_serial_sequence(format('public2.%I', r.tbl), r.col);
     EXECUTE format('SELECT COALESCE(max(%I), 0) FROM public2.%I', r.col, r.tbl) INTO v_max;
-    -- rows bor bo'lsa: is_called=true, keyingi nextval = v_max+1
-    -- rows yo'q bo'lsa: is_called=false, keyingi nextval = 1
+    -- rows bor bo'lsa: is_called=true, next nextval = v_max+1
+    -- rows yo'q bo'lsa: is_called=false, next nextval = 1
     PERFORM setval(v_seq, GREATEST(v_max, 1), v_max > 0);
     v_newval := GREATEST(v_max, 1);
-    RAISE NOTICE '% . % -> seq %  (max_id=%, keyingi nextval=%)',
+    RAISE NOTICE '% . % -> seq %  (max_id=%, next nextval=%)',
       r.tbl, r.col, v_seq, v_max, CASE WHEN v_max > 0 THEN v_max + 1 ELSE 1 END;
   END LOOP;
 END $$;
 
 COMMIT;
 
-\echo '95-fix-sequences OK — endi ilova INSERT lari to''qnashmasligi kerak'
+\echo '95-fix-sequences OK - application INSERTs should no longer collide'

@@ -40,6 +40,15 @@ SELECT
     u.uuid
 FROM public.users u;
 
+-- target'da ustuni yo'q: position_code, ppn -> qiymatlari log'ga (yo'qolmasin)
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'users', u.id, 'no column in target - value recorded',
+       concat_ws('; ',
+         CASE WHEN u.position_code IS NOT NULL THEN 'position_code='||u.position_code END,
+         CASE WHEN u.ppn IS NOT NULL THEN 'ppn='||u.ppn END)
+FROM public.users u
+WHERE u.position_code IS NOT NULL OR u.ppn IS NOT NULL;
+
 -- ---- users_organizations (1:1) --------------------------------------
 INSERT INTO public2.users_organizations (user_id, organization_id)
 SELECT uo.user_id, uo.organization_id

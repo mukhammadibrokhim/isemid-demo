@@ -45,7 +45,7 @@ FROM public.pt_address a
 JOIN public.patient p ON p.id = a.patient_id;   -- yetim manzil skip (patient_id NN)
 
 INSERT INTO public2._migration_notes (source_table, source_id, note)
-SELECT 'pt_address', a.id, 'patient_id yetim (public.patient da yo''q)'
+SELECT 'pt_address', a.id, 'orphan patient_id (not in public.patient)'
 FROM public.pt_address a
 LEFT JOIN public.patient p ON p.id = a.patient_id
 WHERE p.id IS NULL;
@@ -69,7 +69,7 @@ FROM public.pt_affiliation f
 JOIN public.patient p ON p.id = f.patient_id;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note)
-SELECT 'pt_affiliation', f.id, 'patient_id yetim'
+SELECT 'pt_affiliation', f.id, 'orphan patient_id'
 FROM public.pt_affiliation f
 LEFT JOIN public.patient p ON p.id = f.patient_id
 WHERE p.id IS NULL;
@@ -122,13 +122,13 @@ JOIN public.patient p ON p.id = i.patient_id;
 -- type_code o'girish xulosasi — legacy kod -> yangi kod, qator soni
 INSERT INTO public2._migration_notes (source_table, note, details)
 SELECT 'pt_identifier', 'type_code mapping',
-       COALESCE(src_type, 'NULL') || ' -> ' || norm_type || ' (' || count(*) || ' qator)'
+       COALESCE(src_type, 'NULL') || ' -> ' || norm_type || ' (' || count(*) || ' rows)'
 FROM _pt_ident_norm
 GROUP BY src_type, norm_type;
 
 -- ref_catalog (IDENTIFIER_TYPE) da yo'q qolgan type_code'lar — turi bo'yicha bitta qayd
 INSERT INTO public2._migration_notes (source_table, note, details)
-SELECT 'pt_identifier', 'type_code ref_catalog IDENTIFIER_TYPE da yo''q', t.type_code || ' (' || t.cnt || ' qator)'
+SELECT 'pt_identifier', 'type_code missing in ref_catalog IDENTIFIER_TYPE', t.type_code || ' (' || t.cnt || ' rows)'
 FROM (
     SELECT i.type_code, count(*) AS cnt
     FROM public2.pt_identifier i
@@ -146,7 +146,7 @@ FROM _pt_ident_norm n
 WHERE n.norm_type = 'NNUZB' AND n.norm_value !~ '^[0-9]{14}$';
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'pt_identifier', n.id, 'value bo''sh — ''—'' qo''yildi', n.src_value
+SELECT 'pt_identifier', n.id, 'value empty - ''-'' placeholder used', n.src_value
 FROM _pt_ident_norm n
 WHERE COALESCE(n.norm_value, '') = '';
 
@@ -161,7 +161,7 @@ FROM _pt_ident_norm n
 WHERE length(n.norm_type) > 30;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note)
-SELECT 'pt_identifier', i.id, 'patient_id yetim (public.patient da yo''q)'
+SELECT 'pt_identifier', i.id, 'orphan patient_id (not in public.patient)'
 FROM public.pt_identifier i
 LEFT JOIN public.patient p ON p.id = i.patient_id
 WHERE p.id IS NULL;

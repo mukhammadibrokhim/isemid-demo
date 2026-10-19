@@ -84,4 +84,4 @@ INSERT INTO public2.organization (
 
 COMMIT;
 
-\echo '00-prep OK — note-log tayyor, target tozalandi, sentinel organization(id=0) yaratildi'
+\echo '00-prep OK - note log ready, target cleaned, sentinel organization(id=0) created'

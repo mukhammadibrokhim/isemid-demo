@@ -42,6 +42,7 @@ FILES=(
   60-act.sql
   61-act-subtypes.sql
   90-finalize.sql
+  97-backfill-form058-accept-approve-info.sql
 )
 
 cd "$(dirname "$0")"

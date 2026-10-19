@@ -22,7 +22,7 @@ cd db/legacy-migration
 PGPASSWORD=parol ./run.sh localhost 5434 isemid_test postgres 2>&1 | tee log.txt
 ```
 
-Fayllar tartibi: `00-prep -> 10 -> 20 -> 30 -> 40 -> 45 -> 50 -> 51..55 -> 60 -> 61 -> 90`.
+Fayllar tartibi: `00-prep -> 10 -> 20 -> 30 -> 40 -> 45 -> 50 -> 51..55 -> 60 -> 61 -> 90 -> 97`.
 Har biri bitta tranzaksiya. `00-prep` `public2` biznes jadvallarini TRUNCATE qiladi
 (qayta yugurtiriladi).
 

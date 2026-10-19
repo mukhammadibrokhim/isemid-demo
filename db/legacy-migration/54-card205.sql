@@ -57,7 +57,7 @@ FROM public.card205 l
 JOIN public2.card c ON c.id = l.id;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'card205', l.id, 'target''da ustun yo''q — tashlandi', 'vet_certificate_info'
+SELECT 'card205', l.id, 'no column in target - value recorded', 'vet_certificate_info='||l.vet_certificate_info
 FROM public.card205 l
 JOIN public2.card205 x ON x.id = l.id
 WHERE l.vet_certificate_info IS NOT NULL;

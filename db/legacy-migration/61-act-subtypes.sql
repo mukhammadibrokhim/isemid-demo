@@ -124,21 +124,176 @@ SELECT
 FROM public.act154_detail d
 JOIN public2.act154 p ON p.id = d.act154_id;
 
+-- ---- ACT155 -> ACT154 (act155 target'da yo'q; 60-act.sql turi ACT154 qildi) ----
+-- act155 maydonlari act154 ga: sampler_position -> sampler_position_uz, selected_date ->
+-- sample_taken_date_time; object_representative_* additional_info ga; detaldan
+-- manufacturer/laboratory/purpose (birinchi detal) act154 ga.
+INSERT INTO public2.act154 (
+    id, title, activity_type_code, sample_taken_date_time,
+    sampler_full_name, sampler_position_uz,
+    manufacturing_company, laboratory_address, lis_organization_id,
+    sampling_purpose_uz, sampling_purpose_loinc, additional_info
+)
+SELECT
+    l.id, left(l.title, 255), left(l.activity_type_code, 255), l.selected_date::timestamp,
+    l.sampler_full_name, left(l.sampler_position, 255),
+    left(d.manufacturer, 255), left(d.laboratory_address, 500), NULLIF(d.lis_organization_id, 0),
+    left(d.purpose_of_testing, 500), left(d.purpose_of_testing_loinc, 100),
+    NULLIF(concat_ws(' | ', NULLIF(l.additional_info, ''),
+        CASE WHEN l.object_representative_full_name IS NOT NULL OR l.object_representative_position IS NOT NULL
+             THEN 'Ob''ekt vakili: '||concat_ws(', ', l.object_representative_full_name, l.object_representative_position) END), '')
+FROM public.act155 l
+JOIN public2.act a ON a.id = l.id AND a.act_type = 'ACT154'
+LEFT JOIN LATERAL (SELECT * FROM public.act155_detail z WHERE z.act155_id = l.id ORDER BY z.id LIMIT 1) d ON true
+WHERE NOT EXISTS (SELECT 1 FROM public2.act154 x WHERE x.id = l.id);
+
+-- act155 subyekt bloki -> bazaviy act (bazaviy qiymat ustun)
+UPDATE public2.act a SET
+    tin                       = coalesce(a.tin, l.tin::text),
+    institution_name          = coalesce(a.institution_name, l.institution_name),
+    institution_address       = coalesce(a.institution_address, l.institution_address),
+    institution_legal_address = coalesce(a.institution_legal_address, l.institution_legal_address),
+    lis_act_id                = coalesce(a.lis_act_id, l.lis_act_id),
+    subject_type              = coalesce(a.subject_type,
+                                  CASE WHEN l.subject_type IN ('LEGAL_ENTITY', 'GEOGRAPHIC_POINT', 'PHYSICAL_PERSON')
+                                       THEN l.subject_type END)
+FROM public.act155 l
+WHERE a.id = l.id;
+
+-- act155_detail -> act154_detail (id: act154_detail dagi max(id) dan keyin; qolgan maydonlar sample_name/note ga)
+INSERT INTO public2.act154_detail (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act154_id,
+    sample_name, sample_qt_unit, note
+)
+SELECT
+    (SELECT coalesce(max(m.id), 0) FROM public2.act154_detail m) + row_number() OVER (ORDER BY d.id),
+    0,
+    coalesce(d.created_at, now())::timestamp AT TIME ZONE 'Asia/Tashkent', d.created_by_id,
+    coalesce(d.updated_at, d.created_at, now())::timestamp AT TIME ZONE 'Asia/Tashkent', d.updated_by_id,
+    coalesce(d.uuid, gen_random_uuid()), d.act155_id,
+    left(d.product_name, 255), NULL,
+    NULLIF(concat_ws('; ',
+        CASE WHEN d.manufacturer IS NOT NULL THEN 'Ishlab chiqaruvchi: '||d.manufacturer END,
+        CASE WHEN d.product_batch_quantity IS NOT NULL THEN 'Partiya miqdori: '||d.product_batch_quantity END,
+        CASE WHEN d.sample_quantity IS NOT NULL THEN 'Namuna miqdori: '||d.sample_quantity END,
+        CASE WHEN d.applied_pesticides IS NOT NULL THEN 'Qo''llangan pestitsidlar: '||d.applied_pesticides END,
+        CASE WHEN d.purpose_of_testing IS NOT NULL THEN 'Sinov maqsadi: '||d.purpose_of_testing END,
+        CASE WHEN d.sample_document_justifying IS NOT NULL THEN 'Asoslovchi hujjat: '||d.sample_document_justifying END,
+        CASE WHEN d.sample_taken_location IS NOT NULL THEN 'Namuna olingan joy: '||d.sample_taken_location END), '')
+FROM public.act155_detail d
+JOIN public2.act154 p ON p.id = d.act155_id;
+
+INSERT INTO public2._migration_notes (source_table, source_id, note)
+SELECT 'act155', l.id, 'ACT155 migrated into act154/act154_detail'
+FROM public.act155 l JOIN public2.act154 p ON p.id = l.id;
+
+-- ---- detal-darajadagi legacy maydonlar -> act-darajadagi target ustunlar ----
+-- (faqat target NULL bo'lsa; legacy sxema variantiga chidamli: to_jsonb orqali o'qiladi)
+UPDATE public2.act153 a SET
+    special_sampling_conditions_uz = coalesce(a.special_sampling_conditions_uz, x.special_sampling_conditions),
+    storage_delivery_conditions_uz = coalesce(a.storage_delivery_conditions_uz, x.delivery_conditions),
+    conservation_methods_uz        = coalesce(a.conservation_methods_uz, left(x.conservation_methods, 255)),
+    storage_delivery_condition_id  = coalesce(a.storage_delivery_condition_id, x.storage_condition_id, x.delivery_condition_id),
+    sample_taken_date_time         = coalesce(a.sample_taken_date_time, x.sampling_date)
+FROM (
+    SELECT DISTINCT ON (d.act153_id) d.act153_id,
+           to_jsonb(d)->>'special_sampling_conditions' AS special_sampling_conditions,
+           to_jsonb(d)->>'delivery_conditions'         AS delivery_conditions,
+           to_jsonb(d)->>'conservation_methods'        AS conservation_methods,
+           (to_jsonb(d)->>'storage_condition_id')::int AS storage_condition_id,
+           (to_jsonb(d)->>'delivery_condition_id')::int AS delivery_condition_id,
+           (to_jsonb(d)->>'sampling_date')::timestamp  AS sampling_date
+    FROM public.act153_detail d ORDER BY d.act153_id, d.id
+) x
+WHERE a.id = x.act153_id;
+
+UPDATE public2.act153_detail t SET
+    sample_type_uz = coalesce(t.sample_type_uz, left(x.sample_type, 255))
+FROM (SELECT d.id, to_jsonb(d)->>'sample_type' AS sample_type FROM public.act153_detail d) x
+WHERE t.id = x.id AND x.sample_type IS NOT NULL;
+
+UPDATE public2.act153 a SET sampler_position_id = coalesce(a.sampler_position_id, x.position_id)
+FROM (SELECT s.id, (to_jsonb(s)->>'position_id')::int AS position_id FROM public.act153 s) x
+WHERE a.id = x.id AND x.position_id IS NOT NULL;
+
+UPDATE public2.act154 a SET
+    package_type_uz                = coalesce(a.package_type_uz, left(x.package_type, 255)),
+    sampling_purpose_uz            = coalesce(a.sampling_purpose_uz, left(coalesce(x.purpose_of_sampling, x.purpose_of_checking), 500)),
+    storage_delivery_conditions_uz = coalesce(a.storage_delivery_conditions_uz, x.storage_condition),
+    sample_taken_date_time         = coalesce(a.sample_taken_date_time, x.sample_taken_date)
+FROM (
+    SELECT DISTINCT ON (d.act154_id) d.act154_id,
+           to_jsonb(d)->>'package_type'          AS package_type,
+           to_jsonb(d)->>'purpose_of_sampling'   AS purpose_of_sampling,
+           to_jsonb(d)->>'purpose_of_checking'   AS purpose_of_checking,
+           to_jsonb(d)->>'storage_condition'     AS storage_condition,
+           (to_jsonb(d)->>'sample_taken_date')::timestamp AS sample_taken_date
+    FROM public.act154_detail d ORDER BY d.act154_id, d.id
+) x
+WHERE a.id = x.act154_id;
+
+-- act154_detail.sample_type / delivery_term: target'da o'rni yo'q -> detal note ga
+UPDATE public2.act154_detail t SET
+    note = NULLIF(concat_ws('; ', NULLIF(t.note, ''),
+        CASE WHEN x.sample_type IS NOT NULL THEN 'Namuna turi: '||x.sample_type END,
+        CASE WHEN x.delivery_term IS NOT NULL THEN 'Yetkazish muddati: '||x.delivery_term END), '')
+FROM (SELECT d.id, to_jsonb(d)->>'sample_type' AS sample_type, to_jsonb(d)->>'delivery_term' AS delivery_term
+      FROM public.act154_detail d) x
+WHERE t.id = x.id AND (x.sample_type IS NOT NULL OR x.delivery_term IS NOT NULL);
+
+UPDATE public2.act223 a SET
+    sampling_purpose_uz     = coalesce(a.sampling_purpose_uz, left(x.reason_of_inspectoring, 500)),
+    sampling_purpose_loinc  = coalesce(a.sampling_purpose_loinc, left(x.reason_inspectoring_loinc, 100)),
+    participant_position_uz = coalesce(a.participant_position_uz, left(x.position_of_participant, 255)),
+    sample_taken_date_time  = coalesce(a.sample_taken_date_time, x.sample_taken_date)
+FROM (
+    SELECT s.id,
+           to_jsonb(s)->>'reason_of_inspectoring'    AS reason_of_inspectoring,
+           to_jsonb(s)->>'reason_inspectoring_loinc' AS reason_inspectoring_loinc,
+           to_jsonb(s)->>'position_of_participant'   AS position_of_participant,
+           (to_jsonb(s)->>'sample_taken_date')::timestamp AS sample_taken_date
+    FROM public.act223 s
+) x
+WHERE a.id = x.id;
+
+-- act223_detail.delivery/storage_conditions_(uz|ru) -> act223.storage_delivery_conditions_(uz|ru)
+UPDATE public2.act223 a SET
+    storage_delivery_conditions_uz = coalesce(a.storage_delivery_conditions_uz,
+        NULLIF(concat_ws('; ', x.delivery_uz, x.storage_uz), '')),
+    storage_delivery_conditions_ru = coalesce(a.storage_delivery_conditions_ru,
+        NULLIF(concat_ws('; ', x.delivery_ru, x.storage_ru), ''))
+FROM (
+    SELECT DISTINCT ON (d.act223_id) d.act223_id,
+           to_jsonb(d)->>'delivery_conditions_uz' AS delivery_uz, to_jsonb(d)->>'storage_conditions_uz' AS storage_uz,
+           to_jsonb(d)->>'delivery_conditions_ru' AS delivery_ru, to_jsonb(d)->>'storage_conditions_ru' AS storage_ru
+    FROM public.act223_detail d ORDER BY d.act223_id, d.id
+) x
+WHERE a.id = x.act223_id;
+
+-- act153_detail.object_code / object_type_id: ataylab o'chirilgan (20260930-1000) -> qiymatlari log'ga
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'act153_detail', d.id, 'no column in target - value recorded',
+       concat_ws('; ',
+         CASE WHEN to_jsonb(d)->>'object_code' IS NOT NULL THEN 'object_code='||(to_jsonb(d)->>'object_code') END,
+         CASE WHEN to_jsonb(d)->>'object_type_id' IS NOT NULL THEN 'object_type_id='||(to_jsonb(d)->>'object_type_id') END)
+FROM public.act153_detail d
+WHERE to_jsonb(d)->>'object_code' IS NOT NULL OR to_jsonb(d)->>'object_type_id' IS NOT NULL;
+
 -- name_of_object/object_address: target'da alohida ustun yo'q -> additional_info'ga
 -- qo'shib qo'yamiz (ma'lumot yo'qolmasin), + note-log.
 UPDATE public2.act154 a
 SET additional_info = trim(both ' | ' from concat_ws(' | ', NULLIF(a.additional_info, ''),
       concat_ws(', ',
-        CASE WHEN l.name_of_object IS NOT NULL THEN 'Ob''ekt: '||l.name_of_object END,
-        CASE WHEN l.object_address IS NOT NULL THEN 'Manzil: '||l.object_address END)))
+        CASE WHEN (to_jsonb(l)->>'name_of_object') IS NOT NULL THEN 'Ob''ekt: '||(to_jsonb(l)->>'name_of_object') END,
+        CASE WHEN (to_jsonb(l)->>'object_address') IS NOT NULL THEN 'Manzil: '||(to_jsonb(l)->>'object_address') END)))
 FROM public.act154 l
-WHERE a.id = l.id AND (l.name_of_object IS NOT NULL OR l.object_address IS NOT NULL);
+WHERE a.id = l.id AND ((to_jsonb(l)->>'name_of_object') IS NOT NULL OR (to_jsonb(l)->>'object_address') IS NOT NULL);
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'act154', l.id, 'name_of_object/object_address additional_info''ga qo''shildi (target''da alohida ustun yo''q)',
-       concat_ws('; ', l.name_of_object, l.object_address)
+SELECT 'act154', l.id, 'name_of_object/object_address appended to additional_info (no separate column in target)',
+       concat_ws('; ', (to_jsonb(l)->>'name_of_object'), (to_jsonb(l)->>'object_address'))
 FROM public.act154 l
-WHERE l.name_of_object IS NOT NULL OR l.object_address IS NOT NULL;
+WHERE (to_jsonb(l)->>'name_of_object') IS NOT NULL OR (to_jsonb(l)->>'object_address') IS NOT NULL;
 
 -- ================= act156 =================
 INSERT INTO public2.act156 (
@@ -233,7 +388,7 @@ FROM public.act223_detail d
 JOIN public2.act223 p ON p.id = d.act223_id;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'act223_detail', d.id, 'target''da ustun yo''q — tashlandi',
+SELECT 'act223_detail', d.id, 'no column in target - dropped',
        concat_ws('; ',
          CASE WHEN d.delivery_conditions_uz IS NOT NULL THEN 'delivery_conditions_uz='||d.delivery_conditions_uz END,
          CASE WHEN d.storage_conditions_uz IS NOT NULL THEN 'storage_conditions_uz='||d.storage_conditions_uz END)
@@ -293,27 +448,27 @@ UPDATE public2.act a
 SET lis_response = COALESCE(a.lis_response, x.merged)
 FROM (
   SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
-           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response)) AS merged
-  FROM public.act153 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+           'protocolResponse', NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb), 'actResponse', NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb))) AS merged
+  FROM public.act153 s WHERE NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb) IS NOT NULL OR NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb) IS NOT NULL
   UNION ALL
   SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
-           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response))
-  FROM public.act154 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+           'protocolResponse', NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb), 'actResponse', NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb)))
+  FROM public.act154 s WHERE NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb) IS NOT NULL OR NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb) IS NOT NULL
   UNION ALL
   SELECT s.id, jsonb_strip_nulls(jsonb_build_object(
-           'protocolResponse', s.lis_protocol_response, 'actResponse', s.lis_act_response))
-  FROM public.act223 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+           'protocolResponse', NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb), 'actResponse', NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb)))
+  FROM public.act223 s WHERE NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb) IS NOT NULL OR NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb) IS NOT NULL
 ) x
 WHERE a.id = x.id;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note)
-SELECT 'act', y.id, 'act1XX.lis_protocol_response/lis_act_response birlashtirilib act.lis_response''ga yozildi'
+SELECT 'act', y.id, 'act1XX.lis_protocol_response/lis_act_response merged into act.lis_response'
 FROM (
-  SELECT s.id FROM public.act153 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  SELECT s.id FROM public.act153 s WHERE NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb) IS NOT NULL OR NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb) IS NOT NULL
   UNION
-  SELECT s.id FROM public.act154 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  SELECT s.id FROM public.act154 s WHERE NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb) IS NOT NULL OR NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb) IS NOT NULL
   UNION
-  SELECT s.id FROM public.act223 s WHERE s.lis_protocol_response IS NOT NULL OR s.lis_act_response IS NOT NULL
+  SELECT s.id FROM public.act223 s WHERE NULLIF(to_jsonb(s)->'lis_protocol_response', 'null'::jsonb) IS NOT NULL OR NULLIF(to_jsonb(s)->'lis_act_response', 'null'::jsonb) IS NOT NULL
 ) y;
 
 -- ================= act224 =================
@@ -359,14 +514,14 @@ WHERE a.id = l.id
 
 -- region_code: target'da alohida ustun yo'q -> additional_info'ga qo'shib qo'yamiz.
 UPDATE public2.act224 a
-SET additional_info = trim(both ' | ' from concat_ws(' | ', NULLIF(a.additional_info, ''), 'Region: '||l.region_code))
+SET additional_info = trim(both ' | ' from concat_ws(' | ', NULLIF(a.additional_info, ''), 'Region: '||(to_jsonb(l)->>'region_code')))
 FROM public.act224 l
-WHERE a.id = l.id AND l.region_code IS NOT NULL;
+WHERE a.id = l.id AND (to_jsonb(l)->>'region_code') IS NOT NULL;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'act224', l.id, 'region_code additional_info''ga qo''shildi (target''da alohida ustun yo''q)', l.region_code
+SELECT 'act224', l.id, 'region_code appended to additional_info (no separate column in target)', (to_jsonb(l)->>'region_code')
 FROM public.act224 l
-WHERE l.region_code IS NOT NULL;
+WHERE (to_jsonb(l)->>'region_code') IS NOT NULL;
 
 COMMIT;
 

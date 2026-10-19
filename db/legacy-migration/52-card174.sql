@@ -82,7 +82,16 @@ SELECT
     l.vectors_increased,                    -- vector_increase
     l.wild_culling,                         -- wild_animal_culling
     l.wild_rodents,                         -- wild_rodents_increase
-    l.additional_info                       -- additional_measures_info
+    left(concat_ws(' | ', NULLIF(l.additional_info, ''),
+         concat_ws(' | ',
+         CASE WHEN l.reported_cases IS NOT NULL THEN 'Xabar berilgan holatlar: '||l.reported_cases END,
+         CASE WHEN l.reported_human_vet_date IS NOT NULL THEN 'Inson/vet. xabar sanasi: '||l.reported_human_vet_date END,
+         CASE WHEN l.reported_sanepid_date IS NOT NULL THEN 'SES xabar sanasi: '||l.reported_sanepid_date END,
+         CASE WHEN l.vaccination_by_epizootic IS NOT NULL THEN 'Epizootiya bo''yicha emlash: '||l.vaccination_by_epizootic END,
+         CASE WHEN (to_jsonb(l)->>'measures') IS NOT NULL THEN 'Chora-tadbirlar: '||(to_jsonb(l)->>'measures') END,
+         CASE WHEN (to_jsonb(l)->>'measures_count') IS NOT NULL THEN 'Chora soni: '||(to_jsonb(l)->>'measures_count') END,
+         CASE WHEN (to_jsonb(l)->>'measures_date') IS NOT NULL THEN 'Chora sanasi: '||(to_jsonb(l)->>'measures_date') END,
+         CASE WHEN (to_jsonb(l)->>'measures_location') IS NOT NULL THEN 'Chora joyi: '||(to_jsonb(l)->>'measures_location') END)), 1000)  -- additional_measures_info + ustuni yo'q legacy maydonlar
 FROM public.card174 l
 JOIN public2.card c ON c.id = l.id
 LEFT JOIN LATERAL (SELECT * FROM public.card174_disinfection_info z
@@ -92,31 +101,45 @@ LEFT JOIN LATERAL (SELECT * FROM public.card174_preventive_measure z
 
 -- ko'p qatorli orphan bola jadvallar -> log (faqat 1-qator ko'chirildi)
 INSERT INTO public2._migration_notes (source_table, source_id, note)
-SELECT t.src, t.card174_id, 'orphan bola jadval: faqat 1-qator card174 ga jamlandi'
+SELECT t.src, t.card174_id, 'multiple child rows: only the first row was merged into card174'
 FROM (
   SELECT 'card174_disinfection_info' src, card174_id FROM public.card174_disinfection_info GROUP BY card174_id HAVING count(*)>1
 ) t;
 
--- legacy-only ustunlar (target'da yo'q, drop) — ma'lumot bo'lsa log
+-- disinfection_info: card174 ga faqat 1-qator jamlandi; qolgan qatorlarning
+-- QIYMATLARI log'ga yoziladi (yo'qolmasin)
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'card174', l.id, 'target''da ustun yo''q — tashlandi',
+SELECT 'card174_disinfection_info', z.card174_id, 'extra row (after the first) - values',
+       concat_ws('; ', 'id='||z.id,
+         CASE WHEN z.disinfection_date IS NOT NULL THEN 'disinfection_date='||z.disinfection_date END,
+         CASE WHEN z.disinfected_count IS NOT NULL THEN 'disinfected_count='||z.disinfected_count END,
+         CASE WHEN z.event_location IS NOT NULL THEN 'event_location='||z.event_location END,
+         CASE WHEN z.control_results IS NOT NULL THEN 'control_results='||z.control_results END)
+FROM public.card174_disinfection_info z
+JOIN public2.card174 c ON c.id = z.card174_id
+WHERE z.id <> (SELECT min(z2.id) FROM public.card174_disinfection_info z2 WHERE z2.card174_id = z.card174_id);
+
+-- legacy-only ustunlar (target'da yo'q): additional_measures_info (1000) ga qo'shib
+-- ko'chirildi; shu bilan birga to'liq QIYMATLAR log'ga ham yoziladi
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'card174', l.id, 'no column in target - appended to additional_measures_info',
        concat_ws('; ',
          CASE WHEN l.reported_cases IS NOT NULL THEN 'reported_cases='||l.reported_cases END,
-         CASE WHEN l.reported_human_vet_date IS NOT NULL THEN 'reported_human_vet_date' END,
-         CASE WHEN l.reported_sanepid_date IS NOT NULL THEN 'reported_sanepid_date' END,
-         CASE WHEN l.vaccination_by_epizootic IS NOT NULL THEN 'vaccination_by_epizootic' END,
+         CASE WHEN l.reported_human_vet_date IS NOT NULL THEN 'reported_human_vet_date='||l.reported_human_vet_date END,
+         CASE WHEN l.reported_sanepid_date IS NOT NULL THEN 'reported_sanepid_date='||l.reported_sanepid_date END,
+         CASE WHEN l.vaccination_by_epizootic IS NOT NULL THEN 'vaccination_by_epizootic='||l.vaccination_by_epizootic END,
          -- baza jadvalining o'z measures/measures_count/measures_date/measures_location
          -- ustunlari (card174_preventive_measure'dan olinadigan pm.measures'dan FARQLI)
-         CASE WHEN l.measures IS NOT NULL THEN 'measures='||l.measures END,
-         CASE WHEN l.measures_count IS NOT NULL THEN 'measures_count' END,
-         CASE WHEN l.measures_date IS NOT NULL THEN 'measures_date' END,
-         CASE WHEN l.measures_location IS NOT NULL THEN 'measures_location' END)
+         CASE WHEN (to_jsonb(l)->>'measures') IS NOT NULL THEN 'measures='||(to_jsonb(l)->>'measures') END,
+         CASE WHEN (to_jsonb(l)->>'measures_count') IS NOT NULL THEN 'measures_count='||(to_jsonb(l)->>'measures_count') END,
+         CASE WHEN (to_jsonb(l)->>'measures_date') IS NOT NULL THEN 'measures_date='||(to_jsonb(l)->>'measures_date') END,
+         CASE WHEN (to_jsonb(l)->>'measures_location') IS NOT NULL THEN 'measures_location='||(to_jsonb(l)->>'measures_location') END)
 FROM public.card174 l
 JOIN public2.card174 x ON x.id = l.id
 WHERE l.reported_cases IS NOT NULL OR l.reported_human_vet_date IS NOT NULL
    OR l.reported_sanepid_date IS NOT NULL OR l.vaccination_by_epizootic IS NOT NULL
-   OR l.measures IS NOT NULL OR l.measures_count IS NOT NULL
-   OR l.measures_date IS NOT NULL OR l.measures_location IS NOT NULL;
+   OR (to_jsonb(l)->>'measures') IS NOT NULL OR (to_jsonb(l)->>'measures_count') IS NOT NULL
+   OR (to_jsonb(l)->>'measures_date') IS NOT NULL OR (to_jsonb(l)->>'measures_location') IS NOT NULL;
 
 -- ---- element jadvallar (1:1) --------------------------------------
 INSERT INTO public2.card174_affected_animals (card174_id, catalog_code)
@@ -147,11 +170,28 @@ FROM public.card174_infection_monitoring d
 JOIN public2.card174 c ON c.id = d.card174_id;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'card174_infection_monitoring', d.id, 'target''da ustun yo''q — tashlandi',
-       'vaccination_summary'
+SELECT 'card174_infection_monitoring', d.id, 'no column in target - dropped',
+       'vaccination_summary='||d.vaccination_summary
 FROM public.card174_infection_monitoring d
 JOIN public2.card174 c ON c.id = d.card174_id
 WHERE d.vaccination_summary IS NOT NULL;
+
+-- infection_monitoring_vaccination (join) + vaccination: target'da jadval yo'q ->
+-- har monitoring qatori uchun emlash yozuvlari matn sifatida _migration_notes ga (yo'qolmasin)
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'card174_infection_monitoring', imv.infection_monitoring_id,
+       'vaccination records (infection_monitoring_vaccination) - no table in target',
+       string_agg(concat_ws(', ',
+           v.vaccination_name,
+           CASE WHEN v.vaccination_date IS NOT NULL THEN 'sana='||v.vaccination_date END,
+           CASE WHEN v.serial_number IS NOT NULL THEN 'seriya='||v.serial_number END,
+           CASE WHEN v.dose_volume IS NOT NULL THEN 'doza='||v.dose_volume END,
+           CASE WHEN v.vaccination_verified_code IS NOT NULL THEN 'tasdiq='||v.vaccination_verified_code END),
+         ' | ' ORDER BY v.id)
+FROM public.infection_monitoring_vaccination imv
+JOIN public.vaccination v ON v.id = imv.vaccination_id
+JOIN public2.card174_infection_monitoring m ON m.id = imv.infection_monitoring_id
+GROUP BY imv.infection_monitoring_id;
 
 -- ---- card174_external_sample_test -> card174_laboratory_test ------
 -- hamma qatorlar ko'chadi; specimen -> sample_name. id target identity'dan,

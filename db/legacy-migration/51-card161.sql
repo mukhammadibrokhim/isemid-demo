@@ -49,10 +49,22 @@ SELECT
 FROM public.card161 l
 JOIN public2.card c ON c.id = l.id;      -- faqat ko'chirilган card lar
 
+-- target'da o'rni yo'q ustunlar (activity_place_code, comment, infection_place_code):
+-- qiymatlari _migration_notes ga TO'LIQ yoziladi (yo'qolmasin)
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'card161', l.id, 'no column in target - value recorded',
+       concat_ws('; ',
+         CASE WHEN l.activity_place_code IS NOT NULL THEN 'activity_place_code='||l.activity_place_code END,
+         CASE WHEN l.infection_place_code IS NOT NULL THEN 'infection_place_code='||l.infection_place_code END,
+         CASE WHEN l.comment IS NOT NULL THEN 'comment='||l.comment END)
+FROM public.card161 l
+JOIN public2.card161 c161 ON c161.id = l.id
+WHERE l.activity_place_code IS NOT NULL OR l.infection_place_code IS NOT NULL OR l.comment IS NOT NULL;
+
 -- ko'p qiymatli main_probable_infection_factor — ma'lumot yo'qolgani haqida log
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
 SELECT 'card161_main_probable_infection_factor', l.id,
-       'element jadval -> skalyar: faqat 1-qiymat ko''chirildi',
+       'element table -> scalar: only the first value migrated',
        string_agg(m.catalog_code, ', ')
 FROM public.card161 l
 JOIN public.card161_main_probable_infection_factor m ON m.card161_id = l.id
@@ -96,16 +108,38 @@ SELECT x.id, 0,
 FROM public.card161_environmental_source x
 JOIN public2.card161 c ON c.id = x.card161_id;
 
--- drop: contact_type_code, duration, relation_code
+-- target'da contact_type_code / duration / relation_code ustunlari yo'q: ular
+-- contact_info_and_donor_residence (varchar 500) matniga qo'shib ko'chiriladi,
+-- 500 ga sig'masa to'liq matn _migration_notes ga yoziladi.
 INSERT INTO public2.card161_infection_source
     (id, version, created_at, created_by_id, updated_at, updated_by_id, uuid,
      contact_info_and_donor_residence, diagnosis_clinical_form_or_donor_status, full_name, test_result, card161_id)
 SELECT x.id, 0,
     x.created_at::timestamp AT TIME ZONE 'Asia/Tashkent', x.created_by_id,
     x.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent', x.updated_by_id, x.uuid,
-    x.contact_info_and_donor_residence, x.diagnosis_clinical_form_or_donor_status, x.full_name, x.test_result, x.card161_id
+    left(concat_ws(' | ',
+        NULLIF(x.contact_info_and_donor_residence, ''),
+        CASE WHEN x.contact_type_code IS NOT NULL THEN 'Aloqa turi: '||x.contact_type_code END,
+        CASE WHEN x.duration IS NOT NULL THEN 'Davomiyligi: '||x.duration END,
+        CASE WHEN x.relation_code IS NOT NULL THEN 'Qarindoshlik: '||x.relation_code END), 500),
+    x.diagnosis_clinical_form_or_donor_status, x.full_name, x.test_result, x.card161_id
 FROM public.card161_infection_source x
 JOIN public2.card161 c ON c.id = x.card161_id;
+
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'card161_infection_source', x.id, 'contact_info_and_donor_residence exceeds 500 chars - full text',
+       concat_ws(' | ',
+        NULLIF(x.contact_info_and_donor_residence, ''),
+        CASE WHEN x.contact_type_code IS NOT NULL THEN 'Aloqa turi: '||x.contact_type_code END,
+        CASE WHEN x.duration IS NOT NULL THEN 'Davomiyligi: '||x.duration END,
+        CASE WHEN x.relation_code IS NOT NULL THEN 'Qarindoshlik: '||x.relation_code END)
+FROM public.card161_infection_source x
+JOIN public2.card161 c ON c.id = x.card161_id
+WHERE length(concat_ws(' | ',
+        NULLIF(x.contact_info_and_donor_residence, ''),
+        CASE WHEN x.contact_type_code IS NOT NULL THEN 'Aloqa turi: '||x.contact_type_code END,
+        CASE WHEN x.duration IS NOT NULL THEN 'Davomiyligi: '||x.duration END,
+        CASE WHEN x.relation_code IS NOT NULL THEN 'Qarindoshlik: '||x.relation_code END)) > 500;
 
 INSERT INTO public2.card161_infection_source_detail
     (id, version, created_at, created_by_id, updated_at, updated_by_id, uuid,

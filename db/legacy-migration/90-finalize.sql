@@ -15,7 +15,7 @@ WHERE  c.form058_id = f.id AND f.id <> 0
   AND (SELECT count(*) FROM public2.card c2 WHERE c2.form058_id = f.id) = 1;
 
 INSERT INTO public2._migration_notes (source_table, source_id, note, details)
-SELECT 'form058.assigned_card_id', f.id, 'bir nechта card — assigned_card_id NULL',
+SELECT 'form058.assigned_card_id', f.id, 'several cards - assigned_card_id left NULL',
        string_agg(c.id::text, ', ')
 FROM public2.form058 f
 JOIN public2.card c ON c.form058_id = f.id
@@ -56,8 +56,8 @@ COMMIT;
 -- =====================================================================
 -- VALIDATSIYA (faqat hisobot)
 -- =====================================================================
-\echo '--- qator sonlari: src (public) vs dst (public2) ---'
-\echo '    (dst >= src bo''lishi kerak — sentinel org/form058 tufayli organization/form058 da +1)'
+\echo '--- row counts: src (public) vs dst (public2) ---'
+\echo '    (dst >= src expected; organization/form058 are +1 because of sentinel rows)'
 SELECT 'organization' t, (SELECT count(*) FROM public.organization) src, (SELECT count(*) FROM public2.organization) dst
 UNION ALL SELECT 'users',        (SELECT count(*) FROM public.users),        (SELECT count(*) FROM public2.users)
 UNION ALL SELECT 'patient',      (SELECT count(*) FROM public.patient),      (SELECT count(*) FROM public2.patient)
@@ -77,14 +77,14 @@ UNION ALL SELECT 'card_tube',    (SELECT count(*) FROM public.card_tube),    (SE
 UNION ALL SELECT 'act',          (SELECT count(*) FROM public.act),          (SELECT count(*) FROM public2.act)
 UNION ALL SELECT 'act153',       (SELECT count(*) FROM public.act153),       (SELECT count(*) FROM public2.act153)
 UNION ALL SELECT 'act154',       (SELECT count(*) FROM public.act154),       (SELECT count(*) FROM public2.act154)
-UNION ALL SELECT 'act155(detal, ko''chmaydi)', (SELECT count(*) FROM public.act155), 0
+UNION ALL SELECT 'act155(detail, not migrated)', (SELECT count(*) FROM public.act155), 0
 UNION ALL SELECT 'act156',       (SELECT count(*) FROM public.act156),       (SELECT count(*) FROM public2.act156)
 UNION ALL SELECT 'act223',       (SELECT count(*) FROM public.act223),       (SELECT count(*) FROM public2.act223)
 UNION ALL SELECT 'act224',       (SELECT count(*) FROM public.act224),       (SELECT count(*) FROM public2.act224)
 ORDER BY 1;
 
-\echo '--- JOINED butunlik (0 kutiladi; act155 lar "act subtype yo''q" da chiqadi — bu normal) ---'
-SELECT 'card subtype yo''q' issue, count(*) n
+\echo '--- JOINED integrity (0 expected; act155 rows legitimately have no act subtype) ---'
+SELECT 'card subtype missing' issue, count(*) n
 FROM public2.card c WHERE c.id <> 0
   AND NOT EXISTS (SELECT 1 FROM public2.card161 x WHERE x.id=c.id)
   AND NOT EXISTS (SELECT 1 FROM public2.card174 x WHERE x.id=c.id)
@@ -92,7 +92,7 @@ FROM public2.card c WHERE c.id <> 0
   AND NOT EXISTS (SELECT 1 FROM public2.card205 x WHERE x.id=c.id)
   AND NOT EXISTS (SELECT 1 FROM public2.card_tube x WHERE x.id=c.id)
 UNION ALL
-SELECT 'act subtype yo''q (act155dan tashqari xato)', count(*)
+SELECT 'act subtype missing (error, except act155)', count(*)
 FROM public2.act a
 WHERE a.act_type <> 'ACT155'
   AND NOT EXISTS (SELECT 1 FROM public2.act153 x WHERE x.id=a.id)
@@ -101,17 +101,17 @@ WHERE a.act_type <> 'ACT155'
   AND NOT EXISTS (SELECT 1 FROM public2.act223 x WHERE x.id=a.id)
   AND NOT EXISTS (SELECT 1 FROM public2.act224 x WHERE x.id=a.id);
 
-\echo '--- src qatorlar 100% ko''chganmi (dst da id bor-yo''qligi) ---'
-SELECT 'form058 yo''qolган' t, count(*) n FROM public.form058 s WHERE NOT EXISTS (SELECT 1 FROM public2.form058 d WHERE d.id=s.id)
-UNION ALL SELECT 'form058_1 yo''qolган', count(*) FROM public.form058_1 s WHERE NOT EXISTS (SELECT 1 FROM public2.form058_1 d WHERE d.id=s.id)
-UNION ALL SELECT 'card yo''qolган',    count(*) FROM public.card s      WHERE NOT EXISTS (SELECT 1 FROM public2.card d WHERE d.id=s.id)
-UNION ALL SELECT 'act yo''qolган',     count(*) FROM public.act s       WHERE NOT EXISTS (SELECT 1 FROM public2.act d WHERE d.id=s.id)
-UNION ALL SELECT 'patient yo''qolган', count(*) FROM public.patient s   WHERE NOT EXISTS (SELECT 1 FROM public2.patient d WHERE d.id=s.id);
+\echo '--- were all src rows migrated (id present in dst)? ---'
+SELECT 'form058 missing' t, count(*) n FROM public.form058 s WHERE NOT EXISTS (SELECT 1 FROM public2.form058 d WHERE d.id=s.id)
+UNION ALL SELECT 'form058_1 missing', count(*) FROM public.form058_1 s WHERE NOT EXISTS (SELECT 1 FROM public2.form058_1 d WHERE d.id=s.id)
+UNION ALL SELECT 'card missing',    count(*) FROM public.card s      WHERE NOT EXISTS (SELECT 1 FROM public2.card d WHERE d.id=s.id)
+UNION ALL SELECT 'act missing',     count(*) FROM public.act s       WHERE NOT EXISTS (SELECT 1 FROM public2.act d WHERE d.id=s.id)
+UNION ALL SELECT 'patient missing', count(*) FROM public.patient s   WHERE NOT EXISTS (SELECT 1 FROM public2.patient d WHERE d.id=s.id);
 
-\echo '--- note-log xulosasi ---'
+\echo '--- note log summary ---'
 SELECT source_table, note, count(*) n
 FROM public2._migration_notes
 GROUP BY source_table, note
 ORDER BY 1, 3 DESC;
 
-\echo '90-finalize OK — public schema HALI SAQLANADI'
+\echo '90-finalize OK - public schema is kept untouched'

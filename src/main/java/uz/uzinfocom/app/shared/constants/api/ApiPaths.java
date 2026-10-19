@@ -327,6 +327,8 @@ public final class ApiPaths {
         public static final String SETTINGS_RESTORE = "/settings/{id}/restore";
         public static final String ROUTE_POLICIES = "/settings/route-policies";
         public static final String ROUTE_POLICY_BY_ID = "/settings/route-policies/{id}";
+        public static final String CACHES = "/caches";
+        public static final String CACHE_BY_NAME = "/caches/{name}";
         public static final String FILES = "/files";
         public static final String FILES_DOWNLOAD = "/files/download";
         public static final String AUDIT = "/audit";
