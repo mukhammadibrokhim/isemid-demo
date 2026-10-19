@@ -15,7 +15,9 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import uz.uzinfocom.app.integration.muxlisa.common.properties.MuxlisaProperties;
+import uz.uzinfocom.app.platform.http.DynamicHttpTuningInterceptor;
 import uz.uzinfocom.app.platform.observability.TraceIdClientHttpRequestInterceptor;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 /**
  * Dedicated {@code RestClient} for Muxlisa, built like {@code DhpRestClientConfiguration}.
@@ -67,16 +69,37 @@ public class MuxlisaRestClientConfiguration {
         return new HttpComponentsClientHttpRequestFactory(closeableHttpClient);
     }
 
+    @Bean(name = "muxlisaHttpTuningInterceptor")
+    public DynamicHttpTuningInterceptor muxlisaHttpTuningInterceptor(
+            MuxlisaProperties properties,
+            @Qualifier("muxlisaConnectionManager") PoolingHttpClientConnectionManager connectionManager,
+            @Qualifier("muxlisaClientHttpRequestFactory") HttpComponentsClientHttpRequestFactory requestFactory,
+            SystemSettingResolver systemSettingResolver
+    ) {
+        return new DynamicHttpTuningInterceptor(
+                "muxlisa",
+                connectionManager,
+                requestFactory,
+                systemSettingResolver,
+                properties.connectTimeout().toMillis(),
+                properties.readTimeout().toMillis(),
+                null,
+                null
+        );
+    }
+
     @Bean(name = "muxlisaRestClient")
     public RestClient muxlisaRestClient(
             RestClient.Builder builder,
             @Qualifier("muxlisaClientHttpRequestFactory") ClientHttpRequestFactory requestFactory,
-            TraceIdClientHttpRequestInterceptor traceIdInterceptor
+            TraceIdClientHttpRequestInterceptor traceIdInterceptor,
+            @Qualifier("muxlisaHttpTuningInterceptor") DynamicHttpTuningInterceptor httpTuningInterceptor
     ) {
         return builder.clone()
                 .requestFactory(requestFactory)
                 .requestInterceptors(interceptors -> {
                     interceptors.clear();
+                    interceptors.add(httpTuningInterceptor);
                     interceptors.add(traceIdInterceptor);
                 })
                 .build();

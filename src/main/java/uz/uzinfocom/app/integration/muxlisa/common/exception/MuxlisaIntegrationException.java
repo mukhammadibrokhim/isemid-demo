@@ -23,6 +23,11 @@ public class MuxlisaIntegrationException extends AppException {
         return new MuxlisaIntegrationException(ErrorCode.INTERNAL_ERROR, "muxlisa.error.not_configured");
     }
 
+    /** Switched off at runtime ({@code integration.muxlisa.enabled}); nothing is sent to Muxlisa. */
+    public static MuxlisaIntegrationException disabled() {
+        return new MuxlisaIntegrationException(ErrorCode.UPSTREAM_CIRCUIT_OPEN, "muxlisa.error.disabled");
+    }
+
     /** Muxlisa answered 402: the account behind our API key has no balance left. */
     public static MuxlisaIntegrationException insufficientBalance() {
         return new MuxlisaIntegrationException(ErrorCode.UPSTREAM_ERROR, "muxlisa.error.insufficient_balance");

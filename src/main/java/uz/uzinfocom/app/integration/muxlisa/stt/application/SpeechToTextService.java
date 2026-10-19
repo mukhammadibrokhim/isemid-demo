@@ -5,9 +5,11 @@ import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.integration.muxlisa.common.properties.MuxlisaProperties;
+import uz.uzinfocom.app.integration.muxlisa.common.properties.MuxlisaSettingKeys;
 import uz.uzinfocom.app.integration.muxlisa.stt.client.MuxlisaSttClient;
 import uz.uzinfocom.app.integration.muxlisa.stt.web.dto.SpeechToTextResponse;
 import uz.uzinfocom.app.integration.muxlisa.common.exception.InvalidAudioException;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.util.Locale;
 import java.util.Map;
@@ -46,13 +48,16 @@ public class SpeechToTextService {
 
     private final MuxlisaSttClient client;
     private final MuxlisaProperties properties;
+    private final SystemSettingResolver systemSettingResolver;
 
     public SpeechToTextResponse transcribe(byte[] audio, String rawContentType) {
         if (audio == null || audio.length == 0) {
             throw new InvalidAudioException("speech.error.empty_audio");
         }
-        if (audio.length > properties.maxAudioSize().toBytes()) {
-            throw new InvalidAudioException("speech.error.audio_too_large", properties.maxAudioSize().toMegabytes());
+        long maxAudioBytes = systemSettingResolver.resolveLong(
+                MuxlisaSettingKeys.MAX_AUDIO_SIZE_BYTES, properties.maxAudioSize().toBytes());
+        if (audio.length > maxAudioBytes) {
+            throw new InvalidAudioException("speech.error.audio_too_large", Math.max(1, maxAudioBytes / (1024 * 1024)));
         }
 
         String contentType = normalize(rawContentType);

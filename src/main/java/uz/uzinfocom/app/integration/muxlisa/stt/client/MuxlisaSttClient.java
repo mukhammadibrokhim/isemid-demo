@@ -21,8 +21,10 @@ import uz.uzinfocom.app.integration.muxlisa.common.exception.MuxlisaCircuitOpenE
 import uz.uzinfocom.app.integration.muxlisa.common.exception.MuxlisaIntegrationException;
 import uz.uzinfocom.app.integration.muxlisa.common.exception.MuxlisaRequestRejectedException;
 import uz.uzinfocom.app.integration.muxlisa.common.properties.MuxlisaProperties;
+import uz.uzinfocom.app.integration.muxlisa.common.properties.MuxlisaSettingKeys;
 import uz.uzinfocom.app.platform.resilience.CircuitBreakerNames;
 import uz.uzinfocom.app.platform.resilience.DynamicCircuitBreakerLookup;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +50,7 @@ public class MuxlisaSttClient {
 
     private final RestClient restClient;
     private final MuxlisaProperties properties;
+    private final SystemSettingResolver systemSettingResolver;
     private final DynamicCircuitBreakerLookup circuitBreakerLookup;
     private final JsonMapper jsonMapper;
     private final Semaphore concurrency;
@@ -55,11 +58,13 @@ public class MuxlisaSttClient {
     public MuxlisaSttClient(
             @Qualifier("muxlisaRestClient") RestClient restClient,
             MuxlisaProperties properties,
+            SystemSettingResolver systemSettingResolver,
             DynamicCircuitBreakerLookup circuitBreakerLookup,
             JsonMapper jsonMapper
     ) {
         this.restClient = restClient;
         this.properties = properties;
+        this.systemSettingResolver = systemSettingResolver;
         this.circuitBreakerLookup = circuitBreakerLookup;
         this.jsonMapper = jsonMapper;
         this.concurrency = new Semaphore(properties.maxConcurrentRequests());
@@ -72,6 +77,10 @@ public class MuxlisaSttClient {
      * @return the recognized text, possibly empty for silence
      */
     public String transcribe(byte[] audio, String contentType, String filename) {
+        if (!systemSettingResolver.resolveBoolean(MuxlisaSettingKeys.ENABLED, true)) {
+            throw MuxlisaIntegrationException.disabled();
+        }
+
         String apiKey = properties.apiKey();
         if (apiKey == null || apiKey.isBlank()) {
             log.error("Muxlisa API key is not configured (integration.muxlisa.api-key / MUXLISA_API_KEY).");
@@ -102,9 +111,12 @@ public class MuxlisaSttClient {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("audio", new HttpEntity<>(new NamedByteArrayResource(audio, filename), partHeaders));
 
+        String url = systemSettingResolver.resolveString(MuxlisaSettingKeys.BASE_URL, properties.baseUrl())
+                + systemSettingResolver.resolveString(MuxlisaSettingKeys.STT_ENDPOINT, properties.sttEndpoint());
+
         try {
             return restClient.post()
-                    .uri(properties.baseUrl() + properties.sttEndpoint())
+                    .uri(url)
                     .header(API_KEY_HEADER, apiKey)
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .accept(MediaType.APPLICATION_JSON)
