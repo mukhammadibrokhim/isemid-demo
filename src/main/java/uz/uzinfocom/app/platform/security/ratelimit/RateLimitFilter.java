@@ -45,6 +45,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Cache<String, AtomicInteger> authCounters;
     private final Cache<String, AtomicInteger> integrationTokenCounters;
     private final Cache<String, AtomicInteger> identityLookupCounters;
+    private final Cache<String, AtomicInteger> speechToTextCounters;
     private final Cache<String, AtomicInteger> integrationApiCounters;
 
     public RateLimitFilter(RateLimitProperties properties, ErrorResponseWriter errorResponseWriter) {
@@ -53,6 +54,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.authCounters = counters(properties.getAuth());
         this.integrationTokenCounters = counters(properties.getIntegrationToken());
         this.identityLookupCounters = counters(properties.getIdentityLookup());
+        this.speechToTextCounters = counters(properties.getSpeechToText());
         this.integrationApiCounters = counters(properties.getIntegrationApi());
     }
 
@@ -83,6 +85,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (isUnder(path, ApiPaths.Citizen.ROOT) || isUnder(path, ApiPaths.LegalEntity.ROOT)) {
             if (!tryAcquire(identityLookupCounters, properties.getIdentityLookup(), callerKey(request), response)) {
                 reject(request, response, "identity-lookup");
+                return;
+            }
+        } else if (isUnder(path, ApiPaths.Speech.ROOT)) {
+            if (!tryAcquire(speechToTextCounters, properties.getSpeechToText(), callerKey(request), response)) {
+                reject(request, response, "speech-to-text");
                 return;
             }
         } else if (isUnder(path, ApiPaths.Integration.ROOT)) {

@@ -29,6 +29,9 @@ public class RateLimitProperties {
     /** {@code /v1/citizen/**} + {@code /v1/legal-entity/**} - keyed by authenticated user. */
     private Rule identityLookup = new Rule(60, Duration.ofMinutes(1));
 
+    /** {@code /v1/speech/stt} - keyed by authenticated user; every call is billed per second of audio by Muxlisa. */
+    private Rule speechToText = new Rule(20, Duration.ofMinutes(1));
+
     /**
      * Every other {@code /integration/v1/**} call - keyed by integration client once
      * authenticated, by IP otherwise. Generous on purpose: it caps a runaway or

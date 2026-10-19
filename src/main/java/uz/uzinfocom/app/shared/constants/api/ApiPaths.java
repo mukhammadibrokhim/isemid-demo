@@ -161,6 +161,17 @@ public final class ApiPaths {
         public static final String IMMUNIZATION = ROOT + "/immunization";
     }
 
+    /**
+     * Voice input: speech-to-text via Muxlisa AI (server-to-server, the API
+     * key never reaches the browser). Takes a raw audio body.
+     */
+    public static final class Speech {
+        private Speech() {
+        }
+
+        public static final String ROOT = API_V1 + "/speech/stt";
+    }
+
     public static final class Reference {
         private Reference() {
         }

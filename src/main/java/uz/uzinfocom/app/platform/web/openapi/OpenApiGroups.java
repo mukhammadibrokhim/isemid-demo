@@ -102,7 +102,8 @@ public final class OpenApiGroups {
             ApiPaths.Citizen.ROOT + "/**",
             ApiPaths.LegalEntity.ROOT,
             ApiPaths.LegalEntity.ROOT + "/**",
-            ApiPaths.Dhp.ROOT + "/**"
+            ApiPaths.Dhp.ROOT + "/**",
+            ApiPaths.Speech.ROOT
     };
 
     public static final ApiDocumentationGroup AUTH = new ApiDocumentationGroup(
