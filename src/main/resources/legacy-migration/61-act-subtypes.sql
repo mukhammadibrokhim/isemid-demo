@@ -523,6 +523,32 @@ SELECT 'act224', l.id, 'region_code appended to additional_info (no separate col
 FROM public.act224 l
 WHERE (to_jsonb(l)->>'region_code') IS NOT NULL;
 
+-- act224: eski legacy'da tavsiya etilgan choralar act224_recommended_actions bola jadvalida
+-- va act224'ning o'zida (recommended_activities/execution_period tekis ustunlari) turadi ->
+-- ikkalasi ham yangi act224_detail qatorlariga ko'chiriladi (id'lar mavjudlaridan keyin).
+INSERT INTO public2.act224_detail (
+    id, version, created_at, created_by_id, updated_at, updated_by_id, uuid, act224_id,
+    recommended_activities, execution_period
+)
+SELECT (SELECT coalesce(max(m.id), 0) FROM public2.act224_detail m) + row_number() OVER (ORDER BY s.src, s.id),
+       0, s.created_at, s.created_by_id, s.updated_at, s.updated_by_id, s.uuid, s.act224_id,
+       s.activity, s.period
+FROM (
+    SELECT 1 AS src, r.id,
+           r.created_at::timestamp AT TIME ZONE 'Asia/Tashkent' AS created_at, r.created_by_id,
+           r.updated_at::timestamp AT TIME ZONE 'Asia/Tashkent' AS updated_at, r.updated_by_id,
+           coalesce(r.uuid, gen_random_uuid()) AS uuid, r.act224_id,
+           r.recommended_activity AS activity, r.execution_period AS period
+    FROM public.act224_recommended_actions r
+    JOIN public2.act224 p ON p.id = r.act224_id
+    UNION ALL
+    SELECT 2, l.id, now(), NULL::bigint, now(), NULL::bigint, gen_random_uuid(), l.id,
+           l.recommended_activities, l.execution_period
+    FROM public.act224 l
+    JOIN public2.act224 p ON p.id = l.id
+    WHERE l.recommended_activities IS NOT NULL OR l.execution_period IS NOT NULL
+) s;
+
 COMMIT;
 
 \echo '61-act-subtypes OK'

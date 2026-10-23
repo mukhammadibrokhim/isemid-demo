@@ -28,6 +28,7 @@ PSQL=(psql -h "$HOST" -p "$PORT" -U "$USER" -d "$DB" -v ON_ERROR_STOP=1 -X -q)
 
 FILES=(
   00-prep.sql
+  05-legacy-compat.sql
   10-organization.sql
   20-users.sql
   30-patient.sql
@@ -41,11 +42,12 @@ FILES=(
   55-card-tube.sql
   60-act.sql
   61-act-subtypes.sql
+  62-preserve-unmapped.sql
   90-finalize.sql
   97-backfill-form058-accept-approve-info.sql
 )
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/../../src/main/resources/legacy-migration"
 echo "!!! WARNING: 00-prep TRUNCATEs public2 business tables. Backup ready? (Ctrl-C to abort)"
 read -r -p "Continue? [yes/NO] " ans
 [[ "$ans" == "yes" ]] || { echo "aborted"; exit 1; }

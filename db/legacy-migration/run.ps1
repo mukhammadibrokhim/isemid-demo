@@ -31,14 +31,14 @@ if (-not $env:PGPASSWORD) {
 }
 
 $files = @(
-    '00-prep.sql','10-organization.sql','20-users.sql','30-patient.sql',
+    '00-prep.sql','05-legacy-compat.sql','10-organization.sql','20-users.sql','30-patient.sql',
     '40-form058.sql','45-form058-1.sql',
     '50-card.sql','51-card161.sql','52-card174.sql','53-card175.sql','54-card205.sql',
-    '55-card-tube.sql','60-act.sql','61-act-subtypes.sql','90-finalize.sql',
+    '55-card-tube.sql','60-act.sql','61-act-subtypes.sql','62-preserve-unmapped.sql','90-finalize.sql',
     '97-backfill-form058-accept-approve-info.sql'
 )
 
-Set-Location $PSScriptRoot
+Set-Location (Join-Path $PSScriptRoot '..\..\src\main\resources\legacy-migration')
 Write-Host "WARNING: 00-prep TRUNCATEs public2 business tables (CASCADE also hits"
 Write-Host "         rp_*, form_129, user_roles, outbound_webhook_dispatch). Backup ready?"
 $ans = Read-Host "Continue? [yes/NO]"

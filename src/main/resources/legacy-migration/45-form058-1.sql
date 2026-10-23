@@ -50,7 +50,8 @@ SELECT
         WHEN 'NOT_APPROVED'     THEN 'CANCELED'
         ELSE 'SENT'
     END,
-    left(CASE WHEN upper(trim(l.source)) = 'DMED' THEN 'DMED' ELSE 'MANUAL' END, 20),
+    -- legacy form058_1'da source ustuni bo'lmasligi mumkin: to_jsonb orqali (yo'q bo'lsa NULL -> MANUAL)
+    left(CASE WHEN upper(trim(to_jsonb(l)->>'source')) = 'DMED' THEN 'DMED' ELSE 'MANUAL' END, 20),
     l.patient_id,
     COALESCE(l.sender_organization_id, 0),
     COALESCE(l.receiver_organization_id, 0),

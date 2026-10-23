@@ -9,6 +9,23 @@ ishga tushiriladi.
 **[`GUIDE.md`](GUIDE.md)** — backup, sinov, tekshirish, cutover, Windows + Linux,
 muammolar. Avval o'shani o'qing.
 
+## Dev panel orqali ishga tushirish
+
+SQL fayllar `src/main/resources/legacy-migration/` da (runner skriptlar ham shu yerdan o'qiydi).
+Ilova ichidan:
+
+```
+LEGACY_MIGRATION_ENABLED=true   # default false - faqat cutover vaqtida yoqing
+
+POST /v1/dev/legacy-migration   (DEV_SUPER_ADMIN, HTTP Basic)
+  {}                                        -> dry-run (bitta tranzaksiya, oxirida ROLLBACK)
+  {"dryRun":false,"confirm":"yes"}          -> haqiqiy ko'chirish (public2 biznes jadvallari TRUNCATE)
+  {"dryRun":false,"confirm":"yes","files":["95-fix-sequences.sql"]}   -> alohida tuzatish
+GET  /v1/dev/legacy-migration/status        -> progress + 90-finalize hisoboti (steps[].tables)
+```
+
+Cutover tugagach flagni o'chiring.
+
 ## Tez ma'lumotnoma
 
 ```

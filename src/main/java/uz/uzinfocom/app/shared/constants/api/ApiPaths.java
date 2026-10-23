@@ -327,6 +327,15 @@ public final class ApiPaths {
         public static final String SETTINGS_RESTORE = "/settings/{id}/restore";
         public static final String ROUTE_POLICIES = "/settings/route-policies";
         public static final String ROUTE_POLICY_BY_ID = "/settings/route-policies/{id}";
+        public static final String LEGACY_MIGRATION = "/legacy-migration";
+        public static final String LEGACY_MIGRATION_STATUS = "/legacy-migration/status";
+        public static final String DB_DUMPS = "/db-dumps";
+        public static final String DB_DUMP_BY_ID = "/db-dumps/{id}";
+        public static final String DB_DUMP_DOWNLOAD = "/db-dumps/{id}/download";
+        public static final String DB_SCHEMA = "/db-schema";
+        public static final String DB_SCHEMA_TABLE = "/db-schema/{schema}/{table}";
+        public static final String DB_SCHEMA_TABLE_ROWS = "/db-schema/{schema}/{table}/rows";
+        public static final String DB_SCHEMA_QUERY = "/db-schema/query";
         public static final String CACHES = "/caches";
         public static final String CACHE_BY_NAME = "/caches/{name}";
         public static final String FILES = "/files";

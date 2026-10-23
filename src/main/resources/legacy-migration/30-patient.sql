@@ -64,7 +64,9 @@ SELECT
     f.address, f.city_code, f.last_visited_date,
     -- organization_id: yetim bo'lsa NULL (nullable ustun)
     (SELECT o.id FROM public.organization o WHERE o.id = f.organization_id),
-    f.organization_name, f.organization_uuid, f.state_code, f.type, f.patient_id
+    -- legacy pt_affiliation'da organization_uuid ustuni yo'q: tashkilotdan olamiz (yetim bo'lsa NULL)
+    f.organization_name, (SELECT o.uuid FROM public.organization o WHERE o.id = f.organization_id),
+    f.state_code, f.type, f.patient_id
 FROM public.pt_affiliation f
 JOIN public.patient p ON p.id = f.patient_id;
 

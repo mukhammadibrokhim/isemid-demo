@@ -163,7 +163,7 @@ public class Form058 extends AbsEntity implements AuditableFields {
 
     /**
      * Called once one or more cards exist on this form. Cards may only be
-     * linked after the receiver has accepted the form ({@link #accept()} —
+     * linked after the receiver has accepted the form ( —
      * {@code ACCEPTED}); a still-{@code SENT} (not yet decided) form must
      * not have cards linked to it directly — see {@code Form058AcceptValidator}
      * for why that decision has to happen first. From {@code ACCEPTED} this
