@@ -21,6 +21,7 @@ import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +39,41 @@ public class ApproveForm058Service {
             throw new Form058ValidationException("error.form058.approval-not-allowed");
         }
 
-        Form058 form058 = findRequired(command.formId());
+        return approveLocked(findRequired(command.formId()), command.finalIcd10Code(), command.finalIcd10Name());
+    }
+
+    /**
+     * Approval for the inbound-integration surface, where the form is addressed by id or uuid.
+     * Re-sending the same final diagnosis for an already approved form is a no-op that returns
+     * the current state, so a retry after a lost response does not fail.
+     */
+    @Transactional
+    public UpdateForm058Result confirm(Long formId, UUID formUuid, String finalIcd10Code, String finalIcd10Name) {
+        Form058 form058 = formId != null
+                ? findRequired(formId)
+                : form058JpaRepository.findActiveByUuidForUpdate(formUuid)
+                        .orElseThrow(() -> new Form058NotFoundException(formUuid));
+
+        if (form058.isApproved()
+                && form058.getDiagnosisInfo() != null
+                && Objects.equals(form058.getDiagnosisInfo().getFinalIcd10Code(), finalIcd10Code.trim())) {
+            form058ApprovalValidator.validateOwnership(form058);
+            return form058UpdateMapper.toResult(form058);
+        }
+        return approveLocked(form058, finalIcd10Code, finalIcd10Name);
+    }
+
+    private UpdateForm058Result approveLocked(Form058 form058, String finalIcd10Code, String finalIcd10Name) {
+        if (!StringUtils.hasText(finalIcd10Code) || !StringUtils.hasText(finalIcd10Name)) {
+            throw new Form058ValidationException("error.form058.approval-not-allowed");
+        }
+
         form058ApprovalValidator.validateApprove(form058);
         String oldStatus = form058.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
         form058.approve(
-                command.finalIcd10Code().trim(),
-                command.finalIcd10Name().trim(),
+                finalIcd10Code.trim(),
+                finalIcd10Name.trim(),
                 actorUserId,
                 form058.getSenderOrganizationId()
         );

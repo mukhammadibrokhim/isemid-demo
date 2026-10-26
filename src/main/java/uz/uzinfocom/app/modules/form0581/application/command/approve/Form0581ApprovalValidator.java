@@ -31,6 +31,10 @@ public class Form0581ApprovalValidator {
             throw new InvalidForm0581StateException("error.form0581.approve-not-allowed", form0581.getStatus());
         }
 
+        validateOwnership(form0581);
+    }
+
+    public void validateOwnership(Form0581 form0581) {
         if (form0581AccessGuard.isSuperAdmin()) {
             return;
         }

@@ -18,6 +18,8 @@ import java.util.Optional;
 public enum IntegrationScope {
     FORM058_SUBMIT("form058:submit"),
     FORM0581_SUBMIT("form0581:submit"),
+    FORM058_CONFIRM("form058:confirm"),
+    FORM0581_CONFIRM("form0581:confirm"),
     FORM129_SUBMIT("form129:submit"),
     PATIENT_CASE_READ("patient-case:read");
 
