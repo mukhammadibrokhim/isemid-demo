@@ -77,7 +77,7 @@ Namuna:
 
 ## DMED
 
-`POST /integration/v1/DMED/form-058` — DMED uchun alohida, **tekis** (flat) shakldagi qat'iy kontrakt (`DmedCreateForm058Request`); umumiy endpointdagi ichma-ich tuzilmaga o'tkazilmaydi. Tashkilot tanadan olinmaydi (`X-Organization-Id` / klientga biriktirilgan tashkilot). Maydonlar ro'yxati — Swagger, guruh «Integration - DMED Form 058».
+`POST /integration/v1/DMED/form-058` — [dmed/README.md](dmed/README.md)
 
 ---
 
@@ -150,7 +150,7 @@ Namuna:
 
 ## DMED
 
-`POST /integration/v1/DMED/form-058` — отдельный фиксированный **плоский** контракт для DMED (`DmedCreateForm058Request`); не переводится на вложенную структуру общего эндпоинта. Организация из тела не берётся (`X-Organization-Id` / организация, закреплённая за клиентом). Список полей — Swagger, группа «Integration - DMED Form 058».
+`POST /integration/v1/DMED/form-058` — [dmed/README.md](dmed/README.md)
 
 ---
 
@@ -223,4 +223,4 @@ Example:
 
 ## DMED
 
-`POST /integration/v1/DMED/form-058` — a separate fixed **flat** contract for DMED (`DmedCreateForm058Request`); it is not migrated to the nested structure of the generic endpoint. The organization is never read from the body (`X-Organization-Id` / the client's bound organization). Field list: Swagger, group "Integration - DMED Form 058".
+`POST /integration/v1/DMED/form-058` — [dmed/README.md](dmed/README.md)

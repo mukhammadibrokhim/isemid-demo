@@ -69,7 +69,7 @@ Namuna:
 
 ## DMED
 
-`POST /integration/v1/DMED/form-058-1` — DMED uchun qat'iy **tekis** kontrakt (`DmedCreateForm0581Request`). Tashkilot tanadan olinmaydi. Maydonlar — Swagger, guruh «Integration - DMED Form 058-1».
+`POST /integration/v1/DMED/form-058-1` — [dmed/README.md](dmed/README.md)
 
 ---
 
@@ -134,7 +134,7 @@ Namuna:
 
 ## DMED
 
-`POST /integration/v1/DMED/form-058-1` — фиксированный **плоский** контракт DMED (`DmedCreateForm0581Request`). Организация из тела не берётся. Поля — Swagger, группа «Integration - DMED Form 058-1».
+`POST /integration/v1/DMED/form-058-1` — [dmed/README.md](dmed/README.md)
 
 ---
 
@@ -199,4 +199,4 @@ Example:
 
 ## DMED
 
-`POST /integration/v1/DMED/form-058-1` — DMED's fixed **flat** contract (`DmedCreateForm0581Request`). The organization is never read from the body. Fields: Swagger, group "Integration - DMED Form 058-1".
+`POST /integration/v1/DMED/form-058-1` — [dmed/README.md](dmed/README.md)

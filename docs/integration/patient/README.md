@@ -58,7 +58,7 @@ Javob (`latestForm058` va `latestForm0581` bir-biridan mustaqil `null` bo'lishi 
 | `addresses[]` | **ha**, bo'sh emas | `{ type: PERMANENT\|TEMPORARY, regionCode, districtCode, neighborhoodCode, streetAddress, houseNumber, apartmentNumber }` (`stateCode`/`cityCode` — `regionCode`/`districtCode` ning sinonimi) |
 | `affiliations[]` | yo'q | `{ type: WORKPLACE\|EDUCATIONAL, lastVisitedDate, organizationName, regionCode (yoki stateCode), cityCode, organizationId, organizationUuid, address }` — ro'yxatda bo'lmagan tashkilotni nom/manzil bilan berish mumkin |
 
-**Identifikator qoidasi.** `type` `PINFL`, `NNUZB` yoki `JSHSHIR` bo'lsa (registrga e'tibor bermaydi), `value` aynan 14 raqam bo'lishi va tuzilma tekshiruvidan o'tishi shart: 1-raqam 1–6, kun 01–31, oy 01–12, oxirgi raqam — kontrol raqam (13 ta raqam `7,3,1,7,3,1,7,3,1,7,3,1,7` vaznlari bilan yig'indisi mod 10). Xato: `integration.patient.identifier.pinfl-format` / `pinfl-invalid`. Boshqa turlar (`PASSPORT`, `PPN`, …) faqat uzunlik bo'yicha tekshiriladi.
+**Identifikator qoidasi.** `type` `PINFL`, `NNUZB` yoki `JSHSHIR` bo'lsa (registrga e'tibor bermaydi), `value` aynan 14 raqam bo'lishi va tuzilma tekshiruvidan o'tishi shart: 1-raqam 1–6, kun 01–31, oy 01–12, oxirgi raqam — kontrol raqam (13 ta raqam `7,3,1,7,3,1,7,3,1,7,3,1,7` vaznlari bilan yig'indisi mod 10). Xato: `integration.patient.identifier.pinfl-format` / `pinfl-invalid`. Boshqa turlar (`PASSPORT`, `PPN`, …) faqat uzunlik bo'yicha tekshiriladi. Tavsiya etilgan turlar: `NNUZB` (= PINFL) va `PPN` (= pasport). DMED 058 uchun ikkalasi ham majburiy.
 
 ---
 
@@ -114,7 +114,7 @@ GET /integration/v1/{source}/patients/case?identifierValue=<значение д�
 | `addresses[]` | **да**, не пусто | `{ type: PERMANENT\|TEMPORARY, regionCode, districtCode, neighborhoodCode, streetAddress, houseNumber, apartmentNumber }` (`stateCode`/`cityCode` — синонимы `regionCode`/`districtCode`) |
 | `affiliations[]` | нет | `{ type: WORKPLACE\|EDUCATIONAL, lastVisitedDate, organizationName, regionCode (или stateCode), cityCode, organizationId, organizationUuid, address }` — организацию, которой нет в системе, можно передать названием/адресом |
 
-**Правило идентификатора.** Если `type` — `PINFL`, `NNUZB` или `JSHSHIR` (без учёта регистра), `value` должно состоять ровно из 14 цифр и пройти структурную проверку: 1-я цифра 1–6, день 01–31, месяц 01–12, последняя цифра — контрольная (сумма 13 цифр с весами `7,3,1,7,3,1,7,3,1,7,3,1,7` по модулю 10). Ошибки: `integration.patient.identifier.pinfl-format` / `pinfl-invalid`. Другие типы (`PASSPORT`, `PPN`, …) проверяются только по длине.
+**Правило идентификатора.** Если `type` — `PINFL`, `NNUZB` или `JSHSHIR` (без учёта регистра), `value` должно состоять ровно из 14 цифр и пройти структурную проверку: 1-я цифра 1–6, день 01–31, месяц 01–12, последняя цифра — контрольная (сумма 13 цифр с весами `7,3,1,7,3,1,7,3,1,7,3,1,7` по модулю 10). Ошибки: `integration.patient.identifier.pinfl-format` / `pinfl-invalid`. Другие типы (`PASSPORT`, `PPN`, …) проверяются только по длине. Рекомендуемые типы: `NNUZB` (= PINFL) и `PPN` (= паспорт). Для DMED 058 обязательны оба.
 
 ---
 
@@ -170,4 +170,4 @@ Response (`latestForm058` and `latestForm0581` can each independently be `null`)
 | `addresses[]` | **yes**, non-empty | `{ type: PERMANENT\|TEMPORARY, regionCode, districtCode, neighborhoodCode, streetAddress, houseNumber, apartmentNumber }` (`stateCode`/`cityCode` are aliases of `regionCode`/`districtCode`) |
 | `affiliations[]` | no | `{ type: WORKPLACE\|EDUCATIONAL, lastVisitedDate, organizationName, regionCode (or stateCode), cityCode, organizationId, organizationUuid, address }` — an organization unknown to the system can be given by name/address |
 
-**Identifier rule.** When `type` is `PINFL`, `NNUZB` or `JSHSHIR` (case-insensitive), `value` must be exactly 14 digits and structurally valid: first digit 1–6, day 01–31, month 01–12, last digit is a check digit (sum of the first 13 digits weighted `7,3,1,7,3,1,7,3,1,7,3,1,7`, mod 10). Errors: `integration.patient.identifier.pinfl-format` / `pinfl-invalid`. Other types (`PASSPORT`, `PPN`, …) are length-checked only.
+**Identifier rule.** When `type` is `PINFL`, `NNUZB` or `JSHSHIR` (case-insensitive), `value` must be exactly 14 digits and structurally valid: first digit 1–6, day 01–31, month 01–12, last digit is a check digit (sum of the first 13 digits weighted `7,3,1,7,3,1,7,3,1,7,3,1,7`, mod 10). Errors: `integration.patient.identifier.pinfl-format` / `pinfl-invalid`. Other types (`PASSPORT`, `PPN`, …) are length-checked only. Recommended types: `NNUZB` (= PINFL) and `PPN` (= passport). Both are mandatory for DMED 058.
