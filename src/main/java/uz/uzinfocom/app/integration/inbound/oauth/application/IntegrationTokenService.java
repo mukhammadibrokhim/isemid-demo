@@ -37,7 +37,9 @@ public class IntegrationTokenService {
 
         Set<String> scopes = Set.of(client.getScopes().split(","));
 
-        UUID organizationUuid = organizationRepository.findById(client.getOrganizationId())
+        UUID organizationUuid = client.getOrganizationId() == null
+                ? null
+                : organizationRepository.findById(client.getOrganizationId())
                 .orElseThrow(InvalidIntegrationCredentialsException::new)
                 .getUuid();
 

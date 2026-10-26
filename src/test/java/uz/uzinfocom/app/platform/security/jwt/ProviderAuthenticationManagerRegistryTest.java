@@ -8,6 +8,8 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
+import uz.uzinfocom.app.platform.security.auth.ExternalTokenClientResolver;
+import uz.uzinfocom.app.platform.security.auth.ExternalTokenJwtAuthenticationConverter;
 import uz.uzinfocom.app.platform.security.auth.FederatedJwtAuthenticationConverter;
 import uz.uzinfocom.app.platform.security.auth.IntegrationClientAuthenticationToken;
 import uz.uzinfocom.app.platform.security.auth.IntegrationJwtAuthenticationConverter;
@@ -48,7 +50,9 @@ class ProviderAuthenticationManagerRegistryTest {
             new IntegrationJwtAuthenticationConverter(),
             integrationTokenProperties,
             mock(SystemSettingResolver.class),
-            mock(TokenBlacklistService.class)
+            mock(TokenBlacklistService.class),
+            mock(ExternalTokenJwtAuthenticationConverter.class),
+            mock(ExternalTokenClientResolver.class)
     );
 
     @Test

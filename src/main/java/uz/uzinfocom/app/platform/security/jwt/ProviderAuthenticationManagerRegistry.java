@@ -15,11 +15,14 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenResolv
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.platform.security.auth.ExternalTokenClientResolver;
+import uz.uzinfocom.app.platform.security.auth.ExternalTokenJwtAuthenticationConverter;
 import uz.uzinfocom.app.platform.security.auth.FederatedJwtAuthenticationConverter;
 import uz.uzinfocom.app.platform.security.auth.IntegrationJwtAuthenticationConverter;
 import uz.uzinfocom.app.platform.security.jwt.properties.IntegrationTokenProperties;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
+import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 
 import java.text.ParseException;
 import java.util.LinkedHashMap;
@@ -43,10 +46,19 @@ public class ProviderAuthenticationManagerRegistry {
     private final IntegrationTokenProperties integrationTokenProperties;
     private final SystemSettingResolver systemSettingResolver;
     private final TokenBlacklistService tokenBlacklistService;
+    private final ExternalTokenJwtAuthenticationConverter externalTokenConverter;
+    private final ExternalTokenClientResolver externalTokenClientResolver;
 
     private final BearerTokenResolver bearerTokenResolver = new DefaultBearerTokenResolver();
 
     private Map<String, AuthenticationManager> authenticationManagersByProviderKey = Map.of();
+
+    /**
+     * Same provider decoders as {@link #authenticationManagersByProviderKey}, but converting to an
+     * integration-client principal instead of syncing a human user - used only for
+     * {@code /integration/**} calls whose token matches a registered EXTERNAL_TOKEN client.
+     */
+    private Map<String, AuthenticationManager> externalTokenManagersByProviderKey = Map.of();
 
     /**
      * Only configured providers get an entry here - their enabled/disabled state can be
@@ -61,6 +73,7 @@ public class ProviderAuthenticationManagerRegistry {
     void initialize() {
         LinkedHashMap<String, AuthenticationManager> managers = new LinkedHashMap<>();
         LinkedHashMap<String, Boolean> defaultEnabled = new LinkedHashMap<>();
+        LinkedHashMap<String, AuthenticationManager> externalTokenManagers = new LinkedHashMap<>();
 
         properties.getProviders().forEach((providerKey, provider) -> {
             if (provider == null) {
@@ -68,13 +81,17 @@ public class ProviderAuthenticationManagerRegistry {
                 return;
             }
 
-            JwtAuthenticationProvider authenticationProvider = new JwtAuthenticationProvider(
-                    decoderFactory.create(providerKey, provider)
-            );
+            JwtDecoder providerDecoder = decoderFactory.create(providerKey, provider);
+
+            JwtAuthenticationProvider authenticationProvider = new JwtAuthenticationProvider(providerDecoder);
 
             authenticationProvider.setJwtAuthenticationConverter(converter);
 
             managers.put(providerKey, authenticationProvider::authenticate);
+
+            JwtAuthenticationProvider externalTokenProvider = new JwtAuthenticationProvider(providerDecoder);
+            externalTokenProvider.setJwtAuthenticationConverter(externalTokenConverter);
+            externalTokenManagers.put(providerKey, externalTokenProvider::authenticate);
             defaultEnabled.put(providerKey, provider.isEnabled());
 
             log.info(
@@ -98,6 +115,7 @@ public class ProviderAuthenticationManagerRegistry {
                 integrationTokenProperties.getIssuer()
         );
 
+        this.externalTokenManagersByProviderKey = Map.copyOf(externalTokenManagers);
         this.authenticationManagersByProviderKey = Map.copyOf(managers);
         this.defaultEnabledByProviderKey = Map.copyOf(defaultEnabled);
     }
@@ -136,6 +154,15 @@ public class ProviderAuthenticationManagerRegistry {
             }
 
             request.setAttribute(REQUEST_PROVIDER_KEY_ATTRIBUTE, providerKey);
+
+            AuthenticationManager externalTokenManager = externalTokenManagersByProviderKey.get(providerKey);
+            if (externalTokenManager != null
+                    && request.getRequestURI().startsWith(ApiPaths.Integration.ROOT)
+                    && externalTokenClientResolver.resolve(providerKey, parseClaims(token).getClaims()).isPresent()) {
+                log.debug("M2M JWT routed to external-token client. providerKey={}, path={}",
+                        providerKey, request.getRequestURI());
+                return externalTokenManager;
+            }
 
             log.debug(
                     "JWT routed to authentication provider. providerKey={}, method={}, path={}",

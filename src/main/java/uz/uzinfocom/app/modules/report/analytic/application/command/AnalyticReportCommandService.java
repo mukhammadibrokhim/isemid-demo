@@ -32,9 +32,10 @@ import java.util.stream.Collectors;
  * inside the caller's own access scope via {@link ReportHierarchyService},
  * the same check every other report's geography drill-down applies. Update
  * and delete are additionally gated by {@link AnalyticReportOwnershipValidator}
- * — only the creating organization (or an admin) may change or remove a
- * report; read access remains the wider organization-scope rule enforced
- * separately in {@code AnalyticReportQueryService#findTable}.
+ * — only the creating user (or an admin) may change or remove a report; read
+ * access is the wider organization-scope rule for {@code FINAL} reports, while
+ * {@code TEMPLATE} drafts are visible to their creator only (see {@code
+ * AnalyticReportSpecification}).
  */
 @Slf4j
 @Service

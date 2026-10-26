@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.card.application.query.CardQueryService;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058DetailResponseMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058TableMapper;
+import uz.uzinfocom.app.modules.form058.application.query.mapper.helper.Form058TableAddressMapperHelper;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
@@ -30,6 +31,7 @@ class Form058QueryServiceTest {
             mock(Form058DetailResponseMapper.class),
             mock(Form058PdfMapper.class),
             mock(Form058TableMapper.class),
+            mock(Form058TableAddressMapperHelper.class),
             mock(AdminAccessGuard.class),
             mock(AuditResolver.class),
             mock(CardQueryService.class),

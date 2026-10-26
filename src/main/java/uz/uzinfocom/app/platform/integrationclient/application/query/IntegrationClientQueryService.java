@@ -56,6 +56,12 @@ public class IntegrationClientQueryService {
         return toResponse(client);
     }
 
+    private String organizationNameOrNull(IntegrationClient client) {
+        return client.getOrganizationId() == null
+                ? null
+                : organizationLookup.activeOrganizationNameById(client.getOrganizationId());
+    }
+
     private IntegrationClientTableResponse toTableResponse(IntegrationClient client) {
         return new IntegrationClientTableResponse(
                 client.getId(),
@@ -64,7 +70,7 @@ public class IntegrationClientQueryService {
                 client.getAuthType(),
                 client.getSourceKey(),
                 client.getOrganizationId(),
-                organizationLookup.activeOrganizationNameById(client.getOrganizationId()),
+                organizationNameOrNull(client),
                 client.isActive(),
                 client.getLastUsedAt()
         );
@@ -78,10 +84,12 @@ public class IntegrationClientQueryService {
                 client.getAuthType(),
                 client.getSourceKey(),
                 client.getOrganizationId(),
-                organizationLookup.activeOrganizationNameById(client.getOrganizationId()),
+                organizationNameOrNull(client),
                 List.of(client.getScopes().split(",")),
                 client.isActive(),
                 StringUtils.hasText(client.getAllowedIps()) ? List.of(client.getAllowedIps().split(",")) : List.of(),
+                client.getProviderKey(),
+                client.getExternalClientId(),
                 client.getLastUsedAt(),
                 toWebhookResponse(client),
                 auditResolver.resolve(client)

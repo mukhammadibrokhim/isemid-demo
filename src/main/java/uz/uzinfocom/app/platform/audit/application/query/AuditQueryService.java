@@ -37,7 +37,8 @@ public class AuditQueryService {
                 .findAll(AuditEventSpecification.byFilter(request), pageable);
 
         Map<Long, User> actorsById = fetchActors(page.getContent());
-        return page.map(entity -> toResponse(entity, actorsById.get(entity.getActorUserId())));
+        return page.map(entity -> toResponse(entity,
+                entity.getActorUserId() == null ? null : actorsById.get(entity.getActorUserId())));
     }
 
     @Transactional(readOnly = true)

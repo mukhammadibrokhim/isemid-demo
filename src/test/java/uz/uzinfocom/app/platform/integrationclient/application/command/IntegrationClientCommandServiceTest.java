@@ -8,7 +8,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import uz.uzinfocom.app.orchestration.webhook.config.OutboundWebhookProperties;
 import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
-import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
@@ -23,6 +22,7 @@ import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
 import uz.uzinfocom.app.platform.integrationclient.domain.OutboundHttpMethod;
 import uz.uzinfocom.app.platform.integrationclient.domain.OutboundWebhookAuthType;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
+import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 
 import java.time.Duration;
 import java.util.List;
@@ -39,7 +39,6 @@ import static org.mockito.Mockito.when;
 class IntegrationClientCommandServiceTest {
 
     private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
-    private final OrganizationLookup organizationLookup = mock(OrganizationLookup.class);
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final WebhookSecretCipher webhookSecretCipher = mock(WebhookSecretCipher.class);
 
@@ -47,12 +46,11 @@ class IntegrationClientCommandServiceTest {
             new OutboundWebhookProperties(Duration.ofSeconds(3), Duration.ofSeconds(10), false);
 
     private final IntegrationClientCommandService service = new IntegrationClientCommandService(
-            integrationClientRepository, organizationLookup, passwordEncoder, webhookSecretCipher, webhookProperties);
+            integrationClientRepository, passwordEncoder, webhookSecretCipher, webhookProperties,
+            new AuthProvidersProperties());
 
     @Test
     void createReturnsThePlaintextSecretOnlyOnceAndNeverPersistsIt() {
-        UUID organizationUuid = UUID.randomUUID();
-        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -61,13 +59,12 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed", organizationUuid,
-                List.of(IntegrationScope.FORM058_SUBMIT), null));
+                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed",
+                List.of(IntegrationScope.FORM058_SUBMIT), null, null, null));
 
         assertThat(response.clientSecret()).isNotBlank();
         assertThat(response.apiKey()).isNull();
         assertThat(response.basicAuthSecret()).isNull();
-        assertThat(response.organizationId()).isEqualTo(42L);
         assertThat(response.scopes()).containsExactly("form058:submit");
         assertThat(response.allowedIps()).isEmpty();
 
@@ -83,8 +80,6 @@ class IntegrationClientCommandServiceTest {
 
     @Test
     void createNormalizesAndPersistsAllowedIps() {
-        UUID organizationUuid = UUID.randomUUID();
-        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -93,27 +88,23 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed", organizationUuid,
-                List.of(IntegrationScope.FORM058_SUBMIT), List.of(" 10.0.5.0/24 ", "10.0.6.7")));
+                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed",
+                List.of(IntegrationScope.FORM058_SUBMIT), List.of(" 10.0.5.0/24 ", "10.0.6.7"), null, null));
 
         assertThat(response.allowedIps()).containsExactly("10.0.5.0/24", "10.0.6.7");
     }
 
     @Test
     void createRejectsAMalformedAllowedIpEntry() {
-        UUID organizationUuid = UUID.randomUUID();
-        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
 
         assertThatThrownBy(() -> service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed", organizationUuid,
-                List.of(IntegrationScope.FORM058_SUBMIT), List.of("not-an-ip"))))
+                "Test Lab System", IntegrationAuthType.CLIENT_CREDENTIALS, "dmed",
+                List.of(IntegrationScope.FORM058_SUBMIT), List.of("not-an-ip"), null, null)))
                 .isInstanceOf(InvalidAllowedIpException.class);
     }
 
     @Test
     void createIssuesAnApiKeyPrefixedByTheClientIdAndPersistsOnlyItsHash() {
-        UUID organizationUuid = UUID.randomUUID();
-        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -122,8 +113,8 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", IntegrationAuthType.API_KEY, "dmed", organizationUuid,
-                List.of(IntegrationScope.FORM058_SUBMIT), null));
+                "Test Lab System", IntegrationAuthType.API_KEY, "dmed",
+                List.of(IntegrationScope.FORM058_SUBMIT), null, null, null));
 
         assertThat(response.apiKey()).startsWith(response.clientId() + ".");
         assertThat(response.clientSecret()).isNull();
@@ -139,8 +130,6 @@ class IntegrationClientCommandServiceTest {
 
     @Test
     void createIssuesABasicAuthSecretAndPersistsOnlyItsHash() {
-        UUID organizationUuid = UUID.randomUUID();
-        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
         when(integrationClientRepository.save(any(IntegrationClient.class)))
                 .thenAnswer(invocation -> {
                     IntegrationClient client = invocation.getArgument(0);
@@ -149,8 +138,8 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", IntegrationAuthType.BASIC_AUTH, "dmed", organizationUuid,
-                List.of(IntegrationScope.FORM058_SUBMIT), null));
+                "Test Lab System", IntegrationAuthType.BASIC_AUTH, "dmed",
+                List.of(IntegrationScope.FORM058_SUBMIT), null, null, null));
 
         assertThat(response.basicAuthSecret()).isNotBlank();
         assertThat(response.clientSecret()).isNull();
@@ -165,12 +154,10 @@ class IntegrationClientCommandServiceTest {
 
     @Test
     void createAnIpAllowlistClientRequiresAllowedIpsAndIssuesNoSecret() {
-        UUID organizationUuid = UUID.randomUUID();
-        when(organizationLookup.resolveActiveId(organizationUuid)).thenReturn(42L);
 
         assertThatThrownBy(() -> service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", IntegrationAuthType.IP_ALLOWLIST, "dmed", organizationUuid,
-                List.of(IntegrationScope.FORM058_SUBMIT), null)))
+                "Test Lab System", IntegrationAuthType.IP_ALLOWLIST, "dmed",
+                List.of(IntegrationScope.FORM058_SUBMIT), null, null, null)))
                 .isInstanceOf(AllowedIpsRequiredException.class);
 
         when(integrationClientRepository.save(any(IntegrationClient.class)))
@@ -181,8 +168,8 @@ class IntegrationClientCommandServiceTest {
                 });
 
         IntegrationClientCreateResponse response = service.create(new IntegrationClientCreateRequest(
-                "Test Lab System", IntegrationAuthType.IP_ALLOWLIST, "dmed", organizationUuid,
-                List.of(IntegrationScope.FORM058_SUBMIT), List.of("10.0.5.0/24")));
+                "Test Lab System", IntegrationAuthType.IP_ALLOWLIST, "dmed",
+                List.of(IntegrationScope.FORM058_SUBMIT), List.of("10.0.5.0/24"), null, null));
 
         assertThat(response.clientSecret()).isNull();
         assertThat(response.apiKey()).isNull();

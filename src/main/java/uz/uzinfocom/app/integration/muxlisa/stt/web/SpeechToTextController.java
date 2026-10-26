@@ -30,6 +30,8 @@ public class SpeechToTextController {
             description = "Тело запроса — сырой аудиофайл (не multipart), заголовок Content-Type — MIME-тип записи "
                     + "(audio/wav рекомендуется; также webm, ogg, mp4, mpeg, flac, aac, amr и др.). "
                     + "Максимум 5 МБ и 60 секунд. Аудио нигде не сохраняется. "
+                    + "Алфавит ответа задаёт Accept-Language: uz-Cyrl — узбекская кириллица, "
+                    + "остальные значения (uz, ru, kaa, пусто, неизвестное) — текст как есть. "
                     + "Доступно ролям с правом SPEECH_TO_TEXT / CREATE."
     )
     @PostMapping
@@ -38,8 +40,9 @@ public class SpeechToTextController {
             @Parameter(description = "Аудиозапись (raw bytes).",
                     content = @Content(mediaType = "audio/*", schema = @Schema(type = "string", format = "binary")))
             @RequestBody byte[] audio,
-            @RequestHeader(value = HttpHeaders.CONTENT_TYPE, required = false) String contentType
+            @RequestHeader(value = HttpHeaders.CONTENT_TYPE, required = false) String contentType,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage
     ) {
-        return service.transcribe(audio, contentType);
+        return service.transcribe(audio, contentType, acceptLanguage);
     }
 }

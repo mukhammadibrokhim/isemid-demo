@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSubmitterRequest;
 import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form129.domain.enums.Form129TestOutcome;
 import uz.uzinfocom.app.modules.form129.domain.enums.Form129WrightHeddelsonOutcome;
@@ -86,6 +87,16 @@ public record InboundCreateForm129Request(
         @Schema(description = "ФИО лица, сообщившего о случае.", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank(message = "{validation.form129.notifier-full-name.required}")
         @Size(max = 255, message = "{validation.form129.notifier-full-name.size}")
-        String notifierFullName
+        String notifierFullName,
+
+        @Schema(description = "Организация-отправитель. Обязательна для клиентов EXTERNAL_TOKEN (должна входить в "
+                + "их список разрешённых организаций); для остальных вызывающих, если указана, должна совпадать "
+                + "с их организацией.")
+        UUID senderOrganizationUuid,
+
+        @Schema(description = "Сотрудник, от имени которого отправляется форма (для аудита). Обязателен для "
+                + "клиентов EXTERNAL_TOKEN.")
+        @Valid
+        InboundSubmitterRequest submittedBy
 ) {
 }

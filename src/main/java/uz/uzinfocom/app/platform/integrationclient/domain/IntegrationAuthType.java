@@ -17,5 +17,12 @@ public enum IntegrationAuthType {
     BASIC_AUTH,
 
     /** No credential at all — identified purely by source IP against {@code allowedIps}. */
-    IP_ALLOWLIST
+    IP_ALLOWLIST,
+
+    /**
+     * An SSO/DHP M2M ({@code client_credentials}) Bearer token — the client is
+     * matched by {@code providerKey} + {@code externalClientId} and may submit
+     * on behalf of any organization of that provider.
+     */
+    EXTERNAL_TOKEN
 }

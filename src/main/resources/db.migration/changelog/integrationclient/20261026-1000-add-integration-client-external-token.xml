@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        EXTERNAL_TOKEN clients are identified by an SSO/DHP M2M (client_credentials)
+        token: provider_key names the issuing provider, external_client_id is the
+        token's client_id/azp/sub claim. Both stay null for every other auth type.
+        integration_client_organization lists the organizations such a client may
+        submit on behalf of (the body names one of them); the pre-existing
+        organization_id column stays as its default organization.
+    -->
+    <changeSet id="20261026-1000-01-add-integration-client-provider-key" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="provider_key" type="VARCHAR(50)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20261026-1000-02-add-integration-client-external-client-id" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="external_client_id" type="VARCHAR(255)"/>
+        </addColumn>
+        <createIndex tableName="integration_client" indexName="uk_integration_client_provider_external_id" unique="true">
+            <column name="provider_key"/>
+            <column name="external_client_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20261026-1000-03-create-integration-client-organization" author="codex">
+        <createTable tableName="integration_client_organization">
+            <column name="integration_client_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_ico_integration_client_id"
+                             references="integration_client(id)"/>
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_ico_organization_id"
+                             references="organization(id)"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="integration_client_organization"
+                       columnNames="integration_client_id, organization_id"
+                       constraintName="pk_integration_client_organization"/>
+        <createIndex tableName="integration_client_organization" indexName="idx_ico_organization_id">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20261026-1000-05-integration-client-organization-nullable" author="codex">
+        <dropNotNullConstraint tableName="integration_client" columnName="organization_id"
+                               columnDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="20261026-1000-04-create-inbound-submission-audit" author="codex">
+        <createTable tableName="inbound_submission_audit">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_inbound_submission_audit" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="form_type" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="form_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="integration_client_id" type="BIGINT"/>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submitter_pinfl" type="VARCHAR(32)"/>
+            <column name="submitter_full_name" type="VARCHAR(255)"/>
+            <column name="submitter_position" type="VARCHAR(255)"/>
+            <column name="submitter_phone" type="VARCHAR(64)"/>
+            <column name="remote_ip" type="VARCHAR(64)"/>
+        </createTable>
+        <createIndex tableName="inbound_submission_audit" indexName="idx_inbound_submission_audit_form">
+            <column name="form_type"/>
+            <column name="form_id"/>
+        </createIndex>
+        <createIndex tableName="inbound_submission_audit" indexName="idx_inbound_submission_audit_client">
+            <column name="integration_client_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

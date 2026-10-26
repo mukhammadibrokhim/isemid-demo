@@ -43,7 +43,11 @@ public final class InboundCallerContext {
     }
 
     public static Long resolveSenderOrganizationId() {
-        return CurrentOrganizationContext.require().getId();
+        // A client with no default organization that omitted X-Organization-Id has no context
+        // here - a caller mistake, so 403 organization.required rather than a 500.
+        return CurrentOrganizationContext.getOptional()
+                .orElseThrow(() -> new AccessDeniedException("organization.required"))
+                .getId();
     }
 
     public static void requireScope(IntegrationScope scope) {

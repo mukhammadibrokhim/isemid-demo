@@ -15,6 +15,8 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.persistence.entity.AuditableEntity;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A registered machine caller for the inbound integration API — external
@@ -61,7 +63,20 @@ public class IntegrationClient extends AuditableEntity {
     @Column(name = "basic_auth_secret_hash", length = 255)
     private String basicAuthSecretHash;
 
-    @Column(name = "organization_id", nullable = false)
+    /** Only populated for {@link IntegrationAuthType#EXTERNAL_TOKEN}: key of the issuing auth provider (sso, dhp, ...). */
+    @Column(name = "provider_key", length = 50)
+    private String providerKey;
+
+    /** Only populated for {@link IntegrationAuthType#EXTERNAL_TOKEN}: the token's client_id/azp/sub claim. */
+    @Column(name = "external_client_id", length = 255)
+    private String externalClientId;
+
+    /**
+     * Default organization. For {@link IntegrationAuthType#EXTERNAL_TOKEN} clients the organization
+     * actually submitted for comes from the request body (any organization of the client's provider).
+     * Optional for EXTERNAL_TOKEN clients; required for every other type.
+     */
+    @Column(name = "organization_id")
     private Long organizationId;
 
     @Column(name = "source_key", nullable = false, length = 64)

@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -40,7 +39,7 @@ public class IntegrationApiKeyAuthenticationFilter extends OncePerRequestFilter 
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        return SecurityContextHolder.getContext().getAuthentication() != null
+        return IntegrationCredentialAuthenticator.isAlreadyAuthenticated()
                 || !request.getRequestURI().startsWith(ApiPaths.Integration.ROOT)
                 || !StringUtils.hasText(request.getHeader(SecurityHeaders.INTEGRATION_API_KEY));
     }

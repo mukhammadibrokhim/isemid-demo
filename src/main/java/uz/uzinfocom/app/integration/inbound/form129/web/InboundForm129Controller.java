@@ -3,6 +3,7 @@ package uz.uzinfocom.app.integration.inbound.form129.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,8 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.app.integration.inbound.common.audit.InboundFormType;
+import uz.uzinfocom.app.integration.inbound.common.audit.InboundSubmissionAuditService;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundCallerContext;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundIntegrationClientResolver;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSenderResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundSourceResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.dto.InboundFormSubmissionResponse;
 import uz.uzinfocom.app.integration.inbound.form129.application.InboundForm129Mapper;
@@ -41,6 +45,8 @@ public class InboundForm129Controller {
 
     private final InboundForm129Mapper inboundForm129Mapper;
     private final InboundSourceResolver inboundSourceResolver;
+    private final InboundSenderResolver inboundSenderResolver;
+    private final InboundSubmissionAuditService inboundSubmissionAuditService;
     private final InboundIntegrationClientResolver inboundIntegrationClientResolver;
     private final CreateForm129Service createForm129Service;
 
@@ -48,26 +54,30 @@ public class InboundForm129Controller {
             summary = "Создать форму №129",
             description = "Создаёт форму №129 от имени организации, определяемой по вызывающему: для "
                     + "интеграционного клиента — организация, закреплённая за ним при регистрации; для "
-                    + "SSO/DHP-вызывающего — его текущая выбранная организация. Организация-отправитель не "
-                    + "может быть передана в теле запроса."
+                    + "SSO/DHP-вызывающего — его текущая выбранная организация. Для клиента EXTERNAL_TOKEN (SSO/DHP M2M-токен) организация-отправитель "
+                    + "указывается в теле (senderOrganizationUuid) и должна входить в его список разрешённых организаций."
     )
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public InboundFormSubmissionResponse create(
             @Parameter(description = "Название системы-отправителя.", required = true)
             @PathVariable String source,
-            @Valid @RequestBody InboundCreateForm129Request request
+            @Valid @RequestBody InboundCreateForm129Request request,
+            HttpServletRequest httpRequest
     ) {
         InboundCallerContext.requireScope(IntegrationScope.FORM129_SUBMIT);
         InboundCallerContext.requireMatchingSourceKey(source);
 
         String resolvedSource = inboundSourceResolver.resolve(source);
-        Long senderOrganizationId = InboundCallerContext.resolveSenderOrganizationId();
+        Long senderOrganizationId = inboundSenderResolver.resolveSenderOrganizationId(
+                request.senderOrganizationUuid(), request.submittedBy());
         Long sourceIntegrationClientId = inboundIntegrationClientResolver.resolveSourceIntegrationClientId();
         CreateForm129Command command = inboundForm129Mapper.toCommand(
                 request, resolvedSource, senderOrganizationId, sourceIntegrationClientId);
         CreateForm129Result result = createForm129Service.create(command);
 
+        inboundSubmissionAuditService.record(
+                InboundFormType.FORM129, result.id(), senderOrganizationId, request.submittedBy(), httpRequest.getRemoteAddr());
         return new InboundFormSubmissionResponse(result.id(), result.uuid(), result.status().name());
     }
 }

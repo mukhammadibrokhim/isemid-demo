@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -43,7 +42,7 @@ public class IntegrationIpAllowlistAuthenticationFilter extends OncePerRequestFi
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        return SecurityContextHolder.getContext().getAuthentication() != null
+        return IntegrationCredentialAuthenticator.isAlreadyAuthenticated()
                 || !request.getRequestURI().startsWith(ApiPaths.Integration.ROOT)
                 || StringUtils.hasText(request.getHeader(SecurityHeaders.INTEGRATION_API_KEY))
                 || StringUtils.hasText(request.getHeader(HttpHeaders.AUTHORIZATION));

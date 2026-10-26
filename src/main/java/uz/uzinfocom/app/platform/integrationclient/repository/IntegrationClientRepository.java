@@ -25,6 +25,11 @@ public interface IntegrationClientRepository
 
     List<IntegrationClient> findAllByAuthTypeAndActiveTrue(IntegrationAuthType authType);
 
+    Optional<IntegrationClient> findByProviderKeyAndExternalClientIdAndAuthTypeAndActiveTrue(
+            String providerKey, String externalClientId, IntegrationAuthType authType);
+
+    boolean existsByProviderKeyAndExternalClientId(String providerKey, String externalClientId);
+
     /**
      * Bulk JPQL update, so it neither bumps {@code @Version} (a concurrent burst of
      * requests from one client no longer races on optimistic locking) nor runs at all

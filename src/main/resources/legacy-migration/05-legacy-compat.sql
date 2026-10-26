@@ -264,6 +264,22 @@ CREATE TABLE IF NOT EXISTS public.form058_1 (
     not_approve_comment varchar(1000)
 );
 
+-- act224: tavsiya etilgan choralar eski legacy'da bola jadvalda (act224_recommended_actions) va
+-- act224'ning tekis ustunlarida; yangi nusxada bu jadval yo'q - 61-act-subtypes ikkalasini ham o'qiydi.
+CREATE TABLE IF NOT EXISTS public.act224_recommended_actions (
+    id bigint,
+    created_at timestamp,
+    created_by_id bigint,
+    updated_at timestamp,
+    updated_by_id bigint,
+    uuid uuid,
+    execution_period timestamp,
+    recommended_activity varchar,
+    act224_id bigint
+);
+ALTER TABLE public.act224 ADD COLUMN IF NOT EXISTS recommended_activities varchar;
+ALTER TABLE public.act224 ADD COLUMN IF NOT EXISTS execution_period timestamp;
+
 COMMIT;
 
 \echo '05-legacy-compat OK'

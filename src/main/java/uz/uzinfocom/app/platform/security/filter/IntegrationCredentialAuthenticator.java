@@ -4,6 +4,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
@@ -47,14 +49,31 @@ public class IntegrationCredentialAuthenticator {
             .maximumSize(10_000)
             .build();
 
-    public void authenticate(IntegrationClient client) {
-        UUID organizationUuid = organizationUuidById.get(client.getOrganizationId(), organizationId ->
+    /**
+     * True when a real (non-anonymous) authentication is already installed. Spring's
+     * anonymous filter runs earlier in the chain, so a plain {@code getAuthentication() != null}
+     * is always true and would make every credential filter skip itself.
+     */
+    public static boolean isAlreadyAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && !(authentication instanceof AnonymousAuthenticationToken);
+    }
+
+    /** Principal for a resolved client, also used by the M2M-token converter. */
+    public IntegrationClientPrincipal principalOf(IntegrationClient client) {
+        UUID organizationUuid = client.getOrganizationId() == null
+                ? null
+                : organizationUuidById.get(client.getOrganizationId(), organizationId ->
                 organizationRepository.findById(organizationId)
                         .orElseThrow(() -> new AccessDeniedException("organization.not_allowed"))
                         .getUuid());
 
-        IntegrationClientPrincipal principal = new IntegrationClientPrincipal(
+        return new IntegrationClientPrincipal(
                 client.getClientId(), client.getSourceKey(), client.getOrganizationId(), organizationUuid);
+    }
+
+    public void authenticate(IntegrationClient client) {
+        IntegrationClientPrincipal principal = principalOf(client);
 
         SecurityContextHolder.getContext().setAuthentication(new IntegrationCredentialAuthenticationToken(
                 client.getAuthType(), principal, IntegrationScopeAuthorities.from(client.getScopes())));

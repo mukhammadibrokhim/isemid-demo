@@ -26,8 +26,10 @@ public class IntegrationJwtAuthenticationConverter implements Converter<Jwt, Abs
     public AbstractAuthenticationToken convert(Jwt jwt) {
         String clientId = jwt.getSubject();
         String sourceKey = jwt.getClaimAsString(IntegrationTokenIssuer.SOURCE_KEY_CLAIM);
-        Long organizationId = Long.valueOf(jwt.getClaimAsString(IntegrationTokenIssuer.ORGANIZATION_ID_CLAIM));
-        UUID organizationUuid = UUID.fromString(jwt.getClaimAsString(IntegrationTokenIssuer.ORGANIZATION_UUID_CLAIM));
+        String organizationIdClaim = jwt.getClaimAsString(IntegrationTokenIssuer.ORGANIZATION_ID_CLAIM);
+        String organizationUuidClaim = jwt.getClaimAsString(IntegrationTokenIssuer.ORGANIZATION_UUID_CLAIM);
+        Long organizationId = organizationIdClaim == null ? null : Long.valueOf(organizationIdClaim);
+        UUID organizationUuid = organizationUuidClaim == null ? null : UUID.fromString(organizationUuidClaim);
 
         IntegrationClientPrincipal principal =
                 new IntegrationClientPrincipal(clientId, sourceKey, organizationId, organizationUuid);

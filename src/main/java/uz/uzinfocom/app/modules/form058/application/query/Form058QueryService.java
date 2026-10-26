@@ -22,6 +22,7 @@ import uz.uzinfocom.app.modules.form058.application.query.dto.pdf.Form058PdfResp
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058DetailResponseMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058TableMapper;
+import uz.uzinfocom.app.modules.form058.application.query.mapper.helper.Form058TableAddressMapperHelper;
 import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
@@ -58,6 +59,7 @@ public class Form058QueryService {
     private final Form058DetailResponseMapper form058DetailResponseMapper;
     private final Form058PdfMapper form058PdfMapper;
     private final Form058TableMapper form058TableMapper;
+    private final Form058TableAddressMapperHelper form058TableAddressMapperHelper;
     private final AdminAccessGuard form058AccessGuard;
     private final AuditResolver auditResolver;
     private final CardQueryService cardQueryService;
@@ -215,9 +217,11 @@ public class Form058QueryService {
                         () -> repository.count(spec))
                 : repository.count(spec);
 
-        List<Form058TableResponse> content = slice.getContent().stream()
-                .map(projection -> form058TableMapper.toTableResponse(projection, direction))
-                .toList();
+        List<Form058TableResponse> content = form058TableAddressMapperHelper.withPermanentAddresses(
+                slice.getContent().stream()
+                        .map(projection -> form058TableMapper.toTableResponse(projection, direction))
+                        .toList()
+        );
 
         return new PageImpl<>(content, pageable, total);
     }

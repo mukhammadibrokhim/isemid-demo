@@ -17,6 +17,7 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.pdf.Form0581PdfRe
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581DetailResponseMapper;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581PdfMapper;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581TableMapper;
+import uz.uzinfocom.app.modules.form0581.application.query.mapper.helper.Form0581TableAddressMapperHelper;
 import uz.uzinfocom.app.modules.form0581.application.query.projection.Form0581TableProjection;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
@@ -52,6 +53,7 @@ public class Form0581QueryService {
     private final Form0581DetailResponseMapper form0581DetailResponseMapper;
     private final Form0581PdfMapper form0581PdfMapper;
     private final Form0581TableMapper form0581TableMapper;
+    private final Form0581TableAddressMapperHelper form0581TableAddressMapperHelper;
     private final AdminAccessGuard form0581AccessGuard;
     private final AuditResolver auditResolver;
     private final ExplainRowCountEstimator explainRowCountEstimator;
@@ -210,9 +212,11 @@ public class Form0581QueryService {
                         () -> repository.count(spec))
                 : repository.count(spec);
 
-        List<Form0581TableResponse> content = slice.getContent().stream()
-                .map(projection -> form0581TableMapper.toTableResponse(projection, direction))
-                .toList();
+        List<Form0581TableResponse> content = form0581TableAddressMapperHelper.withPermanentAddresses(
+                slice.getContent().stream()
+                        .map(projection -> form0581TableMapper.toTableResponse(projection, direction))
+                        .toList()
+        );
 
         return new PageImpl<>(content, pageable, total);
     }

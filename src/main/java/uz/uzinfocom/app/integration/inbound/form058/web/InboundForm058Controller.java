@@ -3,6 +3,7 @@ package uz.uzinfocom.app.integration.inbound.form058.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,8 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.app.integration.inbound.common.audit.InboundFormType;
+import uz.uzinfocom.app.integration.inbound.common.audit.InboundSubmissionAuditService;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundCallerContext;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundIntegrationClientResolver;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSenderResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundSourceResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.dto.InboundFormSubmissionResponse;
 import uz.uzinfocom.app.integration.inbound.form058.application.InboundForm058Mapper;
@@ -36,6 +40,8 @@ public class InboundForm058Controller {
     private final InboundForm058Mapper inboundForm058Mapper;
     private final InboundForm058Validator inboundForm058Validator;
     private final InboundSourceResolver inboundSourceResolver;
+    private final InboundSenderResolver inboundSenderResolver;
+    private final InboundSubmissionAuditService inboundSubmissionAuditService;
     private final InboundIntegrationClientResolver inboundIntegrationClientResolver;
     private final CreateForm058Service createForm058Service;
 
@@ -44,26 +50,31 @@ public class InboundForm058Controller {
             description = "Создаёт форму №058 от имени организации, определяемой по вызывающему: для "
                     + "интеграционного клиента — организация, закреплённая за ним при регистрации; для "
                     + "SSO/DHP-вызывающего — его текущая выбранная организация (как и в обычном "
-                    + "фронтенд-потоке). Организация-отправитель не может быть передана в теле запроса."
+                    + "фронтенд-потоке). Для клиента EXTERNAL_TOKEN (SSO/DHP M2M-токен) организация-отправитель "
+                    + "указывается в теле (senderOrganizationUuid) и должна входить в его список разрешённых организаций."
     )
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public InboundFormSubmissionResponse create(
             @Parameter(description = "Название системы-отправителя.", required = true)
             @PathVariable String source,
-            @Valid @RequestBody InboundCreateForm058Request request
+            @Valid @RequestBody InboundCreateForm058Request request,
+            HttpServletRequest httpRequest
     ) {
         InboundCallerContext.requireScope(IntegrationScope.FORM058_SUBMIT);
         InboundCallerContext.requireMatchingSourceKey(source);
         inboundForm058Validator.validate(request);
 
         String resolvedSource = inboundSourceResolver.resolve(source);
-        Long senderOrganizationId = InboundCallerContext.resolveSenderOrganizationId();
+        Long senderOrganizationId = inboundSenderResolver.resolveSenderOrganizationId(
+                request.senderOrganizationUuid(), request.submittedBy());
         Long sourceIntegrationClientId = inboundIntegrationClientResolver.resolveSourceIntegrationClientId();
         CreateForm058Command command = inboundForm058Mapper.toCommand(
                 request, resolvedSource, senderOrganizationId, sourceIntegrationClientId);
         CreateForm058Result result = createForm058Service.create(command);
 
+        inboundSubmissionAuditService.record(
+                InboundFormType.FORM058, result.id(), senderOrganizationId, request.submittedBy(), httpRequest.getRemoteAddr());
         return new InboundFormSubmissionResponse(result.id(), result.uuid(), result.status().name());
     }
 }

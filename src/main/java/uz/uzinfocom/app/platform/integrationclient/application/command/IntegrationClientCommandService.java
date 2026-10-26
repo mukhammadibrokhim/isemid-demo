@@ -9,8 +9,9 @@ import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.orchestration.webhook.config.OutboundWebhookProperties;
 import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
 import uz.uzinfocom.app.platform.http.ssrf.OutboundAddressPolicy;
-import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
+import uz.uzinfocom.app.platform.integrationclient.application.exception.InvalidExternalTokenConfigException;
+import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientCreateResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientUpdateRequest;
@@ -30,8 +31,11 @@ import uz.uzinfocom.app.shared.exception.NotFoundException;
 import java.net.URI;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,15 +48,13 @@ public class IntegrationClientCommandService {
     private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private final IntegrationClientRepository integrationClientRepository;
-    private final OrganizationLookup organizationLookup;
     private final PasswordEncoder passwordEncoder;
     private final WebhookSecretCipher webhookSecretCipher;
     private final OutboundWebhookProperties outboundWebhookProperties;
+    private final AuthProvidersProperties authProvidersProperties;
 
     @Transactional
     public IntegrationClientCreateResponse create(IntegrationClientCreateRequest request) {
-        Long organizationId = organizationLookup.resolveActiveId(request.organizationId());
-
         String sourceKey = request.sourceKey().trim().toLowerCase(Locale.ROOT);
         if (integrationClientRepository.existsBySourceKey(sourceKey)) {
             throw new ConflictException("integration-client.source-key.already-exists", sourceKey);
@@ -68,15 +70,29 @@ public class IntegrationClientCommandService {
             throw new AllowedIpsRequiredException();
         }
 
+        String providerKey = null;
+        String externalClientId = null;
+        if (request.authType() == IntegrationAuthType.EXTERNAL_TOKEN) {
+            providerKey = normalizeProviderKey(request.providerKey());
+            externalClientId = trimToNull(request.externalClientId());
+            if (externalClientId == null) {
+                throw new InvalidExternalTokenConfigException("integration-client.external-client-id.required");
+            }
+            if (integrationClientRepository.existsByProviderKeyAndExternalClientId(providerKey, externalClientId)) {
+                throw new ConflictException("integration-client.external-client-id.already-exists", externalClientId);
+            }
+        }
+
         IssuedCredential credential = issueCredential(clientId, request.authType());
 
         IntegrationClient client = IntegrationClient.builder()
+                .providerKey(providerKey)
+                .externalClientId(externalClientId)
                 .clientId(clientId)
                 .authType(request.authType())
                 .clientSecretHash(credential.clientSecretHash())
                 .apiKeyHash(credential.apiKeyHash())
                 .basicAuthSecretHash(credential.basicAuthSecretHash())
-                .organizationId(organizationId)
                 .sourceKey(sourceKey)
                 .name(request.name().trim())
                 .scopes(scopes)
@@ -123,8 +139,20 @@ public class IntegrationClientCommandService {
                 String basicAuthSecret = generateRandomToken();
                 yield new IssuedCredential(null, null, passwordEncoder.encode(basicAuthSecret), null, null, basicAuthSecret);
             }
-            case IP_ALLOWLIST -> new IssuedCredential(null, null, null, null, null, null);
+            case IP_ALLOWLIST, EXTERNAL_TOKEN -> new IssuedCredential(null, null, null, null, null, null);
         };
+    }
+
+    private String normalizeProviderKey(String rawProviderKey) {
+        String providerKey = trimToNull(rawProviderKey);
+        if (providerKey == null) {
+            throw new InvalidExternalTokenConfigException("integration-client.provider-key.required");
+        }
+        providerKey = providerKey.toLowerCase(Locale.ROOT);
+        if (!authProvidersProperties.getProviders().containsKey(providerKey)) {
+            throw new InvalidExternalTokenConfigException("integration-client.provider-key.unknown", providerKey);
+        }
+        return providerKey;
     }
 
     /** Hashes to persist plus plaintext values to return once, paired by {@link IntegrationAuthType}. */

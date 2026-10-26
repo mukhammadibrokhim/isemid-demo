@@ -82,7 +82,9 @@ class InboundForm058ValidatorTest {
                 UUID.randomUUID(),
                 null,
                 new InboundCreateForm058Request.EpidemicInfo("PLACE_CODE", null, null),
-                new InboundCreateForm058Request.ReportInfo("Notifier Full Name", "JOURNAL_CODE", null)
+                new InboundCreateForm058Request.ReportInfo("Notifier Full Name", "JOURNAL_CODE", null),
+                null,
+                null
         );
     }
 }

@@ -23,6 +23,12 @@ public record IntegrationClientResponse(
                 + "ограничений нет.")
         List<String> allowedIps,
 
+        @Schema(description = "Только для EXTERNAL_TOKEN: ключ провайдера авторизации (sso, dhp, ...).", nullable = true)
+        String providerKey,
+
+        @Schema(description = "Только для EXTERNAL_TOKEN: идентификатор клиента из M2M-токена.", nullable = true)
+        String externalClientId,
+
         @Schema(description = "Дата и время последнего успешного обмена токена этим клиентом.", nullable = true)
         Instant lastUsedAt,
 

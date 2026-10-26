@@ -43,10 +43,38 @@ class SpeechToTextServiceTest {
     void stripsContentTypeParametersAndPicksExtension() {
         when(client.transcribe(any(), any(), any())).thenReturn("matn");
 
-        SpeechToTextResponse response = service.transcribe(new byte[]{1, 2}, "Audio/WebM;codecs=opus");
+        SpeechToTextResponse response = service.transcribe(new byte[]{1, 2}, "Audio/WebM;codecs=opus", null);
 
         assertThat(response.text()).isEqualTo("matn");
         verify(client).transcribe(new byte[]{1, 2}, "audio/webm", "audio.webm");
+    }
+
+    @Test
+    void uzCyrlAcceptLanguageReturnsCyrillic() {
+        when(client.transcribe(any(), any(), any())).thenReturn("Telefon qilishadi. Chiqdi.");
+
+        assertThat(service.transcribe(new byte[]{1}, "audio/wav", "uz-Cyrl").text())
+                .isEqualTo("Телефон қилишади. Чиқди.");
+        assertThat(service.transcribe(new byte[]{1}, "audio/wav", "ru;q=0.5, uz-Cyrl;q=0.9").text())
+                .isEqualTo("Телефон қилишади. Чиқди.");
+    }
+
+    @Test
+    void otherOrMissingOrMalformedAcceptLanguageKeepsTextAsReceived() {
+        when(client.transcribe(any(), any(), any())).thenReturn("Telefon qilishadi.");
+
+        for (String header : new String[]{null, "", "uz", "ru", "kaa", "en-US", "xx-unknown", "!!!;;q=", "*"}) {
+            assertThat(service.transcribe(new byte[]{1}, "audio/wav", header).text())
+                    .as("Accept-Language=%s", header)
+                    .isEqualTo("Telefon qilishadi.");
+        }
+    }
+
+    @Test
+    void silenceStaysEmptyInCyrillic() {
+        when(client.transcribe(any(), any(), any())).thenReturn("");
+
+        assertThat(service.transcribe(new byte[]{1}, "audio/wav", "uz-Cyrl").text()).isEmpty();
     }
 
     @Test
@@ -54,7 +82,7 @@ class SpeechToTextServiceTest {
         when(settings.resolveLong(anyString(), anyLong())).thenReturn(1L);
         when(client.transcribe(any(), any(), any())).thenReturn("matn");
 
-        assertThatThrownBy(() -> service.transcribe(new byte[]{1, 2}, "audio/wav"))
+        assertThatThrownBy(() -> service.transcribe(new byte[]{1, 2}, "audio/wav", null))
                 .isInstanceOf(InvalidAudioException.class)
                 .hasMessage("speech.error.audio_too_large");
         verify(client, never()).transcribe(any(), any(), any());
@@ -62,7 +90,7 @@ class SpeechToTextServiceTest {
 
     @Test
     void rejectsEmptyAudio() {
-        assertThatThrownBy(() -> service.transcribe(new byte[0], "audio/wav"))
+        assertThatThrownBy(() -> service.transcribe(new byte[0], "audio/wav", null))
                 .isInstanceOf(InvalidAudioException.class)
                 .hasMessage("speech.error.empty_audio");
         verify(client, never()).transcribe(any(), any(), any());
@@ -70,7 +98,7 @@ class SpeechToTextServiceTest {
 
     @Test
     void rejectsAudioOverTheConfiguredLimit() {
-        assertThatThrownBy(() -> service.transcribe(new byte[11], "audio/wav"))
+        assertThatThrownBy(() -> service.transcribe(new byte[11], "audio/wav", null))
                 .isInstanceOf(InvalidAudioException.class)
                 .hasMessage("speech.error.audio_too_large");
         verify(client, never()).transcribe(any(), any(), any());
@@ -78,12 +106,12 @@ class SpeechToTextServiceTest {
 
     @Test
     void rejectsUnsupportedOrMissingContentType() {
-        assertThatThrownBy(() -> service.transcribe(new byte[]{1}, "application/json"))
+        assertThatThrownBy(() -> service.transcribe(new byte[]{1}, "application/json", null))
                 .isInstanceOf(InvalidAudioException.class)
                 .hasMessage("speech.error.unsupported_format");
-        assertThatThrownBy(() -> service.transcribe(new byte[]{1}, null))
+        assertThatThrownBy(() -> service.transcribe(new byte[]{1}, null, null))
                 .isInstanceOf(InvalidAudioException.class);
-        assertThatThrownBy(() -> service.transcribe(new byte[]{1}, "not a type"))
+        assertThatThrownBy(() -> service.transcribe(new byte[]{1}, "not a type", null))
                 .isInstanceOf(InvalidAudioException.class);
         verify(client, never()).transcribe(any(), any(), any());
     }

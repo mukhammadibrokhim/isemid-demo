@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSubmitterRequest;
 import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.AnimalOwnerRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.OtherInjuredPersonRequest;
@@ -72,7 +73,17 @@ public record InboundCreateForm0581Request(
         @Schema(description = "Сведения об извещении.", requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
         @NotNull(message = "{validation.form0581.report-info.required}")
-        ReportInfo reportInfo
+        ReportInfo reportInfo,
+
+        @Schema(description = "Организация-отправитель. Обязательна для клиентов EXTERNAL_TOKEN (должна входить в "
+                + "их список разрешённых организаций); для остальных вызывающих, если указана, должна совпадать "
+                + "с их организацией.")
+        UUID senderOrganizationUuid,
+
+        @Schema(description = "Сотрудник, от имени которого отправляется форма (для аудита). Обязателен для "
+                + "клиентов EXTERNAL_TOKEN.")
+        @Valid
+        InboundSubmitterRequest submittedBy
 ) {
 
     public InboundCreateForm0581Request {

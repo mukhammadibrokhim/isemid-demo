@@ -50,7 +50,11 @@ public class SpeechToTextService {
     private final MuxlisaProperties properties;
     private final SystemSettingResolver systemSettingResolver;
 
-    public SpeechToTextResponse transcribe(byte[] audio, String rawContentType) {
+    /**
+     * @param acceptLanguage raw {@code Accept-Language} header; {@code uz-Cyrl} gets the Latin
+     *                       transcript transliterated to Cyrillic, everything else is returned as is
+     */
+    public SpeechToTextResponse transcribe(byte[] audio, String rawContentType, String acceptLanguage) {
         if (audio == null || audio.length == 0) {
             throw new InvalidAudioException("speech.error.empty_audio");
         }
@@ -66,7 +70,11 @@ public class SpeechToTextService {
             throw new InvalidAudioException("speech.error.unsupported_format");
         }
 
-        return new SpeechToTextResponse(client.transcribe(audio, contentType, "audio." + extension));
+        String text = client.transcribe(audio, contentType, "audio." + extension);
+        if (SttScript.fromAcceptLanguage(acceptLanguage) == SttScript.UZBEK_CYRILLIC) {
+            text = UzbekCyrillicTransliterator.transliterate(text);
+        }
+        return new SpeechToTextResponse(text);
     }
 
     /** {@code audio/webm;codecs=opus} -> {@code audio/webm}; anything unparsable -> empty (rejected). */
