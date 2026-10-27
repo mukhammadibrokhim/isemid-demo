@@ -2,7 +2,7 @@
 
 **Language / Язык / Til:** [O'zbekcha](#uz) · [Русский](#ru) · [English](#en)
 
-`POST /integration/v1/DMED/form-058` · scope `form058:submit` · [form058](../README.md)
+`POST /integration/v1/DMED/form-058` · scope `form058:submit` / `form058:confirm` · [form058](../README.md)
 
 ---
 
@@ -71,6 +71,36 @@ DMED uchun **tekis** (flat) formatdagi qat'iy kontrakt. Umumiy `{source}` endpoi
 ```json
 { "id": 1, "uuid": "…", "status": "SENT" }
 ```
+
+## Tasdiqlash (confirm)
+
+Yuborilgan shaklni yakuniy diagnoz (MKB-10) bilan tasdiqlaydi — status `APPROVED` bo'ladi.
+
+`POST /integration/v1/DMED/form-058/{idOrUuid}/confirm` · scope `form058:confirm`
+
+- Shakl yo'lda `{idOrUuid}` bilan ko'rsatiladi: raqamli `id` **yoki** `uuid` (yuborishda javobda qaytgan qiymat).
+- `{source}` — **doim `DMED`**; `sourceKey` ham `dmed` bo'lishi kerak, aks holda `403`. Tashkilot `X-Organization-Id` header bilan beriladi (**majburiy**); tanada `senderOrganizationUuid`/`submittedBy` yo'q.
+- Tasdiqlashni **faqat shaklni yuborgan tashkilot** qila oladi va faqat qabul qiluvchi shaklni qabul qilgandan keyin (status `ACCEPTED` / `CARD_LINKED`); boshqa statusda `409`, boshqa tashkilot bo'lsa `403`.
+- Scope `form058:confirm` — `form058:submit` dan **alohida**; mijozga alohida berilishi kerak, aks holda `403`.
+
+| Maydon | Maj. | Izoh |
+|---|---|---|
+| `finalIcd10Code` | ✔ | MKB-10 kodi, ≤ 32; **ma'lumotnomada bo'lishi shart**, aks holda `400` |
+| `finalIcd10Name` |  | ≤ 1024; yuborilmasa ma'lumotnomadagi nom olinadi |
+
+```json
+{ "finalIcd10Code": "A01.0", "finalIcd10Name": "Typhoid fever" }
+```
+
+Javob (yuborishdagi bilan bir xil shakl):
+
+```json
+{ "id": 1042, "uuid": "…", "status": "APPROVED" }
+```
+
+- **Takroriy chaqiruv xavfsiz:** shakl allaqachon shu diagnoz bilan `APPROVED` bo'lsa, xatosiz joriy holat qaytariladi (qayta tasdiqlanmaydi, webhook ham qayta ketmaydi).
+- Boshqa diagnoz bilan `APPROVED` shaklni qayta tasdiqlash — `409` (status endi tasdiqlanadigan emas).
+- Status o'zgarganda webhook: [webhook](../webhook/README.md).
 
 Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
 
@@ -142,6 +172,36 @@ Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
 { "id": 1, "uuid": "…", "status": "SENT" }
 ```
 
+## Подтверждение (confirm)
+
+Подтверждает ранее отправленную форму итоговым диагнозом (МКБ-10) — статус становится `APPROVED`.
+
+`POST /integration/v1/DMED/form-058/{idOrUuid}/confirm` · scope `form058:confirm`
+
+- Форма указывается в пути как `{idOrUuid}`: числовой `id` **или** `uuid` (значение из ответа при отправке).
+- `{source}` — **всегда `DMED`**; ваш `sourceKey` тоже должен быть `dmed`, иначе `403`. Организация передаётся заголовком `X-Organization-Id` (**обязателен**); `senderOrganizationUuid`/`submittedBy` в теле нет.
+- Подтвердить может **только организация-отправитель формы**, и только после принятия формы получателем (статус `ACCEPTED` / `CARD_LINKED`); в другом статусе — `409`, для чужой организации — `403`.
+- Scope `form058:confirm` — **отдельный** от `form058:submit`; его нужно выдать клиенту отдельно, иначе `403`.
+
+| Поле | Обяз. | Описание |
+|---|---|---|
+| `finalIcd10Code` | ✔ | код МКБ-10, ≤ 32; **должен существовать в справочнике**, иначе `400` |
+| `finalIcd10Name` |  | ≤ 1024; если не передано, берётся название из справочника |
+
+```json
+{ "finalIcd10Code": "A01.0", "finalIcd10Name": "Typhoid fever" }
+```
+
+Ответ (тот же формат, что при отправке):
+
+```json
+{ "id": 1042, "uuid": "…", "status": "APPROVED" }
+```
+
+- **Повторный вызов безопасен:** если форма уже `APPROVED` с этим же диагнозом, возвращается текущее состояние без ошибки (повторного подтверждения и повторного webhook нет).
+- Подтверждение уже `APPROVED` формы с другим диагнозом — `409` (статус больше не подтверждаемый).
+- Webhook при смене статуса: [webhook](../webhook/README.md).
+
 Webhook при смене статуса: [webhook](../webhook/README.md).
 
 ---
@@ -211,6 +271,36 @@ A fixed **flat** contract for DMED. Unlike the generic `{source}` endpoint, fiel
 ```json
 { "id": 1, "uuid": "…", "status": "SENT" }
 ```
+
+## Confirm
+
+Confirms a previously submitted form with a final diagnosis (ICD-10) — the status becomes `APPROVED`.
+
+`POST /integration/v1/DMED/form-058/{idOrUuid}/confirm` · scope `form058:confirm`
+
+- The form is identified in the path as `{idOrUuid}`: the numeric `id` **or** the `uuid` (as returned on submit).
+- `{source}` — **always `DMED`**; your `sourceKey` must also be `dmed`, otherwise `403`. The organization comes from the `X-Organization-Id` header (**mandatory**); there is no `senderOrganizationUuid`/`submittedBy` in the body.
+- **Only the organization that sent the form** can confirm it, and only after the receiver has accepted it (status `ACCEPTED` / `CARD_LINKED`); any other status gives `409`, a different organization gives `403`.
+- Scope `form058:confirm` is **separate** from `form058:submit`; it must be granted to the client explicitly, otherwise `403`.
+
+| Field | Req. | Notes |
+|---|---|---|
+| `finalIcd10Code` | ✔ | ICD-10 code, ≤ 32; **must exist in the catalog**, otherwise `400` |
+| `finalIcd10Name` |  | ≤ 1024; defaults to the catalog name |
+
+```json
+{ "finalIcd10Code": "A01.0", "finalIcd10Name": "Typhoid fever" }
+```
+
+Response (same shape as on submit):
+
+```json
+{ "id": 1042, "uuid": "…", "status": "APPROVED" }
+```
+
+- **Repeating the call is safe:** if the form is already `APPROVED` with the same diagnosis, the current state is returned without error (no re-approval, no second webhook).
+- Confirming an already `APPROVED` form with a different diagnosis gives `409` (the status is no longer confirmable).
+- Status-change webhook: [webhook](../webhook/README.md).
 
 Status-change webhook: [webhook](../webhook/README.md).
 

@@ -31,11 +31,8 @@ import uz.uzinfocom.app.shared.exception.NotFoundException;
 import java.net.URI;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -101,8 +98,8 @@ public class IntegrationClientCommandService {
                 .build();
 
         IntegrationClient saved = integrationClientRepository.save(client);
-        log.info("Integration client registered. id={}, clientId={}, authType={}, sourceKey={}, organizationId={}",
-                saved.getId(), saved.getClientId(), saved.getAuthType(), saved.getSourceKey(), saved.getOrganizationId());
+        log.info("Integration client registered. id={}, clientId={}, authType={}, sourceKey={}",
+                saved.getId(), saved.getClientId(), saved.getAuthType(), saved.getSourceKey());
 
         return new IntegrationClientCreateResponse(
                 saved.getId(),
@@ -113,7 +110,6 @@ public class IntegrationClientCommandService {
                 credential.basicAuthSecret(),
                 saved.getName(),
                 saved.getSourceKey(),
-                saved.getOrganizationId(),
                 List.of(saved.getScopes().split(",")),
                 toAllowedIpsList(saved.getAllowedIps())
         );
@@ -155,7 +151,9 @@ public class IntegrationClientCommandService {
         return providerKey;
     }
 
-    /** Hashes to persist plus plaintext values to return once, paired by {@link IntegrationAuthType}. */
+    /**
+     * Hashes to persist plus plaintext values to return once, paired by {@link IntegrationAuthType}.
+     */
     private record IssuedCredential(
             String clientSecretHash,
             String apiKeyHash,
@@ -168,8 +166,8 @@ public class IntegrationClientCommandService {
 
     /**
      * Updates the caller-editable fields only - name, scopes, and the active
-     * flag. {@code clientId}, {@code authType}, {@code sourceKey},
-     * {@code organizationId} and credentials stay fixed for the client's
+     * flag. {@code clientId}, {@code authType}, {@code sourceKey}
+     * and credentials stay fixed for the client's
      * lifetime; rotating any of those means revoking this client and
      * registering a new one. Unlike {@link #revoke}, {@code active} is
      * reversible here - it can be flipped back to {@code true}.

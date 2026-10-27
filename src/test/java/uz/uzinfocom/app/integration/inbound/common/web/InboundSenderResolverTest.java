@@ -88,28 +88,10 @@ class InboundSenderResolverTest {
     }
 
     @Test
-    void otherClientTypesKeepTheirBoundOrganizationAndRejectAMismatchingBodyValue() {
-        IntegrationClient client = externalTokenClient();
-        client.setAuthType(IntegrationAuthType.BASIC_AUTH);
-        authenticate(client);
-        Organization bound = organization(DEFAULT_ORG_ID, "sso");
-        CurrentOrganizationContext.set(bound);
-
-        assertThat(resolver.resolveSenderOrganizationId(null, null)).isEqualTo(DEFAULT_ORG_ID);
-        assertThat(resolver.resolveSenderOrganizationId(bound.getUuid(), null)).isEqualTo(DEFAULT_ORG_ID);
-        // naming another organization goes through the body path, which also needs the submitter
-        assertThatThrownBy(() -> resolver.resolveSenderOrganizationId(UUID.randomUUID(), null))
-                .isInstanceOf(InboundValidationException.class);
-        assertThatThrownBy(() -> resolver.resolveSenderOrganizationId(UUID.randomUUID(), submitter))
-                .isInstanceOf(InboundValidationException.class);
-    }
-
-    @Test
     void clientWithoutDefaultOrganizationMustNameOrganizationAndSubmitterInTheBody() {
         IntegrationClient client = externalTokenClient();
         client.setAuthType(IntegrationAuthType.API_KEY);
         client.setProviderKey(null);
-        client.setOrganizationId(null);
         authenticate(client);
         Organization organization = organization(ALLOWED_ORG_ID, "sso");
         when(organizations.findByUuid(organization.getUuid())).thenReturn(Optional.of(organization));
@@ -125,7 +107,6 @@ class InboundSenderResolverTest {
     @Test
     void externalTokenClientWithoutDefaultOrganizationMayUseAnyOrganizationOfItsProvider() {
         IntegrationClient client = externalTokenClient();
-        client.setOrganizationId(null);
         authenticate(client);
         Organization sameProvider = organization(OTHER_ORG_ID, "sso");
         Organization otherProvider = organization(ALLOWED_ORG_ID, "dhp");
@@ -143,7 +124,6 @@ class InboundSenderResolverTest {
                 .authType(IntegrationAuthType.EXTERNAL_TOKEN)
                 .providerKey("sso")
                 .externalClientId("m2m-1")
-                .organizationId(DEFAULT_ORG_ID)
                 .sourceKey("dmed")
                 .scopes("form058:submit")
                 .build();

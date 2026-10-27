@@ -30,8 +30,11 @@ public class IntegrationClientSpecification {
                 ));
             }
 
-            if (request.organizationId() != null) {
-                predicates.add(cb.equal(root.get("organizationId"), request.organizationId()));
+            if (StringUtils.hasText(request.sourceKey())) {
+                predicates.add(cb.like(
+                        cb.lower(cb.coalesce(root.get("sourceKey"), "")),
+                        like(request.sourceKey())
+                ));
             }
 
             if (request.authType() != null) {

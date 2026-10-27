@@ -18,7 +18,7 @@ public record IntegrationClientFilterRequest(
         Integer size,
 
         @Schema(description = "Поле для сортировки.", example = "id",
-                allowableValues = {"id", "name", "clientId", "organizationId", "createdAt"})
+                allowableValues = {"id", "name", "clientId", "sourceKey", "authType", "active", "lastUsedAt", "createdAt"})
         String sortBy,
 
         @Schema(description = "Направление сортировки.", example = "desc", allowableValues = {"asc", "desc"})
@@ -30,8 +30,8 @@ public record IntegrationClientFilterRequest(
         @Schema(description = "Фильтр по clientId.")
         String clientId,
 
-        @Schema(description = "Фильтр по идентификатору организации.")
-        Long organizationId,
+        @Schema(description = "Фильтр по sourceKey (подстрока, без учёта регистра).")
+        String sourceKey,
 
         @Schema(description = "Фильтр по типу аутентификации.")
         IntegrationAuthType authType,

@@ -208,7 +208,6 @@ class OrganizationContextFilterTest {
         return IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash("hash")
-                .organizationId(organizationId)
                 .sourceKey("dmed")
                 .name("Test Client")
                 .scopes("form058:submit")

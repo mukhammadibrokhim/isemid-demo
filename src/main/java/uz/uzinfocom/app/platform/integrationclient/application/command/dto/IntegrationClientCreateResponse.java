@@ -31,7 +31,6 @@ public record IntegrationClientCreateResponse(
         @Schema(description = "Сегмент URL этого клиента, например /integration/dmed/form-058.")
         String sourceKey,
 
-        Long organizationId,
         List<String> scopes,
 
         @Schema(description = "IPv4-адреса/CIDR-блоки, с которых разрешено обращаться клиенту. Пусто — "

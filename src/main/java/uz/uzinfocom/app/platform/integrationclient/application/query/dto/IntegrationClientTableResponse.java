@@ -12,8 +12,6 @@ public record IntegrationClientTableResponse(
         String name,
         IntegrationAuthType authType,
         String sourceKey,
-        Long organizationId,
-        String organizationName,
         boolean active,
 
         @Schema(description = "Дата и время последнего успешного обмена токена этим клиентом.", nullable = true)

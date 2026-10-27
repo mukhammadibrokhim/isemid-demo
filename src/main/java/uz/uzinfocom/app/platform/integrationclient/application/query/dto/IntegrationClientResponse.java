@@ -14,9 +14,10 @@ public record IntegrationClientResponse(
         String name,
         IntegrationAuthType authType,
         String sourceKey,
-        Long organizationId,
-        String organizationName,
         List<String> scopes,
+
+        @Schema(description = "Эндпоинты, разрешённые клиенту по его scope, с подставленным sourceKey.")
+        List<IntegrationClientEndpointResponse> endpoints,
         boolean active,
 
         @Schema(description = "IPv4-адреса/CIDR-блоки, с которых разрешено обращаться клиенту. Пусто — "

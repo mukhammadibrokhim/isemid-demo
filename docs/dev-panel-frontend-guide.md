@@ -396,11 +396,9 @@ on the dev-panel's own auth chain.
 }
 ```
 
-Use `search` (matches name/TIN/phone/region/district code) to turn the
-free-typed-UUID field in the integration-client create form (see
-[Integration clients: `organizationId` is a uuid](#integration-clients-organizationid-is-a-uuid)
-below) into an actual select: search by name, submit the `uuid` of the row
-the operator picked. `id` here filters by the organization's *internal* Long
+Use `search` (matches name/TIN/phone/region/district code) to build an
+organization select: search by name, submit the `uuid` of the row the
+operator picked. `id` here filters by the organization's *internal* Long
 id, not its `uuid` — there's no lookup-by-uuid parameter, because nothing in
 this endpoint's callers needs one; resolving a uuid you already have back to
 a name is what `IntegrationClientResponse.organizationName` already does
@@ -429,30 +427,6 @@ a generic error toast — by checking `code === "DEV_USER_PASSWORD_CHANGE_REQUIR
 a single condition that works regardless of locale. In practice you
 shouldn't need to: the `mustChangePassword` field on `GET .../me` (above)
 tells you this before you ever hit the 403.
-
----
-
-## Integration clients: `organizationId` is a uuid
-
-`IntegrationClientCreateRequest.organizationId` is a `UUID` on purpose — it's
-not a typo and not the field that needs fixing. It's the organization's
-*business* identity: the same identifier space as the `X-Organization-Id`
-header every request from that client must present, and the one the org's
-own SSO/HR-side systems know it by. `IntegrationClientResponse.organizationId`
-(and every other place in this app that addresses an organization —
-`GET /v1/organizations/{id}`, `Organization.parent`, etc.) is the *internal*
-auto-generated `Long` id instead, because that's what's actually stored as
-the foreign key on the `IntegrationClient` row once
-`OrganizationIdResolver.resolveActiveId(uuid)` has run at create time — and
-`organizationName` is resolved from that same internal id
-(`OrganizationMappingHelper.activeOrganizationNameById`). So: submit the
-uuid, read back the internal id + a name — two different identifier spaces
-used consistently on each side of the boundary, not one field guessing wrong
-about its own type. The two never round-trip directly against each other,
-and were never meant to; what was actually missing was a way to get from a
-human-meaningful search to a uuid worth submitting in the first place — see
-[Organizations lookup](#organizations-lookup) above, which is the real fix
-here.
 
 ---
 

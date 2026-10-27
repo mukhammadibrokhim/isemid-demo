@@ -31,7 +31,7 @@ class IntegrationBasicAuthenticationFilterTest {
     private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
     private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
     private final IntegrationCredentialAuthenticator authenticator =
-            new IntegrationCredentialAuthenticator(organizationRepository, integrationClientRepository);
+            new IntegrationCredentialAuthenticator(integrationClientRepository);
     private final IntegrationBasicAuthenticationFilter filter = new IntegrationBasicAuthenticationFilter(
             integrationClientRepository, passwordEncoder, authenticator);
 
@@ -98,7 +98,6 @@ class IntegrationBasicAuthenticationFilterTest {
                 .clientId("ic_test")
                 .authType(IntegrationAuthType.BASIC_AUTH)
                 .basicAuthSecretHash(basicAuthSecretHash)
-                .organizationId(42L)
                 .sourceKey("dmed")
                 .name("Test Client")
                 .scopes("form058:submit")

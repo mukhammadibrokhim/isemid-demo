@@ -33,7 +33,7 @@ class IntegrationTokenServiceTest {
             new IntegrationTokenSigningKey(), new IntegrationTokenProperties());
 
     private final IntegrationTokenService service = new IntegrationTokenService(
-            integrationClientRepository, organizationRepository, passwordEncoder, tokenIssuer);
+            integrationClientRepository, passwordEncoder, tokenIssuer);
 
     @Test
     void issuesATokenForACorrectlyAuthenticatedActiveClient() {
@@ -41,7 +41,6 @@ class IntegrationTokenServiceTest {
         IntegrationClient client = IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash(passwordEncoder.encode(rawSecret))
-                .organizationId(42L)
                 .name("Test Client")
                 .scopes("form058:submit")
                 .active(true)
@@ -68,7 +67,6 @@ class IntegrationTokenServiceTest {
         IntegrationClient client = IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash(passwordEncoder.encode("correct-secret"))
-                .organizationId(42L)
                 .name("Test Client")
                 .scopes("form058:submit")
                 .active(true)
@@ -86,7 +84,6 @@ class IntegrationTokenServiceTest {
         IntegrationClient client = IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash(passwordEncoder.encode("correct-secret"))
-                .organizationId(42L)
                 .name("Test Client")
                 .scopes("form058:submit")
                 .active(false)

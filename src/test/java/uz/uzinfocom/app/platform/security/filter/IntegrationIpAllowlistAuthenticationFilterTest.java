@@ -26,7 +26,7 @@ class IntegrationIpAllowlistAuthenticationFilterTest {
     private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
     private final OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
     private final IntegrationCredentialAuthenticator authenticator =
-            new IntegrationCredentialAuthenticator(organizationRepository, integrationClientRepository);
+            new IntegrationCredentialAuthenticator(integrationClientRepository);
     private final IntegrationIpAllowlistAuthenticationFilter filter =
             new IntegrationIpAllowlistAuthenticationFilter(integrationClientRepository, authenticator);
 
@@ -102,7 +102,6 @@ class IntegrationIpAllowlistAuthenticationFilterTest {
         return IntegrationClient.builder()
                 .clientId("ic_test")
                 .authType(IntegrationAuthType.IP_ALLOWLIST)
-                .organizationId(42L)
                 .sourceKey("dmed")
                 .name("Test Client")
                 .scopes("form058:submit")

@@ -48,7 +48,7 @@ class OutboundWebhookEventListenerTest {
     @Test
     void doesNothingWhenTheClientsWebhookIsInactive() {
         IntegrationClient client = IntegrationClient.builder()
-                .clientId("ic_test").organizationId(1L).sourceKey("dmed").name("Test")
+                .clientId("ic_test").sourceKey("dmed").name("Test")
                 .scopes("form058:submit").active(true).webhookActive(false).build();
         client.setId(10L);
         when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
@@ -61,7 +61,7 @@ class OutboundWebhookEventListenerTest {
     @Test
     void doesNothingWhenTheClientItselfIsRevoked() {
         IntegrationClient client = IntegrationClient.builder()
-                .clientId("ic_test").organizationId(1L).sourceKey("dmed").name("Test")
+                .clientId("ic_test").sourceKey("dmed").name("Test")
                 .scopes("form058:submit").active(false).webhookActive(true).build();
         client.setId(10L);
         when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
@@ -74,7 +74,7 @@ class OutboundWebhookEventListenerTest {
     @Test
     void enqueuesADispatchWhenTheSourceClientHasAnActiveWebhook() {
         IntegrationClient client = IntegrationClient.builder()
-                .clientId("ic_test").organizationId(1L).sourceKey("dmed").name("Test")
+                .clientId("ic_test").sourceKey("dmed").name("Test")
                 .scopes("form058:submit").active(true).webhookActive(true).build();
         client.setId(10L);
         when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
@@ -88,7 +88,7 @@ class OutboundWebhookEventListenerTest {
     @Test
     void enqueuesForForm0581TooWhenItsSourceClientHasAnActiveWebhook() {
         IntegrationClient client = IntegrationClient.builder()
-                .clientId("ic_test2").organizationId(1L).sourceKey("dmed").name("Test")
+                .clientId("ic_test2").sourceKey("dmed").name("Test")
                 .scopes("form0581:submit").active(true).webhookActive(true).build();
         client.setId(20L);
         when(integrationClientRepository.findById(20L)).thenReturn(Optional.of(client));

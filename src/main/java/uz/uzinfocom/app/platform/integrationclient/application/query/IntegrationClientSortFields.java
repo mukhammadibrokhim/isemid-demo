@@ -7,7 +7,10 @@ public class IntegrationClientSortFields {
             "id", "id",
             "name", "name",
             "clientId", "clientId",
-            "organizationId", "organizationId",
+            "sourceKey", "sourceKey",
+            "authType", "authType",
+            "active", "active",
+            "lastUsedAt", "lastUsedAt",
             "createdAt", "createdAt"
     );
 }

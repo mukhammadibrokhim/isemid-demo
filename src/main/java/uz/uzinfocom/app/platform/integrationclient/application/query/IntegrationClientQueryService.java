@@ -8,26 +8,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
-import uz.uzinfocom.app.platform.integrationclient.application.OrganizationLookup;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientFilterRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientSourceKeyLookupRequest;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientTableResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientWebhookResponse;
 import uz.uzinfocom.app.platform.integrationclient.application.query.specification.IntegrationClientSpecification;
+import uz.uzinfocom.app.platform.integrationclient.application.query.dto.IntegrationClientEndpointResponse;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationScope;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class IntegrationClientQueryService {
 
     private final IntegrationClientRepository integrationClientRepository;
-    private final OrganizationLookup organizationLookup;
     private final AuditResolver auditResolver;
 
     @Transactional(readOnly = true)
@@ -56,12 +58,6 @@ public class IntegrationClientQueryService {
         return toResponse(client);
     }
 
-    private String organizationNameOrNull(IntegrationClient client) {
-        return client.getOrganizationId() == null
-                ? null
-                : organizationLookup.activeOrganizationNameById(client.getOrganizationId());
-    }
-
     private IntegrationClientTableResponse toTableResponse(IntegrationClient client) {
         return new IntegrationClientTableResponse(
                 client.getId(),
@@ -69,11 +65,26 @@ public class IntegrationClientQueryService {
                 client.getName(),
                 client.getAuthType(),
                 client.getSourceKey(),
-                client.getOrganizationId(),
-                organizationNameOrNull(client),
                 client.isActive(),
                 client.getLastUsedAt()
         );
+    }
+
+    private List<String> scopesOf(IntegrationClient client) {
+        return StringUtils.hasText(client.getScopes())
+                ? Arrays.stream(client.getScopes().split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList()
+                : List.of();
+    }
+
+    private List<IntegrationClientEndpointResponse> endpointsOf(IntegrationClient client) {
+        return scopesOf(client).stream()
+                .map(IntegrationScope::fromClaim)
+                .flatMap(Optional::stream)
+                .map(scope -> new IntegrationClientEndpointResponse(
+                        scope.getClaim(),
+                        scope.getEndpoint().method(),
+                        scope.getEndpoint().resolve(client.getSourceKey())))
+                .toList();
     }
 
     private IntegrationClientResponse toResponse(IntegrationClient client) {
@@ -83,9 +94,8 @@ public class IntegrationClientQueryService {
                 client.getName(),
                 client.getAuthType(),
                 client.getSourceKey(),
-                client.getOrganizationId(),
-                organizationNameOrNull(client),
-                List.of(client.getScopes().split(",")),
+                scopesOf(client),
+                endpointsOf(client),
                 client.isActive(),
                 StringUtils.hasText(client.getAllowedIps()) ? List.of(client.getAllowedIps().split(",")) : List.of(),
                 client.getProviderKey(),

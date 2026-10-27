@@ -21,11 +21,7 @@ import java.util.Set;
 /**
  * A registered machine caller for the inbound integration API — external
  * systems (labs, hospital information systems, other registries) that submit
- * case data directly, as opposed to a human browser session. Bound to a
- * default {@code organizationId} at provisioning time; every submission's
- * {@code X-Organization-Id} header must resolve to this same organization —
- * the header is required, but a client can never spoof a different one it
- * names itself. {@link #sourceKey} is the fixed URL path segment this client
+ * case data directly, as opposed to a human browser session. {@link #sourceKey} is the fixed URL path segment this client
  * is known by, e.g. {@code "dmed"} for {@code POST /integration/dmed/form-058}.
  */
 @Getter
@@ -70,14 +66,6 @@ public class IntegrationClient extends AuditableEntity {
     /** Only populated for {@link IntegrationAuthType#EXTERNAL_TOKEN}: the token's client_id/azp/sub claim. */
     @Column(name = "external_client_id", length = 255)
     private String externalClientId;
-
-    /**
-     * Default organization. For {@link IntegrationAuthType#EXTERNAL_TOKEN} clients the organization
-     * actually submitted for comes from the request body (any organization of the client's provider).
-     * Optional for EXTERNAL_TOKEN clients; required for every other type.
-     */
-    @Column(name = "organization_id")
-    private Long organizationId;
 
     @Column(name = "source_key", nullable = false, length = 64)
     private String sourceKey;
