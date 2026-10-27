@@ -177,8 +177,8 @@ public class DevIntegrationClientController {
     @Operation(
             summary = "Настроить исходящий webhook клиента",
             description = "Задаёт URL, HTTP-метод и схему аутентификации, по которым клиент получает "
-                    + "уведомления об изменении статуса поданных им форм. При active=true URL обязателен и "
-                    + "должен быть HTTPS; секрет возвращается только признаком наличия, никогда — значением."
+                    + "уведомления об изменении статуса поданных им форм. При active=true URL обязателен; "
+                    + "проверки HTTPS и запрещённых хостов в dev-панели отключены; секрет возвращается только признаком наличия, никогда — значением."
     )
     @PutMapping(ApiPaths.Dev.INTEGRATION_CLIENT_WEBHOOK)
     @PreAuthorize("hasRole('DEV_ADMIN')")
@@ -187,7 +187,7 @@ public class DevIntegrationClientController {
             @PathVariable @Positive Long id,
             @Valid @RequestBody IntegrationClientWebhookUpdateRequest request
     ) {
-        integrationClientCommandService.updateWebhook(id, request);
+        integrationClientCommandService.updateWebhook(id, request, true);
         return ApiResponse.success(messageResolver.resolve("common.updated"), null);
     }
 }

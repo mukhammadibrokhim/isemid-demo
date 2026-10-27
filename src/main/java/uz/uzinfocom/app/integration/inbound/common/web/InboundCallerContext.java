@@ -64,6 +64,19 @@ public final class InboundCallerContext {
         }
     }
 
+    /** Like {@link #requireScope}, but satisfied by holding any one of {@code scopes}. */
+    public static void requireAnyScope(IntegrationScope... scopes) {
+        Authentication authentication = currentAuthentication();
+
+        boolean granted = java.util.Arrays.stream(scopes).anyMatch(scope ->
+                hasAuthority(authentication, "SCOPE_" + scope.getClaim())
+                        || hasAuthority(authentication, scope.permissionAuthority()));
+
+        if (!granted) {
+            throw new AccessDeniedException("integration.scope.missing");
+        }
+    }
+
     /**
      * Confirms the {@code {source}} path segment matches the calling
      * integration client's own registered source key — e.g. a client

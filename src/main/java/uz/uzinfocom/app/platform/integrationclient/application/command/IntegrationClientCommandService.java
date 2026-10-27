@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.orchestration.webhook.config.OutboundWebhookProperties;
+import uz.uzinfocom.app.orchestration.webhook.config.OutboundWebhookSettingKeys;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 import uz.uzinfocom.app.orchestration.webhook.crypto.WebhookSecretCipher;
 import uz.uzinfocom.app.platform.http.ssrf.OutboundAddressPolicy;
 import uz.uzinfocom.app.platform.integrationclient.application.command.dto.IntegrationClientAllowedIpsUpdateRequest;
@@ -48,6 +50,7 @@ public class IntegrationClientCommandService {
     private final PasswordEncoder passwordEncoder;
     private final WebhookSecretCipher webhookSecretCipher;
     private final OutboundWebhookProperties outboundWebhookProperties;
+    private final SystemSettingResolver systemSettingResolver;
     private final AuthProvidersProperties authProvidersProperties;
 
     @Transactional
@@ -229,11 +232,21 @@ public class IntegrationClientCommandService {
      */
     @Transactional
     public void updateWebhook(Long id, IntegrationClientWebhookUpdateRequest request) {
+        updateWebhook(id, request, false);
+    }
+
+    /**
+     * @param skipCallbackUrlGuard dev panel only: skips the https-scheme and
+     *        forbidden-host checks on the callback URL. The connect-time DNS guard
+     *        still applies when the dispatcher actually calls it.
+     */
+    @Transactional
+    public void updateWebhook(Long id, IntegrationClientWebhookUpdateRequest request, boolean skipCallbackUrlGuard) {
         IntegrationClient client = integrationClientRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("integration-client.not-found", id));
 
         if (Boolean.TRUE.equals(request.active())) {
-            validateWebhookConfig(request, client);
+            validateWebhookConfig(request, client, skipCallbackUrlGuard);
         }
 
         client.setWebhookCallbackUrl(trimToNull(request.callbackUrl()));
@@ -252,13 +265,18 @@ public class IntegrationClientCommandService {
                 client.getId(), client.getClientId(), client.isWebhookActive(), client.getWebhookAuthType());
     }
 
-    private void validateWebhookConfig(IntegrationClientWebhookUpdateRequest request, IntegrationClient existing) {
-        if (!StringUtils.hasText(request.callbackUrl())
-                || !request.callbackUrl().trim().toLowerCase(Locale.ROOT).startsWith("https://")) {
+    private void validateWebhookConfig(
+            IntegrationClientWebhookUpdateRequest request, IntegrationClient existing, boolean skipCallbackUrlGuard) {
+        if (!StringUtils.hasText(request.callbackUrl())) {
             throw new InvalidWebhookConfigException("integration-client.webhook.callback-url.https-required");
         }
-        if (isForbiddenWebhookHost(request.callbackUrl().trim())) {
-            throw new InvalidWebhookConfigException("integration-client.webhook.callback-url.host-forbidden");
+        if (!skipCallbackUrlGuard) {
+            if (!hasAllowedScheme(request.callbackUrl().trim().toLowerCase(Locale.ROOT))) {
+                throw new InvalidWebhookConfigException("integration-client.webhook.callback-url.https-required");
+            }
+            if (isForbiddenWebhookHost(request.callbackUrl().trim())) {
+                throw new InvalidWebhookConfigException("integration-client.webhook.callback-url.host-forbidden");
+            }
         }
         if (request.httpMethod() == null) {
             throw new InvalidWebhookConfigException("integration-client.webhook.http-method.required");
@@ -294,6 +312,12 @@ public class IntegrationClientCommandService {
                 }
             }
         }
+    }
+
+    private boolean hasAllowedScheme(String lowerCaseUrl) {
+        return lowerCaseUrl.startsWith("https://")
+                || (lowerCaseUrl.startsWith("http://")
+                && systemSettingResolver.resolveBoolean(OutboundWebhookSettingKeys.ALLOW_HTTP, false));
     }
 
     private static String trimToNull(String value) {
@@ -345,6 +369,7 @@ public class IntegrationClientCommandService {
         } catch (IllegalArgumentException malformed) {
             return true;
         }
-        return OutboundAddressPolicy.isForbiddenHost(host, outboundWebhookProperties.allowPrivateNetwork());
+        return OutboundAddressPolicy.isForbiddenHost(host, systemSettingResolver.resolveBoolean(
+                OutboundWebhookSettingKeys.ALLOW_PRIVATE_NETWORK, outboundWebhookProperties.allowPrivateNetwork()));
     }
 }

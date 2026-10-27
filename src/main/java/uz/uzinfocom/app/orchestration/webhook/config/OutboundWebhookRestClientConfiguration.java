@@ -35,7 +35,10 @@ import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 public class OutboundWebhookRestClientConfiguration {
 
     @Bean(name = "outboundWebhookConnectionManager")
-    public PoolingHttpClientConnectionManager outboundWebhookConnectionManager(OutboundWebhookProperties properties) {
+    public PoolingHttpClientConnectionManager outboundWebhookConnectionManager(
+            OutboundWebhookProperties properties,
+            SystemSettingResolver systemSettingResolver
+    ) {
         if (properties.connectTimeout().isZero() || properties.connectTimeout().isNegative()
                 || properties.readTimeout().isZero() || properties.readTimeout().isNegative()) {
             throw new IllegalStateException("Outbound webhook connect and read timeouts must be positive");
@@ -49,7 +52,8 @@ public class OutboundWebhookRestClientConfiguration {
         // SSRF guard on the resolved addresses at connect time - see GuardedDnsResolver.
         return PoolingHttpClientConnectionManagerBuilder
                 .create()
-                .setDnsResolver(new GuardedDnsResolver(properties.allowPrivateNetwork()))
+                .setDnsResolver(new GuardedDnsResolver(() -> systemSettingResolver.resolveBoolean(
+                        OutboundWebhookSettingKeys.ALLOW_PRIVATE_NETWORK, properties.allowPrivateNetwork())))
                 .setDefaultConnectionConfig(connectionConfig)
                 .build();
     }

@@ -1189,6 +1189,15 @@ public final class ApiPaths {
          * DMED-specific fixed-contract path for Form129.
          */
         public static final String FORM129 = ROOT + "/{source}/form-129";
+
+        /**
+         * Receiver-organization options for the form058 / form058-1 / form129
+         * submission endpoints: the organizations a submitter may put in
+         * {@code receiverOrganizationId} (active SANEPID_SERVICE only - the
+         * same rule the create validators enforce). Readable by any caller
+         * that holds at least one of the three {@code *:submit} scopes.
+         */
+        public static final String RECEIVER_ORGANIZATIONS = ROOT + "/{source}/receiver-organizations";
     }
 
 }
