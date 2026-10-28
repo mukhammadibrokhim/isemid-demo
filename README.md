@@ -199,14 +199,10 @@ and `.env.{profile}.example` template:
 
 All three load `.env` (if present, via `springboot4-dotenv`) into the Spring
 `Environment` on startup — a real OS/container env var of the same name
-always wins over `.env`. Copy the matching template and fill in as needed:
+always wins over `.env`. Copy the template and fill in as needed:
 
 ```bash
-cp .env.local.example .env      # local profile (see "Local setup" below)
-# or
-cp .env.example .env            # dev profile
-# or
-cp .env.prod.example .env       # prod profile
+cp .env.example .env
 ```
 
 `application-local.properties` itself is **not** committed (it's in
@@ -223,8 +219,8 @@ instance (Liquibase creates the schema on first run):
 
 ```bash
 createdb isemid_local            # or: psql -c "CREATE DATABASE isemid_local"
-cp .env.local.example .env       # adjust DB_URL/DB_USERNAME/DB_PASSWORD if your
-                                  # local Postgres isn't on localhost:5432/postgres
+cp .env.example .env             # set SPRING_PROFILES_ACTIVE=dev,local and adjust
+                                  # DB_URL/DB_USERNAME/DB_PASSWORD if needed
 ./mvnw spring-boot:run
 ```
 
