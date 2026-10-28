@@ -38,6 +38,7 @@ public class OrganizationMappingHelper {
      * resolves to an active organization (deactivated, or a legacy sentinel
      * like 0) yields {@code null} instead of failing the whole response.
      */
+    @Named("activeOrganizationNameByIdOrNull")
     public String activeOrganizationNameByIdOrNull(Long id) {
         if (id == null) {
             return null;

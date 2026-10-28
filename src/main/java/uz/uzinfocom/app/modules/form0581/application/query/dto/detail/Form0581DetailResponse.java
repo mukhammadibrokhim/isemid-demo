@@ -25,8 +25,14 @@ public record Form0581DetailResponse(
         @Schema(description = "Идентификатор организации-отправителя.")
         Long senderOrganizationId,
 
+        @Schema(description = "Наименование организации-отправителя на языке запроса.")
+        String senderOrganizationName,
+
         @Schema(description = "Идентификатор организации-получателя.")
         Long receiverOrganizationId,
+
+        @Schema(description = "Наименование организации-получателя на языке запроса.")
+        String receiverOrganizationName,
 
         @Schema(description = "Диагностические сведения.")
         Form0581DiagnosisDetailResponse diagnosisInfo,

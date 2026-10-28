@@ -93,17 +93,16 @@ public class Form058PdfMapper {
     }
 
     /**
-     * The person who created the form is treated as the notifier ("Xabar beruvchi") - the
-     * free-text {@code reportInfo.notifierFullName} the client submitted at creation time is
-     * only a fallback for the rare case where {@code createdBy} isn't recorded (e.g. a
-     * system-initiated record).
+     * The notifier ("Xabar beruvchi") is the name the client submitted at creation time
+     * ({@code reportInfo.notifierFullName}); the creating user's name is only a fallback for
+     * when that is blank.
      */
     private String resolveNotifierFullName(Form058 form058, Form058ReportInfo reportInfo) {
-        UserMiniResponse creator = userMapperHelper.toUserMiniResponse(form058.getCreatedBy());
-        if (creator != null && StringUtils.hasText(creator.fullName())) {
-            return creator.fullName();
+        if (reportInfo != null && StringUtils.hasText(reportInfo.getNotifierFullName())) {
+            return reportInfo.getNotifierFullName();
         }
-        return reportInfo == null ? null : reportInfo.getNotifierFullName();
+        UserMiniResponse creator = userMapperHelper.toUserMiniResponse(form058.getCreatedBy());
+        return creator == null ? null : creator.fullName();
     }
 
     /**

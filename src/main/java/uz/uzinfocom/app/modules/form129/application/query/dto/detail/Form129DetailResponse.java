@@ -21,7 +21,9 @@ public record Form129DetailResponse(
         String medicalId,
 
         Long senderOrganizationId,
+        String senderOrganizationName,
         Long receiverOrganizationId,
+        String receiverOrganizationName,
 
         Form129TestOutcome rwOutcome,
         String rwResultText,

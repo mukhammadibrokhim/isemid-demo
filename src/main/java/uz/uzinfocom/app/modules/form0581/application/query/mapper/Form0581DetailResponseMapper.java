@@ -6,6 +6,7 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.*;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581OtherInjuredPerson;
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.*;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
@@ -15,7 +16,8 @@ import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
         config = CentralMapperConfig.class,
         uses = {
                 PatientDetailResponseMapper.class,
-                UserMapperHelper.class
+                UserMapperHelper.class,
+                OrganizationMappingHelper.class
         }
 )
 public interface Form0581DetailResponseMapper {
@@ -25,7 +27,9 @@ public interface Form0581DetailResponseMapper {
     @Mapping(target = "status", source = "form0581.status")
     @Mapping(target = "source", source = "form0581.source")
     @Mapping(target = "senderOrganizationId", source = "form0581.senderOrganizationId")
+    @Mapping(target = "senderOrganizationName", source = "form0581.senderOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     @Mapping(target = "receiverOrganizationId", source = "form0581.receiverOrganizationId")
+    @Mapping(target = "receiverOrganizationName", source = "form0581.receiverOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
 
     @Mapping(target = "diagnosisInfo", source = "form0581.diagnosisInfo")
     @Mapping(target = "incidentInfo", source = "form0581.incidentInfo")
@@ -62,12 +66,14 @@ public interface Form0581DetailResponseMapper {
     @Mapping(target = "ownerApartmentNumber", source = "ownerAddress.apartmentNumber")
     Form0581AnimalOwnerDetailResponse toResponse(Form0581AnimalOwnerInfo source);
 
+    @Mapping(target = "hospitalOrganizationName", source = "hospitalOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     Form0581HospitalizationDetailResponse toResponse(Form0581HospitalizationInfo source);
 
     Form0581ReportDetailResponse toResponse(Form0581ReportInfo source);
 
     Form0581CancellationDetailResponse toResponse(Form0581CancellationInfo source);
 
+    @Mapping(target = "approvedOrganizationName", source = "approvedOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     Form0581ApprovalDetailResponse toResponse(Form0581ApprovalInfo source);
 
     @Mapping(target = "acceptedBy", source = "acceptedBy")

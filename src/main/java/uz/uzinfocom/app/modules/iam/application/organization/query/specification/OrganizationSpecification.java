@@ -102,7 +102,10 @@ public class OrganizationSpecification {
             if (StringUtils.hasText(search)) {
                 String pattern = like(search);
                 predicates.add(cb.or(
-                        cb.like(cb.lower(cb.coalesce(root.get("name"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameUz"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameUzCyril"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameRu"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameKaa"), "")), pattern),
                         cb.like(cb.lower(cb.coalesce(root.get("tin"), "")), pattern),
                         cb.like(cb.lower(cb.coalesce(root.get("phone"), "")), pattern),
                         cb.like(cb.lower(cb.coalesce(root.get("regionCode"), "")), pattern),

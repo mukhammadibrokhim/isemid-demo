@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.form058.application.query.dto.detail.*;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058Location;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
@@ -20,7 +21,8 @@ import java.util.List;
         config = CentralMapperConfig.class,
         uses = {
                 PatientDetailResponseMapper.class,
-                UserMapperHelper.class
+                UserMapperHelper.class,
+                OrganizationMappingHelper.class
         }
 )
 public interface Form058DetailResponseMapper {
@@ -29,7 +31,9 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "status", source = "form058.status")
     @Mapping(target = "source", source = "form058.source")
     @Mapping(target = "senderOrganizationId", source = "form058.senderOrganizationId")
+    @Mapping(target = "senderOrganizationName", source = "form058.senderOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     @Mapping(target = "receiverOrganizationId", source = "form058.receiverOrganizationId")
+    @Mapping(target = "receiverOrganizationName", source = "form058.receiverOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
 
     @Mapping(target = "diagnosisInfo", source = "form058.diagnosisInfo")
     @Mapping(target = "clinicalInfo", source = "form058.clinicalInfo")
@@ -53,6 +57,7 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "finalIcd10Name", source = "finalIcd10Name")
     Form058DiagnosisDetailResponse toResponse(Form058DiagnosisInfo source);
 
+    @Mapping(target = "hospitalPlaceName", source = "hospitalPlaceId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     Form058ClinicalDetailResponse toResponse(Form058ClinicalInfo source);
 
     @Mapping(target = "admissionDate", expression = "java(toLocalDate(source.getAdmissionDate()))")
@@ -71,6 +76,7 @@ public interface Form058DetailResponseMapper {
 
     Form058CancellationDetailResponse toResponse(Form058CancellationInfo source);
 
+    @Mapping(target = "approvedOrganizationName", source = "approvedOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     Form058ApprovalDetailResponse toResponse(Form058ApprovalInfo source);
 
     @Mapping(target = "acceptedBy", source = "acceptedBy")

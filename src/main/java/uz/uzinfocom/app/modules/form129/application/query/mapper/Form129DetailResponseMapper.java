@@ -4,13 +4,14 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.form129.application.query.dto.detail.Form129DetailResponse;
 import uz.uzinfocom.app.modules.form129.domain.model.Form129;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 @Mapper(
         config = CentralMapperConfig.class,
-        uses = {PatientDetailResponseMapper.class}
+        uses = {PatientDetailResponseMapper.class, OrganizationMappingHelper.class}
 )
 public interface Form129DetailResponseMapper {
 
@@ -23,7 +24,9 @@ public interface Form129DetailResponseMapper {
     @Mapping(target = "medicalId", source = "form129.medicalId")
 
     @Mapping(target = "senderOrganizationId", source = "form129.senderOrganizationId")
+    @Mapping(target = "senderOrganizationName", source = "form129.senderOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     @Mapping(target = "receiverOrganizationId", source = "form129.receiverOrganizationId")
+    @Mapping(target = "receiverOrganizationName", source = "form129.receiverOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
 
     @Mapping(target = "rwOutcome", source = "form129.labResults.rwOutcome")
     @Mapping(target = "rwResultText", source = "form129.labResults.rwResultText")

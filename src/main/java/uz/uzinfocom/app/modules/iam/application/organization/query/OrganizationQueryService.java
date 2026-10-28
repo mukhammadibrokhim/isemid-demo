@@ -126,7 +126,7 @@ public class OrganizationQueryService {
         Pageable pageable = PageRequest.of(
                 0,
                 request.normalizedLimit(),
-                Sort.by(Sort.Order.asc("name"), Sort.Order.desc("id"))
+                Sort.by(Sort.Order.asc("nameUz"), Sort.Order.desc("id"))
         );
 
         return organizationRepository.findAll(organizationSpecification.byLookupFilter(request), pageable)

@@ -9,9 +9,11 @@ import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
 import uz.uzinfocom.app.modules.iam.domain.enums.ServiceType;
 import uz.uzinfocom.app.modules.iam.infrastructure.remote.payload.RemoteOrganizationPayload;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -120,11 +122,13 @@ public class OrganizationRemoteMapper {
     }
 
     private List<ServiceType> parseServiceTypes(List<String> codes, UUID organizationUuid) {
+        // Mutable on purpose: Hibernate merge()/flush clears and refills an
+        // element-collection in place, which throws on an immutable List.
         return codes.stream()
                 .map(code -> mapServiceType(code, organizationUuid))
                 .filter(Objects::nonNull)
                 .distinct()
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private ServiceType mapServiceType(String code, UUID organizationUuid) {

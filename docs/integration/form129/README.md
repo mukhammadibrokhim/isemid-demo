@@ -19,12 +19,15 @@ Laboratoriya serologiya xabarnomasi (zaxm / gepatit B / brutsellyoz). Hayot sikl
 
 | Maydon | Majburiy | Izoh |
 |---|---|---|
-| `reportingInstitutionName` | yo'q | ≤ 500 |
-| `medicalId` | yo'q | ≤ 128 |
+| `reportingInstitutionName` | ha | ≤ 500 |
+| `medicalId` | ha | ≤ 128 |
 | `patient` | ha | [patient bloki](../patient/README.md#uz) |
 | `receiverOrganizationId` | ha | UUID; sanitar-epidemiologik xizmat muassasasi |
 | `notifierFullName` | ha | ≤ 255 |
-| `senderOrganizationUuid`, `submittedBy` | tavsiya | har doim yuboring; SSO/DHP token usulida majburiy ([auth](../auth/README.md#uz) 3.3) |
+| `senderOrganizationUuid` | ha | formani yuborayotgan tashkilot UUID si. `EXTERNAL_TOKEN` klienti uchun ruxsat etilgan tashkilotlar ro'yxatida bo'lishi, boshqalar uchun o'z tashkilotiga teng bo'lishi shart ([auth](../auth/README.md#uz) 3.3) |
+| `submittedBy` | ha | audit uchun: `{ pinfl, fullName, position, phone? }` |
+
+Autentifikatsiya: scope `form129:submit`; usullar — client credentials, API key, Basic, IP allow-list, SSO/DHP token ([auth](../auth/README.md#uz)).
 
 Laboratoriya natijalari (hammasi ixtiyoriy; har biri `…Outcome` + `…ResultText` (≤ 500) jufti):
 
@@ -82,12 +85,15 @@ Namuna:
 
 | Поле | Обяз. | Описание |
 |---|---|---|
-| `reportingInstitutionName` | нет | ≤ 500 |
-| `medicalId` | нет | ≤ 128 |
+| `reportingInstitutionName` | да | ≤ 500 |
+| `medicalId` | да | ≤ 128 |
 | `patient` | да | [блок patient](../patient/README.md#ru) |
 | `receiverOrganizationId` | да | UUID; учреждение санитарно-эпидемиологической службы |
 | `notifierFullName` | да | ≤ 255 |
-| `senderOrganizationUuid`, `submittedBy` | рекомендуется | передавайте всегда; обязательны при способе SSO/DHP-токен ([auth](../auth/README.md#ru) п. 3.3) |
+| `senderOrganizationUuid` | да | UUID организации-отправителя. Для клиента `EXTERNAL_TOKEN` должна входить в список разрешённых организаций, для остальных — совпадать с их организацией ([auth](../auth/README.md#ru) п. 3.3) |
+| `submittedBy` | да | для аудита: `{ pinfl, fullName, position, phone? }` |
+
+Аутентификация: scope `form129:submit`; способы — client credentials, API key, Basic, IP allow-list, токен SSO/DHP ([auth](../auth/README.md#ru)).
 
 Результаты анализов (все необязательны; каждый — пара `…Outcome` + `…ResultText` (≤ 500)):
 
@@ -145,12 +151,15 @@ Lab serology notification (syphilis / hepatitis B / brucellosis). Simple lifecyc
 
 | Field | Req. | Notes |
 |---|---|---|
-| `reportingInstitutionName` | no | ≤ 500 |
-| `medicalId` | no | ≤ 128 |
+| `reportingInstitutionName` | yes | ≤ 500 |
+| `medicalId` | yes | ≤ 128 |
 | `patient` | yes | [patient block](../patient/README.md#en) |
 | `receiverOrganizationId` | yes | UUID; a sanitary-epidemiological service institution |
 | `notifierFullName` | yes | ≤ 255 |
-| `senderOrganizationUuid`, `submittedBy` | recommended | always send; mandatory with the SSO/DHP-token method ([auth](../auth/README.md#en) §3.3) |
+| `senderOrganizationUuid` | yes | UUID of the sending organization. For an `EXTERNAL_TOKEN` client it must be in its allowed-organizations list; for other callers it must equal their own organization ([auth](../auth/README.md#en) §3.3) |
+| `submittedBy` | yes | for audit: `{ pinfl, fullName, position, phone? }` |
+
+Authentication: scope `form129:submit`; methods — client credentials, API key, Basic, IP allow-list, SSO/DHP token ([auth](../auth/README.md#en)).
 
 Lab results (all optional; each is an `…Outcome` + `…ResultText` (≤ 500) pair):
 
