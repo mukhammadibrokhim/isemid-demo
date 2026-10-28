@@ -71,6 +71,17 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     );
 
     @Query("""
+            SELECT u.id, r.name
+            FROM User u
+            JOIN u.roles r
+            WHERE u.id IN :userIds
+              AND r.active = true
+              AND r.deleted = false
+            ORDER BY r.name
+            """)
+    java.util.List<Object[]> findRoleNamesByUserIds(@Param("userIds") java.util.Collection<Long> userIds);
+
+    @Query("""
                 SELECT u.id
                 FROM User u
                 JOIN u.organizations o

@@ -30,8 +30,11 @@ import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -114,11 +117,23 @@ public class OrganizationQueryService {
                 OrganizationUserLookupSortFields.ALLOWED_SORT_FIELDS
         );
 
-        return userRepository.findUserLookupsByOrganizationId(
+        Page<OrganizationUserLookupResponse> page = userRepository.findUserLookupsByOrganizationId(
                 organizationId,
                 request.normalizedSearch(),
                 pageable
         );
+
+        if (page.isEmpty()) {
+            return page;
+        }
+
+        Map<Long, List<String>> rolesByUserId = new HashMap<>();
+        for (Object[] row : userRepository.findRoleNamesByUserIds(
+                page.getContent().stream().map(OrganizationUserLookupResponse::id).toList())) {
+            rolesByUserId.computeIfAbsent((Long) row[0], k -> new ArrayList<>()).add((String) row[1]);
+        }
+
+        return page.map(user -> user.withRoles(rolesByUserId.getOrDefault(user.id(), List.of())));
     }
 
     @Transactional(readOnly = true)
