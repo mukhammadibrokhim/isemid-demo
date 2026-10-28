@@ -37,8 +37,10 @@ public class InboundReceiverOrganizationController {
 
     @Operation(
             summary = "Получить организации-получатели",
-            description = "Возвращает активные организации типа SANEPID_SERVICE - допустимые значения "
-                    + "receiverOrganizationId при отправке форм №058, №058-1 и №129. Требуется любой из scope: "
+            description = "Возвращает активные организации. По умолчанию (без medicalTypes) - типа SANEPID_SERVICE, "
+                    + "допустимые значения receiverOrganizationId при отправке форм №058, №058-1 и №129; "
+                    + "с medicalTypes=HOSPITAL и т.п. - места госпитализации (hospitalPlaceId). "
+                    + "Требуется любой из scope: "
                     + "form058:submit, form0581:submit, form129:submit."
     )
     @GetMapping
@@ -52,6 +54,11 @@ public class InboundReceiverOrganizationController {
             @RequestParam(required = false) String regionCode,
             @Parameter(description = "Код района.")
             @RequestParam(required = false) String districtCode,
+            @Parameter(description = "Типы медицинской организации (можно несколько). Для получателей форм - "
+                    + "SANEPID_SERVICE; для мест госпитализации (hospitalPlaceId) - типы стационаров, "
+                    + "например HOSPITAL, PEDIATRIC_HOSPITAL, EMERGENCY_HOSPITAL. "
+                    + "Если не указан - SANEPID_SERVICE.")
+            @RequestParam(required = false) List<MedicalType> medicalTypes,
             @Parameter(description = "Максимум записей (1-50, по умолчанию 20).")
             @RequestParam(required = false) Integer limit
     ) {
@@ -60,8 +67,11 @@ public class InboundReceiverOrganizationController {
         InboundCallerContext.requireMatchingSourceKey(source);
 
         int safeLimit = limit == null ? 20 : Math.min(Math.max(limit, 1), 50);
+        List<MedicalType> types = medicalTypes == null || medicalTypes.isEmpty()
+                ? List.of(MedicalType.SANEPID_SERVICE)
+                : medicalTypes;
         return organizationQueryService.lookup(new OrganizationLookupRequest(
-                search, null, null, List.of(MedicalType.SANEPID_SERVICE), null, true,
+                search, null, null, types, null, true,
                 regionCode, districtCode, safeLimit));
     }
 }

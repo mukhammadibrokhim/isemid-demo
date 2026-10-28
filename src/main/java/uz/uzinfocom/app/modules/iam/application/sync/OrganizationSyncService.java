@@ -1,10 +1,12 @@
 package uz.uzinfocom.app.modules.iam.application.sync;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,14 @@ public class OrganizationSyncService {
     private final OrganizationRemoteMapper mapper;
     private final CacheManager securityCacheManager;
 
+    /**
+     * Own Spring proxy, so parent resolution goes through {@link #resolve}'s
+     * {@code @Cacheable}/{@code @Transactional} advice instead of a plain
+     * self-invocation that would bypass it. Defaults to {@code this} when the
+     * service is built outside a Spring context (unit tests).
+     */
+    private OrganizationSyncService self = this;
+
     public OrganizationSyncService(
             OrganizationRepository organizationRepository,
             ProviderIamRemoteClient remoteClient,
@@ -38,6 +48,11 @@ public class OrganizationSyncService {
         this.remoteClient = remoteClient;
         this.mapper = mapper;
         this.securityCacheManager = securityCacheManager;
+    }
+
+    @Autowired
+    void setSelf(@Lazy OrganizationSyncService self) {
+        this.self = self;
     }
 
     @Transactional
@@ -155,6 +170,6 @@ public class OrganizationSyncService {
             return null;
         }
 
-        return resolve(providerKey, parentUuid, rawToken);
+        return self.resolve(providerKey, parentUuid, rawToken);
     }
 }

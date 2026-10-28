@@ -42,7 +42,7 @@ import java.util.function.Supplier;
  * (act submission/result) even though both share the same base URL, API key
  * and circuit breaker, because these are proxied+cached for the frontend
  * rather than driving a domain workflow — see {@code LisReferenceQueryService}
- * for the caching layer and {@code docs/act-lis-frontend-guide.md} for why
+ * for the caching layer and {@code docs/backend-guide.md §8.4} for why
  * this backend proxies these instead of the frontend calling LIS directly.
  *
  * <p>Same failure handling as {@code LisActClient}: every failure becomes a

@@ -82,7 +82,7 @@ Yuborilgan shaklni yakuniy diagnoz (MKB-10) bilan tasdiqlaydi — status `APPROV
 | Maydon | Maj. | Izoh |
 |---|---|---|
 | `finalIcd10Code` | ✔ | MKB-10 kodi, ≤ 32; **ma'lumotnomada bo'lishi shart**, aks holda `400` |
-| `finalIcd10Name` |  | ≤ 1024; yuborilmasa ma'lumotnomadagi nom olinadi |
+| `finalIcd10Name` | ✔ | ≤ 1024; diagnoz nomi |
 
 ```json
 { "finalIcd10Code": "A01.0", "finalIcd10Name": "Typhoid fever" }
@@ -178,7 +178,7 @@ Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
 | Поле | Обяз. | Описание |
 |---|---|---|
 | `finalIcd10Code` | ✔ | код МКБ-10, ≤ 32; **должен существовать в справочнике**, иначе `400` |
-| `finalIcd10Name` |  | ≤ 1024; если не передано, берётся название из справочника |
+| `finalIcd10Name` | ✔ | ≤ 1024; название диагноза |
 
 ```json
 { "finalIcd10Code": "A01.0", "finalIcd10Name": "Typhoid fever" }
@@ -274,7 +274,7 @@ Confirms a previously submitted form with a final diagnosis (ICD-10) — the sta
 | Field | Req. | Notes |
 |---|---|---|
 | `finalIcd10Code` | ✔ | ICD-10 code, ≤ 32; **must exist in the catalog**, otherwise `400` |
-| `finalIcd10Name` |  | ≤ 1024; defaults to the catalog name |
+| `finalIcd10Name` | ✔ | ≤ 1024; diagnosis name |
 
 ```json
 { "finalIcd10Code": "A01.0", "finalIcd10Name": "Typhoid fever" }

@@ -101,11 +101,11 @@ surfacing at runtime.
 
 | Module | What it represents | REST root | Docs |
 |---|---|---|---|
-| `form058` | Form No. 058 — the infectious/parasitic disease notification sent between medical organizations. The aggregate root the `card` module attaches to and the trigger for `patient` registration. Full accept/approve/cancel/reopen workflow (`SENT → ACCEPTED → CARD_LINKED → APPROVED`, or `→ CANCELED`). | `/v1/form-058` | [docs/form058-module.md](docs/form058-module.md) |
-| `form0581` | Form No. 058-1 — the counterpart notification for zoonotic/animal-bite cases, with its own accept/approve/cancel/reopen workflow and stats. Only `CARD174`/`CARD175`/`CARD205` may attach to it. | `/v1/form-058-1` | [docs/form058-data-dictionary.md](docs/form058-data-dictionary.md) |
-| `card` | Five epidemiological investigation card types (`CARD161`, `CARD174`, `CARD175`, `CARD205`, `CARD_TUBE`), each attached to exactly one owning case — a `form058` or a `form0581`, never both. Full accept/reject/complete/supervisor-approval lifecycle, per-type handler registry, generic child-collection upsert (`ChildCollectionSync`). | `/v1/cards`, plus `/v1/form-058/{id}/cards*` and `/v1/form-058-1/{id}/cards*` | [docs/card-module.md](docs/card-module.md) |
-| `patient` | Patient/person record (demographics, national ID, addresses, workplace/school affiliation), created as a side effect of registering a `form058`. No REST surface of its own. | — | [docs/patient-module.md](docs/patient-module.md) |
-| `act` | Lab/procedure order attached to a card, integrated with the external LIS (Laboratory Information System). Deliberately a minimal placeholder — the legacy system's 6 act subtypes are out of scope for this build. | `/v1/acts` | [docs/act-module.md](docs/act-module.md) |
+| `form058` | Form No. 058 — the infectious/parasitic disease notification sent between medical organizations. The aggregate root the `card` module attaches to and the trigger for `patient` registration. Full accept/approve/cancel/reopen workflow (`SENT → ACCEPTED → CARD_LINKED → APPROVED`, or `→ CANCELED`). | `/v1/form-058` | [docs/backend-guide.md §4](docs/backend-guide.md#4-form-058-and-form-058-1) |
+| `form0581` | Form No. 058-1 — the counterpart notification for zoonotic/animal-bite cases, with its own accept/approve/cancel/reopen workflow and stats. Only `CARD174`/`CARD175`/`CARD205` may attach to it. | `/v1/form-058-1` | [docs/backend-guide.md §15](docs/backend-guide.md#15-data-dictionary-form-058--058-1) |
+| `card` | Five epidemiological investigation card types (`CARD161`, `CARD174`, `CARD175`, `CARD205`, `CARD_TUBE`), each attached to exactly one owning case — a `form058` or a `form0581`, never both. Full accept/reject/complete/supervisor-approval lifecycle, per-type handler registry, generic child-collection upsert (`ChildCollectionSync`). | `/v1/cards`, plus `/v1/form-058/{id}/cards*` and `/v1/form-058-1/{id}/cards*` | [docs/backend-guide.md §7](docs/backend-guide.md#7-cards) |
+| `patient` | Patient/person record (demographics, national ID, addresses, workplace/school affiliation), created as a side effect of registering a `form058`. No REST surface of its own. | — | [docs/backend-guide.md §6](docs/backend-guide.md#6-patient) |
+| `act` | Lab/procedure order attached to a card, integrated with the external LIS (Laboratory Information System). Five act types (ACT153/154/156/223/224; only 153/154/223 go to LIS) with send-to-LIS, result callback and doctor close. | `/v1/acts` | [docs/backend-guide.md §8](docs/backend-guide.md#8-acts-and-lis) |
 | `report` | Cross-form, organization-hierarchy statistical reports (Forms 1, 2, 3-1, 3-2, 4, 6, 7, 8, 9, 10, 11, 12, 13) built on `form058`/`form0581` data plus hand-entered counts that have no other source of truth. Every drill-down report shares one hierarchy pattern (republic → region → district → organization, one level per call) via `report.shared.ReportHierarchyService`. Form 12 is disease-first: its rows are the manual-report catalog entries tagged `FORM_12`, geography is the drill-down. Form 13 is the transpose of Form 12: geography-first rows, one column per manual-report catalog entry tagged `FORM_13`, matched on the confirmed `final_icd10_code` only (no fallback to the initial code). | `/v1/reports/**` | — |
 | `iam` | `User`, `Organization`, `Role`, `Permission`, `Action` domain and admin CRUD, synced against the upstream SSO/DHP identity provider. | `/v1/users`, `/v1/organizations`, `/v1/roles`, `/v1/permissions`, `/v1/actions` | — |
 | `reference` | Reference data: countries, regions, districts, neighborhoods, ICD-10 codes, generic catalogs. Dependency-free — every other module (and, narrowly, `modules.iam`) may read from it, it reads from nothing. | `/v1/references` | — |
@@ -355,29 +355,11 @@ environment.
 
 ## Documentation index
 
-Deeper, module-specific documentation lives under [`docs/`](docs):
+Deeper documentation lives under [`docs/`](docs) — one consolidated guide plus the integration and legacy-migration docs:
 
 | Doc | Covers |
 |---|---|
-| [form058-module.md](docs/form058-module.md) | Form No. 058 status lifecycle, endpoints, design decisions |
-| [form058-data-dictionary.md](docs/form058-data-dictionary.md) | Full field-by-field data dictionary shared by Form 058 / 058-1 |
-| [form058-form0581-frontend-guide.md](docs/form058-form0581-frontend-guide.md) | Frontend integration guide for the two notification forms |
-| [card-module.md](docs/card-module.md) | Card types, handler pattern, status lifecycle, child-collection sync |
-| [patient-module.md](docs/patient-module.md) | Patient entity and registration flow |
-| [act-module.md](docs/act-module.md) | Act placeholder scope and LIS integration touchpoints |
-| [act-lis-frontend-guide.md](docs/act-lis-frontend-guide.md) | Frontend integration guide for send-to-LIS, the result callback, and its notification |
-| [auth-login-module.md](docs/auth-login-module.md) | Login-proxy architecture, providers, grant flow |
-| [auth-login-frontend-guide.md](docs/auth-login-frontend-guide.md) | Frontend integration guide for login/refresh |
-| [notification-module.md](docs/notification-module.md) | Notification event fan-out model and triggers |
-| [notification-frontend-guide.md](docs/notification-frontend-guide.md) | Frontend integration guide for notifications/SSE |
-| [population-reference-frontend-guide.md](docs/population-reference-frontend-guide.md) | Frontend integration guide for the `ref_population` reference (year-scoped hierarchy, detail, manual entry, SDMX sync) |
-| [manual-report-reference-frontend-guide.md](docs/manual-report-reference-frontend-guide.md) | Frontend integration guide for the `ref_manual_report` reference — the «Hisobot turi» (`REPORT_TYPE` catalog) field, table, CRUD |
-| [form-28-1-28-2-report-frontend-guide.md](docs/form-28-1-28-2-report-frontend-guide.md) | Frontend integration guide for Form 28.1 / Form 28.2 reports — disease rows, geography drill-down, varaqa column mapping |
-| [forecast-report-frontend-guide.md](docs/forecast-report-frontend-guide.md) | Frontend integration guide for the Forecast report — geography-first `/root`+`/children` breakdown rows + per-node `/series` chart, DAY/WEEK/MONTH horizon-ahead prediction + endemic channel, `from`/`to` + ICD-10 filters |
-| [forecast-report-algorithm.md](docs/forecast-report-algorithm.md) | How the Forecast report's prognosis is actually computed — NAIVE_MEAN/SES/HOLT/HOLT_WINTERS_ADDITIVE formulas, AUTO model selection, the ±band and endemic-channel threshold math, top-diseases risk ranking, a worked hand-calculation example |
-| [report-excel-export-frontend-guide.md](docs/report-excel-export-frontend-guide.md) | Frontend integration guide for the background Excel export shared by every report + Form 058/058-1 — per-report `POST .../export` submit params, the shared `/v1/exports` progress (SSE) / list / download endpoints, locale-aware headers |
-| [dhp-integration.md](docs/dhp-integration.md) | DHP server-to-server (client_credentials) lookups — employment (egov MOL) + FHIR Immunization mapped into our shapes, config, known gaps |
+| [backend-guide.md](docs/backend-guide.md) | Single consolidated guide: API conventions, platform, login proxy, Form 058/058-1/129, patient, cards, acts + LIS, notifications, DHP, population + manual-report references, all reports (Form 10/11/12/13/28.x, Statistika, Forecast incl. algorithm), Excel export, dev panel, Form 058/058-1 data dictionary |
 | [integration/auth](docs/integration/auth/README.md) | Integration API (`/integration/v1/**`) authentication — client registration, API key / Basic / client-credentials / IP allow-list / SSO-DHP M2M token (uz/ru/en) |
 | [integration/form058](docs/integration/form058/README.md), [form0581](docs/integration/form0581/README.md), [form129](docs/integration/form129/README.md), [patient](docs/integration/patient/README.md) | Integration API submission contracts for Form 058 / 058-1 / 129 and the patient-case lookup + shared patient block (uz/ru/en) |
 | [integration/*/webhook](docs/integration/form058/webhook/README.md), [form0581](docs/integration/form0581/webhook/README.md), [form129](docs/integration/form129/webhook/README.md) | Integration API outbound status-change webhooks per form — payload, status transitions, retries (uz/ru/en) |
-| [platform.md](docs/platform.md) | Shared platform infrastructure overview |

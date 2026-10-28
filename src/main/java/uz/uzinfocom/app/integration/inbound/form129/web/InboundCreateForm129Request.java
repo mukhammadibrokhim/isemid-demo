@@ -23,11 +23,14 @@ import java.util.UUID;
  */
 @Schema(description = "Запрос на создание формы №129 через интеграционный API.")
 public record InboundCreateForm129Request(
-        @Schema(description = "Название учреждения, направившего извещение.")
+        @Schema(description = "Название учреждения, направившего извещение.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "{validation.required}")
         @Size(max = 500, message = "{validation.form129.reporting-institution-name.size}")
         String reportingInstitutionName,
 
-        @Schema(description = "Медицинский идентификатор учреждения.")
+        @Schema(description = "Медицинский идентификатор учреждения.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "{validation.required}")
         @Size(max = 128, message = "{validation.form129.medical-id.size}")
         String medicalId,
 
@@ -89,14 +92,16 @@ public record InboundCreateForm129Request(
         @Size(max = 255, message = "{validation.form129.notifier-full-name.size}")
         String notifierFullName,
 
-        @Schema(description = "Организация-отправитель. Обязательна для клиентов EXTERNAL_TOKEN (должна входить в "
-                + "их список разрешённых организаций); для остальных вызывающих, если указана, должна совпадать "
-                + "с их организацией.")
+        @Schema(description = "Организация-отправитель. Обязательна; для клиентов EXTERNAL_TOKEN должна входить в "
+                + "их список разрешённых организаций, для остальных вызывающих — совпадать с их организацией.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull(message = "{validation.required}")
         UUID senderOrganizationUuid,
 
-        @Schema(description = "Сотрудник, от имени которого отправляется форма (для аудита). Обязателен для "
-                + "клиентов EXTERNAL_TOKEN.")
+        @Schema(description = "Сотрудник, от имени которого отправляется форма (для аудита). Обязателен.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull(message = "{validation.required}")
         InboundSubmitterRequest submittedBy
 ) {
 }

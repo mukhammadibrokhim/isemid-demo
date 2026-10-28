@@ -205,7 +205,7 @@ public final class ApiPaths {
      * conditions, professions, research types, categories, item types),
      * proxied+cached by this backend rather than called by the frontend
      * directly — see {@code LisReferenceController}/{@code
-     * LisReferenceQueryService} and {@code docs/act-lis-frontend-guide.md}
+     * LisReferenceQueryService} and {@code docs/backend-guide.md §8.4}
      * for why. Deliberately not nested under {@link Reference}: that root is
      * this app's own multi-language catalogs, these are LIS's.
      */

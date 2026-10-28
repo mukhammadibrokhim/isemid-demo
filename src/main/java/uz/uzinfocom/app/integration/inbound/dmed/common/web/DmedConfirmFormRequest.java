@@ -11,7 +11,8 @@ public record DmedConfirmFormRequest(
         @Size(max = 32, message = "{validation.inbound.final-icd10-code.size}")
         String finalIcd10Code,
 
-        @Schema(description = "Название диагноза. Если не передано, берётся из справочника МКБ-10.")
+        @Schema(description = "Название окончательного диагноза.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "{validation.inbound.final-icd10-name.required}")
         @Size(max = 1024, message = "{validation.inbound.final-icd10-name.size}")
         String finalIcd10Name
 ) {

@@ -81,15 +81,15 @@ Yuborilgan shaklni yakuniy diagnoz (MKB-10) bilan tasdiqlaydi — status `APPROV
 | Maydon | Maj. | Izoh |
 |---|---|---|
 | `finalIcd10Code` | ✔ | MKB-10 kodi, ≤ 32; **ma'lumotnomada bo'lishi shart**, aks holda `400` |
-| `finalIcd10Name` |  | ≤ 1024; yuborilmasa ma'lumotnomadagi nom olinadi |
-| `senderOrganizationUuid` |  | shaklni yuborgan tashkilot UUID; `EXTERNAL_TOKEN` mijozlari va standart tashkilotsiz mijozlar uchun **majburiy**, ruxsat etilgan tashkilotlar ro'yxatida bo'lishi kerak |
+| `finalIcd10Name` | ✔ | ≤ 1024; diagnoz nomi |
+| `organizationUuid` |  | shaklni yuborgan tashkilot UUID; `EXTERNAL_TOKEN` mijozlari va standart tashkilotsiz mijozlar uchun **majburiy**, ruxsat etilgan tashkilotlar ro'yxatida bo'lishi kerak |
 | `submittedBy` |  | yuboruvchi (audit uchun) |
 
 ```json
 {
   "finalIcd10Code": "A01.0",
   "finalIcd10Name": "Typhoid fever",
-  "senderOrganizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
+  "organizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
 }
 ```
 
@@ -182,15 +182,15 @@ Javob (yuborishdagi bilan bir xil shakl):
 | Поле | Обяз. | Описание |
 |---|---|---|
 | `finalIcd10Code` | ✔ | код МКБ-10, ≤ 32; **должен существовать в справочнике**, иначе `400` |
-| `finalIcd10Name` |  | ≤ 1024; если не передано, берётся название из справочника |
-| `senderOrganizationUuid` |  | UUID организации-отправителя формы; **обязателен** для клиентов `EXTERNAL_TOKEN` и клиентов без организации по умолчанию, должен входить в список разрешённых организаций |
+| `finalIcd10Name` | ✔ | ≤ 1024; название диагноза |
+| `organizationUuid` |  | UUID организации-отправителя формы; **обязателен** для клиентов `EXTERNAL_TOKEN` и клиентов без организации по умолчанию, должен входить в список разрешённых организаций |
 | `submittedBy` |  | отправитель (для аудита) |
 
 ```json
 {
   "finalIcd10Code": "A01.0",
   "finalIcd10Name": "Typhoid fever",
-  "senderOrganizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
+  "organizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
 }
 ```
 
@@ -283,15 +283,15 @@ Confirms a previously submitted form with a final diagnosis (ICD-10) — the sta
 | Field | Req. | Notes |
 |---|---|---|
 | `finalIcd10Code` | ✔ | ICD-10 code, ≤ 32; **must exist in the catalog**, otherwise `400` |
-| `finalIcd10Name` |  | ≤ 1024; defaults to the catalog name |
-| `senderOrganizationUuid` |  | UUID of the organization that sent the form; **required** for `EXTERNAL_TOKEN` clients and clients without a default organization, must be in the allowed organizations list |
+| `finalIcd10Name` | ✔ | ≤ 1024; diagnosis name |
+| `organizationUuid` |  | UUID of the organization that sent the form; **required** for `EXTERNAL_TOKEN` clients and clients without a default organization, must be in the allowed organizations list |
 | `submittedBy` |  | submitter (for audit) |
 
 ```json
 {
   "finalIcd10Code": "A01.0",
   "finalIcd10Name": "Typhoid fever",
-  "senderOrganizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
+  "organizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
 }
 ```
 

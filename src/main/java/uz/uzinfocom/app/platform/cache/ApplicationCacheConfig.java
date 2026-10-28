@@ -87,7 +87,7 @@ public class ApplicationCacheConfig {
                 cache(SettingsCacheConfig.ROUTE_ACCESS_POLICIES, 4, Duration.ofSeconds(30)),
 
                 // LIS's own dictionaries, not this app's data - see
-                // docs/act-lis-frontend-guide.md for why this backend proxies
+                // docs/backend-guide.md §8.4 for why this backend proxies
                 // them instead of the frontend calling LIS directly. 1h TTL
                 // for the small, non-paginated lookups (organizations,
                 // departments, conditions); 30m for the four paginated ones,

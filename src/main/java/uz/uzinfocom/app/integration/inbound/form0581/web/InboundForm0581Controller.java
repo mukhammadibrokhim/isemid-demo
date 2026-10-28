@@ -107,7 +107,7 @@ public class InboundForm0581Controller {
         InboundFormIdentifier identifier = InboundFormIdentifier.parse(idOrUuid);
         InboundFinalDiagnosisResolver.ResolvedDiagnosis diagnosis =
                 inboundFinalDiagnosisResolver.resolve(request.finalIcd10Code(), request.finalIcd10Name());
-        inboundSenderResolver.resolveSenderOrganizationId(request.senderOrganizationUuid(), request.submittedBy());
+        inboundSenderResolver.resolveSenderOrganizationId(request.organizationUuid(), request.submittedBy());
 
         UpdateForm0581Result result = approveForm0581Service.confirm(
                 identifier.id(), identifier.uuid(), diagnosis.code(), diagnosis.name());

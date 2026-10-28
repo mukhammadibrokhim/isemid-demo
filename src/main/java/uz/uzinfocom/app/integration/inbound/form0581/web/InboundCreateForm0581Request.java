@@ -40,8 +40,9 @@ public record InboundCreateForm0581Request(
         @NotNull(message = "{validation.form0581.incident-info.required}")
         IncidentInfo incidentInfo,
 
-        @Schema(description = "Сведения о животном.")
+        @Schema(description = "Сведения о животном.", requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull(message = "{validation.required}")
         AnimalInfo animalInfo,
 
         @Schema(description = "Сведения о владельце животного (если он известен).")
@@ -59,7 +60,9 @@ public record InboundCreateForm0581Request(
         @NotNull(message = "{validation.form0581.receiver-organization.required}")
         UUID receiverOrganizationId,
 
-        @Schema(description = "Признак того, что в этом же происшествии пострадали и другие лица.")
+        @Schema(description = "Признак того, что в этом же происшествии пострадали и другие лица.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull(message = "{validation.required}")
         Boolean otherPeopleInjured,
 
         @Schema(description = "Список иных пострадавших лиц (помимо основного пациента).")
@@ -75,14 +78,16 @@ public record InboundCreateForm0581Request(
         @NotNull(message = "{validation.form0581.report-info.required}")
         ReportInfo reportInfo,
 
-        @Schema(description = "Организация-отправитель. Обязательна для клиентов EXTERNAL_TOKEN (должна входить в "
-                + "их список разрешённых организаций); для остальных вызывающих, если указана, должна совпадать "
-                + "с их организацией.")
+        @Schema(description = "Организация-отправитель. Обязательна; для клиентов EXTERNAL_TOKEN должна входить в "
+                + "их список разрешённых организаций, для остальных вызывающих — совпадать с их организацией.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull(message = "{validation.required}")
         UUID senderOrganizationUuid,
 
-        @Schema(description = "Сотрудник, от имени которого отправляется форма (для аудита). Обязателен для "
-                + "клиентов EXTERNAL_TOKEN.")
+        @Schema(description = "Сотрудник, от имени которого отправляется форма (для аудита). Обязателен.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull(message = "{validation.required}")
         InboundSubmitterRequest submittedBy
 ) {
 
@@ -102,7 +107,9 @@ public record InboundCreateForm0581Request(
             @Size(max = 512, message = "{validation.form0581.icd10-name.size}")
             String mkb10Name,
 
-            @Schema(description = "Локализация повреждения на теле пациента.")
+            @Schema(description = "Локализация повреждения на теле пациента.",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 500, message = "{validation.form0581.injury-localization.size}")
             String injuryLocalization
     ) {
@@ -133,7 +140,8 @@ public record InboundCreateForm0581Request(
             @Size(max = 64, message = "{validation.form0581.injury-district-code.size}")
             String injuryDistrictCode,
 
-            @Schema(description = "Адрес места происшествия.")
+            @Schema(description = "Адрес места происшествия.", requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 1000, message = "{validation.form0581.injury-address.size}")
             String injuryAddress
     ) {
@@ -141,19 +149,25 @@ public record InboundCreateForm0581Request(
 
     @Schema(description = "Сведения о животном.")
     public record AnimalInfo(
-            @Schema(description = "Код категории животного (по справочнику: домашнее/дикое/безнадзорное и т. п.).")
+            @Schema(description = "Код категории животного (по справочнику: домашнее/дикое/безнадзорное и т. п.).",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 64, message = "{validation.form0581.animal-category-code.size}")
             String animalCategoryCode,
 
-            @Schema(description = "Окрас животного.")
+            @Schema(description = "Окрас животного.", requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 255, message = "{validation.form0581.animal-color.size}")
             String animalColor,
 
-            @Schema(description = "Вид животного (собака, кошка, лиса и т. п.).")
+            @Schema(description = "Вид животного (собака, кошка, лиса и т. п.).",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 255, message = "{validation.form0581.animal-type.size}")
             String animalType,
 
-            @Schema(description = "Порода животного.")
+            @Schema(description = "Порода животного.", requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 255, message = "{validation.form0581.animal-breed.size}")
             String animalBreed
     ) {
@@ -171,7 +185,9 @@ public record InboundCreateForm0581Request(
 
     @Schema(description = "Сведения об извещении.")
     public record ReportInfo(
-            @Schema(description = "Сведения об оказанной антирабической помощи.")
+            @Schema(description = "Сведения об оказанной антирабической помощи.",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 2000, message = "{validation.form0581.antirabic-assistance-info.size}")
             String antirabicAssistanceInfo,
 
@@ -180,7 +196,8 @@ public record InboundCreateForm0581Request(
             @Size(max = 255, message = "{validation.form0581.notifier-full-name.size}")
             String notifierFullName,
 
-            @Schema(description = "Дата и время отправки сообщения.")
+            @Schema(description = "Дата и время отправки сообщения.", requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotNull(message = "{validation.required}")
             LocalDateTime messageSentAt
     ) {
     }

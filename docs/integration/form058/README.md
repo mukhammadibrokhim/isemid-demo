@@ -73,6 +73,17 @@ Namuna:
 
 (Kodlar — ma'lumotnoma qiymatlari; namunadagilar illyustrativ. `diseasePlaceCode`, `journalFormCode`, `hospitalPlaceId` va `receiverOrganizationId` qiymatlari ro'yxati bu hujjatda keltirilmagan — ularni integratsiya jamoasi bilan kelishing.)
 
+### Tashkilotlar ro'yxati (`receiverOrganizationId`, `hospitalPlaceId`)
+
+`GET /integration/v1/{source}/receiver-organizations` — faol tashkilotlar ro'yxati. Scope: `form058:submit`, `form0581:submit` yoki `form129:submit` dan istalgani.
+
+| Query parametr | Tavsif |
+|---|---|
+| `search` | tashkilot nomi bo'yicha qidiruv |
+| `regionCode`, `districtCode` | hudud filtri |
+| `medicalTypes` | tashkilot turi (bir nechta bo'lishi mumkin: `medicalTypes=HOSPITAL&medicalTypes=EMERGENCY_HOSPITAL`). Ko'rsatilmasa — `SANEPID_SERVICE` (`receiverOrganizationId` uchun). Yotqizish joyi (`hospitalPlaceId`) uchun statsionar turlarini bering: `HOSPITAL`, `PEDIATRIC_HOSPITAL`, `EMERGENCY_HOSPITAL`, `SPECIALIZED_HOSPITAL` va h.k. |
+| `limit` | 1–50, standart 20 |
+
 ## Javob
 
 ```json
@@ -126,15 +137,15 @@ Yuborilgan shaklni yakuniy diagnoz (MKB-10) bilan tasdiqlaydi — status `APPROV
 | Maydon | Maj. | Izoh |
 |---|---|---|
 | `finalIcd10Code` | ✔ | MKB-10 kodi, ≤ 32 (yuborishdagi `mkb10Code` ≤ 20); **ma'lumotnomada bo'lishi shart**, aks holda `400` |
-| `finalIcd10Name` |  | ≤ 1024; yuborilmasa ma'lumotnomadagi nom olinadi |
-| `senderOrganizationUuid` |  | shaklni yuborgan tashkilot UUID; **integratsiya klientlari uchun majburiy** (yuborishdagi qoida bilan bir xil), formaning yuboruvchi tashkilotiga teng bo'lishi shart, aks holda `403` |
+| `finalIcd10Name` | ✔ | ≤ 1024; diagnoz nomi |
+| `organizationUuid` |  | shaklni yuborgan tashkilot UUID; **integratsiya klientlari uchun majburiy** (yuborishdagi qoida bilan bir xil), formaning yuboruvchi tashkilotiga teng bo'lishi shart, aks holda `403` |
 | `submittedBy` |  | integratsiya klientlari uchun majburiy (audit) |
 
 ```json
 {
   "finalIcd10Code": "A01.0",
   "finalIcd10Name": "Typhoid fever",
-  "senderOrganizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
+  "organizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
 }
 ```
 
@@ -219,6 +230,17 @@ Javob (yuborishdagi bilan bir xil shakl):
 
 (Коды — значения справочников; в примере они иллюстративны. Перечни значений `diseasePlaceCode`, `journalFormCode`, `hospitalPlaceId` и `receiverOrganizationId` в этом документе не приводятся — согласуйте их с командой интеграции.)
 
+### Список организаций (`receiverOrganizationId`, `hospitalPlaceId`)
+
+`GET /integration/v1/{source}/receiver-organizations` — список активных организаций. Scope: любой из `form058:submit`, `form0581:submit`, `form129:submit`.
+
+| Query-параметр | Описание |
+|---|---|
+| `search` | поиск по наименованию организации |
+| `regionCode`, `districtCode` | фильтр по территории |
+| `medicalTypes` | тип организации (можно несколько: `medicalTypes=HOSPITAL&medicalTypes=EMERGENCY_HOSPITAL`). Если не указан — `SANEPID_SERVICE` (для `receiverOrganizationId`). Для места госпитализации (`hospitalPlaceId`) передайте типы стационаров: `HOSPITAL`, `PEDIATRIC_HOSPITAL`, `EMERGENCY_HOSPITAL`, `SPECIALIZED_HOSPITAL` и т.д. |
+| `limit` | 1–50, по умолчанию 20 |
+
 ## Ответ
 
 ```json
@@ -272,15 +294,15 @@ Javob (yuborishdagi bilan bir xil shakl):
 | Поле | Обяз. | Описание |
 |---|---|---|
 | `finalIcd10Code` | ✔ | код МКБ-10, ≤ 32 (при отправке `mkb10Code` ≤ 20); **должен существовать в справочнике**, иначе `400` |
-| `finalIcd10Name` |  | ≤ 1024; если не передано, берётся название из справочника |
-| `senderOrganizationUuid` |  | UUID организации-отправителя формы; **обязателен для интеграционных клиентов** (то же правило, что при отправке), должен совпадать с организацией-отправителем формы, иначе `403` |
+| `finalIcd10Name` | ✔ | ≤ 1024; название диагноза |
+| `organizationUuid` |  | UUID организации-отправителя формы; **обязателен для интеграционных клиентов** (то же правило, что при отправке), должен совпадать с организацией-отправителем формы, иначе `403` |
 | `submittedBy` |  | обязателен для интеграционных клиентов (аудит) |
 
 ```json
 {
   "finalIcd10Code": "A01.0",
   "finalIcd10Name": "Typhoid fever",
-  "senderOrganizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
+  "organizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
 }
 ```
 
@@ -365,6 +387,17 @@ Example:
 
 (Codes are reference-catalog values; the ones above are illustrative. The lists of valid `diseasePlaceCode`, `journalFormCode`, `hospitalPlaceId` and `receiverOrganizationId` values are not given here — agree them with the integration team.)
 
+### Organization lookup (`receiverOrganizationId`, `hospitalPlaceId`)
+
+`GET /integration/v1/{source}/receiver-organizations` — lists active organizations. Scope: any of `form058:submit`, `form0581:submit`, `form129:submit`.
+
+| Query parameter | Description |
+|---|---|
+| `search` | search by organization name |
+| `regionCode`, `districtCode` | territory filter |
+| `medicalTypes` | organization type (repeatable: `medicalTypes=HOSPITAL&medicalTypes=EMERGENCY_HOSPITAL`). Defaults to `SANEPID_SERVICE` (for `receiverOrganizationId`). For hospitalization places (`hospitalPlaceId`) pass inpatient types: `HOSPITAL`, `PEDIATRIC_HOSPITAL`, `EMERGENCY_HOSPITAL`, `SPECIALIZED_HOSPITAL`, etc. |
+| `limit` | 1–50, default 20 |
+
 ## Response
 
 ```json
@@ -418,15 +451,15 @@ Confirms a previously submitted form with a final diagnosis (ICD-10) — the sta
 | Field | Req. | Notes |
 |---|---|---|
 | `finalIcd10Code` | ✔ | ICD-10 code, ≤ 32 (`mkb10Code` on submit is ≤ 20); **must exist in the catalog**, otherwise `400` |
-| `finalIcd10Name` |  | ≤ 1024; defaults to the catalog name |
-| `senderOrganizationUuid` |  | UUID of the organization that sent the form; **required for integration clients** (same rule as on submit), must equal the form's sending organization, otherwise `403` |
+| `finalIcd10Name` | ✔ | ≤ 1024; diagnosis name |
+| `organizationUuid` |  | UUID of the organization that sent the form; **required for integration clients** (same rule as on submit), must equal the form's sending organization, otherwise `403` |
 | `submittedBy` |  | required for integration clients (audit) |
 
 ```json
 {
   "finalIcd10Code": "A01.0",
   "finalIcd10Name": "Typhoid fever",
-  "senderOrganizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
+  "organizationUuid": "e9140422-0562-4733-b709-150832dd5d77"
 }
 ```
 

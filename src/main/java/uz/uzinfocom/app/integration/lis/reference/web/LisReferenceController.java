@@ -30,7 +30,7 @@ import java.util.List;
  * Thin pass-through onto {@link LisReferenceQueryService} — dropdown data
  * for filling in an act (institution, storage/special conditions,
  * sampler/participant profession, sample item research
- * type/category/item type). See {@code docs/act-lis-frontend-guide.md} for
+ * type/category/item type). See {@code docs/backend-guide.md §8.4} for
  * the field-by-field mapping onto {@code Act153}/{@code Act154}/
  * {@code Act223} and why this proxies LIS instead of the frontend calling it
  * directly. Never called by {@code ACT156}/{@code ACT224} flows — those act
