@@ -8,7 +8,6 @@ package uz.uzinfocom.app.modules.iam.application.shared.dto;
  */
 public record OrganizationNameProjection(
         Long id,
-        String name,
         String nameUz,
         String nameUzCyril,
         String nameRu,

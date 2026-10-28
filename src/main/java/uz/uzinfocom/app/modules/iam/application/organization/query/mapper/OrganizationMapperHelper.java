@@ -43,7 +43,6 @@ public class OrganizationMapperHelper {
         }
 
         return organizationNameResolver.resolve(new OrganizationLocalizedName(
-                projection.getName(),
                 projection.getNameUz(),
                 projection.getNameUzCyril(),
                 projection.getNameRu(),

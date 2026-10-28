@@ -31,7 +31,7 @@ record DevSeedReferenceData(
 
     static DevSeedReferenceData load(JdbcTemplate jdbc) {
         List<Org> organizations = jdbc.query("""
-                        select id, uuid, name, region_code, district_code, medical_type
+                        select id, uuid, coalesce(name_uz, name_uz_cyril, name_ru, name_kaa) as name, region_code, district_code, medical_type
                         from organization
                         where coalesce(active, true) = true
                           and region_code is not null

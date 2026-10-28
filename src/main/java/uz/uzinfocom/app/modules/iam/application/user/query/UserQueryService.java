@@ -95,7 +95,7 @@ public class UserQueryService {
         return user.getOrganizations().stream()
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(
-                        Organization::getName,
+                        organizationNameResolver::resolve,
                         Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
                 ))
                 .map(organization -> new OrganizationShortResponse(

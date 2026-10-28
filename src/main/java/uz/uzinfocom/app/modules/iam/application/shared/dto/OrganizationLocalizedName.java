@@ -3,16 +3,12 @@ package uz.uzinfocom.app.modules.iam.application.shared.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * name is the organization's always-present default display name; the
- * locale-specific fields are optional and only populated once the FHIR
- * sync provides them. Callers should fall back to name whenever none of
- * the locale-specific fields resolve to a usable value.
+ * The organization's per-language names. Any of them may be blank when the
+ * remote system has no translation; OrganizationNameResolver picks the one
+ * matching the request locale and falls back to another that has a value.
  */
 @Schema(description = "Локализованное наименование организации.")
 public record OrganizationLocalizedName(
-        @Schema(description = "Наименование организации по умолчанию (всегда присутствует).")
-        String name,
-
         @Schema(description = "Наименование на узбекском языке (латиница).")
         String nameUz,
 

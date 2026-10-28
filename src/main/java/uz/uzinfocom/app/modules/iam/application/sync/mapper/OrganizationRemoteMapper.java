@@ -19,16 +19,15 @@ public class OrganizationRemoteMapper {
 
     public Organization toEntity(RemoteOrganizationPayload payload, String providerKey) {
         UUID uuid = payload.uuid();
-        String resolvedName = resolveName(payload);
+        LocalizedNames names = resolveNames(payload);
 
         return Organization.builder()
                 .uuid(uuid)
                 .providerKey(providerKey)
-                .name(resolvedName)
-                .nameUz(payload.nameUz())
-                .nameUzCyril(payload.nameUzCyril())
-                .nameRu(payload.nameRu())
-                .nameKaa(payload.nameKaa())
+                .nameUz(names.uz())
+                .nameUzCyril(names.uzCyril())
+                .nameRu(names.ru())
+                .nameKaa(names.kaa())
                 .active(payload.active() == null || payload.active())
                 .levelType(parseLevel(payload.levelCode(), uuid))
                 .medicalType(parseMedicalType(payload.medicalTypeCode(), uuid))
@@ -47,11 +46,11 @@ public class OrganizationRemoteMapper {
         UUID uuid = payload.uuid();
 
         entity.setProviderKey(providerKey);
-        entity.setName(resolveName(payload));
-        entity.setNameUz(payload.nameUz());
-        entity.setNameUzCyril(payload.nameUzCyril());
-        entity.setNameRu(payload.nameRu());
-        entity.setNameKaa(payload.nameKaa());
+        LocalizedNames names = resolveNames(payload);
+        entity.setNameUz(names.uz());
+        entity.setNameUzCyril(names.uzCyril());
+        entity.setNameRu(names.ru());
+        entity.setNameKaa(names.kaa());
         entity.setActive(payload.active() == null || payload.active());
         entity.setLevelType(parseLevel(payload.levelCode(), uuid));
         entity.setMedicalType(parseMedicalType(payload.medicalTypeCode(), uuid));
@@ -60,15 +59,48 @@ public class OrganizationRemoteMapper {
         entity.setDistrictCode(payload.districtCode());
     }
 
+    private record LocalizedNames(String uz, String uzCyril, String ru, String kaa) {
+    }
+
     /**
-     * Guarantees a non-blank organization display name even when the remote
-     * system sends neither a name nor any usable alias — falls back to the
-     * organization's own uuid so the entity never ends up with a blank name.
+     * Per-language names from the remote aliases. The remote's own base
+     * {@code name} carries no language tag, so it is slotted into the column
+     * matching its script — but only where no alias already filled it. If the
+     * remote sends nothing at all, the organization's uuid keeps the name
+     * from being blank.
      */
-    private String resolveName(RemoteOrganizationPayload payload) {
-        return StringUtils.hasText(payload.name())
-                ? payload.name()
-                : payload.uuid().toString();
+    private LocalizedNames resolveNames(RemoteOrganizationPayload payload) {
+        String uz = payload.nameUz();
+        String uzCyril = payload.nameUzCyril();
+        String ru = payload.nameRu();
+        String kaa = payload.nameKaa();
+
+        String base = payload.name();
+        if (StringUtils.hasText(base)) {
+            base = base.trim();
+            if (!containsCyrillic(base)) {
+                uz = StringUtils.hasText(uz) ? uz : base;
+            } else if (containsUzbekCyrillicLetter(base)) {
+                uzCyril = StringUtils.hasText(uzCyril) ? uzCyril : base;
+            } else {
+                ru = StringUtils.hasText(ru) ? ru : base;
+            }
+        }
+
+        if (!StringUtils.hasText(uz) && !StringUtils.hasText(uzCyril)
+                && !StringUtils.hasText(ru) && !StringUtils.hasText(kaa)) {
+            uz = payload.uuid().toString();
+        }
+
+        return new LocalizedNames(uz, uzCyril, ru, kaa);
+    }
+
+    private static boolean containsCyrillic(String value) {
+        return value.codePoints().anyMatch(cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.CYRILLIC);
+    }
+
+    private static boolean containsUzbekCyrillicLetter(String value) {
+        return value.chars().anyMatch(ch -> "ЎўҚқҒғҲҳ".indexOf(ch) >= 0);
     }
 
     private OrganizationLevel parseLevel(String code, UUID organizationUuid) {

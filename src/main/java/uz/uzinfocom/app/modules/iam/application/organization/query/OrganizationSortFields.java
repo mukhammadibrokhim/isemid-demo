@@ -5,7 +5,7 @@ import java.util.Map;
 public class OrganizationSortFields {
     public static final Map<String, String> ALLOWED_SORT_FIELDS = Map.of(
             "id", "id",
-            "name", "name",
+            "name", "nameUz",
             "regionCode", "regionCode",
             "districtCode", "districtCode"
 

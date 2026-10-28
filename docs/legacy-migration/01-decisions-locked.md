@@ -79,7 +79,7 @@ Ziddiyat bo'lsa — shu fayl ustun.
 | **`users.password`, `ppn`, `position_code`** | Ko'chirilmaydi (DROP). |
 | **`organization.country_code`, `email`, `service_area_code`** | DROP. |
 | **`organization`/`users` `.district`** (erkin matn) | DROP. |
-| **`organization.name` → `name_uz`** | Ha, `name` ni `name_uz` ga ham nusxa (qolgan `name_ru/kaa/uz_cyril` = `NULL`). |
+| **`organization.name` → til ustunlari** | Yangi'da `name` ustuni yo'q (2026-10-28 olib tashlandi). Legacy `name` yozuv turiga qarab joylanadi: lotin → `name_uz`, o'zbek kirili (ў қ ғ ҳ) → `name_uz_cyril`, boshqa kirill → `name_ru`; `name_kaa` = `NULL`. |
 | **`users.username`** | `nnuzb` (NULL bo'lsa `NULL` — yangi'da nullable). |
 | **`organization.level_type` NULL** | `'NOT_DEFINED'` (OrganizationLevel has that constant). |
 | **`organization.medical_type` NULL** | `'OTHER'` — MedicalType has **no** `NOT_DEFINED`; its "not specified" sentinel is `OTHER` (see `OrganizationRemoteMapper#parseMedicalType`). |

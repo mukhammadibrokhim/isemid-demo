@@ -24,7 +24,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
 
     @Query("""
                 SELECT new uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationLocalizedName(
-                    o.name, o.nameUz, o.nameUzCyril, o.nameRu, o.nameKaa
+                    o.nameUz, o.nameUzCyril, o.nameRu, o.nameKaa
                 )
                 FROM Organization o
                 WHERE o.id = :id
@@ -125,7 +125,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
      */
     @Query("""
             select new uz.uzinfocom.app.modules.iam.application.shared.dto.OrganizationNameProjection(
-                o.id, o.name, o.nameUz, o.nameUzCyril, o.nameRu, o.nameKaa
+                o.id, o.nameUz, o.nameUzCyril, o.nameRu, o.nameKaa
             )
             from Organization o
             where o.active = true

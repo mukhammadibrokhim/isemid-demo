@@ -10,7 +10,7 @@ SET TIME ZONE 'Asia/Tashkent';
 -- ---- organization -----------------------------------------------------
 -- Rename: city_code->district_code, state_code->region_code, line->address_line
 -- Drop:   country_code, district, email, service_area_code
--- Backfill: version=0; created_by_id/updated_by_id=NULL; name_uz<-name;
+-- Backfill: version=0; created_by_id/updated_by_id=NULL; name by script (Latin->name_uz, Uzbek Cyrillic->name_uz_cyril, other Cyrillic->name_ru; target has no `name` column);
 --           level_type NULL -> 'NOT_DEFINED'; medical_type NULL -> 'OTHER'
 --           (MedicalType has no NOT_DEFINED constant — its sentinel is OTHER);
 --           created_at/updated_at NULL -> now()
@@ -21,7 +21,7 @@ SET TIME ZONE 'Asia/Tashkent';
 -- parent_id: 2-bosqich (self-FK) — avval NULL, keyin UPDATE.
 INSERT INTO public2.organization (
     id, version, created_at, created_by_id, updated_at, updated_by_id,
-    active, district_code, level_type, medical_type, name, phone, region_code,
+    active, district_code, level_type, medical_type, phone, region_code,
     tin, uuid, address_line, name_kaa, name_ru, name_uz, name_uz_cyril, parent_id,
     provider_key
 )
@@ -36,14 +36,15 @@ SELECT
     left(o.city_code, 64),               -- district_code
     left(COALESCE(o.level_type, 'NOT_DEFINED'), 50),
     left(COALESCE(o.medical_type, 'OTHER'), 50),
-    left(o.name, 500),
     left(o.phone, 50),
     left(o.state_code, 64),               -- region_code
     left(o.tin, 50),
     o.uuid,
     left(o.line, 255),                    -- address_line
-    NULL, NULL, NULL,
-    left(o.name, 500),                    -- name_uz <- name
+    NULL,                                 -- name_kaa
+    CASE WHEN o.name ~ '[ЎўҚқҒғҲҳ]' THEN NULL WHEN o.name ~ '[А-Яа-яЁё]' THEN left(o.name, 500) END,  -- name_ru
+    CASE WHEN o.name !~ '[А-Яа-яЁё]' THEN left(o.name, 500) END,                                   -- name_uz
+    CASE WHEN o.name ~ '[ЎўҚқҒғҲҳ]' THEN left(o.name, 500) END,                                    -- name_uz_cyril
     NULL,
     'sso'
 FROM public.organization o;

@@ -70,7 +70,7 @@ public class SecurityUserCacheService {
         return new CachedSecurityOrganization(
                 organization.getId(),
                 organization.getUuid(),
-                organization.getName(),
+                organization.anyName(),
                 organization.getActive(),
                 organization.getLevelType(),
                 organization.getMedicalType(),

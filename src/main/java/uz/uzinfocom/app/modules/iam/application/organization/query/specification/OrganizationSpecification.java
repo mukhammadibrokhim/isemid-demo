@@ -44,9 +44,12 @@ public class OrganizationSpecification {
             predicates.add(scopePredicateFactory.apply(root, cb, ID, scope));
 
             if (StringUtils.hasText(request.name())) {
-                predicates.add(cb.like(
-                        cb.lower(cb.coalesce(root.get("name"), "")),
-                        like(request.name())
+                String pattern = like(request.name());
+                predicates.add(cb.or(
+                        cb.like(cb.lower(cb.coalesce(root.get("nameUz"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameUzCyril"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameRu"), "")), pattern),
+                        cb.like(cb.lower(cb.coalesce(root.get("nameKaa"), "")), pattern)
                 ));
             }
 

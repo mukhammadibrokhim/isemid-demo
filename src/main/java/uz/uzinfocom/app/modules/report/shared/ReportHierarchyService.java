@@ -282,7 +282,7 @@ public class ReportHierarchyService {
                 .map(org -> new ReportHierarchyNode<>(
                         String.valueOf(org.id()),
                         organizationNameResolver.resolve(new OrganizationLocalizedName(
-                                org.name(), org.nameUz(), org.nameUzCyril(), org.nameRu(), org.nameKaa()
+                                org.nameUz(), org.nameUzCyril(), org.nameRu(), org.nameKaa()
                         )),
                         false,
                         countsByOrgId.getOrDefault(org.id(), countSource.empty())

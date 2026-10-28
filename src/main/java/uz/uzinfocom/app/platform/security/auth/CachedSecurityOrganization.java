@@ -21,7 +21,7 @@ public record CachedSecurityOrganization(
         Organization organization = new Organization();
         organization.setId(id);
         organization.setUuid(uuid);
-        organization.setName(name);
+        organization.setNameUz(name);
         organization.setActive(active);
         organization.setLevelType(levelType);
         organization.setMedicalType(medicalType);

@@ -11,8 +11,6 @@ public interface OrganizationTableProjection {
 
     Boolean getActive();
 
-    String getName();
-
     String getNameUz();
 
     String getNameUzCyril();

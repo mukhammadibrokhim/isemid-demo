@@ -247,7 +247,7 @@ public class Form0581DashboardQueryService {
                 .map(org -> new GeoBreakdownItemResponse(
                         String.valueOf(org.id()),
                         organizationNameResolver.resolve(new OrganizationLocalizedName(
-                                org.name(), org.nameUz(), org.nameUzCyril(), org.nameRu(), org.nameKaa()
+                                org.nameUz(), org.nameUzCyril(), org.nameRu(), org.nameKaa()
                         )),
                         countsByOrgId.getOrDefault(org.id(), 0L)
                 ))

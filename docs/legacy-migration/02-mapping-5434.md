@@ -15,10 +15,10 @@ triplet'lar bor). Faqat **`card174/175/205/card_tube` BAZA jadvallari** hali esk
 ## 1. tayanch (organization / users / patient / pt_*)
 
 ### organization
-- **to'g'ridan (11):** `active, created_at, id, level_type, medical_type, name, parent_id, phone, tin, updated_at, uuid`
+- **to'g'ridan (10):** `active, created_at, id, level_type, medical_type, parent_id, phone, tin, updated_at, uuid`
 - **rename:** `city_code`→`district_code`, `state_code`→`region_code`, `line`→`address_line`
 - **drop:** `country_code, district, email, service_area_code`
-- **backfill:** `version`→0; `created_by_id`/`updated_by_id`→NULL; `name_uz`←`name`, `name_ru/kaa/uz_cyril`→NULL; `created_at`/`updated_at` NULL bo'lsa `now()`
+- **backfill:** `version`→0; `created_by_id`/`updated_by_id`→NULL; legacy `name` yozuv turiga qarab `name_uz` (lotin) / `name_uz_cyril` (ў қ ғ ҳ bor kirill) / `name_ru` (boshqa kirill) ga; `name_kaa`→NULL (target'da `name` ustuni yo'q); `created_at`/`updated_at` NULL bo'lsa `now()`
 - `organization_service_types` — 1:1
 - **2026-09-18 tuzatish:** `provider_key` (`iam/20260917-1400-add-organization-provider-key.xml`) — hujjat yozilgandan keyin qo'shilgan ustun, `10-organization.sql`da yo'q edi (barcha migratsiya qilingan tashkilotlarda NULL qolib ketardi → `OrganizationSyncService#syncByUuid` admin-refresh oqimi `providerKey` berilmasa xato beradi). Legacy `isemid` DHP paydo bo'lishidan oldingi tizim — barcha tashkilotlar SSV SSO orqali sinxronlangan, shuning uchun backfill qiymati `'sso'`. Fix qilindi.
 

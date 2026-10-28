@@ -170,7 +170,7 @@ class Form0581DashboardQueryServiceTest {
         when(organizationScopeResolver.resolve(any()))
                 .thenReturn(scopeOf(OrganizationScopeMode.DISTRICT, "REGION1", "DISTRICT1"));
 
-        OrganizationNameProjection org = new OrganizationNameProjection(10L, "Org 10", null, null, null, null);
+        OrganizationNameProjection org = new OrganizationNameProjection(10L, "Org 10", null, null, null);
         when(organizationRepository.findActiveByDistrictCode("DISTRICT1")).thenReturn(List.of(org));
         when(form0581StatsQueryService.countByReceiverOrganizationWithinIds(List.of(10L)))
                 .thenReturn(List.of(new Form0581OrganizationCountResponse(10L, 5L)));

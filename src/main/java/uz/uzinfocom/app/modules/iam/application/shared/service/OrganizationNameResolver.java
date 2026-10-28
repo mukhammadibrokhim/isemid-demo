@@ -11,7 +11,7 @@ import java.util.Locale;
 /**
  * Single place that decides which organization display name wins: the
  * locale matching the current request (LocaleContextHolder) if it has a
- * usable value, otherwise the organization's always-present default name.
+ * usable value, otherwise the nearest other language that has one.
  */
 @Component
 public class OrganizationNameResolver {
@@ -22,7 +22,6 @@ public class OrganizationNameResolver {
         }
 
         return resolve(new OrganizationLocalizedName(
-                organization.getName(),
                 organization.getNameUz(),
                 organization.getNameUzCyril(),
                 organization.getNameRu(),
@@ -35,24 +34,19 @@ public class OrganizationNameResolver {
             return null;
         }
 
-        // The default name is Latin-script uz, so a missing uz value must fall
-        // back to it before any Cyrillic/Russian alias (the generic
-        // LocalizedTextResolver chain would pick those first).
         Locale locale = LocaleContextHolder.getLocale();
         String language = locale.getLanguage();
 
-        String localized;
         if ("ru".equalsIgnoreCase(language)) {
-            localized = firstNonBlank(name.nameRu(), name.nameUzCyril());
-        } else if ("kaa".equalsIgnoreCase(language)) {
-            localized = firstNonBlank(name.nameKaa());
-        } else if ("Cyrl".equalsIgnoreCase(locale.getScript())) {
-            localized = firstNonBlank(name.nameUzCyril());
-        } else {
-            localized = firstNonBlank(name.nameUz());
+            return firstNonBlank(name.nameRu(), name.nameUzCyril(), name.nameUz(), name.nameKaa());
         }
-
-        return StringUtils.hasText(localized) ? localized : name.name();
+        if ("kaa".equalsIgnoreCase(language)) {
+            return firstNonBlank(name.nameKaa(), name.nameUz(), name.nameUzCyril(), name.nameRu());
+        }
+        if ("Cyrl".equalsIgnoreCase(locale.getScript())) {
+            return firstNonBlank(name.nameUzCyril(), name.nameUz(), name.nameRu(), name.nameKaa());
+        }
+        return firstNonBlank(name.nameUz(), name.nameUzCyril(), name.nameRu(), name.nameKaa());
     }
 
     private static String firstNonBlank(String... values) {

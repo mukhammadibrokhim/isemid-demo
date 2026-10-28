@@ -113,7 +113,7 @@ class SecurityUserCacheServiceTest {
     private Organization organization(Long id, UUID uuid) {
         Organization organization = Organization.builder()
                 .uuid(uuid)
-                .name("Central Clinic")
+                .nameUz("Central Clinic")
                 .active(true)
                 .levelType(OrganizationLevel.REPUBLICAN)
                 .medicalType(MedicalType.SANEPID_SERVICE)

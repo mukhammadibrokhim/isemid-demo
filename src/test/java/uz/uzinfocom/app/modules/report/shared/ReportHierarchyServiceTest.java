@@ -85,7 +85,7 @@ class ReportHierarchyServiceTest {
         Organization organization = new Organization();
         organization.setId(1L);
         organization.setUuid(UUID.randomUUID());
-        organization.setName("Test org");
+        organization.setNameUz("Test org");
         organization.setMedicalType(medicalType);
         organization.setLevelType(level);
         return organization;

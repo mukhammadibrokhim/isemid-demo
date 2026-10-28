@@ -39,9 +39,6 @@ public class Organization extends AuditableEntity {
     @Column(length = 50)
     private String tin;
 
-    @Column(nullable = false, length = 500)
-    private String name;
-
     @Column(name = "name_uz", length = 500)
     private String nameUz;
 
@@ -85,5 +82,18 @@ public class Organization extends AuditableEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Organization parent;
+
+    /**
+     * Locale-independent display name for places with no request locale
+     * (cached security principal): the first language that has a value.
+     */
+    public String anyName() {
+        for (String value : new String[]{nameUz, nameUzCyril, nameRu, nameKaa}) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
 
 }
