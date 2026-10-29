@@ -58,7 +58,7 @@ public class RoleSyncService {
                     appRoleNames);
 
             throw new AccessDeniedException(
-                    "Access denied: no active ISEMID role is assigned to this user."
+                    "iam.role.inactive"
             );
         }
 
@@ -71,7 +71,7 @@ public class RoleSyncService {
 
         if (!isIsemidRole(normalizedRoleName)) {
             throw new AccessDeniedException(
-                    "Access denied: token does not contain required ISEMID role."
+                    "iam.role.not_assigned"
             );
         }
 
@@ -85,7 +85,7 @@ public class RoleSyncService {
         if (roleNames == null || roleNames.isEmpty()) {
             log.warn("Access denied: token roles are empty.");
             throw new AccessDeniedException(
-                    "Access denied: token does not contain required ISEMID role."
+                    "iam.role.not_assigned"
             );
         }
 
@@ -100,7 +100,7 @@ public class RoleSyncService {
                     APP_ROLE_PREFIX, roleNames);
 
             throw new AccessDeniedException(
-                    "Access denied: token does not contain required ISEMID role."
+                    "iam.role.not_assigned"
             );
         }
 
