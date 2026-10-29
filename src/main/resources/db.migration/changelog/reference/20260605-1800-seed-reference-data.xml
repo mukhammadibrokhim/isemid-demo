@@ -122,6 +122,15 @@
             author="uzinfocom"
             runInTransaction="true">
 
+        <!--
+            legacy_soato_id (INTEGER) CSV'da bor, lekin avval <column> sifatida
+            e'lon qilinmagan edi: yangi Liquibase uni STRING deb yuborib, bo'sh
+            bazada "column is of type integer but expression is of type character
+            varying" xatosini beradi. NUMERIC e'lon qilindi; changeset allaqachon
+            ishga tushirilgan bazalarda checksum o'zgargani uchun ANY.
+        -->
+        <validCheckSum>ANY</validCheckSum>
+
         <preConditions onFail="MARK_RAN" onError="HALT">
             <dbms type="postgresql"/>
             <tableExists tableName="ref_region"/>
@@ -142,6 +151,7 @@
             <column header="code" name="code" type="STRING"/>
             <column header="parent_code" name="parent_code" type="STRING"/>
             <column header="soato_id" name="soato_id" type="NUMERIC"/>
+            <column header="legacy_soato_id" name="legacy_soato_id" type="NUMERIC"/>
             <column header="living_region_id" name="living_region_id" type="NUMERIC"/>
             <column header="name_uz" name="name_uz" type="STRING"/>
             <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
@@ -222,6 +232,7 @@
         -->
         <validCheckSum>9:e49de3e1fe043e2f21459b283feedd0d</validCheckSum>
         <validCheckSum>9:be55207ff7db1f051d3659f19335e94b</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
 
         <preConditions onFail="MARK_RAN" onError="HALT">
             <dbms type="postgresql"/>
@@ -249,6 +260,8 @@
             <column header="name_ru" name="name_ru" type="STRING"/>
             <column header="name_kaa" name="name_kaa" type="STRING"/>
             <column header="deleted" name="deleted" type="BOOLEAN"/>
+            <!-- ref_neighborhood.tin keyinroq (20260801-1230) qo'shiladi: bu yerda yuklanmaydi -->
+            <column header="tin" name="tin" type="skip"/>
 
         </loadData>
 
