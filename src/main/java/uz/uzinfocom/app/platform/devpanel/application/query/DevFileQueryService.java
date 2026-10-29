@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 /**
  * Read-only browsing/download of two local directories for the dev-monitoring
  * panel: the repo's {@code docs/} folder and the app's own log directory
- * (whatever {@code logging.file.path} resolves to in logback-spring.xml,
+ * (whatever {@code logging.file.path} resolves to in logback.xml,
  * "logs" by default - including its {@code archive/} subfolder of rotated
  * {@code .log.gz} files, which is just a normal subdirectory under LOGS).
  * <p>

@@ -20,7 +20,9 @@ import uz.uzinfocom.app.modules.iam.web.user.dto.response.UserDetailedResponse;
 import uz.uzinfocom.app.modules.iam.web.user.dto.response.UserTableResponse;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
@@ -41,6 +43,8 @@ public class UserQueryService {
     private final OrganizationNameResolver organizationNameResolver;
     private final UserSpecification userSpecification;
     private final OrganizationScopeResolver organizationScopeResolver;
+    private final AdminAccessGuard adminAccessGuard;
+    private final CurrentUserProvider currentUserProvider;
 
     @Transactional(readOnly = true)
     public Page<UserTableResponse> findTable(UserFilterRequest request) {
@@ -60,6 +64,33 @@ public class UserQueryService {
         return page.map(userQueryMapper::toTableResponse);
     }
 
+    /**
+     * Id/uuid reads must obey the same organization scope as the list. A user outside
+     * it is reported as not found rather than forbidden, so ids can't be probed for
+     * existence. Administrators and the user themself are always allowed.
+     */
+    private void requireVisible(Long userId) {
+        if (isSelf(userId) || adminAccessGuard.isAdmin()) {
+            return;
+        }
+        if (!userRepo.exists(userSpecification.visibleById(userId, currentScope()))) {
+            throw new NotFoundException("user.not_found");
+        }
+    }
+
+    /** The JSHSHIR is shown in full only to administrators and to its owner. */
+    private UserDetailedResponse toDetailedResponse(User user) {
+        UserDetailedResponse response = userQueryMapper.toDetailedResponse(user, auditResolver.resolve(user));
+        if (isSelf(user.getId()) || adminAccessGuard.isAdmin()) {
+            return response;
+        }
+        return response.withNnuzb(UserIdentifierMask.mask(response.nnuzb()));
+    }
+
+    private boolean isSelf(Long userId) {
+        return userId != null && userId.equals(currentUserProvider.userIdOrNull());
+    }
+
     private ResolvedOrganizationScope currentScope() {
         Organization currentOrganization = CurrentOrganizationContext.getOptional()
                 .orElseThrow(() -> new ScopeViolationException("organization.scope_violation"));
@@ -71,22 +102,25 @@ public class UserQueryService {
     public UserDetailedResponse getRequiredByUuid(UUID uuid) {
         User user = userRepo.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException("user.not_found"));
+        requireVisible(user.getId());
 
-        return userQueryMapper.toDetailedResponse(user, auditResolver.resolve(user));
+        return toDetailedResponse(user);
     }
 
     @Transactional(readOnly = true)
     public UserDetailedResponse getRequiredById(Long id) {
         User user = userRepo.findWithOrganizationsById(id)
                 .orElseThrow(() -> new NotFoundException("user.not_found"));
+        requireVisible(user.getId());
 
-        return userQueryMapper.toDetailedResponse(user, auditResolver.resolve(user));
+        return toDetailedResponse(user);
     }
 
     @Transactional(readOnly = true)
     public List<OrganizationShortResponse> findOrganizations(Long userId) {
         User user = userRepo.findWithOrganizationsById(userId)
                 .orElseThrow(() -> new NotFoundException("user.not_found"));
+        requireVisible(user.getId());
 
         if (user.getOrganizations() == null) {
             return List.of();

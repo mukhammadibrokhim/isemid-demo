@@ -12,9 +12,6 @@ public record UserMiniResponse(
         @Schema(description = "UUID пользователя.")
         UUID uuid,
 
-        @Schema(description = "Имя пользователя для входа (логин).")
-        String username,
-
         @Schema(description = "Имя.")
         String firstName,
 

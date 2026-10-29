@@ -40,7 +40,7 @@
 
         <datasource-micrometer.version>2.3.0</datasource-micrometer.version>
 
-        <!-- Structured JSON console logging in production (see logback-spring.xml) -->
+        <!-- Structured JSON console logging in production (see logback.xml) -->
         <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
 
         <!-- Module boundary enforcement (see CardModuleBoundaryTest) -->
@@ -102,7 +102,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Structured JSON logging (production console encoder, see logback-spring.xml) -->
+        <!-- Structured JSON logging (production console encoder, see logback.xml) -->
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
