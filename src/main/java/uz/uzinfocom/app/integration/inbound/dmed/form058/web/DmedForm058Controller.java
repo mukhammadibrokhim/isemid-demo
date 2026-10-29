@@ -15,6 +15,7 @@ import uz.uzinfocom.app.integration.inbound.common.web.InboundCallerContext;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundFinalDiagnosisResolver;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundFormIdentifier;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundIntegrationClientResolver;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSenderResolver;
 import uz.uzinfocom.app.integration.inbound.dmed.common.web.DmedConfirmFormRequest;
 import uz.uzinfocom.app.integration.inbound.common.web.dto.InboundFormSubmissionResponse;
 import uz.uzinfocom.app.integration.inbound.dmed.form058.application.DmedForm058Mapper;
@@ -53,6 +54,7 @@ public class DmedForm058Controller {
     private final CreateForm058Service createForm058Service;
     private final ApproveForm058Service approveForm058Service;
     private final InboundFinalDiagnosisResolver inboundFinalDiagnosisResolver;
+    private final InboundSenderResolver inboundSenderResolver;
 
     @Operation(
             summary = "Создать форму №058 (DMED)",
@@ -81,7 +83,8 @@ public class DmedForm058Controller {
             summary = "Подтвердить форму №058 (DMED)",
             description = "Подтверждает форму №058 окончательным диагнозом (МКБ-10): статус становится "
                     + "APPROVED. Форма указывается по id или uuid; подтвердить может только организация-"
-                    + "отправитель формы (определяется по вызывающему), после принятия формы получателем."
+                    + "отправитель формы (для интеграционного клиента — organizationUuid и submittedBy в теле; "
+                    + "для SSO/DHP-вызывающего — его выбранная организация), после принятия формы получателем."
     )
     @PostMapping("/{idOrUuid}/confirm")
     @PreAuthorize("isAuthenticated()")
@@ -92,7 +95,7 @@ public class DmedForm058Controller {
     ) {
         InboundCallerContext.requireScope(IntegrationScope.FORM058_CONFIRM);
         InboundCallerContext.requireMatchingSourceKey(SOURCE);
-        InboundCallerContext.resolveSenderOrganizationId();
+        inboundSenderResolver.resolveSenderOrganizationId(request.organizationUuid(), request.submittedBy());
 
         InboundFormIdentifier identifier = InboundFormIdentifier.parse(idOrUuid);
         InboundFinalDiagnosisResolver.ResolvedDiagnosis diagnosis =
