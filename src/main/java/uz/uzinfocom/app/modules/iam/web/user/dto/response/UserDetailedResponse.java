@@ -66,4 +66,11 @@ public record UserDetailedResponse(
         @Schema(description = "Глобальные роли, назначенные пользователю.")
         Set<RoleShortResponse> roles
 ) {
+
+    public UserDetailedResponse withNnuzb(String newNnuzb) {
+        return new UserDetailedResponse(
+                id, uuid, username, active, firstName, lastName, middleName, newNnuzb, birthDate,
+                phoneNumber, regionCode, districtCode, line, genderCode, audit, organizations, roles
+        );
+    }
 }

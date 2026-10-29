@@ -87,6 +87,21 @@ public class UserSpecification {
         };
     }
 
+    /**
+     * A single user, only if they belong to an organization inside the caller's scope.
+     * Point-lookup counterpart of {@link #byFilter}: without it, an id/uuid read would
+     * be reachable for every user in the system, not just the caller's own scope.
+     */
+    public Specification<User> visibleById(Long id, ResolvedOrganizationScope scope) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(scope, "ResolvedOrganizationScope must not be null");
+
+        return (root, query, cb) -> cb.and(
+                cb.equal(root.<Long>get("id"), id),
+                userScopePredicateFactory.applyOrganizationScope(root, query, cb, scope)
+        );
+    }
+
     private static void addOrganizationFilter(
             List<Predicate> predicates,
             Root<User> root,

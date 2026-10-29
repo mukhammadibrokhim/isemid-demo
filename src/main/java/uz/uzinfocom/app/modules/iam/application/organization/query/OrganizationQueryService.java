@@ -23,8 +23,10 @@ import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeAccess;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
@@ -49,6 +51,8 @@ public class OrganizationQueryService {
     private final AuditResolver auditResolver;
     private final OrganizationSpecification organizationSpecification;
     private final OrganizationScopeResolver organizationScopeResolver;
+    private final OrganizationScopeAccess organizationScopeAccess;
+    private final AdminAccessGuard adminAccessGuard;
 
     @Transactional(readOnly = true)
     public Page<OrganizationTableResponse> findTable(OrganizationFilerRequest request) {
@@ -107,6 +111,12 @@ public class OrganizationQueryService {
             OrganizationUserLookupRequest request
     ) {
         if (!organizationRepository.existsById(organizationId)) {
+            throw new NotFoundException("organization.not_found");
+        }
+
+        // Staff names, phones and roles of an organization outside the caller's scope
+        // are not theirs to browse; reported as not found so ids can't be probed.
+        if (!adminAccessGuard.isAdmin() && !organizationScopeAccess.covers(currentScope(), organizationId)) {
             throw new NotFoundException("organization.not_found");
         }
 
