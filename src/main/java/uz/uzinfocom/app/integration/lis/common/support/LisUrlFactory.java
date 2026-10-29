@@ -25,6 +25,9 @@ public class LisUrlFactory {
     private static final String SENDER_ACT_NUMBER_PARAM = "senderActNumber";
     private static final String FORCE_PARAM = "force";
     private static final String RESEARCH_CODE_PARAM = "researchCode";
+    private static final String NAME_PARAM = "name";
+    private static final String TYPE_PARAM = "type";
+    private static final String CONDITIONS_TYPE = "CONDITIONS";
 
     private final LisProperties properties;
 
@@ -70,6 +73,81 @@ public class LisUrlFactory {
      * {@code callbackBaseUrl} (this app's public address) plus the act's own
      * id, so the callback is self-identifying.
      */
+    /**
+     * Organization catalog ({@code sesorgs}), optionally filtered by a
+     * caller-supplied name fragment — LIS itself does the matching.
+     */
+    public URI sesorgs(String name) {
+        return UriComponentsBuilder
+                .fromUriString(properties.baseUrl())
+                .path(properties.endpoints().sesorgs())
+                .queryParam(KEY_PARAM, properties.apiKey())
+                .queryParam(NAME_PARAM, name == null ? "" : name)
+                .encode()
+                .build()
+                .toUri();
+    }
+
+    /**
+     * Departments (sub-organizations) of one LIS organization.
+     */
+    public URI departments(Long organizationId) {
+        return UriComponentsBuilder
+                .fromUriString(properties.baseUrl())
+                .path(properties.endpoints().departments())
+                .queryParam(KEY_PARAM, properties.apiKey())
+                .encode()
+                .buildAndExpand(organizationId)
+                .toUri();
+    }
+
+    /**
+     * Storage/delivery/special condition dictionary — the only
+     * {@code reference-dictionaries} type this app currently needs.
+     */
+    public URI conditions() {
+        return UriComponentsBuilder
+                .fromUriString(properties.baseUrl())
+                .path(properties.endpoints().referenceDictionaries())
+                .queryParam(KEY_PARAM, properties.apiKey())
+                .queryParam(TYPE_PARAM, CONDITIONS_TYPE)
+                .encode()
+                .build()
+                .toUri();
+    }
+
+    public URI professions() {
+        return paginatedLookup(properties.endpoints().professions());
+    }
+
+    public URI researchTypes() {
+        return paginatedLookup(properties.endpoints().researchTypes());
+    }
+
+    public URI categories() {
+        return paginatedLookup(properties.endpoints().categories());
+    }
+
+    public URI itemTypes() {
+        return paginatedLookup(properties.endpoints().itemTypes());
+    }
+
+    /**
+     * The four LIS dictionary endpoints that are POST + a
+     * {@code Pagination<Search>} body rather than a plain GET — the body
+     * itself is built by the caller (see {@code LisReferenceClient}), this
+     * only carries the {@code key} query parameter every LIS call needs.
+     */
+    private URI paginatedLookup(String path) {
+        return UriComponentsBuilder
+                .fromUriString(properties.baseUrl())
+                .path(path)
+                .queryParam(KEY_PARAM, properties.apiKey())
+                .encode()
+                .build()
+                .toUri();
+    }
+
     public URI callbackUrl(Long actId) {
         return UriComponentsBuilder
                 .fromUriString(properties.callbackBaseUrl())

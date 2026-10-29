@@ -6,8 +6,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import uz.uzinfocom.app.integration.inbound.oauth.application.exception.InvalidIntegrationCredentialsException;
 import uz.uzinfocom.app.integration.inbound.oauth.web.dto.IntegrationTokenRequest;
 import uz.uzinfocom.app.integration.inbound.oauth.web.dto.IntegrationTokenResponse;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 import uz.uzinfocom.app.platform.security.jwt.integration.IntegrationTokenIssuer;
@@ -33,7 +33,7 @@ class IntegrationTokenServiceTest {
             new IntegrationTokenSigningKey(), new IntegrationTokenProperties());
 
     private final IntegrationTokenService service = new IntegrationTokenService(
-            integrationClientRepository, organizationRepository, passwordEncoder, tokenIssuer);
+            integrationClientRepository, passwordEncoder, tokenIssuer);
 
     @Test
     void issuesATokenForACorrectlyAuthenticatedActiveClient() {
@@ -41,7 +41,6 @@ class IntegrationTokenServiceTest {
         IntegrationClient client = IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash(passwordEncoder.encode(rawSecret))
-                .organizationId(42L)
                 .name("Test Client")
                 .scopes("form058:submit")
                 .active(true)
@@ -68,7 +67,6 @@ class IntegrationTokenServiceTest {
         IntegrationClient client = IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash(passwordEncoder.encode("correct-secret"))
-                .organizationId(42L)
                 .name("Test Client")
                 .scopes("form058:submit")
                 .active(true)
@@ -86,7 +84,6 @@ class IntegrationTokenServiceTest {
         IntegrationClient client = IntegrationClient.builder()
                 .clientId("ic_test")
                 .clientSecretHash(passwordEncoder.encode("correct-secret"))
-                .organizationId(42L)
                 .name("Test Client")
                 .scopes("form058:submit")
                 .active(false)

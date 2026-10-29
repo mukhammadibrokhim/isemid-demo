@@ -4,16 +4,14 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
-import uz.uzinfocom.app.modules.form058.application.query.mapper.helper.Form058TableAddressMapperHelper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.helper.Form058TableMapperHelper;
 import uz.uzinfocom.app.modules.form058.application.query.projection.Form058TableProjection;
-import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.form058.application.query.Form058Direction;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 
 @Mapper(
         componentModel = "spring",
         uses = {
-                Form058TableAddressMapperHelper.class,
                 Form058TableMapperHelper.class,
                 OrganizationMappingHelper.class
         }
@@ -21,18 +19,19 @@ import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMapp
 public interface Form058TableMapper {
 
     @Mapping(target = "status", source = ".", qualifiedByName = "toTableStatus")
-    @Mapping(target = "mkb10Code", source = "diagnosisInfo.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "diagnosisInfo.mkb10Name")
+    @Mapping(target = "icd10Code", source = "diagnosisInfo.icd10Code")
+    @Mapping(target = "icd10Name", source = "diagnosisInfo.icd10Name")
     @Mapping(target = "senderOrganizationName",source = "senderOrganizationId",qualifiedByName = "activeOrganizationNameById")
     @Mapping(target = "receiverOrganizationName", source = "receiverOrganizationId", qualifiedByName = "activeOrganizationNameById")
     Form058TableResponse toTableResponse(Form058TableProjection projection, @Context Form058Direction direction);
 
-    @Mapping(target = "permanentRegionName", source = ".", qualifiedByName = "permanentRegionName")
-    @Mapping(target = "permanentDistrictName", source = ".", qualifiedByName = "permanentDistrictName")
-    @Mapping(target = "permanentNeighborhoodName", source = ".", qualifiedByName = "permanentNeighborhoodName")
-    @Mapping(target = "permanentStreetAddress", source = ".", qualifiedByName = "permanentStreetAddress")
-    @Mapping(target = "permanentHouseNumber", source = ".", qualifiedByName = "permanentHouseNumber")
-    @Mapping(target = "permanentApartmentNumber", source = ".", qualifiedByName = "permanentApartmentNumber")
+    // permanent* columns are filled per page by Form058TableAddressMapperHelper#withPermanentAddresses
+    @Mapping(target = "permanentRegionName", ignore = true)
+    @Mapping(target = "permanentDistrictName", ignore = true)
+    @Mapping(target = "permanentNeighborhoodName", ignore = true)
+    @Mapping(target = "permanentStreetAddress", ignore = true)
+    @Mapping(target = "permanentHouseNumber", ignore = true)
+    @Mapping(target = "permanentApartmentNumber", ignore = true)
     Form058TableResponse.PatientShortResponse toPatientShortResponse(
             Form058TableProjection.PatientProjection patient
     );

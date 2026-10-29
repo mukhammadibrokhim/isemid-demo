@@ -2,7 +2,10 @@ package uz.uzinfocom.app.modules.card.application.query.dto.detail.card161;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Schema(description = "Сведения о вакцинации пациента.")
 public record VaccinationResponse(
@@ -22,9 +25,30 @@ public record VaccinationResponse(
         LocalDateTime vaccinationDate,
 
         @Schema(description = "Объём введённой дозы препарата.")
-        Integer doseVolume,
+        BigDecimal doseVolume,
 
         @Schema(description = "Признак того, что вакцинация проведена по установленному графику.")
-        Boolean scheduled
+        Boolean scheduled,
+
+        @Schema(description = "Идентификатор исходного ресурса Immunization в DHP FHIR; null, если запись введена вручную.")
+        String fhirId,
+
+        @Schema(description = "Код вакцины (из DHP FHIR).")
+        String vaccineCode,
+
+        @Schema(description = "Срок годности препарата.")
+        LocalDate expirationDate,
+
+        @Schema(description = "Единица измерения дозы (например, ml).")
+        String doseUnit,
+
+        @Schema(description = "Порядковый номер дозы в схеме вакцинации.")
+        Integer doseNumber,
+
+        @Schema(description = "Заболевания, против которых проведена вакцинация.")
+        List<String> targetDiseases,
+
+        @Schema(description = "Исполнитель (медицинский работник или организация).")
+        String performerName
 ) {
 }

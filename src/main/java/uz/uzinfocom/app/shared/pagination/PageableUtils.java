@@ -32,14 +32,46 @@ public final class PageableUtils {
         return PageRequest.of(normalizedPage, normalizedSize, Sort.by(DEFAULT_SORT_DIRECTION, DEFAULT_SORT_BY));
     }
 
+    /**
+     * Builds a single-page, count-free {@link Pageable} for "select" lookups: always page 0,
+     * size clamped to {@code [1, maxLimit]} (defaulting to {@code defaultLimit}), sorted by a fixed field.
+     */
+    public static Pageable limitOnly(
+            Integer limit,
+            String sortBy,
+            Sort.Direction direction,
+            int defaultLimit,
+            int maxLimit
+    ) {
+        int size = normalizeLimit(limit, defaultLimit, maxLimit);
+        return PageRequest.of(0, size, Sort.by(direction, sortBy));
+    }
+
+    private static int normalizeLimit(Integer limit, int defaultLimit, int maxLimit) {
+        if (limit == null || limit < 1) {
+            return defaultLimit;
+        }
+        return Math.min(limit, maxLimit);
+    }
+
     public static Pageable of(
             PageableRequest request,
             String defaultSortBy,
             Sort.Direction defaultDirection,
             Map<String, String> allowedSortFields
     ) {
+        return of(request, defaultSortBy, defaultDirection, allowedSortFields, DEFAULT_SIZE);
+    }
+
+    public static Pageable of(
+            PageableRequest request,
+            String defaultSortBy,
+            Sort.Direction defaultDirection,
+            Map<String, String> allowedSortFields,
+            int defaultSize
+    ) {
         int page = normalizePage(request.page());
-        int size = normalizeSize(request.size());
+        int size = normalizeSize(request.size(), defaultSize);
 
         String sortBy = resolveSortBy(
                 request.sortBy(),
@@ -65,8 +97,12 @@ public final class PageableUtils {
     }
 
     private static int normalizeSize(Integer size) {
+        return normalizeSize(size, DEFAULT_SIZE);
+    }
+
+    private static int normalizeSize(Integer size, int defaultSize) {
         if (size == null || size < 1) {
-            return DEFAULT_SIZE;
+            return defaultSize;
         }
 
         return Math.min(size, MAX_SIZE);

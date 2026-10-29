@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Rasmiy SOATO ro'yxatiga ko'ra (Davlat statistika qo'mitasi, viloyat/tuman
+        kodlari fayli) 1703209 kodi Andijon viloyati Bo'z tumaniga (AN-237) tegishli,
+        Bo'ston tumaniga (AN-209) emas. Seed CSV import paytida bu kod AN-209 ga
+        noto'g'ri biriktirilgan, AN-237 esa kodsiz (soato_id = 0) qolgan.
+
+        Bo'ston tumani uchun joriy rasmiy ro'yxatda alohida kod yo'q (eskirgan yoki
+        boshqa tumanga qo'shilgan bo'lishi mumkin), shu sababli soato_id = 0 ga
+        qaytariladi — bu loyihada "kod berilmagan" degani (ReferenceCacheLoader
+        buni SOATO indeksidan chiqarib tashlaydi).
+    -->
+    <changeSet
+            id="20260801-1200-01-fix-an209-an237-soato"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_district"/>
+        </preConditions>
+
+        <update tableName="ref_district">
+            <column name="soato_id" valueNumeric="0"/>
+            <where>code = 'AN-209'</where>
+        </update>
+
+        <update tableName="ref_district">
+            <column name="soato_id" valueNumeric="1703209"/>
+            <where>code = 'AN-237'</where>
+        </update>
+
+    </changeSet>
+
+</databaseChangeLog>

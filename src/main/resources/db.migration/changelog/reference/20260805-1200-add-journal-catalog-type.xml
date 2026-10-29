@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        form058.journal_form_code hech qachon ref_catalog'da mos type'ga ega
+        bo'lmagan (2026-08-05'gacha JOURNAL type umuman yo'q edi, maydon
+        turli joyda "JOURNAL_1", "FORM_058", "J1" kabi tasodifiy qiymatlar
+        bilan yozilgan). Rasmiy kod JOURNAL_060 sifatida catalogga
+        qo'shiladi; base/catalog_reference.csv ham shu qator bilan
+        yangilandi, lekin CSV faqat bo'sh jadvalga bir marta yuklangani
+        uchun bu changeset allaqachon urug'langan bazalarga ham qo'llanadi.
+    -->
+    <changeSet
+            id="20260805-1200-01-add-journal-catalog-type"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_catalog"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM ref_catalog WHERE type = 'JOURNAL' AND code = 'JOURNAL_060'
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="ref_catalog">
+            <column name="type" value="JOURNAL"/>
+            <column name="code" value="JOURNAL_060"/>
+            <column name="name_uz" value="060-son jurnal"/>
+            <column name="name_uz_cyril" value="060-сон журнал"/>
+            <column name="name_ru" value="Журнал № 060"/>
+            <column name="name_kaa" value="060-sanlı jurnal"/>
+        </insert>
+
+    </changeSet>
+
+    <!--
+        Mavjud form058 yozuvlarida journal_form_code turlicha (noto'g'ri)
+        qiymatlarga ega edi (FORM_058, JOURNAL_1, 058, J1, va h.k.) — hech
+        biri ref_catalog'dagi haqiqiy JOURNAL_060 kodiga mos kelmasdi.
+        Barchasi JOURNAL_060'ga normallashtiriladi.
+    -->
+    <changeSet
+            id="20260805-1200-02-normalize-form058-journal-code"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="form058"/>
+        </preConditions>
+
+        <update tableName="form058">
+            <column name="journal_form_code" value="JOURNAL_060"/>
+            <where>journal_form_code IS DISTINCT FROM 'JOURNAL_060'</where>
+        </update>
+
+    </changeSet>
+
+    <!--
+        form058 uchun journal_form_code endi ilova darajasida doim JOURNAL_060
+        konstantasi bilan yoziladi (Form058CreateMapper). DB darajasida ham
+        DEFAULT qo'yiladi, shu ustunga tegadigan har qanday to'g'ridan-to'g'ri
+        SQL/migration yozuvi ham izchil qolsin uchun.
+    -->
+    <changeSet
+            id="20260805-1200-03-default-form058-journal-code"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <columnExists tableName="form058" columnName="journal_form_code"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            ALTER TABLE form058 ALTER COLUMN journal_form_code SET DEFAULT 'JOURNAL_060';
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>

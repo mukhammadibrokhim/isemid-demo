@@ -17,6 +17,7 @@ public enum ErrorCode {
     INTERNAL_ERROR("INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "error.internal_server"),
     DATA_INTEGRITY("DATA_INTEGRITY", HttpStatus.INTERNAL_SERVER_ERROR, "error.data_integrity"),
     ASYNC_EXECUTOR_SATURATED("ASYNC_EXECUTOR_SATURATED", HttpStatus.SERVICE_UNAVAILABLE, "error.service_unavailable"),
+    TOO_MANY_REQUESTS("TOO_MANY_REQUESTS", HttpStatus.TOO_MANY_REQUESTS, "error.too_many_requests"),
     RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, "error.endpoint_not_found"),
     METHOD_NOT_ALLOWED("METHOD_NOT_ALLOWED", HttpStatus.METHOD_NOT_ALLOWED, "error.method_not_supported"),
     UNSUPPORTED_MEDIA_TYPE("UNSUPPORTED_MEDIA_TYPE", HttpStatus.UNSUPPORTED_MEDIA_TYPE, "error.unsupported_media_type"),
@@ -27,6 +28,21 @@ public enum ErrorCode {
     // apart from "the system behind us broke", and retry accordingly.
     UPSTREAM_ERROR("UPSTREAM_ERROR", HttpStatus.BAD_GATEWAY, "error.upstream"),
     UPSTREAM_TIMEOUT("UPSTREAM_TIMEOUT", HttpStatus.GATEWAY_TIMEOUT, "error.upstream_timeout"),
+
+    // The outbound circuit breaker for that system is open: the call was
+    // rejected locally without going out. Distinct from UPSTREAM_ERROR so a
+    // client can back off for the advertised Retry-After instead of retrying
+    // straight away - see RetryAfterAware.
+    UPSTREAM_CIRCUIT_OPEN(
+            "UPSTREAM_CIRCUIT_OPEN", HttpStatus.SERVICE_UNAVAILABLE, "error.upstream_circuit_open"
+    ),
+
+    // Distinct from FORBIDDEN so a dev-panel frontend can reliably detect
+    // "must change password" from the `code` field alone, without matching
+    // on the localized `message` text - see DevPasswordChangeGuardFilter.
+    DEV_USER_PASSWORD_CHANGE_REQUIRED(
+            "DEV_USER_PASSWORD_CHANGE_REQUIRED", HttpStatus.FORBIDDEN, "dev-user.password.change-required"
+    ),
 
     BAD_REQUEST("BAD_REQUEST", HttpStatus.BAD_REQUEST, "error.bad_request"),
     REQUEST_BODY_MISSING("REQUEST_BODY_MISSING", HttpStatus.BAD_REQUEST, "error.request_body_missing"),

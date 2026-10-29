@@ -11,8 +11,6 @@ import uz.uzinfocom.app.modules.act.domain.enums.SampleVolumeUnit;
 public record Act153SampleResponse(
         Long id,
         ResearchItemTypeInfoResponse researchItemTypeInfo,
-        Integer objectTypeId,
-        String objectCode,
         String address,
         Double samplingDepth,
         LengthUnit depthUnit,

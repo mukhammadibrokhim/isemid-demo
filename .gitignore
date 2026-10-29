@@ -52,6 +52,7 @@ desktop.ini
 
 .env
 .env.*
+!.env.example
 *.local
 application-local.yml
 application-local.yaml
@@ -66,3 +67,15 @@ replay_pid*
 *.bak
 *.swp
 *~
+/exports/
+
+.claude/
+CLAUDE.md
+
+# dev-panel pg_dump backups (contain real data)
+/db-dumps/
+
+# Local Windows launchers (machine-specific paths)
+run-dev.bat
+run-dev-hidden.vbs
+start-hidden.cmd

@@ -5,17 +5,15 @@ import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ConditionInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ConservationTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.EmployeeInfo;
-import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActSubject;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.PackageTypeInfo;
-import uz.uzinfocom.app.modules.act.domain.model.embedded.Purpose;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ResearchItemTypeInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.SampleTypeInfo;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ConditionInfoRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ConservationTypeInfoRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.EmployeeInfoRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.embedded.InstitutionRequest;
+import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ActSubjectRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.PackageTypeInfoRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.embedded.PurposeRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ResearchItemTypeInfoRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.embedded.SampleTypeInfoRequest;
 
@@ -28,7 +26,7 @@ import uz.uzinfocom.app.modules.act.web.dto.request.embedded.SampleTypeInfoReque
 @Mapper(componentModel = "spring")
 public interface ActEmbeddedMapper {
 
-    Institution toInstitution(InstitutionRequest request);
+    ActSubject toSubject(ActSubjectRequest request);
 
     EmployeeInfo toEmployeeInfo(EmployeeInfoRequest request);
 
@@ -40,7 +38,6 @@ public interface ActEmbeddedMapper {
 
     ConservationTypeInfo toConservationTypeInfo(ConservationTypeInfoRequest request);
 
-    Purpose toPurpose(PurposeRequest request);
 
     ResearchItemTypeInfo toResearchItemTypeInfo(ResearchItemTypeInfoRequest request);
 

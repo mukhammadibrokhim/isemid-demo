@@ -21,14 +21,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActCloseInfo;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.ActDeleteInfo;
-import uz.uzinfocom.app.modules.act.domain.model.embedded.Institution;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActSubject;
 import uz.uzinfocom.app.modules.act.domain.model.embedded.LisInfo;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
-import uz.uzinfocom.app.platform.iam.domain.User;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldReflector;
+import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
+import uz.uzinfocom.app.modules.iam.domain.User;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,8 +41,8 @@ import java.util.Set;
  * number of times; the act is then sent to the external LIS (Laboratory
  * Information System, {@link #lisInfo}) and its response is received back.
  * That is the entire lifecycle — one status ({@link ActStatus}), no
- * accept/reject or supervisor-approval gate, unlike {@link Card}. The 6
- * concrete subtypes (act153/154/155/156/223/224, one {@code @Entity} each
+ * accept/reject or supervisor-approval gate, unlike {@link Card}. The 5
+ * concrete subtypes (act153/154/156/223/224, one {@code @Entity} each
  * under this package's sibling packages) carry the type-specific structured
  * data; JOINED inheritance keeps each subtype's ~15-30 fields out of a
  * single sprawling table.
@@ -57,7 +61,13 @@ import java.util.Set;
 )
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor
-public abstract class Act extends AbsEntity {
+public abstract class Act extends AbsEntity implements AuditableFields {
+
+    /** {@code ref_catalog} type of «Namuna olish uchun asos» entries (act153/act154). */
+    public static final String SAMPLING_BASIS_CATALOG_TYPE = "SAMPLING_BASIS";
+
+    /** {@code ref_catalog} type of «Faoliyat turi» entries (every act type's {@code activityTypeCode}). */
+    public static final String ACTIVITY_TYPE_CATALOG_TYPE = "ACTIVITY_TYPE";
 
     @Enumerated(EnumType.STRING)
     @Column(name = "act_type", nullable = false, length = 50)
@@ -67,11 +77,33 @@ public abstract class Act extends AbsEntity {
     @Column(name = "act_status", nullable = false, length = 32)
     private ActStatus actStatus = ActStatus.NEW;
 
+    /**
+     * Who or what the act is about (the form's «Tashkilot turi» block) —
+     * every act type has one, so it lives here rather than per-subtype, and
+     * list views label an act by {@link ActSubject#label()}.
+     */
     @Embedded
-    private Institution institution;
+    private ActSubject subject = new ActSubject();
+
+    /**
+     * The act's number. Server-generated: set to the act's own {@code id} on
+     * {@code assignActs} (the same value sent to LIS as
+     * {@code senderActNumber}), never taken from the request. Legacy-migrated
+     * acts keep their original paper-form number. Kept on the base table (not
+     * per-subtype) so list views can show and search it without a subtype join.
+     */
+    @Column(name = "act_number")
+    private Long actNumber;
 
     @Embedded
     private LisInfo lisInfo = new LisInfo();
+
+    /**
+     * Set when the attached employee closes the act after reviewing the LIS
+     * result ({@code RESULT_RECEIVED -> COMPLETED}).
+     */
+    @Embedded
+    private ActCloseInfo closeInfo = new ActCloseInfo();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
@@ -130,9 +162,32 @@ public abstract class Act extends AbsEntity {
         return this.deleteInfo != null && this.deleteInfo.isDeleted();
     }
 
+    public void close(Long closedBy) {
+        if (this.closeInfo == null) {
+            this.closeInfo = new ActCloseInfo();
+        }
+        this.closeInfo.close(closedBy);
+    }
+
     private void ensureDeleteInfo() {
         if (this.deleteInfo == null) {
             this.deleteInfo = new ActDeleteInfo();
         }
+    }
+
+    /**
+     * Delegates to {@link AuditFieldReflector} rather than hand-listing
+     * fields: each of the 5 subtypes (act153/154/156/223/224) has its
+     * own set of scalar columns and {@code @Embeddable} value objects
+     * (e.g. {@code Purpose}, {@code EmployeeInfo}, {@code ConditionInfo}),
+     * and a hand-written list would drift out of sync as those evolve. The
+     * reflector flattens embeddables and excludes collections/child lists
+     * and entity-typed associations (e.g. {@link #card}, {@link #users}) by
+     * their declared type, stopping at {@link AbsEntity} so
+     * version/updatedAt/etc. never pollute the diff.
+     */
+    @Override
+    public Map<String, Object> auditFields() {
+        return AuditFieldReflector.reflect(this, AbsEntity.class);
     }
 }

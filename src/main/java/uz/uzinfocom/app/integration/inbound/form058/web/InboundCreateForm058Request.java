@@ -8,8 +8,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSubmitterRequest;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form058.web.dto.request.LocationRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public record InboundCreateForm058Request(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
         @NotNull(message = "{validation.form058.patient.required}")
-        PatientRequest patient,
+        IntegrationPatientRequest patient,
 
         @Schema(description = "Клинические сведения.", requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
@@ -53,8 +54,10 @@ public record InboundCreateForm058Request(
         @NotNull(message = "{validation.form058.receiver-organization.required}")
         UUID receiverOrganizationId,
 
-        @Schema(description = "Географические координаты и описание места выявления заболевания.")
+        @Schema(description = "Географические координаты и описание места выявления заболевания.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull(message = "{validation.required}")
         LocationRequest location,
 
         @Schema(description = "Сведения об эпидемиологической обстановке.", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -65,30 +68,44 @@ public record InboundCreateForm058Request(
         @Schema(description = "Сведения об извещении.", requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
         @NotNull(message = "{validation.form058.report-info.required}")
-        ReportInfo reportInfo
+        ReportInfo reportInfo,
+
+        @Schema(description = "Организация-отправитель. Обязательна; для клиентов EXTERNAL_TOKEN должна входить в "
+                + "их список разрешённых организаций, для остальных вызывающих — совпадать с их организацией.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull(message = "{validation.required}")
+        UUID senderOrganizationUuid,
+
+        @Schema(description = "Сотрудник, от имени которого отправляется форма (для аудита). Обязателен.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @Valid
+        @NotNull(message = "{validation.required}")
+        InboundSubmitterRequest submittedBy
 ) {
 
     @Schema(description = "Диагноз по МКБ-10.")
     public record DiagnosisInfo(
             @Schema(description = "Код диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-            @NotBlank(message = "{validation.form058.mkb10-code.required}")
-            @Size(max = 20, message = "{validation.form058.mkb10-code.size}")
+            @NotBlank(message = "{validation.form058.icd10-code.required}")
+            @Size(max = 20, message = "{validation.form058.icd10-code.size}")
             String mkb10Code,
 
             @Schema(description = "Наименование диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-            @NotBlank(message = "{validation.form058.mkb10-name.required}")
-            @Size(max = 512, message = "{validation.form058.mkb10-name.size}")
+            @NotBlank(message = "{validation.form058.icd10-name.required}")
+            @Size(max = 512, message = "{validation.form058.icd10-name.size}")
             String mkb10Name,
 
             @Schema(description = "Лимит использования данного кода МКБ-10 (при наличии ограничений).")
-            @PositiveOrZero(message = "{validation.form058.mkb10-usage-limit.positive_or_zero}")
+            @PositiveOrZero(message = "{validation.form058.icd10-usage-limit.positive_or_zero}")
             Integer mkb10UsageLimit
     ) {
     }
 
     @Schema(description = "Клинические сведения.")
     public record ClinicalInfo(
-            @Schema(description = "Признак лабораторного подтверждения диагноза.")
+            @Schema(description = "Признак лабораторного подтверждения диагноза.",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotNull(message = "{validation.required}")
             Boolean labConfirmation,
 
             @Schema(description = "Идентификатор места госпитализации.")
@@ -115,8 +132,9 @@ public record InboundCreateForm058Request(
             @PastOrPresent(message = "{validation.form058.first-visit-date.past_or_present}")
             LocalDateTime firstVisitDate,
 
-            @Schema(description = "Дата и время установления диагноза.")
+            @Schema(description = "Дата и время установления диагноза.", requiredMode = Schema.RequiredMode.REQUIRED)
             @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+            @NotNull(message = "{validation.required}")
             @PastOrPresent(message = "{validation.form058.diagnosis-date.past_or_present}")
             LocalDateTime diagnosisDate,
 
@@ -144,11 +162,13 @@ public record InboundCreateForm058Request(
             @Size(max = 64, message = "{validation.form058.disease-place.size}")
             String diseasePlaceCode,
 
-            @Schema(description = "Предполагаемая причина заболевания.")
+            @Schema(description = "Предполагаемая причина заболевания.", requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 2000, message = "{validation.form058.disease-cause.size}")
             String diseaseCause,
 
-            @Schema(description = "Принятые противоэпидемические меры.")
+            @Schema(description = "Принятые противоэпидемические меры.", requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 2000, message = "{validation.form058.epidemic-measures.size}")
             String epidemicMeasures
     ) {
@@ -168,7 +188,8 @@ public record InboundCreateForm058Request(
             @Size(max = 64, message = "{validation.form058.journal-form-code.size}")
             String journalFormCode,
 
-            @Schema(description = "Дополнительный комментарий к форме.")
+            @Schema(description = "Дополнительный комментарий к форме.", requiredMode = Schema.RequiredMode.REQUIRED)
+            @NotBlank(message = "{validation.required}")
             @Size(max = 2000, message = "{validation.form058.comment.size}")
             String comment
     ) {

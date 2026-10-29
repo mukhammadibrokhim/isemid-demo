@@ -44,7 +44,7 @@ public class CardActCommandController {
                     + "карт на форму №058."
     )
     @PostMapping(ApiPaths.Card.ROOT + ApiPaths.Card.ACTS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_ASSIGN')")
     public ApiResponse<Void> assignActs(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,

@@ -120,7 +120,7 @@ public class PatientCommandMappingHelper {
         affiliation.setLastVisitedDate(command.lastVisitedDate());
         affiliation.setOrganizationName(command.organizationName());
         affiliation.setRegionCode(command.regionCode());
-        affiliation.setDistrictCode(command.cityCode());
+        affiliation.setDistrictCode(command.districtCode());
         affiliation.setOrganizationId(command.organizationId());
         affiliation.setOrganizationUuid(command.organizationUuid());
         affiliation.setAddress(command.address());

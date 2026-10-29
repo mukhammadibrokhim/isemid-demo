@@ -3,7 +3,7 @@ package uz.uzinfocom.app.modules.form0581.application.query.dto.detail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientDetailResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,8 +25,14 @@ public record Form0581DetailResponse(
         @Schema(description = "Идентификатор организации-отправителя.")
         Long senderOrganizationId,
 
+        @Schema(description = "Наименование организации-отправителя на языке запроса.")
+        String senderOrganizationName,
+
         @Schema(description = "Идентификатор организации-получателя.")
         Long receiverOrganizationId,
+
+        @Schema(description = "Наименование организации-получателя на языке запроса.")
+        String receiverOrganizationName,
 
         @Schema(description = "Диагностические сведения.")
         Form0581DiagnosisDetailResponse diagnosisInfo,
@@ -57,6 +63,9 @@ public record Form0581DetailResponse(
 
         @Schema(description = "Сведения об утверждении.")
         Form0581ApprovalDetailResponse approvalInfo,
+
+        @Schema(description = "Сведения о приёме формы получателем.")
+        Form0581AcceptDetailResponse acceptInfo,
 
         @Schema(description = "Сведения об удалении.")
         Form0581DeleteDetailResponse deleteInfo,

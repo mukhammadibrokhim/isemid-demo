@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.patient.web.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAddressCommand;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientAffiliationCommand;
 import uz.uzinfocom.app.modules.patient.application.command.CreatePatientCommand;
@@ -20,5 +21,10 @@ public interface PatientRequestMapper {
 
     CreatePatientAddressCommand toCommand(CreatePatientAddressRequest request);
 
+    // organizationUuid/organizationName aren't accepted on this (regular) request
+    // shape - only integration callers (DMED and others) supply them, via
+    // IntegrationPatientAffiliationRequest/IntegrationPatientRequestMapper instead.
+    @Mapping(target = "organizationUuid", ignore = true)
+    @Mapping(target = "organizationName", ignore = true)
     CreatePatientAffiliationCommand toCommand(CreatePatientAffiliationRequest request);
 }

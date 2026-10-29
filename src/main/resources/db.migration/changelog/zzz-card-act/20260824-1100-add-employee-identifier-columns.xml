@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        A facility participant isn't a system account, so unlike the sampler
+        (whose info comes from their own login) their name has to be pulled
+        from the citizen registry by an identifier (PINFL/passport/etc. — see
+        CitizenLookupType). These columns persist which identifier was used
+        alongside the EmployeeInfo embeddable's existing name/position
+        columns, for act153/act154/act223 — the three act types that use the
+        shared sampler/participant EmployeeInfo embeddable. Added to both
+        sampler_* and participant_* for schema symmetry (JPA requires
+        overriding every embeddable property when the same type is embedded
+        twice on one entity); sampler_identifier_* stays unused in practice.
+    -->
+    <changeSet id="20260824-1100-01-add-act153-employee-identifier" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act153" columnName="sampler_identifier_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="sampler_identifier_type" type="VARCHAR(20)"/>
+            <column name="sampler_identifier_value" type="VARCHAR(100)"/>
+            <column name="participant_identifier_type" type="VARCHAR(20)"/>
+            <column name="participant_identifier_value" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260824-1100-02-add-act154-employee-identifier" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act154" columnName="sampler_identifier_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="sampler_identifier_type" type="VARCHAR(20)"/>
+            <column name="sampler_identifier_value" type="VARCHAR(100)"/>
+            <column name="participant_identifier_type" type="VARCHAR(20)"/>
+            <column name="participant_identifier_value" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260824-1100-03-add-act223-employee-identifier" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act223" columnName="sampler_identifier_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223">
+            <column name="sampler_identifier_type" type="VARCHAR(20)"/>
+            <column name="sampler_identifier_value" type="VARCHAR(100)"/>
+            <column name="participant_identifier_type" type="VARCHAR(20)"/>
+            <column name="participant_identifier_value" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

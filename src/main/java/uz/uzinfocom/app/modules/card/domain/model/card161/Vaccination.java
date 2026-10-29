@@ -15,6 +15,8 @@ import lombok.Setter;
 import uz.uzinfocom.app.modules.card.domain.annotation.CatalogCode;
 import uz.uzinfocom.app.platform.persistence.entity.UuidAuditableEntity;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -50,9 +52,35 @@ public class Vaccination extends UuidAuditableEntity {
     @Column(name = "vaccination_date")
     private LocalDateTime vaccinationDate;
 
-    @Column(name = "dose_volume")
-    private Integer doseVolume;
+    @Column(name = "dose_volume", precision = 10, scale = 3)
+    private BigDecimal doseVolume;
 
     @Column(name = "scheduled")
     private Boolean scheduled;
+
+    // The fields below mirror DHP FHIR Immunization (integration.dhp.immunization),
+    // so a record prefilled from DHP is stored without loss. fhirId is null for
+    // rows entered by hand.
+
+    @Column(name = "fhir_id", length = 64)
+    private String fhirId;
+
+    @Column(name = "vaccine_code", length = 64)
+    private String vaccineCode;
+
+    @Column(name = "expiration_date")
+    private LocalDate expirationDate;
+
+    @Column(name = "dose_unit", length = 32)
+    private String doseUnit;
+
+    @Column(name = "dose_number")
+    private Integer doseNumber;
+
+    /** Joined with {@code "; "} — see {@code Card161Mapper}. */
+    @Column(name = "target_diseases", length = 500)
+    private String targetDiseases;
+
+    @Column(name = "performer_name", length = 255)
+    private String performerName;
 }

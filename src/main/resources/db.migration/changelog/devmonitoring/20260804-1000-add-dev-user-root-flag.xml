@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        "root" distinguishes a dev-panel account allowed to manage other
+        DevUser rows (see DevUserController, gated to ROLE_DEV_ROOT) from an
+        ordinary dev-panel account that can only use the monitoring panel
+        itself. Dev-user management was moved OUT of the SSO-admin surface
+        entirely - not even isemid_super_admin can create/revoke a dev-panel
+        account anymore, only another root dev-user can.
+    -->
+    <changeSet id="20260804-1000-01-add-dev-user-root-flag" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="dev_user" columnName="root"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="dev_user">
+            <column name="root" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

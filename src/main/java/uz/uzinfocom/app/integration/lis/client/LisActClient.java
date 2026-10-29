@@ -155,10 +155,9 @@ public class LisActClient {
         try {
             return circuitBreakerLookup.forName(CircuitBreakerNames.LIS).executeSupplier(() -> requestSupplier.get()
                     .exchange((request, response) -> handleResponse(operation, response, responseType)));
-        } catch (LisException exception) {
-            throw exception;
         } catch (CallNotPermittedException exception) {
-            throw errorDecoder.decodeCircuitBreakerOpen(operation, exception);
+            throw errorDecoder.decodeCircuitBreakerOpen(
+                    operation, exception, circuitBreakerLookup.retryAfterSeconds(CircuitBreakerNames.LIS));
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(operation, exception);
         }

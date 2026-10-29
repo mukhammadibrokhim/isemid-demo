@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Default column list for the ANALYTIC_REPORT Excel export (see
+        AnalyticReportExcelExportSource) - not load-bearing, see the sibling
+        20260906-1000-... changeset comment for why only the columns key is seeded.
+    -->
+    <changeSet id="20260906-1300-01-seed-analytic-report-excel-export-columns" author="codex">
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.analytic_report.columns"/>
+            <column name="setting_value" value="id,name,status,fromDate,toDate,regionCodes,icd10Codes,koef,organizationName,createdAt,updatedAt,content"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Analitik hisobot Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

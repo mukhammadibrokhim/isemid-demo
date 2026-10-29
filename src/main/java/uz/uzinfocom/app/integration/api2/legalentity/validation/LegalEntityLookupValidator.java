@@ -2,7 +2,7 @@ package uz.uzinfocom.app.integration.api2.legalentity.validation;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
+import uz.uzinfocom.app.integration.api2.web.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.legalentity.exception.LegalEntityValidationException;
 
 import java.util.ArrayList;

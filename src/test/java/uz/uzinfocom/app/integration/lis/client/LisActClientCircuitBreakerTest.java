@@ -7,7 +7,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import uz.uzinfocom.app.integration.api2.common.auth.CurrentBearerTokenProvider;
 import uz.uzinfocom.app.integration.lis.client.dto.LisActPushRequest;
-import uz.uzinfocom.app.integration.lis.common.exception.LisUnavailableException;
+import uz.uzinfocom.app.integration.lis.common.exception.LisCircuitOpenException;
 import uz.uzinfocom.app.integration.lis.common.properties.LisProperties;
 import uz.uzinfocom.app.integration.lis.common.support.LisErrorDecoder;
 import uz.uzinfocom.app.integration.lis.common.support.LisUrlFactory;
@@ -30,7 +30,16 @@ class LisActClientCircuitBreakerTest {
             "test-api-key",
             Duration.ofMillis(100),
             Duration.ofMillis(100),
-            new LisProperties.Endpoints("/create-act/{labId}", "/act-code")
+            new LisProperties.Endpoints(
+                    "/create-act/{labId}",
+                    "/act-code",
+                    "/sesorgs",
+                    "/departments",
+                    "/reference-dictionaries",
+                    "/professions",
+                    "/research-types",
+                    "/categories",
+                    "/item-types")
     );
 
     @Test
@@ -55,6 +64,8 @@ class LisActClientCircuitBreakerTest {
 
         assertThatThrownBy(() -> client.createAct(
                 1L, 100L, false, LisActPushRequest.builder().build(), UUID.randomUUID()))
-                .isInstanceOf(LisUnavailableException.class);
+                .isInstanceOf(LisCircuitOpenException.class)
+                // CircuitBreakerConfig.ofDefaults() keeps the breaker open for 60s.
+                .hasFieldOrPropertyWithValue("retryAfterSeconds", 60L);
     }
 }

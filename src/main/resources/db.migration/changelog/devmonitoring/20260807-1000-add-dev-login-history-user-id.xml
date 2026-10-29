@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260807-1000-01-add-dev-login-history-user-id" author="codex">
+        <comment>
+            Carries the external identity's practitioner UUID alongside the
+            already-resolved username, so the dev panel can key a login
+            attempt to the actual user id instead of just the display name.
+        </comment>
+        <addColumn tableName="dev_login_history">
+            <column name="user_id" type="UUID"/>
+        </addColumn>
+
+        <createIndex tableName="dev_login_history" indexName="idx_dev_login_history_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

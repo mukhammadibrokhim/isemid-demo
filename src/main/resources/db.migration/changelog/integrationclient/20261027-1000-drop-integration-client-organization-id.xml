@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Integration clients no longer carry a default organization: every submission names
+        its sending organization in the body.
+    -->
+    <changeSet id="20261027-1000-01-drop-integration-client-organization-id" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="integration_client" columnName="organization_id"/>
+        </preConditions>
+        <dropColumn tableName="integration_client" columnName="organization_id"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.form058.application.command.approve;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -11,11 +12,16 @@ import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolat
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ValidationException;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,37 +31,70 @@ public class ApproveForm058Service {
     private final Form058UpdateMapper form058UpdateMapper;
     private final CurrentUserProvider currentUserProvider;
     private final Form058ApprovalValidator form058ApprovalValidator;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UpdateForm058Result approve(ApproveForm058Command command) {
-        if (!StringUtils.hasText(command.finalMkb10Code()) || !StringUtils.hasText(command.finalMkb10Name())) {
+        if (!StringUtils.hasText(command.finalIcd10Code()) || !StringUtils.hasText(command.finalIcd10Name())) {
             throw new Form058ValidationException("error.form058.approval-not-allowed");
         }
 
-        Form058 form058 = findRequired(command.formId());
-        form058ApprovalValidator.validateApprove(form058);
-        form058.approve(
-                command.finalMkb10Code().trim(),
-                command.finalMkb10Name().trim(),
-                currentUserProvider.userIdOrNull(),
-                form058.getReceiverOrganizationId()
-        );
-        return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+        return approveLocked(findRequired(command.formId()), command.finalIcd10Code(), command.finalIcd10Name());
     }
 
+    /**
+     * Approval for the inbound-integration surface, where the form is addressed by id or uuid.
+     * Re-sending the same final diagnosis for an already approved form is a no-op that returns
+     * the current state, so a retry after a lost response does not fail.
+     */
     @Transactional
-    public UpdateForm058Result notApprove(NotApproveForm058Command command) {
-        Form058 form058 = findRequired(command.formId());
-        form058ApprovalValidator.validateNotApprove(form058);
-        form058.notApprove(StringUtils.hasText(command.reason()) ? command.reason().trim() : null);
-        return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+    public UpdateForm058Result confirm(Long formId, UUID formUuid, String finalIcd10Code, String finalIcd10Name) {
+        Form058 form058 = formId != null
+                ? findRequired(formId)
+                : form058JpaRepository.findActiveByUuidForUpdate(formUuid)
+                        .orElseThrow(() -> new Form058NotFoundException(formUuid));
+
+        if (form058.isApproved()
+                && form058.getDiagnosisInfo() != null
+                && Objects.equals(form058.getDiagnosisInfo().getFinalIcd10Code(), finalIcd10Code.trim())) {
+            form058ApprovalValidator.validateOwnership(form058);
+            return form058UpdateMapper.toResult(form058);
+        }
+        return approveLocked(form058, finalIcd10Code, finalIcd10Name);
+    }
+
+    private UpdateForm058Result approveLocked(Form058 form058, String finalIcd10Code, String finalIcd10Name) {
+        if (!StringUtils.hasText(finalIcd10Code) || !StringUtils.hasText(finalIcd10Name)) {
+            throw new Form058ValidationException("error.form058.approval-not-allowed");
+        }
+
+        form058ApprovalValidator.validateApprove(form058);
+        String oldStatus = form058.getStatus().name();
+        Long actorUserId = currentUserProvider.userIdOrNull();
+        form058.approve(
+                finalIcd10Code.trim(),
+                finalIcd10Name.trim(),
+                actorUserId,
+                form058.getSenderOrganizationId()
+        );
+        UpdateForm058Result result = form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+
+        eventPublisher.publishEvent(new StatusChangedEvent(
+                AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(), actorUserId, null,
+                new NotificationRoutingContext.FormRouting(
+                        form058.getSenderOrganizationId(), form058.getReceiverOrganizationId(),
+                        List.of(), form058.getSourceIntegrationClientId()
+                )
+        ));
+
+        return result;
     }
 
     @Transactional
     public UpdateForm058Result approveDiagnosis(ApproveForm058Command command) {
         Form058 form058 = findRequired(command.formId());
         validateReceiverScope(form058);
-        form058.updateFinalDiagnosis(command.finalMkb10Code(), command.finalMkb10Name());
+        form058.updateFinalDiagnosis(command.finalIcd10Code(), command.finalIcd10Name());
         return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
     }
 

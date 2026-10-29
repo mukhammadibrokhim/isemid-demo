@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import uz.uzinfocom.app.integration.lis.common.exception.LisCircuitOpenException;
 import uz.uzinfocom.app.platform.i18n.I18nConfig;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.observability.RequestLogErrorContext;
@@ -89,6 +91,22 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().traceId()).isEqualTo(TRACE_ID);
         assertThat(response.getBody().path()).isEqualTo("/v1/dashboard/home");
         assertThat(response.getBody().violations()).isEmpty();
+        assertThat(response.getBody().retryAfterSeconds()).isNull();
+        assertThat(response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER)).isNull();
+    }
+
+    @Test
+    void retryAfterAwareAppExceptionAdvertisesHowLongToWait() {
+        LisCircuitOpenException exception = new LisCircuitOpenException("LIS_CREATE_ACT", 30);
+
+        ResponseEntity<ErrorResponse> response = handler.handleAppException(exception, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER)).isEqualTo("30");
+        assertThat(Objects.requireNonNull(response.getBody()).code()).isEqualTo("UPSTREAM_CIRCUIT_OPEN");
+        assertThat(response.getBody().retryAfterSeconds()).isEqualTo(30L);
+        assertThat(response.getBody().message())
+                .isEqualTo("LIS is temporarily unavailable. Please try again shortly.");
     }
 
     @Test

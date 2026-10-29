@@ -16,12 +16,13 @@ public abstract class Form0581CreateMapper {
 
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
     @Mapping(target = "receiverOrganizationId", source = "receiverOrganizationId")
+    @Mapping(target = "sourceIntegrationClientId", source = "sourceIntegrationClientId")
 
-    @Mapping(target = "diagnosisInfo.mkb10Code", source = "mkb10Code")
-    @Mapping(target = "diagnosisInfo.mkb10Name", source = "mkb10Name")
+    @Mapping(target = "diagnosisInfo.icd10Code", source = "icd10Code")
+    @Mapping(target = "diagnosisInfo.icd10Name", source = "icd10Name")
     @Mapping(target = "diagnosisInfo.injuryLocalization", source = "injuryLocalization")
-    @Mapping(target = "diagnosisInfo.finalMkb10Code", source = "mkb10Code")
-    @Mapping(target = "diagnosisInfo.finalMkb10Name", source = "mkb10Name")
+    @Mapping(target = "diagnosisInfo.finalIcd10Code", source = "icd10Code")
+    @Mapping(target = "diagnosisInfo.finalIcd10Name", source = "icd10Name")
 
     @Mapping(target = "incidentInfo.injuryDateTime", source = "injuryDateTime")
     @Mapping(target = "incidentInfo.dpuVisitDateTime", source = "dpuVisitDateTime")
@@ -52,7 +53,7 @@ public abstract class Form0581CreateMapper {
 
     @Mapping(target = "reportInfo.antirabicAssistanceInfo", source = "antirabicAssistanceInfo")
     @Mapping(target = "reportInfo.notifierFullName", source = "notifierFullName")
-    @Mapping(target = "reportInfo.receiverFullName", source = "receiverFullName")
+    @Mapping(target = "reportInfo.receiverFullName", ignore = true)
     @Mapping(target = "reportInfo.messageSentAt", source = "messageSentAt")
 
     @Mapping(target = "cancellationInfo", ignore = true)

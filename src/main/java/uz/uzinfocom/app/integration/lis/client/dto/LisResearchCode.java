@@ -7,10 +7,10 @@ import uz.uzinfocom.app.modules.act.domain.enums.ActType;
  * The laboratory research families LIS runs, and the mapping from our act
  * types onto them.
  *
- * <p>Only the three sample-collection acts have a LIS counterpart. ACT155
- * (pesticide residues), ACT156 (environmental swabs) and ACT224 (sanitary
- * inspection) are inspection documents that never produce a LIS submission —
- * asking for one is a caller error, not a missing mapping.
+ * <p>Only the three sample-collection acts have a LIS counterpart. ACT156
+ * (environmental swabs) and ACT224 (sanitary inspection) are inspection
+ * documents that never produce a LIS submission — asking for one is a
+ * caller error, not a missing mapping.
  */
 public enum LisResearchCode {
     WATER,
@@ -22,7 +22,7 @@ public enum LisResearchCode {
             case ACT153 -> WATER;
             case ACT154 -> FOOD;
             case ACT223 -> SOIL;
-            case ACT155, ACT156, ACT224 -> throw new LisUnsupportedActTypeException(actType);
+            case ACT156, ACT224 -> throw new LisUnsupportedActTypeException(actType);
         };
     }
 

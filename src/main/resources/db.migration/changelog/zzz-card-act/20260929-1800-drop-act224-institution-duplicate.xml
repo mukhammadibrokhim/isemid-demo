@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        act224's name_of_institution/address_of_institution duplicated the base
+        act subject block («Tashkilot turi»): the legacy form used them only as
+        labels for the subject's name and legal address. Their values are folded
+        into institution_name / institution_legal_address (base wins where
+        already set), then the columns are dropped.
+    -->
+    <changeSet id="20260929-1800-01-fold-act224-institution" author="uzinfocom">
+        <!-- pre-edit checksum, already applied on a dev DB before the SQL was edited -->
+        <validCheckSum>9:66caa8a12e94715c4bceb99b58a505b7</validCheckSum>
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act224" columnName="name_of_institution"/>
+        </preConditions>
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE act a SET
+                institution_name          = coalesce(a.institution_name, s.name_of_institution),
+                institution_legal_address = coalesce(a.institution_legal_address, s.address_of_institution),
+                subject_type              = coalesce(a.subject_type,
+                                                     CASE WHEN s.name_of_institution IS NOT NULL
+                                                          THEN 'LEGAL_ENTITY' END)
+            FROM act224 s
+            WHERE s.id = a.id
+              AND (s.name_of_institution IS NOT NULL OR s.address_of_institution IS NOT NULL);
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="20260929-1800-02-drop-act224-institution" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act224" columnName="name_of_institution"/>
+        </preConditions>
+        <dropColumn tableName="act224">
+            <column name="name_of_institution"/>
+            <column name="address_of_institution"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,10 +1,12 @@
 package uz.uzinfocom.app.platform.exception.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,7 +32,9 @@ import uz.uzinfocom.app.shared.dto.response.ErrorResponse;
 import uz.uzinfocom.app.shared.dto.response.FieldViolationResponse;
 import uz.uzinfocom.app.shared.exception.AppException;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
+import uz.uzinfocom.app.shared.exception.RetryAfterAware;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
@@ -56,6 +60,25 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String message = messages.resolve(exception.getMessageCode(), exception.getArgs());
+
+        if (exception instanceof RetryAfterAware retryable) {
+            ErrorCode code = exception.getErrorCode();
+            long retryAfterSeconds = retryable.getRetryAfterSeconds();
+            attachLogError(request, code.getCode(), exception);
+
+            return ResponseEntity
+                    .status(code.getStatus())
+                    .header(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds))
+                    .body(ErrorResponse.of(
+                            code.getCode(),
+                            message,
+                            traceIdProvider.getOrCreate(request),
+                            request.getRequestURI(),
+                            List.of(),
+                            retryAfterSeconds
+                    ));
+        }
+
         return respond(exception.getErrorCode(), message, request, exception, List.of());
     }
 
@@ -260,6 +283,33 @@ public class GlobalExceptionHandler {
                 exception,
                 jacksonPathViolation(exception)
         );
+    }
+
+    /**
+     * A client disconnecting mid-response (browser tab closed, network drop, SSE/streaming
+     * connection reset) surfaces here as a plain {@link IOException} - Tomcat's own
+     * {@code AsyncListener.onError()} reports it independently of whatever local
+     * send()/flush() try-catch already ran (see {@code NotificationStreamService},
+     * {@code ExportJobService}, {@code DevSseBroadcaster}), so it still reaches this handler
+     * even when the SSE producer already handled it locally and called
+     * {@code emitter.complete()}. By that point the response is already committed with a
+     * Content-Type (e.g. {@code text/event-stream}) that no converter can write an
+     * {@link ErrorResponse} onto - writing anything then only produces a secondary
+     * {@code HttpMessageNotWritableException}. Returning {@code null} skips message conversion
+     * entirely instead of failing on top of an already-lost connection.
+     */
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ErrorResponse> handleIOException(
+            IOException exception,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        if (response.isCommitted()) {
+            attachLogError(request, ErrorCode.INTERNAL_ERROR.getCode(), exception);
+            return null;
+        }
+
+        return respond(ErrorCode.INTERNAL_ERROR, request, exception);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

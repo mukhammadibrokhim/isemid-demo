@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
-import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
@@ -22,11 +21,11 @@ import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardR
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.specification.CardCaseScopeSpecification;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.specification.CardSpecification;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeMode;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581PdfMapper;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
@@ -45,6 +44,7 @@ public class CardQueryService {
     private final OrganizationScopeResolver organizationScopeResolver;
     private final SenderReceiverScopePredicateFactory scopePredicateFactory;
     private final Form058PdfMapper form058PdfMapper;
+    private final Form0581PdfMapper form0581PdfMapper;
 
     @Transactional(readOnly = true)
     public Page<CardTableResponse> findTable(CardFilterRequest filter) {
@@ -52,26 +52,34 @@ public class CardQueryService {
     }
 
     /**
-     * The attached employee's own view by default — {@code assignedToUserId}
-     * is forced to the authenticated user so nobody can browse another
-     * employee's queue by guessing their id. For a broader-scope
-     * organization (region/republic-level SANEPID, see
-     * {@link OrganizationScopeResolver}), there is no single "attached
-     * employee" to scope by — the account represents an oversight body, not
-     * a case worker — so the view widens instead to every card visible
-     * within that organization's scope (mirroring how Form058's own
-     * ALL/REGION scope views work), without forcing a user filter.
+     * Organization-scoped listing behind {@code GET /v1/cards} — every card
+     * visible within the caller's organization scope (see {@link
+     * CardCaseScopeSpecification}), regardless of who it's assigned to.
+     * Unlike {@link #findMine}, this never narrows to the attached employee:
+     * {@code assignedToUserId}/{@code assignedById} stay caller-supplied
+     * optional filters within that scope, not a forced identity.
+     */
+    @Transactional(readOnly = true)
+    public Page<CardTableResponse> findAll(CardFilterRequest filter) {
+        ResolvedOrganizationScope scope = currentScope();
+
+        Specification<Card> spec = CardSpecification.byFilter(filter)
+                .and((root, query, cb) -> CardCaseScopeSpecification.scopePredicate(
+                        root, cb, scopePredicateFactory, scope, CaseFormType.ANY));
+
+        return queryTable(spec, PageableUtils.of(filter, CardSortFields.ALLOWED));
+    }
+
+    /**
+     * The attached employee's own view — {@code assignedToUserId} is always
+     * forced to the authenticated user, mirroring {@code ActQueryService}'s
+     * personal branch. Does not widen for broader-scope (region/republic)
+     * organizations — that org-wide view now lives in {@link #findAll}
+     * instead, so "mine" stays personal for every account.
      */
     @Transactional(readOnly = true)
     public Page<CardTableResponse> findMine(CardFilterRequest filter) {
-        ResolvedOrganizationScope scope = currentScope();
-
-        Specification<Card> spec = isBroaderScope(scope)
-                ? CardSpecification.byFilter(filter)
-                        .and((root, query, cb) -> CardCaseScopeSpecification.scopePredicate(
-                                root, cb, scopePredicateFactory, scope, CaseFormType.ANY))
-                : CardSpecification.byFilter(filter.scopedToAttachedUser(requireCurrentUserId()));
-
+        Specification<Card> spec = CardSpecification.byFilter(filter.scopedToAttachedUser(requireCurrentUserId()));
         return queryTable(spec, PageableUtils.of(filter, CardSortFields.ALLOWED));
     }
 
@@ -86,27 +94,26 @@ public class CardQueryService {
         return page.map(cardTableMapper::toTableResponse);
     }
 
-    /**
-     * REGION/ALL are the "higher-standing organization" tiers (regional and
-     * republican SANEPID headquarters) that oversee many case workers across
-     * many organizations — for those, "mine" means the whole scope.
-     * DISTRICT/ORGANIZATION are a concrete office where individual employees
-     * are actually assigned cards — for those, "mine" stays personal.
-     */
-    private boolean isBroaderScope(ResolvedOrganizationScope scope) {
-        return scope.mode() == OrganizationScopeMode.REGION || scope.mode() == OrganizationScopeMode.ALL;
-    }
-
     private ResolvedOrganizationScope currentScope() {
         Organization organization = CurrentOrganizationContext.getOptional()
                 .orElseThrow(CardScopeViolationException::new);
         return organizationScopeResolver.resolve(organization);
     }
 
+    /**
+     * Single-card lookup scoped the same way as {@link #findAll} — a card
+     * outside the caller's organization scope 404s here rather than being
+     * returned to anyone who knows its id.
+     */
+    private Card findVisible(Long id) {
+        return cardRepository
+                .findOne(CardCaseScopeSpecification.visibleById(id, scopePredicateFactory, currentScope()))
+                .orElseThrow(() -> new CardNotFoundException(id));
+    }
+
     @Transactional(readOnly = true)
     public CardDetailResponse getById(Long id) {
-        Card card = cardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new CardNotFoundException(id));
+        Card card = findVisible(id);
 
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
         return handler.handleToResponse(card);
@@ -115,31 +122,29 @@ public class CardQueryService {
     /**
      * Same per-type card fields as {@link #getById} (raw catalog codes - each
      * card type has its own frontend print template that already knows how to
-     * resolve them), plus the linked Form058 in its print-oriented shape
-     * ({@link Form058PdfMapper}) - every card's print form has a header with
-     * the patient's identity, address and workplace/school, none of which
-     * live on the card itself.
+     * resolve them), plus the linked notification in its print-oriented shape
+     * ({@link Form058PdfMapper} or {@link Form0581PdfMapper}, whichever the
+     * card is attached to) - every card's print form has a header with the
+     * patient's identity, address and workplace/school, none of which live
+     * on the card itself.
      */
     @Transactional(readOnly = true)
     public CardPdfResponse getPdf(Long id) {
-        Card card = cardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new CardNotFoundException(id));
-
-        if (card.isAttachedToForm0581()) {
-            // PDF export for form0581-owned cards isn't built yet — Form0581PdfMapper
-            // doesn't exist (see Card.java javadoc); left as a follow-up.
-            throw new CardValidationException("error.card.pdf-not-supported-for-form0581");
-        }
+        Card card = findVisible(id);
 
         CardTypeHandler<?, ?, ?> handler = handlerRegistry.get(card.getCardType());
         CardDetailResponse cardResponse = handler.handleToResponse(card);
+
+        if (card.isAttachedToForm0581()) {
+            return new CardPdfResponse(cardResponse, null, form0581PdfMapper.toPdfResponse(card.getForm0581()));
+        }
 
         CardFilterRequest linkedCardsFilter = new CardFilterRequest(
                 1, 200, null, null, card.getForm058().getId(), null, null, null, null, null
         );
         List<CardTableResponse> linkedCards = findTable(linkedCardsFilter).getContent();
 
-        return new CardPdfResponse(cardResponse, form058PdfMapper.toPdfResponse(card.getForm058(), linkedCards));
+        return new CardPdfResponse(cardResponse, form058PdfMapper.toPdfResponse(card.getForm058(), linkedCards), null);
     }
 
     private Long requireCurrentUserId() {

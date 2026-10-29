@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        db/legacy-migration/61-act-subtypes.sql wrote legacy act153/154/223 `tin`
+        as sampler_identifier_type = 'TIN'. That column is a CitizenLookupType
+        (NNUZB/PPN/CZ), so loading such an act failed («No enum constant ...TIN»),
+        and the value was never the sampler's document anyway: it is the
+        inspected organization's STIR, i.e. the subject block. Fold it into
+        act.tin (base value wins) and clear the sampler identifier. Idempotent.
+    -->
+    <changeSet id="20260930-1800-01-act-legacy-tin-to-subject" author="uzinfocom">
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE act a SET
+                tin          = coalesce(a.tin, x.v),
+                subject_type = coalesce(a.subject_type, 'LEGAL_ENTITY')
+            FROM (
+                SELECT id, sampler_identifier_value AS v FROM act153 WHERE sampler_identifier_type = 'TIN'
+                UNION ALL
+                SELECT id, sampler_identifier_value FROM act154 WHERE sampler_identifier_type = 'TIN'
+                UNION ALL
+                SELECT id, sampler_identifier_value FROM act223 WHERE sampler_identifier_type = 'TIN'
+            ) x
+            WHERE a.id = x.id;
+            UPDATE act153 SET sampler_identifier_type = NULL, sampler_identifier_value = NULL WHERE sampler_identifier_type = 'TIN';
+            UPDATE act154 SET sampler_identifier_type = NULL, sampler_identifier_value = NULL WHERE sampler_identifier_type = 'TIN';
+            UPDATE act223 SET sampler_identifier_type = NULL, sampler_identifier_value = NULL WHERE sampler_identifier_type = 'TIN';
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        60-act.sql copied legacy act.subject_type verbatim; anything outside
+        SubjectType likewise breaks entity loading. Null it out.
+    -->
+    <changeSet id="20260930-1800-02-act-unknown-subject-type-to-null" author="uzinfocom">
+        <sql>
+            UPDATE act SET subject_type = NULL
+            WHERE subject_type IS NOT NULL
+              AND subject_type NOT IN ('LEGAL_ENTITY', 'GEOGRAPHIC_POINT', 'PHYSICAL_PERSON');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

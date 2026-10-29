@@ -12,7 +12,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import uz.uzinfocom.app.platform.devmonitoring.security.DevUserDetailsService;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import uz.uzinfocom.app.platform.devpanel.security.CachingDevAuthenticationProvider;
+import uz.uzinfocom.app.platform.devpanel.security.DevPasswordChangeGuardFilter;
+import uz.uzinfocom.app.platform.devpanel.security.DevUserDetailsService;
+import uz.uzinfocom.app.platform.security.filter.PrincipalCaptureFilter;
 import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
 import uz.uzinfocom.app.platform.security.handler.JsonAuthenticationEntryPoint;
 
@@ -36,6 +40,8 @@ public class DevPanelSecurityConfig {
     private final DevUserDetailsService devUserDetailsService;
     private final JsonAuthenticationEntryPoint authenticationEntryPoint;
     private final JsonAccessDeniedHandler accessDeniedHandler;
+    private final PrincipalCaptureFilter principalCaptureFilter;
+    private final DevPasswordChangeGuardFilter devPasswordChangeGuardFilter;
 
     /**
      * Kept separate from {@code SecurityConfig.integrationClientPasswordEncoder} -
@@ -59,7 +65,7 @@ public class DevPanelSecurityConfig {
     @Order(1)
     public SecurityFilterChain devPanelSecurityFilterChain(
             HttpSecurity http,
-            DaoAuthenticationProvider devUserAuthenticationProvider
+            CachingDevAuthenticationProvider cachingDevAuthenticationProvider
     ) {
         http
                 .securityMatcher("/v1/dev/**")
@@ -67,9 +73,11 @@ public class DevPanelSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint))
-                .authenticationProvider(devUserAuthenticationProvider)
+                .authenticationProvider(cachingDevAuthenticationProvider)
                 .exceptionHandling(exceptions -> exceptions.accessDeniedHandler(accessDeniedHandler))
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+                .addFilterBefore(principalCaptureFilter, AuthorizationFilter.class)
+                .addFilterAfter(devPasswordChangeGuardFilter, AuthorizationFilter.class);
 
         return http.build();
     }

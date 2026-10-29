@@ -17,10 +17,10 @@ import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
-import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserMiniResponse;
-import uz.uzinfocom.app.platform.iam.application.user.query.mapper.UserMapperHelper;
-import uz.uzinfocom.app.platform.reference.application.lookup.mapper.ReferenceMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.user.query.dto.UserMiniResponse;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
+import uz.uzinfocom.app.modules.reference.application.lookup.mapper.ReferenceMappingHelper;
 
 import java.util.List;
 import java.util.Locale;
@@ -66,6 +66,7 @@ public class Form058PdfMapper {
         return new Form058PdfResponse(
                 form058.getId(),
                 form058.getUuid(),
+                form058.getCreatedAt(),
                 form058.getStatus(),
                 organizationMappingHelper.activeOrganizationNameById(form058.getSenderOrganizationId()),
                 organizationMappingHelper.activeOrganizationNameById(form058.getReceiverOrganizationId()),
@@ -84,7 +85,7 @@ public class Form058PdfMapper {
                 epidemicInfo == null ? null : epidemicInfo.getDiseaseCause(),
                 epidemicInfo == null ? null : epidemicInfo.getEpidemicMeasures(),
                 resolveNotifierFullName(form058, reportInfo),
-                resolveReceiverFullName(cards),
+                resolveReceiverFullName(form058, cards),
                 reportInfo == null ? null : reportInfo.getJournalFormCode(),
                 reportInfo == null ? null : reportInfo.getComment(),
                 form058DetailResponseMapper.toResponse(form058.getLocation())
@@ -92,25 +93,34 @@ public class Form058PdfMapper {
     }
 
     /**
-     * The person who created the form is treated as the notifier ("Xabar beruvchi") - the
-     * free-text {@code reportInfo.notifierFullName} the client submitted at creation time is
-     * only a fallback for the rare case where {@code createdBy} isn't recorded (e.g. a
-     * system-initiated record).
+     * The notifier ("Xabar beruvchi") is the name the client submitted at creation time
+     * ({@code reportInfo.notifierFullName}); the creating user's name is only a fallback for
+     * when that is blank.
      */
     private String resolveNotifierFullName(Form058 form058, Form058ReportInfo reportInfo) {
-        UserMiniResponse creator = userMapperHelper.toUserMiniResponse(form058.getCreatedBy());
-        if (creator != null && StringUtils.hasText(creator.fullName())) {
-            return creator.fullName();
+        if (reportInfo != null && StringUtils.hasText(reportInfo.getNotifierFullName())) {
+            return reportInfo.getNotifierFullName();
         }
-        return reportInfo == null ? null : reportInfo.getNotifierFullName();
+        UserMiniResponse creator = userMapperHelper.toUserMiniResponse(form058.getCreatedBy());
+        return creator == null ? null : creator.fullName();
     }
 
     /**
-     * The person who attached a card to the form is treated as having received it ("Xabarni
-     * qabul qilgan") - taken from whichever linked card was assigned first, since a single
-     * assignCards call attaches every requested card type to the same assignee(s) at once.
+     * The receiver's signature ("Xabarni qabul qilgan") is whoever called accept() on this
+     * form - recorded on {@code acceptInfo.acceptedBy}. Forms accepted before that field
+     * existed fall back to the old proxy: the person who attached a card to the form,
+     * taken from whichever linked card was assigned first, since a single assignCards call
+     * attaches every requested card type to the same assignee(s) at once.
      */
-    private String resolveReceiverFullName(List<CardTableResponse> cards) {
+    private String resolveReceiverFullName(Form058 form058, List<CardTableResponse> cards) {
+        Long acceptedBy = form058.getAcceptInfo() == null ? null : form058.getAcceptInfo().getAcceptedBy();
+        if (acceptedBy != null) {
+            UserMiniResponse acceptor = userMapperHelper.toUserMiniResponse(acceptedBy);
+            if (acceptor != null && StringUtils.hasText(acceptor.fullName())) {
+                return acceptor.fullName();
+            }
+        }
+
         if (cards == null) {
             return null;
         }

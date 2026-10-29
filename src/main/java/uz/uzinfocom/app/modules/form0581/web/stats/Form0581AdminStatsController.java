@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQueryService;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
-import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Icd10CountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581OrganizationCountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -81,15 +81,15 @@ public class Form0581AdminStatsController {
             description = "Возвращает наиболее часто встречающиеся коды диагноза по МКБ-10 по всем "
                     + "организациям сразу."
     )
-    @GetMapping(ApiPaths.Form0581AdminStats.TOP_MKB10)
+    @GetMapping(ApiPaths.Form0581AdminStats.TOP_ICD10)
     @PreAuthorize("@adminAccessGuard.isAdmin()")
-    public ApiResponse<List<Form0581Mkb10CountResponse>> topMkb10(
+    public ApiResponse<List<Form0581Icd10CountResponse>> topIcd10(
             @Parameter(description = "Максимальное количество кодов в ответе.")
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                form0581StatsQueryService.adminTopMkb10(limit)
+                form0581StatsQueryService.adminTopIcd10(limit)
         );
     }
 

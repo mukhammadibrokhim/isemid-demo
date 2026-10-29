@@ -32,14 +32,6 @@ public interface CardRepository extends JpaRepository<Card, Long>, JpaSpecificat
     /** Same as {@link #existsByForm058_IdAndDeleteInfoDeletedFalse}, for form0581-owned cards. */
     boolean existsByForm0581_IdAndDeleteInfoDeletedFalse(Long form0581Id);
 
-    @Query("""
-            SELECT c
-            FROM Card c
-            WHERE c.id = :id
-              AND c.deleteInfo.deleted = false
-            """)
-    Optional<Card> findByIdAndDeletedFalse(@Param("id") Long id);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT c

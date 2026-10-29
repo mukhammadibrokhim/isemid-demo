@@ -67,6 +67,24 @@ public class DynamicCircuitBreakerLookup {
         return resolve(configName + "-" + providerKey, configName);
     }
 
+    /**
+     * How long a breaker built from this config stays open before it lets
+     * trial calls through again - what a client rejected with a {@code
+     * CallNotPermittedException} is told to wait ({@code Retry-After}).
+     * resilience4j doesn't expose the time actually remaining, so this is the
+     * full wait duration: an upper bound, never too short.
+     */
+    public long retryAfterSeconds(String configName) {
+        AppliedThresholds current = applied.get(configName);
+        if (current != null) {
+            return Math.max(1, current.waitDurationInOpenStateSeconds());
+        }
+
+        return circuitBreakerRegistry.getConfiguration(configName)
+                .map(config -> Math.max(1, AppliedThresholds.from(config).waitDurationInOpenStateSeconds()))
+                .orElse(1L);
+    }
+
     private CircuitBreaker resolve(String instanceName, String configName) {
         refreshIfChanged(configName);
         return circuitBreakerRegistry.circuitBreaker(instanceName, configName);

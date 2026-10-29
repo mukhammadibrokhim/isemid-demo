@@ -53,7 +53,7 @@ public class PatientCaseController {
             @Parameter(description = "Значение документа, удостоверяющего личность пациента.", required = true)
             @RequestParam String identifierValue
     ) {
-        InboundCallerContext.requireScopeIfIntegrationClient(IntegrationScope.PATIENT_CASE_READ);
+        InboundCallerContext.requireScope(IntegrationScope.PATIENT_CASE_READ);
         InboundCallerContext.requireMatchingSourceKey(source);
 
         Long organizationId = InboundCallerContext.resolveSenderOrganizationId();

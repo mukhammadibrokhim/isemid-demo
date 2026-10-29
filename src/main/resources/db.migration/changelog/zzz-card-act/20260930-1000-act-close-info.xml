@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The LIS result no longer concludes the act by itself: the callback now
+        lands on RESULT_RECEIVED and the attached employee (the doctor) closes it
+        (RESULT_RECEIVED -> COMPLETED) after reviewing the result. Who/when is
+        kept here. Existing COMPLETED rows stay as they are, with both NULL.
+        act_status is a free VARCHAR(32) (no check constraint since
+        20260723-1200-drop-stale-act-status-check), so the new status needs no DDL.
+    -->
+    <changeSet id="20260930-1000-01-act-close-info" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act" columnName="closed_at"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act">
+            <column name="closed_by_id" type="BIGINT"/>
+            <column name="closed_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

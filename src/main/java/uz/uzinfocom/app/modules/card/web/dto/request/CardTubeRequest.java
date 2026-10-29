@@ -22,10 +22,10 @@ public record CardTubeRequest(
         @Size(max = 64) String dispensaryId,
 
         @Schema(description = "Код диагноза по МКБ-10.")
-        @Size(max = 64) String mkb10Code,
+        @Size(max = 64) String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        @Size(max = 500) String mkb10Name,
+        @Size(max = 500) String icd10Name,
 
         @Schema(description = "Дата первого обнаружения микобактерий туберкулёза (МБТ).")
         LocalDate firstMBDate,
@@ -67,10 +67,10 @@ public record CardTubeRequest(
         @Size(max = 255) String dispensaryGroup,
 
         @Schema(description = "Код сопутствующего диагноза диспансерной группы по МКБ-10.")
-        @Size(max = 64) String dgMkb10Code,
+        @Size(max = 64) String dgIcd10Code,
 
         @Schema(description = "Наименование сопутствующего диагноза диспансерной группы по МКБ-10.")
-        @Size(max = 500) String dgMkb10Name,
+        @Size(max = 500) String dgIcd10Name,
 
         @Schema(description = "Даты профилактических осмотров за последние 2 года.")
         List<LocalDate> last2YearsCheckupDates,

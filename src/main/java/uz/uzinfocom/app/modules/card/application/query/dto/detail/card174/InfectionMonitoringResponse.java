@@ -12,6 +12,9 @@ public record InfectionMonitoringResponse(
         @Schema(description = "Порядковый номер записи в списке.")
         Integer sequentialNumber,
 
+        @Schema(description = "ПИНФЛ пострадавшего (14 цифр).")
+        String pinfl,
+
         @Schema(description = "Фамилия пострадавшего.")
         String lastName,
 
@@ -38,6 +41,9 @@ public record InfectionMonitoringResponse(
 
         @Schema(description = "Дата подтверждения диагноза.")
         LocalDate confirmationDate,
+
+        @Schema(description = "Дата заражения данной инфекцией контактным путём.")
+        LocalDate contactInfectionDate,
 
         @Schema(description = "Предполагаемое место заражения.")
         String possibleInfectionLocation,

@@ -2,10 +2,13 @@ package uz.uzinfocom.app.modules.card.application.command;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.exception.InvalidCardStatusException;
+import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.CardDetailResponse;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
@@ -16,6 +19,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card161.Card161;
 import uz.uzinfocom.app.modules.card.domain.model.card175.Card175;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card175.Card175MapperImpl;
 import uz.uzinfocom.app.modules.card.application.handler.card175.Card175Handler;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card175Request;
@@ -23,8 +27,12 @@ import uz.uzinfocom.app.modules.card.web.dto.request.ReassignCardUsersRequest;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -55,7 +64,9 @@ class CardCommandServiceStatusTransitionTest {
     private UserRepository userRepository;
     private CardTypeHandlerRegistry handlerRegistry;
     private CurrentUserProvider currentUserProvider;
+    private ApplicationEventPublisher eventPublisher;
     private CardCommandService service;
+    private AdminAccessGuard adminAccessGuard;
 
     @BeforeEach
     void setUp() {
@@ -65,12 +76,18 @@ class CardCommandServiceStatusTransitionTest {
         Form0581JpaRepository form0581Repository = mock(Form0581JpaRepository.class);
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        adminAccessGuard = mock(AdminAccessGuard.class);
+        FormAccessScopeResolver formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
         service = new CardCommandService(
-                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry, currentUserProvider
+                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
+                currentUserProvider, eventPublisher, adminAccessGuard, formAccessScopeResolver
         );
 
         when(cardRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        // complete() asks the type handler for its completion rules — none for these tests.
+        doReturn(mock(CardTypeHandler.class)).when(handlerRegistry).get(any());
         // Other cards still exist for the form, so delete() never needs to
         // touch form058Repository (kept out of scope for these tests).
         when(cardRepository.existsByForm058_IdAndDeleteInfoDeletedFalse(any())).thenReturn(true);
@@ -78,13 +95,22 @@ class CardCommandServiceStatusTransitionTest {
 
     @Test
     void acceptByUserSucceedsForAttachedUserOnNewCard() {
-        Card card = cardWith(CardStatus.NEW, attachedUserId(ATTACHED_USER_ID), null);
+        Card card = cardWith(CardStatus.NEW, attachedUserId(ATTACHED_USER_ID), SUPERVISOR_ID);
         givenCard(card);
         when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
         service.acceptByUser(CARD_ID);
 
         assertThat(card.getStatus()).isEqualTo(CardStatus.ACCEPTED_BY_USER);
+
+        ArgumentCaptor<StatusChangedEvent> captor = ArgumentCaptor.forClass(StatusChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        StatusChangedEvent event = captor.getValue();
+        assertThat(event.entityType()).isEqualTo(AuditEntityType.CARD);
+        assertThat(event.entityId()).isEqualTo(CARD_ID);
+        assertThat(event.oldStatus()).isEqualTo("NEW");
+        assertThat(event.newStatus()).isEqualTo("ACCEPTED_BY_USER");
+        assertThat(event.actorUserId()).isEqualTo(ATTACHED_USER_ID);
     }
 
     @Test
@@ -109,7 +135,7 @@ class CardCommandServiceStatusTransitionTest {
 
     @Test
     void rejectByUserSetsCommentAndStatus() {
-        Card card = cardWith(CardStatus.ACCEPTED_BY_USER, attachedUserId(ATTACHED_USER_ID), null);
+        Card card = cardWith(CardStatus.ACCEPTED_BY_USER, attachedUserId(ATTACHED_USER_ID), SUPERVISOR_ID);
         givenCard(card);
         when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
@@ -117,6 +143,12 @@ class CardCommandServiceStatusTransitionTest {
 
         assertThat(card.getStatus()).isEqualTo(CardStatus.REJECTED_BY_USER);
         assertThat(card.getAttachedUserComment()).isEqualTo("Wrong data");
+
+        ArgumentCaptor<StatusChangedEvent> captor = ArgumentCaptor.forClass(StatusChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        StatusChangedEvent event = captor.getValue();
+        assertThat(event.oldStatus()).isEqualTo("ACCEPTED_BY_USER");
+        assertThat(event.newStatus()).isEqualTo("REJECTED_BY_USER");
     }
 
     @Test
@@ -141,7 +173,7 @@ class CardCommandServiceStatusTransitionTest {
 
     @Test
     void completeSetsCompletedDateAndStatus() {
-        Card card = cardWith(CardStatus.ACCEPTED_BY_USER, attachedUserId(ATTACHED_USER_ID), null);
+        Card card = cardWith(CardStatus.ACCEPTED_BY_USER, attachedUserId(ATTACHED_USER_ID), SUPERVISOR_ID);
         givenCard(card);
         when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
 
@@ -149,6 +181,12 @@ class CardCommandServiceStatusTransitionTest {
 
         assertThat(card.getStatus()).isEqualTo(CardStatus.COMPLETED);
         assertThat(card.getCompletedDate()).isNotNull();
+
+        ArgumentCaptor<StatusChangedEvent> captor = ArgumentCaptor.forClass(StatusChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        StatusChangedEvent event = captor.getValue();
+        assertThat(event.oldStatus()).isEqualTo("ACCEPTED_BY_USER");
+        assertThat(event.newStatus()).isEqualTo("COMPLETED");
     }
 
     @Test
@@ -180,6 +218,13 @@ class CardCommandServiceStatusTransitionTest {
         service.approveBySupervisor(CARD_ID);
 
         assertThat(card.getStatus()).isEqualTo(CardStatus.APPROVED);
+
+        ArgumentCaptor<StatusChangedEvent> captor = ArgumentCaptor.forClass(StatusChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        StatusChangedEvent event = captor.getValue();
+        assertThat(event.oldStatus()).isEqualTo("COMPLETED");
+        assertThat(event.newStatus()).isEqualTo("APPROVED");
+        assertThat(event.actorUserId()).isEqualTo(SUPERVISOR_ID);
     }
 
     @Test
@@ -190,6 +235,18 @@ class CardCommandServiceStatusTransitionTest {
 
         assertThatThrownBy(() -> service.approveBySupervisor(CARD_ID))
                 .isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
+    void approveBySupervisorSucceedsForSuperAdminEvenWhenNotTheAssignedSupervisor() {
+        Card card = cardWith(CardStatus.COMPLETED, Set.of(), SUPERVISOR_ID);
+        givenCard(card);
+        when(currentUserProvider.userIdOrNull()).thenReturn(999L);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
+
+        service.approveBySupervisor(CARD_ID);
+
+        assertThat(card.getStatus()).isEqualTo(CardStatus.APPROVED);
     }
 
     @Test
@@ -222,6 +279,12 @@ class CardCommandServiceStatusTransitionTest {
 
         assertThat(card.getStatus()).isEqualTo(CardStatus.REJECTED);
         assertThat(card.getSupervisorComment()).isEqualTo("Incomplete investigation");
+
+        ArgumentCaptor<StatusChangedEvent> captor = ArgumentCaptor.forClass(StatusChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        StatusChangedEvent event = captor.getValue();
+        assertThat(event.oldStatus()).isEqualTo("COMPLETED");
+        assertThat(event.newStatus()).isEqualTo("REJECTED");
     }
 
     @Test
@@ -310,6 +373,9 @@ class CardCommandServiceStatusTransitionTest {
         when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
         Card175MapperImpl card175Mapper = new Card175MapperImpl();
         ReflectionTestUtils.setField(card175Mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        ReflectionTestUtils.setField(card175Mapper, "cardFormMapperHelper", new CardFormMapperHelper(
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper.class),
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService.class)));
         doReturn(new Card175Handler(card175Mapper)).when(handlerRegistry).get(CardType.CARD175);
 
         CardDetailResponse response = service.update(CARD_ID, blankCard175Request());
@@ -414,6 +480,7 @@ class CardCommandServiceStatusTransitionTest {
 
     private Card cardWith(CardStatus status, Set<User> users, Long assignedById) {
         Card161 card = new Card161();
+        card.setId(CARD_ID);
         card.setStatus(status);
         card.setUsers(users);
         card.setAssignedById(assignedById);

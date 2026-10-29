@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Two list-view fields promoted onto the base `act` table:
+
+        - `subject` is new: the one free-text "what is this act about" field
+          every act type (act153/154/156/223/224) has. The registry row and
+          other list views need it to say which case an act belongs to.
+
+        - `act_number` already existed as a BIGINT on act153/act154/act223
+          (never on act156/act224). Moved to the base table so list views can
+          show/search it without a per-subtype join. Values are backfilled
+          from the subtype tables (JOINED inheritance => subtype PK == base
+          PK), then the subtype columns are dropped.
+    -->
+    <changeSet id="20260902-1200-01-add-act-subject" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act" columnName="subject"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act">
+            <column name="subject" type="VARCHAR(500)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260902-1200-02-add-act-base-number" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act" columnName="act_number"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act">
+            <column name="act_number" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260902-1200-03-backfill-act-base-number" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <columnExists tableName="act" columnName="act_number"/>
+                <columnExists tableName="act153" columnName="act_number"/>
+            </and>
+        </preConditions>
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE act a SET act_number = s.act_number
+            FROM act153 s WHERE s.id = a.id AND s.act_number IS NOT NULL;
+
+            UPDATE act a SET act_number = s.act_number
+            FROM act154 s WHERE s.id = a.id AND s.act_number IS NOT NULL;
+
+            UPDATE act a SET act_number = s.act_number
+            FROM act223 s WHERE s.id = a.id AND s.act_number IS NOT NULL;
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="20260902-1200-04-drop-act153-number" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act153" columnName="act_number"/>
+        </preConditions>
+        <dropColumn tableName="act153" columnName="act_number"/>
+    </changeSet>
+
+    <changeSet id="20260902-1200-05-drop-act154-number" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act154" columnName="act_number"/>
+        </preConditions>
+        <dropColumn tableName="act154" columnName="act_number"/>
+    </changeSet>
+
+    <changeSet id="20260902-1200-06-drop-act223-number" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act223" columnName="act_number"/>
+        </preConditions>
+        <dropColumn tableName="act223" columnName="act_number"/>
+    </changeSet>
+
+</databaseChangeLog>

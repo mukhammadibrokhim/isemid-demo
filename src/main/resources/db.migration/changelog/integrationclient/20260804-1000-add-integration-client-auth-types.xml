@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Every existing client predates auth_type and was provisioned through the
+        client-credentials flow, so backfilling CLIENT_CREDENTIALS before the
+        NOT NULL constraint keeps them working unchanged. client_secret_hash
+        drops its NOT NULL because it's now populated only for that auth type -
+        API_KEY/BASIC_AUTH/IP_ALLOWLIST clients use api_key_hash/
+        basic_auth_secret_hash/allowed_ips instead.
+    -->
+    <changeSet id="20260804-1000-01-add-integration-client-auth-type" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="auth_type" type="VARCHAR(32)"/>
+        </addColumn>
+        <update tableName="integration_client">
+            <column name="auth_type" value="CLIENT_CREDENTIALS"/>
+        </update>
+        <addNotNullConstraint tableName="integration_client" columnName="auth_type" columnDataType="VARCHAR(32)"/>
+    </changeSet>
+
+    <changeSet id="20260804-1000-02-add-integration-client-api-key-hash" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="api_key_hash" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260804-1000-03-add-integration-client-basic-auth-secret-hash" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="basic_auth_secret_hash" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260804-1000-04-relax-integration-client-secret-hash-not-null" author="codex">
+        <dropNotNullConstraint tableName="integration_client" columnName="client_secret_hash" columnDataType="VARCHAR(255)"/>
+    </changeSet>
+</databaseChangeLog>

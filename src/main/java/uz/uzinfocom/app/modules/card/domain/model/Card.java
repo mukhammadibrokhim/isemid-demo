@@ -1,23 +1,6 @@
 package uz.uzinfocom.app.modules.card.domain.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.Index;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,14 +11,13 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.embedded.CardDeleteInfo;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
-import uz.uzinfocom.app.platform.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.platform.audit.domain.AuditFieldReflector;
+import uz.uzinfocom.app.platform.audit.domain.AuditableFields;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Base type for the five epidemiological card types (JOINED inheritance — each
@@ -80,7 +62,7 @@ import java.util.Set;
 )
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class Card extends AbsEntity {
+public abstract class Card extends AbsEntity implements AuditableFields {
 
     @Setter(AccessLevel.NONE)
     @Enumerated(EnumType.STRING)
@@ -182,5 +164,20 @@ public abstract class Card extends AbsEntity {
         if (this.deleteInfo == null) {
             this.deleteInfo = new CardDeleteInfo();
         }
+    }
+
+    /**
+     * Delegates to {@link AuditFieldReflector} rather than hand-listing
+     * fields: each of the 5 subtypes (Card161/174/175/205/CardTube) has
+     * dozens of its own scalar columns, and a hand-written list would drift
+     * out of sync as those evolve. The reflector already excludes
+     * collections/child lists and entity-typed associations (e.g.
+     * {@link #form058}, {@link #acts}, {@code Card161.polyclinic}) by their
+     * declared type, and stops at {@link AbsEntity} so version/updatedAt/etc.
+     * never pollute the diff.
+     */
+    @Override
+    public Map<String, Object> auditFields() {
+        return AuditFieldReflector.reflect(this, AbsEntity.class);
     }
 }

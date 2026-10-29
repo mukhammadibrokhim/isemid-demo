@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Outbound webhook config for an IntegrationClient - one client, one callback
+        target. All additive/nullable, no backfill: every existing client simply has
+        webhook_active=false until an admin opts it in via PUT .../webhook.
+    -->
+    <changeSet id="20260805-1000-01-add-integration-client-webhook-config" author="codex">
+        <addColumn tableName="integration_client">
+            <column name="webhook_callback_url" type="VARCHAR(500)"/>
+            <column name="webhook_http_method" type="VARCHAR(10)"/>
+            <column name="webhook_auth_type" type="VARCHAR(32)"/>
+            <column name="webhook_auth_username" type="VARCHAR(255)"/>
+            <column name="webhook_auth_header_name" type="VARCHAR(100)"/>
+            <column name="webhook_auth_secret_encrypted" type="VARCHAR(1000)"/>
+            <column name="webhook_active" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

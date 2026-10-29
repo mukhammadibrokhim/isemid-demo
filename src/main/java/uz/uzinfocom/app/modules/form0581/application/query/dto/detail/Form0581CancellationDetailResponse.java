@@ -4,18 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 
-@Schema(description = "Сведения об аннулировании/отклонении утверждения формы №058-1.")
+@Schema(description = "Сведения об аннулировании формы №058-1 (отправителем) или отклонении её приёма (получателем) — используют одно и то же поле причины.")
 public record Form0581CancellationDetailResponse(
-        @Schema(description = "Причина аннулирования формы.")
+        @Schema(description = "Причина аннулирования/отклонения формы.")
         String cancelReason,
 
-        @Schema(description = "Идентификатор пользователя, аннулировавшего форму.")
+        @Schema(description = "Идентификатор пользователя, закрывшего форму.")
         Long canceledBy,
 
-        @Schema(description = "Дата и время аннулирования формы.")
-        Instant canceledAt,
-
-        @Schema(description = "Причина отклонения утверждения формы.")
-        String notApprovedReason
+        @Schema(description = "Дата и время аннулирования/отклонения формы.")
+        Instant canceledAt
 ) {
 }

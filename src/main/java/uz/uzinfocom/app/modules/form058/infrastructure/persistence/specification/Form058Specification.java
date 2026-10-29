@@ -5,13 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.form058.application.query.Form058AffiliatedFilter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058Filter;
+import uz.uzinfocom.app.modules.form058.application.query.Form058FilterFields;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
-import uz.uzinfocom.app.platform.scope.ResolvedOrganizationScope;
-import uz.uzinfocom.app.platform.scope.jpa.CaseSpecificationSupport;
-import uz.uzinfocom.app.platform.scope.jpa.SenderReceiverScopePredicateFactory;
+import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.CaseSpecificationSupport;
+import uz.uzinfocom.app.orchestration.scope.jpa.SenderReceiverScopePredicateFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +33,7 @@ public class Form058Specification {
     private static final String HAS_LINKED_CARDS = "hasLinkedCards";
 
     private static final String DIAGNOSIS_INFO = "diagnosisInfo";
-    private static final String MKB10_CODE = "mkb10Code";
+    private static final String ICD10_CODE = "icd10Code";
 
     private static final String SENDER_ORGANIZATION_ID = "senderOrganizationId";
     private static final String RECEIVER_ORGANIZATION_ID = "receiverOrganizationId";
@@ -52,7 +54,8 @@ public class Form058Specification {
             predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
             predicates.add(accessScopePredicate(root, query, cb, filter, scope, received));
 
-            applyFilters(predicates, root, query, cb, filter, received);
+            applyFilters(predicates, root, query, cb, filter);
+            applySenderReceiverFilters(predicates, root, cb, filter, received);
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
@@ -78,7 +81,36 @@ public class Form058Specification {
                 predicates.add(patientAffiliationExists(root, query, cb, scope.organizationId()));
             }
 
-            applyFilters(predicates, root, query, cb, filter, null);
+            applyFilters(predicates, root, query, cb, filter);
+            applySenderReceiverFilters(predicates, root, cb, filter, null);
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    /**
+     * {@code GET /v1/form-058/affiliated} - forms visible to {@code
+     * organizationId} solely because the patient's workplace or place of
+     * study is that organization, independent of sender/receiver. Unlike
+     * {@link #table}/{@link #tableUnscoped}, the affiliation predicate here
+     * is unconditional (this specification exists only for that mode), and
+     * {@code organizationId}/region-district filtering — both meaningless
+     * once access isn't sender/receiver-scoped — simply aren't offered by
+     * {@link Form058AffiliatedFilter} in the first place.
+     */
+    public Specification<Form058> affiliatedTable(
+            Form058AffiliatedFilter filter,
+            Long organizationId
+    ) {
+        return (root, query, cb) -> {
+            fetchPatientForTableQuery(root, query);
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.isFalse(root.get("deleteInfo").get(DELETED)));
+            predicates.add(patientAffiliationExists(root, query, cb, organizationId));
+
+            applyFilters(predicates, root, query, cb, filter);
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
@@ -180,13 +212,16 @@ public class Form058Specification {
         return scopePredicateFactory.applyDirectionScope(root, cb, scope, received);
     }
 
+    /**
+     * Common part shared by every Form058 listing, regardless of how its
+     * access scope is determined — see {@link Form058FilterFields}.
+     */
     private void applyFilters(
             List<Predicate> predicates,
             Root<Form058> root,
             CriteriaQuery<?> query,
             CriteriaBuilder cb,
-            Form058Filter filter,
-            Boolean received
+            Form058FilterFields filter
     ) {
         if (filter == null) {
             return;
@@ -217,8 +252,34 @@ public class Form058Specification {
             predicates.add(cb.equal(root.get(STATUS), filter.status()));
         }
 
-        if (StringUtils.hasText(filter.mkb10Code())) {
-            predicates.add(cb.equal(root.get(DIAGNOSIS_INFO).get(MKB10_CODE), normalizeCode(filter.mkb10Code())));
+        if (StringUtils.hasText(filter.icd10Code())) {
+            predicates.add(cb.equal(root.get(DIAGNOSIS_INFO).get(ICD10_CODE), normalizeCode(filter.icd10Code())));
+        }
+
+        if (StringUtils.hasText(filter.source())) {
+            predicates.add(cb.equal(root.get(SOURCE), normalizeCode(filter.source())));
+        }
+
+        if (filter.hasLinkedCards() != null) {
+            predicates.add(cb.equal(root.get(HAS_LINKED_CARDS), filter.hasLinkedCards()));
+        }
+    }
+
+    /**
+     * {@code organizationId}/region-district filtering — both mean "sender
+     * or receiver", so they only apply to the direction-scoped listings
+     * ({@link #table}/{@link #tableUnscoped}), never to {@link
+     * #affiliatedTable}.
+     */
+    private void applySenderReceiverFilters(
+            List<Predicate> predicates,
+            Root<Form058> root,
+            CriteriaBuilder cb,
+            Form058Filter filter,
+            Boolean received
+    ) {
+        if (filter == null) {
+            return;
         }
 
         if (filter.organizationId() != null) {
@@ -232,14 +293,6 @@ public class Form058Specification {
                     root, cb, received, SENDER_ORGANIZATION_ID, RECEIVER_ORGANIZATION_ID,
                     filter.regionCode(), filter.districtCode()
             ));
-        }
-
-        if (StringUtils.hasText(filter.source())) {
-            predicates.add(cb.equal(root.get(SOURCE), normalizeCode(filter.source())));
-        }
-
-        if (filter.hasLinkedCards() != null) {
-            predicates.add(cb.equal(root.get(HAS_LINKED_CARDS), filter.hasLinkedCards()));
         }
     }
 

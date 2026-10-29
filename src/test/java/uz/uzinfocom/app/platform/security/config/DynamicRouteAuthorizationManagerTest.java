@@ -7,7 +7,7 @@ import org.springframework.security.authorization.AuthorizationResult;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
-import uz.uzinfocom.app.platform.security.route.RequestPolicy;
+import uz.uzinfocom.app.platform.settings.application.RequestPolicy;
 import uz.uzinfocom.app.platform.settings.application.RouteAccessPolicyResolver;
 
 import static org.assertj.core.api.Assertions.assertThat;

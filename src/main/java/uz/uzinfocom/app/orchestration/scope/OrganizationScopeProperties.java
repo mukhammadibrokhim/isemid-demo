@@ -1,0 +1,15 @@
+package uz.uzinfocom.app.orchestration.scope;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Getter
+@Setter
+@Component
+@ConfigurationProperties(prefix = "app.scope")
+public class OrganizationScopeProperties {
+
+    private String tashkentRegionCode = "UZ-TK";
+}

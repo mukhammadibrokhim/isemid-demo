@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Patient.normalizeNames() (@PrePersist/@PreUpdate) now stores
+        first/last/middle name trimmed and upper-cased on every save path
+        (manual entry, inbound integrations, API2). This brings rows saved
+        before that change in line. Only rows that actually differ are
+        touched, so a re-run is a no-op.
+    -->
+    <changeSet id="20260923-1000-01-uppercase-patient-names" author="claude">
+        <sql>
+            UPDATE patient
+               SET first_name  = upper(btrim(first_name)),
+                   last_name   = upper(btrim(last_name)),
+                   middle_name = upper(btrim(middle_name))
+             WHERE first_name  IS DISTINCT FROM upper(btrim(first_name))
+                OR last_name   IS DISTINCT FROM upper(btrim(last_name))
+                OR middle_name IS DISTINCT FROM upper(btrim(middle_name));
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

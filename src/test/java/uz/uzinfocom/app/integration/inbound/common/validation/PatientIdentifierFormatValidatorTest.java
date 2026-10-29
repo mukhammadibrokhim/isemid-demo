@@ -3,7 +3,6 @@ package uz.uzinfocom.app.integration.inbound.common.validation;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.integration.inbound.common.exception.InboundValidationException;
 import uz.uzinfocom.app.modules.patient.web.request.CreatePatientIdentifierRequest;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
 
 import java.util.List;
 
@@ -86,13 +85,7 @@ class PatientIdentifierFormatValidatorTest {
                 .doesNotThrowAnyException();
     }
 
-    private PatientRequest patientWithIdentifier(String type, String value) {
-        return new PatientRequest(
-                "First", "Last", null, null, null, null,
-                null, null, null, null, null, null, null,
-                List.of(new CreatePatientIdentifierRequest(type, value, null, null)),
-                List.of(),
-                List.of()
-        );
+    private List<CreatePatientIdentifierRequest> patientWithIdentifier(String type, String value) {
+        return List.of(new CreatePatientIdentifierRequest(type, value, null, null));
     }
 }

@@ -8,6 +8,9 @@ public record Form058ClinicalDetailResponse(
         Boolean labConfirmation,
 
         @Schema(description = "Идентификатор места госпитализации.")
-        Long hospitalPlaceId
+        Long hospitalPlaceId,
+
+        @Schema(description = "Наименование места госпитализации на языке запроса.")
+        String hospitalPlaceName
 ) {
 }

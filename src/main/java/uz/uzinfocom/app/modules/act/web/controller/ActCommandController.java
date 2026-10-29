@@ -51,7 +51,7 @@ public class ActCommandController {
                     + "после сохранения."
     )
     @PutMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
     public ApiResponse<ActDetailResponse> update(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -67,7 +67,7 @@ public class ActCommandController {
                     + "не удалась и ничего исправлять не требуется) в READY — подготовка к отправке в LIS."
     )
     @PatchMapping(ApiPaths.Act.READY)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
     public ApiResponse<Void> markReady(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -84,7 +84,7 @@ public class ActCommandController {
                     + "отправить повторно."
     )
     @PostMapping(ApiPaths.Act.SEND_TO_LIS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
     public ApiResponse<Void> sendToLis(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -95,12 +95,32 @@ public class ActCommandController {
     }
 
     @Operation(
+            summary = "Закрыть акт",
+            description = "Прикреплённый сотрудник (врач) просмотрел результат LIS и принимает его: переводит акт "
+                    + "из RESULT_RECEIVED в COMPLETED, фиксирует кто и когда закрыл. После этого акт "
+                    + "окончательный. Если врач не согласен с результатом — акт не закрывают, а "
+                    + "исправляют/отправляют в LIS повторно (там он создаётся как новая заявка)."
+    )
+    @PatchMapping(ApiPaths.Act.CLOSE)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
+    public ApiResponse<Void> close(
+            @Parameter(description = "Идентификатор акта.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        actCommandService.close(id);
+        return ApiResponse.success(messageResolver.resolve("common.updated"));
+    }
+
+    @Operation(
             summary = "Приём ответа от LIS",
             description = "Callback-эндпоинт, на который LIS отправляет результат обработки акта — тот же "
                     + "адрес, что был передан LIS в поле redirectUrl при отправке акта. Аутентифицируется так "
                     + "же, как остальной API (SSO), отдельного механизма для LIS не заводится. Переводит акт "
-                    + "из SENT в COMPLETED и сохраняет ответ целиком в формате JSON."
+                    + "из SENT в RESULT_RECEIVED (результат ждёт проверки врачом) или RETURNED_BY_LIS "
+                    + "(возврат на доработку) и сохраняет ответ целиком в формате JSON."
     )
+    // LIS itself calls this back (with an SSO bearer token) — it is not a
+    // human with ATTACH_ACT, so this stays isAuthenticated() only.
     @PostMapping(ApiPaths.Act.LIS_CALLBACK)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> receiveLisResponse(
@@ -133,7 +153,7 @@ public class ActCommandController {
                     + "READY, SEND_FAILED). Это мягкое удаление — запись остаётся в базе с отметкой об удалении."
     )
     @DeleteMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_DELETE')")
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
