@@ -85,7 +85,7 @@ class UserQueryServiceAccessTest {
 
         UserDetailedResponse response = service.getRequiredById(TARGET_ID);
 
-        assertThat(response.nnuzb()).isEqualTo("**********0123");
+        assertThat(response.nnuzb()).isEqualTo("312********123");
     }
 
     @Test

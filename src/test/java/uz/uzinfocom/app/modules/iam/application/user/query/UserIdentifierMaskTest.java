@@ -7,13 +7,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserIdentifierMaskTest {
 
     @Test
-    void keepsOnlyLastFourCharacters() {
-        assertThat(UserIdentifierMask.mask("31234567890123")).isEqualTo("**********0123");
+    void keepsFirstThreeAndLastThreeCharacters() {
+        assertThat(UserIdentifierMask.mask("31234567890123")).isEqualTo("312********123");
     }
 
     @Test
     void hidesShortValuesCompletely() {
-        assertThat(UserIdentifierMask.mask("1234")).isEqualTo("****");
+        assertThat(UserIdentifierMask.mask("123456")).isEqualTo("******");
         assertThat(UserIdentifierMask.mask("12")).isEqualTo("**");
     }
 
