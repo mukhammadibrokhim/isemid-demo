@@ -232,7 +232,6 @@
         -->
         <validCheckSum>9:e49de3e1fe043e2f21459b283feedd0d</validCheckSum>
         <validCheckSum>9:be55207ff7db1f051d3659f19335e94b</validCheckSum>
-        <validCheckSum>ANY</validCheckSum>
 
         <preConditions onFail="MARK_RAN" onError="HALT">
             <dbms type="postgresql"/>
@@ -260,8 +259,6 @@
             <column header="name_ru" name="name_ru" type="STRING"/>
             <column header="name_kaa" name="name_kaa" type="STRING"/>
             <column header="deleted" name="deleted" type="BOOLEAN"/>
-            <!-- ref_neighborhood.tin keyinroq (20260801-1230) qo'shiladi: bu yerda yuklanmaydi -->
-            <column header="tin" name="tin" type="skip"/>
 
         </loadData>
 
