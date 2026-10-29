@@ -29,7 +29,6 @@ public class UserMapperHelper {
         return new UserMiniResponse(
                 user.getId(),
                 user.getUuid(),
-                user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getMiddleName(),

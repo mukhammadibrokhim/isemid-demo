@@ -74,7 +74,6 @@ public class AuditQueryService {
                 entity.getEntityType(),
                 entity.getEntityId(),
                 entity.getActorUserId(),
-                actor == null ? null : actor.getUsername(),
                 actor == null ? null : actor.getFullName(),
                 entity.getReason(),
                 resolveChanges(entity),

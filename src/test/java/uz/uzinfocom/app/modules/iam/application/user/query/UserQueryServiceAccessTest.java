@@ -126,7 +126,7 @@ class UserQueryServiceAccessTest {
 
     private static UserDetailedResponse detail(String nnuzb) {
         return new UserDetailedResponse(
-                TARGET_ID, UUID.randomUUID(), "user", true, "Ali", "Valiyev", null, nnuzb, null,
+                TARGET_ID, UUID.randomUUID(), true, "Ali", "Valiyev", null, nnuzb, null,
                 null, null, null, null, null, null, null, null
         );
     }

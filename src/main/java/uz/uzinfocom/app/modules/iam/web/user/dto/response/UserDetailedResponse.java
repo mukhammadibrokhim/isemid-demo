@@ -21,9 +21,6 @@ public record UserDetailedResponse(
         )
         UUID uuid,
 
-        @Schema(description = "Имя пользователя или логин.", example = "user.login")
-        String username,
-
         @Schema(description = "Признак активности пользователя.", example = "true")
         Boolean active,
 
@@ -69,7 +66,7 @@ public record UserDetailedResponse(
 
     public UserDetailedResponse withNnuzb(String newNnuzb) {
         return new UserDetailedResponse(
-                id, uuid, username, active, firstName, lastName, middleName, newNnuzb, birthDate,
+                id, uuid, active, firstName, lastName, middleName, newNnuzb, birthDate,
                 phoneNumber, regionCode, districtCode, line, genderCode, audit, organizations, roles
         );
     }

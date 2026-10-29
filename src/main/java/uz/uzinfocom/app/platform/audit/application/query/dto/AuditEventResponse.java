@@ -12,7 +12,6 @@ public record AuditEventResponse(
         AuditEntityType entityType,
         Long entityId,
         Long actorUserId,
-        String actorUsername,
         String actorFullName,
         String reason,
         Map<String, Object> changes,
