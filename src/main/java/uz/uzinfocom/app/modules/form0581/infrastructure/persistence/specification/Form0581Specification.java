@@ -103,12 +103,25 @@ public class Form0581Specification {
         };
     }
 
+    /**
+     * A form is openable by id if the caller's organization is its sender or
+     * receiver, or - matching what the affiliated listing shows - the
+     * patient is affiliated with the caller's organization. Without the
+     * affiliation branch a row shown in the affiliated listing 404s when
+     * opened.
+     */
     public Specification<Form0581> visibleById(
             Long id,
             ResolvedOrganizationScope scope
     ) {
-        return visible(scope)
-                .and((root, query, cb) -> cb.equal(root.get(ID), id));
+        return (root, query, cb) -> cb.and(
+                cb.isFalse(root.get("deleteInfo").get(DELETED)),
+                cb.equal(root.get(ID), id),
+                cb.or(
+                        scopePredicateFactory.applyDirectionScope(root, cb, scope, null),
+                        patientAffiliationExists(root, query, cb, scope.organizationId())
+                )
+        );
     }
 
     public Specification<Form0581> visibleByDocumentValue(
