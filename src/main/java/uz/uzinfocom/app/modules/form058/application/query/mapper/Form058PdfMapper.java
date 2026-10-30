@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.form058.application.query.mapper;
 
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.platform.security.mask.SensitiveIdentifierMasker;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardTableResponse;
@@ -51,6 +52,7 @@ public class Form058PdfMapper {
     private final ReferenceMappingHelper referenceMappingHelper;
     private final OrganizationMappingHelper organizationMappingHelper;
     private final UserMapperHelper userMapperHelper;
+    private final SensitiveIdentifierMasker identifierMasker;
 
     /**
      * {@code cards} is the same list already fetched for the linked-cards section of the
@@ -210,7 +212,7 @@ public class Form058PdfMapper {
         return patient.getIdentifiers().stream()
                 .filter(identifier -> identifier.getTypeCode() != null
                         && acceptedTypeCodes.contains(identifier.getTypeCode().toUpperCase(Locale.ROOT)))
-                .map(PatientIdentifier::getValue)
+                .map(identifier -> identifierMasker.mask(identifier.getTypeCode(), identifier.getValue()))
                 .findFirst()
                 .orElse(null);
     }

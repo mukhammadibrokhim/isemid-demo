@@ -61,7 +61,17 @@ public class UserQueryService {
                 ), "User table page return null!"
         );
 
-        return page.map(userQueryMapper::toTableResponse);
+        boolean superAdmin = adminAccessGuard.isSuperAdmin();
+        return page.map(projection -> toTableResponse(projection, superAdmin));
+    }
+
+    /** Same rule as the detail view: full JSHSHIR only for the super administrator. */
+    private UserTableResponse toTableResponse(UserTableProjection projection, boolean superAdmin) {
+        UserTableResponse response = userQueryMapper.toTableResponse(projection);
+        if (superAdmin) {
+            return response;
+        }
+        return response.withNnuzb(UserIdentifierMask.mask(response.nnuzb()));
     }
 
     /**
@@ -78,10 +88,10 @@ public class UserQueryService {
         }
     }
 
-    /** The JSHSHIR is shown in full only to administrators and to its owner. */
+    /** The JSHSHIR is shown in full only to the super administrator. */
     private UserDetailedResponse toDetailedResponse(User user) {
         UserDetailedResponse response = userQueryMapper.toDetailedResponse(user, auditResolver.resolve(user));
-        if (isSelf(user.getId()) || adminAccessGuard.isAdmin()) {
+        if (adminAccessGuard.isSuperAdmin()) {
             return response;
         }
         return response.withNnuzb(UserIdentifierMask.mask(response.nnuzb()));

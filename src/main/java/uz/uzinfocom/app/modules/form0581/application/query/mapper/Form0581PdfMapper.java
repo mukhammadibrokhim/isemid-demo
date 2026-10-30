@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.modules.form0581.application.query.mapper;
 
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.platform.security.mask.SensitiveIdentifierMasker;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.pdf.Form0581PdfAddressResponse;
@@ -60,6 +61,7 @@ public class Form0581PdfMapper {
     private final ReferenceMappingHelper referenceMappingHelper;
     private final OrganizationMappingHelper organizationMappingHelper;
     private final UserMapperHelper userMapperHelper;
+    private final SensitiveIdentifierMasker identifierMasker;
 
     public Form0581PdfResponse toPdfResponse(Form0581 form0581) {
         Patient patient = form0581.getPatient();
@@ -280,7 +282,7 @@ public class Form0581PdfMapper {
         return patient.getIdentifiers().stream()
                 .filter(identifier -> identifier.getTypeCode() != null
                         && acceptedTypeCodes.contains(identifier.getTypeCode().toUpperCase(Locale.ROOT)))
-                .map(PatientIdentifier::getValue)
+                .map(identifier -> identifierMasker.mask(identifier.getTypeCode(), identifier.getValue()))
                 .findFirst()
                 .orElse(null);
     }
