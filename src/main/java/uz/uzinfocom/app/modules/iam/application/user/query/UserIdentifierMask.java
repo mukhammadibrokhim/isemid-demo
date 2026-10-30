@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.iam.application.user.query;
 
+import uz.uzinfocom.app.platform.security.mask.SensitiveIdentifierMasker;
+
 /**
  * Hides a staff member's national identifier (JSHSHIR/PINFL) from callers who have
  * no reason to see it in full: only the first three and last three characters stay
@@ -7,23 +9,10 @@ package uz.uzinfocom.app.modules.iam.application.user.query;
  */
 public final class UserIdentifierMask {
 
-    private static final int VISIBLE_HEAD = 3;
-    private static final int VISIBLE_TAIL = 3;
-
     private UserIdentifierMask() {
     }
 
     public static String mask(String identifier) {
-        if (identifier == null || identifier.isBlank()) {
-            return identifier;
-        }
-        String trimmed = identifier.trim();
-        int length = trimmed.length();
-        if (length <= VISIBLE_HEAD + VISIBLE_TAIL) {
-            return "*".repeat(length);
-        }
-        return trimmed.substring(0, VISIBLE_HEAD)
-                + "*".repeat(length - VISIBLE_HEAD - VISIBLE_TAIL)
-                + trimmed.substring(length - VISIBLE_TAIL);
+        return SensitiveIdentifierMasker.maskValue(identifier);
     }
 }

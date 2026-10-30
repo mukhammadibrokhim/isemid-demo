@@ -4,6 +4,7 @@ import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.patient.application.command.UpdatePatientIdentifierCommand;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
+import uz.uzinfocom.app.platform.security.mask.SensitiveIdentifierMasker;
 
 /**
  * Shared upsert used by every module that lets a patient's identifiers be
@@ -33,8 +34,17 @@ public final class PatientIdentifierSync {
             patient.addIdentifier(identifier);
         }
 
+        String value = command.value().trim();
+        // Responses show sensitive identifiers masked, so a client that sends the form back
+        // unchanged echoes the masked text - never let that overwrite the stored value.
+        boolean echoedMask = command.id() != null
+                && SensitiveIdentifierMasker.isSensitiveType(identifier.getTypeCode())
+                && SensitiveIdentifierMasker.isMaskedFormOf(value, identifier.getValue());
+
         identifier.setTypeCode(command.type());
-        identifier.setValue(command.value().trim());
+        if (!echoedMask) {
+            identifier.setValue(value);
+        }
         identifier.setPeriodStart(command.periodStart());
         identifier.setPeriodEnd(command.periodEnd());
     }

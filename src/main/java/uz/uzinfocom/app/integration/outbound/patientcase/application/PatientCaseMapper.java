@@ -5,15 +5,17 @@ import org.mapstruct.Mapping;
 import uz.uzinfocom.app.integration.outbound.patientcase.web.dto.PatientCaseResponse;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
+import uz.uzinfocom.app.modules.patient.application.query.mapper.helper.PatientIdentifierMaskingHelper;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 import java.util.List;
 
-@Mapper(config = CentralMapperConfig.class)
+@Mapper(config = CentralMapperConfig.class, uses = PatientIdentifierMaskingHelper.class)
 public interface PatientCaseMapper {
 
+    @Mapping(target = "value", source = ".", qualifiedByName = "maskIdentifierValue")
     PatientCaseResponse.IdentifierSummary toIdentifierSummary(PatientIdentifier identifier);
 
     List<PatientCaseResponse.IdentifierSummary> toIdentifierSummaries(List<PatientIdentifier> identifiers);

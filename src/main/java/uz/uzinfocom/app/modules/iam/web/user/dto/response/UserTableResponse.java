@@ -27,4 +27,10 @@ public record UserTableResponse(
         @Schema(description = "Признак активности пользователя.", example = "true")
         Boolean active
 ) {
+
+    public UserTableResponse withNnuzb(String newNnuzb) {
+        return new UserTableResponse(
+                id, firstName, lastName, middleName, newNnuzb, birthDate, phoneNumber, roles, active
+        );
+    }
 }

@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientAffi
 import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientDetailResponse;
 import uz.uzinfocom.app.modules.patient.application.query.dto.detail.PatientIdentifierDetailResponse;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.helper.PatientAffiliationMappingHelper;
+import uz.uzinfocom.app.modules.patient.application.query.mapper.helper.PatientIdentifierMaskingHelper;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAffiliation;
@@ -14,7 +15,7 @@ import uz.uzinfocom.app.modules.patient.domain.model.PatientIdentifier;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = PatientAffiliationMappingHelper.class)
+@Mapper(componentModel = "spring", uses = {PatientAffiliationMappingHelper.class, PatientIdentifierMaskingHelper.class})
 public interface PatientDetailResponseMapper {
 
     PatientDetailResponse toDetailedResponse(Patient patient);
@@ -25,6 +26,7 @@ public interface PatientDetailResponseMapper {
 
     List<PatientAffiliationDetailResponse> toAffiliationResponses(List<PatientAffiliation> affiliations);
 
+    @Mapping(target = "value", source = ".", qualifiedByName = "maskIdentifierValue")
     PatientIdentifierDetailResponse toResponse(PatientIdentifier identifier);
 
     PatientAddressDetailResponse toResponse(PatientAddress address);

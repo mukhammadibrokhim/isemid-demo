@@ -3,14 +3,19 @@ package uz.uzinfocom.app.modules.iam.application.user.query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.jpa.domain.Specification;
 import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationNameResolver;
 import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserQueryMapper;
+import uz.uzinfocom.app.modules.iam.application.user.query.projection.UserTableProjection;
 import uz.uzinfocom.app.modules.iam.application.user.query.specification.UserSpecification;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.modules.iam.domain.User;
 import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.iam.web.user.dto.request.UserFilterRequest;
 import uz.uzinfocom.app.modules.iam.web.user.dto.response.UserDetailedResponse;
+import uz.uzinfocom.app.modules.iam.web.user.dto.response.UserTableResponse;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
@@ -20,12 +25,17 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -105,8 +115,9 @@ class UserQueryServiceAccessTest {
     }
 
     @Test
-    void administratorSkipsScopeAndSeesFullIdentifier() {
+    void superAdministratorSkipsScopeAndSeesFullIdentifier() {
         when(adminAccessGuard.isAdmin()).thenReturn(true);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
 
         UserDetailedResponse response = service.getRequiredById(TARGET_ID);
 
@@ -115,13 +126,77 @@ class UserQueryServiceAccessTest {
     }
 
     @Test
-    void userSeesOwnRecordInFullEvenOutsideScopeRules() {
+    void panelAdministratorSkipsScopeButSeesMaskedIdentifier() {
+        when(adminAccessGuard.isAdmin()).thenReturn(true);
+
+        UserDetailedResponse response = service.getRequiredById(TARGET_ID);
+
+        assertThat(response.nnuzb()).isEqualTo("312********123");
+        verify(userRepo, never()).exists(any(Specification.class));
+    }
+
+    @Test
+    void userSeesOwnRecordMaskedToo() {
         when(currentUserProvider.userIdOrNull()).thenReturn(TARGET_ID);
 
         UserDetailedResponse response = service.getRequiredById(TARGET_ID);
 
-        assertThat(response.nnuzb()).isEqualTo(FULL_NNUZB);
+        assertThat(response.nnuzb()).isEqualTo("312********123");
         verify(userRepo, never()).exists(any(Specification.class));
+    }
+
+    @Test
+    void tableMasksIdentifiersForEveryoneButSuperAdministrator() {
+        stubTable(tableRow(TARGET_ID, FULL_NNUZB), tableRow(8L, FULL_NNUZB));
+        when(currentUserProvider.userIdOrNull()).thenReturn(TARGET_ID);
+        when(adminAccessGuard.isAdmin()).thenReturn(true);
+
+        Page<UserTableResponse> page = service.findTable(emptyFilter());
+
+        assertThat(page.getContent()).extracting(UserTableResponse::nnuzb)
+                .containsExactly("312********123", "312********123");
+    }
+
+    @Test
+    void tableShowsFullIdentifiersToSuperAdministrator() {
+        stubTable(tableRow(8L, FULL_NNUZB), tableRow(9L, FULL_NNUZB));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
+
+        Page<UserTableResponse> page = service.findTable(emptyFilter());
+
+        assertThat(page.getContent()).extracting(UserTableResponse::nnuzb)
+                .containsExactly(FULL_NNUZB, FULL_NNUZB);
+    }
+
+    @Test
+    void tableKeepsMissingIdentifierAsIs() {
+        stubTable(tableRow(8L, null));
+
+        Page<UserTableResponse> page = service.findTable(emptyFilter());
+
+        assertThat(page.getContent()).extracting(UserTableResponse::nnuzb).containsExactly((String) null);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void stubTable(UserTableResponse... rows) {
+        List<UserTableProjection> projections = new ArrayList<>();
+        for (UserTableResponse row : rows) {
+            UserTableProjection projection = mock(UserTableProjection.class);
+            when(mapper.toTableResponse(projection)).thenReturn(row);
+            projections.add(projection);
+        }
+        when(userSpecification.byFilter(any(), any())).thenReturn(mock(Specification.class));
+        doReturn(new PageImpl<>(projections)).when(userRepo).findBy(any(Specification.class), any(Function.class));
+    }
+
+    private static UserFilterRequest emptyFilter() {
+        return new UserFilterRequest(
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null
+        );
+    }
+
+    private static UserTableResponse tableRow(Long id, String nnuzb) {
+        return new UserTableResponse(id, "Ali", "Valiyev", null, nnuzb, null, null, Set.of(), true);
     }
 
     private static UserDetailedResponse detail(String nnuzb) {
