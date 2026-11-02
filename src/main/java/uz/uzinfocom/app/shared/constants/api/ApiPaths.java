@@ -1198,6 +1198,17 @@ public final class ApiPaths {
          * that holds at least one of the three {@code *:submit} scopes.
          */
         public static final String RECEIVER_ORGANIZATIONS = ROOT + "/{source}/receiver-organizations";
+
+        /**
+         * Epidemiological monitoring pulled by a registered integration
+         * client: the aggregate picture for a period ({@link #MONITORING},
+         * scope {@code monitoring:read}) and its time dynamics
+         * ({@link #MONITORING_DYNAMICS}, scope {@code monitoring-dynamics:read}).
+         * Each endpoint has its own scope so access can be granted to a
+         * client one at a time.
+         */
+        public static final String MONITORING = ROOT + "/{source}/monitoring";
+        public static final String MONITORING_DYNAMICS = ROOT + "/{source}/monitoring/dynamics";
     }
 
 }
