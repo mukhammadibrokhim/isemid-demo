@@ -47,7 +47,7 @@ public class CancelForm058Service {
                 AuditEntityType.FORM058, form058.getId(), oldStatus, form058.getStatus().name(), actorUserId, reason,
                 new NotificationRoutingContext.FormRouting(
                         form058.getSenderOrganizationId(), form058.getReceiverOrganizationId(),
-                        List.of(), form058.getSourceIntegrationClientId()
+                        List.of(), form058.getSourceIntegrationClientId(), form058.getUuid()
                 )
         ));
 

@@ -9,6 +9,26 @@ import java.util.UUID;
  */
 public record InboundFormIdentifier(Long id, UUID uuid) {
 
+    /**
+     * For surfaces that address a form by its uuid alone — a numeric id is rejected.
+     */
+    public static InboundFormIdentifier parseUuid(String value) {
+        if (value == null || value.isBlank()) {
+            throw new InboundValidationException("integration.form-uuid.invalid");
+        }
+        String trimmed = value.trim();
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(trimmed);
+        } catch (IllegalArgumentException invalid) {
+            throw new InboundValidationException("integration.form-uuid.invalid");
+        }
+        if (!uuid.toString().equalsIgnoreCase(trimmed)) {
+            throw new InboundValidationException("integration.form-uuid.invalid");
+        }
+        return new InboundFormIdentifier(null, uuid);
+    }
+
     public static InboundFormIdentifier parse(String value) {
         if (value == null || value.isBlank()) {
             throw new InboundValidationException("integration.form-id.invalid");

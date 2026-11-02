@@ -55,13 +55,13 @@ Content-Type: application/json
 ```
 
 ```json
-{ "entityType": "FORM058", "entityId": 1042, "oldStatus": "SENT", "newStatus": "ACCEPTED", "occurredAt": "2026-10-26T14:15:30.123+05:00" }
+{ "entityType": "FORM058", "entityUuid": "b3f1c2a4-5d6e-4f70-8a91-0c2d3e4f5a6b", "oldStatus": "SENT", "newStatus": "ACCEPTED", "occurredAt": "2026-10-26T14:15:30.123+05:00" }
 ```
 
 **Maydonlar:**
 
 - `entityType` — forma turi: `FORM058`
-- `entityId` — formaning raqamli ID si — yaratish javobidagi `id` bilan bir xil (`uuid` emas)
+- `entityUuid` — formaning `uuid` si — yaratish javobidagi `uuid` bilan bir xil (raqamli `id` yuborilmaydi)
 - `oldStatus` — oldingi holat
 - `newStatus` — yangi holat
 - `occurredAt` — o'zgarish vaqti, ISO-8601, vaqt zonasi offseti bilan (masalan `+05:00`)
@@ -133,13 +133,13 @@ Content-Type: application/json
 ```
 
 ```json
-{ "entityType": "FORM058", "entityId": 1042, "oldStatus": "SENT", "newStatus": "ACCEPTED", "occurredAt": "2026-10-26T14:15:30.123+05:00" }
+{ "entityType": "FORM058", "entityUuid": "b3f1c2a4-5d6e-4f70-8a91-0c2d3e4f5a6b", "oldStatus": "SENT", "newStatus": "ACCEPTED", "occurredAt": "2026-10-26T14:15:30.123+05:00" }
 ```
 
 **Поля:**
 
 - `entityType` — тип формы: `FORM058`
-- `entityId` — числовой ID формы — тот же `id`, что в ответе на создание (не `uuid`)
+- `entityUuid` — `uuid` формы — тот же `uuid`, что в ответе на создание (числовой `id` не передаётся)
 - `oldStatus` — прежний статус
 - `newStatus` — новый статус
 - `occurredAt` — время изменения, ISO-8601 со смещением часового пояса (например `+05:00`)
@@ -211,13 +211,13 @@ Content-Type: application/json
 ```
 
 ```json
-{ "entityType": "FORM058", "entityId": 1042, "oldStatus": "SENT", "newStatus": "ACCEPTED", "occurredAt": "2026-10-26T14:15:30.123+05:00" }
+{ "entityType": "FORM058", "entityUuid": "b3f1c2a4-5d6e-4f70-8a91-0c2d3e4f5a6b", "oldStatus": "SENT", "newStatus": "ACCEPTED", "occurredAt": "2026-10-26T14:15:30.123+05:00" }
 ```
 
 **Fields:**
 
 - `entityType` — form type: `FORM058`
-- `entityId` — numeric form ID — the same `id` as in the creation response (not the `uuid`)
+- `entityUuid` — the form `uuid` — the same `uuid` as in the creation response (the numeric `id` is not sent)
 - `oldStatus` — previous status
 - `newStatus` — new status
 - `occurredAt` — time of change, ISO-8601 with a time-zone offset (e.g. `+05:00`)

@@ -17,6 +17,7 @@ import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
 import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Consumes the same {@code StatusChangedEvent} the audit trail and
@@ -68,7 +69,12 @@ public class OutboundWebhookEventListener {
             return;
         }
 
-        String payload = buildPayload(entityType, event);
+        if (routing.entityUuid() == null) {
+            log.error("event=webhook_dispatch_missing_uuid entityType={} entityId={}", entityType, event.entityId());
+            return;
+        }
+
+        String payload = buildPayload(entityType, event, routing.entityUuid());
         if (payload == null) {
             return;
         }
@@ -79,9 +85,9 @@ public class OutboundWebhookEventListener {
         );
     }
 
-    private String buildPayload(AuditEntityType entityType, StatusChangedEvent event) {
+    private String buildPayload(AuditEntityType entityType, StatusChangedEvent event, UUID entityUuid) {
         WebhookPayload payload = new WebhookPayload(
-                entityType.name(), event.entityId(), event.oldStatus(), event.newStatus(), Instant.now()
+                entityType.name(), entityUuid, event.oldStatus(), event.newStatus(), Instant.now()
         );
         try {
             return objectMapper.writeValueAsString(payload);
@@ -92,6 +98,6 @@ public class OutboundWebhookEventListener {
         }
     }
 
-    private record WebhookPayload(String entityType, Long entityId, String oldStatus, String newStatus, Instant occurredAt) {
+    private record WebhookPayload(String entityType, UUID entityUuid, String oldStatus, String newStatus, Instant occurredAt) {
     }
 }

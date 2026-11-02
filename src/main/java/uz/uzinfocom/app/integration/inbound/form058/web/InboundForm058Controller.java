@@ -88,23 +88,23 @@ public class InboundForm058Controller {
     @Operation(
             summary = "Подтвердить форму №058",
             description = "Подтверждает ранее отправленную форму №058 окончательным диагнозом (МКБ-10): статус "
-                    + "формы становится APPROVED. Форма указывается по id или uuid. Подтвердить может только "
+                    + "формы становится APPROVED. Форма указывается по uuid. Подтвердить может только "
                     + "организация-отправитель формы, и только после принятия формы получателем. Повторная "
                     + "отправка того же диагноза для уже подтверждённой формы возвращает текущее состояние."
     )
-    @PostMapping("/{idOrUuid}/confirm")
+    @PostMapping("/{uuid}/confirm")
     @PreAuthorize("isAuthenticated()")
     public InboundFormSubmissionResponse confirm(
             @Parameter(description = "Название системы-отправителя.", required = true)
             @PathVariable String source,
-            @Parameter(description = "Идентификатор (id) или UUID формы.", required = true)
-            @PathVariable String idOrUuid,
+            @Parameter(description = "UUID формы.", required = true)
+            @PathVariable String uuid,
             @Valid @RequestBody InboundConfirmFormRequest request
     ) {
         InboundCallerContext.requireScope(IntegrationScope.FORM058_CONFIRM);
         InboundCallerContext.requireMatchingSourceKey(source);
 
-        InboundFormIdentifier identifier = InboundFormIdentifier.parse(idOrUuid);
+        InboundFormIdentifier identifier = InboundFormIdentifier.parseUuid(uuid);
         InboundFinalDiagnosisResolver.ResolvedDiagnosis diagnosis =
                 inboundFinalDiagnosisResolver.resolve(request.finalIcd10Code(), request.finalIcd10Name());
         inboundSenderResolver.resolveSenderOrganizationId(request.organizationUuid(), request.submittedBy());
