@@ -28,7 +28,9 @@ import uz.uzinfocom.app.platform.devpanel.repository.DevUserRepository;
  *   <li>else → the account is disabled. Re-enable it from another root
  *       account or restart with a bootstrap password.</li>
  * </ul>
- * An account whose password was already changed is never touched.
+ * An account whose password was already changed is never touched, and neither
+ * is one that already completed the forced change ({@code mustChangePassword}
+ * false), even if its owner set the seed value again.
  */
 @Slf4j
 @Component
@@ -60,6 +62,9 @@ public class DevAdminBootstrapGuard implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         devUserRepository.findByUsername(SEEDED_USERNAME)
                 .filter(devUser -> Boolean.TRUE.equals(devUser.getEnabled()))
+                // The owner already went through the forced password change once; if they
+                // chose to keep the seed value, don't override that on every restart/deploy.
+                .filter(DevUser::isMustChangePassword)
                 .filter(devUser -> devUserPasswordEncoder.matches(SEEDED_PASSWORD, devUser.getPasswordHash()))
                 .ifPresent(this::neutralize);
     }
