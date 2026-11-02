@@ -127,9 +127,9 @@ Murojaat qilganda `traceId` ni keltiring.
 
 Yuborilgan shaklni yakuniy diagnoz (MKB-10) bilan tasdiqlaydi — status `APPROVED` bo'ladi.
 
-`POST /integration/v1/{source}/form-058/{idOrUuid}/confirm` · scope `form058:confirm`
+`POST /integration/v1/{source}/form-058/{uuid}/confirm` · scope `form058:confirm`
 
-- Shakl yo'lda `{idOrUuid}` bilan ko'rsatiladi: raqamli `id` **yoki** `uuid` (yuborishda javobda qaytgan qiymat).
+- Shakl yo'lda `{uuid}` bilan ko'rsatiladi: faqat `uuid` (yuborishda javobda qaytgan qiymat); raqamli `id` qabul qilinmaydi.
 - `{source}` — sizning `sourceKey` bilan bir xil bo'lishi kerak, aks holda `403`.
 - Tasdiqlashni **faqat shaklni yuborgan tashkilot** qila oladi va faqat qabul qiluvchi shaklni qabul qilgandan keyin (status `ACCEPTED` / `CARD_LINKED`); boshqa statusda `409`, boshqa tashkilot bo'lsa `403`, forma topilmasa `404`.
 - Scope `form058:confirm` — `form058:submit` dan **alohida**; mijozga alohida berilishi kerak, aks holda `403`.
@@ -284,9 +284,9 @@ Javob (yuborishdagi bilan bir xil shakl):
 
 Подтверждает ранее отправленную форму итоговым диагнозом (МКБ-10) — статус становится `APPROVED`.
 
-`POST /integration/v1/{source}/form-058/{idOrUuid}/confirm` · scope `form058:confirm`
+`POST /integration/v1/{source}/form-058/{uuid}/confirm` · scope `form058:confirm`
 
-- Форма указывается в пути как `{idOrUuid}`: числовой `id` **или** `uuid` (значение из ответа при отправке).
+- Форма указывается в пути как `{uuid}`: только `uuid` (значение из ответа при отправке); числовой `id` не принимается.
 - `{source}` — должен совпадать с вашим `sourceKey`, иначе `403`.
 - Подтвердить может **только организация-отправитель формы**, и только после принятия формы получателем (статус `ACCEPTED` / `CARD_LINKED`); в другом статусе — `409`, для чужой организации — `403`, если форма не найдена — `404`.
 - Scope `form058:confirm` — **отдельный** от `form058:submit`; его нужно выдать клиенту отдельно, иначе `403`.
@@ -441,9 +441,9 @@ Quote the `traceId` when contacting support.
 
 Confirms a previously submitted form with a final diagnosis (ICD-10) — the status becomes `APPROVED`.
 
-`POST /integration/v1/{source}/form-058/{idOrUuid}/confirm` · scope `form058:confirm`
+`POST /integration/v1/{source}/form-058/{uuid}/confirm` · scope `form058:confirm`
 
-- The form is identified in the path as `{idOrUuid}`: the numeric `id` **or** the `uuid` (as returned on submit).
+- The form is identified in the path as `{uuid}`: the `uuid` only (as returned on submit); a numeric `id` is not accepted.
 - `{source}` — must match your `sourceKey`, otherwise `403`.
 - **Only the organization that sent the form** can confirm it, and only after the receiver has accepted it (status `ACCEPTED` / `CARD_LINKED`); any other status gives `409`, a different organization gives `403`, an unknown form gives `404`.
 - Scope `form058:confirm` is **separate** from `form058:submit`; it must be granted to the client explicitly, otherwise `403`.

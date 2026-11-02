@@ -47,7 +47,7 @@ public class RejectForm129Service {
                 AuditEntityType.FORM129, form129.getId(), oldStatus, form129.getStatus().name(), actorUserId, reason,
                 new NotificationRoutingContext.FormRouting(
                         form129.getSenderOrganizationId(), form129.getReceiverOrganizationId(),
-                        List.of(), form129.getSourceIntegrationClientId()
+                        List.of(), form129.getSourceIntegrationClientId(), form129.getUuid()
                 )
         ));
 

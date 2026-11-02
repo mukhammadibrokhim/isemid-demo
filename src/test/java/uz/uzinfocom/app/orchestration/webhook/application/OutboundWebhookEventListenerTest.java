@@ -1,6 +1,8 @@
 package uz.uzinfocom.app.orchestration.webhook.application;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.FormRouting;
@@ -10,7 +12,10 @@ import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientR
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -24,6 +29,8 @@ class OutboundWebhookEventListenerTest {
     private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
     private final OutboundWebhookDispatchService outboundWebhookDispatchService = mock(OutboundWebhookDispatchService.class);
     private final JsonMapper objectMapper = JsonMapper.builder().build();
+
+    private static final UUID FORM_UUID = UUID.fromString("b3f1c2a4-5d6e-4f70-8a91-0c2d3e4f5a6b");
 
     private final OutboundWebhookEventListener listener = new OutboundWebhookEventListener(
             integrationClientRepository, outboundWebhookDispatchService, objectMapper);
@@ -86,6 +93,36 @@ class OutboundWebhookEventListenerTest {
     }
 
     @Test
+    void payloadIdentifiesTheFormByUuidOnly() throws Exception {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test").sourceKey("dmed").name("Test")
+                .scopes("form058:submit").active(true).webhookActive(true).build();
+        client.setId(10L);
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, formRouting(10L)));
+
+        ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+        verify(outboundWebhookDispatchService).enqueue(any(), any(), any(), any(), any(), payload.capture());
+        JsonNode json = objectMapper.readTree(payload.getValue());
+        assertEquals(FORM_UUID.toString(), json.get("entityUuid").asString());
+        assertFalse(json.has("entityId"));
+    }
+
+    @Test
+    void doesNothingWhenTheRoutingCarriesNoFormUuid() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test").sourceKey("dmed").name("Test")
+                .scopes("form058:submit").active(true).webhookActive(true).build();
+        client.setId(10L);
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, new FormRouting(3L, 5L, List.of(), 10L)));
+
+        verify(outboundWebhookDispatchService, never()).enqueue(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
     void enqueuesForForm0581TooWhenItsSourceClientHasAnActiveWebhook() {
         IntegrationClient client = IntegrationClient.builder()
                 .clientId("ic_test2").sourceKey("dmed").name("Test")
@@ -112,6 +149,6 @@ class OutboundWebhookEventListenerTest {
     }
 
     private FormRouting formRouting(Long sourceIntegrationClientId) {
-        return new FormRouting(3L, 5L, List.of(), sourceIntegrationClientId);
+        return new FormRouting(3L, 5L, List.of(), sourceIntegrationClientId, FORM_UUID);
     }
 }
