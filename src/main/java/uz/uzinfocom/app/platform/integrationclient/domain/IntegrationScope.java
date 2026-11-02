@@ -22,7 +22,9 @@ public enum IntegrationScope {
     FORM058_CONFIRM("form058:confirm", new Endpoint("POST", ApiPaths.Integration.FORM058 + "/{idOrUuid}/confirm")),
     FORM0581_CONFIRM("form0581:confirm", new Endpoint("POST", ApiPaths.Integration.FORM0581 + "/{idOrUuid}/confirm")),
     FORM129_SUBMIT("form129:submit", new Endpoint("POST", ApiPaths.Integration.FORM129)),
-    PATIENT_CASE_READ("patient-case:read", new Endpoint("GET", ApiPaths.Integration.PATIENT_CASE));
+    PATIENT_CASE_READ("patient-case:read", new Endpoint("GET", ApiPaths.Integration.PATIENT_CASE)),
+    MONITORING_READ("monitoring:read", new Endpoint("GET", ApiPaths.Integration.MONITORING)),
+    MONITORING_DYNAMICS_READ("monitoring-dynamics:read", new Endpoint("GET", ApiPaths.Integration.MONITORING_DYNAMICS));
 
     /** HTTP method + path template (with a {@code {source}} segment) that a scope unlocks. */
     public record Endpoint(String method, String pathTemplate) {

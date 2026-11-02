@@ -192,7 +192,7 @@ public final class OpenApiGroups {
                     + "зарегистрированного интеграционного клиента — Bearer JWT (client_credentials), заголовок "
                     + "X-Api-Key, HTTP Basic или IP allow-list; также принимаются SSO/DHP-токены. Доступ к "
                     + "операциям ограничен scope'ами клиента (form058:submit, form058:confirm, "
-                    + "patient-case:read и др.).",
+                    + "patient-case:read, monitoring:read, monitoring-dynamics:read и др.).",
             INBOUND_INTEGRATION_PATHS
     );
 
