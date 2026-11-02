@@ -73,7 +73,7 @@ public final class IpAllowlistMatcher {
         try {
             int prefix = Integer.parseInt(raw.trim());
             return prefix >= 0 && prefix <= 32 ? prefix : -1;
-        } catch (NumberFormatException invalid) {
+        } catch (NumberFormatException _) {
             return -1;
         }
     }
