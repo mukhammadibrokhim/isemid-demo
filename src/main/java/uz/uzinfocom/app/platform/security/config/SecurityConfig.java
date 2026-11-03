@@ -31,6 +31,7 @@ import uz.uzinfocom.app.platform.security.handler.JsonAccessDeniedHandler;
 import uz.uzinfocom.app.platform.security.handler.JsonAuthenticationEntryPoint;
 import uz.uzinfocom.app.platform.security.ip.IpAllowlistMatcher;
 import uz.uzinfocom.app.platform.security.jwt.ProviderAuthenticationManagerRegistry;
+import uz.uzinfocom.app.platform.security.jwt.PublicAuthRouteBearerTokenResolver;
 import uz.uzinfocom.app.platform.security.jwt.properties.IntegrationTokenProperties;
 import uz.uzinfocom.app.platform.security.properties.ActuatorAccessProperties;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
@@ -117,6 +118,7 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(resourceServer -> resourceServer
                         .authenticationManagerResolver(resolver)
+                        .bearerTokenResolver(new PublicAuthRouteBearerTokenResolver())
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
