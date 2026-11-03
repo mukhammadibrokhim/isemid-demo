@@ -1,32 +1,50 @@
-image: maven:3.9-eclipse-temurin-25-alpine
-
-variables:
-  DEV_SERVER: '10.10.10.104'
-  PROD_SERVER: '10.10.10.133'
-  PRODUCTION_USER: 'runner'
-
 include:
+  - project: core/templates/global-ci
+    ref: main
+    file: prepare.yml
+  - project: core/templates/global-ci
+    ref: main
+    file: build.yml
+  - project: core/templates/global-ci
+    ref: main
+    file: gitops.yml
   - project: 'core/templates/global-ci'
     ref: 'main'
     file: '.global-gitlab-ci.yml'
 
-before_script:
-  - apk add --no-cache openssh-client git curl bash
-  - eval $(ssh-agent -s)
-  - chmod 600 $MOH_PRIVATE_KEY
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      variables:
+        IMAGE_PREFIX: "dev"
+        DOCKERFILE: "Dockerfile"
+        GITOPS_IMAGE: "emis-ykem-backend-image"
+        KUSTOMIZATION_FILE: "backend/overlays/dev/kustomization.yaml"
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+variables:
+  IMAGE_NAME: "${HARBOR_REGISTRY}/${CI_PROJECT_PATH}"
+  GITOPS_REPOSITORY: "git.uzinfocom.uz/core/manifests/moh/emis-ykem.git"
+  GITOPS_TOKEN: "${GITOPS_TOKEN_MOH}"
+  PROD_SERVER: '10.10.10.133'
+  PRODUCTION_USER: 'runner'
 
 stages:
   - validate-and-check
   - check-stage
-  - build_and_push_dev
+  - prepare
+  - build
+  - gitops
   - build_and_push_prod
-  - rollback_dev
 
 check-stage:
   stage: check-stage
+  image: maven:3-eclipse-temurin-25-alpine
   needs:
     - check_gitlab_ci_yml
-  before_script: []
+  before_script:
+    - apk add --no-cache curl bash
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
     GIT_DEPTH: "0"
@@ -67,71 +85,43 @@ check-stage:
     - if: $CI_COMMIT_BRANCH == 'dev'
       when: manual
 
-deploy_dev:
+prepare:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+
+build_image:
+  extends: .build_template
   needs:
     - check_gitlab_ci_yml
-  stage: build_and_push_dev
-  only:
-    - dev
-  # when: manual
-  script:
-    - echo "Deploying to DEV server"
-    - mvn clean package -U -DskipTests
+    - job: prepare
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+  variables:
+    BUILD_RUNNER_TAG: "moh-runner-dind"
+    IMAGE_NAME_FULL: "${IMAGE_NAME}"
 
-    - | # Stoping service
-      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
-        sudo systemctl stop backend.service
-        sudo mv /srv/project/backend/app.jar /srv/project/backend/app_previous.jar
-        sudo chown -R runner:runner /srv/project/backend
-      EOF
-
-    - | # Copying the built binary
-      scp -O -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY \
-        `pwd`/target/app*.jar $PRODUCTION_USER@$DEV_SERVER:/srv/project/backend/app.jar
-
-    - | # Start service and check health
-      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY  $PRODUCTION_USER@$DEV_SERVER << 'EOF'
-        sudo chown -R www-data:www-data /srv/project/backend
-        sudo systemctl restart backend.service
-        sleep 10
-        sudo systemctl status backend.service
-      EOF
-    - echo "Deploy finished"
-
-rollback_dev:
+update_gitops:
+  extends: .gitops_template
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
   needs:
-    - check_gitlab_ci_yml
-    - deploy_dev
-  stage: rollback_dev
-  only:
-    - dev
-  when: manual
-  script:
-    - echo "Starting rollback on DEV server..."
-    - |
-      ssh -oStrictHostKeyChecking=no -i $MOH_PRIVATE_KEY $PRODUCTION_USER@$DEV_SERVER << 'EOF'
-        sudo rm -f /srv/project/backend/app.jar
-        sudo mv /srv/project/backend/app_previous.jar /srv/project/backend/app.jar
-        echo "Rollback complete. Restarting service with previous version..."
-        sudo chown -R www-data:www-data /srv/project/backend
-        systemctl restart backend.service
-        sleep 30
-        if systemctl is-active --quiet backend.service; then
-          echo "Rollback successful: old version is running."
-        else
-          echo "Rollback failed: service still not running!"
-        fi
-        systemctl status backend.service
-      EOF
-    - echo "Rollback finished"
+    - job: prepare
+      artifacts: true
+    - job: build_image
+  variables:
+    IMAGE_NAME_FULL: "${IMAGE_NAME}"
 
 deploy_prod:
+  image: maven:3-eclipse-temurin-25-alpine
+  stage: build_and_push_prod
   needs:
     - check_gitlab_ci_yml
-  stage: build_and_push_prod
-  only:
-    - main
-  # when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  before_script:
+    - apk add --no-cache openssh-client git curl bash
+    - eval $(ssh-agent -s)
+    - chmod 600 $MOH_PRIVATE_KEY
   script:
     - echo "Deploying to PROD server"
     - mvn clean package -DskipTests
