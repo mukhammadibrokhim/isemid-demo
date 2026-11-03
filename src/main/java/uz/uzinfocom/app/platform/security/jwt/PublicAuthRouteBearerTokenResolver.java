@@ -1,6 +1,7 @@
 package uz.uzinfocom.app.platform.security.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.util.StringUtils;
@@ -24,7 +25,7 @@ public class PublicAuthRouteBearerTokenResolver implements BearerTokenResolver {
     private final BearerTokenResolver delegate = new DefaultBearerTokenResolver();
 
     @Override
-    public String resolve(HttpServletRequest request) {
+    public String resolve(@NonNull HttpServletRequest request) {
         if (isAuthRoute(request)) {
             return null;
         }
