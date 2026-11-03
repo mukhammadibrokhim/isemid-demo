@@ -233,6 +233,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             append(event, "exceptionType", failure == null ? null : failure.getClass().getName());
             append(event, "rootCauseType", rootCause == null ? null : rootCause.getClass().getName());
             append(event, "message", sanitize(message, config.getMaxTextLength()));
+            append(event, "cause", rootCause == null || rootCause == failure
+                    ? null
+                    : sanitize(rootCause.getMessage(), config.getMaxTextLength()));
             if (config.isIncludeUserAgent()) {
                 append(event, "userAgent", sanitize(request.getHeader("User-Agent"), config.getMaxUserAgentLength()));
             }
