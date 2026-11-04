@@ -28,11 +28,11 @@ public class OrganizationScopePredicateFactory {
      * Generic organization scope predicate.
      * <p>
      * Rules:
-     * - Non-SANEPID_SERVICE -> only own organization
-     * - SANEPID_SERVICE + ALL -> no organization restriction
-     * - SANEPID_SERVICE + REGION -> organizations by stateCode
-     * - SANEPID_SERVICE + DISTRICT -> organizations by cityCode
-     * - SANEPID_SERVICE + ORGANIZATION -> only own organization
+     * - Type without level scope (not SANEPID_SERVICE/HEALTH_DEPARTMENT) -> only own organization
+     * - level-scoped type + ALL -> no organization restriction
+     * - level-scoped type + REGION -> organizations by stateCode
+     * - level-scoped type + DISTRICT -> organizations by cityCode
+     * - level-scoped type + ORGANIZATION -> only own organization
      */
     public <T> Predicate apply(
             Path<T> root,
@@ -42,7 +42,7 @@ public class OrganizationScopePredicateFactory {
     ) {
         validate(scope, organizationIdField);
 
-        if (!scope.isSanepidService()) {
+        if (!scope.hasLevelScope()) {
             return directOrganization(root, cb, organizationIdField, scope.organizationId());
         }
 
@@ -89,7 +89,7 @@ public class OrganizationScopePredicateFactory {
     ) {
         validate(scope, collectionField);
 
-        if (!scope.isSanepidService()) {
+        if (!scope.hasLevelScope()) {
             return existsOrganization(root, query, cb, collectionField, List.of(requireOrganizationId(scope)));
         }
 

@@ -32,6 +32,11 @@ class OrganizationScopeAccessTest {
     }
 
     @Test
+    void healthDepartmentAllScopeCoversEverything() {
+        assertThat(access.covers(scope(MedicalType.HEALTH_DEPARTMENT, OrganizationScopeMode.ALL), 999L)).isTrue();
+    }
+
+    @Test
     void sanepidAllScopeCoversEverything() {
         assertThat(access.covers(scope(MedicalType.SANEPID_SERVICE, OrganizationScopeMode.ALL), 999L)).isTrue();
     }

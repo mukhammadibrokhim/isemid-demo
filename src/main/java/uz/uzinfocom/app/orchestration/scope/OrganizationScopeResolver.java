@@ -23,7 +23,7 @@ public class OrganizationScopeResolver {
         OrganizationLevel level = organization.getLevelType();
 
 
-        if (medicalType != MedicalType.SANEPID_SERVICE) {
+        if (!ResolvedOrganizationScope.hasLevelScope(medicalType)) {
             return ownOrganization(organization);
         }
 

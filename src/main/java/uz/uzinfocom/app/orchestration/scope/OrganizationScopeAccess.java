@@ -8,7 +8,7 @@ import uz.uzinfocom.app.orchestration.scope.jpa.OrganizationScopeOrganizationIdR
  * Point check "is this one organization inside the caller's resolved scope?" -
  * the single-row counterpart of {@code OrganizationScopePredicateFactory}, which
  * builds the same rules as a query predicate for list endpoints. Same rules:
- * non-SANEPID_SERVICE and {@link OrganizationScopeMode#ORGANIZATION} -> own
+ * types without level scope (anything but SANEPID_SERVICE/HEALTH_DEPARTMENT) and {@link OrganizationScopeMode#ORGANIZATION} -> own
  * organization only; {@code ALL} -> anything; {@code REGION}/{@code DISTRICT} ->
  * the cached active organization ids of that region/district.
  */
@@ -23,7 +23,7 @@ public class OrganizationScopeAccess {
             return false;
         }
 
-        if (!scope.isSanepidService()) {
+        if (!scope.hasLevelScope()) {
             return organizationId.equals(scope.organizationId());
         }
 
