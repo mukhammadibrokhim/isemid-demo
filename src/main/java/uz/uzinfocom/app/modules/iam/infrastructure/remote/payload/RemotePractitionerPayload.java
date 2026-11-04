@@ -7,6 +7,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +51,18 @@ public record RemotePractitionerPayload(
     }
 
     public String firstName() {
+        return upperCase(resolveFirstName());
+    }
+
+    public String lastName() {
+        return upperCase(resolveLastName());
+    }
+
+    public String middleName() {
+        return upperCase(resolveMiddleName());
+    }
+
+    private String resolveFirstName() {
         JsonNode primaryName = primaryNameNode();
 
         String fromSso = RemotePayloadSupport.firstText(primaryName, "firstName", "firstname");
@@ -65,7 +78,7 @@ public record RemotePractitionerPayload(
         return knownAs == null || knownAs.isEmpty() ? null : knownAs.get(0).firstName();
     }
 
-    public String lastName() {
+    private String resolveLastName() {
         JsonNode primaryName = primaryNameNode();
 
         String value = RemotePayloadSupport.firstText(primaryName, "lastName", "family", "surname");
@@ -76,7 +89,7 @@ public record RemotePractitionerPayload(
         return knownAs == null || knownAs.isEmpty() ? null : knownAs.get(0).lastName();
     }
 
-    public String middleName() {
+    private String resolveMiddleName() {
         JsonNode primaryName = primaryNameNode();
 
         String fromSso = RemotePayloadSupport.firstText(primaryName, "patronymic", "middleName", "middle_name");
@@ -96,6 +109,10 @@ public record RemotePractitionerPayload(
         }
 
         return knownAs == null || knownAs.isEmpty() ? null : knownAs.get(0).patronymic();
+    }
+
+    private static String upperCase(String value) {
+        return value == null ? null : value.toUpperCase(Locale.ROOT);
     }
 
     public String fullName() {
