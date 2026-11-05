@@ -112,6 +112,15 @@ public class SecurityConfig {
                         .access(loggersAuthorizationManager)
                         .requestMatchers("/v1/actuator/prometheus")
                         .access(prometheusAuthorizationManager())
+                        // health/info keep their DB-backed public policy (probes, uptime checks).
+                        .requestMatchers("/v1/actuator/health/**", "/v1/actuator/info")
+                        .access(dynamicRouteAuthorizationManager)
+                        // Every OTHER actuator endpoint (env, beans, threaddump, ... - exposed only so the
+                        // dev panel can call them in-process, see management.endpoints.web.exposure.include)
+                        // is closed on this chain. Fail-closed: a newly exposed id is unreachable here
+                        // until someone deliberately adds a rule above.
+                        .requestMatchers("/v1/actuator/**")
+                        .denyAll()
                         // Which paths are public vs. authenticated is DB-backed and re-resolved on
                         // every request - see DynamicRouteAuthorizationManager and RouteAccessPolicy.
                         .anyRequest().access(dynamicRouteAuthorizationManager)

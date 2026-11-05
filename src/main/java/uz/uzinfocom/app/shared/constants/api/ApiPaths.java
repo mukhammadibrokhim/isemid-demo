@@ -321,6 +321,22 @@ public final class ApiPaths {
          * stay well under the browser's per-origin connection limit.
          */
         public static final String METRICS_STREAM = "/metrics/stream";
+
+        /**
+         * Spring Boot Actuator, re-served behind the dev-panel login: every
+         * endpoint in {@code management.endpoints.web.exposure.include} (health,
+         * metrics, loggers, env, beans, threaddump, ...) is reachable under
+         * {@code /actuator/{id}[/{*rest}]} with the actuator's own sub-paths and
+         * query parameters, so the panel never needs the raw {@code /v1/actuator/**}
+         * URLs (which are locked down on the main chain). {@link #ACTUATOR} lists
+         * what is available; {@link #ACTUATOR_STREAM_ENDPOINT} turns any GET
+         * operation into a live SSE feed.
+         */
+        public static final String ACTUATOR = "/actuator";
+        public static final String ACTUATOR_ENDPOINT = "/actuator/{id}";
+        public static final String ACTUATOR_ENDPOINT_PATH = "/actuator/{id}/{*rest}";
+        public static final String ACTUATOR_STREAM_ENDPOINT = "/actuator-stream/{id}";
+        public static final String ACTUATOR_STREAM_ENDPOINT_PATH = "/actuator-stream/{id}/{*rest}";
         public static final String SETTINGS = "/settings";
         public static final String SETTINGS_BY_ID = "/settings/{id}";
         public static final String SETTINGS_BY_KEY = "/settings/by-key/{key}";
@@ -330,6 +346,7 @@ public final class ApiPaths {
         public static final String LEGACY_MIGRATION = "/legacy-migration";
         public static final String LEGACY_MIGRATION_STATUS = "/legacy-migration/status";
         public static final String DB_DUMPS = "/db-dumps";
+        public static final String DB_DUMP_SCHEMAS = "/db-dumps/schemas";
         public static final String DB_DUMP_BY_ID = "/db-dumps/{id}";
         public static final String DB_DUMP_DOWNLOAD = "/db-dumps/{id}/download";
         public static final String DB_SCHEMA = "/db-schema";
@@ -346,7 +363,6 @@ public final class ApiPaths {
         public static final String INTEGRATION_CLIENT_BY_ID = "/integration-clients/{id}";
         public static final String INTEGRATION_CLIENT_REVOKE = "/integration-clients/{id}/revoke";
         public static final String INTEGRATION_CLIENT_ALLOWED_IPS = "/integration-clients/{id}/allowed-ips";
-        public static final String DB_DUMP_SCHEMAS = "/db-dumps/schemas";
         public static final String INTEGRATION_CLIENT_WEBHOOK = "/integration-clients/{id}/webhook";
         public static final String INTEGRATION_CLIENT_SOURCE_KEYS = "/integration-clients/source-keys";
 

@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.platform.devpanel.application.query;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -8,8 +9,10 @@ import io.micrometer.core.instrument.distribution.ValueAtPercentile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.platform.devpanel.application.query.dto.HttpEndpointMetricsResponse;
+import uz.uzinfocom.app.platform.devpanel.application.query.dto.RuntimeMetricsResponse;
 import uz.uzinfocom.app.platform.devpanel.application.query.dto.SystemMetricsResponse;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +40,41 @@ public class DevMetricsQueryService {
                 gaugeValue("jvm.memory.max", "heap"),
                 gaugeValue("disk.free", null),
                 gaugeValue("disk.total", null)
+        );
+    }
+
+    /**
+     * Everything the dashboard needs to spot saturation: threads, GC, file descriptors, the DB pool
+     * and Tomcat's request threads. Multi-instance meters (one gauge per memory pool / DB pool) are
+     * summed.
+     */
+    public RuntimeMetricsResponse runtimeSnapshot() {
+        Collection<Timer> gcPauses = meterRegistry.find("jvm.gc.pause").timers();
+        Long gcCount = gcPauses.isEmpty() ? null : gcPauses.stream().mapToLong(Timer::count).sum();
+        Double gcTotalMs = gcPauses.isEmpty()
+                ? null
+                : gcPauses.stream().mapToDouble(timer -> timer.totalTime(TimeUnit.MILLISECONDS)).sum();
+
+        return new RuntimeMetricsResponse(
+                sumGauges(meterRegistry.find("process.uptime").gauges()),
+                sumGauges(meterRegistry.find("jvm.threads.live").gauges()),
+                sumGauges(meterRegistry.find("jvm.threads.peak").gauges()),
+                sumGauges(meterRegistry.find("jvm.threads.daemon").gauges()),
+                sumGauges(meterRegistry.find("jvm.memory.used").tag("area", "nonheap").gauges()),
+                sumGauges(meterRegistry.find("jvm.classes.loaded").gauges()),
+                gcCount,
+                gcTotalMs,
+                sumGauges(meterRegistry.find("process.files.open").gauges()),
+                sumGauges(meterRegistry.find("process.files.max").gauges()),
+                sumGauges(meterRegistry.find("hikaricp.connections.active").gauges()),
+                sumGauges(meterRegistry.find("hikaricp.connections.idle").gauges()),
+                sumGauges(meterRegistry.find("hikaricp.connections.pending").gauges()),
+                sumGauges(meterRegistry.find("hikaricp.connections.max").gauges()),
+                sumGauges(meterRegistry.find("tomcat.threads.busy").gauges()),
+                sumGauges(meterRegistry.find("tomcat.threads.current").gauges()),
+                sumGauges(meterRegistry.find("tomcat.threads.config.max").gauges()),
+                sumCounters(meterRegistry.find("logback.events").tag("level", "error").counters()),
+                sumCounters(meterRegistry.find("logback.events").tag("level", "warn").counters())
         );
     }
 
@@ -148,6 +186,24 @@ public class DevMetricsQueryService {
         long errorCount() {
             return count4xx + count5xx;
         }
+    }
+
+    /** @return the sum of the gauges' values, or {@code null} when none is registered / all are NaN */
+    private static Double sumGauges(Collection<Gauge> gauges) {
+        double sum = 0;
+        boolean any = false;
+        for (Gauge gauge : gauges) {
+            double value = gauge.value();
+            if (!Double.isNaN(value)) {
+                sum += value;
+                any = true;
+            }
+        }
+        return any ? sum : null;
+    }
+
+    private static Double sumCounters(Collection<Counter> counters) {
+        return counters.isEmpty() ? null : counters.stream().mapToDouble(Counter::count).sum();
     }
 
     private Double gaugeValue(String name, String areaTag) {

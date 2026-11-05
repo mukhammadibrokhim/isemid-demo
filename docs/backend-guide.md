@@ -1508,10 +1508,55 @@ name, description*` (roles). `PUT` on an already soft-deleted row → `409
 `dev-users` has no soft-delete problem (revoke only sets `enabled:false`;
 list never filters on it unless `enabled=` is passed).
 
+### 14.3a Actuator behind the panel + live feeds
+
+Every Spring Boot Actuator endpoint in `management.endpoints.web.exposure.include`
+(`health, info, prometheus, metrics, loggers, env, configprops, beans, conditions,
+mappings, scheduledtasks, threaddump, liquibase`) is served under
+`/v1/dev/actuator/{id}[/{rest}]` (`platform.devpanel.application.actuator`).
+`DevActuatorInvoker` calls the discovered `WebEndpointsSupplier` operations
+**in-process** exactly like Boot's own MVC handler (path template match → argument
+map from path vars + POST body + query params → `InvocationContext`), so sub-paths and
+parameters are the actuator's own (`/actuator/metrics/jvm.memory.used?tag=area:heap`,
+`/actuator/loggers/uz.uzinfocom.app`) and any id added to the exposure list later
+appears with no code change. `heapdump`/`shutdown`/`logfile`/`jolokia` are refused even
+if exposed.
+
+| Method | Path | Access | Notes |
+|---|---|---|---|
+| GET | `/v1/dev/actuator` | any | endpoints + operations + required authority + SSE path of each readable operation |
+| GET | `/v1/dev/actuator/{id}[/{rest}]` | any for health/info/metrics/prometheus/loggers/scheduledtasks/liquibase; ADMIN+ for env/configprops/beans/conditions/mappings/threaddump | JSON wrapped in `ApiResponse`; text results (prometheus, `threaddump` with `Accept: text/plain`) raw. A `DOWN` health still answers 200 with the tree |
+| POST/DELETE | `/v1/dev/actuator/{id}[/{rest}]` | ADMIN+ | e.g. `POST /actuator/loggers/{name}` `{"configuredLevel":"DEBUG"}` (null resets); also pushes a `logger` event on the metrics stream |
+| GET (SSE) | `/v1/dev/actuator-stream/{id}[/{rest}]?intervalMs=&onlyChanges=` | same as the GET above | re-reads the operation every `intervalMs` (default 3000, 1000–60000, ≥5000 for heavy ids) → `actuator` event `{endpoint,path,status,timestamp,body}`; failed sample → `actuator-error`, feed continues; ≤20 feeds, 1 h lifetime; first sample is synchronous so bad ids/args fail as normal JSON errors |
+
+Masking: `management.endpoint.health.show-details=when-authorized` + `roles=DEV_MONITORING`
+(health details only for dev accounts — public `/v1/actuator/health` stays status-only);
+`env`/`configprops` `show-values=when-authorized` + `roles=DEV_SUPER_ADMIN` (everyone
+else sees `******`). `DevActuatorSecurityContext` maps these actuator role names onto
+`ROLE_DEV_*`.
+
+**Main-chain lockdown (important):** exposing the extra ids also makes them mappable on
+`/v1/actuator/**`, so `SecurityConfig` ends the actuator rules with
+`/v1/actuator/health/**`+`/info` → DB route policy, then `/v1/actuator/**` → `denyAll()`
+(fail-closed; `loggers`/`metrics` admin and `prometheus` IP rules are unchanged and sit
+above it). The bare `/v1/actuator` discovery document is therefore closed too.
+
+Extra events on the single multiplexed `GET /v1/dev/metrics/stream` connection
+(besides `system`/`http`/`error`): `runtime` (every `app.dev.metrics-stream-interval-ms`:
+threads, GC, fds, non-heap, DB pool active/idle/pending/max — `dbPoolPending > 0` = pool
+saturated —, Tomcat threads [needs `server.tomcat.mbeanregistry.enabled=true`], ERROR/WARN
+log counters), `health` (full tree, every `app.dev.health-stream-interval-ms`, default
+10 s — it probes the DB) and `logger` (level changed). Use the per-operation
+`actuator-stream` feed for focused live views (one metric, a thread dump); keep the
+dashboard on the multiplexed stream to stay under the browser's per-origin connection limit.
+
 ### 14.4 Errors
 
 | HTTP | `code` | Message keys |
 |---|---|---|
+| 400 | `BAD_REQUEST` | `dev.actuator.bad-request` (actuator rejected the arguments, e.g. malformed `tag`) |
+| 429 | `TOO_MANY_REQUESTS` | `dev.actuator.streams-exhausted` |
+| 404 | `NOT_FOUND` | `dev.actuator.endpoint-not-found`, `dev.actuator.operation-not-found`, `dev.actuator.no-data` (unknown metric/logger/property) |
 | 403 | `DEV_USER_PASSWORD_CHANGE_REQUIRED` | route to the password screen |
 | 409 | `CONFLICT` | `dev-user.password.current.invalid`, `dev-user.username.already-exists`, `dev-user.email.already-exists`, `dev-user.role.super-admin-not-creatable`, `dev-user.revoke.self-forbidden`, `dev-position.name.already-exists`, `dev-position.delete.in-use`, `permission.subject.already_exists`, `permission.update.deleted_conflict`, `action.code.already_exists`, `action.update.deleted_conflict`, `role.name.already_exists`, `role.update.deleted_conflict` |
 | 404 | `NOT_FOUND` | `dev-user.not-found`, `dev-position.not-found`, `permission.not_found_by_id`, `action.not_found_by_id`, `role.not_found` |

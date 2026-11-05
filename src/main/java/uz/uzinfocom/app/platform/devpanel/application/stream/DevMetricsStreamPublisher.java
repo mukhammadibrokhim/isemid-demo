@@ -7,7 +7,7 @@ import uz.uzinfocom.app.platform.devpanel.application.query.DevMetricsQueryServi
 
 /**
  * Periodically pushes {@link DevMetricsQueryService} snapshots as
- * {@code system}/{@code http} events on the shared {@link DevSseBroadcaster}
+ * {@code system}/{@code http}/{@code runtime} events on the shared {@link DevSseBroadcaster}
  * stream. Skips the snapshot work entirely when no dev panel tab is
  * connected, so this never runs against an empty room.
  */
@@ -26,5 +26,6 @@ public class DevMetricsStreamPublisher {
 
         devSseBroadcaster.broadcast("system", devMetricsQueryService.systemSnapshot());
         devSseBroadcaster.broadcast("http", devMetricsQueryService.httpSnapshot());
+        devSseBroadcaster.broadcast("runtime", devMetricsQueryService.runtimeSnapshot());
     }
 }
