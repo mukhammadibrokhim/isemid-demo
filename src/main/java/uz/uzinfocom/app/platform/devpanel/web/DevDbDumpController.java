@@ -47,6 +47,14 @@ public class DevDbDumpController {
         return ApiResponse.success(messageResolver.resolve("common.success"), service.start(request));
     }
 
+    @Operation(summary = "Schemas that can be dumped (public / public2, those present in the database) - "
+            + "pick from these for the `schemas` field of the start request")
+    @GetMapping(ApiPaths.Dev.DB_DUMP_SCHEMAS)
+    @PreAuthorize("hasRole('DEV_SUPER_ADMIN')")
+    public ApiResponse<List<String>> schemas() {
+        return ApiResponse.success(messageResolver.resolve("common.success"), service.availableSchemas());
+    }
+
     @Operation(summary = "All dumps, newest first")
     @GetMapping(ApiPaths.Dev.DB_DUMPS)
     @PreAuthorize("hasRole('DEV_SUPER_ADMIN')")

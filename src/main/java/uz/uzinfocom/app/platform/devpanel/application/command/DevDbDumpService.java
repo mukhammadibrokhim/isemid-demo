@@ -3,6 +3,7 @@ package uz.uzinfocom.app.platform.devpanel.application.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -48,8 +49,7 @@ public class DevDbDumpService {
     private static final Logger log = LoggerFactory.getLogger(DevDbDumpService.class);
 
     private static final Pattern ID = Pattern.compile("\\d{8}-\\d{6}-[0-9a-f]{4}");
-    private static final Pattern SCHEMA = Pattern.compile("[A-Za-z_][A-Za-z0-9_]{0,62}");
-    private static final List<String> DEFAULT_SCHEMAS = List.of("public", "public2");
+    private static final List<String> ALLOWED_SCHEMAS = List.of("public", "public2");
     private static final DateTimeFormatter ID_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC);
     private static final int MAX_ERROR_CHARS = 4000;
     private static final long TIMEOUT_MINUTES = 120;
@@ -61,6 +61,7 @@ public class DevDbDumpService {
         return t;
     });
 
+    private final JdbcTemplate jdbc;
     private final boolean enabled;
     private final Path dir;
     private final String pgDump;
@@ -70,6 +71,7 @@ public class DevDbDumpService {
     private volatile String runningId;
 
     public DevDbDumpService(
+            JdbcTemplate jdbc,
             @Value("${app.dev.db-dump.enabled:false}") boolean enabled,
             @Value("${app.dev.db-dump.dir:./db-dumps}") String dir,
             @Value("${app.dev.db-dump.pg-dump-path:pg_dump}") String pgDump,
@@ -77,6 +79,7 @@ public class DevDbDumpService {
             @Value("${spring.datasource.username}") String username,
             @Value("${spring.datasource.password}") String password
     ) {
+        this.jdbc = jdbc;
         this.enabled = enabled;
         this.dir = Path.of(dir).toAbsolutePath().normalize();
         this.pgDump = pgDump;
@@ -90,7 +93,7 @@ public class DevDbDumpService {
         if (runningId != null) {
             throw new ConflictException("db-dump.already-running");
         }
-        List<String> schemas = resolveSchemas(request == null ? null : request.schemas());
+        List<String> schemas = resolveSchemas(request == null ? null : request.schemas(), availableSchemas());
 
         String id = ID_TIME.format(Instant.now()) + "-" + "%04x".formatted(random.nextInt(0x10000));
         Meta meta = new Meta(id, schemas, Instant.now(), actor(), "RUNNING", null);
@@ -104,6 +107,14 @@ public class DevDbDumpService {
         executor.execute(() -> execute(meta));
         log.warn("DB dump {} started by {} (schemas={})", id, meta.createdBy, schemas);
         return toResponse(meta);
+    }
+
+    /** The schemas a dump can be taken of (public / public2) that exist in the connected database. */
+    public List<String> availableSchemas() {
+        requireEnabled();
+        List<String> existing = jdbc.queryForList(
+                "select nspname from pg_namespace where nspname in ('public', 'public2')", String.class);
+        return ALLOWED_SCHEMAS.stream().filter(existing::contains).toList();
     }
 
     public List<DevDbDumpResponse> list() {
@@ -211,14 +222,21 @@ public class DevDbDumpService {
         return cmd;
     }
 
-    private static List<String> resolveSchemas(List<String> requested) {
+    /** No schemas requested = every available one; otherwise only public / public2, and they must exist. */
+    private static List<String> resolveSchemas(List<String> requested, List<String> available) {
         if (requested == null || requested.isEmpty()) {
-            return DEFAULT_SCHEMAS;
+            if (available.isEmpty()) {
+                throw new ConflictException("db-dump.schema-not-found", String.join(", ", ALLOWED_SCHEMAS));
+            }
+            return available;
         }
         List<String> out = new ArrayList<>();
         for (String s : requested) {
-            if (s == null || !SCHEMA.matcher(s).matches()) {
+            if (s == null || !ALLOWED_SCHEMAS.contains(s)) {
                 throw new ConflictException("db-dump.invalid-schema", s);
+            }
+            if (!available.contains(s)) {
+                throw new ConflictException("db-dump.schema-not-found", s);
             }
             if (!out.contains(s)) {
                 out.add(s);

@@ -346,6 +346,7 @@ public final class ApiPaths {
         public static final String INTEGRATION_CLIENT_BY_ID = "/integration-clients/{id}";
         public static final String INTEGRATION_CLIENT_REVOKE = "/integration-clients/{id}/revoke";
         public static final String INTEGRATION_CLIENT_ALLOWED_IPS = "/integration-clients/{id}/allowed-ips";
+        public static final String DB_DUMP_SCHEMAS = "/db-dumps/schemas";
         public static final String INTEGRATION_CLIENT_WEBHOOK = "/integration-clients/{id}/webhook";
         public static final String INTEGRATION_CLIENT_SOURCE_KEYS = "/integration-clients/source-keys";
 

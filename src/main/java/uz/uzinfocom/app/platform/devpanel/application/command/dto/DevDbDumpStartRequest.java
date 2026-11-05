@@ -6,8 +6,9 @@ import java.util.List;
 
 @Schema(description = "Start request for a database dump.")
 public record DevDbDumpStartRequest(
-        @Schema(description = "Schemas to dump (e.g. [\"public\",\"public2\"]). Defaults to every schema "
-                + "of the connected database that the migration touches: public and public2.")
+        @Schema(description = "Schemas to dump: [\"public\"], [\"public2\"] or both. Only public and public2 are "
+                + "accepted, and each must exist (see GET /db-dumps/schemas). Omit or send empty to dump "
+                + "every available one.")
         List<String> schemas
 ) {
 }
