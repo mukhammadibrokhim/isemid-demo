@@ -923,6 +923,44 @@ UI: year dropdown, expandable republic → region → district tree, row ✎ ope
 a detail drawer (`years[]` series + `audit`), 🗑 only for `MANUAL`/stale
 `OTHER` rows. (`Population extends AuditableEntity`, `AuditEntityType.POPULATION`.)
 
+### 11.1a District / neighborhood sync from cs.egov.uz
+
+Two separate super-admin endpoints (one per frontend menu), both with
+`?dryRun=true|false`: `POST /v1/references/districts/sync` and
+`POST /v1/references/neighborhood/sync`. They bring `ref_district` and
+`ref_neighborhood` in line with the e-government classifier registry
+(`modules.reference.application.geosync`). Run the district sync first when new
+districts may exist — the neighborhood sync only attaches to districts that are
+already active in our table. Source: partner API
+`GET https://cs.egov.uz/apiPartner/Table/Get?accessToken=&name=&limit=&offset=&lang=1`
+— classifier `035-3-004` (8 993 neighborhoods: TIN, district SOATO, 3 names,
+uzcad code, 1C code) and `035-1-002` (region/district SOATO list, **Russian
+name only**). The token is a **query parameter**, so it is a secret
+(`EGOV_CLASSIFIER_ACCESS_TOKEN` in `.env`), the URL is never logged and
+failures are rethrown without the underlying exception.
+
+- Districts (key `soato_id`): active → untouched; soft-deleted → reactivated;
+  missing → created (`code` = region suffix + last 3 SOATO digits, e.g.
+  `AN-202`; `uz`/`uz-Cyrl`/`kaa` names are filled with the Russian name as a
+  placeholder and listed in `createdDistricts` for translation).
+- Neighborhoods (key TIN, fallback `soato_id` = uzcad code): found → reactivated
+  if soft-deleted, parent district and any differing field (names, TIN,
+  `soato_id`, 1C code → `uzcad_registry_code`) updated; missing → created with
+  `code = parentCode + 3-digit sequence` (existing convention, not the uzcad
+  number). Rows only we have are never touched.
+- egov's neighborhood classifier names the 2023 Namangan-city districts
+  `1714365`/`1714367` (region + last 3 digits) while we store them as
+  `1714401365`/`1714401367` (Davlatobod `NG-401365`, Yangi Namangan `NG-401367`);
+  egov's SOATO list lacks them, so they cannot be created from it. A 10-digit
+  district is therefore also matched under its 7-digit short key (only when no
+  real district owns that key and it is unambiguous) and reported in
+  `aliasedDistricts`; `parent_soato_id` always stores OUR district's SOATO id.
+- A neighborhood whose egov district is not an active district of ours (even
+  via alias) is skipped and listed in `unresolvedDistricts`.
+- The HTTP fetch happens before the DB transaction; `dryRun=true` runs the same
+  logic and rolls back, so its counts equal a real run. One run at a time
+  (`409` otherwise). `502` = registry unreachable / rejected, tables untouched.
+
 ### 11.2 Manual reports («Qo'lda kiritiladigan hisobot ta'riflari», `ref_manual_report`)
 
 One record = one nosological form: code, localized names, "include in total"
