@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.reference.application.neighborhood.query.mapper
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uz.uzinfocom.app.modules.reference.application.lookup.mapper.ReferenceMappingHelper;
+import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodDetailResponse;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodLookupResponse;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodResponse;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodTableResponse;
@@ -13,6 +14,11 @@ import uz.uzinfocom.app.modules.reference.domain.Neighborhood;
 public interface NeighborhoodMapper {
 
     NeighborhoodResponse toResponse(Neighborhood neighborhood);
+
+    @Mapping(target = "parentName", source = "parentCode", qualifiedByName = "districtName")
+    @Mapping(target = "grandParentCode", source = "parentCode", qualifiedByName = "neighborhoodGrandParentCode")
+    @Mapping(target = "grandParentName", source = "parentCode", qualifiedByName = "neighborhoodGrandParentName")
+    NeighborhoodDetailResponse toDetailResponse(Neighborhood neighborhood);
 
     @Mapping(target = "districtName", source = "parentCode", qualifiedByName = "districtName")
     @Mapping(target = "regionName", source = "parentCode", qualifiedByName = "regionNameByDistrictCode")

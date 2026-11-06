@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.dto.NeighborhoodCreateRequest;
+import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodDetailResponse;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodLookupFilterRequest;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodLookupResponse;
@@ -81,7 +82,13 @@ public class NeighborhoodController {
 
     @Operation(
             summary = "Получить махаллю по идентификатору",
-            description = "Возвращает одну активную запись махалли по внутреннему идентификатору."
+            description = """
+                    Возвращает одну активную запись махалли по внутреннему идентификатору.
+
+                    Помимо самой махалли ответ содержит родительский район (parentCode, parentName)
+                    и регион этого района (grandParentCode, grandParentName). Наименования
+                    родителей локализованы по языку запроса.
+                    """
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
@@ -89,7 +96,7 @@ public class NeighborhoodController {
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<NeighborhoodResponse> getById(
+    public ApiResponse<NeighborhoodDetailResponse> getById(
             @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id
     ) {

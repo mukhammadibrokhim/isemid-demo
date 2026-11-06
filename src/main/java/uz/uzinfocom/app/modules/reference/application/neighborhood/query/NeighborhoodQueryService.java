@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.reference.application.common.ReferenceCodeNormalizer;
+import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodDetailResponse;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodFilterRequest;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodLookupFilterRequest;
 import uz.uzinfocom.app.modules.reference.application.neighborhood.query.dto.NeighborhoodLookupResponse;
@@ -64,9 +65,9 @@ public class NeighborhoodQueryService {
     }
 
     @Transactional(readOnly = true)
-    public NeighborhoodResponse getById(Long id) {
+    public NeighborhoodDetailResponse getById(Long id) {
         return neighborhoodRepository.findByIdAndDeletedFalse(id)
-                .map(neighborhoodMapper::toResponse)
+                .map(neighborhoodMapper::toDetailResponse)
                 .orElseThrow(() -> new NotFoundException("reference.neighborhood.not_found_by_id", id));
     }
 
