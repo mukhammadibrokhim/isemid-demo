@@ -30,7 +30,11 @@ import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
+import uz.uzinfocom.app.modules.iam.application.user.query.dto.UserMiniResponse;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -45,6 +49,7 @@ public class CardQueryService {
     private final SenderReceiverScopePredicateFactory scopePredicateFactory;
     private final Form058PdfMapper form058PdfMapper;
     private final Form0581PdfMapper form0581PdfMapper;
+    private final UserMapperHelper userMapperHelper;
 
     @Transactional(readOnly = true)
     public Page<CardTableResponse> findTable(CardFilterRequest filter) {
@@ -91,7 +96,11 @@ public class CardQueryService {
                                 .page(pageable)), "Card table page returned null"
         );
 
-        return page.map(cardTableMapper::toTableResponse);
+        Map<Long, UserMiniResponse> assignedByUsers = userMapperHelper.toUserMiniResponses(
+                page.getContent().stream().map(CardTableProjection::getAssignedById).toList());
+
+        return page.map(projection -> cardTableMapper.toTableResponse(projection)
+                .withAssignedBy(assignedByUsers.get(projection.getAssignedById())));
     }
 
     private ResolvedOrganizationScope currentScope() {

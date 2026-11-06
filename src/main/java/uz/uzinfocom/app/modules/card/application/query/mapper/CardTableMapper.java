@@ -15,7 +15,8 @@ public interface CardTableMapper {
 
     @Mapping(target = "cardTypeName", source = "cardType", qualifiedByName = "cardTypeName")
     @Mapping(target = "statusName", source = "status", qualifiedByName = "cardStatusName")
-    @Mapping(target = "assignedBy", source = "assignedById", qualifiedByName = "toUserMiniResponse")
+    // Filled per page in CardQueryService via one batched user lookup (avoids a findById per row).
+    @Mapping(target = "assignedBy", ignore = true)
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
     @Mapping(target = "organizationId", source = ".", qualifiedByName = "resolveOrganizationId")

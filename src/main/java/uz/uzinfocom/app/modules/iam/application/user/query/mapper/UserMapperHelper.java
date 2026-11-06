@@ -7,6 +7,12 @@ import uz.uzinfocom.app.modules.iam.application.user.query.dto.UserMiniResponse;
 import uz.uzinfocom.app.modules.iam.domain.User;
 import uz.uzinfocom.app.modules.iam.repository.UserRepository;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class UserMapperHelper {
@@ -19,6 +25,20 @@ public class UserMapperHelper {
             return null;
         }
         return userRepository.findById(id).map(this::toUserMiniResponse).orElse(null);
+    }
+
+    /**
+     * Batch variant for list endpoints: one {@code IN} query for the whole
+     * page instead of a {@link #toUserMiniResponse(Long)} lookup per row.
+     * Unknown ids are simply absent from the result map.
+     */
+    public Map<Long, UserMiniResponse> toUserMiniResponses(Collection<Long> ids) {
+        Set<Long> distinct = ids.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        if (distinct.isEmpty()) {
+            return Map.of();
+        }
+        return userRepository.findAllById(distinct).stream()
+                .collect(Collectors.toMap(User::getId, this::toUserMiniResponse));
     }
 
     @Named("toUserMiniResponse")

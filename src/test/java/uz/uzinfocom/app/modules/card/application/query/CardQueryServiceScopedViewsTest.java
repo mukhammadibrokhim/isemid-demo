@@ -9,6 +9,7 @@ import uz.uzinfocom.app.modules.card.application.exception.CardNotFoundException
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
 import uz.uzinfocom.app.modules.card.application.query.mapper.CardTableMapper;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
 import uz.uzinfocom.app.modules.form0581.application.query.mapper.Form0581PdfMapper;
@@ -61,7 +62,7 @@ class CardQueryServiceScopedViewsTest {
         service = new CardQueryService(
                 cardRepository, cardTableMapper, handlerRegistry,
                 currentUserProvider, organizationScopeResolver, scopePredicateFactory, form058PdfMapper,
-                form0581PdfMapper
+                form0581PdfMapper, mock(UserMapperHelper.class)
         );
 
         when(cardRepository.findBy(any(Specification.class), any(Function.class)))

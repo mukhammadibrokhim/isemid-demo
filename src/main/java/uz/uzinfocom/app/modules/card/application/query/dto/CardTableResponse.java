@@ -50,6 +50,11 @@ public record CardTableResponse(
         @Schema(description = "Краткие сведения о пациенте.")
         PatientShortResponse patient
 ) {
+    public CardTableResponse withAssignedBy(UserMiniResponse assignedBy) {
+        return new CardTableResponse(id, createdAt, cardType, cardTypeName, status, statusName, assignedBy,
+                organizationId, organizationName, formId, formType, patient);
+    }
+
     @Schema(description = "Краткие сведения о пациенте для табличного представления карты.")
     public record PatientShortResponse(
             @Schema(description = "Идентификатор пациента.")
