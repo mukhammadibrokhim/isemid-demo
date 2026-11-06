@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        `act_number` is no longer client-supplied: new acts get their own id
+        (the same value LIS receives as senderActNumber) on assign. Existing
+        acts with no number are backfilled the same way; acts that already
+        carry a number (legacy paper-form values) keep it.
+    -->
+    <changeSet id="20260929-1200-01-backfill-act-number-from-id" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act" columnName="act_number"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            UPDATE act SET act_number = id WHERE act_number IS NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

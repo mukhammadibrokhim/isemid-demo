@@ -5,12 +5,18 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViolationException;
 import uz.uzinfocom.app.modules.form0581.domain.exception.InvalidForm0581StateException;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Objects;
 
+/**
+ * Cancellation is only possible while the form is still {@code SENT} — see
+ * {@link uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status#isCancellable()}.
+ * In that window either party may act: the sender withdraws it, or the
+ * receiver declines the incoming "NEW" notification.
+ */
 @Component
 @RequiredArgsConstructor
 public class Form0581CancelValidator {
@@ -26,15 +32,14 @@ public class Form0581CancelValidator {
             return;
         }
 
-        validateSenderOrganizationScope(form0581);
-    }
-
-    private void validateSenderOrganizationScope(Form0581 form0581) {
         Long currentOrganizationId = CurrentOrganizationContext.getOptional()
                 .map(Organization::getId)
                 .orElseThrow(Form0581ScopeViolationException::new);
 
-        if (!Objects.equals(currentOrganizationId, form0581.getSenderOrganizationId())) {
+        boolean isSender = Objects.equals(currentOrganizationId, form0581.getSenderOrganizationId());
+        boolean isReceiver = Objects.equals(currentOrganizationId, form0581.getReceiverOrganizationId());
+
+        if (!isSender && !isReceiver) {
             throw new Form0581ScopeViolationException();
         }
     }

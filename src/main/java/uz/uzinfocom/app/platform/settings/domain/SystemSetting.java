@@ -29,7 +29,7 @@ public class SystemSetting extends AuditableEntity {
     @Column(name = "setting_key", nullable = false, length = 200)
     private String settingKey;
 
-    @Column(name = "setting_value", length = 2000)
+    @Column(name = "setting_value", length = 4000)
     private String settingValue;
 
     @Enumerated(EnumType.STRING)

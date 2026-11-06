@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import uz.uzinfocom.app.modules.patient.web.request.PatientRequest;
+import uz.uzinfocom.app.modules.patient.web.request.UpdatePatientRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,12 +14,12 @@ import java.util.UUID;
 @Schema(description = "Запрос на обновление формы №058.")
 public record UpdateForm058Request(
         @Schema(description = "Код диагноза по МКБ-10.")
-        @Size(max = 20, message = "{validation.form058.mkb10-code.size}")
-        String mkb10Code,
+        @Size(max = 20, message = "{validation.form058.icd10-code.size}")
+        String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        @Size(max = 512, message = "{validation.form058.mkb10-name.size}")
-        String mkb10Name,
+        @Size(max = 512, message = "{validation.form058.icd10-name.size}")
+        String icd10Name,
 
         @Schema(description = "Дата начала заболевания.")
         @PastOrPresent(message = "{validation.form058.disease-date.past_or_present}")
@@ -62,7 +62,7 @@ public record UpdateForm058Request(
 
         @Schema(description = "Сведения о пациенте для обновления.")
         @Valid
-        PatientRequest patient,
+        UpdatePatientRequest patient,
 
         @Schema(description = "Географическое место выявления заболевания.")
         @Valid

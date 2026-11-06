@@ -9,6 +9,7 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import uz.uzinfocom.app.platform.security.context.SecurityHeaders;
 
 @Configuration
 public class OpenApiConfig {
@@ -33,7 +34,7 @@ public class OpenApiConfig {
     private static final int ORDER_REPORT = 4;
     private static final int ORDER_INTEGRATION = 5;
     private static final int ORDER_INBOUND_INTEGRATION = 6;
-    private static final int ORDER_DEV_MONITORING = 7;
+    private static final int ORDER_DEV_PANEL = 7;
     private static final int ORDER_ADMIN = 8;
 
     private final CommonOpenApiCustomizer commonOpenApiCustomizer;
@@ -58,7 +59,17 @@ public class OpenApiConfig {
                 .addSecuritySchemes(BASIC_AUTH, new SecurityScheme()
                         .name(BASIC_AUTH)
                         .type(SecurityScheme.Type.HTTP)
-                        .scheme("basic"));
+                        .scheme("basic"))
+                .addSecuritySchemes(OpenApiSecurityEnricher.INTEGRATION_API_KEY_AUTH, new SecurityScheme()
+                        .type(SecurityScheme.Type.APIKEY)
+                        .in(SecurityScheme.In.HEADER)
+                        .name(SecurityHeaders.INTEGRATION_API_KEY)
+                        .description("Интеграционный клиент с authType=API_KEY: ключ формата <clientId>.<token>."))
+                .addSecuritySchemes(OpenApiSecurityEnricher.INTEGRATION_BASIC_AUTH, new SecurityScheme()
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("basic")
+                        .description("Интеграционный клиент с authType=BASIC_AUTH: clientId как логин, "
+                                + "выданный секрет как пароль."));
 
         schemaRegistrar.registerCommonSchemas(components);
 
@@ -99,9 +110,9 @@ public class OpenApiConfig {
     }
 
     @Bean
-    @Order(ORDER_DEV_MONITORING)
-    public GroupedOpenApi devMonitoringOpenApi() {
-        return buildGroupedOpenApi(OpenApiGroups.DEV_MONITORING);
+    @Order(ORDER_DEV_PANEL)
+    public GroupedOpenApi devPanelOpenApi() {
+        return buildGroupedOpenApi(OpenApiGroups.DEV_PANEL);
     }
 
     @Bean

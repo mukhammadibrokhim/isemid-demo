@@ -2,7 +2,7 @@ package uz.uzinfocom.app.platform.persistence.audit;
 
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.platform.persistence.entity.OrganizationScopedEntity;
 
 import java.util.UUID;

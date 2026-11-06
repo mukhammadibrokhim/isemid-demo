@@ -7,8 +7,10 @@ import uz.uzinfocom.app.modules.form058.application.query.dto.detail.*;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058Location;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.*;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.user.query.mapper.UserMapperHelper;
 import uz.uzinfocom.app.modules.patient.application.query.mapper.PatientDetailResponseMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
 import java.time.LocalDate;
@@ -18,7 +20,9 @@ import java.util.List;
 @Mapper(
         config = CentralMapperConfig.class,
         uses = {
-                PatientDetailResponseMapper.class
+                PatientDetailResponseMapper.class,
+                UserMapperHelper.class,
+                OrganizationMappingHelper.class
         }
 )
 public interface Form058DetailResponseMapper {
@@ -27,7 +31,9 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "status", source = "form058.status")
     @Mapping(target = "source", source = "form058.source")
     @Mapping(target = "senderOrganizationId", source = "form058.senderOrganizationId")
+    @Mapping(target = "senderOrganizationName", source = "form058.senderOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     @Mapping(target = "receiverOrganizationId", source = "form058.receiverOrganizationId")
+    @Mapping(target = "receiverOrganizationName", source = "form058.receiverOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
 
     @Mapping(target = "diagnosisInfo", source = "form058.diagnosisInfo")
     @Mapping(target = "clinicalInfo", source = "form058.clinicalInfo")
@@ -37,6 +43,7 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "reportInfo", source = "form058.reportInfo")
     @Mapping(target = "cancellationInfo", source = "form058.cancellationInfo")
     @Mapping(target = "approvalInfo", source = "form058.approvalInfo")
+    @Mapping(target = "acceptInfo", source = "form058.acceptInfo")
     @Mapping(target = "deleteInfo", source = "form058.deleteInfo")
 
     @Mapping(target = "patient", source = "form058.patient")
@@ -44,8 +51,13 @@ public interface Form058DetailResponseMapper {
     @Mapping(target = "cards", source = "cards")
     Form058DetailResponse toDetailedResponse(Form058 form058, AuditResponse audit, List<CardTableResponse> cards);
 
+    @Mapping(target = "icd10Code", source = "icd10Code")
+    @Mapping(target = "icd10Name", source = "icd10Name")
+    @Mapping(target = "finalIcd10Code", source = "finalIcd10Code")
+    @Mapping(target = "finalIcd10Name", source = "finalIcd10Name")
     Form058DiagnosisDetailResponse toResponse(Form058DiagnosisInfo source);
 
+    @Mapping(target = "hospitalPlaceName", source = "hospitalPlaceId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     Form058ClinicalDetailResponse toResponse(Form058ClinicalInfo source);
 
     @Mapping(target = "admissionDate", expression = "java(toLocalDate(source.getAdmissionDate()))")
@@ -64,10 +76,15 @@ public interface Form058DetailResponseMapper {
 
     Form058CancellationDetailResponse toResponse(Form058CancellationInfo source);
 
+    @Mapping(target = "approvedOrganizationName", source = "approvedOrganizationId", qualifiedByName = "activeOrganizationNameByIdOrNull")
     Form058ApprovalDetailResponse toResponse(Form058ApprovalInfo source);
 
+    @Mapping(target = "acceptedBy", source = "acceptedBy")
+    @Mapping(target = "acceptedAt", source = "acceptedAt")
+    @Mapping(target = "acceptedFullName", source = "acceptedBy", qualifiedByName = "toUserFullName")
+    Form058AcceptDetailResponse toResponse(Form058AcceptInfo source);
+
     @Mapping(target = "hasLinkedCards", source = "hasLinkedCards")
-    @Mapping(target = "assignedCardId", source = "assignedCardId")
     Form058CardLinkDetailResponse toCardLinkResponse(Form058 source);
 
     @Mapping(target = "deleted", source = "source.deleteInfo.deleted")

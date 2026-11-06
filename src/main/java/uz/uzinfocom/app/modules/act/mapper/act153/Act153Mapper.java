@@ -18,10 +18,12 @@ public interface Act153Mapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "act153", ignore = true)
+    @Mapping(target = "sampleQtUnit", ignore = true) // mass unit, not applicable to water samples
     Act153Detail toEntity(Act153SampleRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "act153", ignore = true)
+    @Mapping(target = "sampleQtUnit", ignore = true)
     void update(@MappingTarget Act153Detail entity, Act153SampleRequest request);
 
     /**
@@ -47,6 +49,15 @@ public interface Act153Mapper {
     @Mapping(target = "assignedById", ignore = true)
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "resultComment", ignore = true)
+    @Mapping(target = "actNumber", ignore = true) // generated from id on assign
+    @Mapping(target = "activityTypeCode", ignore = true) // validated against ref_catalog by the handler
+    // Not on the act153 form; kept on the entity only for legacy-migrated data.
+    @Mapping(target = "goal", ignore = true)
+    @Mapping(target = "purpose", ignore = true) // resolved from purposeCode by the handler
+    @Mapping(target = "samplingBasisCode", ignore = true) // validated against ref_catalog by the handler
+    @Mapping(target = "samplingDocuments", ignore = true) // legacy-migrated free text only
+    @Mapping(target = "lisOrganizationId", ignore = true)
+    @Mapping(target = "laboratoryAddress", ignore = true)
     @Mapping(target = "act153Details", ignore = true)
     void copyOwnFields(@MappingTarget Act153 target, Act153Request request);
 }

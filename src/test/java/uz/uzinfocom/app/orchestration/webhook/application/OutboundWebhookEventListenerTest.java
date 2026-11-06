@@ -1,0 +1,154 @@
+package uz.uzinfocom.app.orchestration.webhook.application;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext.FormRouting;
+import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
+import uz.uzinfocom.app.platform.integrationclient.domain.IntegrationClient;
+import uz.uzinfocom.app.platform.integrationclient.repository.IntegrationClientRepository;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class OutboundWebhookEventListenerTest {
+
+    private final IntegrationClientRepository integrationClientRepository = mock(IntegrationClientRepository.class);
+    private final OutboundWebhookDispatchService outboundWebhookDispatchService = mock(OutboundWebhookDispatchService.class);
+    private final JsonMapper objectMapper = JsonMapper.builder().build();
+
+    private static final UUID FORM_UUID = UUID.fromString("b3f1c2a4-5d6e-4f70-8a91-0c2d3e4f5a6b");
+
+    private final OutboundWebhookEventListener listener = new OutboundWebhookEventListener(
+            integrationClientRepository, outboundWebhookDispatchService, objectMapper);
+
+    @Test
+    void doesNothingWhenTheFormHasNoSourceIntegrationClient() {
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, formRouting(null)));
+
+        verify(outboundWebhookDispatchService, never()).enqueue(any(), any(), any(), any(), any(), any());
+        verify(integrationClientRepository, never()).findById(any());
+    }
+
+    @Test
+    void doesNothingWhenTheIntegrationClientIsMissing() {
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.empty());
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, formRouting(10L)));
+
+        verify(outboundWebhookDispatchService, never()).enqueue(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void doesNothingWhenTheClientsWebhookIsInactive() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test").sourceKey("dmed").name("Test")
+                .scopes("form058:submit").active(true).webhookActive(false).build();
+        client.setId(10L);
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, formRouting(10L)));
+
+        verify(outboundWebhookDispatchService, never()).enqueue(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void doesNothingWhenTheClientItselfIsRevoked() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test").sourceKey("dmed").name("Test")
+                .scopes("form058:submit").active(false).webhookActive(true).build();
+        client.setId(10L);
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, formRouting(10L)));
+
+        verify(outboundWebhookDispatchService, never()).enqueue(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void enqueuesADispatchWhenTheSourceClientHasAnActiveWebhook() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test").sourceKey("dmed").name("Test")
+                .scopes("form058:submit").active(true).webhookActive(true).build();
+        client.setId(10L);
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, formRouting(10L)));
+
+        verify(outboundWebhookDispatchService, times(1)).enqueue(
+                eq(10L), eq(AuditEntityType.FORM058), eq(100L), eq("SENT"), eq("APPROVED"), any());
+    }
+
+    @Test
+    void payloadIdentifiesTheFormByUuidOnly() throws Exception {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test").sourceKey("dmed").name("Test")
+                .scopes("form058:submit").active(true).webhookActive(true).build();
+        client.setId(10L);
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, formRouting(10L)));
+
+        ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+        verify(outboundWebhookDispatchService).enqueue(any(), any(), any(), any(), any(), payload.capture());
+        JsonNode json = objectMapper.readTree(payload.getValue());
+        assertEquals(FORM_UUID.toString(), json.get("entityUuid").asString());
+        assertFalse(json.has("entityId"));
+    }
+
+    @Test
+    void doesNothingWhenTheRoutingCarriesNoFormUuid() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test").sourceKey("dmed").name("Test")
+                .scopes("form058:submit").active(true).webhookActive(true).build();
+        client.setId(10L);
+        when(integrationClientRepository.findById(10L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM058, 100L, new FormRouting(3L, 5L, List.of(), 10L)));
+
+        verify(outboundWebhookDispatchService, never()).enqueue(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void enqueuesForForm0581TooWhenItsSourceClientHasAnActiveWebhook() {
+        IntegrationClient client = IntegrationClient.builder()
+                .clientId("ic_test2").sourceKey("dmed").name("Test")
+                .scopes("form0581:submit").active(true).webhookActive(true).build();
+        client.setId(20L);
+        when(integrationClientRepository.findById(20L)).thenReturn(Optional.of(client));
+
+        listener.on(statusChangedEvent(AuditEntityType.FORM0581, 200L, formRouting(20L)));
+
+        verify(outboundWebhookDispatchService, times(1)).enqueue(
+                eq(20L), eq(AuditEntityType.FORM0581), eq(200L), eq("SENT"), eq("APPROVED"), any());
+    }
+
+    @Test
+    void ignoresEntityTypesOtherThanFormsEntirely() {
+        listener.on(statusChangedEvent(AuditEntityType.ACT, 1L, null));
+
+        verify(integrationClientRepository, never()).findById(any());
+        verify(outboundWebhookDispatchService, never()).enqueue(any(), any(), any(), any(), any(), any());
+    }
+
+    private StatusChangedEvent statusChangedEvent(AuditEntityType entityType, Long entityId, FormRouting routing) {
+        return new StatusChangedEvent(entityType, entityId, "SENT", "APPROVED", 1L, null, routing);
+    }
+
+    private FormRouting formRouting(Long sourceIntegrationClientId) {
+        return new FormRouting(3L, 5L, List.of(), sourceIntegrationClientId, FORM_UUID);
+    }
+}

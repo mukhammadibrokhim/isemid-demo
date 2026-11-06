@@ -14,10 +14,12 @@ public interface Act154Mapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "act154", ignore = true)
+    @Mapping(target = "sampleName", ignore = true) // not on the form; legacy-migrated data only
     Act154Detail toEntity(Act154SampleRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "act154", ignore = true)
+    @Mapping(target = "sampleName", ignore = true)
     void update(@MappingTarget Act154Detail entity, Act154SampleRequest request);
 
     @Mapping(target = "id", ignore = true)
@@ -38,6 +40,16 @@ public interface Act154Mapper {
     @Mapping(target = "assignedById", ignore = true)
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "resultComment", ignore = true)
+    @Mapping(target = "actNumber", ignore = true) // generated from id on assign
+    @Mapping(target = "activityTypeCode", ignore = true) // validated against ref_catalog by the handler
+    // Not on the act154 form; kept on the entity only for legacy-migrated data.
+    @Mapping(target = "goal", ignore = true)
+    @Mapping(target = "title", ignore = true)
+    @Mapping(target = "documentConfirmSampling", ignore = true)
+    @Mapping(target = "lisOrganizationId", ignore = true)
+    @Mapping(target = "laboratoryAddress", ignore = true)
+    @Mapping(target = "purpose", ignore = true) // resolved from purposeCode by the handler
+    @Mapping(target = "samplingBasisCode", ignore = true) // validated against ref_catalog by the handler
     @Mapping(target = "act154Details", ignore = true)
     void copyOwnFields(@MappingTarget Act154 target, Act154Request request);
 }

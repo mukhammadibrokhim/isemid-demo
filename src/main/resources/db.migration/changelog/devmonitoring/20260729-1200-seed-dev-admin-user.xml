@@ -11,12 +11,14 @@
         doesn't already exist - username "dev-admin", password "DevPanel-2026!"
         (bcrypt hash below). Skipped (MARK_RAN) if a row with this username is
         already present, so this never overwrites credentials someone rotated
-        afterward via POST /v1/admin/dev-users or a direct update.
+        afterward via POST /v1/dev/dev-users or a direct update. Promoted to a
+        root account (able to manage other dev-panel accounts) by
+        20260804-1010-promote-dev-admin-to-root.xml.
 
         SECURITY NOTE: this seeds the same known credential into every
         environment this changelog runs against, including production, since
         Liquibase contexts are not used anywhere else in this project either.
-        Rotate or revoke this account (PATCH /v1/admin/dev-users/{id}/revoke)
+        Rotate or revoke this account (PATCH /v1/dev/dev-users/{id}/revoke)
         before relying on it anywhere the password's value matters.
     -->
     <changeSet id="20260729-1200-01-seed-dev-admin-user" author="codex" runInTransaction="true">

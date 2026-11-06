@@ -7,6 +7,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import uz.uzinfocom.app.integration.lis.common.exception.LisAuthenticationException;
 import uz.uzinfocom.app.integration.lis.common.exception.LisBadRequestException;
+import uz.uzinfocom.app.integration.lis.common.exception.LisCircuitOpenException;
 import uz.uzinfocom.app.integration.lis.common.exception.LisException;
 import uz.uzinfocom.app.integration.lis.common.exception.LisTimeoutException;
 import uz.uzinfocom.app.integration.lis.common.exception.LisUnavailableException;
@@ -53,13 +54,18 @@ public class LisErrorDecoder {
 
     /**
      * The "lis" circuit breaker is open - LIS is already known to be
-     * unhealthy, so this call was rejected without ever going out. Reported
-     * the same way a real transport failure would be, for the same reason
-     * {@code decodeTransport} exists: one typed failure shape for every
-     * caller of {@link uz.uzinfocom.app.integration.lis.client.LisActClient}.
+     * unhealthy, so this call was rejected without ever going out. Still a
+     * typed {@link LisException} like every other failure of
+     * {@link uz.uzinfocom.app.integration.lis.client.LisActClient}, but with
+     * its own error code and the breaker's wait duration so the client knows
+     * how long to back off.
      */
-    public LisException decodeCircuitBreakerOpen(String operation, CallNotPermittedException exception) {
-        LisException decoded = new LisUnavailableException(operation, null, "Circuit breaker open");
+    public LisException decodeCircuitBreakerOpen(
+            String operation,
+            CallNotPermittedException exception,
+            long retryAfterSeconds
+    ) {
+        LisException decoded = new LisCircuitOpenException(operation, retryAfterSeconds);
         decoded.initCause(exception);
         return decoded;
     }

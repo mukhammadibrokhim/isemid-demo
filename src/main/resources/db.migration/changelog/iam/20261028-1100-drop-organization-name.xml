@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        organization.name was the language-less default name. Names now live only in
+        name_uz / name_uz_cyril / name_ru / name_kaa and the API picks one by locale.
+        Rows whose four language columns are all empty get the old name moved into the
+        column matching its script before the column is dropped.
+    -->
+    <changeSet id="20261028-1100-01-backfill-organization-language-names" author="claude">
+        <sql dbms="postgresql">
+            UPDATE organization
+               SET name_uz = name
+             WHERE name IS NOT NULL
+               AND coalesce(name_uz, name_uz_cyril, name_ru, name_kaa) IS NULL
+               AND name !~ '[А-Яа-яЁё]';
+
+            UPDATE organization
+               SET name_uz_cyril = name
+             WHERE name IS NOT NULL
+               AND coalesce(name_uz, name_uz_cyril, name_ru, name_kaa) IS NULL
+               AND name ~ '[ЎўҚқҒғҲҳ]';
+
+            UPDATE organization
+               SET name_ru = name
+             WHERE name IS NOT NULL
+               AND coalesce(name_uz, name_uz_cyril, name_ru, name_kaa) IS NULL
+               AND name ~ '[А-Яа-яЁё]';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20261028-1100-02-drop-organization-name" author="claude">
+        <sql dbms="postgresql">
+            ALTER TABLE organization DROP COLUMN IF EXISTS name;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

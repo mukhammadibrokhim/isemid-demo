@@ -8,6 +8,7 @@ import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Getter
 @Setter
@@ -118,6 +119,18 @@ public class Patient extends AbsEntity {
 
         affiliations.add(affiliation);
         affiliation.setPatient(this);
+    }
+
+    @PrePersist
+    @PreUpdate
+    protected void normalizeNames() {
+        firstName = toUpperCase(firstName);
+        lastName = toUpperCase(lastName);
+        middleName = toUpperCase(middleName);
+    }
+
+    private static String toUpperCase(String value) {
+        return value == null ? null : value.trim().toUpperCase(Locale.ROOT);
     }
 
 }

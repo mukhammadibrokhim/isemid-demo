@@ -14,13 +14,15 @@ public record Api2Properties(
         @NotBlank String baseUrl,
         @NotNull Duration connectTimeout,
         @NotNull Duration readTimeout,
-        @Valid @NotNull Endpoints endpoints
+        @Valid @NotNull Endpoints endpoints,
+        @NotNull Duration citizenAddressEnrichmentTimeout
 ) {
 
     public record Endpoints(
             @NotBlank String child,
             @NotBlank String citizen,
             @NotBlank String citizenPassport,
+            @NotBlank String citizenAddress,
             @NotBlank String legalEntity
     ) {
     }

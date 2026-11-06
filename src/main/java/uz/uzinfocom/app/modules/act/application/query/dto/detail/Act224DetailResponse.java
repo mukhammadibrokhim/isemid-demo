@@ -2,11 +2,12 @@ package uz.uzinfocom.app.modules.act.application.query.dto.detail;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act224.Act224RecommendationResponse;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActSubjectResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.util.List;
 
@@ -18,24 +19,20 @@ public record Act224DetailResponse(
         CardMiniResponse card,
         Long assignedById,
         String resultComment,
-        ActInstitutionResponse institution,
+        ActSubjectResponse subject,
 
-        Integer tin,
-        String institutionName,
-        String institutionAddress,
         String activityTypeCode,
         String fullNameOfEpidStaff,
         String positionOfEpidStaff,
         String fullNameOfParticipantEpid,
         String positionOfParticipantEpid,
-        String nameOfInstitution,
-        String addressOfInstitution,
         String nameOfRegulatoryActs,
         String checkingFulfillmentOfRequirements,
         String fullNameOfParticipant,
         String additionalInfo,
         List<Act224RecommendationResponse> recommendations,
 
+        ActLisInfoResponse lisInfo,
         AuditResponse audit
 ) implements ActDetailResponse {
 }

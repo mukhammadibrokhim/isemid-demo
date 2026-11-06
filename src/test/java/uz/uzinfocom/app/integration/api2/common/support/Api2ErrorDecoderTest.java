@@ -169,7 +169,7 @@ class Api2ErrorDecoderTest {
 
         assertThat(exception.getUpstreamDetail())
                 .contains("incorrect")
-                .contains("token=****")
+                .contains("token=***")
                 .doesNotContain("secret")
                 .doesNotContain("12345678901234")
                 .doesNotContain("123456789");

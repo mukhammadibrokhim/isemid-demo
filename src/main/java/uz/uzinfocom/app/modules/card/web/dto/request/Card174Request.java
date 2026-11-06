@@ -2,9 +2,14 @@ package uz.uzinfocom.app.modules.card.web.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
+import uz.uzinfocom.app.modules.card.web.dto.request.card174.AnimalMeasureRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.InfectionMonitoringRequest;
+import uz.uzinfocom.app.modules.card.web.dto.request.card174.LaboratoryTestRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card174.OutbreakControlMeasureRequest;
 
 import java.time.LocalDate;
@@ -12,15 +17,6 @@ import java.util.List;
 
 @Schema(description = "Карта 174 — карта эпизоотолого-эпидемиологического расследования зоонозного заболевания.")
 public record Card174Request(
-        @Schema(description = "Порядковый номер документа.")
-        Integer serialDocNumber,
-
-        @Schema(description = "Код диагноза по МКБ-10.")
-        @Size(max = 64) String mkb10Code,
-
-        @Schema(description = "Наименование диагноза по МКБ-10.")
-        @Size(max = 500) String mkb10Name,
-
         @Schema(description = "Вид возбудителя заболевания.")
         @Size(max = 255) String pathogenType,
 
@@ -33,14 +29,11 @@ public record Card174Request(
         @Schema(description = "Предварительный диагноз у животного.")
         @Size(max = 500) String animalPrimaryDiagnosis,
 
-        @Schema(description = "Предварительный диагноз у человека.")
-        @Size(max = 500) String humanPrimaryDiagnosis,
-
         @Schema(description = "Дата проведения расследования.")
         LocalDate investigationDate,
 
-        @Schema(description = "Год последнего зарегистрированного случая заболевания на данной территории.")
-        LocalDate lastDiseaseYear,
+        @Schema(description = "Год последнего зарегистрированного случая заболевания на данной территории (только год, например 2019).")
+        @Min(1900) @Max(2100) Integer lastDiseaseYear,
 
         @Schema(description = "Дата заражения животного в текущем случае.")
         LocalDate currentAnimalInfectionDate,
@@ -53,6 +46,12 @@ public record Card174Request(
 
         @Schema(description = "Адрес владельца животного.")
         @Size(max = 500) String ownerAddress,
+
+        @Schema(description = "ПИНФЛ владельца животного (14 цифр).")
+        @Pattern(regexp = "\\d{14}") String ownerPinfl,
+
+        @Schema(description = "Код вида животного (по справочнику ANIMAL_TYPE).")
+        @Size(max = 255) String animalType,
 
         @Schema(description = "Код вида поражённого животного (по справочнику).")
         @Size(max = 64) String affectedAnimalTypeCode,
@@ -87,20 +86,8 @@ public record Card174Request(
         @Schema(description = "Коды факторов, способствовавших возникновению заболевания (по справочнику).")
         List<String> diseaseFactorCodes,
 
-        @Schema(description = "Вид животного.")
-        @Size(max = 255) String animalType,
-
-        @Schema(description = "Дата проведения лабораторного исследования.")
-        LocalDate testDate,
-
-        @Schema(description = "Количество отобранных проб для исследования.")
-        Integer testSampleCount,
-
-        @Schema(description = "Метод проведённого исследования.")
-        @Size(max = 255) String testingMethod,
-
-        @Schema(description = "Результат проведённого исследования.")
-        @Size(max = 500) String testResult,
+        @Schema(description = "Таблица лабораторных исследований.")
+        @Valid List<LaboratoryTestRequest> laboratoryTests,
 
         @Schema(description = "Коды поражённых видов животных (по справочнику).")
         List<String> affectedAnimalCodes,
@@ -153,7 +140,7 @@ public record Card174Request(
         @Schema(description = "Код проведённой дератизации (по справочнику).")
         @Size(max = 64) String deratizationCode,
 
-        @Schema(description = "Площадь территории, охваченной дератизацией.")
+        @Schema(description = "Площадь территории, охваченной дератизацией, в квадратных метрах (м²).")
         Double deratizationArea,
 
         @Schema(description = "Лица, проводившие обследование очага.")
@@ -192,17 +179,22 @@ public record Card174Request(
         @Schema(description = "Список мероприятий по ликвидации очага заболевания.")
         @Valid List<OutbreakControlMeasureRequest> outbreakControlMeasures,
 
+        @Schema(description = "Список мер, применённых к животным в очаге.")
+        @Valid List<AnimalMeasureRequest> animalMeasures,
+
         @Schema(description = "Дополнительная информация о принятых мерах.")
         @Size(max = 1000) String additionalMeasuresInfo
 ) implements CardRequest {
 
     public Card174Request {
         diseaseFactorCodes = immutableCopy(diseaseFactorCodes);
+        laboratoryTests = immutableCopy(laboratoryTests);
         affectedAnimalCodes = immutableCopy(affectedAnimalCodes);
         infectionMonitoring = immutableCopy(infectionMonitoring);
         disinfectionTransmissionFactorCodes = immutableCopy(disinfectionTransmissionFactorCodes);
         eliminationMethodCodes = immutableCopy(eliminationMethodCodes);
         outbreakControlMeasures = immutableCopy(outbreakControlMeasures);
+        animalMeasures = immutableCopy(animalMeasures);
     }
 
     @Override

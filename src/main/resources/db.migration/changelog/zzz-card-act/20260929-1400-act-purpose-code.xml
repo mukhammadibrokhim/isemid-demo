@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        «Tekshirish yoki namuna olish maqsadi»: act153/154/223 now store only a
+        ref_catalog code (type = PURPOSE); names are resolved on read. The old
+        purpose_id / sampling_purpose_uz/ru/loinc snapshot columns stay for
+        legacy-migrated acts and are no longer written. The PURPOSE entries
+        themselves are seeded in
+        changelog/reference/20260929-1800-seed-act-purpose-sampling-basis-catalogs.xml.
+    -->
+    <changeSet id="20260929-1400-01-act153-purpose-code" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act153" columnName="purpose_code"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act153">
+            <column name="purpose_code" type="VARCHAR(50)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260929-1400-02-act154-purpose-code" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act154" columnName="purpose_code"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act154">
+            <column name="purpose_code" type="VARCHAR(50)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260929-1400-03-act223-purpose-code" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act223" columnName="purpose_code"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223">
+            <column name="purpose_code" type="VARCHAR(50)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

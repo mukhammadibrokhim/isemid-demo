@@ -2,7 +2,7 @@ package uz.uzinfocom.app.integration.api2.common.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
+import uz.uzinfocom.app.integration.api2.web.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.common.support.Api2UpstreamError;
 
 import java.util.List;

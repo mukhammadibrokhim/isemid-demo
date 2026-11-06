@@ -22,7 +22,4 @@ public class Form0581CancellationInfo {
 
     @Column(name = "canceled_at")
     private Instant canceledAt;
-
-    @Column(name = "not_approved_reason", length = 1000)
-    private String notApprovedReason;
 }

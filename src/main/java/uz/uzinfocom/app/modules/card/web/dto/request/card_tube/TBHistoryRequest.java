@@ -19,10 +19,10 @@ public record TBHistoryRequest(
         LocalDate infectionDate,
 
         @Schema(description = "ÐšÐ¾Ð´ Ð´Ð¸Ð°Ð³Ð½Ð¾Ð·Ð° Ð¿Ð¾ ÐœÐšÐ‘-10.")
-        @Size(max = 64) String mkb10Code,
+        @Size(max = 64) String icd10Code,
 
         @Schema(description = "ÐÐ°Ð¸Ð¼ÐµÐ½Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð´Ð¸Ð°Ð³Ð½Ð¾Ð·Ð° Ð¿Ð¾ ÐœÐšÐ‘-10.")
-        @Size(max = 500) String mkb10Name,
+        @Size(max = 500) String icd10Name,
 
         @Schema(description = "Ð“Ñ€ÑƒÐ¿Ð¿Ð° Ð´Ð¸ÑÐ¿Ð°Ð½ÑÐµÑ€Ð½Ð¾Ð³Ð¾ ÑƒÑ‡Ñ‘Ñ‚Ð° Ð¿Ñ€Ð¸ Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ð¸ ÑÐ»ÑƒÑ‡Ð°Ñ.")
         @Size(max = 255) String registrationGroup

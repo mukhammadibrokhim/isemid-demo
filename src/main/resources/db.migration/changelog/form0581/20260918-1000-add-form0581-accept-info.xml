@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Mirrors 20260918-1000-add-form058-accept-info.xml on form058: records
+        who actually called accept() and when, so the printed form0581's
+        receiver signature ("Sanepidstantsiyada xabarni qabul qiluvchining
+        imzosi") can be resolved from the real acceptor instead of only the
+        free-text report_info.receiver_full_name entered manually at creation.
+    -->
+    <changeSet id="20260918-1000-01-add-form0581-accept-info" author="claude">
+        <addColumn tableName="form058_1">
+            <column name="accepted_by_id" type="BIGINT"/>
+            <column name="accepted_at" type="TIMESTAMP WITH TIME ZONE"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

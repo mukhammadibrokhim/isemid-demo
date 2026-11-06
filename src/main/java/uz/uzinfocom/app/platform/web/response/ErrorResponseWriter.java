@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.LocaleResolver;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.shared.exception.ErrorCode;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -22,8 +23,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ErrorResponseWriter {
 
+    /*
+     * Messages are resolved from the request's own Accept-Language here, not from
+     * LocaleContextHolder: this class is used from the filter phase (security
+     * handlers, ErrorResponseFilter), where the holder carries the servlet
+     * container's locale - which does not understand uz-Cyrl and gave English.
+     */
+
     private final JsonMapper objectMapper;
     private final MessageResolver messages;
+    private final LocaleResolver localeResolver;
     private final TraceIdProvider traceIdProvider;
     private final ObservabilityProperties observabilityProperties;
 
@@ -38,7 +47,8 @@ public class ErrorResponseWriter {
                 response,
                 status,
                 errorCode.getCode(),
-                messages.resolve(errorCode.getDefaultMessageCode()),
+                messages.resolveFor(
+                        localeResolver.resolveLocale(request), errorCode.getDefaultMessageCode()),
                 List.of()
         );
     }
@@ -56,7 +66,7 @@ public class ErrorResponseWriter {
                 response,
                 status,
                 errorCode.getCode(),
-                messages.resolve(messageCode, args),
+                messages.resolveFor(localeResolver.resolveLocale(request), messageCode, args),
                 List.of()
         );
     }

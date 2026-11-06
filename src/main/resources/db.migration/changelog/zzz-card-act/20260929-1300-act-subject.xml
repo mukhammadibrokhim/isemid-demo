@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Act "subject" (the form's «Tashkilot turi» block) consolidation:
+
+        - Java `Institution` embeddable became `ActSubject`; its columns on the
+          base `act` table (subject_type, tin, institution_name,
+          institution_address, institution_legal_address) keep their names.
+          Only `tin` changes: INTEGER -> VARCHAR, an identifier, not a number.
+
+        - act156/act224 carried their own duplicate tin/institution_name/
+          institution_address. Their values are folded into the base columns
+          (base wins where already set), then the duplicates are dropped.
+
+        - The free-text `act.subject` column (added 2026-09-02 for list-view
+          labels) is dropped: the label is now derived from the subject block,
+          which is what the paper form actually has.
+    -->
+    <changeSet id="20260929-1300-01-act-tin-to-varchar" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <sqlCheck expectedResult="1">
+                SELECT count(*) FROM information_schema.columns
+                WHERE table_schema = current_schema() AND table_name = 'act'
+                  AND column_name = 'tin' AND data_type = 'integer'
+            </sqlCheck>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE act ALTER COLUMN tin TYPE VARCHAR(20) USING tin::text;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260929-1300-02-fold-act156-act224-institution" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <columnExists tableName="act156" columnName="institution_name"/>
+                <columnExists tableName="act224" columnName="institution_name"/>
+            </and>
+        </preConditions>
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE act a SET
+                tin                 = coalesce(a.tin, s.tin::text),
+                institution_name    = coalesce(a.institution_name, s.institution_name),
+                institution_address = coalesce(a.institution_address, s.institution_address),
+                subject_type        = coalesce(a.subject_type,
+                                               CASE WHEN s.tin IS NOT NULL OR s.institution_name IS NOT NULL
+                                                    THEN 'LEGAL_ENTITY' END)
+            FROM act156 s
+            WHERE s.id = a.id
+              AND (s.tin IS NOT NULL OR s.institution_name IS NOT NULL OR s.institution_address IS NOT NULL);
+
+            UPDATE act a SET
+                tin                 = coalesce(a.tin, s.tin::text),
+                institution_name    = coalesce(a.institution_name, s.institution_name),
+                institution_address = coalesce(a.institution_address, s.institution_address),
+                subject_type        = coalesce(a.subject_type,
+                                               CASE WHEN s.tin IS NOT NULL OR s.institution_name IS NOT NULL
+                                                    THEN 'LEGAL_ENTITY' END)
+            FROM act224 s
+            WHERE s.id = a.id
+              AND (s.tin IS NOT NULL OR s.institution_name IS NOT NULL OR s.institution_address IS NOT NULL);
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="20260929-1300-03-drop-act156-institution" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act156" columnName="institution_name"/>
+        </preConditions>
+        <dropColumn tableName="act156">
+            <column name="tin"/>
+            <column name="institution_name"/>
+            <column name="institution_address"/>
+        </dropColumn>
+    </changeSet>
+
+    <changeSet id="20260929-1300-04-drop-act224-institution" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act224" columnName="institution_name"/>
+        </preConditions>
+        <dropColumn tableName="act224">
+            <column name="tin"/>
+            <column name="institution_name"/>
+            <column name="institution_address"/>
+        </dropColumn>
+    </changeSet>
+
+    <changeSet id="20260929-1300-05-drop-act-free-text-subject" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act" columnName="subject"/>
+        </preConditions>
+        <dropColumn tableName="act" columnName="subject"/>
+    </changeSet>
+
+</databaseChangeLog>

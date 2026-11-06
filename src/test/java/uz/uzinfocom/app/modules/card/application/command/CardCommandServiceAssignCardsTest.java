@@ -1,12 +1,17 @@
 package uz.uzinfocom.app.modules.card.application.command;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import uz.uzinfocom.app.modules.card.application.exception.CardScopeViolationException;
 import uz.uzinfocom.app.modules.card.application.exception.CardValidationException;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandler;
 import uz.uzinfocom.app.modules.card.application.handler.CardTypeHandlerRegistry;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
+import uz.uzinfocom.app.platform.audit.event.EntityCreatedEvent;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.Card;
@@ -23,8 +28,12 @@ import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundE
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 import uz.uzinfocom.app.modules.form0581.infrastructure.persistence.repository.Form0581JpaRepository;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.patient.domain.model.Patient;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +63,10 @@ class CardCommandServiceAssignCardsTest {
     private UserRepository userRepository;
     private CardTypeHandlerRegistry handlerRegistry;
     private CurrentUserProvider currentUserProvider;
+    private ApplicationEventPublisher eventPublisher;
     private CardCommandService service;
+    private AdminAccessGuard adminAccessGuard;
+    private FormAccessScopeResolver formAccessScopeResolver;
 
     @BeforeEach
     void setUp() {
@@ -64,9 +76,14 @@ class CardCommandServiceAssignCardsTest {
         userRepository = mock(UserRepository.class);
         handlerRegistry = mock(CardTypeHandlerRegistry.class);
         currentUserProvider = mock(CurrentUserProvider.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        adminAccessGuard = mock(AdminAccessGuard.class);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
+        formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
         service = new CardCommandService(
-                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry, currentUserProvider
+                cardRepository, form058Repository, form0581Repository, userRepository, handlerRegistry,
+                currentUserProvider, eventPublisher, adminAccessGuard, formAccessScopeResolver
         );
 
         when(cardRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -74,9 +91,14 @@ class CardCommandServiceAssignCardsTest {
         when(form0581Repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
+    @AfterEach
+    void tearDown() {
+        CurrentOrganizationContext.clear();
+    }
+
     @Test
     void createsOneBlankCardPerDistinctTypeWithSharedUsersAndActorAsSupervisor() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
 
@@ -104,8 +126,34 @@ class CardCommandServiceAssignCardsTest {
     }
 
     @Test
+    void publishesAnEntityCreatedEventPerCreatedCard() {
+        Form058 form = formWith(FormStatus.ACCEPTED);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
+
+        stubHandler(CardType.CARD161, new Card161());
+
+        service.assignCards(FORM_ID, new AssignCardsRequest(List.of(CardType.CARD161), List.of(1L)));
+
+        List<Card> saved = capturePersistedCards();
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, org.mockito.Mockito.atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        EntityCreatedEvent cardEvent = eventCaptor.getAllValues().stream()
+                .filter(EntityCreatedEvent.class::isInstance)
+                .map(EntityCreatedEvent.class::cast)
+                .filter(event -> event.entityType() == AuditEntityType.CARD)
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(cardEvent.entityId()).isEqualTo(saved.getFirst().getId());
+        assertThat(cardEvent.actorUserId()).isEqualTo(ACTOR_ID);
+    }
+
+    @Test
     void deduplicatesRepeatedCardTypesAndUserIds() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
@@ -122,7 +170,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void rejectsWhenAnAssignedUserIdDoesNotExist() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(userWithId(1L)));
@@ -135,13 +183,56 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void rejectsAnUnauthenticatedCaller() {
-        Form058 form = formWith(FormStatus.RECEIVED);
+        Form058 form = formWith(FormStatus.ACCEPTED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(null);
 
         assertThatThrownBy(() -> service.assignCards(FORM_ID, new AssignCardsRequest(
                 List.of(CardType.CARD161),
                 List.of(1L)
+        ))).isInstanceOf(CardScopeViolationException.class);
+    }
+
+    @Test
+    void rejectsAssignCardsWhenCallerOrganizationHasNoAccessToTheForm() {
+        Form058 form = formWith(FormStatus.ACCEPTED, 10L, 20L, 30L);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(999L));
+        when(formAccessScopeResolver.canAccess(999L, 10L, 20L, 30L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.assignCards(FORM_ID, new AssignCardsRequest(
+                List.of(CardType.CARD161), List.of(1L)
+        ))).isInstanceOf(CardScopeViolationException.class);
+
+        verify(cardRepository, org.mockito.Mockito.never()).saveAll(any());
+    }
+
+    @Test
+    void allowsAssignCardsWhenFormAccessScopeResolverGrantsAccess() {
+        Form058 form = formWith(FormStatus.ACCEPTED, 10L, 20L, 30L);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
+        when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+        CurrentOrganizationContext.set(organization(20L));
+        when(formAccessScopeResolver.canAccess(20L, 10L, 20L, 30L)).thenReturn(true);
+
+        stubHandler(CardType.CARD161, new Card161());
+
+        service.assignCards(FORM_ID, new AssignCardsRequest(List.of(CardType.CARD161), List.of(1L)));
+
+        assertThat(capturePersistedCards()).hasSize(1);
+    }
+
+    @Test
+    void rejectsAssignCardsWhenNoCurrentOrganizationSelectedAndNotSuperAdmin() {
+        Form058 form = formWith(FormStatus.ACCEPTED, 10L, 20L, 30L);
+        when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+
+        assertThatThrownBy(() -> service.assignCards(FORM_ID, new AssignCardsRequest(
+                List.of(CardType.CARD161), List.of(1L)
         ))).isInstanceOf(CardScopeViolationException.class);
     }
 
@@ -156,8 +247,8 @@ class CardCommandServiceAssignCardsTest {
     }
 
     @Test
-    void doesNotRegressAFormThatIsAlreadyPastCardLinking() {
-        Form058 form = formWith(FormStatus.APPROVED_PENDING);
+    void reassigningCardsToAnAlreadyCardLinkedFormStaysCardLinked() {
+        Form058 form = formWith(FormStatus.CARD_LINKED);
         when(form058Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
@@ -165,13 +256,13 @@ class CardCommandServiceAssignCardsTest {
 
         service.assignCards(FORM_ID, new AssignCardsRequest(List.of(CardType.CARD161), List.of(1L)));
 
-        assertThat(form.getStatus()).isEqualTo(FormStatus.APPROVED_PENDING);
+        assertThat(form.getStatus()).isEqualTo(FormStatus.CARD_LINKED);
         assertThat(form.isHasLinkedCards()).isTrue();
     }
 
     @Test
     void assignCardsToForm0581CreatesCardsRestrictedToAllowedTypes() {
-        Form0581 form = form0581With(Form0581Status.RECEIVED);
+        Form0581 form = form0581With(Form0581Status.ACCEPTED);
         when(form0581Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
         when(currentUserProvider.userIdOrNull()).thenReturn(ACTOR_ID);
         when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(userWithId(1L)));
@@ -186,7 +277,7 @@ class CardCommandServiceAssignCardsTest {
 
     @Test
     void assignCardsToForm0581RejectsDisallowedCardType() {
-        Form0581 form = form0581With(Form0581Status.RECEIVED);
+        Form0581 form = form0581With(Form0581Status.ACCEPTED);
         when(form0581Repository.findByIdAndDeletedFalse(FORM_ID)).thenReturn(Optional.of(form));
 
         assertThatThrownBy(() -> service.assignCardsToForm0581(FORM_ID, new AssignCardsRequest(
@@ -227,6 +318,26 @@ class CardCommandServiceAssignCardsTest {
         Form058 form = Form058.builder().status(status).build();
         form.setId(FORM_ID);
         return form;
+    }
+
+    private Form058 formWith(FormStatus status, Long senderOrganizationId, Long receiverOrganizationId, Long patientId) {
+        Patient patient = Patient.builder().build();
+        patient.setId(patientId);
+
+        Form058 form = Form058.builder()
+                .status(status)
+                .senderOrganizationId(senderOrganizationId)
+                .receiverOrganizationId(receiverOrganizationId)
+                .patient(patient)
+                .build();
+        form.setId(FORM_ID);
+        return form;
+    }
+
+    private Organization organization(Long id) {
+        Organization organization = new Organization();
+        organization.setId(id);
+        return organization;
     }
 
     private User userWithId(Long id) {

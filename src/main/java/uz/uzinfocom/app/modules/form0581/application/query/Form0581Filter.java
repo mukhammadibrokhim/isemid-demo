@@ -9,7 +9,6 @@ import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form0581.domain.enums.Form0581Status;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
 import java.time.LocalDate;
@@ -100,7 +99,7 @@ public record Form0581Filter(
                 description = "Код диагноза по МКБ-10.",
                 example = "A82"
         )
-        String mkb10Code,
+        String icd10Code,
 
         @Schema(
                 description = """
@@ -131,7 +130,7 @@ public record Form0581Filter(
         )
         String source
 
-) implements PageableRequest {
+) implements PageableRequest, Form0581FilterFields {
 
         @Schema(hidden = true)
         @AssertTrue(message = "{form0581.filter.date_range.invalid}")
@@ -156,7 +155,7 @@ public record Form0581Filter(
                         && dateTo == null
                         && id == null
                         && !StringUtils.hasText(documentValue)
-                        && !StringUtils.hasText(mkb10Code)
+                        && !StringUtils.hasText(icd10Code)
                         && organizationId == null
                         && !StringUtils.hasText(regionCode)
                         && !StringUtils.hasText(districtCode)

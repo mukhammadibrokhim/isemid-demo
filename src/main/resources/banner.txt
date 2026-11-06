@@ -1,8 +1,12 @@
+${AnsiColor.BRIGHT_BLUE}
 ,--. ,---. ,------.,--.   ,--.,--.,------.
 |  |'   .-'|  .---'|   `.'   ||  ||  .-.  \
 |  |`.  `-.|  `--, |  |'.'|  ||  ||  |  \  :
 |  |.-'    |  `---.|  |   |  ||  ||  '--'  /
 `--'`-----'`------'`--'   `--'`--'`-------'
-${application.title} ${application.version}
-(ISEMID) Information system of epidemiological monitoring of infectious diseases' system.
-Powered by Spring Boot V${spring-boot.version}
+${AnsiColor.DEFAULT}${AnsiStyle.BOLD}ISEMID${AnsiStyle.NORMAL} - Infectious Disease Epidemiological Monitoring Information System
+${AnsiColor.CYAN}
+:: ${spring.application.name:isemid} ${AnsiColor.BRIGHT_GREEN}${application.version:${spring.profiles.active:default}}${AnsiColor.CYAN} ::
+:: Spring Boot ${AnsiColor.BRIGHT_GREEN}${spring-boot.version}${AnsiColor.CYAN} | Java ${AnsiColor.BRIGHT_GREEN}${java.version}${AnsiColor.CYAN} | Profile ${AnsiColor.BRIGHT_GREEN}${spring.profiles.active:default}${AnsiColor.CYAN} ::
+${AnsiColor.BRIGHT_BLACK}:: Developed by Uzinfocom | Author: Tursunboyev Muhammadibrohim ::
+${AnsiColor.DEFAULT}${AnsiStyle.NORMAL}

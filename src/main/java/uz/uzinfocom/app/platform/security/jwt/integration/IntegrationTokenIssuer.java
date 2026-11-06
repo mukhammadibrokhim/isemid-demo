@@ -46,12 +46,16 @@ public class IntegrationTokenIssuer {
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plusSeconds(properties.getTtlSeconds());
 
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+        JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
                 .issuer(properties.getIssuer())
                 .subject(clientId)
-                .claim(SOURCE_KEY_CLAIM, sourceKey)
-                .claim(ORGANIZATION_ID_CLAIM, String.valueOf(organizationId))
-                .claim(ORGANIZATION_UUID_CLAIM, organizationUuid.toString())
+                .claim(SOURCE_KEY_CLAIM, sourceKey);
+        // A client without a default organization names the sending one in each request body.
+        if (organizationId != null && organizationUuid != null) {
+            claimsBuilder.claim(ORGANIZATION_ID_CLAIM, String.valueOf(organizationId))
+                    .claim(ORGANIZATION_UUID_CLAIM, organizationUuid.toString());
+        }
+        JWTClaimsSet claims = claimsBuilder
                 .claim(SCOPE_CLAIM, String.join(" ", scopes))
                 .issueTime(Date.from(issuedAt))
                 .expirationTime(Date.from(expiresAt))

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        act153_detail.object_type_id / object_code were never sent to LIS
+        (SelectionActItem has no such fields), object_type_id had no known
+        catalog, and the frontend no longer sends either — so every save
+        nulled them anyway. Dropped.
+    -->
+    <changeSet id="20260930-1000-01-drop-act153-detail-object" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="act153_detail" columnName="object_code"/>
+        </preConditions>
+        <dropColumn tableName="act153_detail">
+            <column name="object_type_id"/>
+            <column name="object_code"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        act153/154/223 validate purposeCode / samplingBasisCode against
+        ref_catalog (ActPurposeResolver / ActSamplingBasisResolver), but neither
+        type was ever seeded — the select was empty and every code was a 400.
+
+        base/catalog_reference.csv is deliberately not touched: it is only
+        loaded into an empty table, and editing it changes the checksum of
+        20260608-1500-06-seed-catalog on already-seeded databases. These
+        inserts cover fresh and seeded databases alike; ON CONFLICT keeps them
+        idempotent and never overwrites a row edited by hand.
+    -->
+
+    <!--
+        PURPOSE — mirrors LIS's own dictionary
+        (GET /publicapi/reference-dictionaries?type=PURPOSE, test-lis,
+        2026-09-29). The code IS the LIS purpose id: ActLisPayloadMapper sends
+        a numeric code as the act's purpose id, so these codes must stay equal
+        to LIS's ids. A new LIS purpose = a new row here with its LIS id.
+    -->
+    <changeSet id="20260929-1800-01-seed-purpose-catalog" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_catalog"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            INSERT INTO ref_catalog (type, code, name_uz, name_uz_cyril, name_ru, name_kaa, deleted) VALUES
+                ('CATALOG_TYPE', 'purpose', 'Tekshirish yoki namuna olish maqsadi', 'Текшириш ёки намуна олиш мақсади', 'Цель проверки или отбора проб', 'Tekseriw yamasa úlgi alıw maqseti', false),
+                ('PURPOSE', '1',   'Sanitariya-epidemiologik xulosa',       'Санитария-эпидемиологик хулоса',       'Санитарно-эпидемиологическое заключение', 'Sanitariya-epidemiologiyalıq juwmaq', false),
+                ('PURPOSE', '2',   'Laboratoriya nazorati',                 'Лаборатория назорати',                 'Лабораторный контроль',                   'Laboratoriya qadaǵalawı',            false),
+                ('PURPOSE', '3',   'Subpudrat',                             'Субпудрат',                            'Субподряд',                               'Subpudrat',                          false),
+                ('PURPOSE', '4',   'Eksport',                               'Экспорт',                              'Экспорт',                                 'Eksport',                            false),
+                ('PURPOSE', '5',   'Reja asosida',                          'Режа асосида',                         'Плановый',                                'Reje tiykarında',                    false),
+                ('PURPOSE', '6',   'Rejadan tashqari',                      'Режадан ташқари',                      'Внеплановый',                             'Rejeden tısqarı',                    false),
+                ('PURPOSE', '7',   'Parazitlarni aniqlash uchun tadqiqot',  'Паразитларни аниқлаш учун тадқиқот',   'Исследование на выявление паразитов',     'Parazitlerdi anıqlaw ushın izertlew', false),
+                ('PURPOSE', '8',   'Mikrobiologik tekshiruv',               'Микробиологик текширув',               'Микробиологическое исследование',         'Mikrobiologiyalıq tekseriw',         false),
+                ('PURPOSE', '9',   'O‘ta xavfli infeksiyalarni tekshirish', 'Ўта хавфли инфекцияларни текшириш',    'Исследование на особо опасные инфекции',  'Ayrıqsha qáwipli infekciyalardı tekseriw', false),
+                ('PURPOSE', '44',  'Pestitsidlarni tekshirish',             'Пестицидларни текшириш',               'Исследование на пестициды',               'Pesticidlerdi tekseriw',             false),
+                ('PURPOSE', '45',  'Umumiy kimyoviy ko‘rsatkichlar',        'Умумий кимёвий кўрсаткичлар',          'Общие химические показатели',             'Ulıwma ximiyalıq kórsetkishler',     false),
+                ('PURPOSE', '46',  'Og‘ir metallar tuzlari',                'Оғир металлар тузлари',                'Соли тяжелых металлов',                   'Awır metallar duzları',              false),
+                ('PURPOSE', '47',  'Umumiy mikroblar soni',                 'Умумий микроблар сони',                'Общее микробное число',                   'Ulıwma mikroblar sanı',              false),
+                ('PURPOSE', '115', 'Radiatsion xavfsizlik',                 'Радиацион хавфсизлик',                 'Радиационная безопасность',               'Radiaciyalıq qáwipsizlik',           false)
+            ON CONFLICT (type, code) DO NOTHING;
+        </sql>
+    </changeSet>
+
+    <!--
+        SAMPLING_BASIS («Namuna olish uchun asos», shared by 153/154/223).
+        LIS has no such dictionary (reference-dictionaries rejects the type) —
+        it only receives the Uz name as free text in `document`, so these codes
+        are this system's own and never sent to LIS.
+    -->
+    <changeSet id="20260929-1800-02-seed-sampling-basis-catalog" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_catalog"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            INSERT INTO ref_catalog (type, code, name_uz, name_uz_cyril, name_ru, name_kaa, deleted) VALUES
+                ('CATALOG_TYPE', 'samplingBasis', 'Namuna olish uchun asos', 'Намуна олиш учун асос', 'Основание для отбора проб', 'Úlgi alıw ushın tiykar', false),
+                ('SAMPLING_BASIS', 'PLANNED',          'Reja-jadval asosida',                        'Режа-жадвал асосида',                        'По плану-графику',                               'Reje-keste tiykarında',                   false),
+                ('SAMPLING_BASIS', 'UNPLANNED',        'Rejadan tashqari tekshiruv',                 'Режадан ташқари текширув',                   'Внеплановая проверка',                           'Rejeden tısqarı tekseriw',                false),
+                ('SAMPLING_BASIS', 'EPID_INDICATION',  'Epidemiologik ko‘rsatma bo‘yicha',           'Эпидемиологик кўрсатма бўйича',              'По эпидемиологическим показаниям',               'Epidemiologiyalıq kórsetpe boyınsha',     false),
+                ('SAMPLING_BASIS', 'APPLICATION',      'Ariza (murojaat) asosida',                   'Ариза (мурожаат) асосида',                   'По заявлению (обращению)',                       'Arza (múrájat) tiykarında',               false),
+                ('SAMPLING_BASIS', 'CONTRACT',         'Shartnoma asosida',                          'Шартнома асосида',                           'По договору',                                    'Shártnama tiykarında',                    false),
+                ('SAMPLING_BASIS', 'AUTHORITY_REQUEST','Vakolatli organ so‘rovi (topshirig‘i) asosida','Ваколатли орган сўрови (топшириғи) асосида','По запросу (поручению) уполномоченного органа', 'Wákilatlı organ sorawı (tapsırması) tiykarında', false),
+                ('SAMPLING_BASIS', 'NORMATIVE_DOC',    'Normativ hujjat (GOST, SanQvaN) asosida',    'Норматив ҳужжат (ГОСТ, СанҚваН) асосида',    'На основании нормативного документа (ГОСТ, СанПиН)', 'Normativlik hújjet (GOST, SanQvaN) tiykarında', false),
+                ('SAMPLING_BASIS', 'MONITORING',       'Ijtimoiy-gigiyenik monitoring',              'Ижтимоий-гигиеник мониторинг',               'Социально-гигиенический мониторинг',             'Social-gigienalıq monitoring',            false),
+                ('SAMPLING_BASIS', 'OTHER',            'Boshqa',                                     'Бошқа',                                      'Другое',                                         'Basqa',                                   false)
+            ON CONFLICT (type, code) DO NOTHING;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

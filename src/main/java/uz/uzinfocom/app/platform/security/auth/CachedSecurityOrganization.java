@@ -1,8 +1,8 @@
 package uz.uzinfocom.app.platform.security.auth;
 
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
-import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
 
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public record CachedSecurityOrganization(
         Organization organization = new Organization();
         organization.setId(id);
         organization.setUuid(uuid);
-        organization.setName(name);
+        organization.setNameUz(name);
         organization.setActive(active);
         organization.setLevelType(levelType);
         organization.setMedicalType(medicalType);

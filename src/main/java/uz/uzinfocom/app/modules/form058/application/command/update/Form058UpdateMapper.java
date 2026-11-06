@@ -47,18 +47,18 @@ public interface Form058UpdateMapper {
     }
 
     private void updateDiagnosisInfo(UpdateForm058Command command, Form058 form058) {
-        if (command.mkb10Code() == null && command.mkb10Name() == null) {
+        if (command.icd10Code() == null && command.icd10Name() == null) {
             return;
         }
 
         if (form058.getDiagnosisInfo() == null) {
             form058.setDiagnosisInfo(new Form058DiagnosisInfo());
         }
-        if (command.mkb10Code() != null) {
-            form058.getDiagnosisInfo().setMkb10Code(command.mkb10Code());
+        if (command.icd10Code() != null) {
+            form058.getDiagnosisInfo().setIcd10Code(command.icd10Code());
         }
-        if (command.mkb10Name() != null) {
-            form058.getDiagnosisInfo().setMkb10Name(command.mkb10Name());
+        if (command.icd10Name() != null) {
+            form058.getDiagnosisInfo().setIcd10Name(command.icd10Name());
         }
     }
 

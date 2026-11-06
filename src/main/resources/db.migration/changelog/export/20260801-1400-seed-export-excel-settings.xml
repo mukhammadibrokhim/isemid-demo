@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Default column/style rows for the FORM058 and FORM0581 Excel exports (see
+        ExcelExportSettingsResolver, Form058ExcelExportSource, Form0581ExcelExportSource) - not
+        load-bearing (SystemSettingResolver already falls back to each source's own hardcoded
+        defaults when a key is missing), but seeded here so the keys show up in
+        /v1/admin/settings and /v1/dev/settings for someone to actually edit, instead of only
+        existing as an undiscoverable convention in code.
+    -->
+    <changeSet id="20260801-1400-01-seed-export-excel-settings" author="codex">
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form058.columns"/>
+            <column name="setting_value" value="id,notifyInfo,senderOrg,patientFio,age,address,workplace,diseaseDate,firstVisitDate,hospitalization,diagnosis,finalDiagnosis,epidemicInvestigation,notifiedOrg,labResult,note"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form058 Excel export. Available keys: id, notifyInfo, senderOrg, patientFio, age, address, workplace, diseaseDate, firstVisitDate, hospitalization, diagnosis, finalDiagnosis, epidemicInvestigation, notifiedOrg, labResult, note."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form058.style.header-fill-color"/>
+            <column name="setting_value" value="C0C0C0"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Form058 Excel export header background color, hex without #."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form058.style.font-name"/>
+            <column name="setting_value" value="Calibri"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Form058 Excel export font family."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form058.style.font-size"/>
+            <column name="setting_value" value="11"/>
+            <column name="value_type" value="NUMBER"/>
+            <column name="description" value="Form058 Excel export font size, in points."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form058.style.header-bold"/>
+            <column name="setting_value" value="true"/>
+            <column name="value_type" value="BOOLEAN"/>
+            <column name="description" value="Whether the Form058 Excel export header row is bold."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form058.style.thin-border"/>
+            <column name="setting_value" value="true"/>
+            <column name="value_type" value="BOOLEAN"/>
+            <column name="description" value="Whether Form058 Excel export cells get a thin border."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form058.style.rows-per-sheet"/>
+            <column name="setting_value" value="100000"/>
+            <column name="value_type" value="NUMBER"/>
+            <column name="description" value="Form058 Excel export: max data rows per sheet before rolling over to a new one."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form0581.columns"/>
+            <column name="setting_value" value="id,createdAt,status,mkb10,senderOrg,receiverOrg,patientFio,address,source"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form0581 Excel export. Available keys: id, createdAt, status, mkb10, senderOrg, receiverOrg, patientFio, address, source."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form0581.style.header-fill-color"/>
+            <column name="setting_value" value="C0C0C0"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Form0581 Excel export header background color, hex without #."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form0581.style.font-name"/>
+            <column name="setting_value" value="Calibri"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Form0581 Excel export font family."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form0581.style.font-size"/>
+            <column name="setting_value" value="11"/>
+            <column name="value_type" value="NUMBER"/>
+            <column name="description" value="Form0581 Excel export font size, in points."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form0581.style.header-bold"/>
+            <column name="setting_value" value="true"/>
+            <column name="value_type" value="BOOLEAN"/>
+            <column name="description" value="Whether the Form0581 Excel export header row is bold."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form0581.style.thin-border"/>
+            <column name="setting_value" value="true"/>
+            <column name="value_type" value="BOOLEAN"/>
+            <column name="description" value="Whether Form0581 Excel export cells get a thin border."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form0581.style.rows-per-sheet"/>
+            <column name="setting_value" value="100000"/>
+            <column name="value_type" value="NUMBER"/>
+            <column name="description" value="Form0581 Excel export: max data rows per sheet before rolling over to a new one."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

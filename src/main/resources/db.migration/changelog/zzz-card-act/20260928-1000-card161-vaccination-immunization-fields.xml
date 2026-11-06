@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Lets a Card161 vaccination row hold what DHP FHIR Immunization
+        (GET /v1/dhp/immunization) returns, so the frontend can save a record
+        prefilled from DHP without losing data: dose_volume becomes fractional
+        (FHIR doseQuantity is e.g. 0.5 ml - it never fit INTEGER), and the
+        Immunization-only fields get their own columns. fhir_id links the row
+        back to its DHP source record; all columns stay nullable because rows
+        are still entered by hand too.
+    -->
+    <changeSet id="20260928-1000-01-card161-vaccination-dose-volume-numeric" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <sqlCheck expectedResult="integer">
+                SELECT data_type FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND table_name = 'card161_vaccination'
+                  AND column_name = 'dose_volume'
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="card161_vaccination" columnName="dose_volume" newDataType="NUMERIC(10, 3)"/>
+    </changeSet>
+
+    <changeSet id="20260928-1000-02-card161-vaccination-immunization-columns" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="card161_vaccination" columnName="fhir_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="card161_vaccination">
+            <column name="fhir_id" type="VARCHAR(64)"/>
+            <column name="vaccine_code" type="VARCHAR(64)"/>
+            <column name="expiration_date" type="DATE"/>
+            <column name="dose_unit" type="VARCHAR(32)"/>
+            <column name="dose_number" type="INTEGER"/>
+            <column name="target_diseases" type="VARCHAR(500)"/>
+            <column name="performer_name" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

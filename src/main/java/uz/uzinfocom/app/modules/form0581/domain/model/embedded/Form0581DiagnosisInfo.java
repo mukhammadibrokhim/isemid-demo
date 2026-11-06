@@ -12,18 +12,18 @@ import lombok.*;
 @AllArgsConstructor
 public class Form0581DiagnosisInfo {
 
-    @Column(name = "mkb10_code", nullable = false, length = 20)
-    private String mkb10Code;
+    @Column(name = "icd10_code", nullable = false, length = 20)
+    private String icd10Code;
 
-    @Column(name = "mkb10_name", nullable = false, length = 512)
-    private String mkb10Name;
+    @Column(name = "icd10_name", nullable = false, length = 512)
+    private String icd10Name;
 
     @Column(name = "injury_localization", length = 500)
     private String injuryLocalization;
 
-    @Column(name = "final_mkb10_code", length = 20)
-    private String finalMkb10Code;
+    @Column(name = "final_icd10_code", length = 20)
+    private String finalIcd10Code;
 
-    @Column(name = "final_mkb10_name", length = 512)
-    private String finalMkb10Name;
+    @Column(name = "final_icd10_name", length = 512)
+    private String finalIcd10Name;
 }

@@ -5,9 +5,9 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.modules.form0581.application.command.create.CreateForm0581Command;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ScopeViolationException;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581ValidationException;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
-import uz.uzinfocom.app.platform.iam.repository.OrganizationRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.repository.OrganizationRepository;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Objects;
