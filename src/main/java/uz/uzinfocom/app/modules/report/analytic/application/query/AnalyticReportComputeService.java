@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
  * then free-edits before saving). Nothing here is persisted — see {@code
  * AnalyticReportCommandService} for that.
  * <p>
- * Population is resolved from {@code ref_population} for the <b>current</b>
- * calendar year via {@link PopulationLookupService} — replacing the manually
+ * Counts cover exactly the requested {@code [from, to]} period; population is
+ * resolved from {@code ref_population} for the period's <b>end year</b> via {@link PopulationLookupService} — replacing the manually
  * typed "Aholi soni" figure the legacy flow used, which could silently drift
  * from the reference data.
  */
@@ -57,7 +57,9 @@ public class AnalyticReportComputeService {
     public AnalyticReportComputeResponse compute(AnalyticReportComputeRequest request) {
         Organization currentOrganization = requireCurrentOrganization();
         long koef = request.koef() != null ? request.koef() : DEFAULT_KOEF;
-        int year = LocalDate.now(APPLICATION_ZONE).getYear();
+        // Population year follows the requested period (its end year), not "today":
+        // a report for 2025 must be divided by the 2025 population.
+        int year = request.to() != null ? request.to().getYear() : LocalDate.now(APPLICATION_ZONE).getYear();
 
         Set<String> icd10Codes = normalize(request.icd10Codes());
         Map<String, String> diagnosisNames = icd10LookupService.resolveNames(icd10Codes);
