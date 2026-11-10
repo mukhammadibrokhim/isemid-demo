@@ -52,7 +52,16 @@ public class DevTokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path == null || !path.startsWith(ApiPaths.Dev.ROOT);
+        if (path == null) {
+            return true;
+        }
+        // getRequestURI() includes the servlet context path (e.g. /api on the deployed
+        // servers); the dev-panel root is declared relative to it.
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)) {
+            path = path.substring(contextPath.length());
+        }
+        return !path.startsWith(ApiPaths.Dev.ROOT);
     }
 
     @Override
