@@ -30,8 +30,17 @@ public final class PatientIdentifierSync {
                 return;
             }
         } else {
-            identifier = new PatientIdentifier();
-            patient.addIdentifier(identifier);
+            // Same type+value already on the patient (e.g. client resent the data without ids):
+            // refresh that row instead of appending a duplicate.
+            identifier = patient.getIdentifiers().stream()
+                    .filter(item -> command.type().equals(item.getTypeCode())
+                            && command.value().trim().equalsIgnoreCase(item.getValue()))
+                    .findFirst()
+                    .orElse(null);
+            if (identifier == null) {
+                identifier = new PatientIdentifier();
+                patient.addIdentifier(identifier);
+            }
         }
 
         String value = command.value().trim();

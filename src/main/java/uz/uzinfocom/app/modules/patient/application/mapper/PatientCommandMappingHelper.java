@@ -29,6 +29,9 @@ public class PatientCommandMappingHelper {
         commands.stream()
                 .map(this::toIdentifier)
                 .filter(Objects::nonNull)
+                .filter(candidate -> identifiers.stream().noneMatch(existing ->
+                        Objects.equals(existing.getTypeCode(), candidate.getTypeCode())
+                                && Objects.equals(existing.getValue(), candidate.getValue())))
                 .forEach(identifiers::add);
         return identifiers;
     }
@@ -43,6 +46,14 @@ public class PatientCommandMappingHelper {
         commands.stream()
                 .map(this::toAddress)
                 .filter(Objects::nonNull)
+                .filter(candidate -> addresses.stream().noneMatch(existing ->
+                        Objects.equals(existing.getType(), candidate.getType())
+                                && Objects.equals(existing.getRegionCode(), candidate.getRegionCode())
+                                && Objects.equals(existing.getDistrictCode(), candidate.getDistrictCode())
+                                && Objects.equals(existing.getNeighborhoodCode(), candidate.getNeighborhoodCode())
+                                && Objects.equals(existing.getStreetAddress(), candidate.getStreetAddress())
+                                && Objects.equals(existing.getHouseNumber(), candidate.getHouseNumber())
+                                && Objects.equals(existing.getApartmentNumber(), candidate.getApartmentNumber())))
                 .forEach(addresses::add);
         return addresses;
     }

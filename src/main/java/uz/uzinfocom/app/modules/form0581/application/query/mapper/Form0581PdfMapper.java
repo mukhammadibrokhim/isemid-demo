@@ -23,6 +23,7 @@ import uz.uzinfocom.app.modules.form0581.domain.model.embedded.Form0581Hospitali
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.Form0581IncidentInfo;
 import uz.uzinfocom.app.modules.form0581.domain.model.embedded.Form0581ReportInfo;
 import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
+import uz.uzinfocom.app.modules.patient.application.query.mapper.helper.PatientAffiliationMappingHelper;
 import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
@@ -62,6 +63,7 @@ public class Form0581PdfMapper {
     private final OrganizationMappingHelper organizationMappingHelper;
     private final UserMapperHelper userMapperHelper;
     private final SensitiveIdentifierMasker identifierMasker;
+    private final PatientAffiliationMappingHelper patientAffiliationMappingHelper;
 
     public Form0581PdfResponse toPdfResponse(Form0581 form0581) {
         Patient patient = form0581.getPatient();
@@ -174,7 +176,7 @@ public class Form0581PdfMapper {
                 .filter(affiliation -> affiliation.getType() == type)
                 .findFirst()
                 .map(affiliation -> new Form0581PdfWorkplaceResponse(
-                        affiliation.getOrganizationName(),
+                        patientAffiliationMappingHelper.resolveAffiliationOrganizationName(affiliation),
                         referenceMappingHelper.regionName(affiliation.getRegionCode()),
                         referenceMappingHelper.districtName(affiliation.getDistrictCode()),
                         affiliation.getAddress()

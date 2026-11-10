@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "Параметры поиска для справочного выбора махаллей.")
 public record NeighborhoodLookupFilterRequest(
-        @Schema(description = "Максимум записей в ответе. По умолчанию — 20, максимум — 200.", example = "20")
+        @Schema(description = "Максимум записей в ответе. По умолчанию — 200, максимум — 200.", example = "200")
         @Min(value = 1, message = "{reference.neighborhood.filter.limit.min}")
         @Max(value = 200, message = "{reference.neighborhood.filter.limit.max}")
         Integer limit,

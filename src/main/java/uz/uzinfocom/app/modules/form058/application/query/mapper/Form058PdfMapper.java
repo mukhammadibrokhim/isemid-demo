@@ -14,6 +14,7 @@ import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ClinicalInf
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058EpidemicInfo;
 import uz.uzinfocom.app.modules.form058.domain.model.embedded.Form058ReportInfo;
 import uz.uzinfocom.app.modules.patient.domain.enums.AddressType;
+import uz.uzinfocom.app.modules.patient.application.query.mapper.helper.PatientAffiliationMappingHelper;
 import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.modules.patient.domain.model.PatientAddress;
@@ -53,6 +54,7 @@ public class Form058PdfMapper {
     private final OrganizationMappingHelper organizationMappingHelper;
     private final UserMapperHelper userMapperHelper;
     private final SensitiveIdentifierMasker identifierMasker;
+    private final PatientAffiliationMappingHelper patientAffiliationMappingHelper;
 
     /**
      * {@code cards} is the same list already fetched for the linked-cards section of the
@@ -185,7 +187,7 @@ public class Form058PdfMapper {
                 .filter(affiliation -> affiliation.getType() == type)
                 .findFirst()
                 .map(affiliation -> new Form058PdfWorkplaceResponse(
-                        affiliation.getOrganizationName(),
+                        patientAffiliationMappingHelper.resolveAffiliationOrganizationName(affiliation),
                         referenceMappingHelper.regionName(affiliation.getRegionCode()),
                         referenceMappingHelper.districtName(affiliation.getDistrictCode()),
                         affiliation.getAddress()

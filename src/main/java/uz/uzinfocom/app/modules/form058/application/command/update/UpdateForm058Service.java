@@ -130,8 +130,14 @@ public class UpdateForm058Service {
                 return;
             }
         } else {
-            address = new PatientAddress();
-            patient.addAddress(address);
+            address = patient.getAddresses().stream()
+                    .filter(item -> sameAddress(item, command))
+                    .findFirst()
+                    .orElse(null);
+            if (address == null) {
+                address = new PatientAddress();
+                patient.addAddress(address);
+            }
         }
 
         address.setType(command.type());
@@ -141,6 +147,16 @@ public class UpdateForm058Service {
         address.setStreetAddress(command.streetAddress());
         address.setHouseNumber(command.houseNumber());
         address.setApartmentNumber(command.apartmentNumber());
+    }
+
+    private static boolean sameAddress(PatientAddress item, UpdatePatientAddressCommand command) {
+        return java.util.Objects.equals(item.getType(), command.type())
+                && java.util.Objects.equals(item.getRegionCode(), command.regionCode())
+                && java.util.Objects.equals(item.getDistrictCode(), command.districtCode())
+                && java.util.Objects.equals(item.getNeighborhoodCode(), command.neighborhoodCode())
+                && java.util.Objects.equals(item.getStreetAddress(), command.streetAddress())
+                && java.util.Objects.equals(item.getHouseNumber(), command.houseNumber())
+                && java.util.Objects.equals(item.getApartmentNumber(), command.apartmentNumber());
     }
 
     private static PatientAddress findAddressById(Patient patient, Long id) {

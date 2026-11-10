@@ -32,7 +32,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class NeighborhoodQueryService {
 
-    private static final int DEFAULT_LOOKUP_LIMIT = 20;
+    private static final int DEFAULT_LOOKUP_LIMIT = 200;
     private static final int MAX_LOOKUP_LIMIT = 200;
 
     private final NeighborhoodRepository neighborhoodRepository;
