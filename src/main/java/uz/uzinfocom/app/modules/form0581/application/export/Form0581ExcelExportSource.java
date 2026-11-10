@@ -142,9 +142,9 @@ public class Form0581ExcelExportSource implements ExcelExportSource<Form0581Filt
 
         return List.of(
                 new ExcelTitleBlock("Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлиги", 0, 4, 0, Math.min(6, lastCol)),
-                new ExcelTitleBlock("058/1-рақамли тиббий ҳужжат шакли", 0, 4, Math.min(7, lastCol), lastCol),
-                new ExcelTitleBlock(dateRangeText(filter), 5, 5, 0, lastCol),
-                new ExcelTitleBlock("ҲАЙВОН ЧАҚҚАН/ЖАРОҲАТЛАНГАН ШАХСЛАРНИ ҚАЙД ҚИЛИШ ЖУРНАЛИ", 6, 6, 0, lastCol)
+                new ExcelTitleBlock("058/1-рақамли тиббий ҳужжат шакли", 0, 4, Math.min(7, lastCol), lastCol, ExcelTitleBlock.Kind.RIGHT_NOTE),
+                new ExcelTitleBlock(dateRangeText(filter), 5, 5, 0, lastCol, ExcelTitleBlock.Kind.SUBTITLE),
+                new ExcelTitleBlock("ҲАЙВОН ЧАҚҚАН/ЖАРОҲАТЛАНГАН ШАХСЛАРНИ ҚАЙД ҚИЛИШ ЖУРНАЛИ", 6, 6, 0, lastCol, ExcelTitleBlock.Kind.TITLE)
         );
     }
 

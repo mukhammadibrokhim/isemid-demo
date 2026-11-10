@@ -24,7 +24,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Writes tabular data to an .xlsx file using POI's SXSSF streaming API, so exporting a
@@ -137,7 +139,7 @@ public class ExcelExportWriter {
         private final String sheetBaseName;
         private final List<ExcelTitleBlock> titleBlocks;
         private final List<ExcelColumn<T>> columns;
-        private final CellStyle titleStyle;
+        private final Map<ExcelTitleBlock.Kind, CellStyle> titleStyles;
         private final CellStyle headerStyle;
         private final CellStyle dataStyle;
         private final int rowsPerSheet;
@@ -158,7 +160,7 @@ public class ExcelExportWriter {
             this.sheetBaseName = sheetBaseName;
             this.titleBlocks = titleBlocks;
             this.columns = columns;
-            this.titleStyle = titleStyle(workbook, style);
+            this.titleStyles = titleStyles(workbook, style);
             this.headerStyle = headerStyle(workbook, style);
             this.dataStyle = dataStyle(workbook, style);
             this.rowsPerSheet = Math.max(1, style.rowsPerSheet());
@@ -185,7 +187,10 @@ public class ExcelExportWriter {
             rowsOnCurrentSheet = 0;
 
             if (sheetIndex == 1 && !titleBlocks.isEmpty()) {
-                nextRowIndex = writeTitleBlocks(sheet, titleBlocks, titleStyle);
+                // The letterhead is a printed-form header, not a grid: hide Excel's gridlines so
+                // it doesn't look boxed-in (the data table keeps its own thin borders).
+                sheet.setDisplayGridlines(false);
+                nextRowIndex = writeTitleBlocks(sheet, titleBlocks, titleStyles);
             }
 
             nextRowIndex = writeHeader(sheet, columns, headerStyle, nextRowIndex);
@@ -200,15 +205,23 @@ public class ExcelExportWriter {
         }
     }
 
-    private int writeTitleBlocks(Sheet sheet, List<ExcelTitleBlock> titleBlocks, CellStyle titleStyle) {
+    private int writeTitleBlocks(Sheet sheet, List<ExcelTitleBlock> titleBlocks, Map<ExcelTitleBlock.Kind, CellStyle> titleStyles) {
         int maxRow = 0;
 
         for (ExcelTitleBlock block : titleBlocks) {
+            CellStyle titleStyle = titleStyles.get(block.kind());
+            float rowHeight = switch (block.kind()) {
+                case TITLE -> 30f;
+                case SUBTITLE -> 22f;
+                default -> 20f;
+            };
+
             for (int r = block.firstRow(); r <= block.lastRow(); r++) {
                 Row row = sheet.getRow(r);
                 if (row == null) {
                     row = sheet.createRow(r);
                 }
+                row.setHeightInPoints(rowHeight);
                 for (int c = block.firstCol(); c <= block.lastCol(); c++) {
                     Cell cell = row.createCell(c);
                     cell.setCellStyle(titleStyle);
@@ -334,14 +347,31 @@ public class ExcelExportWriter {
         }
     }
 
-    private CellStyle titleStyle(SXSSFWorkbook workbook, ExcelStyleSettings style) {
-        Font font = font(workbook, style, true);
+    private Map<ExcelTitleBlock.Kind, CellStyle> titleStyles(SXSSFWorkbook workbook, ExcelStyleSettings style) {
+        Map<ExcelTitleBlock.Kind, CellStyle> styles = new EnumMap<>(ExcelTitleBlock.Kind.class);
+        for (ExcelTitleBlock.Kind kind : ExcelTitleBlock.Kind.values()) {
+            styles.put(kind, titleStyle(workbook, style, kind));
+        }
+        return styles;
+    }
+
+    private CellStyle titleStyle(SXSSFWorkbook workbook, ExcelStyleSettings style, ExcelTitleBlock.Kind kind) {
+        Font font = font(workbook, style, kind == ExcelTitleBlock.Kind.CENTER || kind == ExcelTitleBlock.Kind.TITLE);
+        switch (kind) {
+            case TITLE -> font.setFontHeightInPoints((short) (style.fontSize() + 4));
+            case RIGHT_NOTE -> font.setFontHeightInPoints((short) Math.max(9, style.fontSize() - 1));
+            case SUBTITLE -> font.setItalic(true);
+            default -> font.setFontHeightInPoints((short) (style.fontSize() + 1));
+        }
 
         CellStyle cellStyle = workbook.createCellStyle();
         cellStyle.setFont(font);
-        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setAlignment(kind == ExcelTitleBlock.Kind.RIGHT_NOTE ? HorizontalAlignment.RIGHT : HorizontalAlignment.CENTER);
         cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         cellStyle.setWrapText(true);
+        if (kind == ExcelTitleBlock.Kind.TITLE) {
+            cellStyle.setBorderBottom(BorderStyle.THIN);
+        }
 
         return cellStyle;
     }

@@ -140,10 +140,10 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
                 new ExcelTitleBlock("Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлиги", 0, 4, 0, Math.min(6, lastCol)),
                 new ExcelTitleBlock(
                         "Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлигининг\n2025 йил 26 декабрдаги 399-сонли\nбуйруғи билан тасдиқланган\n060-рақамли тиббий ҳужжат шакли",
-                        0, 4, Math.min(7, lastCol), lastCol
+                        0, 4, Math.min(7, lastCol), lastCol, ExcelTitleBlock.Kind.RIGHT_NOTE
                 ),
-                new ExcelTitleBlock(dateRangeText(filter), 5, 5, 0, lastCol),
-                new ExcelTitleBlock("ЮҚУМЛИ КАСАЛЛИКЛАРНИ ҚАЙД ҚИЛИШ ЖУРНАЛИ", 6, 6, 0, lastCol)
+                new ExcelTitleBlock(dateRangeText(filter), 5, 5, 0, lastCol, ExcelTitleBlock.Kind.SUBTITLE),
+                new ExcelTitleBlock("ЮҚУМЛИ КАСАЛЛИКЛАРНИ ҚАЙД ҚИЛИШ ЖУРНАЛИ", 6, 6, 0, lastCol, ExcelTitleBlock.Kind.TITLE)
         );
     }
 
