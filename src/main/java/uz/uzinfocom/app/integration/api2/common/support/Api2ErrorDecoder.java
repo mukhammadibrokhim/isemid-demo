@@ -6,12 +6,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import tools.jackson.databind.JsonNode;
-import uz.uzinfocom.app.integration.api2.api.dto.FieldValidationError;
+import uz.uzinfocom.app.integration.api2.web.dto.FieldValidationError;
 import uz.uzinfocom.app.integration.api2.citizen.exception.CitizenDataNotFoundException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2AuthenticationException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2AuthorizationException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2BadGatewayException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2BadRequestException;
+import uz.uzinfocom.app.integration.api2.common.exception.Api2CircuitOpenException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2ConflictException;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2RateLimitException;
@@ -75,12 +76,16 @@ public class Api2ErrorDecoder {
 
     /**
      * The "api2" circuit breaker is open - API2 is already known to be
-     * unhealthy, so this call was rejected without ever going out. Reported
-     * the same way a real transport failure would be, since callers of the
-     * API2 clients shouldn't need a separate branch for it.
+     * unhealthy, so this call was rejected without ever going out. Still a
+     * 503 like a real transport failure, but with its own error code and the
+     * breaker's wait duration so the client knows how long to back off.
      */
-    public Api2Exception decodeCircuitBreakerOpen(String operation, CallNotPermittedException exception) {
-        return new Api2UnavailableException(operation, exception);
+    public Api2Exception decodeCircuitBreakerOpen(
+            String operation,
+            CallNotPermittedException exception,
+            long retryAfterSeconds
+    ) {
+        return new Api2CircuitOpenException(operation, retryAfterSeconds, exception);
     }
 
     public boolean isFailurePayload(Api2ResponseBody body) {
@@ -237,9 +242,9 @@ public class Api2ErrorDecoder {
             return value >= 100 && value <= 599 ? value : fallbackStatus;
         }
 
-        if (status.isTextual()) {
+        if (status.isString()) {
             try {
-                int value = Integer.parseInt(status.asText().trim());
+                int value = Integer.parseInt(status.asString().trim());
                 return value >= 100 && value <= 599 ? value : fallbackStatus;
             } catch (NumberFormatException ignored) {
                 return fallbackStatus;
@@ -340,7 +345,7 @@ public class Api2ErrorDecoder {
             return null;
         }
 
-        return Api2ResponseBodySanitizer.sanitize(node.asText(), null);
+        return Api2ResponseBodySanitizer.sanitize(node.asString(), null);
     }
 
     private boolean isFailureValue(JsonNode node) {
@@ -354,14 +359,14 @@ public class Api2ErrorDecoder {
 
         if (node.isNumber()) {
             int value = node.asInt();
-            return value == 0 || value < 200 || value >= 400;
+            return value < 200 || value >= 400;
         }
 
-        if (!node.isTextual()) {
+        if (!node.isString()) {
             return false;
         }
 
-        String value = normalize(node.asText());
+        String value = normalize(node.asString());
         return value.equals("0")
                 || value.equals("false")
                 || value.equals("fail")
@@ -369,9 +374,7 @@ public class Api2ErrorDecoder {
                 || value.equals("failure")
                 || value.equals("error")
                 || value.equals("incorrect")
-                || value.equals("invalid")
                 || value.equals("not_found")
-                || value.equals("not found")
                 || value.contains("not found")
                 || value.contains("validation")
                 || value.contains("invalid");

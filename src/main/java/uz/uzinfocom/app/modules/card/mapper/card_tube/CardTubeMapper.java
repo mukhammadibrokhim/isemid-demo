@@ -14,6 +14,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card_tube.InfectionSource;
 import uz.uzinfocom.app.modules.card.domain.model.card_tube.TBHistory;
 import uz.uzinfocom.app.modules.card.domain.model.card_tube.XRay;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.CardTubeRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.ContactMonitoringRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.InfectionSourceRequest;
@@ -24,12 +25,17 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card_tube.XRayRequest;
  * Field-level mapping only. Wiring a child's back-reference to its parent
  * is the handler's job.
  */
-@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
+@Mapper(componentModel = "spring", uses = {CardCaseFieldMapperHelper.class, CardFormMapperHelper.class})
 public interface CardTubeMapper {
 
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
+    @Mapping(target = "form", source = ".", qualifiedByName = "resolveCardForm")
     @Mapping(target = "type", source = "cardType")
+    @Mapping(target = "icd10Code", source = ".", qualifiedByName = "resolveCardTubeIcd10Code")
+    @Mapping(target = "icd10Name", source = ".", qualifiedByName = "resolveCardTubeIcd10Name")
+    @Mapping(target = "dgIcd10Code", source = ".", qualifiedByName = "resolveCardTubeDgIcd10Code")
+    @Mapping(target = "dgIcd10Name", source = ".", qualifiedByName = "resolveCardTubeDgIcd10Name")
     CardTubeDetailResponse toResponse(CardTube cardTube);
 
     @Mapping(target = "id", ignore = true)

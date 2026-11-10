@@ -20,10 +20,10 @@ public record Form058TableResponse(
         Form058TableStatus status,
 
         @Schema(description = "Код диагноза по МКБ-10.")
-        String mkb10Code,
+        String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        String mkb10Name,
+        String icd10Name,
 
         @Schema(description = "Источник поступления формы.")
         String source,

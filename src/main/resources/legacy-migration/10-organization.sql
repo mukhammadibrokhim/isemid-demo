@@ -1,0 +1,81 @@
+-- =====================================================================
+-- 10-organization.sql  —  public.organization -> public2.organization
+--                         public.organization_service_types -> public2 (1:1)
+-- Mapping: docs/legacy-migration/02-mapping-5434.md §1
+-- =====================================================================
+\set ON_ERROR_STOP on
+BEGIN;
+SET TIME ZONE 'Asia/Tashkent';
+
+-- ---- organization -----------------------------------------------------
+-- Rename: city_code->district_code, state_code->region_code, line->address_line
+-- Drop:   country_code, district, email, service_area_code
+-- Backfill: version=0; created_by_id/updated_by_id=NULL; name by script (Latin->name_uz, Uzbek Cyrillic->name_uz_cyril, other Cyrillic->name_ru; target has no `name` column);
+--           level_type NULL -> 'NOT_DEFINED'; medical_type NULL -> 'OTHER'
+--           (MedicalType has no NOT_DEFINED constant — its sentinel is OTHER);
+--           created_at/updated_at NULL -> now()
+--           provider_key -> 'sso' (legacy predates the DHP provider; every
+--           legacy organization was synced through SSV SSO. Needed so
+--           OrganizationSyncService#syncByUuid can resync a migrated org
+--           without the caller having to pass providerKeyOverride.)
+-- parent_id: 2-bosqich (self-FK) — avval NULL, keyin UPDATE.
+INSERT INTO public2.organization (
+    id, version, created_at, created_by_id, updated_at, updated_by_id,
+    active, district_code, level_type, medical_type, phone, region_code,
+    tin, uuid, address_line, name_kaa, name_ru, name_uz, name_uz_cyril, parent_id,
+    provider_key
+)
+SELECT
+    o.id,
+    0,
+    COALESCE(o.created_at, now())::timestamp AT TIME ZONE 'Asia/Tashkent',
+    NULL,
+    COALESCE(o.updated_at, o.created_at, now())::timestamp AT TIME ZONE 'Asia/Tashkent',
+    NULL,
+    o.active,
+    left(o.city_code, 64),               -- district_code
+    left(COALESCE(o.level_type, 'NOT_DEFINED'), 50),
+    left(COALESCE(o.medical_type, 'OTHER'), 50),
+    left(o.phone, 50),
+    left(o.state_code, 64),               -- region_code
+    left(o.tin, 50),
+    o.uuid,
+    left(o.line, 255),                    -- address_line
+    NULL,                                 -- name_kaa
+    CASE WHEN o.name ~ '[ЎўҚқҒғҲҳ]' THEN NULL WHEN o.name ~ '[А-Яа-яЁё]' THEN left(o.name, 500) END,  -- name_ru
+    CASE WHEN o.name !~ '[А-Яа-яЁё]' THEN left(o.name, 500) END,                                   -- name_uz
+    CASE WHEN o.name ~ '[ЎўҚқҒғҲҳ]' THEN left(o.name, 500) END,                                    -- name_uz_cyril
+    NULL,
+    'sso'
+FROM public.organization o;
+
+-- target'da ustuni yo'q: email, service_area_code -> qiymatlari log'ga (yo'qolmasin)
+INSERT INTO public2._migration_notes (source_table, source_id, note, details)
+SELECT 'organization', o.id, 'no column in target - value recorded',
+       concat_ws('; ',
+         CASE WHEN o.email IS NOT NULL THEN 'email='||o.email END,
+         CASE WHEN o.service_area_code IS NOT NULL THEN 'service_area_code='||o.service_area_code END)
+FROM public.organization o
+WHERE o.email IS NOT NULL OR o.service_area_code IS NOT NULL;
+
+-- parent_id (self-FK) — endi barcha qatorlar bor
+UPDATE public2.organization t
+SET    parent_id = o.parent_id
+FROM   public.organization o
+WHERE  o.id = t.id
+  AND  o.parent_id IS NOT NULL;
+
+-- ---- organization_service_types (1:1) --------------------------------
+INSERT INTO public2.organization_service_types (organization_id, service_type)
+SELECT ost.organization_id, ost.service_type
+FROM   public.organization_service_types ost
+JOIN   public.organization o ON o.id = ost.organization_id;   -- orphan himoyasi
+
+COMMIT;
+
+\echo '10-organization OK'
+SELECT 'organization' t, (SELECT count(*) FROM public.organization) src,
+       (SELECT count(*) FROM public2.organization) dst
+UNION ALL
+SELECT 'organization_service_types', (SELECT count(*) FROM public.organization_service_types),
+       (SELECT count(*) FROM public2.organization_service_types);

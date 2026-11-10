@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.card.mapper.card161;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.Card161DetailResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.Card161RiskFactorResponse;
 import uz.uzinfocom.app.modules.card.application.query.dto.detail.card161.ContactPersonResponse;
@@ -28,6 +29,7 @@ import uz.uzinfocom.app.modules.card.domain.model.card161.OutbreakDisinfectionMe
 import uz.uzinfocom.app.modules.card.domain.model.card161.ScreenedGroup;
 import uz.uzinfocom.app.modules.card.domain.model.card161.Vaccination;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card161Request;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.Card161RiskFactorRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ContactPersonRequest;
@@ -41,16 +43,21 @@ import uz.uzinfocom.app.modules.card.web.dto.request.card161.OutbreakDisinfectio
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.ScreenedGroupRequest;
 import uz.uzinfocom.app.modules.card.web.dto.request.card161.VaccinationRequest;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Field-level mapping only. Wiring a child's back-reference to its parent
  * (e.g. {@code Card161RiskFactor.card161}) is the handler's job — a mapper
  * invoked on a single child in isolation has no parent to wire it to.
  */
-@Mapper(componentModel = "spring", uses = CardCaseFieldMapperHelper.class)
+@Mapper(componentModel = "spring", uses = {CardCaseFieldMapperHelper.class, CardFormMapperHelper.class})
 public interface Card161Mapper {
 
     @Mapping(target = "formId", source = ".", qualifiedByName = "resolveFormId")
     @Mapping(target = "formType", source = ".", qualifiedByName = "resolveFormType")
+    @Mapping(target = "form", source = ".", qualifiedByName = "resolveCardForm")
     @Mapping(target = "type", source = "cardType")
     Card161DetailResponse toResponse(Card161 card161);
 
@@ -152,13 +159,43 @@ public interface Card161Mapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
+    @Mapping(target = "targetDiseases", qualifiedByName = "joinTargetDiseases")
     Vaccination toEntity(VaccinationRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "card161", ignore = true)
+    @Mapping(target = "targetDiseases", qualifiedByName = "joinTargetDiseases")
     void update(@MappingTarget Vaccination entity, VaccinationRequest request);
 
+    @Mapping(target = "targetDiseases", qualifiedByName = "splitTargetDiseases")
     VaccinationResponse toResponse(Vaccination entity);
+
+    /** DHP returns target diseases as a list; one short text column is enough to keep them. */
+    String TARGET_DISEASES_SEPARATOR = "; ";
+
+    @Named("joinTargetDiseases")
+    default String joinTargetDiseases(List<String> diseases) {
+        if (diseases == null) {
+            return null;
+        }
+        String joined = String.join(TARGET_DISEASES_SEPARATOR, diseases.stream()
+                .filter(Objects::nonNull)
+                .map(String::strip)
+                .filter(d -> !d.isEmpty())
+                .toList());
+        return joined.isEmpty() ? null : joined;
+    }
+
+    @Named("splitTargetDiseases")
+    default List<String> splitTargetDiseases(String diseases) {
+        if (diseases == null || diseases.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(diseases.split(TARGET_DISEASES_SEPARATOR.strip()))
+                .map(String::strip)
+                .filter(d -> !d.isEmpty())
+                .toList();
+    }
 
     /**
      * Copies only Card161's own scalar fields — child collections, the

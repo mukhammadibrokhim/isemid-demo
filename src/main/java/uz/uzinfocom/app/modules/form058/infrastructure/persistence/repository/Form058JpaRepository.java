@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface Form058JpaRepository extends JpaRepository<Form058, Long>, JpaSpecificationExecutor<Form058> {
 
@@ -29,6 +30,15 @@ public interface Form058JpaRepository extends JpaRepository<Form058, Long>, JpaS
               AND f.deleteInfo.deleted = false
             """)
     Optional<Form058> findActiveByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT f
+            FROM Form058 f
+            WHERE f.uuid = :uuid
+              AND f.deleteInfo.deleted = false
+            """)
+    Optional<Form058> findActiveByUuidForUpdate(@Param("uuid") UUID uuid);
 
     /**
      * Planner-only row estimate for the unfiltered active-row predicate, used to avoid an

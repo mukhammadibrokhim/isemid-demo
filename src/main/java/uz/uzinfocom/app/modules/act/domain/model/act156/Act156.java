@@ -3,6 +3,8 @@ package uz.uzinfocom.app.modules.act.domain.model.act156;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -10,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupType;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
 
 import java.time.LocalDateTime;
@@ -26,15 +29,6 @@ public class Act156 extends Act {
 
     @Column(name = "title")
     private String title;
-
-    @Column(name = "tin")
-    private Integer tin;
-
-    @Column(name = "institution_name")
-    private String institutionName;
-
-    @Column(name = "institution_address")
-    private String institutionAddress;
 
     @Column(name = "activity_type_code")
     private String activityTypeCode;
@@ -62,6 +56,19 @@ public class Act156 extends Act {
 
     @Column(name = "position_of_object_representative")
     private String positionOfObjectRepresentative;
+
+    /**
+     * «Hujjat turi» / «Hujjat raqami» of the object representative — the
+     * identifier the representative's data was resolved by from the citizen
+     * registry, same meaning as {@code EmployeeInfo#identifierType}/{@code identifierValue}
+     * on the other act types' {@code participant}.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "identifier_type_of_object_representative", length = 20)
+    private CitizenLookupType identifierTypeOfObjectRepresentative;
+
+    @Column(name = "identifier_value_of_object_representative")
+    private String identifierValueOfObjectRepresentative;
 
     @OneToMany(mappedBy = "act156", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Act156KitchenUtensil> act156KitchenUtensils = new ArrayList<>();

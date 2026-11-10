@@ -52,7 +52,7 @@ public class PatientAffiliation extends AbsEntity {
     @Column(name = "last_visited_date")
     private LocalDate lastVisitedDate;
 
-    @Column(name = "organization_name")
+    @Column(name = "organization_name", length = 500)
     private String organizationName;
 
     @Column(name = "region_code")
@@ -67,6 +67,6 @@ public class PatientAffiliation extends AbsEntity {
     @Column(name = "organization_uuid")
     private UUID organizationUuid;
 
-    @Column(name = "address")
+    @Column(name = "address", length = 1000)
     private String address;
 }

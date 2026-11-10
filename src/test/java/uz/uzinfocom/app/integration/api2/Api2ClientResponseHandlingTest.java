@@ -10,10 +10,11 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
 import uz.uzinfocom.app.integration.api2.citizen.client.CitizenApi2Client;
+import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenAddressLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2Exception;
 import uz.uzinfocom.app.integration.api2.common.exception.Api2MalformedResponseException;
-import uz.uzinfocom.app.integration.api2.common.exception.Api2UnavailableException;
+import uz.uzinfocom.app.integration.api2.common.exception.Api2CircuitOpenException;
 import uz.uzinfocom.app.integration.api2.common.properties.Api2Properties;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ErrorDecoder;
 import uz.uzinfocom.app.integration.api2.common.support.Api2ResponseBodyReader;
@@ -47,8 +48,10 @@ class Api2ClientResponseHandlingTest {
                     "/v3/Child",
                     "/v3/Citizen",
                     "/v3/CitizenPassport",
+                    "/v3/citizenAddress",
                     "/v3/LegalEntity"
-            )
+            ),
+            Duration.ofSeconds(3)
     );
     private final Api2ErrorDecoder decoder = new Api2ErrorDecoder();
     private final Api2ResponseBodyReader bodyReader = new Api2ResponseBodyReader(jsonMapper);
@@ -84,7 +87,7 @@ class Api2ClientResponseHandlingTest {
         );
 
         assertThat(result.upstreamStatus()).isEqualTo(200);
-        assertThat(result.data().get("result").asText()).isEqualTo("OK");
+        assertThat(result.data().get("result").asString()).isEqualTo("OK");
         server.verify();
     }
 
@@ -99,7 +102,7 @@ class Api2ClientResponseHandlingTest {
         LegalEntityLookupResult result = legalEntityClient.lookupByTin("123456789");
 
         assertThat(result.upstreamStatus()).isEqualTo(200);
-        assertThat(result.data().get("data").get("tin").asText()).isEqualTo("123456789");
+        assertThat(result.data().get("data").get("tin").asString()).isEqualTo("123456789");
         server.verify();
     }
 
@@ -178,6 +181,55 @@ class Api2ClientResponseHandlingTest {
     }
 
     @Test
+    void citizenAddressValidPascalCaseJsonSuccessReturnsResult() {
+        server.expect(once(), requestTo(
+                        BASE_URL + "/v3/citizenAddress?nnuzb=12345678901234&birth_date=2020-01-01"))
+                .andRespond(withSuccess(
+                        "{\"AnswereId\":1,\"AnswereMessage\":\"Ok\",\"Data\":{\"PermanentRegistration\":null,\"TemproaryRegistrations\":null}}",
+                        MediaType.APPLICATION_JSON
+                ));
+
+        CitizenAddressLookupResult result = citizenClient.lookupAddress(
+                "12345678901234",
+                LocalDate.of(2020, 1, 1)
+        );
+
+        assertThat(result.upstreamStatus()).isEqualTo(200);
+        assertThat(result.data().get("AnswereMessage").asString()).isEqualTo("Ok");
+        server.verify();
+    }
+
+    @Test
+    void citizenAddressSuccessfulMalformedJsonIsRejected() {
+        server.expect(once(), requestTo(
+                        BASE_URL + "/v3/citizenAddress?nnuzb=12345678901234&birth_date=2020-01-01"))
+                .andRespond(withSuccess("incorrect", MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> citizenClient.lookupAddress("12345678901234", LocalDate.of(2020, 1, 1)))
+                .isInstanceOf(Api2MalformedResponseException.class)
+                .hasFieldOrPropertyWithValue("responseStatus", HttpStatus.BAD_GATEWAY)
+                .hasFieldOrPropertyWithValue("errorCode", "API2_MALFORMED_RESPONSE");
+
+        server.verify();
+    }
+
+    @Test
+    void citizenAddressHttpErrorStatusIsRejected() {
+        server.expect(once(), requestTo(
+                        BASE_URL + "/v3/citizenAddress?nnuzb=12345678901234&birth_date=2020-01-01"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .body("incorrect"));
+
+        assertThatThrownBy(() -> citizenClient.lookupAddress("12345678901234", LocalDate.of(2020, 1, 1)))
+                .isInstanceOf(Api2Exception.class)
+                .hasFieldOrPropertyWithValue("responseStatus", HttpStatus.BAD_REQUEST)
+                .hasFieldOrPropertyWithValue("errorCode", "API2_UPSTREAM_BAD_REQUEST");
+
+        server.verify();
+    }
+
+    @Test
     void openCircuitBreakerFailsFastWithoutCallingApi2() {
         CircuitBreakerRegistry openRegistry = CircuitBreakerRegistry.of(
                 Map.of(CircuitBreakerNames.API2, CircuitBreakerConfig.ofDefaults()));
@@ -193,7 +245,10 @@ class Api2ClientResponseHandlingTest {
         // the test with an "unexpected request" error instead of this
         // assertion ever being reached.
         assertThatThrownBy(() -> openCitizenClient.lookupByNnuzb("12345678901234", LocalDate.of(2020, 1, 1)))
-                .isInstanceOf(Api2UnavailableException.class)
-                .hasFieldOrPropertyWithValue("errorCode", "API2_UNAVAILABLE");
+                .isInstanceOf(Api2CircuitOpenException.class)
+                .hasFieldOrPropertyWithValue("responseStatus", HttpStatus.SERVICE_UNAVAILABLE)
+                .hasFieldOrPropertyWithValue("errorCode", "API2_CIRCUIT_OPEN")
+                // CircuitBreakerConfig.ofDefaults() keeps the breaker open for 60s.
+                .hasFieldOrPropertyWithValue("retryAfterSeconds", 60L);
     }
 }

@@ -5,24 +5,21 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.act.web.dto.request.act224.Act224RecommendationRequest;
-import uz.uzinfocom.app.modules.act.web.dto.request.embedded.InstitutionRequest;
+import uz.uzinfocom.app.modules.act.web.dto.request.embedded.ActSubjectRequest;
 
 import java.util.List;
 
 @Schema(description = "Акт 224 — далолатнома по проверке соблюдения санитарных требований.")
 public record Act224Request(
-        InstitutionRequest institution,
+        @Schema(description = "Субъект акта (блок «Tashkilot turi»).")
+        @Valid ActSubjectRequest subject,
 
-        Integer tin,
-        @Size(max = 255) String institutionName,
-        @Size(max = 500) String institutionAddress,
+        @Schema(description = "Вид деятельности («Faoliyat turi») — код из ref_catalog (type=ACTIVITY_TYPE).")
         @Size(max = 255) String activityTypeCode,
         @Size(max = 255) String fullNameOfEpidStaff,
         @Size(max = 255) String positionOfEpidStaff,
         @Size(max = 255) String fullNameOfParticipantEpid,
         @Size(max = 255) String positionOfParticipantEpid,
-        @Size(max = 255) String nameOfInstitution,
-        @Size(max = 500) String addressOfInstitution,
         @Size(max = 500) String nameOfRegulatoryActs,
         String checkingFulfillmentOfRequirements,
         @Size(max = 255) String fullNameOfParticipant,

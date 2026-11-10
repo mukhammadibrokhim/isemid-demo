@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        RBAC init / super_admin + admin to'liq huquq sinxronizatsiyasi.
+
+        Muammo: 20260730-1200-05 va 20260825-1200-03 changeset'lari
+        isemid_super_admin / isemid_admin uchun CROSS JOIN orqali to'liq
+        huquq bergan edi, LEKIN oddiy changeset bir marta ishlaydi - keyin
+        qo'shilgan har bir yangi permission (subject) yoki action uchun
+        qo'lda backfill changeset yozish kerak bo'lardi (masalan ATTACH_ACT
+        uchun aynan shunday qilingan). Bu mo'rt va har safar unutiladi.
+
+        Yechim: bu fayldagi changeset'lar runAlways="true" - har bir
+        Liquibase update'da (ya'ni har deploy/restart'da) qayta ishlaydi va
+        DB'dagi AYNAN HOZIRGI permission/action katalogiga qarab
+        isemid_super_admin ga BARCHA huquqni, isemid_admin ga esa
+        DELETE/MANAGE'dan tashqari barchasini beradi. Barcha INSERT'lar
+        ON CONFLICT DO NOTHING - idempotent, mavjud qatorlarga tegmaydi,
+        boshqa rollarning (epidemiolog, uash, ...) matritsasiga ta'sir
+        qilmaydi.
+
+        NIMA UCHUN "zzz-rbac-grants/" papkasida:
+        Liquibase <includeAll> fayllarni to'liq yo'l bo'yicha alifbo
+        tartibida ishga tushiradi (papka nomi sana prefiksidan ustun).
+        Bu papka nomi barcha boshqa modul papkalaridan (jumladan
+        zzz-card-act/) KEYIN turadi, shu sababli bu runAlways changeset
+        HAR YUGURISHDA eng oxirida - ya'ni barcha permission/action seed'lari
+        (istalgan papkadagi, jumladan keyinroq boshqa DB ga ko'chirilганда
+        qo'shiladiganlari) BAJARILGANIDAN KEYIN ishlaydi. Natijada yangi,
+        bo'sh DB ning BIRINCHI yugurishida ham super_admin to'liq matritsani
+        oladi (restart kutish shart emas).
+
+        Bu AdminAccessGuard.isSuperAdmin()/isAdmin() bypass'iga qo'shimcha:
+        guard baribir kod darajasida to'liq kirishni ta'minlaydi, bu yerda
+        esa admin-panelidagi huquqlar matritsasi ham DB darajasida to'liq
+        va aniq ko'rinadi (front /users/me javobidan menyularni ochadi).
+    -->
+
+    <changeSet id="20260828-1200-01-ensure-admin-roles" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO role (name, active, deleted, version, created_at, updated_at)
+            VALUES
+                ('isemid_super_admin', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                ('isemid_admin',       true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT (name) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        Kod qat'iy talab qiladigan permission subject'lari.
+
+        modules/report/**/*Controller lar hisobot endpoint'larini
+        @PreAuthorize("hasAuthority('PERMISSION_REPORTS_{READ|CREATE|UPDATE|
+        DELETE}')") bilan himoya qiladi - ya'ni aynan 'REPORTS' nomli
+        subject kutiladi. SecurityAuthorityService bu authority'ni FAQAT
+        permission jadvalida subject='REPORTS' qatori active=true AND
+        deleted=false bo'lsagina yasaydi (02-changeSet ham CROSS JOIN'da
+        p.deleted=false shartini qo'yadi).
+
+        Kuzatilgan holat: ba'zi DB'larda 'REPORTS' qatori BOR, lekin
+        admin-paneldan SOFT-DELETE qilingan ("O'chirilgan") - shu sababli
+        ON CONFLICT DO NOTHING yetmaydi. Bu yerda DO UPDATE bilan qatorni
+        qayta faollashtiramiz (active=true, deleted=false, deleted_at=null).
+        REPORTS ilova ishlashi uchun majburiy bo'lgani sababli har
+        runAlways yugurishda tiklanadi - uni doimiy o'chirib bo'lmaydi.
+        Boshqa hisobot subject'lari (FORM1/FORM12/GRAPH1/MANUAL_REPORT/
+        MAP_GRAPHIC/FORM_CATEGORIES...) allaqachon Faol bo'lsa 02-changeSet
+        ularni super_admin ga avtomatik beradi - bu yerda tegilmaydi.
+    -->
+    <changeSet id="20260828-1200-01a-ensure-code-required-subjects" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('REPORTS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Hisobotlar va statistik tahlillar.', 'Отчёты и статистический анализ.',
+                 'Ҳисоботлар ва статистик таҳлиллар.', 'Esabatlar hám statistikalıq tallawlar.')
+            ON CONFLICT (subject) DO UPDATE SET
+                active = true,
+                deleted = false,
+                deleted_at = NULL,
+                updated_at = CURRENT_TIMESTAMP;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        Front menyusi uchun subject'lar (backend BU'larni PERMISSION_* bilan
+        CHEKLAMAYDI - form129/act/catalog kontrollerlari isAuthenticated()/
+        isAdmin()). Kuzatilgan katalogda ular yo'q edi yoki soft-delete
+        ("O'chirilgan") qilingan edi, natijada front menyusida tegishli
+        bo'limlar faqat 'ALL' subject egasiga ko'rinardi. Bu yerda
+        ta'minlanadi (mavjud + soft-delete bo'lsa qayta faollashtiriladi),
+        so'ng 02-changeSet super_admin ga CROSS JOIN orqali beradi.
+        Kodlar foydalanuvchi tomonidan tasdiqlangan.
+    -->
+    <changeSet id="20260828-1200-01b-ensure-frontend-menu-subjects" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('FORM129', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Shakl 129 — chiquvchi yuqumli kasalliklar registri.',
+                 'Форма 129 — журнал регистрации инфекционных заболеваний.',
+                 'Шакл 129 — чиқувчи юқумли касалликлар реестри.',
+                 'Forma 129 — juqpalı keselliklerdiń dizimi.'),
+                ('ACTS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Aktlar (namuna olish / tekshiruv aktlari).',
+                 'Акты (акты отбора проб / обследования).',
+                 'Актлар (намуна олиш / текшириш актлари).',
+                 'Aktlar (úlgi alıw / tekseriw aktları).'),
+                ('CATALOGS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Umumiy ma''lumotnomalar va kataloglar.',
+                 'Общие справочники и каталоги.',
+                 'Умумий маълумотномалар ва каталоглар.',
+                 'Ulıwma anıqlamalıqlar hám kataloglar.'),
+                ('ANALYTICAL_REPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Analitik hisobot.', 'Аналитический отчёт.',
+                 'Аналитик ҳисобот.', 'Analitikalıq esabat.')
+            ON CONFLICT (subject) DO UPDATE SET
+                active = true,
+                deleted = false,
+                deleted_at = NULL,
+                updated_at = CURRENT_TIMESTAMP;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        isemid_super_admin -> har bir (deleted = false) permission uchun
+        role_permissions qatori, so'ng har bir (deleted = false) action
+        bilan role_permission_actions qatori. DELETE va MANAGE ham kiradi.
+    -->
+    <changeSet id="20260828-1200-02-sync-super-admin-full-access" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role_permissions"/>
+            <tableExists tableName="role_permission_actions"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role r
+            CROSS JOIN permission p
+            WHERE r.name = 'isemid_super_admin'
+              AND r.deleted = false
+              AND p.deleted = false
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT rp.id, a.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+            CROSS JOIN action a
+            WHERE r.name = 'isemid_super_admin'
+              AND a.deleted = false
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        isemid_admin -> xuddi shunday, lekin DELETE va MANAGE action'larisiz.
+        MANAGE ATAYLAB chiqarib tashlanadi: RoleCommandService MANAGE'ni
+        boshqa barcha action'ni (jumladan DELETE) qamrab oluvchi deb
+        talqin qiladi (normalizeActions/mergeActionIds), shu sababli
+        admin'ga MANAGE berilsa "admin hech qachon DELETE olmaydi" qoidasi
+        buziladi.
+    -->
+    <changeSet id="20260828-1200-03-sync-admin-full-access" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role_permissions"/>
+            <tableExists tableName="role_permission_actions"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role r
+            CROSS JOIN permission p
+            WHERE r.name = 'isemid_admin'
+              AND r.deleted = false
+              AND p.deleted = false
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT rp.id, a.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+            CROSS JOIN action a
+            WHERE r.name = 'isemid_admin'
+              AND a.deleted = false
+              AND a.code NOT IN ('DELETE', 'MANAGE')
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

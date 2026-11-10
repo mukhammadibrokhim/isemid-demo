@@ -6,6 +6,7 @@ import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058Diag
 import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058LocationDetailResponse;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Schema(description = """
@@ -20,6 +21,9 @@ public record Form058PdfResponse(
 
         @Schema(description = "UUID формы.")
         UUID uuid,
+
+        @Schema(description = "Дата и время создания формы (используется, например, для расчёта возраста пациента на момент создания формы).")
+        Instant createdAt,
 
         @Schema(description = "Текущий статус формы в её жизненном цикле.")
         FormStatus status,

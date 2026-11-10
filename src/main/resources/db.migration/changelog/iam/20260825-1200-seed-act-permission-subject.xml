@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Act moduli (act153/154/156/223/224) uchun permission.subject
+        20260730-1200-seed-rbac-isemid.xml'da umuman seed qilinmagan edi.
+        ATTACH_ACT - Act.java'dagi lifecycle'ga mos: bo'lim mudiri
+        (isemid_epidim_head) bo'sh act'larni kartaga va xodimlarga
+        biriktiradi (assignActs -> ASSIGN), biriktirilgan xodimlar
+        (isemid_epidemiologist / isemid_assistant_epidemiologist) ularni
+        to'ldiradi (update -> READ/UPDATE). ATTACHED_CARDS'dan farqli
+        o'laroq Act'da APPROVE bosqichi yo'q (Act.java javadoc: "no
+        accept/reject or supervisor-approval gate").
+    -->
+    <changeSet id="20260825-1200-01-seed-act-subject" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('ATTACH_ACT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Aktlarni (namuna olish/tekshiruv akti) kartaga va xodimlarga biriktirish.',
+                 'Прикрепление актов (акт отбора проб/обследования) к карте и сотрудникам.',
+                 'Актларни (намуна олиш/текшируv акти) картага ва ходимларга бириктириш.',
+                 'Aktlerdi (úlgi alıw/tekseriw aktisi) kartaga hám xodimlerge biriktiriw.')
+            ON CONFLICT (subject) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        role_permissions / role_permission_actions - 20260730-1200-04-seed-role-permissions-matrix.xml'dagi
+        naqshga mos: bo'lim mudiri biriktiradi (ASSIGN) va ko'radi (READ),
+        biriktirilgan xodimlar ko'radi va to'ldiradi (READ/UPDATE).
+    -->
+    <changeSet id="20260825-1200-02-seed-act-role-permissions" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role_permissions"/>
+            <tableExists tableName="role_permission_actions"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            -- Bo'lim mudiri (epidim_head) -> ATTACH_ACT: READ, ASSIGN, UPDATE
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role r, permission p
+            WHERE r.name = 'isemid_epidim_head' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT rp.id, a.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+            JOIN permission p ON p.id = rp.permission_id
+            JOIN action a ON a.code IN ('READ', 'ASSIGN', 'UPDATE')
+            WHERE r.name = 'isemid_epidim_head' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+
+            -- Epidemiolog -> ATTACH_ACT: READ, UPDATE
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role r, permission p
+            WHERE r.name = 'isemid_epidemiologist' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT rp.id, a.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+            JOIN permission p ON p.id = rp.permission_id
+            JOIN action a ON a.code IN ('READ', 'UPDATE')
+            WHERE r.name = 'isemid_epidemiologist' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+
+            -- Yordamchi (assistant_epidemiologist) -> ATTACH_ACT: READ, UPDATE
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role r, permission p
+            WHERE r.name = 'isemid_assistant_epidemiologist' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT rp.id, a.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+            JOIN permission p ON p.id = rp.permission_id
+            JOIN action a ON a.code IN ('READ', 'UPDATE')
+            WHERE r.name = 'isemid_assistant_epidemiologist' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        Super Admin / Admin uchun to'liq huquq - 20260730-1200-05-seed-super-admin-and-admin-full-access.xml
+        faqat o'sha paytda mavjud bo'lgan subject'lar uchun bir marta
+        ishlagan (CROSS JOIN, lekin changeset qayta ishlamaydi), shu sababli
+        keyinroq qo'shilgan ATTACH_ACT uchun bu yerda alohida backfill
+        qilinadi - amalda AdminAccessGuard.isSuperAdmin()/isAdmin() bypass'i
+        allaqachon ishlaydi, bu esa faqat admin panelidagi huquqlar
+        ma'lumotini to'liq/aniq ko'rsatish uchun.
+    -->
+    <changeSet id="20260825-1200-03-seed-act-super-admin-and-admin-full-access" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role_permissions"/>
+            <tableExists tableName="role_permission_actions"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            -- Super Admin -> ATTACH_ACT
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role r, permission p
+            WHERE r.name = 'isemid_super_admin' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT rp.id, a.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+            JOIN permission p ON p.id = rp.permission_id
+            CROSS JOIN action a
+            WHERE r.name = 'isemid_super_admin' AND p.subject = 'ATTACH_ACT'
+              AND a.deleted = false
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+
+            -- Admin -> ATTACH_ACT (DELETE va MANAGE'dan tashqari)
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role r, permission p
+            WHERE r.name = 'isemid_admin' AND p.subject = 'ATTACH_ACT'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT rp.id, a.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+            JOIN permission p ON p.id = rp.permission_id
+            CROSS JOIN action a
+            WHERE r.name = 'isemid_admin' AND p.subject = 'ATTACH_ACT'
+              AND a.deleted = false
+              AND a.code NOT IN ('DELETE', 'MANAGE')
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

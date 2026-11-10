@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Seeds the runtime-editable outbound-webhook guard switches (see
+        OutboundWebhookSettingKeys) so they show up in the dev panel
+        (/v1/dev/settings). Both loosen an SSRF protection, so they are seeded
+        INACTIVE with value 'true': nothing changes until someone activates the
+        row. Inactive = the secure default (https only, no private network).
+        The second changeset below activates them (do NOT edit the first one once applied).
+    -->
+    <changeSet id="20261027-1000-01-seed-webhook-guard-settings" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.webhook.allow-http', 'true', 'BOOLEAN', 'Integration-client webhook callback URL may be plain http://. Activate for dev/test only; production should stay https.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.webhook.allow-http');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.webhook.allow-private-network', 'true', 'BOOLEAN', 'Webhook callback URL may resolve to a private network (10.x, 172.16-31.x, 192.168.x, CGNAT). Loopback and link-local stay blocked. Overrides WEBHOOK_ALLOW_PRIVATE_NETWORK.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.webhook.allow-private-network');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key IN ('integration.webhook.allow-http', 'integration.webhook.allow-private-network');
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20261027-1000-02-activate-webhook-guard-settings" author="uzinfocom">
+        <sql>
+            UPDATE system_settings SET active = true, updated_at = now()
+            WHERE setting_key IN ('integration.webhook.allow-http', 'integration.webhook.allow-private-network');
+        </sql>
+        <rollback>
+            <sql>
+                UPDATE system_settings SET active = false, updated_at = now()
+                WHERE setting_key IN ('integration.webhook.allow-http', 'integration.webhook.allow-private-network');
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -8,6 +8,7 @@ import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.model.card175.Card175;
 import uz.uzinfocom.app.modules.card.mapper.CardCaseFieldMapperHelper;
+import uz.uzinfocom.app.modules.card.mapper.CardFormMapperHelper;
 import uz.uzinfocom.app.modules.card.mapper.card175.Card175MapperImpl;
 import uz.uzinfocom.app.modules.card.web.dto.request.Card175Request;
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
@@ -35,6 +36,9 @@ class Card175HandlerTest {
     void setUp() {
         Card175MapperImpl mapper = new Card175MapperImpl();
         ReflectionTestUtils.setField(mapper, "cardCaseFieldMapperHelper", new CardCaseFieldMapperHelper());
+        ReflectionTestUtils.setField(mapper, "cardFormMapperHelper", new CardFormMapperHelper(
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper.class),
+                org.mockito.Mockito.mock(uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService.class)));
         handler = new Card175Handler(mapper);
 
         form = mock(Form058.class);

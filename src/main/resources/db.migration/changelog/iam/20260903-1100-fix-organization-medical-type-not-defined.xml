@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The legacy public->public2 migration backfilled organization.medical_type
+        with 'NOT_DEFINED' for legacy NULLs (and the id=0 sentinel org). That name
+        exists in OrganizationLevel but NOT in MedicalType, whose "not specified"
+        sentinel is 'OTHER' (see OrganizationRemoteMapper#parseMedicalType). Reading
+        such a row blows up with:
+            No enum constant uz.uzinfocom.app.modules.iam.domain.enums.MedicalType.NOT_DEFINED
+        Repoint the bad rows onto the real sentinel. No-op on envs without the
+        legacy import.
+    -->
+    <changeSet id="20260903-1100-01-fix-organization-medical-type-not-defined" author="claude">
+        <update tableName="organization">
+            <column name="medical_type" value="OTHER"/>
+            <where>medical_type = 'NOT_DEFINED'</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

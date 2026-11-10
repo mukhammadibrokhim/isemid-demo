@@ -9,12 +9,16 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
 import uz.uzinfocom.app.platform.security.properties.AuthProvidersProperties;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Component
 public class ProviderJwtDecoderFactory {
 
     private final RemoteRsaPublicKeyClient remoteRsaPublicKeyClient;
     private final JwtTokenValidatorFactory validatorFactory;
     private final CacheManager securityCacheManager;
+    private final Map<String, JwtDecoder> decodersByProviderKey = new ConcurrentHashMap<>();
 
     public ProviderJwtDecoderFactory(
             RemoteRsaPublicKeyClient remoteRsaPublicKeyClient,
@@ -26,7 +30,17 @@ public class ProviderJwtDecoderFactory {
         this.securityCacheManager = securityCacheManager;
     }
 
+    /**
+     * One decoder per provider, shared by every caller. A JWKS decoder keeps the parsed key set in its
+     * own field but reads/writes the JWKS through the shared {@code JWKS_BY_URI} cache, so a second
+     * decoder instance for the same URI (e.g. one built per login) fills the cache without filling
+     * the first decoder's field - and the first one then fails with "JWK Set must not be null".
+     */
     public JwtDecoder create(String providerKey, AuthProvidersProperties.ProviderProperties provider) {
+        return decodersByProviderKey.computeIfAbsent(providerKey, key -> build(key, provider));
+    }
+
+    private JwtDecoder build(String providerKey, AuthProvidersProperties.ProviderProperties provider) {
         if (provider.getSignatureMode() == null) {
             throw new IllegalStateException("Signature mode is not configured for provider: " + providerKey);
         }

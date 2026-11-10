@@ -2,17 +2,18 @@ package uz.uzinfocom.app.integration.inbound.dmed.form058.application;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequestMapper;
 import uz.uzinfocom.app.integration.inbound.dmed.form058.web.DmedCreateForm058Request;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Command;
-import uz.uzinfocom.app.modules.patient.web.mapper.PatientRequestMapper;
-import uz.uzinfocom.app.platform.iam.application.shared.service.OrganizationMappingHelper;
+import uz.uzinfocom.app.modules.iam.application.shared.service.OrganizationMappingHelper;
 import uz.uzinfocom.app.platform.mapping.CentralMapperConfig;
 
-@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, PatientRequestMapper.class})
+@Mapper(config = CentralMapperConfig.class, uses = {OrganizationMappingHelper.class, IntegrationPatientRequestMapper.class})
 public interface DmedForm058Mapper {
 
     @Mapping(target = "source", source = "source")
     @Mapping(target = "senderOrganizationId", source = "senderOrganizationId")
+    @Mapping(target = "sourceIntegrationClientId", source = "sourceIntegrationClientId")
     @Mapping(target = "receiverOrganizationId", source = "request.receiverOrganizationId", qualifiedByName = "activeOrganizationId")
     @Mapping(target = "hospitalPlaceId", source = "request.hospitalPlaceId", qualifiedByName = "nullableActiveOrganizationId")
     @Mapping(target = "diseasePlaceCode", source = "request.diseasePlaceCode")
@@ -35,11 +36,12 @@ public interface DmedForm058Mapper {
     @Mapping(target = "initialReportDateTime", source = "request.initialReportDateTime")
 
     @Mapping(target = "patient", source = "request.patient")
-    @Mapping(target = "finalMkb10Code", source = "request.finalMkb10Code")
-    @Mapping(target = "finalMkb10Name", source = "request.finalMkb10Name")
-    @Mapping(target = "mkb10Code", source = "request.mkb10Code")
-    @Mapping(target = "mkb10Name", source = "request.mkb10Name")
-    @Mapping(target = "mkb10UsageLimit", source = "request.mkb10UsageLimit")
+    @Mapping(target = "finalIcd10Code", source = "request.finalMkb10Code")
+    @Mapping(target = "finalIcd10Name", source = "request.finalMkb10Name")
+    @Mapping(target = "icd10Code", source = "request.mkb10Code")
+    @Mapping(target = "icd10Name", source = "request.mkb10Name")
+    @Mapping(target = "icd10UsageLimit", source = "request.mkb10UsageLimit")
     @Mapping(target = "labConfirmation", source = "request.labConfirmation")
-    CreateForm058Command toCommand(DmedCreateForm058Request request, String source, Long senderOrganizationId);
+    CreateForm058Command toCommand(
+            DmedCreateForm058Request request, String source, Long senderOrganizationId, Long sourceIntegrationClientId);
 }

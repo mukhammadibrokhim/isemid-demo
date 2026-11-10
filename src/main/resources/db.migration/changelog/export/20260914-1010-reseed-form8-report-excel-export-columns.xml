@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form8ExcelExportSource gained one social-category column group (previousYear/
+        currentYear/delta per Form8ReportQueryService#categoryColumns - the same
+        breakdown the UI's per-row "Ijtimoiy tarkib" popup shows), but
+        ExcelExportSettingsResolver#resolveColumns resolves strictly against the
+        persisted "export.excel.form8.columns" key when it is present, so the
+        seed from the sibling 20260906-1100-... changeset (code,name,
+        previousYear,currentYear,delta only) silently dropped every new
+        category_* column from the export. Reseed the settings row to include
+        them, in the same order the UI popup uses (see 20260914-1000-... for
+        the identical fix applied to Form 6's age-group columns).
+    -->
+    <changeSet id="20260914-1010-01-reseed-form8-report-excel-export-columns" author="codex">
+        <update tableName="system_settings">
+            <column name="setting_value" value="code,name,previousYear,currentYear,delta,category_NO_ORGANIZED_previousYear,category_NO_ORGANIZED_currentYear,category_NO_ORGANIZED_delta,category_ORGANIZED_previousYear,category_ORGANIZED_currentYear,category_ORGANIZED_delta,category_WORKER_previousYear,category_WORKER_currentYear,category_WORKER_delta,category_NOT_EMPLOYED_previousYear,category_NOT_EMPLOYED_currentYear,category_NOT_EMPLOYED_delta,category_PENSIONER_previousYear,category_PENSIONER_currentYear,category_PENSIONER_delta,category_STUDENT_SCHOOL_previousYear,category_STUDENT_SCHOOL_currentYear,category_STUDENT_SCHOOL_delta,category_UNSHELTRED_previousYear,category_UNSHELTRED_currentYear,category_UNSHELTRED_delta,category_SEREVANTS_previousYear,category_SEREVANTS_currentYear,category_SEREVANTS_delta,category_MEDICAL_WORKER_previousYear,category_MEDICAL_WORKER_currentYear,category_MEDICAL_WORKER_delta,category_MIDDLE_STUDENT_previousYear,category_MIDDLE_STUDENT_currentYear,category_MIDDLE_STUDENT_delta,category_STUDENT_previousYear,category_STUDENT_currentYear,category_STUDENT_delta"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 8 Excel export. code/name/previousYear/currentYear/delta plus one previousYear/currentYear/delta triple per social category, matching the UI's per-row social-composition breakdown popup."/>
+            <where>setting_key = 'export.excel.form8.columns'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

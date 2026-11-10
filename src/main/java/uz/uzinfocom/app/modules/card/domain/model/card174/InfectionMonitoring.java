@@ -35,6 +35,9 @@ public class InfectionMonitoring extends UuidAuditableEntity {
     @Column(name = "sequential_number")
     private Integer sequentialNumber;
 
+    @Column(name = "pinfl", length = 14)
+    private String pinfl;
+
     @Column(name = "last_name", length = 255)
     private String lastName;
 
@@ -62,6 +65,10 @@ public class InfectionMonitoring extends UuidAuditableEntity {
 
     @Column(name = "confirmation_date")
     private LocalDate confirmationDate;
+
+    /** When the person caught the infection by contact — as opposed to {@link #possibleInfectionDate}. */
+    @Column(name = "contact_infection_date")
+    private LocalDate contactInfectionDate;
 
     @Column(name = "possible_infection_location", length = 500)
     private String possibleInfectionLocation;

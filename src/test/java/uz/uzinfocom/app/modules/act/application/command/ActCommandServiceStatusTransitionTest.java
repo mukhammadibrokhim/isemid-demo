@@ -2,7 +2,12 @@ package uz.uzinfocom.app.modules.act.application.command;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
+import uz.uzinfocom.app.modules.act.domain.model.embedded.ActSubject;
+import uz.uzinfocom.app.modules.act.domain.enums.SubjectType;
+import uz.uzinfocom.app.modules.act.application.exception.ActValidationException;
 import uz.uzinfocom.app.modules.act.application.exception.ActAlreadySentToLisException;
+import uz.uzinfocom.app.modules.act.application.exception.ActNotFoundException;
 import uz.uzinfocom.app.modules.act.application.exception.ActScopeViolationException;
 import uz.uzinfocom.app.modules.act.application.exception.InvalidActStatusException;
 import uz.uzinfocom.app.modules.act.application.exception.UnsupportedActTypeException;
@@ -15,12 +20,16 @@ import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.act.domain.model.Act;
 import uz.uzinfocom.app.modules.act.domain.model.act153.Act153;
 import uz.uzinfocom.app.modules.act.domain.model.act154.Act154;
+import uz.uzinfocom.app.modules.act.domain.model.act156.Act156;
+import uz.uzinfocom.app.integration.lis.common.exception.LisUnsupportedActTypeException;
 import uz.uzinfocom.app.modules.act.infrastructure.persistence.repository.ActRepository;
 import uz.uzinfocom.app.modules.act.web.dto.request.ActRequest;
 import uz.uzinfocom.app.modules.act.web.dto.request.Act153Request;
-import uz.uzinfocom.app.modules.card.infrastructure.persistence.repository.CardRepository;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
+import uz.uzinfocom.app.orchestration.scope.FormAccessScopeResolver;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.util.Map;
@@ -55,31 +64,40 @@ class ActCommandServiceStatusTransitionTest {
     private CurrentUserProvider currentUserProvider;
     private ActTypeHandlerRegistry handlerRegistry;
     private ActTypeHandler<?, ?, ?> act153Handler;
+    private AdminAccessGuard adminAccessGuard;
     private ActCommandService service;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
         actRepository = mock(ActRepository.class);
-        CardRepository cardRepository = mock(CardRepository.class);
+        CardCommandService cardCommandService = mock(CardCommandService.class);
         UserRepository userRepository = mock(UserRepository.class);
         currentUserProvider = mock(CurrentUserProvider.class);
         handlerRegistry = mock(ActTypeHandlerRegistry.class);
         act153Handler = mock(ActTypeHandler.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+        adminAccessGuard = mock(AdminAccessGuard.class);
+        FormAccessScopeResolver formAccessScopeResolver = mock(FormAccessScopeResolver.class);
 
-        service = new ActCommandService(actRepository, cardRepository, userRepository, handlerRegistry, currentUserProvider);
+        service = new ActCommandService(
+                actRepository, cardCommandService, userRepository, handlerRegistry, currentUserProvider,
+                eventPublisher, adminAccessGuard, formAccessScopeResolver
+        );
 
         when(actRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        // Card-access scope is its own concern; the lifecycle tests run as super admin.
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
         doReturn(act153Handler).when(handlerRegistry).get(ActType.ACT153);
         when(act153Handler.handleToResponse(any())).thenAnswer(invocation -> {
             Act act = invocation.getArgument(0);
             return new Act153DetailResponse(
                     act.getId(), act.getActType(), act.getActStatus(), null,
                     act.getAssignedById(), act.getResultComment(), null,
-                    null, null, null, null, null, null,
                     null, null, null, null, null,
-                    null, null, null, null, null, null,
-                    null
+                    null, null, null, null, null,
+                    null, null, null, null, null, null, null,
+                    null, null
             );
         });
     }
@@ -148,6 +166,29 @@ class ActCommandServiceStatusTransitionTest {
         service.markReady(ACT_ID);
 
         assertThat(act.getActStatus()).isEqualTo(ActStatus.READY);
+    }
+
+    @Test
+    void markReadyRejectsIncompleteSubject() {
+        Act act = actWith(ActStatus.IN_PROGRESS, attachedUserId(ATTACHED_USER_ID));
+        act.setSubject(new ActSubject(SubjectType.LEGAL_ENTITY, null, null, null, "Toshkent sh."));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        assertThatThrownBy(() -> service.markReady(ACT_ID))
+                .isInstanceOf(ActValidationException.class);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void markReadyRejectsMissingSubject() {
+        Act act = actWith(ActStatus.IN_PROGRESS, attachedUserId(ATTACHED_USER_ID));
+        act.setSubject(null);
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        assertThatThrownBy(() -> service.markReady(ACT_ID))
+                .isInstanceOf(ActValidationException.class);
     }
 
     @Test
@@ -253,15 +294,149 @@ class ActCommandServiceStatusTransitionTest {
     }
 
     @Test
-    void receiveLisResponseMovesSentToCompleted() {
+    void receiveLisResponseMovesSentToResultReceived() {
         Act act = actWith(ActStatus.SENT, attachedUserId(ATTACHED_USER_ID));
         givenAct(act);
 
         service.receiveLisResponse(ACT_ID, 555L, Map.of("result", "ok"));
 
-        assertThat(act.getActStatus()).isEqualTo(ActStatus.COMPLETED);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.RESULT_RECEIVED);
+        assertThat(act.getCloseInfo().getClosedAt()).isNull();
         assertThat(act.getLisInfo().getActId()).isEqualTo(555L);
         assertThat(act.getLisInfo().getResponse()).containsEntry("result", "ok");
+    }
+
+    @Test
+    void receiveLisResponseMovesSentToReturnedWhenBodySignalsReturn() {
+        Act act = actWith(ActStatus.SENT, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+
+        service.receiveLisResponse(ACT_ID, 555L, Map.of("status", "RETURNED", "message", "namuna yetarli emas"));
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.RETURNED_BY_LIS);
+        assertThat(act.getLisInfo().getActId()).isEqualTo(555L);
+        assertThat(act.getLisInfo().getLastError()).isEqualTo("namuna yetarli emas");
+        assertThat(act.getLisInfo().getResponse()).containsEntry("status", "RETURNED");
+    }
+
+    @Test
+    void updateAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.update(ACT_ID, blankAct153Request());
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void markReadyAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.markReady(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.READY);
+    }
+
+    @Test
+    void markSendingToLisAllowedFromReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, attachedUserId(ATTACHED_USER_ID));
+        act.getLisInfo().setLastError("LIS_RETURNED");
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.markSendingToLis(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.SENT);
+        assertThat(act.getLisInfo().getAttempt()).isEqualTo(1);
+        assertThat(act.getLisInfo().getLastError()).isNull();
+    }
+
+    @Test
+    void deleteBlockedOnceReturnedByLis() {
+        Act act = actWith(ActStatus.RETURNED_BY_LIS, Set.of());
+        givenAct(act);
+
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
+                .isInstanceOf(ActAlreadySentToLisException.class);
+
+        assertThat(act.isDeleted()).isFalse();
+    }
+
+    @Test
+    void closeMovesResultReceivedToCompletedAndRecordsWhoClosed() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.close(ACT_ID);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.COMPLETED);
+        assertThat(act.getCloseInfo().getClosedById()).isEqualTo(ATTACHED_USER_ID);
+        assertThat(act.getCloseInfo().getClosedAt()).isNotNull();
+    }
+
+    @Test
+    void closeRejectsAnUnattachedUser() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(999L);
+
+        assertThatThrownBy(() -> service.close(ACT_ID))
+                .isInstanceOf(ActScopeViolationException.class);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.RESULT_RECEIVED);
+    }
+
+    @Test
+    void closeRejectsBeforeTheResultIsIn() {
+        for (ActStatus status : Set.of(ActStatus.SENT, ActStatus.RETURNED_BY_LIS, ActStatus.COMPLETED)) {
+            Act act = actWith(status, attachedUserId(ATTACHED_USER_ID));
+            givenAct(act);
+            when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+            assertThatThrownBy(() -> service.close(ACT_ID))
+                    .isInstanceOf(InvalidActStatusException.class);
+            assertThat(act.getActStatus()).isEqualTo(status);
+        }
+    }
+
+    @Test
+    void doctorDisagreeingWithResultCanEditAndResend() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        service.update(ACT_ID, blankAct153Request());
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.IN_PROGRESS);
+
+        act.setActStatus(ActStatus.RESULT_RECEIVED);
+        service.markSendingToLis(ACT_ID);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.SENT);
+    }
+
+    @Test
+    void completedActCanNoLongerBeEdited() {
+        Act act = actWith(ActStatus.COMPLETED, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        assertThatThrownBy(() -> service.update(ACT_ID, blankAct153Request()))
+                .isInstanceOf(InvalidActStatusException.class);
+        assertThatThrownBy(() -> service.markSendingToLis(ACT_ID))
+                .isInstanceOf(InvalidActStatusException.class);
+    }
+
+    @Test
+    void deleteBlockedOnceResultReceived() {
+        Act act = actWith(ActStatus.RESULT_RECEIVED, Set.of());
+        givenAct(act);
+
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
+                .isInstanceOf(ActAlreadySentToLisException.class);
+        assertThat(act.isDeleted()).isFalse();
     }
 
     @Test
@@ -315,8 +490,52 @@ class ActCommandServiceStatusTransitionTest {
         assertThat(act.isDeleted()).isFalse();
     }
 
+    @Test
+    void deleteRejectsCallerOutsideTheCardsCase() {
+        Act act = actWith(ActStatus.NEW, Set.of());
+        givenAct(act);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
+
+        assertThatThrownBy(() -> service.delete(ACT_ID, "no longer needed"))
+                .isInstanceOf(ActScopeViolationException.class);
+
+        assertThat(act.isDeleted()).isFalse();
+    }
+
+    @Test
+    void softDeletedActCannotBeUpdatedOrSent() {
+        Act act = actWith(ActStatus.READY, attachedUserId(ATTACHED_USER_ID));
+        when(actRepository.findById(ACT_ID)).thenReturn(Optional.of(act));
+        when(actRepository.findByIdAndDeletedFalse(ACT_ID)).thenReturn(Optional.empty());
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        assertThatThrownBy(() -> service.update(ACT_ID, blankAct153Request()))
+                .isInstanceOf(ActNotFoundException.class);
+        assertThatThrownBy(() -> service.markSendingToLis(ACT_ID))
+                .isInstanceOf(ActNotFoundException.class);
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.READY);
+    }
+
+    @Test
+    void markSendingToLisRejectsNonLisTypeWithoutTouchingStatus() {
+        Act act = new Act156();
+        act.setActType(ActType.ACT156);
+        act.setActStatus(ActStatus.READY);
+        act.setUsers(attachedUserId(ATTACHED_USER_ID));
+        act.setSubject(completeSubject());
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(ATTACHED_USER_ID);
+
+        assertThatThrownBy(() -> service.markSendingToLis(ACT_ID))
+                .isInstanceOf(LisUnsupportedActTypeException.class);
+
+        assertThat(act.getActStatus()).isEqualTo(ActStatus.READY);
+        assertThat(act.getLisInfo().getAttempt()).isZero();
+    }
+
     private void givenAct(Act act) {
         when(actRepository.findById(ACT_ID)).thenReturn(Optional.of(act));
+        when(actRepository.findByIdAndDeletedFalse(ACT_ID)).thenReturn(Optional.of(act));
         when(actRepository.findActiveByIdForUpdate(ACT_ID)).thenReturn(Optional.of(act));
     }
 
@@ -325,6 +544,7 @@ class ActCommandServiceStatusTransitionTest {
         act.setActType(ActType.ACT153);
         act.setActStatus(status);
         act.setUsers(users);
+        act.setSubject(completeSubject());
         return act;
     }
 
@@ -333,13 +553,18 @@ class ActCommandServiceStatusTransitionTest {
         act.setActType(ActType.ACT154);
         act.setActStatus(status);
         act.setUsers(users);
+        act.setSubject(completeSubject());
         return act;
+    }
+
+    private ActSubject completeSubject() {
+        return new ActSubject(SubjectType.GEOGRAPHIC_POINT, null, null, null, "Chirchiq daryosi, 3-post");
     }
 
     private ActRequest blankAct153Request() {
         return new Act153Request(
-                null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null
         );
     }
 

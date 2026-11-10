@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Removes two public (open=true) rows from the original route-policy seed:
+
+        - /v1/log/** - no controller serves this path any more; an open pattern
+          with nothing behind it would silently make any endpoint later added
+          under it public.
+        - /v1/actuator/metrics/** - now admin-only in SecurityConfig (same rule as
+          /v1/actuator/loggers/**, which has no row either and so falls through to
+          the fail-closed default: authenticated, org header, role validation).
+
+        /v1/actuator/prometheus keeps its open row on purpose: Prometheus can't send
+        the org header, and SecurityConfig restricts that path by source IP before
+        this table is consulted.
+    -->
+    <changeSet id="20261005-1000-01-close-stale-public-routes" author="uzinfocom">
+        <sql>
+            DELETE FROM security_route_policy WHERE pattern IN ('/v1/log/**', '/v1/actuator/metrics/**');
+        </sql>
+        <rollback>
+            INSERT INTO security_route_policy
+                (created_at, updated_at, version, pattern, display_order, open,
+                 organization_header_required, role_validation_required, enabled)
+            SELECT now(), now(), 0, '/v1/log/**', 14, true, false, false, true
+            WHERE NOT EXISTS (SELECT 1 FROM security_route_policy WHERE pattern = '/v1/log/**');
+            INSERT INTO security_route_policy
+                (created_at, updated_at, version, pattern, display_order, open,
+                 organization_header_required, role_validation_required, enabled)
+            SELECT now(), now(), 0, '/v1/actuator/metrics/**', 18, true, false, false, true
+            WHERE NOT EXISTS (SELECT 1 FROM security_route_policy WHERE pattern = '/v1/actuator/metrics/**');
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

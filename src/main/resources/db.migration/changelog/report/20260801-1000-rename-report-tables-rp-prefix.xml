@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260801-1000-01-rename-form2-manual-entry-rp-prefix" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <tableExists tableName="form2_manual_entry"/>
+                <not>
+                    <tableExists tableName="rp_form2_manual_entry"/>
+                </not>
+            </and>
+        </preConditions>
+        <renameTable oldTableName="form2_manual_entry" newTableName="rp_form2_manual_entry"/>
+    </changeSet>
+
+    <changeSet id="20260801-1000-02-rename-form31-entry-rp-prefix" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <tableExists tableName="form31_entry"/>
+                <not>
+                    <tableExists tableName="rp_form31_entry"/>
+                </not>
+            </and>
+        </preConditions>
+        <renameTable oldTableName="form31_entry" newTableName="rp_form31_entry"/>
+    </changeSet>
+
+    <changeSet id="20260801-1000-03-rename-form32-entry-rp-prefix" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <tableExists tableName="form32_entry"/>
+                <not>
+                    <tableExists tableName="rp_form32_entry"/>
+                </not>
+            </and>
+        </preConditions>
+        <renameTable oldTableName="form32_entry" newTableName="rp_form32_entry"/>
+    </changeSet>
+</databaseChangeLog>

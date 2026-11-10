@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Default column list for the disease-first FORM12/FORM13_BY_DISEASE/FORM281/FORM282 Excel
+        exports (see Form12ExcelExportSource and its twins) - not load-bearing, see the sibling
+        20260906-1000-seed-manual-report-excel-export-columns.xml changeset comment for why only
+        the columns key is seeded per type.
+    -->
+    <changeSet id="20260906-1030-01-seed-disease-first-report-excel-export-columns" author="codex">
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form12.columns"/>
+            <column name="setting_value" value="rowCode,name,icd10Display,totalPreviousYear,totalCurrentYear,totalDelta,under14PreviousYear,under14CurrentYear,under14Delta,under18PreviousYear,under18CurrentYear,under18Delta"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 12 (disease-first) Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form13_by_disease.columns"/>
+            <column name="setting_value" value="rowCode,name,icd10Display,totalPreviousYear,totalCurrentYear,totalDelta,under14PreviousYear,under14CurrentYear,under14Delta,under18PreviousYear,under18CurrentYear,under18Delta"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 13 (by disease) Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form281.columns"/>
+            <column name="setting_value" value="rowCode,name,icd10Display,total,female,under18,under15,under1,age1to2,age3to5,ruralTotal,ruralUnder18,ruralUnder15,ruralUnder1,ruralAge1to2,ruralAge3to5"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 28.1 (disease-first) Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form282.columns"/>
+            <column name="setting_value" value="rowCode,name,icd10Display,total,under18,underOneMonth,oneMonthToUnderOneYear"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 28.2 (disease-first) Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

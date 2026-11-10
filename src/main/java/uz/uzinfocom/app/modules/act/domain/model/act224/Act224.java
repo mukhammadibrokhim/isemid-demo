@@ -24,15 +24,6 @@ import java.util.List;
 @AllArgsConstructor
 public class Act224 extends Act {
 
-    @Column(name = "tin")
-    private Integer tin;
-
-    @Column(name = "institution_name")
-    private String institutionName;
-
-    @Column(name = "institution_address")
-    private String institutionAddress;
-
     @Column(name = "activity_type_code")
     private String activityTypeCode;
 
@@ -47,12 +38,6 @@ public class Act224 extends Act {
 
     @Column(name = "position_of_participant_epid")
     private String positionOfParticipantEpid;
-
-    @Column(name = "name_of_institution")
-    private String nameOfInstitution;
-
-    @Column(name = "address_of_institution")
-    private String addressOfInstitution;
 
     @Column(name = "name_of_regulatory_acts")
     private String nameOfRegulatoryActs;
