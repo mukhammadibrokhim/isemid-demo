@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.platform.devpanel.application.command.DevAuthCommandService;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevLoginRequest;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevLoginResponse;
+import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevOtpVerifyRequest;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevTicketResponse;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevTwoFactorConfirmRequest;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevTwoFactorConfirmResponse;
@@ -44,10 +45,11 @@ public class DevAuthController {
 
     @Operation(
             summary = "Log in to the dev panel",
-            description = "Username + password, plus the 6-digit authenticator code (or a one-time recovery "
-                    + "code) once the account has two-factor enabled. Returns a signed token to send as "
-                    + "'Authorization: Bearer <token>'. A wrong password and a wrong code are "
-                    + "indistinguishable (same 401), and both count toward the lockout."
+            description = "Step 1: username + password. An account with an authenticator app gets "
+                    + "otpRequired=true and a challengeToken (no access yet) - then call POST "
+                    + ".../auth/verify-otp with the 6-digit code. An account without 2FA gets its "
+                    + "token directly (limited until it enrols). Sending 'otp' here too still works as a "
+                    + "one-request login. A wrong password answers 401, same as a locked account."
     )
     @PostMapping(ApiPaths.Dev.AUTH_LOGIN)
     public ApiResponse<DevLoginResponse> login(
@@ -57,6 +59,24 @@ public class DevAuthController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 devAuthCommandService.login(request, httpRequest.getRemoteAddr())
+        );
+    }
+
+    @Operation(
+            summary = "Log in, step 2: authenticator code",
+            description = "Send the challengeToken from POST .../auth/login (otpRequired=true) together with "
+                    + "the 6-digit code from Google Authenticator / Authy (or a one-time recovery code). "
+                    + "Returns the same session as a one-step login. Any failure is the same generic 401 "
+                    + "and counts toward the lockout."
+    )
+    @PostMapping(ApiPaths.Dev.AUTH_VERIFY_OTP)
+    public ApiResponse<DevLoginResponse> verifyOtp(
+            @Valid @RequestBody DevOtpVerifyRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                devAuthCommandService.verifyOtp(request, httpRequest.getRemoteAddr())
         );
     }
 

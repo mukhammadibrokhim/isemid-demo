@@ -88,7 +88,9 @@ public class DevPanelSecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, ApiPaths.Dev.ROOT + ApiPaths.Dev.AUTH_LOGIN).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                ApiPaths.Dev.ROOT + ApiPaths.Dev.AUTH_LOGIN,
+                                ApiPaths.Dev.ROOT + ApiPaths.Dev.AUTH_VERIFY_OTP).permitAll()
                         .anyRequest().authenticated())
                 // Same slot the old Basic filter had: before AnonymousAuthenticationFilter, so the
                 // context is still empty when the token is resolved.

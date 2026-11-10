@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevLoginRequest;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevLoginResponse;
+import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevOtpVerifyRequest;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevTicketResponse;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevTwoFactorConfirmResponse;
 import uz.uzinfocom.app.platform.devpanel.application.command.dto.DevTwoFactorSetupResponse;
@@ -50,7 +51,6 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class DevAuthCommandService {
 
-    private static final String BEARER = "Bearer";
     private static final int TOTP_WINDOW_STEPS = 1;
     private static final int RECOVERY_CODE_COUNT = 10;
     private static final int RECOVERY_CODE_CHARS = 10;
@@ -93,6 +93,16 @@ public class DevAuthCommandService {
 
         boolean mfaVerified;
         if (devUser.isTotpEnabled()) {
+            if (request.otp() == null || request.otp().isBlank()) {
+                // Two-step login, step 1: password is right, now ask for the authenticator code.
+                // Deliberately NOT clearing the failure counter here - only a completed login does,
+                // otherwise someone who knows the password could reset it between code guesses.
+                DevTokenService.IssuedToken challenge = tokenService.issueChallenge(new DevUserPrincipal(devUser));
+                log.info("Dev-panel login: OTP challenge issued. id={}, username={}, ip={}",
+                        devUser.getId(), devUser.getUsername(), ip);
+                return DevLoginResponse.otpChallenge(
+                        challenge.token(), challenge.expiresAt(), devUser.isMustChangePassword());
+            }
             if (!verifySecondFactor(devUser, request.otp())) {
                 loginAttemptLimiter.recordFailure(username, ip);
                 log.warn("Dev-panel login refused: bad second factor. username={}, ip={}", username, ip);
@@ -108,6 +118,38 @@ public class DevAuthCommandService {
         log.info("Dev-panel login. id={}, username={}, mfaVerified={}, ip={}",
                 devUser.getId(), devUser.getUsername(), mfaVerified, ip);
         return session(devUser, mfaVerified);
+    }
+
+    /**
+     * Two-step login, step 2: redeems the challenge from {@link #login} with the
+     * authenticator (or recovery) code. A wrong/expired challenge, a changed
+     * password/2FA state in between, a locked account and a wrong code all give
+     * the same generic 401 and count toward the same lockout.
+     */
+    public DevLoginResponse verifyOtp(DevOtpVerifyRequest request, String ip) {
+        DevTokenService.TokenClaims claims = tokenService.parseChallenge(request.challengeToken())
+                .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
+
+        DevUser devUser = devUserRepository.findById(claims.devUserId())
+                .filter(DevUser::isEnabled)
+                .filter(DevUser::isTotpEnabled)
+                .filter(user -> new DevUserPrincipal(user).getCredentialVersion().equals(claims.credentialVersion()))
+                .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
+
+        String username = devUser.getUsername();
+        if (loginAttemptLimiter.isBlocked(username, ip)) {
+            log.warn("Dev-panel OTP step refused: too many failed attempts. username={}, ip={}", username, ip);
+            throw new BadCredentialsException("Bad credentials");
+        }
+        if (!verifySecondFactor(devUser, request.otp())) {
+            loginAttemptLimiter.recordFailure(username, ip);
+            log.warn("Dev-panel OTP step refused: bad code. username={}, ip={}", username, ip);
+            throw new BadCredentialsException("Bad credentials");
+        }
+
+        loginAttemptLimiter.recordSuccess(username);
+        log.info("Dev-panel login. id={}, username={}, mfaVerified=true, ip={}", devUser.getId(), username, ip);
+        return session(devUser, true);
     }
 
     public DevTicketResponse issueTicket(Long devUserId) {
@@ -180,9 +222,8 @@ public class DevAuthCommandService {
 
     private DevLoginResponse session(DevUser devUser, boolean mfaVerified) {
         DevTokenService.IssuedToken issued = tokenService.issue(new DevUserPrincipal(devUser), mfaVerified);
-        return new DevLoginResponse(
+        return DevLoginResponse.session(
                 issued.token(),
-                BEARER,
                 issued.expiresAt(),
                 !mfaVerified,
                 devUser.isMustChangePassword()

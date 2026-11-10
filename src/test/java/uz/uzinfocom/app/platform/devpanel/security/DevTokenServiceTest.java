@@ -68,6 +68,29 @@ class DevTokenServiceTest {
     }
 
     @Test
+    void challengeTokenGrantsNoAccessAndAccessTokenIsNotAChallenge() {
+        DevUserPrincipal principal = principal(7L, "hash-a", true);
+
+        String challenge = tokenService.issueChallenge(principal).token();
+        String access = tokenService.issue(principal, true).token();
+
+        assertThat(tokenService.parse(challenge)).isEmpty();
+        assertThat(tokenService.parseChallenge(access)).isEmpty();
+        assertThat(tokenService.parseChallenge(challenge).orElseThrow().devUserId()).isEqualTo(7L);
+        assertThat(tokenService.parseChallenge(challenge).orElseThrow().credentialVersion())
+                .isEqualTo(principal.getCredentialVersion());
+    }
+
+    @Test
+    void challengeTokenIsRejectedWhenTampered() {
+        String challenge = tokenService.issueChallenge(principal(7L, "hash-a", true)).token();
+
+        assertThat(tokenService.parseChallenge(challenge + "x")).isEmpty();
+        assertThat(tokenService.parseChallenge("garbage")).isEmpty();
+        assertThat(tokenService.parseChallenge(null)).isEmpty();
+    }
+
+    @Test
     void ticketIsSingleUse() {
         String ticket = tokenService.issueTicket(7L);
 

@@ -414,6 +414,7 @@ public final class ApiPaths {
          * accepted as {@code ?ticket=} on the SSE stream endpoints.
          */
         public static final String AUTH_LOGIN = "/auth/login";
+        public static final String AUTH_VERIFY_OTP = "/auth/verify-otp";
         public static final String AUTH_TICKET = "/auth/ticket";
 
         /**

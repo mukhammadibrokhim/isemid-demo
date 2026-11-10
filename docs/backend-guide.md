@@ -1527,14 +1527,23 @@ right after changing it.
 Compatible with Google Authenticator / Authy / Microsoft Authenticator
 (RFC 6238, SHA-1, 6 digits, 30 s). Implemented in-house (`Totp`), no extra dependency.
 
-1. `POST /v1/dev/auth/login { username, password, otp? }` (the only
-   unauthenticated dev endpoint) → `{ token, tokenType:"Bearer", expiresAt,
-   twoFactorEnrollmentRequired, mustChangePassword }`. `otp` is the 6-digit code
-   **or** a one-time recovery code; it is ignored for an account without 2FA.
-   Wrong password, wrong code, unknown user and a locked account all return the
-   same `401` — the response never says which. Both a bad password and a bad
-   code count toward `DevLoginAttemptLimiter` (5 per username / 20 per IP, 15 min);
-   the counter is only cleared after the *whole* login succeeds.
+1. **Two-step login** (the UI flow). Step 1 `POST /v1/dev/auth/login
+   { username, password }`:
+   - account **with** an authenticator → `200 { otpRequired:true, challengeToken,
+     expiresAt (5 min), mustChangePassword }`, `token:null`. The challenge proves
+     the password only; it is **not** a Bearer token (the filter rejects it).
+   - account **without** 2FA → `200 { token, tokenType:"Bearer", expiresAt,
+     twoFactorEnrollmentRequired, mustChangePassword }` (limited token, see 2).
+   Step 2 `POST /v1/dev/auth/verify-otp { challengeToken, otp }` (6-digit code
+   **or** a one-time recovery code) → the same full session shape as above.
+   Sending `otp` already in step 1 still completes the login in one request
+   (curl/Postman). Both endpoints are the only unauthenticated dev routes.
+   Wrong password, wrong/expired challenge, wrong code, unknown user and a locked
+   account all return the same `401`. A bad password and a bad code count toward
+   `DevLoginAttemptLimiter` (5 per username / 20 per IP, 15 min); the counter is
+   only cleared after the *whole* login succeeds (step 1 alone never clears it).
+   Note step 1 does reveal that the password was right (the UI needs to know to
+   show the code screen) - the lockout is what limits guessing.
 2. `twoFactorEnrollmentRequired:true` = a **limited** token. Until the account
    enrols it only opens `GET …/me`, `PATCH …/me/password`,
    `POST …/me/2fa/setup`, `POST …/me/2fa/confirm`; everything else is

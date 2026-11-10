@@ -4,8 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Dev-panel login: username + password, plus the 6-digit authenticator code "
-        + "(or a one-time recovery code) once the account has two-factor enabled.")
+@Schema(description = "Dev-panel login step 1: username + password. 'otp' is optional - leave it out and an "
+        + "account with two-factor gets an OTP challenge to redeem at POST .../auth/verify-otp; send it and "
+        + "the whole login completes in one request.")
 public record DevLoginRequest(
         @NotBlank(message = "{dev-user.login.username.required}")
         @Size(max = 100)

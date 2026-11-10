@@ -34,6 +34,10 @@ public class DevTokenService {
 
     public static final long TICKET_TTL_SECONDS = 30;
 
+    /** How long the user has to type the authenticator code after the password step. */
+    static final Duration CHALLENGE_TTL = Duration.ofMinutes(5);
+    private static final String CHALLENGE_KIND = "C";
+
     private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
     private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -58,7 +62,31 @@ public class DevTokenService {
         return new IssuedToken(body + "." + ENCODER.encodeToString(sign(body)), expiresAt);
     }
 
+    /**
+     * Step-1 result of a two-step login: proves the password was right, grants
+     * NO access (the Bearer filter never accepts it, see {@link #parse}) and is
+     * only redeemable at {@code POST /v1/dev/auth/verify-otp}. Short-lived, and
+     * bound to the credential version so a password change voids it.
+     */
+    public IssuedToken issueChallenge(DevUserPrincipal principal) {
+        Instant expiresAt = Instant.now().plus(CHALLENGE_TTL);
+        String payload = principal.getDevUserId() + ":" + expiresAt.getEpochSecond()
+                + ":" + CHALLENGE_KIND + ":" + principal.getCredentialVersion();
+        String body = ENCODER.encodeToString(payload.getBytes(StandardCharsets.UTF_8));
+        return new IssuedToken(body + "." + ENCODER.encodeToString(sign(body)), expiresAt);
+    }
+
+    /** Access token only - a challenge token is rejected here. */
     public Optional<TokenClaims> parse(String token) {
+        return parseKind(token, false);
+    }
+
+    /** Challenge token only - an access token is rejected here. */
+    public Optional<TokenClaims> parseChallenge(String token) {
+        return parseKind(token, true);
+    }
+
+    private Optional<TokenClaims> parseKind(String token, boolean challenge) {
         if (token == null) {
             return Optional.empty();
         }
@@ -78,6 +106,9 @@ public class DevTokenService {
             }
             Instant expiresAt = Instant.ofEpochSecond(Long.parseLong(parts[1]));
             if (!expiresAt.isAfter(Instant.now())) {
+                return Optional.empty();
+            }
+            if (CHALLENGE_KIND.equals(parts[2]) != challenge) {
                 return Optional.empty();
             }
             return Optional.of(new TokenClaims(Long.parseLong(parts[0]), "1".equals(parts[2]), parts[3]));
