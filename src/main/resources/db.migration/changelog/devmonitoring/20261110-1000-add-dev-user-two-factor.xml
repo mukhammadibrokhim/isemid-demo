@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Two-factor (TOTP, RFC 6238 - Google Authenticator / Authy / Microsoft
+        Authenticator compatible) for dev-panel accounts.
+
+        totp_secret            AES-GCM encrypted base32 secret (never plaintext). Set when
+                               enrollment starts; the factor only counts once totp_enabled=true.
+        totp_enabled           true after the owner confirmed a first valid code.
+        totp_last_used_step    last accepted 30s time step - a code is rejected if its step is
+                               not strictly greater (replay protection).
+        recovery_code_hashes   newline-separated SHA-256 hex digests of the one-time recovery
+                               codes still unused (codes are high-entropy random, so a plain
+                               digest is enough; the codes themselves are shown once).
+    -->
+    <changeSet id="20261110-1000-01-add-dev-user-two-factor" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <tableExists tableName="dev_user"/>
+            <not>
+                <columnExists tableName="dev_user" columnName="totp_enabled"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="dev_user">
+            <column name="totp_secret" type="VARCHAR(255)"/>
+            <column name="totp_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="totp_last_used_step" type="BIGINT"/>
+            <column name="recovery_code_hashes" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

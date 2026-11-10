@@ -408,6 +408,25 @@ public final class ApiPaths {
         public static final String DEV_USER_ME_PASSWORD = "/dev-users/me/password";
 
         /**
+         * Dev-panel login (password + TOTP -> signed token). {@link #AUTH_LOGIN}
+         * is the only unauthenticated endpoint under {@code /v1/dev/**};
+         * {@link #AUTH_TICKET} trades a valid session for a single-use ticket
+         * accepted as {@code ?ticket=} on the SSE stream endpoints.
+         */
+        public static final String AUTH_LOGIN = "/auth/login";
+        public static final String AUTH_TICKET = "/auth/ticket";
+
+        /**
+         * Authenticator-app enrolment for the calling account. Reachable with a
+         * "limited" (not yet 2FA-verified) token - exempted in
+         * {@code DevTwoFactorGuardFilter}. {@link #DEV_USER_RESET_2FA} lets a
+         * SUPER_ADMIN clear another account's factor (lost phone + recovery codes).
+         */
+        public static final String DEV_USER_ME_2FA_SETUP = "/dev-users/me/2fa/setup";
+        public static final String DEV_USER_ME_2FA_CONFIRM = "/dev-users/me/2fa/confirm";
+        public static final String DEV_USER_RESET_2FA = "/dev-users/{id}/reset-2fa";
+
+        /**
          * Dev-panel-only lookups ("spravochnik") - separate from the org-facing,
          * multi-language {@link Reference} dictionaries. Positions/departments
          * ({@code DevPosition}), assignable to a {@code DevUser}'s profile (see

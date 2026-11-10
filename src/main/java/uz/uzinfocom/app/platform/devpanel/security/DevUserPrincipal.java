@@ -34,11 +34,35 @@ public class DevUserPrincipal extends User {
      */
     private final boolean mustChangePassword;
 
+    /** Whether an authenticator app is enrolled and confirmed for this account. */
+    private final boolean totpEnabled;
+
+    /**
+     * Fingerprint of everything that must invalidate already-issued tokens when
+     * it changes: password hash, enabled flag and 2FA state. Stamped into every
+     * token (see {@code DevTokenService}) and compared on each request, so a
+     * password change, revoke or 2FA reset logs the account out everywhere.
+     */
+    private final String credentialVersion;
+
     public DevUserPrincipal(DevUser devUser) {
         super(devUser.getUsername(), devUser.getPasswordHash(), devUser.isEnabled(),
                 true, true, true, authorities(devUser));
         this.devUserId = devUser.getId();
         this.mustChangePassword = devUser.isMustChangePassword();
+        this.totpEnabled = devUser.isTotpEnabled();
+        this.credentialVersion = fingerprint(devUser);
+    }
+
+    private static String fingerprint(DevUser devUser) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            String material = devUser.getPasswordHash() + '|' + devUser.isEnabled() + '|' + devUser.isTotpEnabled();
+            byte[] hash = digest.digest(material.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.HexFormat.of().formatHex(hash, 0, 8);
+        } catch (java.security.NoSuchAlgorithmException unavailable) {
+            throw new IllegalStateException("SHA-256 is not available in this JVM", unavailable);
+        }
     }
 
     private static List<GrantedAuthority> authorities(DevUser devUser) {

@@ -20,6 +20,10 @@ public record DevUserDetailResponse(
                 + "PATCH .../me/password - see DevPasswordChangeGuardFilter.")
         boolean mustChangePassword,
 
+        @Schema(description = "True once an authenticator app is enrolled and confirmed (TOTP). "
+                + "While false (and two-factor is required) the account only gets a limited token.")
+        boolean twoFactorEnabled,
+
         String email,
         String fullName,
         String phone,

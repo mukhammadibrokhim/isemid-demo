@@ -45,6 +45,7 @@ public class DevUserQueryService {
                 devUser.isEnabled(),
                 devUser.getRole(),
                 devUser.isMustChangePassword(),
+                devUser.isTotpEnabled(),
                 devUser.getEmail(),
                 devUser.getFullName(),
                 devUser.getPhone(),

@@ -44,6 +44,12 @@ public enum ErrorCode {
             "DEV_USER_PASSWORD_CHANGE_REQUIRED", HttpStatus.FORBIDDEN, "dev-user.password.change-required"
     ),
 
+    // Token is valid but its account still has to enrol an authenticator app -
+    // the dev-panel frontend routes to the 2FA setup screen on this `code`.
+    DEV_USER_TWO_FACTOR_REQUIRED(
+            "DEV_USER_TWO_FACTOR_REQUIRED", HttpStatus.FORBIDDEN, "dev-user.two-factor.required"
+    ),
+
     BAD_REQUEST("BAD_REQUEST", HttpStatus.BAD_REQUEST, "error.bad_request"),
     REQUEST_BODY_MISSING("REQUEST_BODY_MISSING", HttpStatus.BAD_REQUEST, "error.request_body_missing"),
     MALFORMED_JSON("MALFORMED_JSON", HttpStatus.BAD_REQUEST, "error.malformed_json");

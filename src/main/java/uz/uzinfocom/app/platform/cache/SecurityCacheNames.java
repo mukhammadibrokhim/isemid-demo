@@ -30,15 +30,14 @@ public final class SecurityCacheNames {
     public static final String FILTER_ORGANIZATION_IDS_BY_REGION_DISTRICT = "filterOrganizationIdsByRegionDistrict";
 
     /**
-     * {@code /v1/dev/**} authenticates via HTTP Basic on a stateless filter
-     * chain (see DevPanelSecurityConfig), so every single request would
-     * otherwise re-run a full BCrypt comparison plus a DevUser DB lookup
-     * before the controller even runs. This cache stores the successful
-     * {@code Authentication} result keyed by username+password so repeat
-     * calls with the same credentials skip both. Short TTL bounds how long a
-     * revoked/disabled dev account can still authenticate from cache.
+     * {@code /v1/dev/**} is stateless (signed Bearer token, see
+     * DevPanelSecurityConfig), so every request would otherwise hit the DB to
+     * load the DevUser behind the token. This cache holds that account
+     * ({@code DevPrincipalLoader}), keyed by dev-user id. The short TTL bounds
+     * how long a revoked account keeps working even if an eviction is missed;
+     * it is evicted on every credential/account/2FA change.
      */
-    public static final String DEV_PANEL_AUTHENTICATION = "devPanelAuthentication";
+    public static final String DEV_PANEL_PRINCIPAL = "devPanelPrincipal";
 
     private SecurityCacheNames() {
     }

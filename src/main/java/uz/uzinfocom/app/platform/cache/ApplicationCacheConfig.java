@@ -47,9 +47,9 @@ public class ApplicationCacheConfig {
                 cache(SecurityCacheNames.SCOPE_ORGANIZATION_IDS, 5_000, Duration.ofDays(1)),
                 cache(SecurityCacheNames.FILTER_ORGANIZATION_IDS_BY_REGION_DISTRICT, 5_000, Duration.ofDays(1)),
 
-                // Small size: handful of dev-panel accounts. 5m TTL bounds how
+                // Small size: handful of dev-panel accounts. 1m TTL bounds how
                 // long a revoked account keeps authenticating from cache.
-                cache(SecurityCacheNames.DEV_PANEL_AUTHENTICATION, 200, Duration.ofMinutes(5)),
+                cache(SecurityCacheNames.DEV_PANEL_PRINCIPAL, 200, Duration.ofMinutes(1)),
 
                 cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
                 cache(OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID, 20_000, Duration.ofHours(12)),

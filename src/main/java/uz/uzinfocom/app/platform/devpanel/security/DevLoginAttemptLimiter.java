@@ -8,7 +8,7 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Brute-force brake for the dev panel's HTTP Basic login. Failed attempts
+ * Brute-force brake for the dev panel's login (password and authenticator code). Failed attempts
  * are counted per username and per client IP; once either crosses its
  * threshold, every further attempt for that key is refused without even
  * checking the password until the window (measured from the first failure)

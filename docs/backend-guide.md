@@ -38,8 +38,8 @@ non-obvious parts. Architecture/stack/CI narrative is in the root
 ## 1. API conventions
 
 **Auth.** Everything except `/v1/auth/**` needs `Authorization: Bearer <SSO/DHP
-JWT>`. `/v1/dev/**` is the exception: HTTP Basic against local `DevUser`
-accounts (§14). Never use cookies or `credentials: "include"` — the API sets
+JWT>`. `/v1/dev/**` is the exception: local `DevUser` accounts log in with
+password + authenticator code and get their own signed Bearer token (§14). Never use cookies or `credentials: "include"` — the API sets
 `allowCredentials=false`.
 
 **CORS.** Allowed origins come from `app.cors.allowed-origins` (dev default
@@ -1481,10 +1481,11 @@ Polling alternative: `GET /v1/exports?size=50` every ~2 s until the job is
 
 Developer monitoring panel (errors, request/login history, CPU/RAM/HTTP
 metrics, settings, route policies, integration clients, webhook dispatches) —
-**not** part of the business API. Whole subtree authenticates via **HTTP Basic**
-against local `DevUser` accounts: `Authorization: Basic base64(identifier:password)`
-on **every** request (no session/token); `identifier` is the `username` **or**
-`email` (one login field is enough). Swagger group **"Dev Panel"**. This section
+**not** part of the business API. Whole subtree authenticates against local
+`DevUser` accounts with **password + TOTP** (§14.2a): `POST /v1/dev/auth/login`
+returns a signed token, sent as `Authorization: Bearer <token>` on every other
+request. HTTP Basic is **gone** — a password alone never opens the panel.
+Swagger group **"Dev Panel"**. This section
 covers account auth/self-service/admin, positions, RBAC management and the
 organizations lookup; the rest of the panel is documented in Swagger.
 
@@ -1517,7 +1518,57 @@ get-by-id, update) carries `mustChangePassword`, so read it from `me` rather
 than inferring from a 403. Change password with
 `PATCH …/me/password { currentPassword, newPassword (8–100) }` (wrong current
 → `409 dev-user.password.current.invalid`) and switch stored credentials to the
-new password afterwards.
+new password afterwards. A password change (like revoke or a 2FA change)
+invalidates every token already issued to that account, so **log in again**
+right after changing it.
+
+### 14.2a Login and two-factor (TOTP)
+
+Compatible with Google Authenticator / Authy / Microsoft Authenticator
+(RFC 6238, SHA-1, 6 digits, 30 s). Implemented in-house (`Totp`), no extra dependency.
+
+1. `POST /v1/dev/auth/login { username, password, otp? }` (the only
+   unauthenticated dev endpoint) → `{ token, tokenType:"Bearer", expiresAt,
+   twoFactorEnrollmentRequired, mustChangePassword }`. `otp` is the 6-digit code
+   **or** a one-time recovery code; it is ignored for an account without 2FA.
+   Wrong password, wrong code, unknown user and a locked account all return the
+   same `401` — the response never says which. Both a bad password and a bad
+   code count toward `DevLoginAttemptLimiter` (5 per username / 20 per IP, 15 min);
+   the counter is only cleared after the *whole* login succeeds.
+2. `twoFactorEnrollmentRequired:true` = a **limited** token. Until the account
+   enrols it only opens `GET …/me`, `PATCH …/me/password`,
+   `POST …/me/2fa/setup`, `POST …/me/2fa/confirm`; everything else is
+   `403 DEV_USER_TWO_FACTOR_REQUIRED` (route the UI to the setup screen on that `code`).
+   Order for a fresh account: login → change password (forced) → login again →
+   setup → confirm.
+3. `POST …/me/2fa/setup` → `{ secret, otpauthUri }`. Render `otpauthUri` as a QR
+   code client-side. Repeating it before confirming replaces the pending secret.
+4. `POST …/me/2fa/confirm { code }` → `{ session: {token…}, recoveryCodes[10] }`.
+   Turns 2FA on, returns a **new full token** (the limited one dies) and the
+   recovery codes — shown **once**, only SHA-256 hashes are stored; each works once.
+5. `PATCH …/dev-users/{id}/reset-2fa` (SUPER_ADMIN) clears the factor of a
+   lost-phone account; it enrols again on next login.
+
+Token: HMAC-SHA256 signed `uid:exp:mfa:ver`, default 8 h (`app.dev.auth.token-ttl`),
+no server state. `ver` is a fingerprint of password hash + enabled + 2FA state,
+checked against the live account (1-minute cache, evicted on every change), so
+revoke / password change / 2FA reset kills outstanding tokens. There is no logout
+endpoint — drop the token client-side. A code is accepted once per 30 s step
+(replay guard, `totp_last_used_step`); ±1 step of clock skew is tolerated.
+
+SSE (`EventSource` cannot set headers): `POST /v1/dev/auth/ticket` (Bearer) →
+`{ ticket }`, then `GET /v1/dev/metrics/stream?ticket=…` or
+`/v1/dev/actuator-stream/{id}?ticket=…`. Single use, 30 s, per instance, those
+two stream paths only. Everything else — `fetch`, curl, Postman — uses the
+Bearer header (log in first).
+
+Config (`app.dev.auth.*`, all optional): `two-factor-required` (default `true`;
+`false` lets un-enrolled accounts in with a password alone), `token-ttl`,
+`token-secret`, `totp-encryption-key`, `issuer`. The two keys default to values
+derived from `app.crypto.webhook-secret-key`, so nothing new is mandatory;
+changing the derived/explicit TOTP key makes stored authenticator secrets
+unreadable (everyone re-enrols). TOTP secrets are AES-GCM encrypted at rest
+(`dev_user.totp_secret`).
 
 ### 14.3 Endpoints
 
@@ -1526,7 +1577,7 @@ new password afterwards.
 | GET | `/v1/dev/dev-users`, `/{id}`, `/me` | any | paged list / one / calling account |
 | POST | `/v1/dev/dev-users` | ADMIN+ | `{username, role? (USER default / ADMIN), email*, fullName?, phone?, positionId?}` → `DevUserCreateResponse` with a **one-time `password`** (never retrievable again; hand it to the owner) |
 | PUT | `/v1/dev/dev-users/{id}` | ADMIN+ | `{email, fullName, phone, positionId}` (`positionId:null` clears); username/password/role/enabled not editable |
-| PATCH | `…/{id}/revoke` / `…/unblock` | SUPER_ADMIN | block (`enabled:false`, Basic auth then fails before role checks; cannot block yourself `409 dev-user.revoke.self-forbidden`) / unblock (idempotent) |
+| PATCH | `…/{id}/revoke` / `…/unblock` | SUPER_ADMIN | block (`enabled:false`, login and tokens then fail before role checks; cannot block yourself `409 dev-user.revoke.self-forbidden`) / unblock (idempotent) |
 | PATCH | `…/{id}/reset-password` | SUPER_ADMIN | no body; returns new one-time `password`, sets `mustChangePassword` again |
 | GET/POST/PUT/DELETE | `/v1/dev/ref/positions[/{id}]` | any / ADMIN+ / ADMIN+ / SUPER_ADMIN | single-language lookup (`{name, enabled}`); hard delete → `409 dev-position.delete.in-use` if assigned |
 | GET/POST/PUT/DELETE + `PATCH …/{id}/restore` | `/v1/dev/permissions`, `/v1/dev/actions`, `/v1/dev/roles` | any / ADMIN+ / ADMIN+ / SUPER_ADMIN (restore SUPER_ADMIN) | the same rows the main app's `/v1/permissions`, `/v1/actions`, `/v1/roles` manage, reachable without an SSO token; **delete is soft** (`active:false, deleted:true`), always succeeds |

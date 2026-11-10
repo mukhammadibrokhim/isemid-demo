@@ -124,7 +124,7 @@ Architecture above):
 | `export` | Generic background Excel export (streaming SXSSF) shared by every exportable module — submission stays per-module, "my files"/progress/download is one shared surface with SSE progress. |
 | `settings` | Runtime-editable system settings and route-access policies (HTTP client tuning, circuit-breaker thresholds, webhook backoff, ...) — no redeploy needed to change them. |
 | `integrationclient` | Provisioning and lifecycle (revoke, allowed IPs, webhook config) for machine clients that call the inbound integration API. |
-| `devpanel` | A separate, HTTP-Basic-authenticated ops panel (`/v1/dev/**`) — error/login/request history, live metrics via SSE, dev-only user/settings management — deliberately outside the SSO admin model. |
+| `devpanel` | A separate ops panel (`/v1/dev/**`) with its own password + TOTP (authenticator app) login and signed Bearer tokens — error/login/request history, live metrics via SSE, dev-only user/settings management — deliberately outside the SSO admin model. |
 | `i18n` | Message bundles for `uz` (default), `uz-Cyrl`, `kaa`, `ru`, `en`. |
 | `observability` | Trace-ID propagation, inbound/outbound HTTP logging with sensitive-field redaction, a dedicated async executor pool. |
 | `resilience` | Resilience4j circuit-breaker configuration for every outbound integration (API2, LIS, SSO/DHP login, RSA public key, outbound webhooks), tunable at runtime from `settings`. |

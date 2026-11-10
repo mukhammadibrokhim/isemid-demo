@@ -121,7 +121,7 @@ public class DevUserCommandService {
      * account can only ever change its own password here.
      */
     @Transactional
-    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_AUTHENTICATION, allEntries = true)
+    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_PRINCIPAL, allEntries = true)
     public void changeOwnPassword(Long id, DevUserChangePasswordRequest request) {
         DevUser devUser = devUserQueryService.findEntity(id);
 
@@ -137,7 +137,7 @@ public class DevUserCommandService {
     }
 
     @Transactional
-    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_AUTHENTICATION, allEntries = true)
+    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_PRINCIPAL, allEntries = true)
     public void revoke(Long id) {
         if (id.equals(currentDevUserId())) {
             throw new ConflictException("dev-user.revoke.self-forbidden");
@@ -156,7 +156,7 @@ public class DevUserCommandService {
      * revoked account. Idempotent: a no-op if the account is already enabled.
      */
     @Transactional
-    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_AUTHENTICATION, allEntries = true)
+    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_PRINCIPAL, allEntries = true)
     public void unblock(Long id) {
         DevUser devUser = devUserQueryService.findEntity(id);
 
@@ -174,7 +174,7 @@ public class DevUserCommandService {
      * freshly-{@link #create}d one.
      */
     @Transactional
-    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_AUTHENTICATION, allEntries = true)
+    @CacheEvict(cacheManager = "securityCacheManager", cacheNames = SecurityCacheNames.DEV_PANEL_PRINCIPAL, allEntries = true)
     public DevUserResetPasswordResponse resetPassword(Long id) {
         DevUser devUser = devUserQueryService.findEntity(id);
 
