@@ -113,7 +113,7 @@ public class Form32EntryExcelExportSource
 
     @Override
     public String fileNamePrefix() {
-        return "form32_export";
+        return "hisobot_3_2_shakl";
     }
 
     private Organization resolveOrganization(Long organizationId, Map<Long, Organization> cache) {

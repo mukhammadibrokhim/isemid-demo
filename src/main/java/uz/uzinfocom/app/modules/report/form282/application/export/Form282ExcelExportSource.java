@@ -61,6 +61,6 @@ public class Form282ExcelExportSource implements ExcelExportSource<Form282Export
 
     @Override
     public String fileNamePrefix() {
-        return "form282_export";
+        return "28_2_shakl_kasalliklar_boyicha";
     }
 }

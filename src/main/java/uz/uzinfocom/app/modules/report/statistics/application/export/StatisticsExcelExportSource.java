@@ -77,7 +77,6 @@ public class StatisticsExcelExportSource implements ExcelExportSource<Statistics
         String periodB = messageResolver.resolve("report.statistics.export.periodB");
 
         List<ExcelColumn<StatisticsNodeResponse>> columns = new ArrayList<>();
-        columns.add(ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), StatisticsNodeResponse::code));
         columns.add(ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), StatisticsNodeResponse::name));
 
         columns.addAll(formBlockColumns("A", periodA, StatisticsNodeResponse::periodA, "058", StatisticsPeriodCountsResponse::form058));
@@ -175,6 +174,6 @@ public class StatisticsExcelExportSource implements ExcelExportSource<Statistics
 
     @Override
     public String fileNamePrefix() {
-        return "statistics_export";
+        return "statistika_hisoboti";
     }
 }

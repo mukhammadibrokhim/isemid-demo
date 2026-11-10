@@ -109,7 +109,7 @@ public class Form2ManualEntryExcelExportSource
 
     @Override
     public String fileNamePrefix() {
-        return "form2_manual_export";
+        return "virusli_gepatit_2_shakl";
     }
 
     private Organization resolveOrganization(Long organizationId, Map<Long, Organization> cache) {

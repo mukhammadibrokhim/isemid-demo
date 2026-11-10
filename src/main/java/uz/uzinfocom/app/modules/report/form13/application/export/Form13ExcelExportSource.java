@@ -66,7 +66,6 @@ public class Form13ExcelExportSource implements ExcelExportSource<Form13ExportFi
     @Override
     public List<ExcelColumn<Form13ReportNodeResponse>> availableColumns() {
         List<ExcelColumn<Form13ReportNodeResponse>> columns = new ArrayList<>();
-        columns.add(ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form13ReportNodeResponse::code));
         columns.add(ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form13ReportNodeResponse::name));
 
         String totalPrev = messageResolver.resolve("report.export.disease.totalPrevYear");
@@ -115,6 +114,6 @@ public class Form13ExcelExportSource implements ExcelExportSource<Form13ExportFi
 
     @Override
     public String fileNamePrefix() {
-        return "form13_export";
+        return "13_shakl_hududlar_boyicha";
     }
 }

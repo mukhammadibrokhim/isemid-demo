@@ -110,7 +110,7 @@ public class Form7EntryExcelExportSource
 
     @Override
     public String fileNamePrefix() {
-        return "form7_export";
+        return "hisobot_7_shakl";
     }
 
     private Organization resolveOrganization(Long organizationId, Map<Long, Organization> cache) {

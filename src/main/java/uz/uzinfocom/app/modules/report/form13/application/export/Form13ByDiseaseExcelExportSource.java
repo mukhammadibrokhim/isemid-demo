@@ -66,6 +66,6 @@ public class Form13ByDiseaseExcelExportSource
 
     @Override
     public String fileNamePrefix() {
-        return "form13_by_disease_export";
+        return "13_shakl_kasalliklar_boyicha";
     }
 }

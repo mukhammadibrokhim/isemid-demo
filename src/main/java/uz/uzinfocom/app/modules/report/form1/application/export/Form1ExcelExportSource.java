@@ -76,7 +76,6 @@ public class Form1ExcelExportSource implements ExcelExportSource<Form1ExportFilt
         String female = messageResolver.resolve("report.export.block.female");
 
         return List.of(
-                ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form1ReportNodeResponse::code),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form1ReportNodeResponse::name),
                 ExcelColumn.of("confirmedTotal", confirmedGroup, total, row -> row.confirmed().total()),
                 ExcelColumn.of("confirmedUnder14", confirmedGroup, under14, row -> row.confirmed().under14()),
@@ -114,6 +113,6 @@ public class Form1ExcelExportSource implements ExcelExportSource<Form1ExportFilt
 
     @Override
     public String fileNamePrefix() {
-        return "form1_export";
+        return "kunlik_monitoring_1_shakl";
     }
 }

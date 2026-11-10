@@ -130,7 +130,6 @@ public class Form6ExcelExportSource implements ExcelExportSource<Form6ExportFilt
         String delta = messageResolver.resolve("report.export.block.delta");
 
         List<ExcelColumn<Form6ExportRow>> columns = new ArrayList<>(List.of(
-                ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), row -> row.node().code()),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), row -> row.node().name()),
                 ExcelColumn.of("previousYear", countGroup, previousYear, row -> row.node().previousYear()),
                 ExcelColumn.of("currentYear", countGroup, currentYear, row -> row.node().currentYear()),
@@ -176,6 +175,6 @@ public class Form6ExcelExportSource implements ExcelExportSource<Form6ExportFilt
 
     @Override
     public String fileNamePrefix() {
-        return "form6_export";
+        return "yosh_tarkibi_6_shakl";
     }
 }

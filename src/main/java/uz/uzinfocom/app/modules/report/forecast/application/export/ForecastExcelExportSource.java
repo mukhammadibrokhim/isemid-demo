@@ -66,7 +66,6 @@ public class ForecastExcelExportSource implements ExcelExportSource<ForecastExpo
     @Override
     public List<ExcelColumn<ForecastNodeResponse>> availableColumns() {
         return List.of(
-                ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), ForecastNodeResponse::code),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), ForecastNodeResponse::name),
                 ExcelColumn.of("method", messageResolver.resolve("report.forecast.export.method"), ForecastNodeResponse::method),
                 ExcelColumn.of("trainingTotal", messageResolver.resolve("report.forecast.export.trainingTotal"), ForecastNodeResponse::trainingTotal),
@@ -86,6 +85,6 @@ public class ForecastExcelExportSource implements ExcelExportSource<ForecastExpo
 
     @Override
     public String fileNamePrefix() {
-        return "forecast_export";
+        return "prognoz_hisoboti";
     }
 }

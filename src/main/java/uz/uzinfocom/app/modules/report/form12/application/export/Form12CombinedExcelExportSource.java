@@ -42,7 +42,7 @@ public class Form12CombinedExcelExportSource implements MultiSheetExcelExportSou
 
     @Override
     public String fileNamePrefix() {
-        return "form12_combined_export";
+        return "12_shakl_birlashgan";
     }
 
     @Override

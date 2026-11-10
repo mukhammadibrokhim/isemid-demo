@@ -79,7 +79,6 @@ public class Form4ExcelExportSource implements ExcelExportSource<Form4ExportFilt
         String unsheltered = messageResolver.resolve("report.form4.export.cat.unsheltered");
 
         return List.of(
-                ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form4ReportNodeResponse::code),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form4ReportNodeResponse::name),
                 ExcelColumn.of("confirmedTotal", confirmedGroup, total, row -> row.confirmed().total()),
                 ExcelColumn.of("confirmedUnorganizedPreschool", confirmedGroup, unorganizedPreschool, row -> row.confirmed().unorganizedPreschool()),
@@ -130,6 +129,6 @@ public class Form4ExcelExportSource implements ExcelExportSource<Form4ExportFilt
 
     @Override
     public String fileNamePrefix() {
-        return "form4_export";
+        return "ijtimoiy_tarkib_4_shakl";
     }
 }

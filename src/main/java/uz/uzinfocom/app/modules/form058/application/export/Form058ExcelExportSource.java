@@ -139,7 +139,7 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
         return List.of(
                 new ExcelTitleBlock("Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлиги", 0, 4, 0, Math.min(6, lastCol)),
                 new ExcelTitleBlock(
-                        "Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлигининг\n2020 йил 31 декабрдаги 363-сонли\nбуйруғи билан тасдиқланган\n060-рақамли тиббий ҳужжат шакли",
+                        "Ўзбекистон Республикаси\nСоғлиқни сақлаш вазирлигининг\n2025 йил 26 декабрдаги 399-сонли\nбуйруғи билан тасдиқланган\n060-рақамли тиббий ҳужжат шакли",
                         0, 4, Math.min(7, lastCol), lastCol
                 ),
                 new ExcelTitleBlock(dateRangeText(filter), 5, 5, 0, lastCol),
@@ -154,7 +154,7 @@ public class Form058ExcelExportSource implements ExcelExportSource<Form058Filter
 
     @Override
     public String fileNamePrefix() {
-        return "form058_export";
+        return "yuqumli_kasalliklar_jurnali_060";
     }
 
     private String notifyInfo(Form058PdfResponse row) {

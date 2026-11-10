@@ -71,6 +71,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 @Service
 public class ExportJobService {
+    private static final int MAX_FILE_NAME_PREFIX_LENGTH = 60;
+
 
     private static final long PROGRESS_UPDATE_EVERY_N_ROWS = 500;
     private static final long SSE_TIMEOUT_MILLIS = 15 * 60 * 1000L;
@@ -322,8 +324,17 @@ public class ExportJobService {
 
     private Path resolveTargetFile(Long jobId, String fileNamePrefix) {
         Path dir = Path.of(exportProperties.getStorageDir());
-        String fileName = fileNamePrefix + "_" + jobId + ".xlsx";
+        String fileName = safeFileNamePrefix(fileNamePrefix) + "_" + java.time.LocalDate.now() + "_" + jobId + ".xlsx";
         return dir.resolve(fileName);
+    }
+
+    /** Keeps the readable per-report name filesystem- and header-safe and short (max 60 chars). */
+    private static String safeFileNamePrefix(String prefix) {
+        String safe = prefix == null ? "" : prefix.replaceAll("[^A-Za-z0-9_-]", "_");
+        if (safe.length() > MAX_FILE_NAME_PREFIX_LENGTH) {
+            safe = safe.substring(0, MAX_FILE_NAME_PREFIX_LENGTH);
+        }
+        return safe.isBlank() ? "export" : safe;
     }
 
     private void markProcessing(Long jobId) {

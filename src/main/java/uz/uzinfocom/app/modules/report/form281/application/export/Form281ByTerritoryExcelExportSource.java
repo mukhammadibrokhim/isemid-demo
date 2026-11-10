@@ -66,7 +66,6 @@ public class Form281ByTerritoryExcelExportSource
     @Override
     public List<ExcelColumn<Form281ByTerritoryNodeResponse>> availableColumns() {
         List<ExcelColumn<Form281ByTerritoryNodeResponse>> columns = new ArrayList<>();
-        columns.add(ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form281ByTerritoryNodeResponse::code));
         columns.add(ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form281ByTerritoryNodeResponse::name));
 
         String total = messageResolver.resolve("report.export.disease.total");
@@ -129,6 +128,6 @@ public class Form281ByTerritoryExcelExportSource
 
     @Override
     public String fileNamePrefix() {
-        return "form281_by_territory_export";
+        return "28_1_shakl_hududlar_boyicha";
     }
 }

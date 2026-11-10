@@ -130,7 +130,6 @@ public class Form8ExcelExportSource implements ExcelExportSource<Form8ExportFilt
         String delta = messageResolver.resolve("report.export.block.delta");
 
         List<ExcelColumn<Form8ExportRow>> columns = new ArrayList<>(List.of(
-                ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), row -> row.node().code()),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), row -> row.node().name()),
                 ExcelColumn.of("previousYear", countGroup, previousYear, row -> row.node().previousYear()),
                 ExcelColumn.of("currentYear", countGroup, currentYear, row -> row.node().currentYear()),
@@ -176,6 +175,6 @@ public class Form8ExcelExportSource implements ExcelExportSource<Form8ExportFilt
 
     @Override
     public String fileNamePrefix() {
-        return "form8_export";
+        return "ijtimoiy_tarkib_8_shakl";
     }
 }

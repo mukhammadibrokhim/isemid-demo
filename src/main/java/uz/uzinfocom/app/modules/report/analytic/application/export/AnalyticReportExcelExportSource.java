@@ -101,7 +101,7 @@ public class AnalyticReportExcelExportSource
 
     @Override
     public String fileNamePrefix() {
-        return "analytic_report_export";
+        return "analitik_hisobot";
     }
 
     private String joinCodes(Set<String> codes) {

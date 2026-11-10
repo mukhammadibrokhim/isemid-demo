@@ -72,7 +72,6 @@ public class Form11ExcelExportSource implements ExcelExportSource<Form11ExportFi
         String scopeChild = messageResolver.resolve("report.form11.export.scopeChild");
 
         List<ExcelColumn<Form11ReportNodeResponse>> columns = new ArrayList<>(List.of(
-                ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form11ReportNodeResponse::code),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form11ReportNodeResponse::name)
         ));
 
@@ -128,6 +127,6 @@ public class Form11ExcelExportSource implements ExcelExportSource<Form11ExportFi
 
     @Override
     public String fileNamePrefix() {
-        return "form11_export";
+        return "kasallanish_korsatkichlari_11_shakl";
     }
 }

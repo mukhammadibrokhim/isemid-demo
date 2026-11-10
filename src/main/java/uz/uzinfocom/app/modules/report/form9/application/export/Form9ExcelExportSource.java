@@ -117,7 +117,6 @@ public class Form9ExcelExportSource implements ExcelExportSource<Form9ExportFilt
         String difference = messageResolver.resolve("report.export.block.difference");
 
         List<ExcelColumn<Form9ExportRow>> columns = new ArrayList<>(List.of(
-                ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), row -> row.node().code()),
                 ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), row -> row.node().name()),
                 ExcelColumn.of("registeredPreviousYear", registered, previousYear, row -> row.node().registeredPreviousYear()),
                 ExcelColumn.of("registeredCurrentYear", registered, currentYear, row -> row.node().registeredCurrentYear()),
@@ -174,6 +173,6 @@ public class Form9ExcelExportSource implements ExcelExportSource<Form9ExportFilt
 
     @Override
     public String fileNamePrefix() {
-        return "form9_export";
+        return "taqqoslama_malumot_9_shakl";
     }
 }

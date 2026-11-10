@@ -71,6 +71,6 @@ public class Form12ExcelExportSource implements ExcelExportSource<Form12ExportFi
 
     @Override
     public String fileNamePrefix() {
-        return "form12_export";
+        return "12_shakl_kasalliklar_boyicha";
     }
 }

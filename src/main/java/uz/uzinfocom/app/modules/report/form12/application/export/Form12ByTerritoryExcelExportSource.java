@@ -71,7 +71,6 @@ public class Form12ByTerritoryExcelExportSource
     @Override
     public List<ExcelColumn<Form12ByTerritoryNodeResponse>> availableColumns() {
         List<ExcelColumn<Form12ByTerritoryNodeResponse>> columns = new ArrayList<>();
-        columns.add(ExcelColumn.of("code", messageResolver.resolve("report.export.geo.code"), Form12ByTerritoryNodeResponse::code));
         columns.add(ExcelColumn.of("name", messageResolver.resolve("report.export.geo.territory"), Form12ByTerritoryNodeResponse::name));
 
         String totalPrev = messageResolver.resolve("report.export.disease.totalPrevYear");
@@ -120,6 +119,6 @@ public class Form12ByTerritoryExcelExportSource
 
     @Override
     public String fileNamePrefix() {
-        return "form12_by_territory_export";
+        return "12_shakl_hududlar_boyicha";
     }
 }

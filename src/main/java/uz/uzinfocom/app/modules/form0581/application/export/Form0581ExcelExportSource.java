@@ -155,7 +155,7 @@ public class Form0581ExcelExportSource implements ExcelExportSource<Form0581Filt
 
     @Override
     public String fileNamePrefix() {
-        return "form0581_export";
+        return "zoonoz_xabarnoma_058_1";
     }
 
     private String notifyInfo(Form0581PdfResponse row) {
