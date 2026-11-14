@@ -1,0 +1,21 @@
+package uz.uzinfocom.app.modules.airquality.application.query.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Schema(description = "Air-quality monitoring station (AIRCONTROL).")
+public record AirStationResponse(
+        @Schema(description = "Internal station id.", example = "1") Long id,
+        @Schema(description = "AIRCONTROL station id.", example = "1") String externalId,
+        @Schema(description = "Station name.", example = "Uzhyromet") String name,
+        @Schema(description = "Latitude; may be absent.") BigDecimal latitude,
+        @Schema(description = "Longitude; may be absent.") BigDecimal longitude,
+        @Schema(description = "SOATO code as sent by AIRCONTROL.", example = "1726266") Integer soatoId,
+        @Schema(description = "Resolved ref_region code; null when the SOATO code matches nothing.") String regionCode,
+        @Schema(description = "Resolved ref_district code; null when unresolved or region-level.") String districtCode,
+        @Schema(description = "Whether the station is in operation.") boolean active,
+        @Schema(description = "Time of the newest stored measurement (station local time).") LocalDateTime lastMeasuredAt
+) {
+}

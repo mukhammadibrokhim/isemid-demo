@@ -21,6 +21,7 @@ public final class CircuitBreakerNames {
     public static final String LIS = "lis";
     public static final String DHP = "dhp";
     public static final String MUXLISA = "muxlisa";
+    public static final String AIRCONTROL = "aircontrol";
     public static final String IAM_REMOTE = "iam-remote";
     public static final String OAUTH2_LOGIN = "oauth2-login";
     public static final String RSA_PUBLIC_KEY = "rsa-public-key";
