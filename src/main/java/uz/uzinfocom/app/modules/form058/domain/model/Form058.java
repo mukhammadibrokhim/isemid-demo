@@ -174,7 +174,15 @@ public class Form058 extends AbsEntity implements AuditableFields {
      * reached.
      */
     public void linkCards() {
-        ensureEditable();
+        // An APPROVED form may still receive cards: approval is allowed
+        // straight from ACCEPTED (no card needed), and the investigation
+        // cards are often opened afterwards. The status stays APPROVED.
+        if (isCanceled() || isDeleted()) {
+            throw new InvalidForm058StateException(
+                    "error.form058.update-not-allowed",
+                    this.status
+            );
+        }
 
         if (status == FormStatus.SENT) {
             throw new InvalidForm058StateException("error.form058.card-link-not-allowed", this.status);

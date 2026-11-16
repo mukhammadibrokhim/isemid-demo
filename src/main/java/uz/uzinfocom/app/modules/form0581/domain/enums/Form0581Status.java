@@ -9,9 +9,10 @@ public enum Form0581Status {
 
     public boolean physicallyDeletable() {
         return switch (this) {
-            case SENT -> true;
-            case ACCEPTED,
-                 CARD_LINKED,
+            // ACCEPTED is deletable too (duplicate accepted by the receiver);
+            // CARD_LINKED / APPROVED stay locked.
+            case SENT, ACCEPTED -> true;
+            case CARD_LINKED,
                  APPROVED,
                  CANCELED -> false;
         };

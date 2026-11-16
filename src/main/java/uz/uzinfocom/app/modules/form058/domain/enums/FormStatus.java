@@ -9,9 +9,12 @@ public enum FormStatus {
 
     public boolean physicallyDeletable() {
         return switch (this) {
-            case SENT -> true;
-            case ACCEPTED,
-                 CARD_LINKED,
+            // ACCEPTED is deletable too: a duplicate that the receiver already
+            // accepted (before checking for repeats) must be removable by the
+            // sender. It is a soft delete with a reason; once a card is linked
+            // (CARD_LINKED) or the case is APPROVED it is locked.
+            case SENT, ACCEPTED -> true;
+            case CARD_LINKED,
                  APPROVED,
                  CANCELED -> false;
         };

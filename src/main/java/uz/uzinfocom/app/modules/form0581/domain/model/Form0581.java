@@ -164,7 +164,14 @@ public class Form0581 extends AbsEntity implements AuditableFields {
      * reached.
      */
     public void linkCards() {
-        ensureEditable();
+        // An APPROVED form may still receive cards (approval needs no card);
+        // the status stays APPROVED.
+        if (isCanceled() || isDeleted()) {
+            throw new InvalidForm0581StateException(
+                    "error.form0581.update-not-allowed",
+                    this.status
+            );
+        }
 
         if (status == Form0581Status.SENT) {
             throw new InvalidForm0581StateException("error.form0581.card-link-not-allowed", this.status);

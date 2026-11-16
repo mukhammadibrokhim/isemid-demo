@@ -110,6 +110,25 @@ class Form0581WorkflowTest {
     }
 
     @Test
+    void cardsCanStillBeLinkedToAnApprovedFormWithoutChangingItsStatus() {
+        Form0581 form0581 = new Form0581();
+        form0581.setStatus(Form0581Status.APPROVED);
+
+        form0581.linkCards();
+
+        assertThat(form0581.getStatus()).isEqualTo(Form0581Status.APPROVED);
+        assertThat(form0581.isHasLinkedCards()).isTrue();
+    }
+
+    @Test
+    void acceptedFormIsDeletableButCardLinkedAndApprovedAreNot() {
+        assertThat(Form0581Status.ACCEPTED.physicallyDeletable()).isTrue();
+        assertThat(Form0581Status.SENT.physicallyDeletable()).isTrue();
+        assertThat(Form0581Status.CARD_LINKED.physicallyDeletable()).isFalse();
+        assertThat(Form0581Status.APPROVED.physicallyDeletable()).isFalse();
+    }
+
+    @Test
     void reopenPutsACanceledFormBackToSent() {
         Form0581 form0581 = new Form0581();
         form0581.setStatus(Form0581Status.CANCELED);
