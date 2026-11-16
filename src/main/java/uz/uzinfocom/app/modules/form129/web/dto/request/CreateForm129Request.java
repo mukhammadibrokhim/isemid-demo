@@ -2,7 +2,6 @@ package uz.uzinfocom.app.modules.form129.web.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.modules.form129.domain.enums.Form129TestOutcome;
@@ -93,8 +92,7 @@ public record CreateForm129Request(
         Form129WrightHeddelsonOutcome wrightHeddelsonOutcome,
         @Size(max = 500) String wrightHeddelsonResultText,
 
-        @Schema(description = "ФИО лица, сообщившего о случае.", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "{validation.form129.notifier-full-name.required}")
+        @Schema(description = "ФИО лица, сообщившего о случае. Необязательно: если не передано, берётся ФИО текущего пользователя.")
         @Size(max = 255, message = "{validation.form129.notifier-full-name.size}")
         String notifierFullName
 ) {

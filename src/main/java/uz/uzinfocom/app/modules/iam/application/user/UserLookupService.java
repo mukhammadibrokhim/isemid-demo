@@ -20,4 +20,19 @@ public class UserLookupService {
         }
         return userRepository.findAllById(ids);
     }
+
+    /**
+     * Full name of the given user ("last first middle"), or {@code null} when
+     * the id is {@code null} or unknown — used to auto-fill "who did this"
+     * fields from the authenticated caller.
+     */
+    public String fullNameOrNull(Long id) {
+        if (id == null) {
+            return null;
+        }
+        return userRepository.findById(id)
+                .map(User::getFullName)
+                .filter(name -> !name.isBlank())
+                .orElse(null);
+    }
 }

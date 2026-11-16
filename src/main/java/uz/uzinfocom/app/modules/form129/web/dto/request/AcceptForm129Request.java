@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "Запрос на приём формы №129 получателем.")
 public record AcceptForm129Request(
-        @Schema(description = "ФИО лица, принявшего сообщение в организации-получателе.")
+        @Schema(description = "ФИО лица, принявшего сообщение в организации-получателе. Необязательно: если не передано, берётся ФИО текущего пользователя.")
         @Size(max = 255, message = "{validation.form129.receiver-full-name.size}")
         String receiverFullName
 ) {

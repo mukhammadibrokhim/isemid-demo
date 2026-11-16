@@ -8,11 +8,14 @@ import uz.uzinfocom.app.modules.form129.application.command.Form129StatusMapper;
 import uz.uzinfocom.app.modules.form129.application.command.Form129StatusResult;
 import uz.uzinfocom.app.modules.form129.application.exception.Form129NotFoundException;
 import uz.uzinfocom.app.modules.form129.domain.model.Form129;
+import uz.uzinfocom.app.modules.iam.application.user.UserLookupService;
 import uz.uzinfocom.app.modules.form129.infrastructure.persistence.repository.Form129JpaRepository;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.platform.audit.event.NotificationRoutingContext;
 import uz.uzinfocom.app.platform.audit.event.StatusChangedEvent;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
+
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -23,6 +26,7 @@ public class AcceptForm129Service {
     private final Form129JpaRepository form129JpaRepository;
     private final Form129StatusMapper form129StatusMapper;
     private final CurrentUserProvider currentUserProvider;
+    private final UserLookupService userLookupService;
     private final Form129AcceptValidator form129AcceptValidator;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -33,7 +37,10 @@ public class AcceptForm129Service {
         form129AcceptValidator.validateAccept(form129);
         String oldStatus = form129.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
-        form129.accept(command.receiverFullName());
+        String receiverFullName = StringUtils.hasText(command.receiverFullName())
+                ? command.receiverFullName().trim()
+                : userLookupService.fullNameOrNull(actorUserId);
+        form129.accept(receiverFullName);
         Form129StatusResult result = form129StatusMapper.toResult(form129JpaRepository.save(form129));
 
         eventPublisher.publishEvent(new StatusChangedEvent(

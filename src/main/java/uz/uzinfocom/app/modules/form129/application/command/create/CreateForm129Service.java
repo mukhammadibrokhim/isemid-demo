@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form129.application.validator.Form129CreateValidator;
 import uz.uzinfocom.app.modules.form129.domain.model.Form129;
 import uz.uzinfocom.app.modules.form129.infrastructure.persistence.repository.Form129JpaRepository;
+import uz.uzinfocom.app.modules.iam.application.user.UserLookupService;
 import uz.uzinfocom.app.modules.patient.application.service.PatientRegistrationService;
 import uz.uzinfocom.app.modules.patient.domain.model.Patient;
 import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
@@ -25,6 +27,7 @@ public class CreateForm129Service {
     private final Form129CreateValidator form129CreateValidator;
     private final PatientRegistrationService patientRegistrationService;
     private final CurrentUserProvider currentUserProvider;
+    private final UserLookupService userLookupService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -33,6 +36,9 @@ public class CreateForm129Service {
         Patient patient = patientRegistrationService.create(command.patient());
         Form129 form129 = form129CreateMapper.toEntity(command);
         form129.setPatient(patient);
+        if (!StringUtils.hasText(form129.getNotifierFullName())) {
+            form129.setNotifierFullName(userLookupService.fullNameOrNull(currentUserProvider.userIdOrNull()));
+        }
 
         Form129 saved = form129Repository.save(form129);
 
