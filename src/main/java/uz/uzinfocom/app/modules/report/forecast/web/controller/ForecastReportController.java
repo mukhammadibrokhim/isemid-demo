@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -156,11 +157,18 @@ public class ForecastReportController {
             @Parameter(description = "Начало окна обучения (включительно). По умолчанию — look-back по умолчанию.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @Parameter(description = "Конец окна обучения (включительно). По умолчанию — сегодня.")
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @Parameter(description = "true — добавить в ответ airQuality: уровень загрязнителя (AIR_CONTROL) за окно "
+                    + "обучения, его корреляцию с числом извещений и сигнал. Прогноз не корректируется. По умолчанию false.")
+            @RequestParam(defaultValue = "false") boolean includeAirQuality,
+            @Parameter(description = "Загрязнитель для airQuality (PM2.5, PM10, NO2, SO2, O3, CO). По умолчанию PM2.5.")
+            @RequestParam(required = false) @Size(max = 30) String airParameter
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                forecastReportQueryService.getSeries(regionCode, districtCode, diagnosisCode, bucket, horizon, method, from, to)
+                forecastReportQueryService.getSeries(
+                        regionCode, districtCode, diagnosisCode, bucket, horizon, method, from, to,
+                        includeAirQuality, airParameter)
         );
     }
 

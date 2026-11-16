@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.app.orchestration.dashboard.application.query.AirQualityDashboardQueryService;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.Form0581DashboardQueryService;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.Form058DashboardQueryService;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.Form129DashboardQueryService;
@@ -36,8 +37,10 @@ public class HomeDashboardController {
     private static final String MODULE_FORM058 = "form058";
     private static final String MODULE_FORM0581 = "form058-1";
     private static final String MODULE_FORM129 = "form129";
+    private static final String MODULE_AIR_QUALITY = "air-quality";
 
     private final HomeDashboardQueryService homeDashboardQueryService;
+    private final AirQualityDashboardQueryService airQualityDashboardQueryService;
     private final Form058DashboardQueryService form058DashboardQueryService;
     private final Form0581DashboardQueryService form0581DashboardQueryService;
     private final Form129DashboardQueryService form129DashboardQueryService;
@@ -63,15 +66,16 @@ public class HomeDashboardController {
             description = "Возвращает полную статистику одного модуля (сводка, динамика по месяцам и, где "
                     + "применимо, карты/акты по статусу, ТОП диагнозов/тип заболевания, источники/география), "
                     + "в рамках доступа текущей организации. Допустимые значения module: form058, form058-1, "
-                    + "form129."
+                    + "form129, air-quality (станции качества воздуха и их состояние относительно норм)."
     )
     @GetMapping(ApiPaths.Dashboard.HOME_MODULE)
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Object> homeModule(@Parameter(description = "form058, form058-1 или form129") @PathVariable String module) {
+    public ApiResponse<Object> homeModule(@Parameter(description = "form058, form058-1, form129 или air-quality") @PathVariable String module) {
         Object data = switch (module) {
             case MODULE_FORM058 -> form058DashboardQueryService.getDashboard();
             case MODULE_FORM0581 -> form0581DashboardQueryService.getDashboard();
             case MODULE_FORM129 -> form129DashboardQueryService.getDashboard();
+            case MODULE_AIR_QUALITY -> airQualityDashboardQueryService.getDashboard();
             default -> throw new NotFoundException("dashboard.module.not_found", module);
         };
 

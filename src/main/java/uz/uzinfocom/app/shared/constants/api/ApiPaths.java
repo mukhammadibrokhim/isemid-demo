@@ -680,6 +680,9 @@ public final class ApiPaths {
 
         public static final String ROOT = Report.ROOT + "/map";
         public static final String POINTS = "/points";
+
+        /** Air-quality stations with their latest reading judged against the norms, to pin next to the case points. */
+        public static final String AIR_STATIONS = "/air-stations";
     }
 
     /**
@@ -951,6 +954,25 @@ public final class ApiPaths {
         public static final String BY_TERRITORY_ROOT_NODE = "/by-territory/root";
         public static final String BY_TERRITORY_CHILDREN = "/by-territory/children";
         public static final String BY_TERRITORY_EXPORT = "/by-territory/export";
+    }
+
+    /**
+     * "Air and respiratory diseases" — AIR_CONTROL air-quality readings set against confirmed
+     * respiratory cases (form058 + form058_1, {@code final_icd10_code} only), per territory and as a
+     * time series with the correlation between the two. See {@code AirHealthReportController}
+     * under {@code modules.report.airhealth}.
+     */
+    public static final class AirHealthReport {
+        private AirHealthReport() {
+        }
+
+        public static final String ROOT = Report.ROOT + "/air-health";
+
+        /** Per-territory table: air pollutant level and exceedance days next to confirmed respiratory cases and their rate. */
+        public static final String TERRITORIES = "/territories";
+
+        /** Time series of one territory: pollutant level and cases per bucket, with the correlation between them. */
+        public static final String SERIES = "/series";
     }
 
     /**

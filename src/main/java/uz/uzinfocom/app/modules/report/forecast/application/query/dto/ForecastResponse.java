@@ -13,6 +13,9 @@ public record ForecastResponse(
         List<ForecastHistoryPointResponse> history,
 
         @Schema(description = "Спрогнозированные будущие интервалы, ближайший первым.")
-        List<ForecastPredictionPointResponse> forecast
+        List<ForecastPredictionPointResponse> forecast,
+
+        @Schema(description = "Фактор качества воздуха. Заполняется только при includeAirQuality=true, иначе null.")
+        ForecastAirFactorResponse airQuality
 ) {
 }

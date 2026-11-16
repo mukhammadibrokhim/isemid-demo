@@ -89,4 +89,29 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
                   AND u.active = true
             """)
     java.util.List<Long> findActiveIdsByOrganizationId(@Param("organizationId") Long organizationId);
+
+    /**
+     * Active users of the active organizations of one medical type in a territory: every such
+     * organization of {@code regionCode} when {@code districtCode} is {@code null}, otherwise the
+     * ones of that district plus the {@code wideLevels} ones (regional/republican bodies that
+     * oversee the district but carry no district code of their own).
+     */
+    @Query("""
+            SELECT DISTINCT u.id
+            FROM User u
+            JOIN u.organizations o
+            WHERE u.active = true
+              AND o.active = true
+              AND o.medicalType = :medicalType
+              AND o.regionCode = :regionCode
+              AND (:districtCode IS NULL
+                   OR o.districtCode = :districtCode
+                   OR o.levelType IN :wideLevels)
+            """)
+    java.util.List<Long> findActiveIdsByMedicalTypeInTerritory(
+            @Param("medicalType") uz.uzinfocom.app.modules.iam.domain.enums.MedicalType medicalType,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode,
+            @Param("wideLevels") java.util.Collection<uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel> wideLevels
+    );
 }

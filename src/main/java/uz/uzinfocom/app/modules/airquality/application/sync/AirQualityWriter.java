@@ -1,12 +1,16 @@
 package uz.uzinfocom.app.modules.airquality.application.sync;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.integration.aircontrol.client.dto.AirControlMeasurement;
 import uz.uzinfocom.app.integration.aircontrol.client.dto.AirControlReading;
 import uz.uzinfocom.app.integration.aircontrol.client.dto.AirControlStation;
 import uz.uzinfocom.app.modules.airquality.application.AirParameter;
+import uz.uzinfocom.app.modules.airquality.application.AirQualityNorms;
+import uz.uzinfocom.app.modules.airquality.application.AirQualitySettingKeys;
+import uz.uzinfocom.app.modules.airquality.application.event.AirQualityExceededEvent;
 import uz.uzinfocom.app.modules.airquality.domain.AirMeasurement;
 import uz.uzinfocom.app.modules.airquality.domain.AirStation;
 import uz.uzinfocom.app.modules.airquality.repository.AirMeasurementRepository;
@@ -15,13 +19,17 @@ import uz.uzinfocom.app.modules.reference.domain.District;
 import uz.uzinfocom.app.modules.reference.domain.Region;
 import uz.uzinfocom.app.modules.reference.repository.DistrictRepository;
 import uz.uzinfocom.app.modules.reference.repository.RegionRepository;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,6 +54,9 @@ public class AirQualityWriter {
     private final AirMeasurementRepository measurementRepository;
     private final RegionRepository regionRepository;
     private final DistrictRepository districtRepository;
+    private final AirQualityNorms norms;
+    private final SystemSettingResolver settings;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public StationUpsertResult upsertStations(List<AirControlStation> received) {
@@ -109,16 +120,47 @@ public class AirQualityWriter {
         if (rows.isEmpty()) {
             return 0;
         }
+        // Decided before the new rows are saved so "the previous reading" can never be this one.
+        List<AirQualityExceededEvent> exceedances = new ArrayList<>();
+        AirStation station = stationRepository.findById(stationId).orElse(null);
+        LocalDateTime last = station == null ? null : station.getLastMeasuredAt();
+        boolean newest = last == null || measurement.measuredAt().isAfter(last);
+        if (station != null && newest && settings.resolveBoolean(AirQualitySettingKeys.ALERT_ENABLED, true)) {
+            rows.values().forEach(row -> exceedance(station, row).ifPresent(exceedances::add));
+        }
+
         measurementRepository.saveAll(rows.values());
 
-        stationRepository.findById(stationId).ifPresent(station -> {
-            LocalDateTime last = station.getLastMeasuredAt();
-            if (last == null || measurement.measuredAt().isAfter(last)) {
+        if (station != null) {
+            if (newest) {
                 station.setLastMeasuredAt(measurement.measuredAt());
             }
             station.setLastSyncedAt(LocalDateTime.now());
-        });
+        }
+        exceedances.forEach(eventPublisher::publishEvent);
         return rows.size();
+    }
+
+    /** An event when {@code row} is above its norm and the previous stored reading of it was not. */
+    private Optional<AirQualityExceededEvent> exceedance(AirStation station, AirMeasurement row) {
+        Optional<BigDecimal> limit = norms.limit(row.getParameter());
+        Optional<BigDecimal> value = AirQualityNorms.toMicrograms(row.getValue(), row.getUnit());
+        if (limit.isEmpty() || value.isEmpty() || value.get().compareTo(limit.get()) <= 0) {
+            return Optional.empty();
+        }
+        boolean alreadyAbove = measurementRepository
+                .findFirstByStationIdAndParameterAndMeasuredAtBeforeOrderByMeasuredAtDesc(
+                        station.getId(), row.getParameter(), row.getMeasuredAt())
+                .flatMap(previous -> AirQualityNorms.toMicrograms(previous.getValue(), previous.getUnit()))
+                .map(previous -> previous.compareTo(limit.get()) > 0)
+                .orElse(false);
+        if (alreadyAbove) {
+            return Optional.empty();
+        }
+        BigDecimal ratio = value.get().divide(limit.get(), 4, RoundingMode.HALF_UP);
+        return Optional.of(new AirQualityExceededEvent(
+                station.getId(), station.getName(), station.getRegionCode(), station.getDistrictCode(),
+                row.getParameter(), value.get(), limit.get(), ratio, row.getMeasuredAt()));
     }
 
     private static void apply(AirStation station, AirControlStation incoming, Geo geo) {

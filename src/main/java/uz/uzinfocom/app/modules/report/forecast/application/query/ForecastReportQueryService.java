@@ -2,8 +2,14 @@ package uz.uzinfocom.app.modules.report.forecast.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.airquality.application.AirParameter;
+import uz.uzinfocom.app.modules.airquality.application.AirQualityNorms;
+import uz.uzinfocom.app.modules.airquality.application.query.dto.AirBucketStat;
+import uz.uzinfocom.app.modules.airquality.repository.AirAggregateRepository;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService;
+import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastAirFactorResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastBucketUnit;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastDiseaseRiskResponse;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastHistoryPointResponse;
@@ -19,13 +25,17 @@ import uz.uzinfocom.app.modules.report.forecast.application.query.forecasting.Ti
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.ForecastSeriesRepository;
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastBucketCountProjection;
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastDiseaseBucketCountProjection;
+import uz.uzinfocom.app.modules.report.shared.PearsonCorrelation;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRange;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyNode;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyService;
 import uz.uzinfocom.app.modules.report.shared.ResolvedReportNode;
+import uz.uzinfocom.app.orchestration.scope.ScopeGeoFilter;
+import uz.uzinfocom.app.orchestration.scope.ScopeGeoFilterResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -36,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * "Forecast" — surveillance forecasting over {@code form058} + {@code
@@ -72,10 +83,18 @@ public class ForecastReportQueryService {
     private static final int DEFAULT_TOP_DISEASES = 10;
     private static final int MAX_TOP_DISEASES = 50;
     private static final long DEFAULT_MIN_TRAINING_CASES = 3;
+    private static final String DEFAULT_AIR_PARAMETER = "PM2.5";
+    /** How many of the newest buckets with air readings define the "recent" level. */
+    private static final int RECENT_AIR_BUCKETS = 4;
+    /** Correlation at or above which a reliable link counts as a moderate relationship (see PearsonCorrelation.Strength). */
+    private static final double AIR_LINK_MIN_CORRELATION = 0.3;
 
     private final ForecastSeriesRepository forecastSeriesRepository;
     private final ReportHierarchyService reportHierarchyService;
     private final Icd10LookupService icd10LookupService;
+    private final AirAggregateRepository airAggregateRepository;
+    private final AirQualityNorms airQualityNorms;
+    private final ScopeGeoFilterResolver scopeGeoFilterResolver;
 
     public List<ForecastNodeResponse> getRoot(
             String diagnosisCode,
@@ -130,7 +149,9 @@ public class ForecastReportQueryService {
             Integer horizonOrNull,
             ForecastMethod methodOrNull,
             LocalDate from,
-            LocalDate to
+            LocalDate to,
+            boolean includeAirQuality,
+            String airParameterOrNull
     ) {
         Organization currentOrganization = requireCurrentOrganization();
         ResolvedReportNode node = reportHierarchyService.resolveNode(currentOrganization, regionCode, districtCode);
@@ -166,7 +187,104 @@ public class ForecastReportQueryService {
                 computation.peakPeriodStart()
         );
 
-        return new ForecastResponse(summary, history, computation.points());
+        ForecastAirFactorResponse airFactor = includeAirQuality
+                ? airFactor(currentOrganization, regionCode, districtCode, airParameterOrNull, request, counts)
+                : null;
+        return new ForecastResponse(summary, history, computation.points(), airFactor);
+    }
+
+    /**
+     * Context for the forecast, not an input to it: the pollutant's level per training bucket for the
+     * same territory, how it lines up with the case counts, and a coarse signal. The point forecast
+     * and the endemic channel are left exactly as the models produced them - air readings only exist
+     * from when the AIR_CONTROL sync was switched on, so the overlap with a multi-year training window
+     * is short and any fitted adjustment would be noise presented as a model.
+     */
+    private ForecastAirFactorResponse airFactor(
+            Organization currentOrganization, String regionCode, String districtCode,
+            String airParameterOrNull, Request request, long[] counts
+    ) {
+        String parameter = AirParameter.normalize(airParameterOrNull);
+        if (parameter == null) {
+            parameter = DEFAULT_AIR_PARAMETER;
+        }
+        ScopeGeoFilter geo = airGeoFilter(currentOrganization, regionCode, districtCode);
+        List<LocalDate> bucketStarts = request.window().bucketStarts();
+        LocalDate lastStart = bucketStarts.get(bucketStarts.size() - 1);
+
+        Map<LocalDate, AirBucketStat> air = new HashMap<>();
+        airAggregateRepository.bucketSeries(
+                geo.regionCode(), geo.districtCode(), parameter, request.unit().sqlTruncField(),
+                bucketStarts.get(0).atStartOfDay(), bucketEnd(request.unit(), lastStart).plusDays(1).atStartOfDay()
+        ).forEach(stat -> air.put(stat.bucketStart(), stat));
+
+        Optional<BigDecimal> norm = airQualityNorms.limit(parameter);
+        List<Double> airValues = new ArrayList<>();
+        List<Double> caseValues = new ArrayList<>();
+        List<Double> orderedAir = new ArrayList<>();
+        int exceeded = 0;
+        for (int i = 0; i < bucketStarts.size(); i++) {
+            AirBucketStat stat = air.get(bucketStarts.get(i));
+            if (stat == null) {
+                continue;
+            }
+            airValues.add(stat.average());
+            caseValues.add((double) counts[i]);
+            orderedAir.add(stat.average());
+            if (norm.isPresent() && stat.average() > norm.get().doubleValue()) {
+                exceeded++;
+            }
+        }
+
+        PearsonCorrelation.Result correlation = PearsonCorrelation.compute(toArray(airValues), toArray(caseValues));
+        Double recentAverage = null;
+        Double recentRatio = null;
+        if (!orderedAir.isEmpty()) {
+            List<Double> recent = orderedAir.subList(Math.max(0, orderedAir.size() - RECENT_AIR_BUCKETS), orderedAir.size());
+            recentAverage = recent.stream().mapToDouble(Double::doubleValue).average().orElse(0d);
+            if (norm.isPresent()) {
+                recentRatio = recentAverage / norm.get().doubleValue();
+            }
+        }
+
+        return new ForecastAirFactorResponse(
+                parameter, AirQualityNorms.UNIT, norm.orElse(null), bucketStarts.size(), airValues.size(),
+                recentAverage == null ? null : round2(recentAverage),
+                recentRatio == null ? null : round2(recentRatio),
+                exceeded,
+                correlation.coefficient() == null ? null : Math.round(correlation.coefficient() * 10_000d) / 10_000d,
+                correlation.pairs(), correlation.reliable(),
+                airSignal(recentRatio, correlation));
+    }
+
+    private static ForecastAirFactorResponse.Signal airSignal(Double recentRatio, PearsonCorrelation.Result correlation) {
+        if (recentRatio == null) {
+            return ForecastAirFactorResponse.Signal.NO_DATA;
+        }
+        if (recentRatio <= 1d) {
+            return ForecastAirFactorResponse.Signal.NEUTRAL;
+        }
+        boolean linked = correlation.reliable() && correlation.coefficient() >= AIR_LINK_MIN_CORRELATION;
+        return linked ? ForecastAirFactorResponse.Signal.ELEVATED : ForecastAirFactorResponse.Signal.WATCH;
+    }
+
+    /** Explicit region/district wins, otherwise the caller's own territory - the same rule the air-health report uses. */
+    private ScopeGeoFilter airGeoFilter(Organization currentOrganization, String regionCode, String districtCode) {
+        if (StringUtils.hasText(districtCode)) {
+            return new ScopeGeoFilter(null, districtCode.trim());
+        }
+        if (StringUtils.hasText(regionCode)) {
+            return new ScopeGeoFilter(regionCode.trim(), null);
+        }
+        return scopeGeoFilterResolver.resolve(currentOrganization);
+    }
+
+    private static double[] toArray(List<Double> values) {
+        double[] array = new double[values.size()];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = values.get(i);
+        }
+        return array;
     }
 
     /**

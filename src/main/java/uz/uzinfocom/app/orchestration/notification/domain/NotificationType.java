@@ -34,5 +34,8 @@ public enum NotificationType {
     CARD_REJECTED,
     ACT_ASSIGNED,
     ACT_LIS_RESPONSE,
-    EXPORT_READY
+    EXPORT_READY,
+    // A station's reading of a pollutant crossed above its norm - sent to the sanitary-epidemiological
+    // service users of the station's territory, see AirQualityNotificationListener.
+    AIR_QUALITY_EXCEEDED
 }

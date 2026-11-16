@@ -6,5 +6,6 @@ public enum AuditEntityType {
     FORM129,
     ACT,
     CARD,
-    EXPORT_JOB
+    EXPORT_JOB,
+    AIR_STATION
 }

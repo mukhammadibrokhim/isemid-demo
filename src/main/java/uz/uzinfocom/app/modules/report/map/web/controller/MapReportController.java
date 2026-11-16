@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uz.uzinfocom.app.modules.airquality.application.query.dto.AirStationStatusResponse;
+import uz.uzinfocom.app.modules.report.map.application.query.AirStationMapQueryService;
 import uz.uzinfocom.app.modules.report.map.application.query.MapPointQueryService;
 import uz.uzinfocom.app.modules.report.map.application.query.dto.MapPointResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -41,7 +43,31 @@ import java.util.List;
 public class MapReportController {
 
     private final MapPointQueryService mapPointQueryService;
+    private final AirStationMapQueryService airStationMapQueryService;
     private final MessageResolver messageResolver;
+
+    @Operation(
+            summary = "Xaritada ko'rsatish uchun havo sifati stansiyalari",
+            description = "Monitoring stansiyalari koordinatalari va oxirgi o'lchovi bilan. Har bir stansiyada "
+                    + "me'yorga nisbatan holat (status: GOOD/MODERATE/EXCEEDED/SEVERE/NO_DATA), eng yomon "
+                    + "ifloslantiruvchi va har bir parametrning limit/ratio qiymati bor. Hudud berilmasa chaqiruvchining "
+                    + "ruxsat doirasi qo'llanadi. Eng yomon holatdagi stansiyalar birinchi."
+    )
+    @GetMapping(ApiPaths.MapReport.AIR_STATIONS)
+    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    public ApiResponse<List<AirStationStatusResponse>> airStations(
+            @Parameter(description = "Region kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
+            @RequestParam(required = false) String regionCode,
+            @Parameter(description = "Tuman kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
+            @RequestParam(required = false) String districtCode,
+            @Parameter(description = "true bo'lsa faqat ishlayotgan stansiyalar.")
+            @RequestParam(defaultValue = "false") boolean activeOnly
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                airStationMapQueryService.getStations(regionCode, districtCode, activeOnly)
+        );
+    }
 
     @Operation(
             summary = "Xaritada ko'rsatish uchun form058 nuqtalari",

@@ -6,17 +6,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.airquality.application.AirParameter;
+import uz.uzinfocom.app.modules.airquality.application.AirQualityNorms;
+import uz.uzinfocom.app.modules.airquality.application.AirStatus;
 import uz.uzinfocom.app.modules.airquality.application.query.dto.AirLatestResponse;
 import uz.uzinfocom.app.modules.airquality.application.query.dto.AirReadingResponse;
+import uz.uzinfocom.app.modules.airquality.application.query.dto.AirReadingStatusResponse;
 import uz.uzinfocom.app.modules.airquality.application.query.dto.AirStationResponse;
+import uz.uzinfocom.app.modules.airquality.application.query.dto.AirStationStatusResponse;
 import uz.uzinfocom.app.modules.airquality.domain.AirMeasurement;
 import uz.uzinfocom.app.modules.airquality.domain.AirStation;
 import uz.uzinfocom.app.modules.airquality.repository.AirMeasurementRepository;
 import uz.uzinfocom.app.modules.airquality.repository.AirStationRepository;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** Read side of the stored AIR_CONTROL data. */
 @Service
@@ -30,6 +39,7 @@ public class AirQualityQueryService {
 
     private final AirStationRepository stationRepository;
     private final AirMeasurementRepository measurementRepository;
+    private final AirQualityNorms norms;
 
     public List<AirStationResponse> stations(String regionCode, String districtCode, boolean activeOnly) {
         return stationRepository.findAllByOrderByNameAscIdAsc().stream()
@@ -38,6 +48,51 @@ public class AirQualityQueryService {
                 .filter(station -> !activeOnly || Boolean.TRUE.equals(station.getActive()))
                 .map(AirQualityQueryService::toResponse)
                 .toList();
+    }
+
+    /**
+     * Stations with their latest measurement judged against the norms, worst first (then by
+     * name) - the shape a map and a dashboard need. Two queries however many stations there are.
+     */
+    public List<AirStationStatusResponse> stationStatuses(String regionCode, String districtCode, boolean activeOnly) {
+        List<AirStationResponse> stations = stations(regionCode, districtCode, activeOnly);
+        if (stations.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, List<AirMeasurement>> latestByStation = measurementRepository
+                .findLatestOfStations(stations.stream().map(AirStationResponse::id).toList()).stream()
+                .collect(Collectors.groupingBy(AirMeasurement::getStationId));
+
+        return stations.stream()
+                .map(station -> toStatus(station, latestByStation.getOrDefault(station.id(), List.of())))
+                .sorted(Comparator.comparingInt((AirStationStatusResponse s) -> s.status().severity()).reversed()
+                        .thenComparing(s -> s.station().name(), Comparator.nullsLast(String::compareToIgnoreCase)))
+                .toList();
+    }
+
+    private AirStationStatusResponse toStatus(AirStationResponse station, List<AirMeasurement> latest) {
+        List<AirReadingStatusResponse> readings = latest.stream()
+                .map(measurement -> {
+                    Optional<BigDecimal> ratio =
+                            norms.ratio(measurement.getParameter(), measurement.getValue(), measurement.getUnit());
+                    return new AirReadingStatusResponse(
+                            measurement.getParameter(), measurement.getValue(), measurement.getUnit(),
+                            norms.limit(measurement.getParameter()).orElse(null),
+                            ratio.orElse(null), AirStatus.fromRatio(ratio.orElse(null)));
+                })
+                .toList();
+
+        AirReadingStatusResponse worst = readings.stream()
+                .filter(reading -> reading.ratio() != null)
+                .max(Comparator.comparing(AirReadingStatusResponse::ratio))
+                .orElse(null);
+        return new AirStationStatusResponse(
+                station,
+                latest.isEmpty() ? null : latest.get(0).getMeasuredAt(),
+                worst == null ? AirStatus.NO_DATA : worst.status(),
+                worst == null ? null : worst.parameter(),
+                worst == null ? null : worst.ratio(),
+                readings);
     }
 
     public AirLatestResponse latest(Long stationId) {
