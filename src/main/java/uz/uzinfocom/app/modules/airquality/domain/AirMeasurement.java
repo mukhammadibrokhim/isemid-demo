@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * One pollutant value of one station at one moment: {@code (stationId, measuredAt,
  * parameter)} is unique. {@link #parameter} is the normalized code (see
  * {@code AirParameter}), e.g. {@code PM2.5}, {@code NO2}. {@link #measuredAt} is the
- * station's local wall clock exactly as AIRCONTROL sends it (no zone).
+ * station's local wall clock exactly as AIR_CONTROL sends it (no zone).
  */
 @Getter
 @Setter

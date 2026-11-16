@@ -3,7 +3,7 @@ package uz.uzinfocom.app.modules.airquality.application;
 import java.util.Locale;
 
 /**
- * Normalizes AIRCONTROL pollutant names into stable codes: the agreement's own sample
+ * Normalizes AIR_CONTROL pollutant names into stable codes: the agreement's own sample
  * mixes spacing ({@code "PM 2.5"}, {@code "NOx-2"}), so {@code "PM 2.5"} and
  * {@code "pm2.5"} must land on the same code or the unique key and every series
  * query would split one pollutant in two.

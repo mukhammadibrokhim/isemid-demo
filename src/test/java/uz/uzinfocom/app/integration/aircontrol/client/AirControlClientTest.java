@@ -65,7 +65,7 @@ class AirControlClientTest {
                 username, password, Duration.ofSeconds(1), Duration.ofSeconds(5));
         return new AirControlClient(
                 builder.build(), properties, settings,
-                TestCircuitBreakerLookups.withDefaults(CircuitBreakerNames.AIRCONTROL),
+                TestCircuitBreakerLookups.withDefaults(CircuitBreakerNames.AIR_CONTROL),
                 JsonMapper.builder().build());
     }
 
@@ -141,7 +141,7 @@ class AirControlClientTest {
 
         assertThatThrownBy(() -> client.fetchLatest("7"))
                 .isInstanceOf(AirControlIntegrationException.class)
-                .hasMessage("aircontrol.error.malformed_response");
+                .hasMessage("air-control.error.malformed_response");
     }
 
     @Test
@@ -150,7 +150,7 @@ class AirControlClientTest {
 
         assertThatThrownBy(() -> client.fetchStations())
                 .isInstanceOf(AirControlIntegrationException.class)
-                .hasMessage("aircontrol.error.not_configured");
+                .hasMessage("air-control.error.not_configured");
     }
 
     @Test
@@ -159,7 +159,7 @@ class AirControlClientTest {
 
         assertThatThrownBy(() -> client.fetchStations())
                 .isInstanceOf(AirControlIntegrationException.class)
-                .hasMessage("aircontrol.error.unavailable");
+                .hasMessage("air-control.error.unavailable");
     }
 
     @Test
@@ -168,17 +168,17 @@ class AirControlClientTest {
 
         assertThatThrownBy(unconfigured::fetchStations)
                 .isInstanceOf(AirControlIntegrationException.class)
-                .hasMessage("aircontrol.error.not_configured");
+                .hasMessage("air-control.error.not_configured");
         server.verify();
     }
 
     @Test
     void refusesWithoutContactingAirControlWhenDisabled() {
-        when(settings.resolveBoolean(eq("integration.aircontrol.enabled"), anyBoolean())).thenReturn(false);
+        when(settings.resolveBoolean(eq("integration.air-control.enabled"), anyBoolean())).thenReturn(false);
 
         assertThatThrownBy(() -> client.fetchStations())
                 .isInstanceOf(AirControlIntegrationException.class)
-                .hasMessage("aircontrol.error.disabled");
+                .hasMessage("air-control.error.disabled");
         server.verify();
     }
 }

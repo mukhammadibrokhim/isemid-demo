@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The one place AIRCONTROL calls go through: GET with HTTP basic auth, inside the
- * shared {@code aircontrol} circuit breaker, every failure classified into an
+ * The one place AIR_CONTROL calls go through: GET with HTTP basic auth, inside the
+ * shared {@code air-control} circuit breaker, every failure classified into an
  * {@link AirControlIntegrationException}. The agreement's JSON is read tolerantly
  * ({@link JsonNode}, not bound DTOs) because its attribute table and its sample
  * disagree on types: ids/values may arrive as numbers or strings.
@@ -56,7 +56,7 @@ public class AirControlClient {
     private final JsonMapper jsonMapper;
 
     public AirControlClient(
-            @Qualifier("aircontrolRestClient") RestClient restClient,
+            @Qualifier("airControlRestClient") RestClient restClient,
             AirControlProperties properties,
             SystemSettingResolver systemSettingResolver,
             DynamicCircuitBreakerLookup circuitBreakerLookup,
@@ -74,7 +74,7 @@ public class AirControlClient {
         JsonNode root = get(path(AirControlSettingKeys.STATIONS_PATH, properties.stationsPath()))
                 .orElseThrow(AirControlIntegrationException::malformed);
         if (!root.isArray()) {
-            log.warn("AIRCONTROL stations answer is not a JSON array. type={}", root.getNodeType());
+            log.warn("AIR_CONTROL stations answer is not a JSON array. type={}", root.getNodeType());
             throw AirControlIntegrationException.malformed();
         }
         List<AirControlStation> stations = new ArrayList<>();
@@ -96,7 +96,7 @@ public class AirControlClient {
     }
 
     /**
-     * Method 2: the latest measurement of one station; empty when AIRCONTROL does not
+     * Method 2: the latest measurement of one station; empty when AIR_CONTROL does not
      * know the station (404).
      */
     public Optional<AirControlMeasurement> fetchLatest(String stationId) {
@@ -109,7 +109,7 @@ public class AirControlClient {
         JsonNode data = root.path("data");
         LocalDateTime measuredAt = dateTime(text(root.path("datetime")));
         if (measuredAt == null || !data.isArray()) {
-            log.warn("AIRCONTROL measurement has no usable datetime/data. stationId={}", requestedId);
+            log.warn("AIR_CONTROL measurement has no usable datetime/data. stationId={}", requestedId);
             throw AirControlIntegrationException.malformed();
         }
         List<AirControlReading> readings = new ArrayList<>();
@@ -138,19 +138,17 @@ public class AirControlClient {
         String username = properties.username();
         String password = properties.password();
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
-            log.error("AIRCONTROL credentials are not configured (integration.aircontrol.username/password).");
+            log.error("AIR_CONTROL credentials are not configured (integration.air-control.username/password).");
             throw AirControlIntegrationException.notConfigured();
         }
         String basic = Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
 
         try {
-            return circuitBreakerLookup.forName(CircuitBreakerNames.AIRCONTROL)
+            return circuitBreakerLookup.forName(CircuitBreakerNames.AIR_CONTROL)
                     .executeSupplier(() -> send(url, basic));
-        } catch (AirControlIntegrationException exception) {
-            throw exception;
         } catch (CallNotPermittedException exception) {
             throw new AirControlCircuitOpenException(
-                    circuitBreakerLookup.retryAfterSeconds(CircuitBreakerNames.AIRCONTROL), exception);
+                    circuitBreakerLookup.retryAfterSeconds(CircuitBreakerNames.AIR_CONTROL), exception);
         }
     }
 
@@ -161,10 +159,8 @@ public class AirControlClient {
                     .header(HttpHeaders.AUTHORIZATION, "Basic " + basic)
                     .accept(MediaType.APPLICATION_JSON)
                     .exchange((request, response) -> handle(response));
-        } catch (AirControlIntegrationException exception) {
-            throw exception;
         } catch (RestClientException exception) {
-            log.warn("AIRCONTROL request failed before a response was received. errorType={}",
+            log.warn("AIR_CONTROL request failed before a response was received. errorType={}",
                     exception.getClass().getSimpleName());
             throw AirControlIntegrationException.unavailable(exception);
         }
@@ -177,11 +173,11 @@ public class AirControlClient {
             return Optional.empty();
         }
         if (code == 401 || code == 403) {
-            log.warn("AIRCONTROL refused the credentials. status={}", code);
+            log.warn("AIR_CONTROL refused the credentials. status={}", code);
             throw AirControlIntegrationException.notConfigured();
         }
         if (status.isError()) {
-            log.warn("AIRCONTROL returned an error. status={}", code);
+            log.warn("AIR_CONTROL returned an error. status={}", code);
             throw AirControlIntegrationException.upstream();
         }
         try (InputStream stream = response.getBody()) {

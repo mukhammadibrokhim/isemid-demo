@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        AIR_CONTROL naming: the setting keys moved from integration.aircontrol.* /
+        http-client.aircontrol.* to integration.air-control.* / http-client.air-control.*
+        (kebab-case like iam-remote), and the product name is written AIR_CONTROL in
+        descriptions. The original seed changeSets are left untouched (their checksums
+        are already recorded), so this one renames whatever they created - including a
+        value or active flag an admin already changed in the dev panel. A target key
+        that already exists is never overwritten.
+    -->
+    <changeSet id="20261116-1000-01-rename-aircontrol-settings-to-air-control" author="uzinfocom">
+        <sql>
+            UPDATE system_settings
+            SET setting_key = replace(setting_key, '.aircontrol.', '.air-control.'),
+                description = replace(description, 'AIRCONTROL', 'AIR_CONTROL')
+            WHERE (setting_key LIKE 'integration.aircontrol.%' OR setting_key LIKE 'http-client.aircontrol.%')
+              AND NOT EXISTS (
+                  SELECT 1 FROM system_settings existing
+                  WHERE existing.setting_key = replace(system_settings.setting_key, '.aircontrol.', '.air-control.'));
+
+            UPDATE security_route_policy
+            SET description = replace(description, 'AIRCONTROL', 'AIR_CONTROL')
+            WHERE pattern = '/v1/air-quality/**';
+        </sql>
+        <rollback>
+            <sql>
+                UPDATE system_settings
+                SET setting_key = replace(setting_key, '.air-control.', '.aircontrol.'),
+                    description = replace(description, 'AIR_CONTROL', 'AIRCONTROL')
+                WHERE setting_key LIKE 'integration.air-control.%' OR setting_key LIKE 'http-client.air-control.%';
+
+                UPDATE security_route_policy
+                SET description = replace(description, 'AIR_CONTROL', 'AIRCONTROL')
+                WHERE pattern = '/v1/air-quality/**';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

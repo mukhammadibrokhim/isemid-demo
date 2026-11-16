@@ -8,9 +8,9 @@
             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!--
-        Runtime-editable AIRCONTROL settings (see AirControlSettingKeys) so they show up
+        Runtime-editable AIR_CONTROL settings (see AirControlSettingKeys) so they show up
         in the dev panel. Values equal the AirControlProperties defaults, except base-url:
-        application.properties drives it via ${AIRCONTROL_BASE_URL}, so it is seeded
+        application.properties drives it via ${AIR_CONTROL_BASE_URL}, so it is seeded
         INACTIVE and a deployment with its own URL is not silently overridden. The login
         and password are deliberately not settings (system_settings is readable by any
         signed-in user).

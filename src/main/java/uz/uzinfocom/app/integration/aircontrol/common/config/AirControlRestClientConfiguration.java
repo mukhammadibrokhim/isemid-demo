@@ -20,7 +20,7 @@ import uz.uzinfocom.app.platform.observability.TraceIdClientHttpRequestIntercept
 import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 
 /**
- * Dedicated {@code RestClient} for AIRCONTROL, built like {@code DhpRestClientConfiguration}.
+ * Dedicated {@code RestClient} for AIR_CONTROL, built like {@code DhpRestClientConfiguration}.
  * Basic-auth credentials are added per request by {@code AirControlClient}, never
  * by an interceptor here, so no header with a secret can reach a shared logger.
  */
@@ -28,8 +28,8 @@ import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
 @EnableConfigurationProperties(AirControlProperties.class)
 public class AirControlRestClientConfiguration {
 
-    @Bean(name = "aircontrolConnectionManager")
-    public PoolingHttpClientConnectionManager aircontrolConnectionManager(AirControlProperties properties) {
+    @Bean(name = "airControlConnectionManager")
+    public PoolingHttpClientConnectionManager airControlConnectionManager(AirControlProperties properties) {
         if (properties.connectTimeout().isZero() || properties.connectTimeout().isNegative()
                 || properties.readTimeout().isZero() || properties.readTimeout().isNegative()) {
             throw new IllegalStateException("AirControl connect and read timeouts must be positive");
@@ -46,10 +46,10 @@ public class AirControlRestClientConfiguration {
                 .build();
     }
 
-    @Bean(name = "aircontrolCloseableHttpClient", destroyMethod = "close")
-    public CloseableHttpClient aircontrolCloseableHttpClient(
+    @Bean(name = "airControlCloseableHttpClient", destroyMethod = "close")
+    public CloseableHttpClient airControlCloseableHttpClient(
             AirControlProperties properties,
-            @Qualifier("aircontrolConnectionManager") PoolingHttpClientConnectionManager connectionManager
+            @Qualifier("airControlConnectionManager") PoolingHttpClientConnectionManager connectionManager
     ) {
         RequestConfig requestConfig = RequestConfig.custom()
                 .setResponseTimeout(Timeout.ofMilliseconds(properties.readTimeout().toMillis()))
@@ -62,22 +62,22 @@ public class AirControlRestClientConfiguration {
                 .build();
     }
 
-    @Bean(name = "aircontrolClientHttpRequestFactory")
-    public HttpComponentsClientHttpRequestFactory aircontrolClientHttpRequestFactory(
-            @Qualifier("aircontrolCloseableHttpClient") CloseableHttpClient closeableHttpClient
+    @Bean(name = "airControlClientHttpRequestFactory")
+    public HttpComponentsClientHttpRequestFactory airControlClientHttpRequestFactory(
+            @Qualifier("airControlCloseableHttpClient") CloseableHttpClient closeableHttpClient
     ) {
         return new HttpComponentsClientHttpRequestFactory(closeableHttpClient);
     }
 
-    @Bean(name = "aircontrolHttpTuningInterceptor")
-    public DynamicHttpTuningInterceptor aircontrolHttpTuningInterceptor(
+    @Bean(name = "airControlHttpTuningInterceptor")
+    public DynamicHttpTuningInterceptor airControlHttpTuningInterceptor(
             AirControlProperties properties,
-            @Qualifier("aircontrolConnectionManager") PoolingHttpClientConnectionManager connectionManager,
-            @Qualifier("aircontrolClientHttpRequestFactory") HttpComponentsClientHttpRequestFactory requestFactory,
+            @Qualifier("airControlConnectionManager") PoolingHttpClientConnectionManager connectionManager,
+            @Qualifier("airControlClientHttpRequestFactory") HttpComponentsClientHttpRequestFactory requestFactory,
             SystemSettingResolver systemSettingResolver
     ) {
         return new DynamicHttpTuningInterceptor(
-                "aircontrol",
+                "air-control",
                 connectionManager,
                 requestFactory,
                 systemSettingResolver,
@@ -88,12 +88,12 @@ public class AirControlRestClientConfiguration {
         );
     }
 
-    @Bean(name = "aircontrolRestClient")
-    public RestClient aircontrolRestClient(
+    @Bean(name = "airControlRestClient")
+    public RestClient airControlRestClient(
             RestClient.Builder builder,
-            @Qualifier("aircontrolClientHttpRequestFactory") ClientHttpRequestFactory requestFactory,
+            @Qualifier("airControlClientHttpRequestFactory") ClientHttpRequestFactory requestFactory,
             TraceIdClientHttpRequestInterceptor traceIdInterceptor,
-            @Qualifier("aircontrolHttpTuningInterceptor") DynamicHttpTuningInterceptor httpTuningInterceptor
+            @Qualifier("airControlHttpTuningInterceptor") DynamicHttpTuningInterceptor httpTuningInterceptor
     ) {
         return builder.clone()
                 .requestFactory(requestFactory)

@@ -9,14 +9,14 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Duration;
 
 /**
- * AIRCONTROL (Gidrometeorologiya agentligi, atrof muhit ifloslanishi monitoringi)
+ * AIR_CONTROL (Gidrometeorologiya agentligi, atrof muhit ifloslanishi monitoringi)
  * read API, reached through the IIP/IMUT network with HTTP basic auth. Credentials
  * are deliberately not {@code @NotBlank}: a missing login must not stop the whole
  * application from booting - {@code AirControlClient} fails the call itself with a
  * clear "not configured" error instead.
  */
 @Validated
-@ConfigurationProperties(prefix = "integration.aircontrol")
+@ConfigurationProperties(prefix = "integration.air-control")
 public record AirControlProperties(
         @DefaultValue("https://meteoapi.meteo.uz") @NotBlank String baseUrl,
         /* Method 1: list of monitoring stations. */

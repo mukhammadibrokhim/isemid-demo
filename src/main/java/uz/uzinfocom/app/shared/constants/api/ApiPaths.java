@@ -172,7 +172,7 @@ public final class ApiPaths {
         public static final String ROOT = API_V1 + "/speech/stt";
     }
 
-    /** Air quality: stations and measurements pulled from AIRCONTROL (Gidrometeorologiya agentligi). */
+    /** Air quality: stations and measurements pulled from AIR_CONTROL (Gidrometeorologiya agentligi). */
     public static final class AirQuality {
         private AirQuality() {
         }

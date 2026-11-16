@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import uz.uzinfocom.app.shared.exception.AppException;
 
 /**
- * Periodic AIRCONTROL pull. Present only when {@code app.air-quality.sync.enabled=true}
+ * Periodic AIR_CONTROL pull. Present only when {@code app.air-quality.sync.enabled=true}
  * (default {@code false}: it needs credentials and IMUT network access). Every expected
  * failure (not configured, upstream down, circuit open, a manual run in progress) is
  * logged and swallowed so the next tick simply tries again.

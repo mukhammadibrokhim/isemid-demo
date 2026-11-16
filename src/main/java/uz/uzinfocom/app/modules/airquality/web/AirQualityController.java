@@ -32,8 +32,8 @@ import java.util.List;
 
 @Tag(
         name = "Air quality",
-        description = "Atrof muhit havo sifati (AIRCONTROL, Gidrometeorologiya agentligi): monitoring "
-                + "stansiyalari va ularning o'lchovlari. Ma'lumot AIRCONTROL dan davriy yoki qo'lda "
+        description = "Atrof muhit havo sifati (AIR_CONTROL, Gidrometeorologiya agentligi): monitoring "
+                + "stansiyalari va ularning o'lchovlari. Ma'lumot AIR_CONTROL dan davriy yoki qo'lda "
                 + "sinxronlanib bazada saqlanadi, bu endpoint'lar faqat saqlangan ma'lumotni o'qiydi."
 )
 @Validated
@@ -97,12 +97,12 @@ public class AirQualityController {
                 queryService.series(id, start, end, parameter, limit));
     }
 
-    @Operation(summary = "AIRCONTROL dan qo'lda sinxronlash",
+    @Operation(summary = "AIR_CONTROL dan qo'lda sinxronlash",
             description = "Stansiyalarni (Metod 1) va har bir faol stansiyaning oxirgi o'lchovini (Metod 2) "
                     + "yuklab saqlaydi. Faqat super-admin. Bir vaqtda bitta sinxronlash ishlaydi (409).")
     @PostMapping(ApiPaths.AirQuality.SYNC)
     @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
     public ApiResponse<AirQualitySyncResult> sync() {
-        return ApiResponse.success(messageResolver.resolve("airquality.sync.success"), syncService.sync());
+        return ApiResponse.success(messageResolver.resolve("air-quality.sync.success"), syncService.sync());
     }
 }

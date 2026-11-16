@@ -18,7 +18,7 @@ import uz.uzinfocom.app.shared.exception.NotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** Read side of the stored AIRCONTROL data. */
+/** Read side of the stored AIR_CONTROL data. */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -67,7 +67,7 @@ public class AirQualityQueryService {
 
     private AirStation requireStation(Long stationId) {
         return stationRepository.findById(stationId)
-                .orElseThrow(() -> new NotFoundException("airquality.station.not_found"));
+                .orElseThrow(() -> new NotFoundException("air-quality.station.not_found"));
     }
 
     private static AirStationResponse toResponse(AirStation station) {

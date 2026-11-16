@@ -7,8 +7,8 @@
             https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!--
-        Havo sifati (AIRCONTROL, Gidrometeorologiya agentligi). air_station -
-        monitoring stansiyalari (external_id = AIRCONTROL dagi id), air_measurement -
+        Havo sifati (AIR_CONTROL, Gidrometeorologiya agentligi). air_station -
+        monitoring stansiyalari (external_id = AIR_CONTROL dagi id), air_measurement -
         har bir o'lchovning har bir parametri uchun bitta qator
         (station_id, measured_at, parameter) unikal. region_code / district_code
         soato_id bo'yicha ref_region / ref_district dan aniqlanadi, FK yo'q

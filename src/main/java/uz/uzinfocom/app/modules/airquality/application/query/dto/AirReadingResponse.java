@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record AirReadingResponse(
         @Schema(description = "Normalized pollutant code.", example = "PM2.5") String parameter,
         @Schema(description = "Value.", example = "25.884") BigDecimal value,
-        @Schema(description = "Unit as sent by AIRCONTROL.", example = "µg/m³") String unit,
+        @Schema(description = "Unit as sent by AIR_CONTROL.", example = "µg/m³") String unit,
         @Schema(description = "Measurement time (station local time).") LocalDateTime measuredAt
 ) {
 }

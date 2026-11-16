@@ -17,8 +17,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * An air-quality monitoring station of the AIRCONTROL system (Gidrometeorologiya
- * agentligi). {@link #externalId} is AIRCONTROL's own station id and the upsert key.
+ * An air-quality monitoring station of the AIR_CONTROL system (Gidrometeorologiya
+ * agentligi). {@link #externalId} is AIR_CONTROL's own station id and the upsert key.
  * {@link #regionCode}/{@link #districtCode} are resolved from {@link #soatoId}
  * against {@code ref_region}/{@code ref_district} (plain columns, no FK); both stay
  * {@code null} when the SOATO code matches nothing here.

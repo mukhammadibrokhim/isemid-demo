@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Pulls stations (Method 1) and then the latest measurement of every active station
- * (Method 2) from AIRCONTROL into {@code air_station}/{@code air_measurement}. Not
+ * (Method 2) from AIR_CONTROL into {@code air_station}/{@code air_measurement}. Not
  * transactional itself: every HTTP call runs outside a transaction, and
  * {@link AirQualityWriter} writes each result in its own short one, so one slow or
  * failing station never rolls back the rest.
@@ -67,12 +67,12 @@ public class AirQualitySyncService {
                     unchanged++;
                 }
             } catch (AirControlCircuitOpenException exception) {
-                log.warn("AIRCONTROL circuit is open, stopping this sync run early. stationId={}", station.externalId());
+                log.warn("AIR_CONTROL circuit is open, stopping this sync run early. stationId={}", station.externalId());
                 failed.add(station.externalId());
                 break;
             } catch (AirControlIntegrationException | org.springframework.dao.DataIntegrityViolationException exception) {
                 // DataIntegrityViolation: another instance stored the same moment a split second earlier.
-                log.warn("AIRCONTROL measurement skipped. stationId={}, reason={}",
+                log.warn("AIR_CONTROL measurement skipped. stationId={}, reason={}",
                         station.externalId(), exception.getClass().getSimpleName());
                 failed.add(station.externalId());
             }

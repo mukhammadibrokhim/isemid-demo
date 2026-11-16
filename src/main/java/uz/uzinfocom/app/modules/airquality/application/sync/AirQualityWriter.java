@@ -26,7 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The transactional half of the AIRCONTROL sync. HTTP calls happen in
+ * The transactional half of the AIR_CONTROL sync. HTTP calls happen in
  * {@link AirQualitySyncService} <em>outside</em> any transaction (a slow upstream must not
  * hold a database connection); this bean only writes what was already fetched, one
  * short transaction per call.
@@ -145,7 +145,7 @@ public class AirQualityWriter {
     }
 
     /**
-     * SOATO → {@code ref_region}/{@code ref_district}. AIRCONTROL's {@code soato_areaid}
+     * SOATO → {@code ref_region}/{@code ref_district}. AIR_CONTROL's {@code soato_areaid}
      * is district-level in the agreement's sample (7 digits); when no district matches,
      * the first four digits are tried as the region's SOATO. Anything else stays unresolved.
      */
