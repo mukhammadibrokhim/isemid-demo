@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.report.analytic.infrastructure.persistence.repo
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.analytic.infrastructure.persistence.repository.dto.AnalyticReportDiagnosisCountProjection;
 
@@ -45,6 +46,7 @@ public class AnalyticReportCountRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One count row per selected ICD-10 code, restricted to {@code organizationIds} (one report region's scope). */
     public List<AnalyticReportDiagnosisCountProjection> countGroupedByDiagnosisCodeForCodes(
@@ -58,7 +60,7 @@ public class AnalyticReportCountRepository {
                 + "from (" + UNION_SOURCE_TEMPLATE.formatted(valuesList(organizationIds)) + ") t "
                 + "where t.diagnosis_code in (:codes) group by t.diagnosis_code";
 
-        List<?> rows = entityManager.createNativeQuery(sql)
+        List<?> rows = entityManager.createNativeQuery(reportCaseAttribution.apply(sql))
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive)
                 .setParameter("codes", codes)

@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form2.infrastructure.persistence.reposit
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form2.application.query.dto.Form2OrganizationCountProjection;
 
@@ -94,6 +95,7 @@ public class Form2ReportRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** A single, unattributed total row across every given organization id. */
     public Form2OrganizationCountProjection countTotal(
@@ -105,7 +107,7 @@ public class Form2ReportRepository {
             return Form2OrganizationCountProjection.empty(null);
         }
 
-        Query query = entityManager.createNativeQuery(totalSql(organizationIds))
+        Query query = entityManager.createNativeQuery(reportCaseAttribution.apply(totalSql(organizationIds)))
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive);
 

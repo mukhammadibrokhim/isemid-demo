@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form6.infrastructure.persistence.reposit
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form6.application.query.dto.Form6AgeBreakdownByOrganizationProjection;
 import uz.uzinfocom.app.modules.report.form6.application.query.dto.Form6AgeBreakdownProjection;
@@ -77,6 +78,7 @@ public class Form6ReportRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One count row per organization id — for a region/district/organization-level breakdown. */
     public List<Form6OrganizationCountProjection> countGroupedByOrganization(
@@ -92,7 +94,7 @@ public class Form6ReportRepository {
         String sql = "select t.sender_organization_id as organization_id, count(*) as total "
                 + "from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.stream()
@@ -120,7 +122,7 @@ public class Form6ReportRepository {
 
         String sql = "select count(*) from (" + unionSource(organizationIds) + ") t";
 
-        Object result = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        Object result = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getSingleResult();
 
         return result == null ? 0 : ((Number) result).longValue();
@@ -144,7 +146,7 @@ public class Form6ReportRepository {
 
         String sql = "select " + AGE_BREAKDOWN_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.isEmpty() ? Form6AgeBreakdownProjection.EMPTY : toAgeBreakdown((Object[]) rows.getFirst(), 0);
@@ -171,7 +173,7 @@ public class Form6ReportRepository {
         String sql = "select t.sender_organization_id as organization_id, " + AGE_BREAKDOWN_COLUMNS
                 + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.stream()

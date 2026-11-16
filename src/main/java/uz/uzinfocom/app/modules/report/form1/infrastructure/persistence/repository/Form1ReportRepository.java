@@ -23,7 +23,11 @@ import java.util.stream.Collectors;
  * is ever materialized in the JVM — only the final small numeric aggregate
  * per organization.
  * <p>
- * Grouped/filtered by {@code sender_organization_id} — the institution that
+ * Cases are attributed to an organization by {@code sender_organization_id}
+ * (the institution that <b>created</b> the case) for a single-organization caller,
+ * or by {@code receiver_organization_id} for a territorial (SES / region / republic)
+ * caller — see {@code ReportCaseAttribution}. The rationale below describes the
+ * sender case: the institution that
  * <b>created</b> the case (form058/form058_1's "createdOrg") — not {@code
  * receiver_organization_id}. The receiver is always the SANEPID_SERVICE
  * branch that processes the case, so grouping by receiver can never produce
@@ -49,7 +53,7 @@ import java.util.stream.Collectors;
  * <p>
  * {@code organizationIds} is spliced into the SQL text as a literal {@code
  * VALUES} list joined against — {@code join (values (6),(7),...) as
- * scope_org(id) on scope_org.id = f.sender_organization_id} — not bound as a
+ * scope_org(id) on scope_org.id = %2$s} — not bound as a
  * query parameter, and not filtered via {@code IN}/{@code = any(...)}
  * either. Every element is a {@code Long} produced by our own scope
  * resolution, never user-supplied text, so there is nothing to inject.
@@ -70,8 +74,7 @@ import java.util.stream.Collectors;
  * ~600k rows.
  * <p>
  * The two "blocks" this report needs, confirmed by the report's author:
- * CONFIRMED = {@code status = 'APPROVED'}, PRIMARY = {@code status NOT IN
- * ('APPROVED', 'CANCELED')} — both bucketed by {@code created_at}, not by
+ * CONFIRMED = {@code status = 'APPROVED'}, PRIMARY = {@code status <> 'CANCELED'} (every registered primary notification, including ones that were later approved) — both bucketed by {@code created_at}, not by
  * any diagnosis/report date field (those differ in shape between form058
  * and form058_1, created_at does not). A form058 rejected by the receiver
  * is stored as {@code CANCELED} (see {@code FormStatus}), so it is already
@@ -94,50 +97,50 @@ import java.util.stream.Collectors;
 public class Form1ReportRepository {
 
     private static final String UNION_SOURCE_TEMPLATE = """
-            select f.sender_organization_id,
+            select %2$s as sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int as age_years,
                    p.gender_code,
                    (f.final_icd10_code is not null and f.final_icd10_code <> f.icd10_code) as diagnosis_changed,
                    'CONFIRMED' as metric
             from form058 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
-            select f.sender_organization_id,
+            select %2$s as sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
                    p.gender_code, false, 'PRIMARY'
             from form058 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
+              and f.status <> 'CANCELED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
-            select f.sender_organization_id,
+            select %2$s as sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
                    p.gender_code,
                    (f.final_icd10_code is not null and f.final_icd10_code <> f.icd10_code), 'CONFIRMED'
             from form058_1 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
-            select f.sender_organization_id,
+            select %2$s as sender_organization_id,
                    extract(year from age(f.created_at::date, p.birth_date))::int,
                    p.gender_code, false, 'PRIMARY'
             from form058_1 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
+              and f.status <> 'CANCELED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             """;
@@ -147,30 +150,35 @@ public class Form1ReportRepository {
             count(*) filter (where t.metric = 'CONFIRMED' and t.age_years < 14)         as confirmed_under_14,
             count(*) filter (where t.metric = 'CONFIRMED' and t.age_years < 18)         as confirmed_under_18,
             count(*) filter (where t.metric = 'CONFIRMED' and t.age_years >= 18)        as confirmed_adult,
-            count(*) filter (where t.metric = 'CONFIRMED' and t.gender_code = 'FEMALE') as confirmed_female,
+            count(*) filter (where t.metric = 'CONFIRMED' and upper(trim(t.gender_code)) = 'FEMALE') as confirmed_female,
             count(*) filter (where t.metric = 'CONFIRMED' and t.diagnosis_changed)      as confirmed_diagnosis_changed,
             count(*) filter (where t.metric = 'PRIMARY')                                as primary_total,
             count(*) filter (where t.metric = 'PRIMARY' and t.age_years < 14)           as primary_under_14,
             count(*) filter (where t.metric = 'PRIMARY' and t.age_years < 18)           as primary_under_18,
             count(*) filter (where t.metric = 'PRIMARY' and t.age_years >= 18)          as primary_adult,
-            count(*) filter (where t.metric = 'PRIMARY' and t.gender_code = 'FEMALE')   as primary_female
+            count(*) filter (where t.metric = 'PRIMARY' and upper(trim(t.gender_code)) = 'FEMALE')   as primary_female
             """;
 
     private final EntityManager entityManager;
 
-    /** One aggregate row per organization id — for a region/district/organization-level breakdown. */
+    /**
+     * One aggregate row per organization id — for a region/district/organization-level breakdown.
+     * {@code byReceiver} attributes each case to its receiver organization instead of its sender
+     * (see {@code ReportCaseAttribution}).
+     */
     public List<Form1OrganizationCountProjection> countGroupedByOrganization(
             List<Long> organizationIds,
             Instant fromInclusive,
             Instant toExclusive,
-            String diagnosisCode
+            String diagnosisCode,
+            boolean byReceiver
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
         }
 
         Query query = bindParameters(
-                entityManager.createNativeQuery(groupedSql(organizationIds)), fromInclusive, toExclusive, diagnosisCode
+                entityManager.createNativeQuery(groupedSql(organizationIds, byReceiver)), fromInclusive, toExclusive, diagnosisCode
         );
 
         List<?> rows = query.getResultList();
@@ -186,14 +194,15 @@ public class Form1ReportRepository {
             List<Long> organizationIds,
             Instant fromInclusive,
             Instant toExclusive,
-            String diagnosisCode
+            String diagnosisCode,
+            boolean byReceiver
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return Form1OrganizationCountProjection.empty(null);
         }
 
         Query query = bindParameters(
-                entityManager.createNativeQuery(totalSql(organizationIds)), fromInclusive, toExclusive, diagnosisCode
+                entityManager.createNativeQuery(totalSql(organizationIds, byReceiver)), fromInclusive, toExclusive, diagnosisCode
         );
 
         List<?> rows = query.getResultList();
@@ -202,18 +211,18 @@ public class Form1ReportRepository {
                 : toProjection((Object[]) rows.getFirst(), false);
     }
 
-    private String unionSource(List<Long> organizationIds) {
+    private String unionSource(List<Long> organizationIds, boolean byReceiver) {
         String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
-        return UNION_SOURCE_TEMPLATE.formatted(valuesList);
+        return UNION_SOURCE_TEMPLATE.formatted(valuesList, byReceiver ? "f.receiver_organization_id" : "f.sender_organization_id");
     }
 
-    private String groupedSql(List<Long> organizationIds) {
+    private String groupedSql(List<Long> organizationIds, boolean byReceiver) {
         return "select t.sender_organization_id as organization_id, " + AGGREGATE_COLUMNS
-                + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
+                + " from (" + unionSource(organizationIds, byReceiver) + ") t group by t.sender_organization_id";
     }
 
-    private String totalSql(List<Long> organizationIds) {
-        return "select " + AGGREGATE_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
+    private String totalSql(List<Long> organizationIds, boolean byReceiver) {
+        return "select " + AGGREGATE_COLUMNS + " from (" + unionSource(organizationIds, byReceiver) + ") t";
     }
 
     private Query bindParameters(

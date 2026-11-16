@@ -35,8 +35,7 @@ import java.util.stream.Collectors;
  * selective index condition).
  * <p>
  * The two "blocks" this report needs, same as Form 1: CONFIRMED = {@code
- * status = 'APPROVED'}, PRIMARY = {@code status NOT IN ('APPROVED',
- * 'CANCELED')} — both bucketed by {@code created_at}. A form058 rejected by
+ * status = 'APPROVED'}, PRIMARY = {@code status <> 'CANCELED'} (every registered primary notification, including ones that were later approved) — both bucketed by {@code created_at}. A form058 rejected by
  * the receiver is stored as {@code CANCELED} (see {@code FormStatus}), so
  * it is already excluded here — there is no separate "rejected" status to
  * account for. Category buckets are {@code patient.category_code} against
@@ -54,39 +53,39 @@ import java.util.stream.Collectors;
 public class Form4ReportRepository {
 
     private static final String UNION_SOURCE_TEMPLATE = """
-            select f.sender_organization_id, p.category_code, 'CONFIRMED' as metric
+            select %2$s as sender_organization_id, p.category_code, 'CONFIRMED' as metric
             from form058 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
-            select f.sender_organization_id, p.category_code, 'PRIMARY'
+            select %2$s as sender_organization_id, p.category_code, 'PRIMARY'
             from form058 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
+              and f.status <> 'CANCELED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             union all
-            select f.sender_organization_id, p.category_code, 'CONFIRMED'
+            select %2$s as sender_organization_id, p.category_code, 'CONFIRMED'
             from form058_1 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
               and f.status = 'APPROVED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.final_icd10_code = (:diagnosisCode)::text)
             union all
-            select f.sender_organization_id, p.category_code, 'PRIMARY'
+            select %2$s as sender_organization_id, p.category_code, 'PRIMARY'
             from form058_1 f
             join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            join (values %1$s) as scope_org(id) on scope_org.id = %2$s
             where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
+              and f.status <> 'CANCELED'
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
               and ((:diagnosisCode)::text is null or f.icd10_code = (:diagnosisCode)::text or f.final_icd10_code = (:diagnosisCode)::text)
             """;
@@ -120,19 +119,24 @@ public class Form4ReportRepository {
 
     private final EntityManager entityManager;
 
-    /** One aggregate row per organization id — for a region/district/organization-level breakdown. */
+    /**
+     * One aggregate row per organization id — for a region/district/organization-level breakdown.
+     * {@code byReceiver} attributes each case to its receiver organization instead of its sender
+     * (see {@code ReportCaseAttribution}).
+     */
     public List<Form4OrganizationCountProjection> countGroupedByOrganization(
             List<Long> organizationIds,
             Instant fromInclusive,
             Instant toExclusive,
-            String diagnosisCode
+            String diagnosisCode,
+            boolean byReceiver
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
         }
 
         Query query = bindParameters(
-                entityManager.createNativeQuery(groupedSql(organizationIds)), fromInclusive, toExclusive, diagnosisCode
+                entityManager.createNativeQuery(groupedSql(organizationIds, byReceiver)), fromInclusive, toExclusive, diagnosisCode
         );
 
         List<?> rows = query.getResultList();
@@ -148,14 +152,15 @@ public class Form4ReportRepository {
             List<Long> organizationIds,
             Instant fromInclusive,
             Instant toExclusive,
-            String diagnosisCode
+            String diagnosisCode,
+            boolean byReceiver
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return Form4OrganizationCountProjection.empty(null);
         }
 
         Query query = bindParameters(
-                entityManager.createNativeQuery(totalSql(organizationIds)), fromInclusive, toExclusive, diagnosisCode
+                entityManager.createNativeQuery(totalSql(organizationIds, byReceiver)), fromInclusive, toExclusive, diagnosisCode
         );
 
         List<?> rows = query.getResultList();
@@ -164,18 +169,18 @@ public class Form4ReportRepository {
                 : toProjection((Object[]) rows.getFirst(), false);
     }
 
-    private String unionSource(List<Long> organizationIds) {
+    private String unionSource(List<Long> organizationIds, boolean byReceiver) {
         String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
-        return UNION_SOURCE_TEMPLATE.formatted(valuesList);
+        return UNION_SOURCE_TEMPLATE.formatted(valuesList, byReceiver ? "f.receiver_organization_id" : "f.sender_organization_id");
     }
 
-    private String groupedSql(List<Long> organizationIds) {
+    private String groupedSql(List<Long> organizationIds, boolean byReceiver) {
         return "select t.sender_organization_id as organization_id, " + AGGREGATE_COLUMNS
-                + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
+                + " from (" + unionSource(organizationIds, byReceiver) + ") t group by t.sender_organization_id";
     }
 
-    private String totalSql(List<Long> organizationIds) {
-        return "select " + AGGREGATE_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
+    private String totalSql(List<Long> organizationIds, boolean byReceiver) {
+        return "select " + AGGREGATE_COLUMNS + " from (" + unionSource(organizationIds, byReceiver) + ") t";
     }
 
     private Query bindParameters(

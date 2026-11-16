@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.map.infrastructure.persistence.repositor
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.map.application.query.dto.MapPointProjection;
 
@@ -51,6 +52,7 @@ public class MapPointRepository {
     private static final String ORDER_AND_LIMIT = " order by f.created_at desc, f.id desc limit (:limit)";
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     public List<MapPointProjection> findPoints(
             List<Long> organizationIds,
@@ -73,7 +75,7 @@ public class MapPointRepository {
         }
         sql.append(ORDER_AND_LIMIT);
 
-        Query query = entityManager.createNativeQuery(sql.toString())
+        Query query = entityManager.createNativeQuery(reportCaseAttribution.apply(sql.toString()))
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive)
                 .setParameter("limit", limit);

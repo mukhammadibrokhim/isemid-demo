@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form8.infrastructure.persistence.reposit
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryBreakdownByOrganizationProjection;
 import uz.uzinfocom.app.modules.report.form8.application.query.dto.Form8CategoryBreakdownProjection;
@@ -75,6 +76,7 @@ public class Form8ReportRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One count row per organization id — for a region/district/organization-level breakdown. */
     public List<Form8OrganizationCountProjection> countGroupedByOrganization(
@@ -90,7 +92,7 @@ public class Form8ReportRepository {
         String sql = "select t.sender_organization_id as organization_id, count(*) as total "
                 + "from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.stream()
@@ -118,7 +120,7 @@ public class Form8ReportRepository {
 
         String sql = "select count(*) from (" + unionSource(organizationIds) + ") t";
 
-        Object result = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        Object result = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getSingleResult();
 
         return result == null ? 0 : ((Number) result).longValue();
@@ -142,7 +144,7 @@ public class Form8ReportRepository {
 
         String sql = "select " + CATEGORY_BREAKDOWN_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.isEmpty() ? Form8CategoryBreakdownProjection.EMPTY : toCategoryBreakdown((Object[]) rows.getFirst(), 0);
@@ -169,7 +171,7 @@ public class Form8ReportRepository {
         String sql = "select t.sender_organization_id as organization_id, " + CATEGORY_BREAKDOWN_COLUMNS
                 + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.stream()

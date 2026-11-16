@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.re
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.statistics.application.query.StatisticsFilter;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsCategoryCountProjection;
@@ -137,7 +138,7 @@ public class StatisticsReportRepository {
      * #METRIC_COLUMNS}.
      */
     private static final String FILTER_CLAUSE = """
-             and ((:genderCode)::text is null or t.gender_code = (:genderCode)::text)
+             and ((:genderCode)::text is null or upper(trim(t.gender_code)) = (:genderCode)::text)
              and ((:ageFilter)::text is null
                   or ((:ageFilter)::text = 'UNDER_18' and t.age_years < 18)
                   or ((:ageFilter)::text = 'ADULT' and t.age_years >= 18))
@@ -146,18 +147,19 @@ public class StatisticsReportRepository {
 
     private static final String METRIC_COLUMNS = """
             count(*) filter (where t.metric = 'CONFIRMED')                              as confirmed_total,
-            count(*) filter (where t.metric = 'CONFIRMED' and t.gender_code = 'FEMALE') as confirmed_female,
-            count(*) filter (where t.metric = 'CONFIRMED' and t.gender_code = 'MALE')   as confirmed_male,
+            count(*) filter (where t.metric = 'CONFIRMED' and upper(trim(t.gender_code)) = 'FEMALE') as confirmed_female,
+            count(*) filter (where t.metric = 'CONFIRMED' and upper(trim(t.gender_code)) = 'MALE')   as confirmed_male,
             count(*) filter (where t.metric = 'CONFIRMED' and t.age_years < 18)         as confirmed_under_18,
             count(*) filter (where t.metric = 'CONFIRMED' and t.age_years >= 18)        as confirmed_adult,
             count(*) filter (where t.metric = 'PRIMARY')                                as primary_total,
-            count(*) filter (where t.metric = 'PRIMARY' and t.gender_code = 'FEMALE')   as primary_female,
-            count(*) filter (where t.metric = 'PRIMARY' and t.gender_code = 'MALE')     as primary_male,
+            count(*) filter (where t.metric = 'PRIMARY' and upper(trim(t.gender_code)) = 'FEMALE')   as primary_female,
+            count(*) filter (where t.metric = 'PRIMARY' and upper(trim(t.gender_code)) = 'MALE')     as primary_male,
             count(*) filter (where t.metric = 'PRIMARY' and t.age_years < 18)           as primary_under_18,
             count(*) filter (where t.metric = 'PRIMARY' and t.age_years >= 18)          as primary_adult
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /**
      * One aggregate row per (form, distinct {@code category_code} value —
@@ -175,7 +177,7 @@ public class StatisticsReportRepository {
                 + " from (" + unionSource(organizationIds) + ") t where true " + FILTER_CLAUSE
                 + " group by t.form_type, t.category_code";
 
-        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -203,7 +205,7 @@ public class StatisticsReportRepository {
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t where true " + FILTER_CLAUSE
                 + " group by t.sender_organization_id, t.form_type, t.category_code";
 
-        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {

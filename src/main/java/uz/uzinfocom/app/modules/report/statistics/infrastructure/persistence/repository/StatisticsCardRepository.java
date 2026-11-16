@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.re
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
@@ -73,6 +74,7 @@ public class StatisticsCardRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One aggregate row per (form, {@link CardStatus}, {@link CardType}) across the whole scope — the report's root node. */
     public List<StatisticsCardStatusCountProjection> countCells(
@@ -85,7 +87,7 @@ public class StatisticsCardRepository {
         String sql = "select t.form_type as form_type, t.status as status, t.card_type as card_type, count(*) as total"
                 + " from (" + unionSource(organizationIds) + ") t group by t.form_type, t.status, t.card_type";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -113,7 +115,7 @@ public class StatisticsCardRepository {
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t"
                 + " group by t.sender_organization_id, t.form_type, t.status, t.card_type";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {

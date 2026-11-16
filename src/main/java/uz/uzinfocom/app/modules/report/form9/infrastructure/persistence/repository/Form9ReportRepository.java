@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form9.infrastructure.persistence.reposit
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form9.application.query.dto.Form9Counts;
 import uz.uzinfocom.app.modules.report.form9.application.query.dto.Form9MonthlyCountProjection;
@@ -70,6 +71,7 @@ public class Form9ReportRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One count row per organization id — for a region/district/organization-level breakdown. */
     public List<Form9OrganizationCountProjection> countGroupedByOrganization(
@@ -85,7 +87,7 @@ public class Form9ReportRepository {
         String sql = "select t.sender_organization_id as organization_id, " + METRIC_COLUMNS
                 + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.stream()
@@ -113,7 +115,7 @@ public class Form9ReportRepository {
 
         String sql = "select " + METRIC_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
 
-        Object row = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        Object row = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getSingleResult();
 
         Object[] r = (Object[]) row;
@@ -140,7 +142,7 @@ public class Form9ReportRepository {
         String sql = "select t.month as month, " + METRIC_COLUMNS
                 + " from (" + unionSource(organizationIds) + ") t group by t.month";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.stream()

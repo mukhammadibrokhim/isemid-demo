@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.re
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
@@ -68,6 +69,7 @@ public class StatisticsActRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One aggregate row per (form, {@link ActStatus}, {@link ActType}) across the whole scope — the report's root node. */
     public List<StatisticsActStatusCountProjection> countCells(
@@ -80,7 +82,7 @@ public class StatisticsActRepository {
         String sql = "select t.form_type as form_type, t.status as status, t.act_type as act_type, count(*) as total"
                 + " from (" + unionSource(organizationIds) + ") t group by t.form_type, t.status, t.act_type";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -108,7 +110,7 @@ public class StatisticsActRepository {
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t"
                 + " group by t.sender_organization_id, t.form_type, t.status, t.act_type";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {

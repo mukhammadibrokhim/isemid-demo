@@ -17,7 +17,7 @@ public record Form4ReportNodeResponse(
         @Schema(description = "Tasdiqlangan holatlar bo'yicha (status = APPROVED) toifalar kesimi.")
         Form4CategoryCountBlockResponse confirmed,
 
-        @Schema(description = "Birlamchi holatlar bo'yicha (status NOT IN (APPROVED, CANCELED)) toifalar kesimi.")
+        @Schema(description = "Birlamchi holatlar bo'yicha (status <> CANCELED) toifalar kesimi.")
         Form4CategoryCountBlockResponse primary
 ) {
 }

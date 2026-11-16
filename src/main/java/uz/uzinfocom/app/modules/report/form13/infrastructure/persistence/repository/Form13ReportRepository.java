@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form13.infrastructure.persistence.reposi
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13DiagnosisCountProjection;
 import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13Metric;
@@ -94,6 +95,7 @@ public class Form13ReportRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /**
      * One aggregate row per distinct confirmed-diagnosis code across the whole
@@ -111,7 +113,7 @@ public class Form13ReportRepository {
                 + " from (" + unionSource(organizationIds) + ") t"
                 + " where t.diagnosis_code is not null group by t.diagnosis_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -139,7 +141,7 @@ public class Form13ReportRepository {
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t"
                 + " where t.diagnosis_code is not null group by t.sender_organization_id, t.diagnosis_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -168,7 +170,7 @@ public class Form13ReportRepository {
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t"
                 + " where t.diagnosis_code in (:codes) group by t.sender_organization_id";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive)
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive)
                 .setParameter("codes", codes)
                 .getResultList();
 
@@ -196,7 +198,7 @@ public class Form13ReportRepository {
         String sql = "select " + METRIC_COLUMNS
                 + " from (" + unionSource(organizationIds) + ") t where t.diagnosis_code in (:codes)";
 
-        Object row = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive)
+        Object row = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive)
                 .setParameter("codes", codes)
                 .getSingleResult();
 

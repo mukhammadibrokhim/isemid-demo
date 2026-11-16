@@ -61,7 +61,7 @@ public class Form7CaseCountRepository {
             count(*) filter (where t.age_years < 14)                        as under_14,
             count(*) filter (where t.age_years < 18)                        as under_18,
             count(*) filter (where t.age_years >= 18)                       as adult,
-            count(*) filter (where t.gender_code = 'FEMALE')                as female,
+            count(*) filter (where upper(trim(t.gender_code)) = 'FEMALE')                as female,
             count(*) filter (where t.confirmed)                             as primary_diagnosis_confirmed
             """;
 

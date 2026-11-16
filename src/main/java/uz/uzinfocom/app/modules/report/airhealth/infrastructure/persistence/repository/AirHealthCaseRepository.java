@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.airhealth.infrastructure.persistence.rep
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.airhealth.application.query.dto.AirHealthBucket;
 
@@ -72,6 +73,7 @@ public class AirHealthCaseRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /**
      * Cases per sender organization's district ({@code byDistrict}) or region; organizations with no
@@ -89,7 +91,7 @@ public class AirHealthCaseRepository {
                 + TERRITORY_UNION.formatted(valuesList(organizationIds), column)
                 + ") t where t.code is not null group by t.code";
 
-        Query query = entityManager.createNativeQuery(sql)
+        Query query = entityManager.createNativeQuery(reportCaseAttribution.apply(sql))
                 .setParameter("prefix", icd10Prefix + "%")
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive);
@@ -119,7 +121,7 @@ public class AirHealthCaseRepository {
                 + BUCKET_UNION.formatted(valuesList(organizationIds), bucket.sqlTruncField())
                 + ") t group by t.bucket_start";
 
-        Query query = entityManager.createNativeQuery(sql)
+        Query query = entityManager.createNativeQuery(reportCaseAttribution.apply(sql))
                 .setParameter("prefix", icd10Prefix + "%")
                 .setParameter("lagDays", lagDays)
                 .setParameter("fromInclusive", fromInclusive)

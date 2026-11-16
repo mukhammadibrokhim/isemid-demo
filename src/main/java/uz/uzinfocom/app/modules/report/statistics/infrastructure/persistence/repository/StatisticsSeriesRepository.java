@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.re
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsFormType;
 import uz.uzinfocom.app.modules.report.statistics.application.query.dto.StatisticsSeriesBucket;
@@ -79,6 +80,7 @@ public class StatisticsSeriesRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /**
      * One row per ({@link StatisticsFormType form}, bucket start) with the
@@ -98,7 +100,7 @@ public class StatisticsSeriesRepository {
                 + "count(*) filter (where t.status not in ('APPROVED', 'CANCELED')) as primary_count "
                 + "from (" + source + ") t group by t.form_type, t.bucket_start";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
         return rows.stream()
                 .map(row -> {
                     Object[] r = (Object[]) row;
@@ -126,7 +128,7 @@ public class StatisticsSeriesRepository {
         String sql = "select t.bucket_start as bucket_start, count(*) as total from ("
                 + source + ") t group by t.bucket_start";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
         return rows.stream()
                 .map(row -> {
                     Object[] r = (Object[]) row;
@@ -152,7 +154,7 @@ public class StatisticsSeriesRepository {
         String sql = "select t.diagnosis_code as diagnosis_code, count(*) as cnt from ("
                 + source + ") t group by t.diagnosis_code order by cnt desc";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
         return rows.stream()
                 .map(row -> {
                     Object[] r = (Object[]) row;

@@ -6,6 +6,7 @@ import uz.uzinfocom.app.modules.report.form4.application.query.dto.Form4Category
 import uz.uzinfocom.app.modules.report.form4.application.query.dto.Form4OrganizationCountProjection;
 import uz.uzinfocom.app.modules.report.form4.application.query.dto.Form4ReportNodeResponse;
 import uz.uzinfocom.app.modules.report.form4.infrastructure.persistence.repository.Form4ReportRepository;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import uz.uzinfocom.app.modules.report.shared.ReportCountSource;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRange;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRangeResolver;
@@ -37,6 +38,7 @@ public class Form4ReportQueryService implements ReportCountSource<Form4Organizat
     private final Form4ReportRepository form4ReportRepository;
     private final ReportHierarchyService reportHierarchyService;
     private final ReportDateRangeResolver reportDateRangeResolver;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     public List<Form4ReportNodeResponse> getRoot(LocalDate from, LocalDate to, String diagnosisCode) {
         Organization currentOrganization = requireCurrentOrganization();
@@ -70,7 +72,7 @@ public class Form4ReportQueryService implements ReportCountSource<Form4Organizat
             List<Long> organizationIds, ReportDateRange range, String diagnosisCode
     ) {
         return form4ReportRepository.countTotal(
-                organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode
+                organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode, reportCaseAttribution.byReceiver()
         );
     }
 
@@ -79,7 +81,10 @@ public class Form4ReportQueryService implements ReportCountSource<Form4Organizat
             List<Long> organizationIds, ReportDateRange range, String diagnosisCode
     ) {
         return form4ReportRepository
-                .countGroupedByOrganization(organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode)
+                .countGroupedByOrganization(
+                        organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode,
+                        reportCaseAttribution.byReceiver()
+                )
                 .stream()
                 .collect(Collectors.toMap(Form4OrganizationCountProjection::organizationId, row -> row));
     }

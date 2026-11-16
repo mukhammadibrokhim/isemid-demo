@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repo
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.forecast.application.query.dto.ForecastBucketUnit;
 import uz.uzinfocom.app.modules.report.forecast.infrastructure.persistence.repository.dto.ForecastBucketCountProjection;
@@ -101,6 +102,7 @@ public class ForecastSeriesRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /**
      * The grand series across every given organization id, ascending by
@@ -181,7 +183,7 @@ public class ForecastSeriesRepository {
         String sql = "select t.diagnosis_code as diagnosis_code, t.bucket_start as bucket_start, count(*) as cnt from ("
                 + source + ") t group by t.diagnosis_code, t.bucket_start";
 
-        List<?> rows = entityManager.createNativeQuery(sql)
+        List<?> rows = entityManager.createNativeQuery(reportCaseAttribution.apply(sql))
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive)
                 .getResultList();
@@ -199,7 +201,7 @@ public class ForecastSeriesRepository {
     }
 
     private Query bind(String sql, Instant fromInclusive, Instant toExclusive, String diagnosisCode) {
-        return entityManager.createNativeQuery(sql)
+        return entityManager.createNativeQuery(reportCaseAttribution.apply(sql))
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive)
                 .setParameter("diagnosisCode", diagnosisCode);

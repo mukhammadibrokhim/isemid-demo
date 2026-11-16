@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form11.infrastructure.persistence.reposi
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form11.application.query.dto.Form11Counts;
 import uz.uzinfocom.app.modules.report.form11.application.query.dto.Form11OrganizationCountProjection;
@@ -74,6 +75,7 @@ public class Form11ReportRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One count row per organization id — for a region/district/organization-level breakdown. */
     public List<Form11OrganizationCountProjection> countGroupedByOrganization(
@@ -89,7 +91,7 @@ public class Form11ReportRepository {
         String sql = "select t.sender_organization_id as organization_id, " + METRIC_COLUMNS
                 + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
 
-        List<?> rows = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        List<?> rows = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getResultList();
 
         return rows.stream()
@@ -119,7 +121,7 @@ public class Form11ReportRepository {
 
         String sql = "select " + METRIC_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
 
-        Object row = bindParameters(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, diagnosisCode)
+        Object row = bindParameters(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, diagnosisCode)
                 .getSingleResult();
 
         Object[] r = (Object[]) row;

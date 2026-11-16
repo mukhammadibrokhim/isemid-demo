@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form281.infrastructure.persistence.repos
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form281.application.query.dto.Form281Counts;
 import uz.uzinfocom.app.modules.report.form281.application.query.dto.Form281DiagnosisCountProjection;
@@ -107,7 +108,7 @@ public class Form281ReportRepository {
      */
     private static final String METRIC_COLUMNS = """
             count(*)                                                                        as total,
-            count(*) filter (where t.gender_code = 'FEMALE')                                as female,
+            count(*) filter (where upper(trim(t.gender_code)) = 'FEMALE')                                as female,
             count(*) filter (where t.age_years >= 0 and t.age_years < 18)                   as under_18,
             count(*) filter (where t.age_years >= 0 and t.age_years < 15)                   as under_15,
             count(*) filter (where t.age_years >= 0 and t.age_years < 1)                    as under_1,
@@ -127,6 +128,7 @@ public class Form281ReportRepository {
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /**
      * One aggregate row per distinct confirmed-diagnosis code across the whole
@@ -144,7 +146,7 @@ public class Form281ReportRepository {
                 + " from (" + unionSource(organizationIds) + ") t"
                 + " where t.diagnosis_code is not null group by t.diagnosis_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -166,7 +168,7 @@ public class Form281ReportRepository {
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t"
                 + " where t.diagnosis_code in (:codes) group by t.sender_organization_id";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive)
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive)
                 .setParameter("codes", codes)
                 .getResultList();
 
@@ -197,7 +199,7 @@ public class Form281ReportRepository {
                 + " from (" + unionSourceWithOrg(organizationIds) + ") t"
                 + " where t.diagnosis_code is not null group by t.sender_organization_id, t.diagnosis_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -220,7 +222,7 @@ public class Form281ReportRepository {
         String sql = "select " + METRIC_COLUMNS
                 + " from (" + unionSource(organizationIds) + ") t where t.diagnosis_code in (:codes)";
 
-        Object row = bindRange(entityManager.createNativeQuery(sql), fromInclusive, toExclusive)
+        Object row = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive)
                 .setParameter("codes", codes)
                 .getSingleResult();
 

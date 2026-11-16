@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.statistics.infrastructure.persistence.re
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.form129.domain.enums.Form129Status;
 import uz.uzinfocom.app.modules.report.statistics.application.query.StatisticsFilter;
@@ -57,7 +58,7 @@ public class StatisticsForm129Repository {
 
     /** See {@code StatisticsReportRepository.FILTER_CLAUSE} — identical gender / age-band / category no-op filter. */
     private static final String FILTER_CLAUSE = """
-             and ((:genderCode)::text is null or t.gender_code = (:genderCode)::text)
+             and ((:genderCode)::text is null or upper(trim(t.gender_code)) = (:genderCode)::text)
              and ((:ageFilter)::text is null
                   or ((:ageFilter)::text = 'UNDER_18' and t.age_years < 18)
                   or ((:ageFilter)::text = 'ADULT' and t.age_years >= 18))
@@ -66,13 +67,14 @@ public class StatisticsForm129Repository {
 
     private static final String METRIC_COLUMNS = """
             count(*)                                            as total,
-            count(*) filter (where t.gender_code = 'FEMALE')    as female,
-            count(*) filter (where t.gender_code = 'MALE')      as male,
+            count(*) filter (where upper(trim(t.gender_code)) = 'FEMALE')    as female,
+            count(*) filter (where upper(trim(t.gender_code)) = 'MALE')      as male,
             count(*) filter (where t.age_years < 18)            as under_18,
             count(*) filter (where t.age_years >= 18)           as adult
             """;
 
     private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     /** One aggregate row per ({@code category_code}, {@link Form129Status}) across the whole scope — the report's root node. */
     public List<StatisticsForm129CountProjection> countByCategoryAndStatus(
@@ -86,7 +88,7 @@ public class StatisticsForm129Repository {
                 + " from (" + source(organizationIds) + ") t where true " + FILTER_CLAUSE
                 + " group by t.category_code, t.status";
 
-        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -112,7 +114,7 @@ public class StatisticsForm129Repository {
                 + " from (" + sourceWithOrg(organizationIds) + ") t where true " + FILTER_CLAUSE
                 + " group by t.sender_organization_id, t.category_code, t.status";
 
-        List<?> rows = bind(entityManager.createNativeQuery(sql), fromInclusive, toExclusive, filter).getResultList();
+        List<?> rows = bind(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, filter).getResultList();
 
         return rows.stream()
                 .map(row -> {
