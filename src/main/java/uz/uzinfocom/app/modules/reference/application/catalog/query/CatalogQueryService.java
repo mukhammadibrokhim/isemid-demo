@@ -60,11 +60,24 @@ public class CatalogQueryService {
     @Transactional(readOnly = true)
     public CatalogLookupResponse getByTypeAndCode(String  type, String code) {
         String normalizedCode = ReferenceCodeNormalizer.normalizeCode(code);
+        String resolvedType = resolveType(type);
 
-        return catalogRepository.findByTypeAndCodeAndDeletedFalse(type, normalizedCode)
+        return catalogRepository.findByTypeAndCodeAndDeletedFalse(resolvedType, normalizedCode)
                 .map(catalogMapper::toLookupResponse)
                 .orElseThrow(() ->
                         new NotFoundException("reference.catalog.not_found_by_type_code", type, normalizedCode));
+    }
+
+    /**
+     * Serves the requested type as is when it holds active entries; otherwise
+     * falls back to its canonical seeded name (see {@link CatalogTypeAliases}),
+     * so a client-side spelling that differs from the legacy seed name does not
+     * produce an empty select.
+     */
+    private String resolveType(String type) {
+        return CatalogTypeAliases.canonicalFor(type)
+                .filter(canonical -> !catalogRepository.exists(CatalogSpecification.byTypeAndName(type, null)))
+                .orElse(type);
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +91,7 @@ public class CatalogQueryService {
         );
 
         return catalogRepository.findAll(
-                        CatalogSpecification.byTypeAndName(type, request.name()),
+                        CatalogSpecification.byTypeAndName(resolveType(type), request.name()),
                         pageable
                 )
                 .map(catalogMapper::toLookupResponse)
@@ -98,7 +111,7 @@ public class CatalogQueryService {
         );
 
         return catalogRepository.findAll(
-                        CatalogSpecification.byTypeAndParentCodeAndName(type, normalizedParentCode, request.name()),
+                        CatalogSpecification.byTypeAndParentCodeAndName(resolveType(type), normalizedParentCode, request.name()),
                         pageable
                 )
                 .map(catalogMapper::toLookupResponse)
