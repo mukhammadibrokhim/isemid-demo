@@ -21,6 +21,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 public class LegalEntityLookupController {
 
     private final LegalEntityLookupService legalEntityLookupService;
+    private final LegalEntityLookupMapper mapper;
     private final MessageResolver messages;
 
     @Operation(
@@ -41,7 +42,7 @@ public class LegalEntityLookupController {
                 messages.resolve("api2.legal_entity.lookup.success"),
                 result.source(),
                 result.upstreamStatus(),
-                result.data()
+                mapper.map(result.data())
         );
     }
 }
