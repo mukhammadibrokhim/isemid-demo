@@ -14,7 +14,7 @@ DMED uchun **tekis** (flat) formatdagi qat'iy kontrakt. Umumiy `{source}` endpoi
 ## Qanday chaqiriladi
 
 - `{source}` — **doim `DMED`** (sizning `sourceKey` ham `dmed` bo'lishi kerak, aks holda `403`).
-- Autentifikatsiya: [auth](../../auth/README.md). Scope: `form0581:submit`.
+- Autentifikatsiya (API key) va umumiy tartib: [DMED umumiy ko'rinish](../../dmed/README.md#uz), [auth](../../auth/README.md). Scope: `form0581:submit`.
 - Tashkilot **tanadan olinmaydi**: `senderOrganizationUuid` yuborilmaydi (yuborsangiz ham e'tiborga olinmaydi). Tashkilotni `X-Organization-Id` header bilan bering — **majburiy**, yo'q bo'lsa `403`. Formani yuborgan xodim tanada `submittedBy` bilan beriladi — **majburiy**, yo'q bo'lsa `400`.
 
 | Maydon | Maj. | Izoh |
@@ -117,7 +117,7 @@ Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
 ## Как вызывать
 
 - `{source}` — **всегда `DMED`** (ваш `sourceKey` тоже должен быть `dmed`, иначе `403`).
-- Аутентификация: [auth](../../auth/README.md). Scope: `form0581:submit`.
+- Аутентификация (API key) и общий порядок: [обзор DMED](../../dmed/README.md#ru), [auth](../../auth/README.md). Scope: `form0581:submit`.
 - Организация **не берётся из тела**: `senderOrganizationUuid` не передаётся (если передать — игнорируется). Организацию указывайте заголовком `X-Organization-Id` — он **обязателен**, без него `403`. Сотрудник, отправивший форму, передаётся в теле как `submittedBy` — **обязателен**, без него `400`.
 
 | Поле | Обяз. | Описание |
@@ -220,7 +220,7 @@ A fixed **flat** contract for DMED. Unlike the generic `{source}` endpoint, fiel
 ## How to call
 
 - `{source}` — **always `DMED`** (your `sourceKey` must also be `dmed`, otherwise `403`).
-- Authentication: [auth](../../auth/README.md). Scope: `form0581:submit`.
+- Authentication (API key) and overall flow: [DMED overview](../../dmed/README.md#en), [auth](../../auth/README.md). Scope: `form0581:submit`.
 - The organization is **not read from the body**: do not send `senderOrganizationUuid` (ignored if sent). Provide the organization with the `X-Organization-Id` header — it is **mandatory**, `403` without it. The staff member submitting is sent in the body as `submittedBy` — **mandatory**, `400` without it.
 
 | Field | Req. | Notes |
