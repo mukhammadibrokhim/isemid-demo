@@ -27,10 +27,22 @@ public class InboundSubmissionAuditService {
             InboundSubmitterRequest submitter,
             String remoteIp
     ) {
+        record(formType, InboundAuditAction.SUBMIT, formId, organizationId, submitter, remoteIp);
+    }
+
+    public void record(
+            InboundFormType formType,
+            InboundAuditAction action,
+            Long formId,
+            Long organizationId,
+            InboundSubmitterRequest submitter,
+            String remoteIp
+    ) {
         try {
             repository.save(InboundSubmissionAudit.builder()
                     .createdAt(Instant.now())
                     .formType(formType)
+                    .action(action)
                     .formId(formId)
                     .integrationClientId(integrationClientResolver.resolveSourceIntegrationClientId())
                     .organizationId(organizationId)
@@ -41,8 +53,8 @@ public class InboundSubmissionAuditService {
                     .remoteIp(remoteIp)
                     .build());
         } catch (RuntimeException failure) {
-            log.error("Inbound submission audit failed. formType={}, formId={}, organizationId={}",
-                    formType, formId, organizationId, failure);
+            log.error("Inbound submission audit failed. formType={}, action={}, formId={}, organizationId={}",
+                    formType, action, formId, organizationId, failure);
         }
     }
 }

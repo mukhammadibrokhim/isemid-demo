@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSubmitterRequest;
 import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.AnimalOwnerRequest;
 import uz.uzinfocom.app.modules.form0581.web.dto.request.OtherInjuredPersonRequest;
@@ -138,7 +139,13 @@ public record DmedCreateForm0581Request(
 
         @Schema(description = "Дата и время отправки сообщения.", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        LocalDateTime messageSentAt
+        LocalDateTime messageSentAt,
+
+        @Schema(description = "Сотрудник, от имени которого DMED отправляет форму (для аудита). "
+                + "Обязателен; pinfl, fullName и position обязательны.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Valid
+        @NotNull(message = "{validation.inbound.submitter.required}")
+        InboundSubmitterRequest submittedBy
 ) {
 
     public DmedCreateForm0581Request {

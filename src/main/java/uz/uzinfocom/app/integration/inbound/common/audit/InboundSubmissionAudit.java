@@ -33,6 +33,11 @@ public class InboundSubmissionAudit extends BaseEntity {
     @Column(name = "form_type", nullable = false, length = 32)
     private InboundFormType formType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "action", nullable = false, length = 16)
+    @lombok.Builder.Default
+    private InboundAuditAction action = InboundAuditAction.SUBMIT;
+
     @Column(name = "form_id", nullable = false)
     private Long formId;
 

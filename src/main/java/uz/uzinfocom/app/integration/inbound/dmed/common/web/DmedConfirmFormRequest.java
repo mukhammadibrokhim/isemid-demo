@@ -3,10 +3,9 @@ package uz.uzinfocom.app.integration.inbound.dmed.common.web;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import uz.uzinfocom.app.integration.inbound.common.web.InboundSubmitterRequest;
-
-import java.util.UUID;
 
 @Schema(description = "Подтверждение формы от DMED с окончательным диагнозом.")
 public record DmedConfirmFormRequest(
@@ -20,12 +19,10 @@ public record DmedConfirmFormRequest(
         @Size(max = 1024, message = "{validation.inbound.final-icd10-name.size}")
         String finalIcd10Name,
 
-        @Schema(description = "UUID организации-отправителя формы. Обязателен для интеграционных клиентов.")
-        UUID organizationUuid,
-
-        @Schema(description = "Сотрудник, от имени которого отправляется подтверждение. "
-                + "Обязателен для интеграционных клиентов; если передан — pinfl, fullName и position обязательны.")
+        @Schema(description = "Сотрудник, от имени которого отправляется подтверждение (для аудита). "
+                + "Обязателен; pinfl, fullName и position обязательны.", requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull(message = "{validation.inbound.submitter.required}")
         InboundSubmitterRequest submittedBy
 ) {
 }

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import uz.uzinfocom.app.integration.inbound.common.web.InboundSubmitterRequest;
 import uz.uzinfocom.app.integration.inbound.common.web.IntegrationPatientRequest;
 import uz.uzinfocom.app.modules.form058.web.dto.request.LocationRequest;
 
@@ -147,6 +148,12 @@ public record DmedCreateForm058Request(
         @Schema(description = "Дополнительный комментарий к форме.", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank
         @Size(max = 2000, message = "{validation.form058.comment.size}")
-        String comment
+        String comment,
+
+        @Schema(description = "Сотрудник, от имени которого DMED отправляет форму (для аудита). "
+                + "Обязателен; pinfl, fullName и position обязательны.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Valid
+        @NotNull(message = "{validation.inbound.submitter.required}")
+        InboundSubmitterRequest submittedBy
 ) {
 }
