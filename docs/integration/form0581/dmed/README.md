@@ -29,17 +29,52 @@ DMED uchun **tekis** (flat) formatdagi qat'iy kontrakt. Umumiy `{source}` endpoi
 | `injuryAddress` | ✔ | ≤ 1000 |
 | `animalCategoryCode` | ✔ | ≤ 64 |
 | `animalColor, animalType, animalBreed` | ✔ | ≤ 255 |
-| `animalOwnerInfo` | ✔ | [form0581](../../form0581/README.md#uz) dagi kabi |
+| `animalOwnerInfo` | ✔ | Hayvon egasi obyekti, maydonlari [Ichki bloklar](#uz-nested) bo'limida |
 | `patient` | ✔ | [patient bloki](../../patient/README.md#uz) |
 | `receiverOrganizationId` | ✔ | UUID; sanitar-epidemiologik xizmat muassasasi |
 | `otherPeopleInjured` | ✔ | boolean |
-| `otherInjuredPeople[]` | ✔ | [form0581](../../form0581/README.md#uz) dagi kabi |
+| `otherInjuredPeople[]` | ✔ | Boshqa jabrlanganlar ro'yxati (bo'sh `[]` mumkin), elementlari [Ichki bloklar](#uz-nested) bo'limida |
 | `hospitalizedAt` | ✔ | sana-vaqt; `injuryDateTime` dan oldin bo'lmasin |
 | `hospitalOrganizationId` | ✔ | UUID |
 | `antirabicAssistanceInfo` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
 | `messageSentAt` | ✔ | sana-vaqt |
 | `submittedBy` | ✔ | Formani yuborgan xodim: `{ pinfl, fullName, position, phone }`. `pinfl`, `fullName`, `position` majburiy, `phone` ixtiyoriy. Audit uchun saqlanadi (kim yuborgani) |
+
+<a id="uz-nested"></a>
+## Ichki bloklar
+
+`animalOwnerInfo` va `otherInjuredPeople[]` elementlari. Bloklarning o'zi majburiy (`otherInjuredPeople` bo'sh `[]` bo'lishi mumkin); ichidagi maydonlar ixtiyoriy.
+
+**`animalOwnerInfo`** — hayvon egasi
+
+| Maydon | Izoh |
+|---|---|
+| `ownerLastName` | familiya, ≤ 255 |
+| `ownerFirstName` | ism, ≤ 255 |
+| `ownerMiddleName` | otasining ismi, ≤ 255 |
+| `regionCode` | viloyat kodi (ma'lumotnoma), ≤ 64 |
+| `districtCode` | tuman kodi (ma'lumotnoma), ≤ 64 |
+| `neighborhoodCode` | mahalla kodi (ma'lumotnoma), ≤ 64 |
+| `street` | ko'cha, ≤ 255 |
+| `houseNumber` | uy raqami, ≤ 32 |
+| `apartmentNumber` | xonadon raqami, ≤ 32 |
+
+**`otherInjuredPeople[]`** — voqeada jabrlangan boshqa shaxslar (`otherPeopleInjured = true` bo'lsa to'ldiriladi)
+
+| Maydon | Izoh |
+|---|---|
+| `lastName` | familiya, ≤ 255 |
+| `firstName` | ism, ≤ 255 |
+| `middleName` | otasining ismi, ≤ 255 |
+| `regionCode` | viloyat kodi (ma'lumotnoma), ≤ 64 |
+| `districtCode` | tuman kodi (ma'lumotnoma), ≤ 64 |
+| `neighborhoodCode` | mahalla kodi (ma'lumotnoma), ≤ 64 |
+| `street` | ko'cha, ≤ 255 |
+| `houseNumber` | uy raqami, ≤ 32 |
+| `apartmentNumber` | xonadon raqami, ≤ 32 |
+
+`id` — yangi yozuvda yuborilmaydi.
 
 ## Qo'shimcha qoidalar
 
@@ -54,14 +89,19 @@ DMED uchun **tekis** (flat) formatdagi qat'iy kontrakt. Umumiy `{source}` endpoi
   "injuryDateTime": "2026-10-10T14:00:00", "dpuVisitDateTime": "2026-10-10T16:30:00",
   "injuryRegionCode": "UZ-QA", "injuryDistrictCode": "QA-212", "injuryAddress": "…",
   "animalCategoryCode": "STRAY", "animalColor": "Brown", "animalType": "Dog", "animalBreed": "Mixed",
-  "animalOwnerInfo": { "…": "…" },
+  "animalOwnerInfo": { "ownerLastName": "Qodirov", "ownerFirstName": "Bahodir", "ownerMiddleName": "Aliyevich",
+    "regionCode": "UZ-QA", "districtCode": "QA-212", "neighborhoodCode": "QA-212-01",
+    "street": "Navoiy", "houseNumber": "12", "apartmentNumber": "5" },
   "patient": {
     "firstName": "Ali", "lastName": "Valiyev", "birthDate": "1990-05-17",
     "identifiers": [ { "type": "PINFL", "value": "31705901234560" } ],
     "addresses": [ { "type": "PERMANENT", "regionCode": "UZ-QA", "districtCode": "QA-212" } ]
   },
   "receiverOrganizationId": "e9140422-0562-4733-b709-150832dd5d77",
-  "otherPeopleInjured": false, "otherInjuredPeople": [],
+  "otherPeopleInjured": true,
+  "otherInjuredPeople": [ { "lastName": "Karimov", "firstName": "Aziz", "middleName": "Olimovich",
+    "regionCode": "UZ-QA", "districtCode": "QA-212", "neighborhoodCode": "QA-212-01",
+    "street": "Navoiy", "houseNumber": "14", "apartmentNumber": "2" } ],
   "hospitalizedAt": "2026-10-10T18:00:00", "hospitalOrganizationId": "0b2f6b1e-5c1a-4f0e-9d53-6a8e5c0c1a11",
   "antirabicAssistanceInfo": "…", "notifierFullName": "Dr. Karimov", "messageSentAt": "2026-10-10T17:00:00",
   "submittedBy": { "pinfl": "31705901234560", "fullName": "Dr. Karimov", "position": "Epidemiolog", "phone": "+998901234567" }
@@ -132,17 +172,52 @@ Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
 | `injuryAddress` | ✔ | ≤ 1000 |
 | `animalCategoryCode` | ✔ | ≤ 64 |
 | `animalColor, animalType, animalBreed` | ✔ | ≤ 255 |
-| `animalOwnerInfo` | ✔ | как в [form0581](../../form0581/README.md#ru) |
+| `animalOwnerInfo` | ✔ | Объект владельца животного, поля — в разделе [Вложенные блоки](#ru-nested) |
 | `patient` | ✔ | [блок patient](../../patient/README.md#ru) |
 | `receiverOrganizationId` | ✔ | UUID; учреждение санэпидслужбы |
 | `otherPeopleInjured` | ✔ | boolean |
-| `otherInjuredPeople[]` | ✔ | как в [form0581](../../form0581/README.md#ru) |
+| `otherInjuredPeople[]` | ✔ | Список иных пострадавших (может быть пустым `[]`), элементы — в разделе [Вложенные блоки](#ru-nested) |
 | `hospitalizedAt` | ✔ | дата-время; не раньше `injuryDateTime` |
 | `hospitalOrganizationId` | ✔ | UUID |
 | `antirabicAssistanceInfo` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
 | `messageSentAt` | ✔ | дата-время |
 | `submittedBy` | ✔ | Сотрудник, отправивший форму: `{ pinfl, fullName, position, phone }`. `pinfl`, `fullName`, `position` обязательны, `phone` необязателен. Сохраняется в аудите (кто отправил) |
+
+<a id="ru-nested"></a>
+## Вложенные блоки
+
+Элементы `animalOwnerInfo` и `otherInjuredPeople[]`. Сами блоки обязательны (`otherInjuredPeople` может быть пустым `[]`); поля внутри необязательны.
+
+**`animalOwnerInfo`** — владелец животного
+
+| Поле | Описание |
+|---|---|
+| `ownerLastName` | фамилия, ≤ 255 |
+| `ownerFirstName` | имя, ≤ 255 |
+| `ownerMiddleName` | отчество, ≤ 255 |
+| `regionCode` | код региона (справочник), ≤ 64 |
+| `districtCode` | код района (справочник), ≤ 64 |
+| `neighborhoodCode` | код махалли (справочник), ≤ 64 |
+| `street` | улица, ≤ 255 |
+| `houseNumber` | номер дома, ≤ 32 |
+| `apartmentNumber` | номер квартиры, ≤ 32 |
+
+**`otherInjuredPeople[]`** — иные пострадавшие в происшествии (заполняется, если `otherPeopleInjured = true`)
+
+| Поле | Описание |
+|---|---|
+| `lastName` | фамилия, ≤ 255 |
+| `firstName` | имя, ≤ 255 |
+| `middleName` | отчество, ≤ 255 |
+| `regionCode` | код региона (справочник), ≤ 64 |
+| `districtCode` | код района (справочник), ≤ 64 |
+| `neighborhoodCode` | код махалли (справочник), ≤ 64 |
+| `street` | улица, ≤ 255 |
+| `houseNumber` | номер дома, ≤ 32 |
+| `apartmentNumber` | номер квартиры, ≤ 32 |
+
+`id` — для новой записи не передаётся.
 
 ## Дополнительные правила
 
@@ -157,14 +232,19 @@ Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
   "injuryDateTime": "2026-10-10T14:00:00", "dpuVisitDateTime": "2026-10-10T16:30:00",
   "injuryRegionCode": "UZ-QA", "injuryDistrictCode": "QA-212", "injuryAddress": "…",
   "animalCategoryCode": "STRAY", "animalColor": "Brown", "animalType": "Dog", "animalBreed": "Mixed",
-  "animalOwnerInfo": { "…": "…" },
+  "animalOwnerInfo": { "ownerLastName": "Qodirov", "ownerFirstName": "Bahodir", "ownerMiddleName": "Aliyevich",
+    "regionCode": "UZ-QA", "districtCode": "QA-212", "neighborhoodCode": "QA-212-01",
+    "street": "Navoiy", "houseNumber": "12", "apartmentNumber": "5" },
   "patient": {
     "firstName": "Ali", "lastName": "Valiyev", "birthDate": "1990-05-17",
     "identifiers": [ { "type": "PINFL", "value": "31705901234560" } ],
     "addresses": [ { "type": "PERMANENT", "regionCode": "UZ-QA", "districtCode": "QA-212" } ]
   },
   "receiverOrganizationId": "e9140422-0562-4733-b709-150832dd5d77",
-  "otherPeopleInjured": false, "otherInjuredPeople": [],
+  "otherPeopleInjured": true,
+  "otherInjuredPeople": [ { "lastName": "Karimov", "firstName": "Aziz", "middleName": "Olimovich",
+    "regionCode": "UZ-QA", "districtCode": "QA-212", "neighborhoodCode": "QA-212-01",
+    "street": "Navoiy", "houseNumber": "14", "apartmentNumber": "2" } ],
   "hospitalizedAt": "2026-10-10T18:00:00", "hospitalOrganizationId": "0b2f6b1e-5c1a-4f0e-9d53-6a8e5c0c1a11",
   "antirabicAssistanceInfo": "…", "notifierFullName": "Dr. Karimov", "messageSentAt": "2026-10-10T17:00:00",
   "submittedBy": { "pinfl": "31705901234560", "fullName": "Dr. Karimov", "position": "Epidemiolog", "phone": "+998901234567" }
@@ -235,17 +315,52 @@ A fixed **flat** contract for DMED. Unlike the generic `{source}` endpoint, fiel
 | `injuryAddress` | ✔ | ≤ 1000 |
 | `animalCategoryCode` | ✔ | ≤ 64 |
 | `animalColor, animalType, animalBreed` | ✔ | ≤ 255 |
-| `animalOwnerInfo` | ✔ | as in [form0581](../../form0581/README.md#en) |
+| `animalOwnerInfo` | ✔ | Animal owner object, fields in [Nested blocks](#en-nested) |
 | `patient` | ✔ | [patient block](../../patient/README.md#en) |
 | `receiverOrganizationId` | ✔ | UUID; a sanitary-epidemiological service institution |
 | `otherPeopleInjured` | ✔ | boolean |
-| `otherInjuredPeople[]` | ✔ | as in [form0581](../../form0581/README.md#en) |
+| `otherInjuredPeople[]` | ✔ | List of other injured people (may be an empty `[]`), elements in [Nested blocks](#en-nested) |
 | `hospitalizedAt` | ✔ | date-time; not before `injuryDateTime` |
 | `hospitalOrganizationId` | ✔ | UUID |
 | `antirabicAssistanceInfo` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
 | `messageSentAt` | ✔ | date-time |
 | `submittedBy` | ✔ | The staff member who submitted the form: `{ pinfl, fullName, position, phone }`. `pinfl`, `fullName`, `position` are required, `phone` is optional. Stored in the audit (who sent it) |
+
+<a id="en-nested"></a>
+## Nested blocks
+
+Elements of `animalOwnerInfo` and `otherInjuredPeople[]`. The blocks themselves are required (`otherInjuredPeople` may be an empty `[]`); the fields inside are optional.
+
+**`animalOwnerInfo`** — the animal owner
+
+| Field | Notes |
+|---|---|
+| `ownerLastName` | last name, ≤ 255 |
+| `ownerFirstName` | first name, ≤ 255 |
+| `ownerMiddleName` | middle name, ≤ 255 |
+| `regionCode` | region code (catalog), ≤ 64 |
+| `districtCode` | district code (catalog), ≤ 64 |
+| `neighborhoodCode` | neighborhood code (catalog), ≤ 64 |
+| `street` | street, ≤ 255 |
+| `houseNumber` | house number, ≤ 32 |
+| `apartmentNumber` | apartment number, ≤ 32 |
+
+**`otherInjuredPeople[]`** — other people injured in the incident (fill in when `otherPeopleInjured = true`)
+
+| Field | Notes |
+|---|---|
+| `lastName` | last name, ≤ 255 |
+| `firstName` | first name, ≤ 255 |
+| `middleName` | middle name, ≤ 255 |
+| `regionCode` | region code (catalog), ≤ 64 |
+| `districtCode` | district code (catalog), ≤ 64 |
+| `neighborhoodCode` | neighborhood code (catalog), ≤ 64 |
+| `street` | street, ≤ 255 |
+| `houseNumber` | house number, ≤ 32 |
+| `apartmentNumber` | apartment number, ≤ 32 |
+
+`id` — omit for a new record.
 
 ## Extra rules
 
@@ -260,14 +375,19 @@ A fixed **flat** contract for DMED. Unlike the generic `{source}` endpoint, fiel
   "injuryDateTime": "2026-10-10T14:00:00", "dpuVisitDateTime": "2026-10-10T16:30:00",
   "injuryRegionCode": "UZ-QA", "injuryDistrictCode": "QA-212", "injuryAddress": "…",
   "animalCategoryCode": "STRAY", "animalColor": "Brown", "animalType": "Dog", "animalBreed": "Mixed",
-  "animalOwnerInfo": { "…": "…" },
+  "animalOwnerInfo": { "ownerLastName": "Qodirov", "ownerFirstName": "Bahodir", "ownerMiddleName": "Aliyevich",
+    "regionCode": "UZ-QA", "districtCode": "QA-212", "neighborhoodCode": "QA-212-01",
+    "street": "Navoiy", "houseNumber": "12", "apartmentNumber": "5" },
   "patient": {
     "firstName": "Ali", "lastName": "Valiyev", "birthDate": "1990-05-17",
     "identifiers": [ { "type": "PINFL", "value": "31705901234560" } ],
     "addresses": [ { "type": "PERMANENT", "regionCode": "UZ-QA", "districtCode": "QA-212" } ]
   },
   "receiverOrganizationId": "e9140422-0562-4733-b709-150832dd5d77",
-  "otherPeopleInjured": false, "otherInjuredPeople": [],
+  "otherPeopleInjured": true,
+  "otherInjuredPeople": [ { "lastName": "Karimov", "firstName": "Aziz", "middleName": "Olimovich",
+    "regionCode": "UZ-QA", "districtCode": "QA-212", "neighborhoodCode": "QA-212-01",
+    "street": "Navoiy", "houseNumber": "14", "apartmentNumber": "2" } ],
   "hospitalizedAt": "2026-10-10T18:00:00", "hospitalOrganizationId": "0b2f6b1e-5c1a-4f0e-9d53-6a8e5c0c1a11",
   "antirabicAssistanceInfo": "…", "notifierFullName": "Dr. Karimov", "messageSentAt": "2026-10-10T17:00:00",
   "submittedBy": { "pinfl": "31705901234560", "fullName": "Dr. Karimov", "position": "Epidemiolog", "phone": "+998901234567" }

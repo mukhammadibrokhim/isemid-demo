@@ -44,7 +44,7 @@ Kalit berilguncha quyidagi so'rov formatiga tayyorlanib turing.
 1. **Yuborish:** `POST /integration/v1/DMED/form-058` yoki `.../form-058-1` → javob `{ "id", "uuid", "status": "SENT" }`.
 2. Qabul qiluvchi tashkilot shaklni qabul qiladi (status `ACCEPTED` / `CARD_LINKED`).
 3. **Tasdiqlash:** `POST /integration/v1/DMED/form-058/{idOrUuid}/confirm` (yoki `form-058-1`) → status `APPROVED`. Faqat yuborgan tashkilot tasdiqlay oladi.
-4. Status o'zgarganda webhook ketadi (kerak bo'lsa, [webhook](../webhook/README.md)).
+4. Status o'zgarganda webhook ketadi (kerak bo'lsa — [Form 058 webhook](../form058/webhook/README.md), [Form 058-1 webhook](../form0581/webhook/README.md)).
 
 ## 4. Namuna so'rovlar
 
@@ -124,7 +124,7 @@ DMED вызывает наш API: отправляет форму (`form-058`, `
 1. **Отправка:** `POST /integration/v1/DMED/form-058` или `.../form-058-1` → ответ `{ "id", "uuid", "status": "SENT" }`.
 2. Организация-получатель принимает форму (статус `ACCEPTED` / `CARD_LINKED`).
 3. **Подтверждение:** `POST /integration/v1/DMED/form-058/{idOrUuid}/confirm` (или `form-058-1`) → статус `APPROVED`. Подтвердить может только отправившая организация.
-4. При смене статуса уходит webhook (при необходимости, [webhook](../webhook/README.md)).
+4. При смене статуса уходит webhook (при необходимости — [webhook Form 058](../form058/webhook/README.md), [webhook Form 058-1](../form0581/webhook/README.md)).
 
 ## 4. Примеры запросов
 
@@ -204,7 +204,7 @@ Until the key is issued, prepare against the request format below.
 1. **Submit:** `POST /integration/v1/DMED/form-058` or `.../form-058-1` → response `{ "id", "uuid", "status": "SENT" }`.
 2. The receiving organization accepts the form (status `ACCEPTED` / `CARD_LINKED`).
 3. **Confirm:** `POST /integration/v1/DMED/form-058/{idOrUuid}/confirm` (or `form-058-1`) → status `APPROVED`. Only the submitting organization can confirm.
-4. A webhook is sent on status change (if configured, [webhook](../webhook/README.md)).
+4. A webhook is sent on status change (if configured — [Form 058 webhook](../form058/webhook/README.md), [Form 058-1 webhook](../form0581/webhook/README.md)).
 
 ## 4. Example requests
 
