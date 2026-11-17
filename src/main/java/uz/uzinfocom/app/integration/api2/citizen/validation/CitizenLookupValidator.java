@@ -19,18 +19,28 @@ public class CitizenLookupValidator {
     private static final Pattern NNUZB_PATTERN = Pattern.compile("\\d{14}");
 
     public CitizenLookupRequest validate(CitizenLookupRequest request) {
+        return validate(request, true);
+    }
+
+    /**
+     * @param birthDateRequired API2 needs the birth date next to the NNUZB / passport; DHP's
+     *                          {@code Patient/$populate} resolves by the identifier alone, so
+     *                          DHP-provider callers are validated without it (a supplied
+     *                          date is still checked for being in the future)
+     */
+    public CitizenLookupRequest validate(CitizenLookupRequest request, boolean birthDateRequired) {
         if (request.type() == null) {
             throw new UnsupportedCitizenLookupTypeException();
         }
 
         return switch (request.type()) {
-            case NNUZB -> validateNnuzb(request);
-            case PPN -> validatePassport(request);
+            case NNUZB -> validateNnuzb(request, birthDateRequired);
+            case PPN -> validatePassport(request, birthDateRequired);
             case CZ -> validateChild(request);
         };
     }
 
-    private CitizenLookupRequest validateNnuzb(CitizenLookupRequest request) {
+    private CitizenLookupRequest validateNnuzb(CitizenLookupRequest request, boolean birthDateRequired) {
         List<FieldValidationError> errors = new ArrayList<>();
         String nnuzb = trim(request.nnuzb());
 
@@ -40,7 +50,7 @@ public class CitizenLookupValidator {
             errors.add(new FieldValidationError("nnuzb", "validation.nnuzb.format"));
         }
 
-        validateBirthDate(request.birthDate(), errors);
+        validateBirthDate(request.birthDate(), birthDateRequired, errors);
         throwIfInvalid(errors);
 
         return new CitizenLookupRequest(
@@ -53,7 +63,7 @@ public class CitizenLookupValidator {
         );
     }
 
-    private CitizenLookupRequest validatePassport(CitizenLookupRequest request) {
+    private CitizenLookupRequest validatePassport(CitizenLookupRequest request, boolean birthDateRequired) {
         List<FieldValidationError> errors = new ArrayList<>();
         String document = trim(request.document());
 
@@ -61,7 +71,7 @@ public class CitizenLookupValidator {
             errors.add(new FieldValidationError("document", "validation.required"));
         }
 
-        validateBirthDate(request.birthDate(), errors);
+        validateBirthDate(request.birthDate(), birthDateRequired, errors);
         throwIfInvalid(errors);
 
         return new CitizenLookupRequest(
@@ -99,9 +109,11 @@ public class CitizenLookupValidator {
         );
     }
 
-    private void validateBirthDate(LocalDate birthDate, List<FieldValidationError> errors) {
+    private void validateBirthDate(LocalDate birthDate, boolean required, List<FieldValidationError> errors) {
         if (birthDate == null) {
-            errors.add(new FieldValidationError("birth_date", "validation.birth_date.required"));
+            if (required) {
+                errors.add(new FieldValidationError("birth_date", "validation.birth_date.required"));
+            }
             return;
         }
 

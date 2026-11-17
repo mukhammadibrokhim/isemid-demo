@@ -8,6 +8,7 @@ import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupRequest;
 import uz.uzinfocom.app.integration.api2.citizen.domain.CitizenLookupResult;
 import uz.uzinfocom.app.integration.api2.citizen.strategy.CitizenLookupStrategyRegistry;
 import uz.uzinfocom.app.integration.api2.citizen.validation.CitizenLookupValidator;
+import uz.uzinfocom.app.integration.dhp.citizen.application.DhpCitizenLookupService;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 @Service
@@ -22,23 +23,34 @@ public class CitizenLookupService {
      */
     private static final Logger AUDIT = LoggerFactory.getLogger("AUDIT.CITIZEN_LOOKUP");
 
+    /** Login provider key of callers whose citizen data comes from DHP instead of API2. */
+    static final String DHP_PROVIDER_KEY = "dhp";
+
     private final CitizenLookupValidator validator;
     private final CitizenLookupStrategyRegistry strategyRegistry;
+    private final DhpCitizenLookupService dhpCitizenLookupService;
     private final CurrentUserProvider currentUserProvider;
 
+    /**
+     * Callers who signed in through DHP are served from DHP's {@code Patient/$populate}
+     * (same response shape, no birth date needed); everyone else - SSO and any other
+     * provider - keeps using API2.
+     */
     public CitizenLookupResult lookup(CitizenLookupRequest request) {
-        CitizenLookupRequest validatedRequest = validator.validate(request);
+        boolean viaDhp = DHP_PROVIDER_KEY.equals(currentUserProvider.currentProviderKeyOrNull());
+        CitizenLookupRequest validatedRequest = validator.validate(request, !viaDhp);
 
         boolean succeeded = false;
         try {
-            CitizenLookupResult result = strategyRegistry
-                    .getRequired(validatedRequest.type())
-                    .lookup(validatedRequest);
+            CitizenLookupResult result = viaDhp
+                    ? dhpCitizenLookupService.lookup(validatedRequest)
+                    : strategyRegistry.getRequired(validatedRequest.type()).lookup(validatedRequest);
             succeeded = true;
             return result;
         } finally {
-            AUDIT.info("Citizen lookup. userId={}, type={}, identifier={}, succeeded={}",
+            AUDIT.info("Citizen lookup. userId={}, provider={}, type={}, identifier={}, succeeded={}",
                     currentUserProvider.userIdOrNull(),
+                    viaDhp ? DHP_PROVIDER_KEY : "api2",
                     validatedRequest.type(),
                     mask(identifier(validatedRequest)),
                     succeeded);

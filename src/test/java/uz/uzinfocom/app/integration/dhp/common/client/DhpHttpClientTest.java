@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -29,7 +30,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.ExpectedCount.once;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -66,6 +69,24 @@ class DhpHttpClientTest {
 
         assertThat(body).isPresent();
         assertThat(body.get().get("a").asInt()).isEqualTo(1);
+        server.verify();
+    }
+
+    @Test
+    void postJsonSendsTheBodyAsFhirJsonWithTheBearerToken() {
+        URI populate = URI.create("https://fhir.dhp.example/fhir/Patient/$populate");
+        when(tokenProvider.getAccessToken()).thenReturn("tok-1");
+        server.expect(once(), requestTo(populate))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer tok-1"))
+                .andExpect(header(HttpHeaders.CONTENT_TYPE, "application/fhir+json"))
+                .andExpect(content().json("{\"resourceType\":\"Parameters\"}"))
+                .andRespond(withSuccess("{\"resourceType\":\"Patient\"}", MediaType.valueOf("application/fhir+json")));
+
+        JsonNode body = JsonMapper.builder().build().readTree("{\"resourceType\":\"Parameters\"}");
+
+        assertThat(client.postJson("OP", populate, body).orElseThrow().get("resourceType").asString())
+                .isEqualTo("Patient");
         server.verify();
     }
 

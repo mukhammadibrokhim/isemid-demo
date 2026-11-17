@@ -38,6 +38,7 @@ class DhpPropertiesBindingTest {
             assertThat(properties.employment().byNiEndpoint()).isEqualTo("/mol/citizen/employment/by-ni");
             assertThat(properties.fhir().immunizationEndpoint()).isEqualTo("/Immunization");
             assertThat(properties.fhir().patientEndpoint()).isEqualTo("/Patient");
+            assertThat(properties.fhir().patientPopulateEndpoint()).isEqualTo("/Patient/$populate");
             assertThat(properties.fhir().pageSize()).isEqualTo(100);
             assertThat(properties.fhir().maxPages()).isEqualTo(10);
         });

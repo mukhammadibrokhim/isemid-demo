@@ -55,6 +55,12 @@ public record DhpProperties(
              * an id resolved via this endpoint actually filters correctly.
              */
             @DefaultValue("/Patient") @NotBlank String patientEndpoint,
+            /*
+             * DHP's Patient $populate operation: resolves a citizen by an HL7 v2-0203
+             * identifier type code (NI / PPN / BCT) + value in one call, used by the
+             * citizen lookup for users who logged in through DHP.
+             */
+            @DefaultValue("/Patient/$populate") @NotBlank String patientPopulateEndpoint,
             /* Optional identifier system; when set the search value becomes "system|ni". */
             String identifierSystem,
             @DefaultValue("100") @Min(1) int pageSize,

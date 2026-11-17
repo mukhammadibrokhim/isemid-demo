@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
@@ -56,12 +57,25 @@ public class DhpHttpClient {
     }
 
     public Optional<JsonNode> getJson(String operation, URI uri) {
-        RawResponse response = send(operation, uri);
+        return execute(operation, uri, null);
+    }
+
+    /**
+     * POST with a FHIR JSON body (e.g. a FHIR {@code Parameters} resource for an
+     * operation such as {@code Patient/$populate}). Same token, circuit-breaker,
+     * 401-retry and failure classification as {@link #getJson}.
+     */
+    public Optional<JsonNode> postJson(String operation, URI uri, JsonNode body) {
+        return execute(operation, uri, body);
+    }
+
+    private Optional<JsonNode> execute(String operation, URI uri, JsonNode requestBody) {
+        RawResponse response = send(operation, uri, requestBody);
 
         if (response.status() == 401) {
             // The cached token may have been revoked or expired early - drop it and try once more.
             tokenProvider.invalidate(response.tokenUsed());
-            response = send(operation, uri);
+            response = send(operation, uri, requestBody);
         }
 
         if (response.status() == 401) {
@@ -76,15 +90,21 @@ public class DhpHttpClient {
         return Optional.ofNullable(response.body());
     }
 
-    private RawResponse send(String operation, URI uri) {
+    private RawResponse send(String operation, URI uri, JsonNode requestBody) {
         String token = tokenProvider.getAccessToken();
 
         try {
-            return circuitBreakerLookup.forName(CircuitBreakerNames.DHP).executeSupplier(() -> restClient.get()
-                    .uri(uri)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .accept(MediaType.APPLICATION_JSON, FHIR_JSON)
-                    .exchange((request, response) -> handle(operation, response, token)));
+            return circuitBreakerLookup.forName(CircuitBreakerNames.DHP).executeSupplier(() -> {
+                RestClient.RequestBodySpec spec = restClient
+                        .method(requestBody == null ? HttpMethod.GET : HttpMethod.POST)
+                        .uri(uri)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON, FHIR_JSON);
+                if (requestBody != null) {
+                    spec = spec.contentType(FHIR_JSON).body(jsonMapper.writeValueAsString(requestBody));
+                }
+                return spec.exchange((request, response) -> handle(operation, response, token));
+            });
         } catch (DhpIntegrationException exception) {
             throw exception;
         } catch (CallNotPermittedException exception) {

@@ -63,9 +63,12 @@ public class CitizenLookupController {
                 number
         ));
 
-        List<CitizenAddressResponse> addresses = type == CitizenLookupType.NNUZB
-                ? citizenAddressLookupService.lookupWithTimeout(nnuzb, birthDate)
-                : List.of();
+        // DHP returns the addresses inside the Patient itself; API2 needs a separate (best-effort) call.
+        List<CitizenAddressResponse> addresses = result.addresses() != null
+                ? result.addresses()
+                : type == CitizenLookupType.NNUZB
+                        ? citizenAddressLookupService.lookupWithTimeout(nnuzb, birthDate)
+                        : List.of();
 
         return new CitizenLookupResponse(
                 true,
