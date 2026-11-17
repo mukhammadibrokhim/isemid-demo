@@ -1,0 +1,69 @@
+package uz.uzinfocom.app.modules.reference.domain;
+
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+import uz.uzinfocom.app.modules.reference.domain.base.ReferenceDictionaryEntity;
+import uz.uzinfocom.app.modules.reference.domain.enums.AdministrativeType;
+
+@Getter
+@Setter
+@Entity
+@Table(
+        name = "ref_district",
+        indexes = {
+                @Index(name = "idx_ref_district_code", columnList = "code"),
+                @Index(name = "idx_ref_district_parent_code", columnList = "parent_code"),
+                @Index(name = "idx_ref_district_deleted", columnList = "deleted")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_ref_district_code", columnNames = "code")
+        }
+)
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class District extends ReferenceDictionaryEntity {
+
+    @Column(nullable = false, length = 50)
+    private String code;
+
+    @Column(name = "parent_code", nullable = false, length = 50)
+    private String parentCode;
+
+    @Column(name = "soato_id", nullable = false)
+    private Integer soatoId;
+
+    @Column(name = "parent_soato_id", nullable = false)
+    private Integer parentSoatoId;
+
+    @Column(name = "legacy_soato_id", nullable = false)
+    private Integer legacySoatoId;
+
+    @Column(name = "parent_legacy_soato_id", nullable = false)
+    private Integer parentLegacySoatoId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private AdministrativeType administrativeType;
+
+    @Column(name = "name_uz")
+    private String nameUz;
+
+    @Column(name = "name_uz_cyril")
+    private String nameUzCyril;
+
+    @Column(name = "name_ru")
+    private String nameRu;
+
+    @Column(name = "name_kaa")
+    private String nameKaa;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean deleted = false;
+
+    public boolean isDeleted() {
+        return Boolean.TRUE.equals(deleted);
+    }
+}

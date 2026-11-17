@@ -1,0 +1,15 @@
+package uz.uzinfocom.app.modules.reference.application.catalog.query.dto;
+
+public record Icd10Projection(
+        String code,
+        String name
+) {
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
+    }
+}

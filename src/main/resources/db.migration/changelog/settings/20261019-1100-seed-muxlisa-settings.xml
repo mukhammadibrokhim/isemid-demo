@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Seeds the runtime-editable Muxlisa speech-to-text settings (see
+        MuxlisaSettingKeys) so they show up in the dev panel (/v1/dev/settings).
+        Every value equals the current MuxlisaProperties default, so seeding
+        them ACTIVE changes nothing - except base-url, which application.properties
+        drives via ${MUXLISA_BASE_URL}; it is seeded INACTIVE so a deployment
+        with its own URL is not silently overridden. The API key is deliberately
+        not a setting (system_settings is readable by any signed-in user).
+    -->
+    <changeSet id="20261019-1100-01-seed-muxlisa-settings" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.muxlisa.enabled', 'true', 'BOOLEAN', 'Master switch for Muxlisa speech-to-text. false = POST /v1/speech/stt is refused without contacting Muxlisa.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.muxlisa.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.muxlisa.base-url', 'https://service.muxlisa.uz', 'STRING', 'Muxlisa base URL. Inactive by default: the deployed value may come from MUXLISA_BASE_URL - confirm before activating.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.muxlisa.base-url');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.muxlisa.stt-endpoint', '/api/v2/stt', 'STRING', 'Muxlisa STT endpoint path.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.muxlisa.stt-endpoint');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.muxlisa.max-audio-size-bytes', '5242880', 'NUMBER', 'Largest accepted recording in bytes (Muxlisa itself caps at 5 MB).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.muxlisa.max-audio-size-bytes');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.muxlisa.connect-timeout-millis', '3000', 'NUMBER', 'Connect timeout (ms) - Muxlisa client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.muxlisa.connect-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.muxlisa.read-timeout-millis', '30000', 'NUMBER', 'Read/response timeout (ms) - Muxlisa client; STT time grows with audio length.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.muxlisa.read-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.muxlisa.max-connections', '25', 'NUMBER', 'Total pooled-connection cap - Muxlisa client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.muxlisa.max-connections');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.muxlisa.max-connections-per-route', '5', 'NUMBER', 'Per-route pooled-connection cap - Muxlisa client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.muxlisa.max-connections-per-route');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key LIKE 'integration.muxlisa.%' OR setting_key LIKE 'http-client.muxlisa.%';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

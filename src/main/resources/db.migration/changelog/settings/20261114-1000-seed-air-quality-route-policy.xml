@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        /v1/air-quality/** - air quality stations and measurements (AIR_CONTROL). Like the
+        other read-only lookup routes: an authenticated caller with a validated role, no
+        X-Organization header. Without a row the route would fall back to the fail-closed
+        default, which also demands the organization header. The per-endpoint gate is
+        PERMISSION_REPORTS_READ (reads) / super-admin (sync) on the controller.
+    -->
+    <changeSet id="20261114-1000-01-seed-air-quality-route-policy" author="uzinfocom">
+        <sql>
+            INSERT INTO security_route_policy
+                (created_at, updated_at, version, pattern, display_order, open,
+                 organization_header_required, role_validation_required, enabled, description)
+            SELECT now(), now(), 0, '/v1/air-quality/**', 23, false,
+                   false, true, true,
+                   'Air quality (AIRCONTROL stations/measurements) - authenticated, no org header.'
+            WHERE NOT EXISTS (SELECT 1 FROM security_route_policy WHERE pattern = '/v1/air-quality/**');
+        </sql>
+        <rollback>
+            DELETE FROM security_route_policy WHERE pattern = '/v1/air-quality/**';
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

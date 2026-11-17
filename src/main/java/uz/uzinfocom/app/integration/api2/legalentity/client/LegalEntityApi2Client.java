@@ -58,7 +58,8 @@ public class LegalEntityApi2Client {
         } catch (Api2Exception exception) {
             throw exception;
         } catch (CallNotPermittedException exception) {
-            throw errorDecoder.decodeCircuitBreakerOpen(OPERATION, exception);
+            throw errorDecoder.decodeCircuitBreakerOpen(
+                    OPERATION, exception, circuitBreakerLookup.retryAfterSeconds(CircuitBreakerNames.API2));
         } catch (RestClientException exception) {
             throw errorDecoder.decodeTransport(OPERATION, exception);
         }

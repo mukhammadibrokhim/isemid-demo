@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Havo sifati (AIR_CONTROL, Gidrometeorologiya agentligi). air_station -
+        monitoring stansiyalari (external_id = AIR_CONTROL dagi id), air_measurement -
+        har bir o'lchovning har bir parametri uchun bitta qator
+        (station_id, measured_at, parameter) unikal. region_code / district_code
+        soato_id bo'yicha ref_region / ref_district dan aniqlanadi, FK yo'q
+        (reference moduli bilan bir xil uslub).
+    -->
+
+    <changeSet id="20261114-1000-01-create-air-station" author="uzinfocom">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="air_station"/></not>
+        </preConditions>
+        <createTable tableName="air_station">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="external_id" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="latitude" type="NUMERIC(10,6)"/>
+            <column name="longitude" type="NUMERIC(10,6)"/>
+            <column name="soato_id" type="INTEGER"/>
+            <column name="region_code" type="VARCHAR(50)"/>
+            <column name="district_code" type="VARCHAR(50)"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_measured_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="last_synced_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </createTable>
+        <addUniqueConstraint tableName="air_station" columnNames="external_id"
+                             constraintName="uk_air_station_external_id"/>
+        <createIndex tableName="air_station" indexName="idx_air_station_region_code">
+            <column name="region_code"/>
+        </createIndex>
+        <createIndex tableName="air_station" indexName="idx_air_station_district_code">
+            <column name="district_code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20261114-1000-02-create-air-measurement" author="uzinfocom">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="air_measurement"/></not>
+        </preConditions>
+        <createTable tableName="air_measurement">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="station_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_air_measurement_station"
+                             references="air_station(id)"/>
+            </column>
+            <column name="measured_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parameter" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="NUMERIC(18,6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unit" type="VARCHAR(30)"/>
+        </createTable>
+        <addUniqueConstraint tableName="air_measurement" columnNames="station_id, measured_at, parameter"
+                             constraintName="uk_air_measurement_station_time_param"/>
+        <createIndex tableName="air_measurement" indexName="idx_air_measurement_measured_at">
+            <column name="measured_at"/>
+        </createIndex>
+        <createIndex tableName="air_measurement" indexName="idx_air_measurement_parameter_time">
+            <column name="parameter"/>
+            <column name="measured_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

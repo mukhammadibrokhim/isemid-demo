@@ -14,10 +14,10 @@ import java.util.List;
 @Schema(description = "Карта 205 — карта эпидемиологического расследования случая укуса животным.")
 public record Card205Request(
         @Schema(description = "Код диагноза по МКБ-10.")
-        @Size(max = 64) String mkb10Code,
+        @Size(max = 64) String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.")
-        @Size(max = 500) String mkb10Name,
+        @Size(max = 500) String icd10Name,
 
         @Schema(description = "Дата эпидемиологического наблюдения.")
         LocalDate epidemiologicalObservationDate,

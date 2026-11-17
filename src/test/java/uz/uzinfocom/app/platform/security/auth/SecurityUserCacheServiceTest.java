@@ -10,11 +10,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uz.uzinfocom.app.platform.cache.SecurityCacheNames;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
-import uz.uzinfocom.app.platform.iam.domain.User;
-import uz.uzinfocom.app.platform.iam.domain.enums.MedicalType;
-import uz.uzinfocom.app.platform.iam.domain.enums.OrganizationLevel;
-import uz.uzinfocom.app.platform.iam.repository.UserRepository;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.User;
+import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
+import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.modules.iam.repository.UserRepository;
 
 import java.util.Optional;
 import java.util.Set;
@@ -113,7 +113,7 @@ class SecurityUserCacheServiceTest {
     private Organization organization(Long id, UUID uuid) {
         Organization organization = Organization.builder()
                 .uuid(uuid)
-                .name("Central Clinic")
+                .nameUz("Central Clinic")
                 .active(true)
                 .levelType(OrganizationLevel.REPUBLICAN)
                 .medicalType(MedicalType.SANEPID_SERVICE)

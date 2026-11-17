@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.card.domain.enums.CardStatus;
 import uz.uzinfocom.app.modules.card.domain.enums.CardType;
 import uz.uzinfocom.app.modules.card.domain.enums.CaseFormType;
-import uz.uzinfocom.app.platform.iam.application.user.query.dto.UserMiniResponse;
+import uz.uzinfocom.app.modules.iam.application.user.query.dto.UserMiniResponse;
 
 import java.time.Instant;
 
@@ -50,6 +50,11 @@ public record CardTableResponse(
         @Schema(description = "Краткие сведения о пациенте.")
         PatientShortResponse patient
 ) {
+    public CardTableResponse withAssignedBy(UserMiniResponse assignedBy) {
+        return new CardTableResponse(id, createdAt, cardType, cardTypeName, status, statusName, assignedBy,
+                organizationId, organizationName, formId, formType, patient);
+    }
+
     @Schema(description = "Краткие сведения о пациенте для табличного представления карты.")
     public record PatientShortResponse(
             @Schema(description = "Идентификатор пациента.")

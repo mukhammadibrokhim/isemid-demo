@@ -7,14 +7,15 @@ import uz.uzinfocom.app.modules.card.application.query.CardQueryService;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058DetailResponseMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058PdfMapper;
 import uz.uzinfocom.app.modules.form058.application.query.mapper.Form058TableMapper;
+import uz.uzinfocom.app.modules.form058.application.query.mapper.helper.Form058TableAddressMapperHelper;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
-import uz.uzinfocom.app.modules.form058.web.dto.request.enums.Form058Direction;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
-import uz.uzinfocom.app.platform.scope.OrganizationScopeResolver;
-import uz.uzinfocom.app.platform.scope.jpa.ExplainRowCountEstimator;
-import uz.uzinfocom.app.platform.security.authorization.AdminAccessGuard;
+import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
+import uz.uzinfocom.app.orchestration.scope.jpa.ExplainRowCountEstimator;
+import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 
 import java.util.Iterator;
 
@@ -30,10 +31,12 @@ class Form058QueryServiceTest {
             mock(Form058DetailResponseMapper.class),
             mock(Form058PdfMapper.class),
             mock(Form058TableMapper.class),
+            mock(Form058TableAddressMapperHelper.class),
             mock(AdminAccessGuard.class),
             mock(AuditResolver.class),
             mock(CardQueryService.class),
-            mock(ExplainRowCountEstimator.class)
+            mock(ExplainRowCountEstimator.class),
+            mock(PatientAffiliationJpaRepository.class)
     );
 
     @Test

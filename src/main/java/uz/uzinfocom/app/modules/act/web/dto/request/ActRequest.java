@@ -13,8 +13,8 @@ import uz.uzinfocom.app.modules.act.domain.enums.ActType;
  */
 @Schema(
         description = "Данные акта для сохранения. Конкретная структура зависит от поля \"type\" — оно определяет, "
-                + "какой из 6 типов актов (ACT153, ACT154, ACT155, ACT156, ACT223, ACT224) заполняется.",
-        oneOf = {Act153Request.class, Act154Request.class, Act155Request.class,
+                + "какой из 5 типов актов (ACT153, ACT154, ACT156, ACT223, ACT224) заполняется.",
+        oneOf = {Act153Request.class, Act154Request.class,
                 Act156Request.class, Act223Request.class, Act224Request.class},
         discriminatorProperty = "type"
 )
@@ -22,12 +22,11 @@ import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Act153Request.class, name = "ACT153"),
         @JsonSubTypes.Type(value = Act154Request.class, name = "ACT154"),
-        @JsonSubTypes.Type(value = Act155Request.class, name = "ACT155"),
         @JsonSubTypes.Type(value = Act156Request.class, name = "ACT156"),
         @JsonSubTypes.Type(value = Act223Request.class, name = "ACT223"),
         @JsonSubTypes.Type(value = Act224Request.class, name = "ACT224")
 })
-public sealed interface ActRequest permits Act153Request, Act154Request, Act155Request, Act156Request, Act223Request, Act224Request {
+public sealed interface ActRequest permits Act153Request, Act154Request, Act156Request, Act223Request, Act224Request {
 
     ActType type();
 }

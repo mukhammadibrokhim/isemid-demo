@@ -38,12 +38,12 @@ public class TBHistory extends UuidAuditableEntity {
     @Column(name = "infection_date")
     private LocalDate infectionDate;
 
-    @CatalogCode("mkb10")
-    @Column(name = "mkb10_code", length = 64)
-    private String mkb10Code;
+    @CatalogCode("icd10")
+    @Column(name = "icd10_code", length = 64)
+    private String icd10Code;
 
-    @Column(name = "mkb10_name", length = 500)
-    private String mkb10Name;
+    @Column(name = "icd10_name", length = 500)
+    private String icd10Name;
 
     @Column(name = "registration_group", length = 255)
     private String registrationGroup;

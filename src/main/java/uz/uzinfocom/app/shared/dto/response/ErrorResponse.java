@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.shared.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.OffsetDateTime;
@@ -26,7 +27,13 @@ public record ErrorResponse(
         OffsetDateTime timestamp,
 
         @Schema(description = "Список ошибок валидации по полям.")
-        List<FieldViolationResponse> violations
+        List<FieldViolationResponse> violations,
+
+        @Schema(description = "Через сколько секунд имеет смысл повторить запрос. "
+                + "Присутствует только когда внешняя система временно отключена (circuit breaker открыт).",
+                example = "30")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        Long retryAfterSeconds
 ) {
     public static ErrorResponse of(
             String code,
@@ -35,6 +42,17 @@ public record ErrorResponse(
             String path,
             List<FieldViolationResponse> violations
     ) {
+        return of(code, message, traceId, path, violations, null);
+    }
+
+    public static ErrorResponse of(
+            String code,
+            String message,
+            String traceId,
+            String path,
+            List<FieldViolationResponse> violations,
+            Long retryAfterSeconds
+    ) {
         return new ErrorResponse(
                 false,
                 code,
@@ -42,7 +60,8 @@ public record ErrorResponse(
                 traceId,
                 path,
                 OffsetDateTime.now(),
-                violations == null ? List.of() : List.copyOf(violations)
+                violations == null ? List.of() : List.copyOf(violations),
+                retryAfterSeconds
         );
     }
 }

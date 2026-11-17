@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        ACT155's functionality was absorbed into ACT154 — it is no longer a
+        distinct act subtype, so its tables are dropped outright rather than
+        kept as dead schema. act155_detail is dropped first since it holds
+        the FK back to act155.
+    -->
+    <changeSet id="20260824-1000-01-drop-act155-detail" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <tableExists tableName="act155_detail"/>
+        </preConditions>
+        <dropTable tableName="act155_detail" cascadeConstraints="true"/>
+    </changeSet>
+
+    <changeSet id="20260824-1000-02-drop-act155" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <tableExists tableName="act155"/>
+        </preConditions>
+        <dropTable tableName="act155" cascadeConstraints="true"/>
+    </changeSet>
+
+</databaseChangeLog>

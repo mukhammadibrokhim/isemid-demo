@@ -13,6 +13,9 @@ public record Form058ApprovalDetailResponse(
         @Schema(description = "Идентификатор организации, утвердившей форму.")
         Long approvedOrganizationId,
 
+        @Schema(description = "Наименование организации, утвердившей форму, на языке запроса.")
+        String approvedOrganizationName,
+
         @Schema(description = "Дата и время утверждения формы.")
         Instant approvedAt,
 

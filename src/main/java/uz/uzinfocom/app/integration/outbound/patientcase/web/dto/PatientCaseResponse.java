@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -12,8 +11,10 @@ import java.util.UUID;
  * (each nullable independently - a patient may have one, both, or neither).
  * Deliberately its own, smaller shape rather than the frontend's
  * {@code PatientDetailResponse}/{@code Form058DetailResponse}: an external
- * integration client only needs identifying info and the latest diagnosis,
- * not cancellation/approval/audit internals.
+ * integration client only needs basic patient info and the latest diagnosis,
+ * not cancellation/approval/audit internals. The patient's identity documents
+ * (PINFL, passport, ...) are not returned at all - the caller already supplied
+ * the one it looked up by.
  */
 @Schema(description = "Сводные сведения о пациенте и его последних формах №058/№058-1.")
 public record PatientCaseResponse(
@@ -45,20 +46,7 @@ public record PatientCaseResponse(
             LocalDate birthDate,
 
             @Schema(description = "Код пола пациента (по справочнику).")
-            String genderCode,
-
-            @Schema(description = "Документы, удостоверяющие личность пациента.")
-            List<IdentifierSummary> identifiers
-    ) {
-    }
-
-    @Schema(description = "Документ, удостоверяющий личность пациента.")
-    public record IdentifierSummary(
-            @Schema(description = "Тип документа (например, PINFL/NNUZB/JSHSHIR, PPN).")
-            String typeCode,
-
-            @Schema(description = "Значение (номер) документа.")
-            String value
+            String genderCode
     ) {
     }
 

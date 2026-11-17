@@ -3,6 +3,7 @@ package uz.uzinfocom.app.modules.report.form2.infrastructure.persistence.reposit
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import org.springframework.stereotype.Repository;
 import uz.uzinfocom.app.modules.report.form2.application.query.dto.Form2OrganizationCountProjection;
 
@@ -12,8 +13,8 @@ import java.util.stream.Collectors;
 
 /**
  * "Form 2" — native SQL aggregation across {@code form058} and {@code
- * form058_1} for the social/occupation composition report, over an arbitrary
- * caller-supplied {@code [fromInclusive, toExclusive)} range. Mirrors {@code
+ * form058_1} over an arbitrary {@code [fromInclusive, toExclusive)} range,
+ * with no diagnosis filtering. Mirrors {@code
  * Form1ReportRepository}: a single Criteria-API query can't span two
  * unrelated entity roots, so this UNIONs both tables' rows first — each
  * branch pre-filtered on sender/status/created_at so the planner can use
@@ -22,16 +23,14 @@ import java.util.stream.Collectors;
  * aggregates every bucket with Postgres {@code count(*) filter (where ...)}
  * in a single pass over the already-narrowed row set. No per-row data
  * (patient identity, diagnosis text, etc.) ever leaves the database — only
- * the final small numeric aggregate does, keeping this report O(1) in JVM
- * heap regardless of how many cases matched.
+ * the final small numeric aggregate does, keeping this O(1) in JVM heap
+ * regardless of how many cases matched.
  * <p>
  * Grouped/filtered by {@code sender_organization_id} — the institution that
  * <b>created</b> the case ("createdOrg") — not {@code
  * receiver_organization_id} (always the SANEPID_SERVICE branch that
- * processes the case, never the actual medical institution), so the
- * district-level breakdown lists every institution (muassasa) with its own
- * count instead of only the SES branch. See {@code Form1ReportRepository}
- * for the full rationale.
+ * processes the case, never the actual medical institution). See {@code
+ * Form1ReportRepository} for the full rationale.
  * <p>
  * {@code organizationIds} is spliced into the SQL text as a literal {@code
  * VALUES} list joined against, not filtered via {@code IN}/{@code =
@@ -41,11 +40,12 @@ import java.util.stream.Collectors;
  * selective index condition, ~60x slower in testing).
  * <p>
  * Only PRIMARY (not yet resolved) notifications are counted here — {@code
- * status NOT IN ('APPROVED', 'CANCELED')} — matching the report's own title
- * ("Birlamchi shoshilinch xabarnomalar bo'yicha ro'yxatga olingan bemorlar
- * soni"); unlike Form 1 there is no confirmed/primary split. Category
- * buckets are {@code patient.category_code} against the {@code ref_catalog}
- * {@code CATEGORY} type (see {@code Form2OrganizationCountProjection}).
+ * status NOT IN ('APPROVED', 'CANCELED')}. A form058 rejected by the
+ * receiver is stored as {@code CANCELED} (see {@code FormStatus}), so it is
+ * already excluded here — there is no separate "rejected" status to account
+ * for. Category buckets are {@code patient.category_code} against the
+ * {@code ref_catalog} {@code CATEGORY} type (see
+ * {@code Form2OrganizationCountProjection}).
  * <p>
  * Every {@code ::type} cast below wraps its named parameter in parentheses
  * — {@code (:param)::type}, never {@code :param::type} — see {@code
@@ -55,26 +55,6 @@ import java.util.stream.Collectors;
 @Repository
 @RequiredArgsConstructor
 public class Form2ReportRepository {
-
-    private static final String UNION_SOURCE_TEMPLATE = """
-            select f.sender_organization_id, p.category_code
-            from form058 f
-            join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
-            where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
-              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
-            union all
-            select f.sender_organization_id, p.category_code
-            from form058_1 f
-            join patient p on p.id = f.patient_id
-            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
-            where f.deleted = false
-              and f.status not in ('APPROVED', 'CANCELED')
-              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
-              and ((:diagnosisCode)::text is null or f.mkb10_code = (:diagnosisCode)::text or f.final_mkb10_code = (:diagnosisCode)::text)
-            """;
 
     private static final String AGGREGATE_COLUMNS = """
             count(*)                                                       as total,
@@ -89,75 +69,61 @@ public class Form2ReportRepository {
             count(*) filter (where t.category_code = 'NOT_EMPLOYED')       as unemployed
             """;
 
-    private final EntityManager entityManager;
-
-    /** One aggregate row per organization id — for a region/district/organization-level breakdown. */
-    public List<Form2OrganizationCountProjection> countGroupedByOrganization(
-            List<Long> organizationIds,
-            Instant fromInclusive,
-            Instant toExclusive,
-            String diagnosisCode
-    ) {
-        if (organizationIds == null || organizationIds.isEmpty()) {
-            return List.of();
-        }
-
-        Query query = bindParameters(
-                entityManager.createNativeQuery(groupedSql(organizationIds)), fromInclusive, toExclusive, diagnosisCode
-        );
-
-        List<?> rows = query.getResultList();
-        return rows.stream().map(row -> toProjection((Object[]) row, true)).toList();
-    }
-
     /**
-     * A single, unattributed total row across every given organization id —
-     * for the report's root node.
+     * Every PRIMARY (not yet resolved) form058/form058_1 notification
+     * created in {@code [fromInclusive, toExclusive)} for the given
+     * organizations — no diagnosis filtering, used by {@code
+     * Form2ManualEntryQueryService} for the "Shakl №2" registered-case
+     * counts.
      */
+    private static final String UNION_SOURCE_TEMPLATE = """
+            select f.sender_organization_id, p.category_code
+            from form058 f
+            join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            where f.deleted = false
+              and f.status not in ('APPROVED', 'CANCELED')
+              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+            union all
+            select f.sender_organization_id, p.category_code
+            from form058_1 f
+            join patient p on p.id = f.patient_id
+            join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
+            where f.deleted = false
+              and f.status not in ('APPROVED', 'CANCELED')
+              and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+            """;
+
+    private final EntityManager entityManager;
+    private final ReportCaseAttribution reportCaseAttribution;
+
+    /** A single, unattributed total row across every given organization id. */
     public Form2OrganizationCountProjection countTotal(
             List<Long> organizationIds,
             Instant fromInclusive,
-            Instant toExclusive,
-            String diagnosisCode
+            Instant toExclusive
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return Form2OrganizationCountProjection.empty(null);
         }
 
-        Query query = bindParameters(
-                entityManager.createNativeQuery(totalSql(organizationIds)), fromInclusive, toExclusive, diagnosisCode
-        );
+        Query query = entityManager.createNativeQuery(reportCaseAttribution.apply(totalSql(organizationIds)))
+                .setParameter("fromInclusive", fromInclusive)
+                .setParameter("toExclusive", toExclusive);
 
         List<?> rows = query.getResultList();
         return rows.isEmpty()
                 ? Form2OrganizationCountProjection.empty(null)
-                : toProjection((Object[]) rows.get(0), false);
-    }
-
-    private String unionSource(List<Long> organizationIds) {
-        String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
-        return UNION_SOURCE_TEMPLATE.formatted(valuesList);
-    }
-
-    private String groupedSql(List<Long> organizationIds) {
-        return "select t.sender_organization_id as organization_id, " + AGGREGATE_COLUMNS
-                + " from (" + unionSource(organizationIds) + ") t group by t.sender_organization_id";
+                : toProjection((Object[]) rows.getFirst(), false);
     }
 
     private String totalSql(List<Long> organizationIds) {
         return "select " + AGGREGATE_COLUMNS + " from (" + unionSource(organizationIds) + ") t";
     }
 
-    private Query bindParameters(
-            Query query,
-            Instant fromInclusive,
-            Instant toExclusive,
-            String diagnosisCode
-    ) {
-        return query
-                .setParameter("fromInclusive", fromInclusive)
-                .setParameter("toExclusive", toExclusive)
-                .setParameter("diagnosisCode", diagnosisCode);
+    private String unionSource(List<Long> organizationIds) {
+        String valuesList = organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
+        return UNION_SOURCE_TEMPLATE.formatted(valuesList);
     }
 
     private Form2OrganizationCountProjection toProjection(Object[] row, boolean hasOrganizationId) {

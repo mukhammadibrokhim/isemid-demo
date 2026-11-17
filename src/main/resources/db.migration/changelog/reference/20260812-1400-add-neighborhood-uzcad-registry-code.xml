@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        api2's v3/citizenAddress endpoint identifies a Maxalla (neighborhood) by a
+        {Guid, Id, Value} triple that carries neither a soato_id nor a tin - the two
+        keys ref_neighborhood is otherwise matchable on (see CitizenAddressMapper,
+        which resolves Region/District via soato_id but had to leave Maxalla as a
+        raw pass-through name for exactly this reason). The Guid api2 sends
+        (e.g. "103-0105") is, byte for byte, the "code" column of the official uzcad
+        registry export already shipped in this repo for the 2026-08-03 neighborhood
+        sync (20260803-1000-neighborhood-uzcad-registry.csv, 8992 rows, matched to
+        ref_neighborhood by tin - see 20260803-1000-sync-neighborhood-uzcad-registry.xml
+        for the original sync and its reasoning). This migration adds a column to
+        store that same "code" value so CitizenAddressMapper can resolve Maxalla the
+        same way Region/District are resolved, instead of only passing through raw text.
+
+        Note the same caveat the original sync recorded about this value: it is the
+        *source system's own* numbering, which that migration's author warned "may be
+        renumbered over time" (unlike soato_id/tin). It is still a real key - just a
+        softer one - so a citizenAddress Guid that no longer matches any row here
+        (source renumbered since 2026-08-03) is expected to happen occasionally and
+        should be treated as "unresolved", not as a bug.
+    -->
+    <changeSet
+            id="20260812-1400-01-add-neighborhood-uzcad-registry-code-column"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <not>
+                <columnExists tableName="ref_neighborhood" columnName="uzcad_registry_code"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="ref_neighborhood">
+            <column name="uzcad_registry_code" type="VARCHAR(20)"/>
+        </addColumn>
+
+        <createIndex indexName="idx_ref_neighborhood_uzcad_registry_code" tableName="ref_neighborhood">
+            <column name="uzcad_registry_code"/>
+        </createIndex>
+
+    </changeSet>
+
+    <changeSet
+            id="20260812-1400-02-populate-neighborhood-uzcad-registry-code"
+            author="uzinfocom"
+            runInTransaction="true">
+
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_neighborhood"/>
+            <columnExists tableName="ref_neighborhood" columnName="uzcad_registry_code"/>
+            <not>
+                <tableExists tableName="stg_neighborhood_uzcad_registry_code_20260812"/>
+            </not>
+        </preConditions>
+
+        <!--
+            Staging table mirrors the exact CSV column set used by the original
+            20260803-1000-sync-neighborhood-uzcad-registry.xml load (same source file)
+            rather than trying to load only the two columns actually needed here -
+            that migration is the one proven-working reference for this file's shape.
+        -->
+        <createTable tableName="stg_neighborhood_uzcad_registry_code_20260812">
+            <column name="tin" type="VARCHAR(20)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="district_soato" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uzcad_code" type="INTEGER"/>
+            <column name="code" type="VARCHAR(50)"/>
+            <column name="name_uz_latin" type="VARCHAR(255)"/>
+            <column name="name_uz_cyril" type="VARCHAR(255)"/>
+            <column name="name_ru" type="VARCHAR(255)"/>
+        </createTable>
+
+        <loadData
+                file="20260803-1000-neighborhood-uzcad-registry.csv"
+                relativeToChangelogFile="true"
+                tableName="stg_neighborhood_uzcad_registry_code_20260812"
+                encoding="UTF-8"
+                separator=","
+                quotchar="&quot;"
+                usePreparedStatements="true">
+
+            <column header="tin" name="tin" type="STRING"/>
+            <column header="district_soato" name="district_soato" type="NUMERIC"/>
+            <column header="uzcad_code" name="uzcad_code" type="NUMERIC"/>
+            <column header="code" name="code" type="STRING"/>
+            <column header="name_uz_latin" name="name_uz_latin" type="STRING"/>
+            <column header="name_uz_cyril" name="name_uz_cyril" type="STRING"/>
+            <column header="name_ru" name="name_ru" type="STRING"/>
+
+        </loadData>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE ref_neighborhood n
+            SET uzcad_registry_code = s.code
+            FROM stg_neighborhood_uzcad_registry_code_20260812 s
+            WHERE n.tin = s.tin
+              AND s.code IS NOT NULL
+              AND s.code <> ''
+              AND s.code <> '0';
+        ]]></sql>
+
+        <dropTable tableName="stg_neighborhood_uzcad_registry_code_20260812"/>
+
+    </changeSet>
+
+</databaseChangeLog>

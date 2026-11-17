@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import uz.uzinfocom.app.modules.form0581.domain.model.Form0581;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface Form0581JpaRepository extends JpaRepository<Form0581, Long>, JpaSpecificationExecutor<Form0581> {
 
@@ -20,6 +21,15 @@ public interface Form0581JpaRepository extends JpaRepository<Form0581, Long>, Jp
               AND f.deleteInfo.deleted = false
             """)
     Optional<Form0581> findActiveByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT f
+            FROM Form0581 f
+            WHERE f.uuid = :uuid
+              AND f.deleteInfo.deleted = false
+            """)
+    Optional<Form0581> findActiveByUuidForUpdate(@Param("uuid") UUID uuid);
 
     @Query("""
             SELECT f

@@ -38,6 +38,14 @@ public interface Act223Mapper {
     @Mapping(target = "assignedById", ignore = true)
     @Mapping(target = "users", ignore = true)
     @Mapping(target = "resultComment", ignore = true)
+    @Mapping(target = "actNumber", ignore = true) // generated from id on assign
+    @Mapping(target = "activityTypeCode", ignore = true) // validated against ref_catalog by the handler
+    @Mapping(target = "goal", ignore = true) // not on the form; legacy-migrated data only
+    @Mapping(target = "purpose", ignore = true) // resolved from purposeCode by the handler
+    @Mapping(target = "samplingBasisCode", ignore = true) // validated against ref_catalog by the handler
+    @Mapping(target = "supportingDocumentsForSampling", ignore = true) // legacy-migrated free text only
+    @Mapping(target = "lisOrganizationId", ignore = true)
+    @Mapping(target = "laboratoryAddress", ignore = true)
     @Mapping(target = "act223Details", ignore = true)
     void copyOwnFields(@MappingTarget Act223 target, Act223Request request);
 }

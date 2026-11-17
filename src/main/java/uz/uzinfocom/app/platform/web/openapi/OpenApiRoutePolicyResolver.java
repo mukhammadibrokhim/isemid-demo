@@ -17,6 +17,8 @@ public class OpenApiRoutePolicyResolver {
 
     private static final String DEV_PANEL_PATTERN = ApiPaths.Dev.ROOT + "/**";
 
+    private static final String INTEGRATION_PATTERN = ApiPaths.Integration.ROOT + "/**";
+
     private final RouteAccessPolicyResolver routeAccessPolicyResolver;
 
     private final PathPatternParser pathPatternParser = new PathPatternParser();
@@ -34,6 +36,15 @@ public class OpenApiRoutePolicyResolver {
      */
     public boolean isDevPanelRoute(String path) {
         return matches(DEV_PANEL_PATTERN, path);
+    }
+
+    /**
+     * {@code /integration/v1/**} accepts several credential kinds (client-credentials
+     * Bearer JWT, {@code X-Api-Key}, HTTP Basic, IP allow-list, SSO/DHP token), so it is
+     * documented with alternative security requirements rather than bearerAuth alone.
+     */
+    public boolean isIntegrationRoute(String path) {
+        return matches(INTEGRATION_PATTERN, path);
     }
 
     public boolean isOrganizationHeaderRequired(String path) {

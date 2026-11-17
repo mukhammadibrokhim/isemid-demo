@@ -16,14 +16,14 @@ import java.util.UUID;
         + "подозрительном на заболевание бешенством (укус/царапина/ослюнение животным).")
 public record CreateForm0581Request(
         @Schema(description = "Код диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "{validation.form0581.mkb10-code.required}")
-        @Size(max = 20, message = "{validation.form0581.mkb10-code.size}")
-        String mkb10Code,
+        @NotBlank(message = "{validation.form0581.icd10-code.required}")
+        @Size(max = 20, message = "{validation.form0581.icd10-code.size}")
+        String icd10Code,
 
         @Schema(description = "Наименование диагноза по МКБ-10.", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "{validation.form0581.mkb10-name.required}")
-        @Size(max = 512, message = "{validation.form0581.mkb10-name.size}")
-        String mkb10Name,
+        @NotBlank(message = "{validation.form0581.icd10-name.required}")
+        @Size(max = 512, message = "{validation.form0581.icd10-name.size}")
+        String icd10Name,
 
         @Schema(description = "Локализация повреждения на теле пациента.")
         @Size(max = 500, message = "{validation.form0581.injury-localization.size}")
@@ -112,10 +112,6 @@ public record CreateForm0581Request(
         @NotBlank(message = "{validation.form0581.notifier-full-name.required}")
         @Size(max = 255, message = "{validation.form0581.notifier-full-name.size}")
         String notifierFullName,
-
-        @Schema(description = "ФИО лица, принявшего сообщение в организации-получателе.")
-        @Size(max = 255, message = "{validation.form0581.receiver-full-name.size}")
-        String receiverFullName,
 
         @Schema(description = "Дата и время отправки сообщения.")
         LocalDateTime messageSentAt

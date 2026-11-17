@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Runtime-editable AIR_CONTROL settings (see AirControlSettingKeys) so they show up
+        in the dev panel. Values equal the AirControlProperties defaults, except base-url:
+        application.properties drives it via ${AIR_CONTROL_BASE_URL}, so it is seeded
+        INACTIVE and a deployment with its own URL is not silently overridden. The login
+        and password are deliberately not settings (system_settings is readable by any
+        signed-in user).
+    -->
+    <changeSet id="20261114-1000-01-seed-aircontrol-settings" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.aircontrol.enabled', 'true', 'BOOLEAN', 'Master switch for AIRCONTROL (air quality). false = calls are refused without contacting AIRCONTROL.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.aircontrol.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.aircontrol.base-url', 'https://meteoapi.meteo.uz', 'STRING', 'AIRCONTROL base URL. Inactive by default: the deployed value may come from AIRCONTROL_BASE_URL - confirm before activating.', false, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.aircontrol.base-url');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.aircontrol.stations-path', '/api/atmosphere/horiba/', 'STRING', 'AIRCONTROL Method 1 path (list of monitoring stations).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.aircontrol.stations-path');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'integration.aircontrol.measurement-path', '/api/atmosphere/horiba/', 'STRING', 'AIRCONTROL Method 2 path; the station id is appended.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'integration.aircontrol.measurement-path');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.aircontrol.connect-timeout-millis', '3000', 'NUMBER', 'Connect timeout (ms) - AIRCONTROL client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.aircontrol.connect-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.aircontrol.read-timeout-millis', '8000', 'NUMBER', 'Read/response timeout (ms) - AIRCONTROL client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.aircontrol.read-timeout-millis');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.aircontrol.max-connections', '10', 'NUMBER', 'Total pooled-connection cap - AIRCONTROL client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.aircontrol.max-connections');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'http-client.aircontrol.max-connections-per-route', '5', 'NUMBER', 'Per-route pooled-connection cap - AIRCONTROL client.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'http-client.aircontrol.max-connections-per-route');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key LIKE 'integration.aircontrol.%' OR setting_key LIKE 'http-client.aircontrol.%';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

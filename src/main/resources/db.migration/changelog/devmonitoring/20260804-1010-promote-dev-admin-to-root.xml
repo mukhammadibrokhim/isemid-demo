@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Without this, promoting dev-user management to a root-only surface
+        (see 20260804-1000-add-dev-user-root-flag.xml) would leave every
+        environment with zero root accounts - nobody could ever create the
+        first one. Promotes the bootstrap "dev-admin" account seeded by
+        20260729-1200-seed-dev-admin-user.xml. Idempotent and safe to re-run:
+        skipped once dev-admin is already root, and a no-op (not a failure)
+        if dev-admin doesn't exist in this environment.
+    -->
+    <changeSet id="20260804-1010-01-promote-dev-admin-to-root" author="codex" runInTransaction="true">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="dev_user"/>
+            <columnExists tableName="dev_user" columnName="root"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM dev_user WHERE username = 'dev-admin' AND root = true
+            </sqlCheck>
+        </preConditions>
+
+        <update tableName="dev_user">
+            <column name="root" valueBoolean="true"/>
+            <where>username = 'dev-admin'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

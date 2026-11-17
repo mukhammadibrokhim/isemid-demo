@@ -36,15 +36,19 @@ public class Card174 extends Card {
         super(CardType.CARD174);
     }
 
+    /**
+     * Server-generated: the card's own id, set on assign — never
+     * client-supplied. Legacy-migrated cards keep their paper-form number.
+     */
     @Column(name = "serial_doc_number")
-    private Integer serialDocNumber;
+    private Long serialDocNumber;
 
-    @CatalogCode("mkb10")
-    @Column(name = "mkb10_code", length = 64)
-    private String mkb10Code;
+    @CatalogCode("icd10")
+    @Column(name = "icd10_code", length = 64)
+    private String icd10Code;
 
-    @Column(name = "mkb10_name", length = 500)
-    private String mkb10Name;
+    @Column(name = "icd10_name", length = 500)
+    private String icd10Name;
 
     @Column(name = "pathogen_type", length = 255)
     private String pathogenType;
@@ -64,8 +68,9 @@ public class Card174 extends Card {
     @Column(name = "investigation_date")
     private LocalDate investigationDate;
 
+    /** A calendar year, not a date — the paper form asks for the year only. */
     @Column(name = "last_disease_year")
-    private LocalDate lastDiseaseYear;
+    private Integer lastDiseaseYear;
 
     @Column(name = "current_animal_infection_date")
     private LocalDate currentAnimalInfectionDate;
@@ -78,6 +83,19 @@ public class Card174 extends Card {
 
     @Column(name = "owner_address", length = 500)
     private String ownerAddress;
+
+    /** The owner's PINFL — the key the citizen-registry lookup was run with. */
+    @Column(name = "owner_pinfl", length = 14)
+    private String ownerPinfl;
+
+    /**
+     * The kind of animal the case came from — distinct from
+     * {@link LaboratoryTest#getSampleName()} (the laboratory table's
+     * free-text column) and from {@link #affectedAnimalTypeCode}.
+     */
+    @CatalogCode("ANIMAL_TYPE")
+    @Column(name = "animal_type", length = 255)
+    private String animalType;
 
     @CatalogCode("card174-affected-animal-type")
     @Column(name = "affected_animal_type_code", length = 64)
@@ -123,20 +141,9 @@ public class Card174 extends Card {
     @Column(name = "catalog_code")
     private List<String> diseaseFactorCodes = new ArrayList<>();
 
-    @Column(name = "animal_type", length = 255)
-    private String animalType;
-
-    @Column(name = "test_date")
-    private LocalDate testDate;
-
-    @Column(name = "test_sample_count")
-    private Integer testSampleCount;
-
-    @Column(name = "testing_method", length = 255)
-    private String testingMethod;
-
-    @Column(name = "test_result", length = 500)
-    private String testResult;
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<LaboratoryTest> laboratoryTests = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "card174_affected_animals", joinColumns = @JoinColumn(name = "card174_id"))
@@ -195,6 +202,7 @@ public class Card174 extends Card {
     @Column(name = "deratization_code", length = 64)
     private String deratizationCode;
 
+    /** Square metres (m²), as on the legacy screen and in legacy-migrated rows. */
     @Column(name = "deratization_area")
     private Double deratizationArea;
 
@@ -238,6 +246,10 @@ public class Card174 extends Card {
     @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id DESC")
     private List<OutbreakControlMeasure> outbreakControlMeasures = new ArrayList<>();
+
+    @OneToMany(mappedBy = "card174", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<AnimalMeasure> animalMeasures = new ArrayList<>();
 
     @Column(name = "additional_measures_info", length = 1000)
     private String additionalMeasuresInfo;

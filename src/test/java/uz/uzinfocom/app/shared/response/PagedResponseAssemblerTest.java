@@ -20,7 +20,7 @@ class PagedResponseAssemblerTest {
     @Test
     void firstPageHasNoPrevAndKeepsPublicBaseUriAndFilters() {
         PagedResponseAssembler assembler = new PagedResponseAssembler(BASE_URI);
-        MockHttpServletRequest request = request(1, 10);
+        MockHttpServletRequest request = request(1);
         request.addParameter("active", "true");
         request.addParameter("sortBy", "createdAt");
         request.addParameter("direction", "DESC");
@@ -51,7 +51,7 @@ class PagedResponseAssemblerTest {
         PagedResponse<String> response = assembler.toResponse(
                 page(1, 10, 1001, "middle"),
                 "ok",
-                request(2, 10)
+                request(2)
         );
 
         assertThat(response.meta().pagination().page()).isEqualTo(2);
@@ -68,7 +68,7 @@ class PagedResponseAssemblerTest {
         PagedResponse<String> response = assembler.toResponse(
                 page(100, 10, 1001, "last"),
                 "ok",
-                request(101, 10)
+                request(101)
         );
 
         assertThat(response.meta().pagination().page()).isEqualTo(101);
@@ -85,7 +85,7 @@ class PagedResponseAssemblerTest {
         PagedResponse<String> response = assembler.toResponse(
                 page(0, 10, 1, "only"),
                 "ok",
-                request(1, 10)
+                request(1)
         );
 
         assertThat(response.meta().pagination().first()).isTrue();
@@ -97,7 +97,7 @@ class PagedResponseAssemblerTest {
     @Test
     void emptyPageIsNormalizedToFirstPageAndLastLinkPointsToFirstPage() {
         PagedResponseAssembler assembler = new PagedResponseAssembler(BASE_URI + "/");
-        MockHttpServletRequest request = request(3, 10);
+        MockHttpServletRequest request = request(3);
 
         PagedResponse<String> response = assembler.toResponse(
                 Page.empty(PageRequest.of(2, 10)),
@@ -118,7 +118,7 @@ class PagedResponseAssemblerTest {
     @Test
     void queryValuesAreEncodedAndRepeatedParametersArePreserved() {
         PagedResponseAssembler assembler = new PagedResponseAssembler(BASE_URI);
-        MockHttpServletRequest request = request(2, 10);
+        MockHttpServletRequest request = request(2);
         request.addParameter("search", "San epid");
         request.addParameter("status", "ACTIVE", "PENDING");
 
@@ -140,7 +140,7 @@ class PagedResponseAssemblerTest {
         PagedResponse<String> response = assembler.toResponse(
                 new PageImpl<>(source, PageRequest.of(0, 10), 1),
                 "ok",
-                request(1, 10)
+                request(1)
         );
 
         source.add("second");
@@ -158,12 +158,11 @@ class PagedResponseAssemblerTest {
     }
 
     private static MockHttpServletRequest request(
-            int page,
-            int size
+            int page
     ) {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/users");
         request.addParameter("page", String.valueOf(page));
-        request.addParameter("size", String.valueOf(size));
+        request.addParameter("size", String.valueOf(10));
         return request;
     }
 }

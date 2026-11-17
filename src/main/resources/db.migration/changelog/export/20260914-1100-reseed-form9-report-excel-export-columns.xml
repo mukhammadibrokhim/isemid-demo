@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form9ExcelExportSource gained one column group per calendar month (both metrics -
+        registered/hospitalized, previousYear/currentYear/delta each - per
+        Form9ReportQueryService#monthColumns, the same breakdown the UI's per-row "Ойлик кесим"
+        popup shows), but ExcelExportSettingsResolver#resolveColumns resolves strictly against
+        the persisted "export.excel.form9.columns" key when it is present, so the seed from the
+        sibling 20260906-1100-... changeset (code,name + the two base metric triples only)
+        silently dropped every new month_* column from the export. Reseed the settings row to
+        include them, in the same January-to-December order the UI popup uses.
+    -->
+    <changeSet id="20260914-1100-01-reseed-form9-report-excel-export-columns" author="codex">
+        <update tableName="system_settings">
+            <column name="setting_value" value="code,name,registeredPreviousYear,registeredCurrentYear,registeredDelta,hospitalizedPreviousYear,hospitalizedCurrentYear,hospitalizedDelta,month_1_registeredPreviousYear,month_1_registeredCurrentYear,month_1_registeredDelta,month_1_hospitalizedPreviousYear,month_1_hospitalizedCurrentYear,month_1_hospitalizedDelta,month_2_registeredPreviousYear,month_2_registeredCurrentYear,month_2_registeredDelta,month_2_hospitalizedPreviousYear,month_2_hospitalizedCurrentYear,month_2_hospitalizedDelta,month_3_registeredPreviousYear,month_3_registeredCurrentYear,month_3_registeredDelta,month_3_hospitalizedPreviousYear,month_3_hospitalizedCurrentYear,month_3_hospitalizedDelta,month_4_registeredPreviousYear,month_4_registeredCurrentYear,month_4_registeredDelta,month_4_hospitalizedPreviousYear,month_4_hospitalizedCurrentYear,month_4_hospitalizedDelta,month_5_registeredPreviousYear,month_5_registeredCurrentYear,month_5_registeredDelta,month_5_hospitalizedPreviousYear,month_5_hospitalizedCurrentYear,month_5_hospitalizedDelta,month_6_registeredPreviousYear,month_6_registeredCurrentYear,month_6_registeredDelta,month_6_hospitalizedPreviousYear,month_6_hospitalizedCurrentYear,month_6_hospitalizedDelta,month_7_registeredPreviousYear,month_7_registeredCurrentYear,month_7_registeredDelta,month_7_hospitalizedPreviousYear,month_7_hospitalizedCurrentYear,month_7_hospitalizedDelta,month_8_registeredPreviousYear,month_8_registeredCurrentYear,month_8_registeredDelta,month_8_hospitalizedPreviousYear,month_8_hospitalizedCurrentYear,month_8_hospitalizedDelta,month_9_registeredPreviousYear,month_9_registeredCurrentYear,month_9_registeredDelta,month_9_hospitalizedPreviousYear,month_9_hospitalizedCurrentYear,month_9_hospitalizedDelta,month_10_registeredPreviousYear,month_10_registeredCurrentYear,month_10_registeredDelta,month_10_hospitalizedPreviousYear,month_10_hospitalizedCurrentYear,month_10_hospitalizedDelta,month_11_registeredPreviousYear,month_11_registeredCurrentYear,month_11_registeredDelta,month_11_hospitalizedPreviousYear,month_11_hospitalizedCurrentYear,month_11_hospitalizedDelta,month_12_registeredPreviousYear,month_12_registeredCurrentYear,month_12_registeredDelta,month_12_hospitalizedPreviousYear,month_12_hospitalizedCurrentYear,month_12_hospitalizedDelta"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 9 Excel export. code/name plus the registered/hospitalized previousYear/currentYear/delta triples, plus one such pair of triples per calendar month, matching the UI's per-row monthly-breakdown popup."/>
+            <where>setting_key = 'export.excel.form9.columns'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

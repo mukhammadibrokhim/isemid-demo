@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        «Hujjat turi» / «Hujjat raqami» (PINFL or passport) for the chef
+        (act156_kitchen_utensil) and the educator / place owner
+        (act156_group_detail) — same shape as act156's
+        identifier_*_of_object_representative (20260929-2000). All nullable:
+        existing rows stay NULL and a person may have no document.
+    -->
+    <changeSet id="20260930-1200-01-act156-kitchen-utensil-chef-identifier" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act156_kitchen_utensil" columnName="identifier_type_of_chef"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act156_kitchen_utensil">
+            <column name="identifier_type_of_chef" type="VARCHAR(20)"/>
+            <column name="identifier_value_of_chef" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260930-1200-02-act156-group-detail-person-identifiers" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act156_group_detail" columnName="identifier_type_of_educator"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act156_group_detail">
+            <column name="identifier_type_of_educator" type="VARCHAR(20)"/>
+            <column name="identifier_value_of_educator" type="VARCHAR(100)"/>
+            <column name="identifier_type_of_place_owner" type="VARCHAR(20)"/>
+            <column name="identifier_value_of_place_owner" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

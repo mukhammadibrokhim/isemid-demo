@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260807-1000-01-add-organization-parent" author="codex">
+        <addColumn tableName="organization">
+            <column name="parent_id" type="BIGINT"/>
+        </addColumn>
+        <addForeignKeyConstraint
+                baseTableName="organization"
+                baseColumnNames="parent_id"
+                constraintName="fk_organization_parent"
+                referencedTableName="organization"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+        <createIndex tableName="organization" indexName="idx_organization_parent_id">
+            <column name="parent_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

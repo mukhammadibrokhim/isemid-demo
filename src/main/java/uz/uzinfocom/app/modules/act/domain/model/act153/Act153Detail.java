@@ -40,12 +40,6 @@ public class Act153Detail extends UuidAuditableEntity {
     @Embedded
     private ResearchItemTypeInfo researchItemTypeInfo;
 
-    @Column(name = "object_type_id")
-    private Integer objectTypeId;
-
-    @Column(name = "object_code")
-    private String objectCode;
-
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;
 

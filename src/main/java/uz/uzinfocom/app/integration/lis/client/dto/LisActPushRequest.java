@@ -82,6 +82,7 @@ public record LisActPushRequest(
             LisDataDictionary sampleType,
             SampleQtUnit sampleQtUnit,
             String sampleQt,
+            LisSampleUnit sampleUnit,
             List<String> coordinates
     ) {
     }

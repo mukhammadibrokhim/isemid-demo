@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
 
@@ -16,27 +16,41 @@
     <artifactId>isemid-platform</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>ISEMID Platform</name>
-    <description>Production-grade modular backend foundation for ISEMID</description>
+    <description>Backend platform of ISEMID, the national infectious disease surveillance and epidemiological monitoring system of Uzbekistan</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <mapstruct.version>1.6.3</mapstruct.version>
 
-        <springdoc.version>3.0.3</springdoc.version>
+        <springdoc.version>3.1.1</springdoc.version>
 
-        <datasource-micrometer.version>2.2.1</datasource-micrometer.version>
+        <!-- Security patch overrides for CVEs in versions managed by spring-boot-starter-parent 4.1.1.
+             Drop each once the parent manages an equal-or-newer version. -->
+        <!-- CVE-2026-19880 (MDC path traversal): fixed only in 1.6.3+, every 1.5.x is affected -->
+        <logback.version>1.6.6</logback.version>
+        <slf4j.version>2.0.19</slf4j.version>
+        <!-- CVE-2026-68497/83557/19032/91776/91777, CVE-2026-89407/89425 -->
+        <jackson-2-bom.version>2.21.8</jackson-2-bom.version>
+        <jackson-bom.version>3.1.8</jackson-bom.version>
+        <!-- CVE-2026-65905/65182/68525 -->
+        <tomcat.version>11.0.27</tomcat.version>
 
-        <!-- Structured JSON console logging in production (see logback-spring.xml) -->
-        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+        <datasource-micrometer.version>2.3.0</datasource-micrometer.version>
+
+        <!-- Structured JSON console logging in production (see logback.xml) -->
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
 
         <!-- Module boundary enforcement (see CardModuleBoundaryTest) -->
-        <archunit.version>1.3.0</archunit.version>
+        <archunit.version>1.5.1</archunit.version>
 
         <!-- Circuit breakers for outbound HTTP integrations (see platform.resilience) -->
-        <resilience4j.version>2.3.0</resilience4j.version>
+        <resilience4j.version>2.4.0</resilience4j.version>
+
+        <!-- Excel export (see shared.excel.ExcelExportWriter) -->
+        <poi.version>5.5.1</poi.version>
     </properties>
 
     <dependencies>
@@ -88,7 +102,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Structured JSON logging (production console encoder, see logback-spring.xml) -->
+        <!-- Structured JSON logging (production console encoder, see logback.xml) -->
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
@@ -116,6 +130,13 @@
             <artifactId>httpclient5</artifactId>
         </dependency>
 
+        <!-- Excel export (streaming SXSSF writer, see shared.excel) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
         <!-- Runtime -->
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -125,12 +146,16 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>42.7.14</version>
             <scope>runtime</scope>
         </dependency>
+        <!--
+            Compile scope (not runtime): LiquibaseDataSourceConfig references
+            @LiquibaseDataSource to give migrations their own connection pool.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-liquibase</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Dev-only -->
@@ -139,6 +164,21 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
+        </dependency>
+
+        <!-- Loads a .env file (if present, in the process's working directory) into the
+             Spring Environment on startup, so the ${VAR:default} placeholders in
+             application*.properties can be filled from a file instead of real env vars.
+             Works in every profile, dev and prod alike - real OS/container env vars are
+             added to the Environment after .env, so they always win when both are set;
+             .env only fills gaps. ignoreIfMissing defaults to true, so an absent .env
+             (the normal prod case, where vars come from the orchestrator/secret store
+             instead) is a no-op, not a startup failure. See .env.example for the
+             documented variable list. -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>springboot4-dotenv</artifactId>
+            <version>5.1.0</version>
         </dependency>
 
         <!-- Annotation processors -->
@@ -214,12 +254,20 @@
              OAuth2 login, RSA public key - see platform.resilience) -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-spring-boot3</artifactId>
+            <artifactId>resilience4j-spring-boot4</artifactId>
+            <version>${resilience4j.version}</version>
         </dependency>
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
+            <!-- CVE-2026-113602: transitive via json-smart (nimbus-jose-jwt / json-path), shared by
+                 oauth2-client and starter-test. Drop once json-smart pulls a fixed asm itself. -->
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>9.11.1</version>
+            </dependency>
             <dependency>
                 <groupId>net.ttddyy.observation</groupId>
                 <artifactId>datasource-micrometer-bom</artifactId>
