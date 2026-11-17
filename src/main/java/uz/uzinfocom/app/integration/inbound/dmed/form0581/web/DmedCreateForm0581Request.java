@@ -38,7 +38,8 @@ public record DmedCreateForm0581Request(
         @Size(max = 512, message = "{validation.form0581.icd10-name.size}")
         String mkb10Name,
 
-        @Schema(description = "Локализация повреждения на теле пациента.")
+        @Schema(description = "Локализация повреждения на теле пациента.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 500, message = "{validation.form0581.injury-localization.size}")
         String injuryLocalization,
 
@@ -65,28 +66,35 @@ public record DmedCreateForm0581Request(
         @Size(max = 64, message = "{validation.form0581.injury-district-code.size}")
         String injuryDistrictCode,
 
-        @Schema(description = "Адрес места происшествия.")
+        @Schema(description = "Адрес места происшествия.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 1000, message = "{validation.form0581.injury-address.size}")
         String injuryAddress,
 
-        @Schema(description = "Код категории животного (по справочнику: домашнее/дикое/безнадзорное и т. п.).")
+        @Schema(description = "Код категории животного (по справочнику: домашнее/дикое/безнадзорное и т. п.).",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 64, message = "{validation.form0581.animal-category-code.size}")
         String animalCategoryCode,
 
-        @Schema(description = "Окрас животного.")
+        @Schema(description = "Окрас животного.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 255, message = "{validation.form0581.animal-color.size}")
         String animalColor,
 
-        @Schema(description = "Вид животного (собака, кошка, лиса и т. п.).")
+        @Schema(description = "Вид животного (собака, кошка, лиса и т. п.).", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 255, message = "{validation.form0581.animal-type.size}")
         String animalType,
 
-        @Schema(description = "Порода животного.")
+        @Schema(description = "Порода животного.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 255, message = "{validation.form0581.animal-breed.size}")
         String animalBreed,
 
-        @Schema(description = "Сведения о владельце животного (если он известен).")
+        @Schema(description = "Сведения о владельце животного.", requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull
         AnimalOwnerRequest animalOwnerInfo,
 
         @Schema(description = "Сведения о пациенте, по которому регистрируется случай.",
@@ -100,20 +108,26 @@ public record DmedCreateForm0581Request(
         @NotNull(message = "{validation.form0581.receiver-organization.required}")
         UUID receiverOrganizationId,
 
-        @Schema(description = "Признак того, что в этом же происшествии пострадали и другие лица.")
+        @Schema(description = "Признак того, что в этом же происшествии пострадали и другие лица.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         Boolean otherPeopleInjured,
 
-        @Schema(description = "Список иных пострадавших лиц (помимо основного пациента).")
+        @Schema(description = "Список иных пострадавших лиц (помимо основного пациента). Может быть пустым.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull
         List<OtherInjuredPersonRequest> otherInjuredPeople,
 
-        @Schema(description = "Дата и время госпитализации пациента (при наличии).")
+        @Schema(description = "Дата и время госпитализации пациента.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         LocalDateTime hospitalizedAt,
 
-        @Schema(description = "Идентификатор организации госпитализации пациента (при наличии).")
+        @Schema(description = "Идентификатор организации госпитализации пациента.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         UUID hospitalOrganizationId,
 
-        @Schema(description = "Сведения об оказанной антирабической помощи.")
+        @Schema(description = "Сведения об оказанной антирабической помощи.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 2000, message = "{validation.form0581.antirabic-assistance-info.size}")
         String antirabicAssistanceInfo,
 
@@ -122,11 +136,12 @@ public record DmedCreateForm0581Request(
         @Size(max = 255, message = "{validation.form0581.notifier-full-name.size}")
         String notifierFullName,
 
-        @Schema(description = "Дата и время отправки сообщения.")
+        @Schema(description = "Дата и время отправки сообщения.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         LocalDateTime messageSentAt
 ) {
 
     public DmedCreateForm0581Request {
-        otherInjuredPeople = otherInjuredPeople == null ? List.of() : List.copyOf(otherInjuredPeople);
+        otherInjuredPeople = otherInjuredPeople == null ? null : List.copyOf(otherInjuredPeople);
     }
 }

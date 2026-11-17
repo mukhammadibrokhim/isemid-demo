@@ -21,26 +21,26 @@ DMED uchun **tekis** (flat) formatdagi qat'iy kontrakt. Umumiy `{source}` endpoi
 |---|---|---|
 | `mkb10Code` | ✔ | ≤ 20 |
 | `mkb10Name` | ✔ | ≤ 512 |
-| `mkb10UsageLimit` |  | ≥ 0 |
-| `finalMkb10Code` |  | yakuniy diagnoz kodi (≤ 20); bo'lmasa `mkb10Code` ga teng |
-| `finalMkb10Name` |  | yakuniy diagnoz nomi (≤ 512) |
+| `mkb10UsageLimit` | ✔ | ≥ 0 |
+| `finalMkb10Code` | ✔ | yakuniy diagnoz kodi (≤ 20) |
+| `finalMkb10Name` | ✔ | yakuniy diagnoz nomi (≤ 512) |
 | `patient` | ✔ | [patient bloki](../../patient/README.md#uz); **`identifiers` ichida ikkalasi ham majburiy: `NNUZB` (= PINFL/JSHSHIR) va `PPN` (= pasport); `addresses` ichida kamida bitta `PERMANENT` manzil majburiy** |
-| `labConfirmation` |  | boolean |
-| `hospitalPlaceId` |  | UUID |
-| `admissionDate` |  | `yyyy-MM-dd'T'HH:mm:ss`, o'tmish/hozir |
+| `labConfirmation` | ✔ | boolean |
+| `hospitalPlaceId` | ✔ | UUID |
+| `admissionDate` | ✔ | `yyyy-MM-dd'T'HH:mm:ss`, o'tmish/hozir |
 | `diseaseDate` | ✔ | xuddi shunday |
 | `firstVisitDate` | ✔ | xuddi shunday |
-| `diagnosisDate` |  | xuddi shunday |
+| `diagnosisDate` | ✔ | xuddi shunday |
 | `visitDate` | ✔ | xuddi shunday |
 | `initialReportDateTime` | ✔ | xuddi shunday |
 | `receiverOrganizationId` | ✔ | UUID |
-| `location` |  | `{ latitude, longitude, location }` |
+| `location` | ✔ | `{ latitude, longitude, location }` |
 | `diseasePlaceCode` | ✔ | ma'lumotnoma kodi (≤ 64) |
-| `diseaseCause` |  | ≤ 2000 |
-| `epidemicMeasures` |  | ≤ 2000 |
+| `diseaseCause` | ✔ | ≤ 2000 |
+| `epidemicMeasures` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
 | `journalFormCode` | ✔ | ma'lumotnoma kodi (≤ 64) |
-| `comment` |  | ≤ 2000 |
+| `comment` | ✔ | ≤ 2000 |
 
 ## Qo'shimcha qoidalar
 
@@ -121,26 +121,26 @@ Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
 |---|---|---|
 | `mkb10Code` | ✔ | ≤ 20 |
 | `mkb10Name` | ✔ | ≤ 512 |
-| `mkb10UsageLimit` |  | ≥ 0 |
-| `finalMkb10Code` |  | итоговый код диагноза (≤ 20); если нет — равен `mkb10Code` |
-| `finalMkb10Name` |  | итоговое название диагноза (≤ 512) |
+| `mkb10UsageLimit` | ✔ | ≥ 0 |
+| `finalMkb10Code` | ✔ | итоговый код диагноза (≤ 20) |
+| `finalMkb10Name` | ✔ | итоговое название диагноза (≤ 512) |
 | `patient` | ✔ | [блок patient](../../patient/README.md#ru); **в `identifiers` обязательны оба: `NNUZB` (= PINFL/JSHSHIR) и `PPN` (= паспорт); в `addresses` обязателен хотя бы один адрес `PERMANENT`** |
-| `labConfirmation` |  | boolean |
-| `hospitalPlaceId` |  | UUID |
-| `admissionDate` |  | `yyyy-MM-dd'T'HH:mm:ss`, не в будущем |
+| `labConfirmation` | ✔ | boolean |
+| `hospitalPlaceId` | ✔ | UUID |
+| `admissionDate` | ✔ | `yyyy-MM-dd'T'HH:mm:ss`, не в будущем |
 | `diseaseDate` | ✔ | аналогично |
 | `firstVisitDate` | ✔ | аналогично |
-| `diagnosisDate` |  | аналогично |
+| `diagnosisDate` | ✔ | аналогично |
 | `visitDate` | ✔ | аналогично |
 | `initialReportDateTime` | ✔ | аналогично |
 | `receiverOrganizationId` | ✔ | UUID |
-| `location` |  | `{ latitude, longitude, location }` |
+| `location` | ✔ | `{ latitude, longitude, location }` |
 | `diseasePlaceCode` | ✔ | код справочника (≤ 64) |
-| `diseaseCause` |  | ≤ 2000 |
-| `epidemicMeasures` |  | ≤ 2000 |
+| `diseaseCause` | ✔ | ≤ 2000 |
+| `epidemicMeasures` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
 | `journalFormCode` | ✔ | код справочника (≤ 64) |
-| `comment` |  | ≤ 2000 |
+| `comment` | ✔ | ≤ 2000 |
 
 ## Дополнительные правила
 
@@ -221,26 +221,26 @@ A fixed **flat** contract for DMED. Unlike the generic `{source}` endpoint, fiel
 |---|---|---|
 | `mkb10Code` | ✔ | ≤ 20 |
 | `mkb10Name` | ✔ | ≤ 512 |
-| `mkb10UsageLimit` |  | ≥ 0 |
-| `finalMkb10Code` |  | final diagnosis code (≤ 20); defaults to `mkb10Code` |
-| `finalMkb10Name` |  | final diagnosis name (≤ 512) |
+| `mkb10UsageLimit` | ✔ | ≥ 0 |
+| `finalMkb10Code` | ✔ | final diagnosis code (≤ 20) |
+| `finalMkb10Name` | ✔ | final diagnosis name (≤ 512) |
 | `patient` | ✔ | [patient block](../../patient/README.md#en); **`identifiers` must contain both `NNUZB` (= PINFL/JSHSHIR) and `PPN` (= passport); `addresses` must contain at least one `PERMANENT` address** |
-| `labConfirmation` |  | boolean |
-| `hospitalPlaceId` |  | UUID |
-| `admissionDate` |  | `yyyy-MM-dd'T'HH:mm:ss`, not in the future |
+| `labConfirmation` | ✔ | boolean |
+| `hospitalPlaceId` | ✔ | UUID |
+| `admissionDate` | ✔ | `yyyy-MM-dd'T'HH:mm:ss`, not in the future |
 | `diseaseDate` | ✔ | same |
 | `firstVisitDate` | ✔ | same |
-| `diagnosisDate` |  | same |
+| `diagnosisDate` | ✔ | same |
 | `visitDate` | ✔ | same |
 | `initialReportDateTime` | ✔ | same |
 | `receiverOrganizationId` | ✔ | UUID |
-| `location` |  | `{ latitude, longitude, location }` |
+| `location` | ✔ | `{ latitude, longitude, location }` |
 | `diseasePlaceCode` | ✔ | reference code (≤ 64) |
-| `diseaseCause` |  | ≤ 2000 |
-| `epidemicMeasures` |  | ≤ 2000 |
+| `diseaseCause` | ✔ | ≤ 2000 |
+| `epidemicMeasures` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
 | `journalFormCode` | ✔ | reference code (≤ 64) |
-| `comment` |  | ≤ 2000 |
+| `comment` | ✔ | ≤ 2000 |
 
 ## Extra rules
 

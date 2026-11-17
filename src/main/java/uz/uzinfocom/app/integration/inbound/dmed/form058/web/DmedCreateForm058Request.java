@@ -37,17 +37,22 @@ public record DmedCreateForm058Request(
         @Size(max = 512, message = "{validation.form058.icd10-name.size}")
         String mkb10Name,
 
-        @Schema(description = "Лимит использования данного кода МКБ-10 (при наличии ограничений).")
+        @Schema(description = "Лимит использования данного кода МКБ-10 (при наличии ограничений).",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         @PositiveOrZero(message = "{validation.form058.icd10-usage-limit.positive_or_zero}")
         Integer mkb10UsageLimit,
 
         @Schema(description = "Итоговый (подтверждённый) код диагноза по МКБ-10, если он уже известен "
                 + "на момент отправки и отличается от предварительного mkb10Code. Если не указан, "
-                + "принимается равным mkb10Code.")
+                + "принимается равным mkb10Code.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 20, message = "{validation.form058.icd10-code.size}")
         String finalMkb10Code,
 
-        @Schema(description = "Итоговое (подтверждённое) наименование диагноза по МКБ-10 — см. finalMkb10Code.")
+        @Schema(description = "Итоговое (подтверждённое) наименование диагноза по МКБ-10 — см. finalMkb10Code.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 512, message = "{validation.form058.icd10-name.size}")
         String finalMkb10Name,
 
@@ -57,13 +62,16 @@ public record DmedCreateForm058Request(
         @NotNull(message = "{validation.form058.patient.required}")
         IntegrationPatientRequest patient,
 
-        @Schema(description = "Признак лабораторного подтверждения диагноза.")
+        @Schema(description = "Признак лабораторного подтверждения диагноза.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         Boolean labConfirmation,
 
-        @Schema(description = "Идентификатор места госпитализации.")
+        @Schema(description = "Идентификатор места госпитализации.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         UUID hospitalPlaceId,
 
-        @Schema(description = "Дата и время поступления пациента.")
+        @Schema(description = "Дата и время поступления пациента.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         @PastOrPresent(message = "{validation.form058.admission-date.past_or_present}")
         LocalDateTime admissionDate,
 
@@ -80,8 +88,9 @@ public record DmedCreateForm058Request(
         @PastOrPresent(message = "{validation.form058.first-visit-date.past_or_present}")
         LocalDateTime firstVisitDate,
 
-        @Schema(description = "Дата и время установления диагноза.")
+        @Schema(description = "Дата и время установления диагноза.", requiredMode = Schema.RequiredMode.REQUIRED)
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @NotNull
         @PastOrPresent(message = "{validation.form058.diagnosis-date.past_or_present}")
         LocalDateTime diagnosisDate,
 
@@ -96,8 +105,10 @@ public record DmedCreateForm058Request(
         @NotNull(message = "{validation.form058.receiver-organization.required}")
         UUID receiverOrganizationId,
 
-        @Schema(description = "Географические координаты и описание места выявления заболевания.")
+        @Schema(description = "Географические координаты и описание места выявления заболевания.",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         @Valid
+        @NotNull
         LocationRequest location,
 
         @Schema(description = "Код места возникновения заболевания (по справочнику).",
@@ -113,11 +124,13 @@ public record DmedCreateForm058Request(
         @PastOrPresent(message = "{validation.form058.initial-report-date-time.past_or_present}")
         LocalDateTime initialReportDateTime,
 
-        @Schema(description = "Предполагаемая причина заболевания.")
+        @Schema(description = "Предполагаемая причина заболевания.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 2000, message = "{validation.form058.disease-cause.size}")
         String diseaseCause,
 
-        @Schema(description = "Принятые противоэпидемические меры.")
+        @Schema(description = "Принятые противоэпидемические меры.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 2000, message = "{validation.form058.epidemic-measures.size}")
         String epidemicMeasures,
 
@@ -131,7 +144,8 @@ public record DmedCreateForm058Request(
         @Size(max = 64, message = "{validation.form058.journal-form-code.size}")
         String journalFormCode,
 
-        @Schema(description = "Дополнительный комментарий к форме.")
+        @Schema(description = "Дополнительный комментарий к форме.", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
         @Size(max = 2000, message = "{validation.form058.comment.size}")
         String comment
 ) {

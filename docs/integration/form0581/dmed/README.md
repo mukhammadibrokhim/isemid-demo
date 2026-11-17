@@ -21,24 +21,24 @@ DMED uchun **tekis** (flat) formatdagi qat'iy kontrakt. Umumiy `{source}` endpoi
 |---|---|---|
 | `mkb10Code` | ✔ | ≤ 20 |
 | `mkb10Name` | ✔ | ≤ 512 |
-| `injuryLocalization` |  | ≤ 500 |
+| `injuryLocalization` | ✔ | ≤ 500 |
 | `injuryDateTime` | ✔ | o'tmish/hozir |
 | `dpuVisitDateTime` | ✔ | o'tmish/hozir; `injuryDateTime` dan keyin yoki teng |
 | `injuryRegionCode` | ✔ | ma'lumotnoma kodi (≤ 64) |
 | `injuryDistrictCode` | ✔ | ma'lumotnoma kodi (≤ 64) |
-| `injuryAddress` |  | ≤ 1000 |
-| `animalCategoryCode` |  | ≤ 64 |
-| `animalColor, animalType, animalBreed` |  | ≤ 255 |
-| `animalOwnerInfo` |  | [form0581](../../form0581/README.md#uz) dagi kabi |
+| `injuryAddress` | ✔ | ≤ 1000 |
+| `animalCategoryCode` | ✔ | ≤ 64 |
+| `animalColor, animalType, animalBreed` | ✔ | ≤ 255 |
+| `animalOwnerInfo` | ✔ | [form0581](../../form0581/README.md#uz) dagi kabi |
 | `patient` | ✔ | [patient bloki](../../patient/README.md#uz) |
 | `receiverOrganizationId` | ✔ | UUID; sanitar-epidemiologik xizmat muassasasi |
-| `otherPeopleInjured` |  | boolean |
-| `otherInjuredPeople[]` |  | [form0581](../../form0581/README.md#uz) dagi kabi |
-| `hospitalizedAt` |  | sana-vaqt; `injuryDateTime` dan oldin bo'lmasin |
-| `hospitalOrganizationId` |  | UUID |
-| `antirabicAssistanceInfo` |  | ≤ 2000 |
+| `otherPeopleInjured` | ✔ | boolean |
+| `otherInjuredPeople[]` | ✔ | [form0581](../../form0581/README.md#uz) dagi kabi |
+| `hospitalizedAt` | ✔ | sana-vaqt; `injuryDateTime` dan oldin bo'lmasin |
+| `hospitalOrganizationId` | ✔ | UUID |
+| `antirabicAssistanceInfo` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
-| `messageSentAt` |  | sana-vaqt |
+| `messageSentAt` | ✔ | sana-vaqt |
 
 ## Qo'shimcha qoidalar
 
@@ -117,24 +117,24 @@ Statuslar o'zgarganda webhook: [webhook](../webhook/README.md).
 |---|---|---|
 | `mkb10Code` | ✔ | ≤ 20 |
 | `mkb10Name` | ✔ | ≤ 512 |
-| `injuryLocalization` |  | ≤ 500 |
+| `injuryLocalization` | ✔ | ≤ 500 |
 | `injuryDateTime` | ✔ | не в будущем |
 | `dpuVisitDateTime` | ✔ | не в будущем; не раньше `injuryDateTime` |
 | `injuryRegionCode` | ✔ | код справочника (≤ 64) |
 | `injuryDistrictCode` | ✔ | код справочника (≤ 64) |
-| `injuryAddress` |  | ≤ 1000 |
-| `animalCategoryCode` |  | ≤ 64 |
-| `animalColor, animalType, animalBreed` |  | ≤ 255 |
-| `animalOwnerInfo` |  | как в [form0581](../../form0581/README.md#ru) |
+| `injuryAddress` | ✔ | ≤ 1000 |
+| `animalCategoryCode` | ✔ | ≤ 64 |
+| `animalColor, animalType, animalBreed` | ✔ | ≤ 255 |
+| `animalOwnerInfo` | ✔ | как в [form0581](../../form0581/README.md#ru) |
 | `patient` | ✔ | [блок patient](../../patient/README.md#ru) |
 | `receiverOrganizationId` | ✔ | UUID; учреждение санэпидслужбы |
-| `otherPeopleInjured` |  | boolean |
-| `otherInjuredPeople[]` |  | как в [form0581](../../form0581/README.md#ru) |
-| `hospitalizedAt` |  | дата-время; не раньше `injuryDateTime` |
-| `hospitalOrganizationId` |  | UUID |
-| `antirabicAssistanceInfo` |  | ≤ 2000 |
+| `otherPeopleInjured` | ✔ | boolean |
+| `otherInjuredPeople[]` | ✔ | как в [form0581](../../form0581/README.md#ru) |
+| `hospitalizedAt` | ✔ | дата-время; не раньше `injuryDateTime` |
+| `hospitalOrganizationId` | ✔ | UUID |
+| `antirabicAssistanceInfo` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
-| `messageSentAt` |  | дата-время |
+| `messageSentAt` | ✔ | дата-время |
 
 ## Дополнительные правила
 
@@ -213,24 +213,24 @@ A fixed **flat** contract for DMED. Unlike the generic `{source}` endpoint, fiel
 |---|---|---|
 | `mkb10Code` | ✔ | ≤ 20 |
 | `mkb10Name` | ✔ | ≤ 512 |
-| `injuryLocalization` |  | ≤ 500 |
+| `injuryLocalization` | ✔ | ≤ 500 |
 | `injuryDateTime` | ✔ | not in the future |
 | `dpuVisitDateTime` | ✔ | not in the future; not before `injuryDateTime` |
 | `injuryRegionCode` | ✔ | reference code (≤ 64) |
 | `injuryDistrictCode` | ✔ | reference code (≤ 64) |
-| `injuryAddress` |  | ≤ 1000 |
-| `animalCategoryCode` |  | ≤ 64 |
-| `animalColor, animalType, animalBreed` |  | ≤ 255 |
-| `animalOwnerInfo` |  | as in [form0581](../../form0581/README.md#en) |
+| `injuryAddress` | ✔ | ≤ 1000 |
+| `animalCategoryCode` | ✔ | ≤ 64 |
+| `animalColor, animalType, animalBreed` | ✔ | ≤ 255 |
+| `animalOwnerInfo` | ✔ | as in [form0581](../../form0581/README.md#en) |
 | `patient` | ✔ | [patient block](../../patient/README.md#en) |
 | `receiverOrganizationId` | ✔ | UUID; a sanitary-epidemiological service institution |
-| `otherPeopleInjured` |  | boolean |
-| `otherInjuredPeople[]` |  | as in [form0581](../../form0581/README.md#en) |
-| `hospitalizedAt` |  | date-time; not before `injuryDateTime` |
-| `hospitalOrganizationId` |  | UUID |
-| `antirabicAssistanceInfo` |  | ≤ 2000 |
+| `otherPeopleInjured` | ✔ | boolean |
+| `otherInjuredPeople[]` | ✔ | as in [form0581](../../form0581/README.md#en) |
+| `hospitalizedAt` | ✔ | date-time; not before `injuryDateTime` |
+| `hospitalOrganizationId` | ✔ | UUID |
+| `antirabicAssistanceInfo` | ✔ | ≤ 2000 |
 | `notifierFullName` | ✔ | ≤ 255 |
-| `messageSentAt` |  | date-time |
+| `messageSentAt` | ✔ | date-time |
 
 ## Extra rules
 
