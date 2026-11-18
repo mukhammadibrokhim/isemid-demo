@@ -27,6 +27,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 12" — «Nozologik shakllar bo'yicha yuqumli va parazitar kasalliklar
@@ -80,7 +81,7 @@ public class Form12ReportController {
                     + "включённым флагом includeInTotal. Период по умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form12Report.ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form12ReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -102,7 +103,7 @@ public class Form12ReportController {
                     + "области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form12Report.CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form12ReportNodeResponse>> children(
             @Parameter(description = "Id записи справочника ручных отчётов (нозологическая форма).", required = true)
             @RequestParam @NotNull @Positive Long manualReportId,
@@ -127,7 +128,7 @@ public class Form12ReportController {
                     + "выбранный период. Прогресс и скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form12Report.EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -148,7 +149,7 @@ public class Form12ReportController {
                     + "файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form12Report.COMBINED_EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> combinedExport(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

@@ -24,6 +24,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 @Tag(
         name = "Report — Air and respiratory diseases",
@@ -48,7 +49,7 @@ public class AirHealthReportController {
                     + "Davr berilmasa butun tarix."
     )
     @GetMapping(ApiPaths.AirHealthReport.TERRITORIES)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<AirHealthTerritoriesResponse> territories(
             @Parameter(description = "Region kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
             @RequestParam(required = false) String regionCode,
@@ -81,7 +82,7 @@ public class AirHealthReportController {
                     + "to'planadi."
     )
     @GetMapping(ApiPaths.AirHealthReport.SERIES)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<AirHealthSeriesResponse> series(
             @Parameter(description = "Region kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
             @RequestParam(required = false) String regionCode,

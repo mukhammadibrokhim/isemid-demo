@@ -39,6 +39,7 @@ import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
 
 import java.time.LocalDate;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 @Tag(
         name = "Report — Form 7 Manual Entry",
@@ -70,7 +71,7 @@ public class Form7EntryController {
                     + "остальных данных вручную."
     )
     @GetMapping(ApiPaths.Form7Entry.PREFILL)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<Form7EntryPrefillResponse> prefill(
             @Parameter(description = "Начало периода отчёта.", required = true)
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -89,7 +90,7 @@ public class Form7EntryController {
                     + "блок пересчитывается сервером по переданному периоду, а не принимается из запроса."
     )
     @PostMapping
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_CREATE')")
+    @PreAuthorize(Permissions.HAS_REPORTS_CREATE)
     public ApiResponse<Form7EntryTableResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой записи Shakl №7.",
@@ -110,7 +111,7 @@ public class Form7EntryController {
                     + "каждая со своей создавшей организацией и худудом."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public PagedResponse<Form7EntryTableResponse> findTable(
             @ParameterObject @Valid @ModelAttribute Form7EntryFilterRequest request,
             HttpServletRequest httpRequest
@@ -125,7 +126,7 @@ public class Form7EntryController {
                     + "Автоматически вычисляемый блок пересчитывается сервером по переданному периоду."
     )
     @PutMapping(ApiPaths.Form7Entry.BY_ID)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_UPDATE')")
+    @PreAuthorize(Permissions.HAS_REPORTS_UPDATE)
     public ApiResponse<Form7EntryTableResponse> update(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -146,7 +147,7 @@ public class Form7EntryController {
             description = "Разрешено только организации, создавшей запись, либо isemid_admin/isemid_super_admin."
     )
     @DeleteMapping(ApiPaths.Form7Entry.BY_ID)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_DELETE')")
+    @PreAuthorize(Permissions.HAS_REPORTS_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -161,7 +162,7 @@ public class Form7EntryController {
                     + "записей. Прогресс и скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form7Entry.EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @ParameterObject @Valid Form7EntryFilterRequest filter
     ) {

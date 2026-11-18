@@ -26,6 +26,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 28.2" — «Kasalxona ichki infeksiyalari haqida ma'lumotlar»,
@@ -70,7 +71,7 @@ public class Form282ReportController {
                     + "умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form282Report.ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form282ReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -92,7 +93,7 @@ public class Form282ReportController {
                     + "пределами области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form282Report.CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form282ReportNodeResponse>> children(
             @Parameter(description = "Id записи справочника ручных отчётов (нозологическая форма).", required = true)
             @RequestParam @NotNull @Positive Long manualReportId,
@@ -117,7 +118,7 @@ public class Form282ReportController {
                     + "выбранный период. Прогресс и скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form282Report.EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

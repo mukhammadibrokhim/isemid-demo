@@ -62,13 +62,17 @@ public interface RoleRepository extends JpaRepository<Role, Long>, JpaSpecificat
             @Param("id") Long id
     );
 
+    /**
+     * Authority names ({@code PERMISSION_<SUBJECT>_<ACTION>}) granted to the roles.
+     * <p>
+     * The role editor collapses a full grant into the single {@code MANAGE} row
+     * (see {@code RoleCommandService}), so a subject granted {@code MANAGE} is also
+     * expanded here into one authority per active action. Without this, a guard such as
+     * {@code hasAuthority('PERMISSION_REPORTS_READ')} would reject a role that holds
+     * {@code REPORTS: MANAGE}. The {@code MANAGE} authority itself is still emitted.
+     */
     @Query(value = """
-        select distinct concat(
-            'PERMISSION_',
-            upper(p.subject),
-            '_',
-            upper(a.code)
-        )
+        select concat('PERMISSION_', upper(p.subject), '_', upper(a.code))
         from role_permissions rp
         join permission p on p.id = rp.permission_id
         join role_permission_actions rpa on rpa.role_permission_id = rp.id
@@ -78,6 +82,21 @@ public interface RoleRepository extends JpaRepository<Role, Long>, JpaSpecificat
           and p.deleted_at is null
           and a.active = true
           and a.deleted_at is null
+        union
+        select concat('PERMISSION_', upper(p.subject), '_', upper(x.code))
+        from role_permissions rp
+        join permission p on p.id = rp.permission_id
+        join role_permission_actions rpa on rpa.role_permission_id = rp.id
+        join action a on a.id = rpa.action_id
+        cross join action x
+        where rp.role_id in (:roleIds)
+          and p.active = true
+          and p.deleted_at is null
+          and a.active = true
+          and a.deleted_at is null
+          and upper(a.code) = 'MANAGE'
+          and x.active = true
+          and x.deleted_at is null
         """, nativeQuery = true)
     Set<String> findPermissionAuthorityNamesByRoleIds(@Param("roleIds") Collection<Long> roleIds);
 }

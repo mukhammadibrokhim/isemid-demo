@@ -25,6 +25,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 8" — «Инфекционные и паразитарные заболевания по социальному
@@ -67,7 +68,7 @@ public class Form8ReportController {
                     + "последней строкой — суммарный итог (\"Jami\") по всей области доступа."
     )
     @GetMapping(ApiPaths.Form8Report.ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form8ReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -90,7 +91,7 @@ public class Form8ReportController {
                     + "— районы указанного региона. Запрос за пределами области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form8Report.CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form8ReportNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -117,7 +118,7 @@ public class Form8ReportController {
                     + "за выбранный период и за тот же период год назад."
     )
     @GetMapping(ApiPaths.Form8Report.CATEGORY_BREAKDOWN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<Form8CategoryBreakdownResponse> categoryBreakdown(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -143,7 +144,7 @@ public class Form8ReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form8Report.EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

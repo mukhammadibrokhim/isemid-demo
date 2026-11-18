@@ -24,6 +24,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * Exclusively {@code /v1/cards/*} — listing cards under a specific form
@@ -52,7 +53,7 @@ public class CardQueryController {
                     + "карта назначена."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACHED_CARDS_VIEW_ALL')")
+    @PreAuthorize(Permissions.HAS_ATTACHED_CARDS_VIEW_ALL)
     public PagedResponse<CardTableResponse> findAll(
             @ParameterObject @Valid CardFilterRequest filter,
             HttpServletRequest httpRequest

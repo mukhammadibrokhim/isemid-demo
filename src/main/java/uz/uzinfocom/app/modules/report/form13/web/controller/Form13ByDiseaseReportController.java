@@ -26,6 +26,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 13 by disease" — the disease-first counterpart of «Form 13», the same
@@ -71,7 +72,7 @@ public class Form13ByDiseaseReportController {
                     + "включённым флагом includeInTotal. Период по умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form13Report.BY_DISEASE_ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form13ByDiseaseReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -93,7 +94,7 @@ public class Form13ByDiseaseReportController {
                     + "области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form13Report.BY_DISEASE_CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form13ByDiseaseReportNodeResponse>> children(
             @Parameter(description = "Id записи справочника ручных отчётов (нозологическая форма).", required = true)
             @RequestParam @NotNull @Positive Long manualReportId,
@@ -118,7 +119,7 @@ public class Form13ByDiseaseReportController {
                     + "выбранный период. Прогресс и скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form13Report.BY_DISEASE_EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

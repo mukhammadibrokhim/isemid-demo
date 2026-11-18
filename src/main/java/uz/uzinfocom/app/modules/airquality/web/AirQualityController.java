@@ -29,6 +29,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 @Tag(
         name = "Air quality",
@@ -49,7 +50,7 @@ public class AirQualityController {
     @Operation(summary = "Monitoring stansiyalari ro'yxati",
             description = "Region/district kodi (SOATO bo'yicha aniqlangan) va faolligi bo'yicha filtrlanadi.")
     @GetMapping(ApiPaths.AirQuality.STATIONS)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<AirStationResponse>> stations(
             @Parameter(description = "ref_region.code (ixtiyoriy).")
             @RequestParam(required = false) @Size(max = 50) String regionCode,
@@ -65,7 +66,7 @@ public class AirQualityController {
     @Operation(summary = "Stansiyaning oxirgi saqlangan o'lchovi",
             description = "Barcha ifloslantiruvchi parametrlar bilan. Hali o'lchov bo'lmasa readings bo'sh.")
     @GetMapping(ApiPaths.AirQuality.LATEST)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<AirLatestResponse> latest(
             @Parameter(description = "Ichki stansiya id.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -78,7 +79,7 @@ public class AirQualityController {
                     + "ifloslantiruvchi (PM2.5, PM10, CO, SO2, NO, NO2, NOx, O3, NOx-2, NH3; yozilishi farqi "
                     + "e'tiborga olinmaydi). Eng ko'pi bilan 5000 qator.")
     @GetMapping(ApiPaths.AirQuality.MEASUREMENTS)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<AirReadingResponse>> measurements(
             @Parameter(description = "Ichki stansiya id.", required = true, example = "1")
             @PathVariable @Positive Long id,

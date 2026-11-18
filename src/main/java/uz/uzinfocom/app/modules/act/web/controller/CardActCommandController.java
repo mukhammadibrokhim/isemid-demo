@@ -17,6 +17,7 @@ import uz.uzinfocom.app.modules.act.web.dto.request.AssignActsRequest;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * Card-triggered act creation — this path lives under
@@ -44,7 +45,7 @@ public class CardActCommandController {
                     + "карт на форму №058."
     )
     @PostMapping(ApiPaths.Card.ROOT + ApiPaths.Card.ACTS)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_ASSIGN')")
+    @PreAuthorize(Permissions.HAS_ATTACH_ACT_ASSIGN)
     public ApiResponse<Void> assignActs(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,

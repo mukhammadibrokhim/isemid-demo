@@ -25,6 +25,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 9" — «Юкумли касалликлар бўйича қиёсий маълумот», сравнительный
@@ -70,7 +71,7 @@ public class Form9ReportController {
                     + "назад, плюс последней строкой — суммарный итог (\"Jami\") по всей области доступа."
     )
     @GetMapping(ApiPaths.Form9Report.ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form9ReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -93,7 +94,7 @@ public class Form9ReportController {
                     + "— районы указанного региона. Запрос за пределами области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form9Report.CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form9ReportNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -120,7 +121,7 @@ public class Form9ReportController {
                     + "строка — обе метрики за выбранный период и за тот же период год назад."
     )
     @GetMapping(ApiPaths.Form9Report.MONTHLY_BREAKDOWN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<Form9MonthlyBreakdownResponse> monthlyBreakdown(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -146,7 +147,7 @@ public class Form9ReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form9Report.EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

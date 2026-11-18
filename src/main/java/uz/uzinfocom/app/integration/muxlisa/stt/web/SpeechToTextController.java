@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.integration.muxlisa.stt.application.SpeechToTextService;
 import uz.uzinfocom.app.integration.muxlisa.stt.web.dto.SpeechToTextResponse;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 @Tag(name = "Speech to text", description = "Голосовой ввод: распознавание речи через Muxlisa AI.")
 @RestController
@@ -35,7 +36,7 @@ public class SpeechToTextController {
                     + "Доступно ролям с правом SPEECH_TO_TEXT / CREATE."
     )
     @PostMapping
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_SPEECH_TO_TEXT_CREATE')")
+    @PreAuthorize(Permissions.HAS_SPEECH_TO_TEXT_CREATE)
     public SpeechToTextResponse transcribe(
             @Parameter(description = "Аудиозапись (raw bytes).",
                     content = @Content(mediaType = "audio/*", schema = @Schema(type = "string", format = "binary")))

@@ -22,6 +22,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.util.Map;
 import java.util.Optional;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * Exclusively {@code /v1/acts/*} — attaching an act to a card lives in
@@ -51,7 +52,7 @@ public class ActCommandController {
                     + "после сохранения."
     )
     @PutMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
+    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
     public ApiResponse<ActDetailResponse> update(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -67,7 +68,7 @@ public class ActCommandController {
                     + "не удалась и ничего исправлять не требуется) в READY — подготовка к отправке в LIS."
     )
     @PatchMapping(ApiPaths.Act.READY)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
+    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
     public ApiResponse<Void> markReady(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -84,7 +85,7 @@ public class ActCommandController {
                     + "отправить повторно."
     )
     @PostMapping(ApiPaths.Act.SEND_TO_LIS)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
+    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
     public ApiResponse<Void> sendToLis(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -102,7 +103,7 @@ public class ActCommandController {
                     + "исправляют/отправляют в LIS повторно (там он создаётся как новая заявка)."
     )
     @PatchMapping(ApiPaths.Act.CLOSE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_UPDATE')")
+    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
     public ApiResponse<Void> close(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -153,7 +154,7 @@ public class ActCommandController {
                     + "READY, SEND_FAILED). Это мягкое удаление — запись остаётся в базе с отметкой об удалении."
     )
     @DeleteMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_ATTACH_ACT_DELETE')")
+    @PreAuthorize(Permissions.HAS_ATTACH_ACT_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,

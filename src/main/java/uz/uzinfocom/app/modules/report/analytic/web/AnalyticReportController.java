@@ -45,6 +45,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 @Tag(
         name = "Report — Analytic",
@@ -75,7 +76,7 @@ public class AnalyticReportController {
                     "saqlanmaydi, faqat muharrir uchun oldindan ko'rish."
     )
     @PostMapping(ApiPaths.AnalyticReport.COMPUTE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<AnalyticReportComputeResponse> compute(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Hisoblash uchun filtrlar.", required = true
@@ -91,7 +92,7 @@ public class AnalyticReportController {
                     "tashkilotlar) yozuvlarni postraf ko'rinishda qaytaradi."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public PagedResponse<AnalyticReportTableResponse> findTable(
             @ParameterObject @Valid @ModelAttribute AnalyticReportFilterRequest request,
             HttpServletRequest httpRequest
@@ -106,7 +107,7 @@ public class AnalyticReportController {
                     "ochib tahrirlash uchun."
     )
     @GetMapping(ApiPaths.AnalyticReport.BY_ID)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<AnalyticReportResponse> getById(
             @Parameter(description = "Ichki identifikator.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -120,7 +121,7 @@ public class AnalyticReportController {
                     "bosilganini bildiradi — TEMPLATE (\"Shablon sifatida saqlash\") yoki FINAL (\"Saqlash\")."
     )
     @PostMapping
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_CREATE')")
+    @PreAuthorize(Permissions.HAS_REPORTS_CREATE)
     public ApiResponse<AnalyticReportResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Yaratiladigan hisobot ma'lumotlari.", required = true
@@ -135,7 +136,7 @@ public class AnalyticReportController {
             description = "Faqat yozuvni yaratgan tashkilot yoki isemid_admin/isemid_super_admin uchun ruxsat etilgan."
     )
     @PutMapping(ApiPaths.AnalyticReport.BY_ID)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_UPDATE')")
+    @PreAuthorize(Permissions.HAS_REPORTS_UPDATE)
     public ApiResponse<AnalyticReportResponse> update(
             @Parameter(description = "Ichki identifikator.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -152,7 +153,7 @@ public class AnalyticReportController {
             description = "Faqat yozuvni yaratgan tashkilot yoki isemid_admin/isemid_super_admin uchun ruxsat etilgan."
     )
     @DeleteMapping(ApiPaths.AnalyticReport.BY_ID)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_DELETE')")
+    @PreAuthorize(Permissions.HAS_REPORTS_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Ichki identifikator.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -168,7 +169,7 @@ public class AnalyticReportController {
                     + "через /v1/exports."
     )
     @PostMapping(ApiPaths.AnalyticReport.EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @ParameterObject @Valid AnalyticReportFilterRequest filter
     ) {
@@ -186,7 +187,7 @@ public class AnalyticReportController {
                     "hisoblash shart emas."
     )
     @GetMapping(ApiPaths.AnalyticReport.DOCX)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ResponseEntity<ByteArrayResource> docx(
             @Parameter(description = "Ichki identifikator.", required = true, example = "1")
             @PathVariable @Positive Long id

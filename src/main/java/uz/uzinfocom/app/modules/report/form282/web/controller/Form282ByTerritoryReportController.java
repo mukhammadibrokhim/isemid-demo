@@ -24,6 +24,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 28.2 by territory" — the geography-first counterpart of «Form 28.2»,
@@ -62,7 +63,7 @@ public class Form282ByTerritoryReportController {
                     + "суммарный итог (\"Jami\") по всей области доступа. Период по умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form282Report.BY_TERRITORY_ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form282ByTerritoryNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -83,7 +84,7 @@ public class Form282ByTerritoryReportController {
                     + "области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form282Report.BY_TERRITORY_CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form282ByTerritoryNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -107,7 +108,7 @@ public class Form282ByTerritoryReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form282Report.BY_TERRITORY_EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

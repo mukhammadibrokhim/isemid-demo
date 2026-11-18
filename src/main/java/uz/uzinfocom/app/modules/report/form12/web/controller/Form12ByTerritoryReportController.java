@@ -24,6 +24,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 12 by territory" — the geography-first counterpart of «Form 12», the
@@ -65,7 +66,7 @@ public class Form12ByTerritoryReportController {
                     + "умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form12Report.BY_TERRITORY_ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form12ByTerritoryNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -86,7 +87,7 @@ public class Form12ByTerritoryReportController {
                     + "области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form12Report.BY_TERRITORY_CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form12ByTerritoryNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -110,7 +111,7 @@ public class Form12ByTerritoryReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form12Report.BY_TERRITORY_EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

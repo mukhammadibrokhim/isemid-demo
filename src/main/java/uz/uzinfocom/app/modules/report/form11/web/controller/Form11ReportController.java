@@ -25,6 +25,7 @@ import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * "Form 11" — «Yuqumli va parazitar kasalliklar bilan kasallanish
@@ -71,7 +72,7 @@ public class Form11ReportController {
                     + "плюс последней строкой — суммарный итог (\"Jami\") по всей области доступа."
     )
     @GetMapping(ApiPaths.Form11Report.ROOT_NODE)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form11ReportNodeResponse>> root(
             @Parameter(description = "Отчётный год. По умолчанию — текущий.")
             @RequestParam(required = false) Integer year,
@@ -97,7 +98,7 @@ public class Form11ReportController {
                     + "указанного региона. Запрос за пределами области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form11Report.CHILDREN)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<List<Form11ReportNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -128,7 +129,7 @@ public class Form11ReportController {
                     + "файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form11Report.EXPORT)
-    @PreAuthorize("isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')")
+    @PreAuthorize(Permissions.HAS_REPORTS_READ)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Отчётный год. По умолчанию — текущий.")
             @RequestParam(required = false) Integer year,
