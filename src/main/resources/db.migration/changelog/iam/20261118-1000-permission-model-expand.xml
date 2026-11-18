@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Permission modelini yangi nomlash standartiga o'tkazish - EXPAND bosqichi
+        (docs/permission-naming-mapping.md §10, 1-qadam).
+
+        Faqat QO'SHADI: yangi action va subject qatorlari, hamda mavjud rollarning
+        eski grantlarini yangi nomlarga tarjima qilib NUSXALAYDI. Eski subject/action
+        qatorlariga va ularning grantlariga TEGMAYDI (ular contract bosqichigacha
+        faol qoladi), shuning uchun eski nomlarni kutayotgan kod/front ishlashda davom
+        etadi. Idempotent: qayta yugurtirilsa hech narsa o'zgarmaydi.
+
+        isemid_super_admin / isemid_admin rollari bu yerda ko'chirilmaydi - ularga
+        yangi subject/action'lar zzz-rbac-grants/20260828-1200 (runAlways) orqali
+        o'zi tushadi.
+
+        description_kaa ataylab bo'sh (NULL) qoldirilgan - qoraqalpoqcha tarjima
+        alohida tekshiruvdan o'tishi kerak.
+    -->
+    <changeSet id="20261118-1000-01-add-new-actions-and-subjects" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO action (code, active, deleted, version, created_at, updated_at,
+                                 description_uz, description_ru, description_uz_cyril)
+            VALUES
+                ('ACCEPT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Qabul qilish huquqi.', 'Право принятия.', 'Қабул қилиш ҳуқуқи.'),
+                ('REJECT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Rad etish huquqi.', 'Право отклонения.', 'Рад этиш ҳуқуқи.'),
+                ('COMPLETE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Yakunlash huquqi.', 'Право завершения.', 'Якунлаш ҳуқуқи.'),
+                ('RETURN', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Qayta ishlashga qaytarish huquqi.', 'Право возврата на доработку.', 'Қайта ишлашга қайтариш ҳуқуқи.'),
+                ('SYNC', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Sinxronlash huquqi.', 'Право синхронизации.', 'Синхронлаш ҳуқуқи.'),
+                ('READ_SENT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Yuborilganlarni ko''rish huquqi.', 'Право просмотра отправленных.', 'Юборилганларни кўриш ҳуқуқи.'),
+                ('READ_RECEIVED', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Qabul qilinganlarni ko''rish huquqi.', 'Право просмотра полученных.', 'Қабул қилинганларни кўриш ҳуқуқи.'),
+                ('CHANGE_ORG', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tashkilotni o''zgartirish huquqi.', 'Право изменения организации.', 'Ташкилотни ўзгартириш ҳуқуқи.'),
+                ('CANCEL', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Bekor qilish huquqi.', 'Право отмены.', 'Бекор қилиш ҳуқуқи.'),
+                ('SUBMIT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Yuborish huquqi (integratsiya).', 'Право отправки (интеграция).', 'Юбориш ҳуқуқи (интеграция).'),
+                ('CONFIRM', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tasdiqlash huquqi (integratsiya).', 'Право подтверждения (интеграция).', 'Тасдиқлаш ҳуқуқи (интеграция).')
+            ON CONFLICT (code) DO NOTHING;
+
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril)
+            VALUES
+                ('REPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Hisobotlarni ko''rish va eksport qilish.', 'Просмотр и экспорт отчётов.', 'Ҳисоботларни кўриш ва экспорт қилиш.'),
+                ('REPORT_ENTRY', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Qo''lda kiritiladigan hisobotlar.', 'Отчёты, вводимые вручную.', 'Қўлда киритиладиган ҳисоботлар.'),
+                ('ANALYTIC_REPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Analitik hisobot yaratish.', 'Создание аналитического отчёта.', 'Аналитик ҳисобот яратиш.'),
+                ('ACT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Dalolatnomalar (aktlar).', 'Акты.', 'Далолатномалар (актлар).'),
+                ('CARD', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tibbiy kartalar (epidemiologik tekshiruv).', 'Медицинские карты (эпидемиологическое расследование).', 'Тиббий карталар (эпидемиологик текширув).'),
+                ('COUNTRY', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Davlatlar ma''lumotnomasi.', 'Справочник стран.', 'Давлатлар маълумотномаси.'),
+                ('REGION', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Viloyatlar ma''lumotnomasi.', 'Справочник областей.', 'Вилоятлар маълумотномаси.'),
+                ('DISTRICT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tuman va shaharlar ma''lumotnomasi.', 'Справочник районов и городов.', 'Туман ва шаҳарлар маълумотномаси.'),
+                ('NEIGHBORHOOD', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Mahallalar ma''lumotnomasi.', 'Справочник махаллей.', 'Маҳаллалар маълумотномаси.'),
+                ('POPULATION', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Doimiy aholi soni ma''lumotnomasi.', 'Справочник численности постоянного населения.', 'Доимий аҳоли сони маълумотномаси.'),
+                ('CATALOG', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Katalog turlari ma''lumotnomasi.', 'Справочник типов каталогов.', 'Каталог турлари маълумотномаси.'),
+                ('ICD10', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'MKB-10 kasalliklar ma''lumotnomasi.', 'Справочник МКБ-10.', 'МКБ-10 касалликлар маълумотномаси.'),
+                ('USER', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Foydalanuvchilar (xodimlar).', 'Пользователи (сотрудники).', 'Фойдаланувчилар (ходимлар).'),
+                ('ORGANIZATION', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Tashkilotlar.', 'Организации.', 'Ташкилотлар.'),
+                ('ROLE', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Rollar.', 'Роли.', 'Роллар.'),
+                ('PERMISSION', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Ruxsatlar (subyektlar).', 'Разрешения (субъекты).', 'Рухсатлар (субъектлар).')
+            ON CONFLICT (subject) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        Mavjud grantlarni eski -> yangi tarjima qoidasi bo'yicha ko'chirish
+        (docs/permission-naming-mapping.md §8.2 "Translation rule").
+        perm_map_tmp: (eski subject, eski action | '*', yangi subject, yangi action | '*').
+        '*' eski tomonda = istalgan action; yangi tomonda = o'sha action kodi.
+        Faqat faol, o'chirilmagan eski subject/action'lar nusxalanadi (faol bo'lmagani
+        bugun hech narsa bermaydi, nusxa ham bermasligi kerak).
+        Formalarda (FORM058_SENDER/RECEIVER) MANAGE yangi subject'ga MANAGE sifatida
+        o'tmaydi - u yuboruvchi/qabul qiluvchi tomonning aniq action'lariga yoyiladi,
+        aks holda qarama-qarshi tomon ham ochilib qolardi.
+    -->
+    <changeSet id="20261118-1000-02-copy-grants-to-new-model" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role_permissions"/>
+            <tableExists tableName="role_permission_actions"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            DROP TABLE IF EXISTS perm_map_tmp;
+
+            CREATE TEMP TABLE perm_map_tmp (
+                old_subject VARCHAR(200),
+                old_action  VARCHAR(50),
+                new_subject VARCHAR(200),
+                new_action  VARCHAR(50)
+            );
+
+            INSERT INTO perm_map_tmp (old_subject, old_action, new_subject, new_action) VALUES
+                -- same subject meaning, new singular name, same actions
+                ('ATTACH_ACT', '*', 'ACT', '*'),
+                ('ACTS', '*', 'ACT', '*'),
+                ('ATTACHED_CARDS', '*', 'CARD', '*'),
+                ('STAFF', '*', 'USER', '*'),
+                ('EMPLOYEES', '*', 'USER', '*'),
+                ('ORGANIZATIONS', '*', 'ORGANIZATION', '*'),
+                ('ROLES', '*', 'ROLE', '*'),
+                ('PERMISSIONS', '*', 'PERMISSION', '*'),
+                ('MKB_LIST', '*', 'ICD10', '*'),
+                ('COUNTRIES', '*', 'COUNTRY', '*'),
+                ('STATES', '*', 'REGION', '*'),
+                ('CITIES', '*', 'DISTRICT', '*'),
+                ('STREETS', '*', 'DISTRICT', '*'),
+                ('RESIDENCES', '*', 'DISTRICT', '*'),
+                ('NEIGHBORHOODS', '*', 'NEIGHBORHOOD', '*'),
+                ('CATALOGS', '*', 'CATALOG', '*'),
+                ('FORM_CATEGORIES', '*', 'CATALOG', '*'),
+                ('SICK_PATIENT_CATEGORIES', '*', 'CATALOG', '*'),
+                ('DISEASE_PLACES', '*', 'CATALOG', '*'),
+                ('POPULATION_TYPES', '*', 'CATALOG', '*'),
+                ('FORM1', '*', 'REPORT', '*'),
+                ('FORM12', '*', 'REPORT', '*'),
+                ('GRAPH1', '*', 'REPORT', '*'),
+                ('MAP_GRAPHIC', '*', 'REPORT', '*'),
+                ('ANALYTICAL_REPORT', '*', 'ANALYTIC_REPORT', '*'),
+
+                -- reference: the action was encoded in the old subject name
+                ('REFERENCE_COUNTRY_READ', '*', 'COUNTRY', 'READ'),
+                ('REFERENCE_COUNTRY_MANAGE', '*', 'COUNTRY', 'MANAGE'),
+                ('REFERENCE_REGION_READ', '*', 'REGION', 'READ'),
+                ('REFERENCE_REGION_MANAGE', '*', 'REGION', 'MANAGE'),
+                ('REFERENCE_DISTRICT_READ', '*', 'DISTRICT', 'READ'),
+                ('REFERENCE_DISTRICT_MANAGE', '*', 'DISTRICT', 'MANAGE'),
+                ('REFERENCE_NEIGHBORHOOD_READ', '*', 'NEIGHBORHOOD', 'READ'),
+                ('REFERENCE_NEIGHBORHOOD_MANAGE', '*', 'NEIGHBORHOOD', 'MANAGE'),
+
+                -- reports: REPORTS is split into view / manual entry / analytic builder;
+                -- EXPORT is separate from READ, so every READ holder also gets EXPORT
+                ('REPORTS', 'READ', 'REPORT', 'READ'),
+                ('REPORTS', 'READ', 'REPORT', 'EXPORT'),
+                ('REPORTS', 'EXPORT', 'REPORT', 'EXPORT'),
+                ('REPORTS', 'MANAGE', 'REPORT', 'MANAGE'),
+                ('REPORTS', 'READ', 'REPORT_ENTRY', 'READ'),
+                ('REPORTS', 'CREATE', 'REPORT_ENTRY', 'CREATE'),
+                ('REPORTS', 'UPDATE', 'REPORT_ENTRY', 'UPDATE'),
+                ('REPORTS', 'DELETE', 'REPORT_ENTRY', 'DELETE'),
+                ('REPORTS', 'MANAGE', 'REPORT_ENTRY', 'MANAGE'),
+                ('REPORTS', 'READ', 'ANALYTIC_REPORT', 'READ'),
+                ('REPORTS', 'READ', 'ANALYTIC_REPORT', 'EXPORT'),
+                ('REPORTS', 'EXPORT', 'ANALYTIC_REPORT', 'EXPORT'),
+                ('REPORTS', 'CREATE', 'ANALYTIC_REPORT', 'CREATE'),
+                ('REPORTS', 'UPDATE', 'ANALYTIC_REPORT', 'UPDATE'),
+                ('REPORTS', 'DELETE', 'ANALYTIC_REPORT', 'DELETE'),
+                ('REPORTS', 'MANAGE', 'ANALYTIC_REPORT', 'MANAGE'),
+
+                -- form 058: sender side
+                ('FORM058_SENDER', 'READ', 'FORM058', 'READ_SENT'),
+                ('FORM058_SENDER', 'CREATE', 'FORM058', 'CREATE'),
+                ('FORM058_SENDER', 'UPDATE', 'FORM058', 'UPDATE'),
+                ('FORM058_SENDER', 'DELETE', 'FORM058', 'DELETE'),
+                ('FORM058_SENDER', 'MANAGE', 'FORM058', 'CREATE'),
+                ('FORM058_SENDER', 'MANAGE', 'FORM058', 'UPDATE'),
+                ('FORM058_SENDER', 'MANAGE', 'FORM058', 'DELETE'),
+                ('FORM058_SENDER', 'MANAGE', 'FORM058', 'CANCEL'),
+                ('FORM058_SENDER', 'MANAGE', 'FORM058', 'APPROVE'),
+                ('FORM058_SENDER', 'MANAGE', 'FORM058', 'READ_SENT'),
+                -- form 058: receiver side
+                ('FORM058_RECEIVER', 'READ', 'FORM058', 'READ_RECEIVED'),
+                ('FORM058_RECEIVER', 'UPDATE', 'FORM058', 'ACCEPT'),
+                ('FORM058_RECEIVER', 'FORM_CANCEL', 'FORM058', 'REJECT'),
+                ('FORM058_RECEIVER', 'ORG_CHANGE', 'FORM058', 'CHANGE_ORG'),
+                ('FORM058_RECEIVER', 'CARD_ATTACH', 'CARD', 'ASSIGN'),
+                ('FORM058_RECEIVER', 'MANAGE', 'FORM058', 'ACCEPT'),
+                ('FORM058_RECEIVER', 'MANAGE', 'FORM058', 'REJECT'),
+                ('FORM058_RECEIVER', 'MANAGE', 'FORM058', 'READ_RECEIVED'),
+                ('FORM058_RECEIVER', 'MANAGE', 'FORM058', 'CHANGE_ORG'),
+                ('FORM058_RECEIVER', 'MANAGE', 'CARD', 'ASSIGN'),
+                -- form 058: legacy single-purpose menu subjects
+                ('FORM058', 'READ', 'FORM058', 'READ_SENT'),
+                ('FORM058', 'READ', 'FORM058', 'READ_RECEIVED'),
+                ('FORM058_COMPLETE_BY_SUPERVISOR', '*', 'FORM058', 'APPROVE'),
+                ('FORM058_CHANGE_ORGANIZATION', '*', 'FORM058', 'CHANGE_ORG'),
+                ('FORM058_ATTACHED_CARDS', '*', 'CARD', 'ASSIGN'),
+                ('RECEIVED', '*', 'FORM058', 'READ_RECEIVED'),
+                ('USER_INCOMINGS', '*', 'CARD', 'READ'),
+                ('CARD_FULL_INFO', '*', 'CARD', 'READ'),
+
+                -- form 058-1: one table for both sides, so READ covers both lists and
+                -- UPDATE covers every sender and receiver step (nothing is lost)
+                ('FORM0581', 'READ', 'FORM0581', 'READ_SENT'),
+                ('FORM0581', 'READ', 'FORM0581', 'READ_RECEIVED'),
+                ('FORM0581', 'CREATE', 'FORM0581', 'CREATE'),
+                ('FORM0581', 'UPDATE', 'FORM0581', 'UPDATE'),
+                ('FORM0581', 'UPDATE', 'FORM0581', 'DELETE'),
+                ('FORM0581', 'UPDATE', 'FORM0581', 'CANCEL'),
+                ('FORM0581', 'UPDATE', 'FORM0581', 'APPROVE'),
+                ('FORM0581', 'UPDATE', 'FORM0581', 'ACCEPT'),
+                ('FORM0581', 'UPDATE', 'FORM0581', 'REJECT'),
+
+                -- form 129 (menu-only subject today)
+                ('FORM129', 'READ', 'FORM129', 'READ_SENT'),
+                ('FORM129', 'READ', 'FORM129', 'READ_RECEIVED'),
+                ('FORM129', 'CREATE', 'FORM129', 'CREATE'),
+                ('FORM129', 'UPDATE', 'FORM129', 'ACCEPT'),
+                ('FORM129', 'UPDATE', 'FORM129', 'REJECT'),
+                ('FORM129', 'DELETE', 'FORM129', 'DELETE');
+
+            -- 1) role_permissions rows for the new subjects
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT DISTINCT rp.role_id, np.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+                       AND r.name NOT IN ('isemid_super_admin', 'isemid_admin')
+            JOIN permission op ON op.id = rp.permission_id
+                              AND op.active = true AND op.deleted_at IS NULL
+            JOIN role_permission_actions rpa ON rpa.role_permission_id = rp.id
+            JOIN action oa ON oa.id = rpa.action_id
+                          AND oa.active = true AND oa.deleted_at IS NULL
+            JOIN perm_map_tmp m ON m.old_subject = upper(op.subject)
+                               AND (m.old_action = '*' OR m.old_action = upper(oa.code))
+            JOIN permission np ON upper(np.subject) = m.new_subject
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            -- 2) the translated actions
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT DISTINCT nrp.id, na.id
+            FROM role_permissions rp
+            JOIN role r ON r.id = rp.role_id
+                       AND r.name NOT IN ('isemid_super_admin', 'isemid_admin')
+            JOIN permission op ON op.id = rp.permission_id
+                              AND op.active = true AND op.deleted_at IS NULL
+            JOIN role_permission_actions rpa ON rpa.role_permission_id = rp.id
+            JOIN action oa ON oa.id = rpa.action_id
+                          AND oa.active = true AND oa.deleted_at IS NULL
+            JOIN perm_map_tmp m ON m.old_subject = upper(op.subject)
+                               AND (m.old_action = '*' OR m.old_action = upper(oa.code))
+            JOIN permission np ON upper(np.subject) = m.new_subject
+            JOIN role_permissions nrp ON nrp.role_id = rp.role_id AND nrp.permission_id = np.id
+            JOIN action na ON upper(na.code) = CASE WHEN m.new_action = '*' THEN upper(oa.code) ELSE m.new_action END
+                          AND na.active = true AND na.deleted_at IS NULL
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+
+            -- 3) a MANAGE grant stands alone (RoleCommandService collapses a full grant to
+            --    the single MANAGE row; MANAGE is expanded to every action in SQL anyway)
+            DELETE FROM role_permission_actions rpa
+            USING role_permissions rp, permission p, role r
+            WHERE rpa.role_permission_id = rp.id
+              AND p.id = rp.permission_id
+              AND r.id = rp.role_id
+              AND r.name NOT IN ('isemid_super_admin', 'isemid_admin')
+              AND upper(p.subject) IN (SELECT new_subject FROM perm_map_tmp)
+              AND rpa.action_id NOT IN (SELECT id FROM action WHERE upper(code) = 'MANAGE')
+              AND EXISTS (
+                  SELECT 1
+                  FROM role_permission_actions x
+                  JOIN action xa ON xa.id = x.action_id
+                  WHERE x.role_permission_id = rp.id AND upper(xa.code) = 'MANAGE'
+              );
+
+            DROP TABLE perm_map_tmp;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>
