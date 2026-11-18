@@ -58,56 +58,15 @@
     </changeSet>
 
     <!--
-        Kod qat'iy talab qiladigan permission subject'lari.
+        Eski REPORTS / ACTS / CATALOGS / ANALYTICAL_REPORT subject'larini har startda
+        qayta faollashtiradigan changeSet'lar permission modelini yangi nomlashga o'tkazish
+        (contract bosqichi, iam/20261118-1400) bilan olib tashlandi: yangi nomlar
+        (REPORT, ACT, CATALOG, ANALYTIC_REPORT...) zzz-rbac-grants/20261118-1150 da
+        kafolatlanadi. Eski nomlar soft-delete holatida qoladi.
 
-        modules/report/**/*Controller lar hisobot endpoint'larini
-        @PreAuthorize("hasAuthority('PERMISSION_REPORTS_{READ|CREATE|UPDATE|
-        DELETE}')") bilan himoya qiladi - ya'ni aynan 'REPORTS' nomli
-        subject kutiladi. SecurityAuthorityService bu authority'ni FAQAT
-        permission jadvalida subject='REPORTS' qatori active=true AND
-        deleted=false bo'lsagina yasaydi (02-changeSet ham CROSS JOIN'da
-        p.deleted=false shartini qo'yadi).
-
-        Kuzatilgan holat: ba'zi DB'larda 'REPORTS' qatori BOR, lekin
-        admin-paneldan SOFT-DELETE qilingan ("O'chirilgan") - shu sababli
-        ON CONFLICT DO NOTHING yetmaydi. Bu yerda DO UPDATE bilan qatorni
-        qayta faollashtiramiz (active=true, deleted=false, deleted_at=null).
-        REPORTS ilova ishlashi uchun majburiy bo'lgani sababli har
-        runAlways yugurishda tiklanadi - uni doimiy o'chirib bo'lmaydi.
-        Boshqa hisobot subject'lari (FORM1/FORM12/GRAPH1/MANUAL_REPORT/
-        MAP_GRAPHIC/FORM_CATEGORIES...) allaqachon Faol bo'lsa 02-changeSet
-        ularni super_admin ga avtomatik beradi - bu yerda tegilmaydi.
-    -->
-    <changeSet id="20260828-1200-01a-ensure-code-required-subjects" author="uzinfocom" runAlways="true">
-        <preConditions onFail="CONTINUE" onError="CONTINUE">
-            <dbms type="postgresql"/>
-            <tableExists tableName="permission"/>
-        </preConditions>
-
-        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
-            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
-                                     description_uz, description_ru, description_uz_cyril, description_kaa)
-            VALUES
-                ('REPORTS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
-                 'Hisobotlar va statistik tahlillar.', 'Отчёты и статистический анализ.',
-                 'Ҳисоботлар ва статистик таҳлиллар.', 'Esabatlar hám statistikalıq tallawlar.')
-            ON CONFLICT (subject) DO UPDATE SET
-                active = true,
-                deleted = false,
-                deleted_at = NULL,
-                updated_at = CURRENT_TIMESTAMP;
-        ]]></sql>
-    </changeSet>
-
-    <!--
-        Front menyusi uchun subject'lar (backend BU'larni PERMISSION_* bilan
-        CHEKLAMAYDI - form129/act/catalog kontrollerlari isAuthenticated()/
-        isAdmin()). Kuzatilgan katalogda ular yo'q edi yoki soft-delete
-        ("O'chirilgan") qilingan edi, natijada front menyusida tegishli
-        bo'limlar faqat 'ALL' subject egasiga ko'rinardi. Bu yerda
-        ta'minlanadi (mavjud + soft-delete bo'lsa qayta faollashtiriladi),
+        Front menyusi uchun FORM129 subject'i (nomi o'zgarmagan, backend PERMISSION_*
+        bilan tekshiradi). Yo'q yoki soft-delete bo'lsa qayta faollashtiriladi,
         so'ng 02-changeSet super_admin ga CROSS JOIN orqali beradi.
-        Kodlar foydalanuvchi tomonidan tasdiqlangan.
     -->
     <changeSet id="20260828-1200-01b-ensure-frontend-menu-subjects" author="uzinfocom" runAlways="true">
         <preConditions onFail="CONTINUE" onError="CONTINUE">
@@ -123,20 +82,7 @@
                  'Shakl 129 — chiquvchi yuqumli kasalliklar registri.',
                  'Форма 129 — журнал регистрации инфекционных заболеваний.',
                  'Шакл 129 — чиқувчи юқумли касалликлар реестри.',
-                 'Forma 129 — juqpalı keselliklerdiń dizimi.'),
-                ('ACTS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
-                 'Aktlar (namuna olish / tekshiruv aktlari).',
-                 'Акты (акты отбора проб / обследования).',
-                 'Актлар (намуна олиш / текшириш актлари).',
-                 'Aktlar (úlgi alıw / tekseriw aktları).'),
-                ('CATALOGS', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
-                 'Umumiy ma''lumotnomalar va kataloglar.',
-                 'Общие справочники и каталоги.',
-                 'Умумий маълумотномалар ва каталоглар.',
-                 'Ulıwma anıqlamalıqlar hám kataloglar.'),
-                ('ANALYTICAL_REPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
-                 'Analitik hisobot.', 'Аналитический отчёт.',
-                 'Аналитик ҳисобот.', 'Analitikalıq esabat.')
+                 'Forma 129 — juqpalı keselliklerdiń dizimi.')
             ON CONFLICT (subject) DO UPDATE SET
                 active = true,
                 deleted = false,

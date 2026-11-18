@@ -318,6 +318,12 @@ To confirm:
    `zzz-rbac-grants` file (it re-creates `REPORTS`/`FORM129`/`ACTS`/`CATALOGS`/`ANALYTICAL_REPORT`
    every start, so it **must** change in the same release or old names return as duplicates).
 
+*Contract done 2026-11-18:* `iam/20261118-1400-retire-old-permission-subjects.xml` soft-deletes every
+old subject (and the actions `CARD_ATTACH`, `ORG_CHANGE`, `FORM_CANCEL`, `IMPORT`); the runAlways
+re-activation of `REPORTS`/`ACTS`/`CATALOGS`/`ANALYTICAL_REPORT` was removed from `zzz-rbac-grants/20260828-1200`.
+Old `role_permissions` rows stay (restorable from the panel). Kept as-is: `FORM058`, `FORM0581`, `FORM129`, `ALL`,
+`MANUAL_REPORT`, `SPEECH_TO_TEXT`.
+
 The live DB differs from the seeds (≈40 subjects, hand-edited descriptions, admin-created rows):
 every statement must be `WHERE subject = '<old>'`. Never edit an existing changeset — add new ones
 (Liquibase checksums).

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Permission modelini yangi nomlashga o'tkazishning CONTRACT bosqichi
+        (docs/permission-naming-mapping.md §10, 5-qadam).
+
+        Yangi nomlarga ko'chirilgan (20261118-1000) va kodda endi ishlatilmaydigan ESKI
+        subject/action'lar soft-delete (active=false, deleted=true) qilinadi, shunda panelda
+        yangilari bilan aralashib ketmaydi va authority SQL (active AND deleted_at IS NULL)
+        ularni endi chiqarmaydi. Qatorlar jismonan o'chirilmaydi - panel orqali restore
+        qilish mumkin. role_permissions grantlari ham joyida qoladi (tiklansa qaytadi).
+
+        Qoldiriladigan (nomi o'zgarmagan) subject'lar: FORM058, FORM0581, FORM129, ALL,
+        MANUAL_REPORT, SPEECH_TO_TEXT va barcha yangi subject'lar.
+
+        Faqat nomi bo'yicha (WHERE subject IN (...)) - jonli DB'dagi qo'lda yaratilgan
+        boshqa qatorlarga tegmaydi. Idempotent: allaqachon o'chirilganlarni qayta yozmaydi.
+
+        MUHIM: zzz-rbac-grants/20260828-1200 dagi runAlways changeSet'lar REPORTS, ACTS,
+        CATALOGS, ANALYTICAL_REPORT'ni har startda qayta faollashtirardi - ular shu reliz
+        bilan olib tashlangan, aks holda eski nomlar dublikat sifatida qaytib kelardi.
+    -->
+    <changeSet id="20261118-1400-01-retire-old-permission-subjects" author="uzinfocom">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE permission
+            SET active = false, deleted = true, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE subject IN (
+                'ATTACH_ACT', 'ACTS',
+                'ATTACHED_CARDS', 'USER_INCOMINGS', 'CARD_FULL_INFO', 'FORM058_ATTACHED_CARDS',
+                'STAFF', 'EMPLOYEES', 'ORGANIZATIONS', 'ROLES', 'PERMISSIONS',
+                'MKB_LIST',
+                'COUNTRIES', 'STATES', 'CITIES', 'STREETS', 'RESIDENCES', 'NEIGHBORHOODS',
+                'CATALOGS', 'FORM_CATEGORIES', 'SICK_PATIENT_CATEGORIES', 'DISEASE_PLACES', 'POPULATION_TYPES',
+                'REFERENCE_COUNTRY_READ', 'REFERENCE_COUNTRY_MANAGE',
+                'REFERENCE_REGION_READ', 'REFERENCE_REGION_MANAGE',
+                'REFERENCE_DISTRICT_READ', 'REFERENCE_DISTRICT_MANAGE',
+                'REFERENCE_NEIGHBORHOOD_READ', 'REFERENCE_NEIGHBORHOOD_MANAGE',
+                'REPORTS', 'FORM1', 'FORM12', 'GRAPH1', 'MAP_GRAPHIC', 'ANALYTICAL_REPORT',
+                'FORM058_SENDER', 'FORM058_RECEIVER',
+                'FORM058_COMPLETE_BY_SUPERVISOR', 'FORM058_CHANGE_ORGANIZATION',
+                'RECEIVED'
+            )
+              AND deleted_at IS NULL;
+        ]]></sql>
+    </changeSet>
+
+    <!-- Eski action kodlari: CARD_ATTACH -> ASSIGN, ORG_CHANGE -> CHANGE_ORG, FORM_CANCEL -> CANCEL, IMPORT hech qachon ishlatilmagan. -->
+    <changeSet id="20261118-1400-02-retire-old-actions" author="uzinfocom">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE action
+            SET active = false, deleted = true, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE code IN ('CARD_ATTACH', 'ORG_CHANGE', 'FORM_CANCEL', 'IMPORT')
+              AND deleted_at IS NULL;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>
