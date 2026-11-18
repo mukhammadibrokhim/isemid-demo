@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Legacy NEIGHBORHOODS subject'i noto'g'ri "Tumanlar / Районы" deb nomlangan edi.
+        Neighborhood = mahalla (tuman emas - tuman DISTRICT). Faqat eski noto'g'ri
+        qiymat turgan qatorlar tuzatiladi; paneldan qo'lda o'zgartirilgan matn bosilmaydi.
+    -->
+    <changeSet id="20261118-1300-01-fix-neighborhoods-subject-labels" author="uzinfocom">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE permission SET description_uz = 'Mahallalar'
+            WHERE subject = 'NEIGHBORHOODS' AND description_uz = 'Tumanlar';
+
+            UPDATE permission SET description_ru = 'Махалли'
+            WHERE subject = 'NEIGHBORHOODS' AND description_ru = 'Районы';
+
+            UPDATE permission SET description_uz_cyril = 'Маҳаллалар'
+            WHERE subject = 'NEIGHBORHOODS' AND description_uz_cyril = 'Туманлар';
+
+            UPDATE permission SET description_kaa = 'Mahallalar'
+            WHERE subject = 'NEIGHBORHOODS' AND description_kaa = 'Awdanlar';
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>
