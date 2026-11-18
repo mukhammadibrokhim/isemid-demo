@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
@@ -118,7 +119,7 @@ public class OrganizationController {
                     + "создаёт её."
     )
     @PostMapping(ApiPaths.Organization.SYNC_BY_UUID)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_ORGANIZATION_SYNC)
     public ApiResponse<OrganizationDetailResponse> sync(
             @Parameter(description = "UUID организации во внешней IAM-системе.", required = true)
             @PathVariable(ApiPaths.Organization.UUID) UUID uuid,

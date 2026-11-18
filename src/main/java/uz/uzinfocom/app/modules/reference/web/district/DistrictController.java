@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -149,7 +150,7 @@ public class DistrictController {
             description = "Район успешно создан."
     )
     @PostMapping
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_DISTRICT_CREATE)
     public ApiResponse<DistrictResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемого района.",
@@ -169,7 +170,7 @@ public class DistrictController {
             description = "Район успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_DISTRICT_UPDATE)
     public ApiResponse<DistrictResponse> update(
             @Parameter(description = "Внутренний идентификатор района.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -191,7 +192,7 @@ public class DistrictController {
             description = "Район успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_DISTRICT_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор района.", required = true, example = "1")
             @PathVariable @Positive Long id

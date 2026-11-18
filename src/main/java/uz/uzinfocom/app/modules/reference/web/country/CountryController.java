@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -118,7 +119,7 @@ public class CountryController {
             description = "Страна успешно создана."
     )
     @PostMapping
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_COUNTRY_CREATE)
     public ApiResponse<CountryDetailedResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой страны.",
@@ -138,7 +139,7 @@ public class CountryController {
             description = "Страна успешно обновлена."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_COUNTRY_UPDATE)
     public ApiResponse<CountryDetailedResponse> update(
             @Parameter(description = "Внутренний идентификатор страны.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -160,7 +161,7 @@ public class CountryController {
             description = "Страна успешно удалена."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_COUNTRY_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор страны.", required = true, example = "1")
             @PathVariable @Positive Long id

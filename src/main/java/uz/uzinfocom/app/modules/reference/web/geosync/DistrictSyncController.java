@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,7 +38,7 @@ public class DistrictSyncController {
                     + "без сохранения."
     )
     @PostMapping(ApiPaths.Reference.SYNC)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_DISTRICT_SYNC)
     public ApiResponse<DistrictSyncResult> sync(
             @Parameter(description = "true — пробный запуск без сохранения изменений.")
             @RequestParam(defaultValue = "false") boolean dryRun

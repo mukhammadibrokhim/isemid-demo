@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,7 +67,7 @@ public class PopulationController {
                     + "локали. year по умолчанию — последний загруженный год."
     )
     @GetMapping
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_POPULATION_READ)
     public ApiResponse<List<PopulationNodeResponse>> hierarchy(
             @Parameter(description = "Год. По умолчанию — последний загруженный.")
             @RequestParam(required = false) Integer year,
@@ -81,7 +82,7 @@ public class PopulationController {
 
     @Operation(summary = "Список доступных годов", description = "Годы, за которые есть данные, по убыванию.")
     @GetMapping(ApiPaths.Reference.YEARS)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_POPULATION_READ)
     public ApiResponse<List<Integer>> availableYears() {
         return ApiResponse.success(messageResolver.resolve("common.success"), populationQueryService.availableYears());
     }
@@ -92,7 +93,7 @@ public class PopulationController {
                     + "этой территории (years[]) и аудит создания/изменения (кто и когда)."
     )
     @GetMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_POPULATION_READ)
     public ApiResponse<PopulationDetailResponse> getById(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -102,14 +103,14 @@ public class PopulationController {
 
     @Operation(summary = "Создать запись (ручной ввод)", description = "Источник записи — MANUAL. (soatoId, year) уникальны.")
     @PostMapping
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_POPULATION_CREATE)
     public ApiResponse<PopulationDetailResponse> create(@Valid @RequestBody PopulationCreateRequest request) {
         return ApiResponse.success(messageResolver.resolve("common.created"), populationCommandService.create(request));
     }
 
     @Operation(summary = "Обновить запись", description = "Территория и год не изменяются. Изменение фиксируется в журнале аудита.")
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_POPULATION_UPDATE)
     public ApiResponse<PopulationDetailResponse> update(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -120,7 +121,7 @@ public class PopulationController {
 
     @Operation(summary = "Удалить запись", description = "Мягкое удаление. SDMX-синхронизация может вернуть запись обратно.")
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_POPULATION_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -135,7 +136,7 @@ public class PopulationController {
                     + "с источником MANUAL не перезаписываются. SDMX-изменения в журнал аудита не пишутся."
     )
     @PostMapping(ApiPaths.Reference.SYNC)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_POPULATION_SYNC)
     public ApiResponse<PopulationSyncResult> sync() {
         return ApiResponse.success(
                 messageResolver.resolve("reference.population.sync.success"), populationSyncService.sync()

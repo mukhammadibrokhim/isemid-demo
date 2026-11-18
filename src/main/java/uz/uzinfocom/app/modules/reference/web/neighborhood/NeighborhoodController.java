@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -156,7 +157,7 @@ public class NeighborhoodController {
             description = "Махалля успешно создана."
     )
     @PostMapping
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_NEIGHBORHOOD_CREATE)
     public ApiResponse<NeighborhoodResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой махалли.",
@@ -176,7 +177,7 @@ public class NeighborhoodController {
             description = "Махалля успешно обновлена."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_NEIGHBORHOOD_UPDATE)
     public ApiResponse<NeighborhoodResponse> update(
             @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -198,7 +199,7 @@ public class NeighborhoodController {
             description = "Махалля успешно удалена."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_NEIGHBORHOOD_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор махалли.", required = true, example = "1")
             @PathVariable @Positive Long id

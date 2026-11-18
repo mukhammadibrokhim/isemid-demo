@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -149,7 +150,7 @@ public class RegionController {
             description = "Регион успешно создан."
     )
     @PostMapping
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_REGION_CREATE)
     public ApiResponse<RegionResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемого региона.",
@@ -169,7 +170,7 @@ public class RegionController {
             description = "Регион успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_REGION_UPDATE)
     public ApiResponse<RegionResponse> update(
             @Parameter(description = "Внутренний идентификатор региона.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -191,7 +192,7 @@ public class RegionController {
             description = "Регион успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_REGION_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор региона.", required = true, example = "1")
             @PathVariable @Positive Long id

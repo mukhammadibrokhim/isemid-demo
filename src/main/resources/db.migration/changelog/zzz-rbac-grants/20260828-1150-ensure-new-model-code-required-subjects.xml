@@ -38,4 +38,36 @@
         ]]></sql>
     </changeSet>
 
+    <!--
+        Reference/organization yozish va sync endpoint'lari (admin guard YOKI permission) kodda
+        endi PERMISSION_<SUBJECT>_{CREATE|UPDATE|DELETE|SYNC|READ} ni ham qabul qiladi, shuning
+        uchun bu subject'lar va SYNC action'i faol bo'lishi kerak.
+    -->
+    <changeSet id="20261118-1150-02-ensure-reference-write-subjects" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril)
+            VALUES ('MANUAL_REPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                    'Qo''lda hisobot katalogi.', 'Каталог ручных отчётов.', 'Қўлда ҳисобот каталоги.')
+            ON CONFLICT (subject) DO NOTHING;
+
+            UPDATE permission
+            SET active = true, deleted = false, deleted_at = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE subject IN ('COUNTRY', 'REGION', 'DISTRICT', 'NEIGHBORHOOD', 'POPULATION', 'CATALOG',
+                              'ICD10', 'MANUAL_REPORT', 'ORGANIZATION')
+              AND (active = false OR deleted = true OR deleted_at IS NOT NULL);
+
+            UPDATE action
+            SET active = true, deleted = false, deleted_at = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE code = 'SYNC'
+              AND (active = false OR deleted = true OR deleted_at IS NOT NULL);
+        ]]></sql>
+    </changeSet>
+
 </databaseChangeLog>

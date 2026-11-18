@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -158,7 +159,7 @@ public class Icd10Controller {
             description = "Узел МКБ-10 успешно создан."
     )
     @PostMapping
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_ICD10_CREATE)
     public ApiResponse<Icd10Response> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемого узла МКБ-10.",
@@ -178,7 +179,7 @@ public class Icd10Controller {
             description = "Узел МКБ-10 успешно обновлён."
     )
     @PutMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_ICD10_UPDATE)
     public ApiResponse<Icd10Response> update(
             @Parameter(description = "Внешний идентификатор узла МКБ-10.", required = true, example = "1500")
             @PathVariable @Positive Long id,
@@ -200,7 +201,7 @@ public class Icd10Controller {
             description = "Узел МКБ-10 успешно удалён."
     )
     @DeleteMapping(ApiPaths.Reference.BY_ID)
-    @PreAuthorize("@adminAccessGuard.isAdmin()")
+    @PreAuthorize(Permissions.ADMIN_OR_ICD10_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внешний идентификатор узла МКБ-10.", required = true, example = "1500")
             @PathVariable @Positive Long id
