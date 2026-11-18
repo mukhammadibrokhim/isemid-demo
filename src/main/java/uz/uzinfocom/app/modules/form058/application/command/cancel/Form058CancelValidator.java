@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateExce
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.auth.FormPermissionGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import java.util.Objects;
@@ -24,6 +25,7 @@ import java.util.Objects;
 public class Form058CancelValidator {
 
     private final AdminAccessGuard form058AccessGuard;
+    private final FormPermissionGuard formPermissionGuard;
 
     public void validate(Form058 form058) {
         if (!form058.getStatus().isCancellable()) {
@@ -48,5 +50,8 @@ public class Form058CancelValidator {
         if (!isSender && !isReceiver) {
             throw new Form058ScopeViolationException();
         }
+
+        // sender withdraws (CANCEL), receiver declines (REJECT): same endpoint, side-specific permission
+        formPermissionGuard.requireCancelOrReject("FORM058", isSender, isReceiver);
     }
 }

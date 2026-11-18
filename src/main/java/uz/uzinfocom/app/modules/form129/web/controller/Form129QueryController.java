@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +46,7 @@ public class Form129QueryController {
                     + "организациям-отправителю/получателю, направлению (chiquvchi/kiruvchi) и другим параметрам."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM129_LIST)
     public PagedResponse<Form129TableResponse> findAll(
             @ParameterObject @Valid Form129Filter filter,
             HttpServletRequest httpRequest
@@ -60,7 +61,7 @@ public class Form129QueryController {
                     + "исследований и данные пациента."
     )
     @GetMapping(ApiPaths.Form129.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM129_READ_ANY)
     public ApiResponse<Form129DetailResponse> byId(
             @Parameter(description = "Идентификатор формы №129.", required = true)
             @PathVariable @Positive Long id

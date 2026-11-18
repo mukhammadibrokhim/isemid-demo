@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -66,7 +67,7 @@ public class Form0581CommandController {
                     + "в системе). Начальный статус формы — SENT."
     )
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM0581_CREATE)
     public ApiResponse<CreateForm0581Response> create(
             @Parameter(description = "Источник поступления формы (заполняется автоматически по заголовку запроса).")
             @RequestHeader(value = SourceHeader.X_SOURCE, required = false) String sourceHeader,
@@ -86,7 +87,7 @@ public class Form0581CommandController {
                     + "изменяются только переданные. Недоступно после утверждения/аннулирования формы."
     )
     @PutMapping(ApiPaths.Form0581.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM0581_UPDATE)
     public ApiResponse<UpdateForm0581Response> update(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id,
@@ -103,7 +104,7 @@ public class Form0581CommandController {
             description = "Удаляет форму с обязательным указанием причины удаления."
     )
     @DeleteMapping(value = ApiPaths.Form0581.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM0581_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable Long id,
@@ -120,7 +121,7 @@ public class Form0581CommandController {
                     + "После приёма аннулировать/отклонить форму уже нельзя — см. эндпоинт cancel."
     )
     @PatchMapping(ApiPaths.Form0581.ACCEPT)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM0581_ACCEPT)
     public ApiResponse<UpdateForm0581Response> accept(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id
@@ -137,7 +138,7 @@ public class Form0581CommandController {
                     + "после того, как форма принята получателем и к ней привязана карта (статус CARD_LINKED)."
     )
     @PatchMapping(ApiPaths.Form0581.APPROVE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM0581_APPROVE)
     public ApiResponse<UpdateForm0581Response> approve(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id,
@@ -158,7 +159,7 @@ public class Form0581CommandController {
                     + "супер-администратор через отдельный эндпоинт reopen."
     )
     @PatchMapping(ApiPaths.Form0581.CANCEL)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_CANCEL_OR_REJECT)
     public ApiResponse<UpdateForm0581Response> cancel(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id,

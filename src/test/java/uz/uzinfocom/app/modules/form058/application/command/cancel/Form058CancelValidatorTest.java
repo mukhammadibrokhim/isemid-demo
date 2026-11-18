@@ -1,6 +1,10 @@
 package uz.uzinfocom.app.modules.form058.application.command.cancel;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058ScopeViolationException;
 import uz.uzinfocom.app.modules.form058.domain.enums.FormStatus;
@@ -8,6 +12,7 @@ import uz.uzinfocom.app.modules.form058.domain.exception.InvalidForm058StateExce
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
+import uz.uzinfocom.app.platform.security.auth.FormPermissionGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -17,11 +22,40 @@ import static org.mockito.Mockito.when;
 
 class Form058CancelValidatorTest {
 
-    private final Form058CancelValidator validator = new Form058CancelValidator(new AdminAccessGuard());
+    private final Form058CancelValidator validator = new Form058CancelValidator(new AdminAccessGuard(), new FormPermissionGuard());
+
+    @BeforeEach
+    void grantBothSides() {
+        grant("PERMISSION_FORM058_CANCEL", "PERMISSION_FORM058_REJECT");
+    }
+
+    private static void grant(String... authorities) {
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(
+                "u", "n", authorities));
+    }
 
     @AfterEach
     void clearContext() {
         CurrentOrganizationContext.clear();
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void senderWithoutCancelPermissionIsDenied() {
+        grant("PERMISSION_FORM058_REJECT");
+        CurrentOrganizationContext.set(organization(10L));
+
+        assertThatThrownBy(() -> validator.validate(form(FormStatus.SENT)))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void receiverWithoutRejectPermissionIsDenied() {
+        grant("PERMISSION_FORM058_CANCEL");
+        CurrentOrganizationContext.set(organization(20L));
+
+        assertThatThrownBy(() -> validator.validate(form(FormStatus.SENT)))
+                .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test
@@ -68,7 +102,7 @@ class Form058CancelValidatorTest {
     void superAdminMayCancelWithoutOrganizationScope() {
         AdminAccessGuard superAdminGuard = mock(AdminAccessGuard.class);
         when(superAdminGuard.isSuperAdmin()).thenReturn(true);
-        Form058CancelValidator superAdminValidator = new Form058CancelValidator(superAdminGuard);
+        Form058CancelValidator superAdminValidator = new Form058CancelValidator(superAdminGuard, new FormPermissionGuard());
 
         assertThatCode(() -> superAdminValidator.validate(form(FormStatus.SENT)))
                 .doesNotThrowAnyException();

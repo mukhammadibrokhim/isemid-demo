@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -60,7 +61,7 @@ public class Form129CommandController {
                     + "структурированные сведения."
     )
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM129_CREATE)
     public ApiResponse<CreateForm129Response> create(
             @Parameter(description = "Источник поступления формы (заполняется автоматически по заголовку запроса).")
             @RequestHeader(value = SourceHeader.X_SOURCE, required = false) String sourceHeader,
@@ -98,7 +99,7 @@ public class Form129CommandController {
                     + "Доступно только организации-получателю."
     )
     @PatchMapping(ApiPaths.Form129.ACCEPT)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM129_ACCEPT)
     public ApiResponse<Form129StatusResponse> accept(
             @Parameter(description = "Идентификатор формы №129.", required = true)
             @PathVariable @Positive Long id,
@@ -119,7 +120,7 @@ public class Form129CommandController {
                     + "организации-получателю, и только пока форма ещё не принята (статус SENT)."
     )
     @PatchMapping(ApiPaths.Form129.REJECT)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM129_REJECT)
     public ApiResponse<Form129StatusResponse> reject(
             @Parameter(description = "Идентификатор формы №129.", required = true)
             @PathVariable @Positive Long id,

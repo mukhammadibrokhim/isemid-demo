@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,7 +57,7 @@ public class Form0581QueryController {
                     + "организациям-отправителю/получателю и другим параметрам."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_LIST)
     public PagedResponse<Form0581TableResponse> findAll(
             @ParameterObject @Valid Form0581Filter filter,
             HttpServletRequest httpRequest
@@ -77,7 +78,7 @@ public class Form0581QueryController {
                     + "почему форма видна именно этой организации."
     )
     @GetMapping(ApiPaths.Form0581.AFFILIATED)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM0581_READ_RECEIVED)
     public PagedResponse<Form0581AffiliatedTableResponse> findAllAffiliated(
             @ParameterObject @Valid Form0581AffiliatedFilter filter,
             HttpServletRequest httpRequest
@@ -92,7 +93,7 @@ public class Form0581QueryController {
                     + "личность пациента (ПИНФЛ, паспорт и т. п.)."
     )
     @GetMapping(ApiPaths.Form0581.BY_DOCUMENT_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<Form0581DetailResponse> byDocumentValue(
             @Parameter(description = "Значение документа, удостоверяющего личность пациента.", required = true)
             @RequestParam @NotBlank String documentValue
@@ -109,7 +110,7 @@ public class Form0581QueryController {
                     + "животном и данные пациента."
     )
     @GetMapping(ApiPaths.Form0581.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<Form0581DetailResponse> byId(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id
@@ -127,7 +128,7 @@ public class Form0581QueryController {
                     + "животного и т.д.) приведены к человекочитаемым наименованиям."
     )
     @GetMapping(ApiPaths.Form0581.PDF)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<Form0581PdfResponse> pdf(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id
@@ -145,7 +146,7 @@ public class Form0581QueryController {
                     + "методы)."
     )
     @PostMapping(ApiPaths.Form0581.EXPORT)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_LIST)
     public ApiResponse<ExportJobResponse> export(
             @ParameterObject @Valid Form0581Filter filter
     ) {

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,7 +52,7 @@ public class Form0581StatsController {
                     + "текущей организации. Направление ALL доступно только для isemid_super_admin."
     )
     @GetMapping(ApiPaths.Form0581Stats.BY_STATUS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<List<Form0581StatusCountResponse>> byStatus(
             @Parameter(description = "Направление: исходящие, входящие или все (только для super-admin).", required = true)
             @RequestParam Form0581Direction direction
@@ -68,7 +69,7 @@ public class Form0581StatsController {
                     + "текущей организации. Параметры from/to необязательны."
     )
     @GetMapping(ApiPaths.Form0581Stats.BY_DATE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<List<Form0581DailyCountResponse>> byDate(
             @Parameter(description = "Направление: исходящие, входящие или все (только для super-admin).", required = true)
             @RequestParam Form0581Direction direction,
@@ -89,7 +90,7 @@ public class Form0581StatsController {
                     + "текущей организации."
     )
     @GetMapping(ApiPaths.Form0581Stats.TOP_ICD10)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<List<Form0581Icd10CountResponse>> topIcd10(
             @Parameter(description = "Направление: исходящие, входящие или все (только для super-admin).", required = true)
             @RequestParam Form0581Direction direction,
