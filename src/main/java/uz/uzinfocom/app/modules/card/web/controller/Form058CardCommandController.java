@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,7 +46,7 @@ public class Form058CardCommandController {
                     + "При успешном выполнении статус формы переходит в CARD_LINKED."
     )
     @PostMapping(ApiPaths.Form058.ROOT + ApiPaths.Form058.ASSIGN_CARDS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_ASSIGN)
     public ApiResponse<Void> assignCards(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,

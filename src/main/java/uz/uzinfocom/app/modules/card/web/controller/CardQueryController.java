@@ -69,7 +69,7 @@ public class CardQueryController {
                     + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно."
     )
     @GetMapping(ApiPaths.Card.MINE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_READ)
     public PagedResponse<CardTableResponse> findMine(
             @ParameterObject @Valid CardFilterRequest filter,
             HttpServletRequest httpRequest
@@ -84,7 +84,7 @@ public class CardQueryController {
                     + "(вакцинации, факторы риска, контактные лица и т.д.), в зависимости от типа карты."
     )
     @GetMapping(ApiPaths.Card.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_READ)
     public ApiResponse<CardDetailResponse> byId(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id
@@ -103,7 +103,7 @@ public class CardQueryController {
                     + "в формате JSON, который фронтенд использует для отрисовки печатной формы карты в PDF."
     )
     @GetMapping(ApiPaths.Card.PDF)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_READ)
     public ApiResponse<CardPdfResponse> pdf(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id

@@ -58,6 +58,15 @@ public final class Permissions {
 
     // --- CARD ------------------------------------------------------------------------------
     public static final String CARD_VIEW_ALL = "PERMISSION_CARD_VIEW_ALL";
+    public static final String CARD_READ = "PERMISSION_CARD_READ";
+    public static final String CARD_UPDATE = "PERMISSION_CARD_UPDATE";
+    public static final String CARD_DELETE = "PERMISSION_CARD_DELETE";
+    public static final String CARD_ACCEPT = "PERMISSION_CARD_ACCEPT";
+    public static final String CARD_REJECT = "PERMISSION_CARD_REJECT";
+    public static final String CARD_COMPLETE = "PERMISSION_CARD_COMPLETE";
+    public static final String CARD_APPROVE = "PERMISSION_CARD_APPROVE";
+    public static final String CARD_RETURN = "PERMISSION_CARD_RETURN";
+    public static final String CARD_ASSIGN = "PERMISSION_CARD_ASSIGN";
 
     // --- SPEECH_TO_TEXT --------------------------------------------------------------------
     public static final String SPEECH_TO_TEXT_CREATE = "PERMISSION_SPEECH_TO_TEXT_CREATE";
@@ -84,6 +93,15 @@ public final class Permissions {
     public static final String HAS_ACT_ASSIGN = AUTHENTICATED_AND + ACT_ASSIGN + AUTHORITY_END;
     public static final String HAS_ACT_VIEW_ALL = AUTHENTICATED_AND + ACT_VIEW_ALL + AUTHORITY_END;
     public static final String HAS_CARD_VIEW_ALL = AUTHENTICATED_AND + CARD_VIEW_ALL + AUTHORITY_END;
+    public static final String HAS_CARD_READ = AUTHENTICATED_AND + CARD_READ + AUTHORITY_END;
+    public static final String HAS_CARD_UPDATE = AUTHENTICATED_AND + CARD_UPDATE + AUTHORITY_END;
+    public static final String HAS_CARD_DELETE = AUTHENTICATED_AND + CARD_DELETE + AUTHORITY_END;
+    public static final String HAS_CARD_ACCEPT = AUTHENTICATED_AND + CARD_ACCEPT + AUTHORITY_END;
+    public static final String HAS_CARD_REJECT = AUTHENTICATED_AND + CARD_REJECT + AUTHORITY_END;
+    public static final String HAS_CARD_COMPLETE = AUTHENTICATED_AND + CARD_COMPLETE + AUTHORITY_END;
+    public static final String HAS_CARD_APPROVE = AUTHENTICATED_AND + CARD_APPROVE + AUTHORITY_END;
+    public static final String HAS_CARD_RETURN = AUTHENTICATED_AND + CARD_RETURN + AUTHORITY_END;
+    public static final String HAS_CARD_ASSIGN = AUTHENTICATED_AND + CARD_ASSIGN + AUTHORITY_END;
     public static final String HAS_SPEECH_TO_TEXT_CREATE = AUTHENTICATED_AND + SPEECH_TO_TEXT_CREATE + AUTHORITY_END;
 
     /**

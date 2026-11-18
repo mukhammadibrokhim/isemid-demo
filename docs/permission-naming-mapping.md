@@ -267,7 +267,7 @@ today the endpoint works for everyone and gating must not remove it.
 | **General practitioner (UASH)** — creates and sends | `CREATE`, `READ_SENT`, `UPDATE`, `DELETE`, `CANCEL`, `APPROVE` (when each is allowed is decided by the form status in code — see below) | — | — | — | `SPEECH_TO_TEXT` `CREATE` |
 | **Epidemiologist** | `READ_RECEIVED` | `READ`, `UPDATE`, `ACCEPT`+, `REJECT`+, `COMPLETE`+ | `READ`, `UPDATE`, `ASSIGN` | `REPORT` `READ`,`EXPORT`; `REPORT_ENTRY` `READ`,`CREATE`,`UPDATE` | `SPEECH_TO_TEXT` `CREATE` |
 | **Assistant epidemiologist** | `READ_RECEIVED` | `READ`, `UPDATE`, `ACCEPT`+, `REJECT`+, `COMPLETE`+ | `READ`, `UPDATE`, `ASSIGN` | — | `SPEECH_TO_TEXT` `CREATE` |
-| **Department head (epidim_head)** — receives, assigns, supervises | `READ_RECEIVED`, `ACCEPT`+, `REJECT`, `CHANGE_ORG` | `READ`, `UPDATE`, `APPROVE`, `VIEW_ALL`, `ASSIGN`, `RETURN`+ | `READ`, `VIEW_ALL`, `ASSIGN`, `UPDATE` | `REPORT` `READ`,`EXPORT`; `REPORT_ENTRY` `READ`,`UPDATE` | `SPEECH_TO_TEXT` `CREATE` |
+| **Department head (epidim_head)** — receives, assigns, supervises | `READ_RECEIVED`, `ACCEPT`+, `REJECT`, `CHANGE_ORG` | `READ`, `UPDATE`, `DELETE`+, `APPROVE`, `VIEW_ALL`, `ASSIGN`, `RETURN`+ | `READ`, `VIEW_ALL`, `ASSIGN`, `UPDATE` | `REPORT` `READ`,`EXPORT`; `REPORT_ENTRY` `READ`,`UPDATE` | `SPEECH_TO_TEXT` `CREATE` |
 | **Head doctor** — view only | `READ_SENT`, `READ_RECEIVED` | — | — | `REPORT` `READ`,`EXPORT` | — |
 | **QR user** | — | — | — | — | not used for now (no grants) |
 
