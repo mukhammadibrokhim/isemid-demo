@@ -55,7 +55,7 @@ public class MapReportController {
                     + "ruxsat doirasi qo'llanadi. Eng yomon holatdagi stansiyalar birinchi."
     )
     @GetMapping(ApiPaths.MapReport.AIR_STATIONS)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<AirStationStatusResponse>> airStations(
             @Parameter(description = "Region kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
             @RequestParam(required = false) String regionCode,
@@ -77,7 +77,7 @@ public class MapReportController {
                     + "belgisi bor (status = APPROVED bo'lsa tasdiqlangan, aks holda tasdiqlanmagan)."
     )
     @GetMapping(ApiPaths.MapReport.POINTS)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<MapPointResponse>> points(
             @Parameter(description = "Region kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
             @RequestParam(required = false) String regionCode,

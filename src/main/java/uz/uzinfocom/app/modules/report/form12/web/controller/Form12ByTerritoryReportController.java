@@ -66,7 +66,7 @@ public class Form12ByTerritoryReportController {
                     + "умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form12Report.BY_TERRITORY_ROOT_NODE)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form12ByTerritoryNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -87,7 +87,7 @@ public class Form12ByTerritoryReportController {
                     + "области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form12Report.BY_TERRITORY_CHILDREN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form12ByTerritoryNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -111,7 +111,7 @@ public class Form12ByTerritoryReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form12Report.BY_TERRITORY_EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_EXPORT)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

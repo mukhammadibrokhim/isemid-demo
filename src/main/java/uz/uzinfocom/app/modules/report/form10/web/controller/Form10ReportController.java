@@ -72,7 +72,7 @@ public class Form10ReportController {
                     + "плюс последней строкой — суммарный итог (\"Jami\") по всей области доступа."
     )
     @GetMapping(ApiPaths.Form10Report.ROOT_NODE)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form10ReportNodeResponse>> root(
             @Parameter(description = "Отчётный год. По умолчанию — текущий.")
             @RequestParam(required = false) Integer year,
@@ -98,7 +98,7 @@ public class Form10ReportController {
                     + "указанного региона. Запрос за пределами области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form10Report.CHILDREN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form10ReportNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -129,7 +129,7 @@ public class Form10ReportController {
                     + "файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form10Report.EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_EXPORT)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Отчётный год. По умолчанию — текущий.")
             @RequestParam(required = false) Integer year,

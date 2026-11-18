@@ -63,7 +63,7 @@ public class Form281ByTerritoryReportController {
                     + "суммарный итог (\"Jami\") по всей области доступа. Период по умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form281Report.BY_TERRITORY_ROOT_NODE)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form281ByTerritoryNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -84,7 +84,7 @@ public class Form281ByTerritoryReportController {
                     + "области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form281Report.BY_TERRITORY_CHILDREN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form281ByTerritoryNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -108,7 +108,7 @@ public class Form281ByTerritoryReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form281Report.BY_TERRITORY_EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_EXPORT)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

@@ -17,8 +17,11 @@ class PermissionsTest {
         Set<String> required = Permissions.required();
 
         assertThat(required).contains(
-                "PERMISSION_REPORTS_READ",
-                "PERMISSION_ATTACH_ACT_VIEW_ALL",
+                "PERMISSION_REPORT_READ",
+                "PERMISSION_REPORT_EXPORT",
+                "PERMISSION_REPORT_ENTRY_CREATE",
+                "PERMISSION_ACT_VIEW_ALL",
+                "PERMISSION_CARD_VIEW_ALL",
                 "PERMISSION_SPEECH_TO_TEXT_CREATE");
         assertThat(required).allMatch(a -> a.startsWith("PERMISSION_") && a.equals(a.toUpperCase()));
     }
@@ -54,6 +57,6 @@ class PermissionsTest {
 
     @Test
     void authorityNamesMatchTheSubjectActionConvention() {
-        assertThat(AuthorityNames.permission("attach-act", "view all")).isEqualTo(Permissions.ATTACH_ACT_VIEW_ALL);
+        assertThat(AuthorityNames.permission("act", "view all")).isEqualTo(Permissions.ACT_VIEW_ALL);
     }
 }

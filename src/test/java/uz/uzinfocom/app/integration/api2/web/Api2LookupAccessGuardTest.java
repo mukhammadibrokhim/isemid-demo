@@ -23,11 +23,11 @@ class Api2LookupAccessGuardTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "PERMISSION_ATTACHED_CARDS_CREATE",
-            "PERMISSION_ATTACHED_CARDS_UPDATE",
-            "PERMISSION_ATTACHED_CARDS_MANAGE",
-            "PERMISSION_ATTACH_ACT_UPDATE",
-            "PERMISSION_ATTACH_ACT_MANAGE",
+            "PERMISSION_CARD_CREATE",
+            "PERMISSION_CARD_UPDATE",
+            "PERMISSION_CARD_MANAGE",
+            "PERMISSION_ACT_UPDATE",
+            "PERMISSION_ACT_MANAGE",
             "ROLE_isemid_admin",
             "ROLE_isemid_super_admin"
     })
@@ -40,11 +40,10 @@ class Api2LookupAccessGuardTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "PERMISSION_FORM058_SENDER_CREATE",
-            "PERMISSION_FORM058_SENDER_UPDATE",
-            "PERMISSION_FORM058_SENDER_MANAGE",
-            "PERMISSION_FORM058_RECEIVER_UPDATE",
-            "PERMISSION_FORM058_RECEIVER_MANAGE",
+            "PERMISSION_FORM058_CREATE",
+            "PERMISSION_FORM058_UPDATE",
+            "PERMISSION_FORM058_MANAGE",
+            "PERMISSION_FORM058_ACCEPT",
             "PERMISSION_FORM0581_CREATE",
             "PERMISSION_FORM0581_UPDATE",
             "PERMISSION_FORM0581_MANAGE"
@@ -58,13 +57,13 @@ class Api2LookupAccessGuardTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "PERMISSION_FORM058_SENDER_READ",
-            "PERMISSION_FORM058_RECEIVER_READ",
-            "PERMISSION_FORM0581_READ",
-            "PERMISSION_ATTACHED_CARDS_READ",
-            "PERMISSION_ATTACH_ACT_READ",
-            "PERMISSION_ATTACH_ACT_ASSIGN",
-            "PERMISSION_REPORTS_READ",
+            "PERMISSION_FORM058_READ_SENT",
+            "PERMISSION_FORM058_READ_RECEIVED",
+            "PERMISSION_FORM0581_READ_SENT",
+            "PERMISSION_CARD_READ",
+            "PERMISSION_ACT_READ",
+            "PERMISSION_ACT_ASSIGN",
+            "PERMISSION_REPORT_READ",
             "ROLE_isemid_epidemiologist"
     })
     void readOnlyAndUnrelatedGrantsMayLookUpNothing(String authority) {
@@ -80,7 +79,7 @@ class Api2LookupAccessGuardTest {
         assertThat(guard.canLookupLegalEntity()).isFalse();
 
         SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken(
-                "key", "anonymous", AuthorityUtils.createAuthorityList("PERMISSION_ATTACH_ACT_UPDATE")));
+                "key", "anonymous", AuthorityUtils.createAuthorityList("PERMISSION_ACT_UPDATE")));
         assertThat(guard.canLookupCitizen()).isFalse();
         assertThat(guard.canLookupLegalEntity()).isFalse();
     }

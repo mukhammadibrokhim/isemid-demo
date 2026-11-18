@@ -80,7 +80,7 @@ public class ForecastReportController {
                     + "области доступа (для республиканского вызова — по всей республике)."
     )
     @GetMapping(ApiPaths.ForecastReport.ROOT_NODE)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<ForecastNodeResponse>> root(
             @Parameter(description = "Фильтр по коду МКБ-10 (первичный или заключительный). Необязательный.")
             @RequestParam(required = false) String diagnosisCode,
@@ -108,7 +108,7 @@ public class ForecastReportController {
                     + "districtCode — организации района. Запрос за пределами области доступа отклоняется (403)."
     )
     @GetMapping(ApiPaths.ForecastReport.CHILDREN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<ForecastNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -141,7 +141,7 @@ public class ForecastReportController {
                     + "республика). Запрос за пределами доступа → 403."
     )
     @GetMapping(ApiPaths.ForecastReport.SERIES)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<ForecastResponse> series(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -182,7 +182,7 @@ public class ForecastReportController {
                     + "меньше minCases не учитываются (слишком разреженный ряд)."
     )
     @GetMapping(ApiPaths.ForecastReport.TOP_DISEASES)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<ForecastDiseaseRiskResponse>> topDiseases(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -218,7 +218,7 @@ public class ForecastReportController {
                     + "/children. Прогресс и скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.ForecastReport.EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_EXPORT)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Фильтр по коду МКБ-10 (первичный или заключительный). Необязательный.")
             @RequestParam(required = false) String diagnosisCode,

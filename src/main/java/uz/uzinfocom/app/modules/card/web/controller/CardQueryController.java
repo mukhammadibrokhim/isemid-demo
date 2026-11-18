@@ -53,7 +53,7 @@ public class CardQueryController {
                     + "карта назначена."
     )
     @GetMapping
-    @PreAuthorize(Permissions.HAS_ATTACHED_CARDS_VIEW_ALL)
+    @PreAuthorize(Permissions.HAS_CARD_VIEW_ALL)
     public PagedResponse<CardTableResponse> findAll(
             @ParameterObject @Valid CardFilterRequest filter,
             HttpServletRequest httpRequest

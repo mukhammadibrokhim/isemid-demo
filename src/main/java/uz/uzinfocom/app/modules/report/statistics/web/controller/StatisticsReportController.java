@@ -62,7 +62,7 @@ public class StatisticsReportController {
                     + "если ни один из них не передан, поле periodB в ответе будет null (сравнения нет)."
     )
     @GetMapping(ApiPaths.StatisticsReport.ROOT_NODE)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<StatisticsNodeResponse>> root(
             @Parameter(description = "Davr A: начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromA,
@@ -96,7 +96,7 @@ public class StatisticsReportController {
                     + "области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.StatisticsReport.CHILDREN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<StatisticsNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -134,7 +134,7 @@ public class StatisticsReportController {
                     + "скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.StatisticsReport.EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_EXPORT)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Davr A: начало периода (включительно). По умолчанию — вся история.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromA,
@@ -170,7 +170,7 @@ public class StatisticsReportController {
                     + "26 недель / 12 месяцев); без to — сегодня."
     )
     @GetMapping(ApiPaths.StatisticsReport.SERIES)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<StatisticsSeriesResponse> series(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -197,7 +197,7 @@ public class StatisticsReportController {
                     + "(final_icd10_code, без отката к первичному). Отдельная панель — форму отчёта не меняет."
     )
     @GetMapping(ApiPaths.StatisticsReport.TOP_DISEASES)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<StatisticsTopDiseaseResponse>> topDiseases(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,

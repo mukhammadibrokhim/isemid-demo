@@ -68,7 +68,7 @@ public class Form1ReportController {
                     + "показатели самой организации."
     )
     @GetMapping(ApiPaths.Form1Report.ROOT_NODE)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form1ReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -92,7 +92,7 @@ public class Form1ReportController {
                     + "вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form1Report.CHILDREN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form1ReportNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -118,7 +118,7 @@ public class Form1ReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form1Report.EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_EXPORT)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

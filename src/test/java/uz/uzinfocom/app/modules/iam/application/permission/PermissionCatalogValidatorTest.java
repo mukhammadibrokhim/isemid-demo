@@ -18,8 +18,8 @@ class PermissionCatalogValidatorTest {
     @Test
     void reportsAuthoritiesThatCannotBeGranted() {
         Set<String> grantable = new HashSet<>(Permissions.required());
-        grantable.remove(Permissions.REPORTS_READ);
+        grantable.remove(Permissions.REPORT_READ);
 
-        assertThat(PermissionCatalogValidator.findMissing(grantable)).containsExactly(Permissions.REPORTS_READ);
+        assertThat(PermissionCatalogValidator.findMissing(grantable)).containsExactly(Permissions.REPORT_READ);
     }
 }

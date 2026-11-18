@@ -52,7 +52,7 @@ public class ActCommandController {
                     + "после сохранения."
     )
     @PutMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
+    @PreAuthorize(Permissions.HAS_ACT_UPDATE)
     public ApiResponse<ActDetailResponse> update(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -68,7 +68,7 @@ public class ActCommandController {
                     + "не удалась и ничего исправлять не требуется) в READY — подготовка к отправке в LIS."
     )
     @PatchMapping(ApiPaths.Act.READY)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
+    @PreAuthorize(Permissions.HAS_ACT_UPDATE)
     public ApiResponse<Void> markReady(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -85,7 +85,7 @@ public class ActCommandController {
                     + "отправить повторно."
     )
     @PostMapping(ApiPaths.Act.SEND_TO_LIS)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
+    @PreAuthorize(Permissions.HAS_ACT_UPDATE)
     public ApiResponse<Void> sendToLis(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,
@@ -103,7 +103,7 @@ public class ActCommandController {
                     + "исправляют/отправляют в LIS повторно (там он создаётся как новая заявка)."
     )
     @PatchMapping(ApiPaths.Act.CLOSE)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_UPDATE)
+    @PreAuthorize(Permissions.HAS_ACT_UPDATE)
     public ApiResponse<Void> close(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -121,7 +121,7 @@ public class ActCommandController {
                     + "(возврат на доработку) и сохраняет ответ целиком в формате JSON."
     )
     // LIS itself calls this back (with an SSO bearer token) — it is not a
-    // human with ATTACH_ACT, so this stays isAuthenticated() only.
+    // human with ACT, so this stays isAuthenticated() only.
     @PostMapping(ApiPaths.Act.LIS_CALLBACK)
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> receiveLisResponse(
@@ -154,7 +154,7 @@ public class ActCommandController {
                     + "READY, SEND_FAILED). Это мягкое удаление — запись остаётся в базе с отметкой об удалении."
     )
     @DeleteMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_DELETE)
+    @PreAuthorize(Permissions.HAS_ACT_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id,

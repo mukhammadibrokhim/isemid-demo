@@ -51,7 +51,7 @@ public class ActQueryController {
                     + "акт назначен."
     )
     @GetMapping
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_VIEW_ALL)
+    @PreAuthorize(Permissions.HAS_ACT_VIEW_ALL)
     public PagedResponse<ActTableResponse> findAll(
             @ParameterObject @Valid ActFilterRequest filter,
             HttpServletRequest httpRequest
@@ -67,7 +67,7 @@ public class ActQueryController {
                     + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно."
     )
     @GetMapping(ApiPaths.Act.MINE)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_READ)
+    @PreAuthorize(Permissions.HAS_ACT_READ)
     public PagedResponse<ActTableResponse> findMine(
             @ParameterObject @Valid ActFilterRequest filter,
             HttpServletRequest httpRequest
@@ -81,7 +81,7 @@ public class ActQueryController {
             description = "Возвращает полную детальную информацию по акту."
     )
     @GetMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_READ)
+    @PreAuthorize(Permissions.HAS_ACT_READ)
     public ApiResponse<ActDetailResponse> byId(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -98,7 +98,7 @@ public class ActQueryController {
                     + "для отрисовки печатной формы (далолатномы) в PDF."
     )
     @GetMapping(ApiPaths.Act.PDF)
-    @PreAuthorize(Permissions.HAS_ATTACH_ACT_READ)
+    @PreAuthorize(Permissions.HAS_ACT_READ)
     public ApiResponse<ActDetailResponse> pdf(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id

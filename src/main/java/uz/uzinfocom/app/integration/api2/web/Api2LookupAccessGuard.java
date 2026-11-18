@@ -23,7 +23,7 @@ import java.util.Set;
  *     plus everyone allowed a legal-entity lookup below (cards and acts carry
  *     person identifiers too).</li>
  *     <li><b>Legal entity</b> (TIN) - filling an epi investigation card
- *     ({@code ATTACHED_CARDS} create/update) or an act ({@code ATTACH_ACT} update).</li>
+ *     ({@code CARD} create/update) or an act ({@code ACT} update).</li>
  * </ul>
  * {@code MANAGE} is accepted alongside each action because the role editor
  * collapses a full grant down to the single {@code MANAGE} row. Admins
@@ -35,22 +35,22 @@ public class Api2LookupAccessGuard {
 
     private static final String CREATE = "CREATE";
     private static final String UPDATE = "UPDATE";
+    private static final String ACCEPT = "ACCEPT";
     private static final String MANAGE = "MANAGE";
 
     private static final Set<String> CARD_AND_ACT_AUTHORITIES = Set.of(
-            AuthorityNames.permission("ATTACHED_CARDS", CREATE),
-            AuthorityNames.permission("ATTACHED_CARDS", UPDATE),
-            AuthorityNames.permission("ATTACHED_CARDS", MANAGE),
-            AuthorityNames.permission("ATTACH_ACT", UPDATE),
-            AuthorityNames.permission("ATTACH_ACT", MANAGE)
+            AuthorityNames.permission("CARD", CREATE),
+            AuthorityNames.permission("CARD", UPDATE),
+            AuthorityNames.permission("CARD", MANAGE),
+            AuthorityNames.permission("ACT", UPDATE),
+            AuthorityNames.permission("ACT", MANAGE)
     );
 
     private static final Set<String> CITIZEN_AUTHORITIES = union(CARD_AND_ACT_AUTHORITIES, Set.of(
-            AuthorityNames.permission("FORM058_SENDER", CREATE),
-            AuthorityNames.permission("FORM058_SENDER", UPDATE),
-            AuthorityNames.permission("FORM058_SENDER", MANAGE),
-            AuthorityNames.permission("FORM058_RECEIVER", UPDATE),
-            AuthorityNames.permission("FORM058_RECEIVER", MANAGE),
+            AuthorityNames.permission("FORM058", CREATE),
+            AuthorityNames.permission("FORM058", UPDATE),
+            AuthorityNames.permission("FORM058", MANAGE),
+            AuthorityNames.permission("FORM058", ACCEPT),
             AuthorityNames.permission("FORM0581", CREATE),
             AuthorityNames.permission("FORM0581", UPDATE),
             AuthorityNames.permission("FORM0581", MANAGE)

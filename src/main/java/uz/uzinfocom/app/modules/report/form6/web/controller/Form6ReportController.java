@@ -66,7 +66,7 @@ public class Form6ReportController {
                     + "последней строкой — суммарный итог (\"Jami\") по всей области доступа."
     )
     @GetMapping(ApiPaths.Form6Report.ROOT_NODE)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form6ReportNodeResponse>> root(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -89,7 +89,7 @@ public class Form6ReportController {
                     + "— районы указанного региона. Запрос за пределами области доступа вызывающего отклоняется."
     )
     @GetMapping(ApiPaths.Form6Report.CHILDREN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<List<Form6ReportNodeResponse>> children(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -116,7 +116,7 @@ public class Form6ReportController {
                     + "старшим, каждая со счётом за выбранный период и за тот же период год назад."
     )
     @GetMapping(ApiPaths.Form6Report.AGE_BREAKDOWN)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<Form6AgeBreakdownResponse> ageBreakdown(
             @Parameter(description = "Код региона (необязательный).")
             @RequestParam(required = false) String regionCode,
@@ -142,7 +142,7 @@ public class Form6ReportController {
                     + "— через /v1/exports."
     )
     @PostMapping(ApiPaths.Form6Report.EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_EXPORT)
     public ApiResponse<ExportJobResponse> export(
             @Parameter(description = "Начало периода (включительно). По умолчанию — сегодня.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

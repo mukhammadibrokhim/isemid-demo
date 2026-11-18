@@ -68,7 +68,7 @@ public class Form2ManualEntryController {
                     "остальных данных вручную."
     )
     @GetMapping(ApiPaths.Form2ManualEntry.PREFILL)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_READ)
     public ApiResponse<Form2ManualEntryPrefillResponse> prefill(
             @Parameter(description = "Начало периода отчёта.", required = true)
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -87,7 +87,7 @@ public class Form2ManualEntryController {
                     "показатели пересчитываются сервером по переданному периоду, а не принимаются из запроса."
     )
     @PostMapping
-    @PreAuthorize(Permissions.HAS_REPORTS_CREATE)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_CREATE)
     public ApiResponse<Form2ManualEntryTableResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой записи Shakl №2.",
@@ -108,7 +108,7 @@ public class Form2ManualEntryController {
                     "каждая со своей создавшей организацией и худудом."
     )
     @GetMapping
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_READ)
     public PagedResponse<Form2ManualEntryTableResponse> findTable(
             @ParameterObject @Valid @ModelAttribute Form2ManualEntryFilterRequest request,
             HttpServletRequest httpRequest
@@ -123,7 +123,7 @@ public class Form2ManualEntryController {
                     "Автоматически вычисляемые показатели пересчитываются сервером по переданному периоду."
     )
     @PutMapping(ApiPaths.Form2ManualEntry.BY_ID)
-    @PreAuthorize(Permissions.HAS_REPORTS_UPDATE)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_UPDATE)
     public ApiResponse<Form2ManualEntryTableResponse> update(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -144,7 +144,7 @@ public class Form2ManualEntryController {
             description = "Разрешено только организации, создавшей запись, либо isemid_admin/isemid_super_admin."
     )
     @DeleteMapping(ApiPaths.Form2ManualEntry.BY_ID)
-    @PreAuthorize(Permissions.HAS_REPORTS_DELETE)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -159,7 +159,7 @@ public class Form2ManualEntryController {
                     + "записей. Прогресс и скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form2ManualEntry.EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_READ)
     public ApiResponse<ExportJobResponse> export(
             @ParameterObject @Valid Form2ManualEntryFilterRequest filter
     ) {

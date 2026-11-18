@@ -654,12 +654,12 @@ lose data); ACT153's quantity pair (`sampleVolume`/`sampleVolumeUnit` vs
 
 ### 8.7 RBAC
 
-Act controllers enforce `ATTACH_ACT` via `@PreAuthorize`:
+Act controllers enforce `ACT` (formerly `ATTACH_ACT`) via `@PreAuthorize`:
 
 | Action | Endpoints | Authority |
 |---|---|---|
-| `READ` | `GET /acts/mine`, `/acts/{id}`, `/pdf`, `/cards/{id}/acts` | `PERMISSION_ATTACH_ACT_READ` |
-| `VIEW_ALL` | `GET /v1/acts` (org-wide) | `PERMISSION_ATTACH_ACT_VIEW_ALL` |
+| `READ` | `GET /acts/mine`, `/acts/{id}`, `/pdf`, `/cards/{id}/acts` | `PERMISSION_ACT_READ` |
+| `VIEW_ALL` | `GET /v1/acts` (org-wide) | `PERMISSION_ACT_VIEW_ALL` |
 | `ASSIGN` | `POST /cards/{id}/acts` | `…_ASSIGN` |
 | `UPDATE` | `PUT /acts/{id}`, `…/ready`, `…/send-to-lis`, `…/close` | `…_UPDATE` |
 | `DELETE` | `DELETE /acts/{id}` | `…_DELETE` |
@@ -668,10 +668,10 @@ Act controllers enforce `ATTACH_ACT` via `@PreAuthorize`:
 VIEW_ALL, ASSIGN, UPDATE; `isemid_epidemiologist` and
 `isemid_assistant_epidemiologist` READ, UPDATE; `isemid_super_admin`/
 `isemid_admin` full (admin except DELETE/MANAGE) via the runAlways
-`zzz-rbac-grants` migration. Roles with no `ATTACH_ACT` grant (e.g. lab roles)
+`zzz-rbac-grants` migration. Roles with no `ACT` grant (e.g. lab roles)
 get `403` on `/v1/acts/**`. Seed: `iam/20260825-1200-seed-act-permission-subject.xml`,
 `iam/20260902-1300-seed-act-view-all-action.xml`. Configure roles with the
-`ATTACH_ACT` subject, not the card ones (`USER_INCOMINGS`/`ATTACHED_CARDS`).
+`ACT` subject, not the card one (`CARD`, formerly `ATTACHED_CARDS`/`USER_INCOMINGS`).
 
 ### 8.7a Permission authorities — rules
 
@@ -685,7 +685,7 @@ How a `PERMISSION_*` authority is produced and checked (applies to every module)
   DELETE, VIEW_ALL, ASSIGN, …) for a subject that holds `MANAGE`, plus `…_MANAGE` itself. Guards
   therefore name only the concrete action and never list `MANAGE`.
 - **Guards use the `Permissions` catalog**
-  (`platform.security.auth.Permissions`): `@PreAuthorize(Permissions.HAS_REPORTS_READ)`. Never
+  (`platform.security.auth.Permissions`): `@PreAuthorize(Permissions.HAS_REPORT_READ)`. Never
   write an authority literal in an annotation — add the constant (authority + `HAS_*`
   expression) to `Permissions` first. `PermissionsTest` keeps constants and expressions
   consistent.
@@ -693,12 +693,18 @@ How a `PERMISSION_*` authority is produced and checked (applies to every module)
   `Permission catalog mismatch: [...]` when an authority the code checks cannot be granted
   (subject/action missing, inactive or deleted). Warn-only — the tables are admin-editable.
   If a role "has the permission but still gets 403", look for this line first.
-- **Only these subjects are enforced by the backend:** `REPORTS` (READ/CREATE/UPDATE/DELETE),
-  `ATTACH_ACT` (READ/UPDATE/DELETE/ASSIGN/VIEW_ALL), `ATTACHED_CARDS` (VIEW_ALL),
+- **Only these subjects are enforced by the backend:** `REPORT` (READ/EXPORT),
+  `REPORT_ENTRY` (READ/CREATE/UPDATE/DELETE), `ANALYTIC_REPORT` (READ/CREATE/UPDATE/DELETE/EXPORT),
+  `ACT` (READ/UPDATE/DELETE/ASSIGN/VIEW_ALL), `CARD` (VIEW_ALL),
   `SPEECH_TO_TEXT` (CREATE), plus the `Api2LookupAccessGuard` and inbound-integration bridges.
   Every other subject (`FORM129`, `ACTS`, `CATALOGS`, `STAFF`, legacy menu subjects, …) is
   front-menu only: granting it in the panel changes nothing on the API.
-- The subject name must match the constant **exactly** (`REPORTS`, not `REPORT`).
+- The subject name must match the constant **exactly** (`REPORT`, not `REPORTS`).
+- **Naming migration (in progress):** the code now checks the new singular names
+  (`docs/permission-naming-mapping.md`). `iam/20261118-1000-permission-model-expand.xml` creates the
+  new subjects/actions and copies existing grants; the old subjects (`REPORTS`, `ATTACH_ACT`,
+  `ATTACHED_CARDS`, …) stay active but are no longer checked until the contract step.
+  `zzz-rbac-grants/20260828-1150-…` (runAlways) keeps the new code-required subjects/actions active.
 
 ### 8.8 Notifications
 
@@ -1039,8 +1045,8 @@ Liquibase migration (2026-09-04).
 ## 12. Reports
 
 `modules.report`, Swagger tags `Report — Form N`. All report endpoints need
-`isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')`
-(`Permissions.HAS_REPORTS_READ`; `403` otherwise; see §8.7a). Drill-down hierarchy comes from
+`isAuthenticated() and hasAuthority('PERMISSION_REPORT_READ')`
+(`Permissions.HAS_REPORT_READ`; manual entries use `REPORT_ENTRY_*`, the analytic builder `ANALYTIC_REPORT_*`, and the `…/export` endpoints need `REPORT_EXPORT`; `403` otherwise; see §8.7a). Drill-down hierarchy comes from
 `report.shared.ReportHierarchyService`.
 
 ### 12.1 Shared rules
@@ -1437,9 +1443,9 @@ status = `409 error.export.not-ready`; foreign/unknown id = `404`.
 | Statistika | `STATISTICS` | `/v1/reports/statistics/export` | `fromA/toA`, `fromB/toB` (omitted → "Davr B" columns blank), cross-filters |
 | Forecast | `FORECAST` | `/v1/reports/forecast/export` | `diagnosisCode`, `bucket`, `horizon`, `method`, `from`, `to` (geography rows only) |
 | Manual reports | `FORM2_MANUAL`, `FORM31`, `FORM32`, `FORM7`, `ANALYTIC_REPORT` | `/v1/reports/form-2/manual-entries/export`, `form-3-1/entries/export`, `form-3-2/entries/export`, `form-7/entries/export`, `analytic/export` | the list endpoint's filter (`sortBy`, `sortDir`, `from`, `to`; analytic also `status`); `page`/`size` ignored — whole filtered set |
-| Journals | `FORM058` / `FORM0581` | `POST /v1/form-058/export`, `/v1/form-058-1/export` | same params as the list endpoint; `isAuthenticated()` only (no `PERMISSION_REPORTS_*`) |
+| Journals | `FORM058` / `FORM0581` | `POST /v1/form-058/export`, `/v1/form-058-1/export` | same params as the list endpoint; `isAuthenticated()` only (no `PERMISSION_REPORT_*`) |
 
-Submit permission: `PERMISSION_REPORTS_READ` for report modules. By-territory
+Submit permission: `PERMISSION_REPORT_EXPORT` for report modules (`REPORT_ENTRY_READ` for the manual-entry exports, `ANALYTIC_REPORT_EXPORT` for the analytic builder). By-territory
 column sets are **dynamic** (one group per tagged catalog entry, code-sorted) —
 don't hard-code positions. There are no longer "client-side only" exports for
 Form 28.x or Forecast.

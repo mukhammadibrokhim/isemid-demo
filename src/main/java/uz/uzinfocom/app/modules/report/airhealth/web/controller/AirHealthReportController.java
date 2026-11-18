@@ -49,7 +49,7 @@ public class AirHealthReportController {
                     + "Davr berilmasa butun tarix."
     )
     @GetMapping(ApiPaths.AirHealthReport.TERRITORIES)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<AirHealthTerritoriesResponse> territories(
             @Parameter(description = "Region kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
             @RequestParam(required = false) String regionCode,
@@ -82,7 +82,7 @@ public class AirHealthReportController {
                     + "to'planadi."
     )
     @GetMapping(ApiPaths.AirHealthReport.SERIES)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_READ)
     public ApiResponse<AirHealthSeriesResponse> series(
             @Parameter(description = "Region kodi (ixtiyoriy) — chaqiruvchining ruxsat doirasida bo'lishi kerak.")
             @RequestParam(required = false) String regionCode,

@@ -11,7 +11,7 @@ import java.util.TreeSet;
  * check with {@code @PreAuthorize}.
  *
  * <ul>
- *   <li>Authority constants (e.g. {@link #REPORTS_READ}) name the authority string.</li>
+ *   <li>Authority constants (e.g. {@link #REPORT_READ}) name the authority string.</li>
  *   <li>{@code HAS_*} constants are ready-made SpEL expressions for {@code @PreAuthorize}.</li>
  * </ul>
  *
@@ -29,21 +29,35 @@ public final class Permissions {
     private Permissions() {
     }
 
-    // --- REPORTS ---------------------------------------------------------------------------
-    public static final String REPORTS_READ = "PERMISSION_REPORTS_READ";
-    public static final String REPORTS_CREATE = "PERMISSION_REPORTS_CREATE";
-    public static final String REPORTS_UPDATE = "PERMISSION_REPORTS_UPDATE";
-    public static final String REPORTS_DELETE = "PERMISSION_REPORTS_DELETE";
+    // Subject/action names follow docs/permission-naming-mapping.md: singular resource subject +
+    // verb action. REPORT_ENTRY_* is "REPORT_ENTRY" + READ/CREATE/UPDATE/DELETE.
 
-    // --- ATTACH_ACT ------------------------------------------------------------------------
-    public static final String ATTACH_ACT_READ = "PERMISSION_ATTACH_ACT_READ";
-    public static final String ATTACH_ACT_UPDATE = "PERMISSION_ATTACH_ACT_UPDATE";
-    public static final String ATTACH_ACT_DELETE = "PERMISSION_ATTACH_ACT_DELETE";
-    public static final String ATTACH_ACT_ASSIGN = "PERMISSION_ATTACH_ACT_ASSIGN";
-    public static final String ATTACH_ACT_VIEW_ALL = "PERMISSION_ATTACH_ACT_VIEW_ALL";
+    // --- REPORT: statistical forms, forecast, air-health, map, air quality ----------------
+    public static final String REPORT_READ = "PERMISSION_REPORT_READ";
+    public static final String REPORT_EXPORT = "PERMISSION_REPORT_EXPORT";
 
-    // --- ATTACHED_CARDS --------------------------------------------------------------------
-    public static final String ATTACHED_CARDS_VIEW_ALL = "PERMISSION_ATTACHED_CARDS_VIEW_ALL";
+    // --- REPORT_ENTRY: manually entered reports (form 2 manual, 31, 32, 7) ----------------
+    public static final String REPORT_ENTRY_READ = "PERMISSION_REPORT_ENTRY_READ";
+    public static final String REPORT_ENTRY_CREATE = "PERMISSION_REPORT_ENTRY_CREATE";
+    public static final String REPORT_ENTRY_UPDATE = "PERMISSION_REPORT_ENTRY_UPDATE";
+    public static final String REPORT_ENTRY_DELETE = "PERMISSION_REPORT_ENTRY_DELETE";
+
+    // --- ANALYTIC_REPORT: the caller's own report builder ---------------------------------
+    public static final String ANALYTIC_REPORT_READ = "PERMISSION_ANALYTIC_REPORT_READ";
+    public static final String ANALYTIC_REPORT_CREATE = "PERMISSION_ANALYTIC_REPORT_CREATE";
+    public static final String ANALYTIC_REPORT_UPDATE = "PERMISSION_ANALYTIC_REPORT_UPDATE";
+    public static final String ANALYTIC_REPORT_DELETE = "PERMISSION_ANALYTIC_REPORT_DELETE";
+    public static final String ANALYTIC_REPORT_EXPORT = "PERMISSION_ANALYTIC_REPORT_EXPORT";
+
+    // --- ACT -------------------------------------------------------------------------------
+    public static final String ACT_READ = "PERMISSION_ACT_READ";
+    public static final String ACT_UPDATE = "PERMISSION_ACT_UPDATE";
+    public static final String ACT_DELETE = "PERMISSION_ACT_DELETE";
+    public static final String ACT_ASSIGN = "PERMISSION_ACT_ASSIGN";
+    public static final String ACT_VIEW_ALL = "PERMISSION_ACT_VIEW_ALL";
+
+    // --- CARD ------------------------------------------------------------------------------
+    public static final String CARD_VIEW_ALL = "PERMISSION_CARD_VIEW_ALL";
 
     // --- SPEECH_TO_TEXT --------------------------------------------------------------------
     public static final String SPEECH_TO_TEXT_CREATE = "PERMISSION_SPEECH_TO_TEXT_CREATE";
@@ -53,19 +67,23 @@ public final class Permissions {
     private static final String AUTHENTICATED_AND = "isAuthenticated() and hasAuthority('";
     private static final String AUTHORITY_END = "')";
 
-    public static final String HAS_REPORTS_READ = AUTHENTICATED_AND + REPORTS_READ + AUTHORITY_END;
-    public static final String HAS_REPORTS_CREATE = AUTHENTICATED_AND + REPORTS_CREATE + AUTHORITY_END;
-    public static final String HAS_REPORTS_UPDATE = AUTHENTICATED_AND + REPORTS_UPDATE + AUTHORITY_END;
-    public static final String HAS_REPORTS_DELETE = AUTHENTICATED_AND + REPORTS_DELETE + AUTHORITY_END;
-
-    public static final String HAS_ATTACH_ACT_READ = AUTHENTICATED_AND + ATTACH_ACT_READ + AUTHORITY_END;
-    public static final String HAS_ATTACH_ACT_UPDATE = AUTHENTICATED_AND + ATTACH_ACT_UPDATE + AUTHORITY_END;
-    public static final String HAS_ATTACH_ACT_DELETE = AUTHENTICATED_AND + ATTACH_ACT_DELETE + AUTHORITY_END;
-    public static final String HAS_ATTACH_ACT_ASSIGN = AUTHENTICATED_AND + ATTACH_ACT_ASSIGN + AUTHORITY_END;
-    public static final String HAS_ATTACH_ACT_VIEW_ALL = AUTHENTICATED_AND + ATTACH_ACT_VIEW_ALL + AUTHORITY_END;
-
-    public static final String HAS_ATTACHED_CARDS_VIEW_ALL = AUTHENTICATED_AND + ATTACHED_CARDS_VIEW_ALL + AUTHORITY_END;
-
+    public static final String HAS_REPORT_READ = AUTHENTICATED_AND + REPORT_READ + AUTHORITY_END;
+    public static final String HAS_REPORT_EXPORT = AUTHENTICATED_AND + REPORT_EXPORT + AUTHORITY_END;
+    public static final String HAS_REPORT_ENTRY_READ = AUTHENTICATED_AND + REPORT_ENTRY_READ + AUTHORITY_END;
+    public static final String HAS_REPORT_ENTRY_CREATE = AUTHENTICATED_AND + REPORT_ENTRY_CREATE + AUTHORITY_END;
+    public static final String HAS_REPORT_ENTRY_UPDATE = AUTHENTICATED_AND + REPORT_ENTRY_UPDATE + AUTHORITY_END;
+    public static final String HAS_REPORT_ENTRY_DELETE = AUTHENTICATED_AND + REPORT_ENTRY_DELETE + AUTHORITY_END;
+    public static final String HAS_ANALYTIC_REPORT_READ = AUTHENTICATED_AND + ANALYTIC_REPORT_READ + AUTHORITY_END;
+    public static final String HAS_ANALYTIC_REPORT_CREATE = AUTHENTICATED_AND + ANALYTIC_REPORT_CREATE + AUTHORITY_END;
+    public static final String HAS_ANALYTIC_REPORT_UPDATE = AUTHENTICATED_AND + ANALYTIC_REPORT_UPDATE + AUTHORITY_END;
+    public static final String HAS_ANALYTIC_REPORT_DELETE = AUTHENTICATED_AND + ANALYTIC_REPORT_DELETE + AUTHORITY_END;
+    public static final String HAS_ANALYTIC_REPORT_EXPORT = AUTHENTICATED_AND + ANALYTIC_REPORT_EXPORT + AUTHORITY_END;
+    public static final String HAS_ACT_READ = AUTHENTICATED_AND + ACT_READ + AUTHORITY_END;
+    public static final String HAS_ACT_UPDATE = AUTHENTICATED_AND + ACT_UPDATE + AUTHORITY_END;
+    public static final String HAS_ACT_DELETE = AUTHENTICATED_AND + ACT_DELETE + AUTHORITY_END;
+    public static final String HAS_ACT_ASSIGN = AUTHENTICATED_AND + ACT_ASSIGN + AUTHORITY_END;
+    public static final String HAS_ACT_VIEW_ALL = AUTHENTICATED_AND + ACT_VIEW_ALL + AUTHORITY_END;
+    public static final String HAS_CARD_VIEW_ALL = AUTHENTICATED_AND + CARD_VIEW_ALL + AUTHORITY_END;
     public static final String HAS_SPEECH_TO_TEXT_CREATE = AUTHENTICATED_AND + SPEECH_TO_TEXT_CREATE + AUTHORITY_END;
 
     /**

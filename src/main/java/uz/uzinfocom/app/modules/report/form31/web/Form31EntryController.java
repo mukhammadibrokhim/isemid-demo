@@ -60,7 +60,7 @@ public class Form31EntryController {
             description = "Создаёт запись для текущей организации вызывающего."
     )
     @PostMapping
-    @PreAuthorize(Permissions.HAS_REPORTS_CREATE)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_CREATE)
     public ApiResponse<Form31EntryTableResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные создаваемой записи Shakl №3-1.",
@@ -81,7 +81,7 @@ public class Form31EntryController {
                     "каждая со своей создавшей организацией и худудом."
     )
     @GetMapping
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_READ)
     public PagedResponse<Form31EntryTableResponse> findTable(
             @ParameterObject @Valid @ModelAttribute Form31EntryFilterRequest request,
             HttpServletRequest httpRequest
@@ -95,7 +95,7 @@ public class Form31EntryController {
             description = "Разрешено только организации, создавшей запись, либо isemid_admin/isemid_super_admin."
     )
     @PutMapping(ApiPaths.Form31Entry.BY_ID)
-    @PreAuthorize(Permissions.HAS_REPORTS_UPDATE)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_UPDATE)
     public ApiResponse<Form31EntryTableResponse> update(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -116,7 +116,7 @@ public class Form31EntryController {
             description = "Разрешено только организации, создавшей запись, либо isemid_admin/isemid_super_admin."
     )
     @DeleteMapping(ApiPaths.Form31Entry.BY_ID)
-    @PreAuthorize(Permissions.HAS_REPORTS_DELETE)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Внутренний идентификатор записи.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -131,7 +131,7 @@ public class Form31EntryController {
                     + "записей. Прогресс и скачивание готового файла — через /v1/exports."
     )
     @PostMapping(ApiPaths.Form31Entry.EXPORT)
-    @PreAuthorize(Permissions.HAS_REPORTS_READ)
+    @PreAuthorize(Permissions.HAS_REPORT_ENTRY_READ)
     public ApiResponse<ExportJobResponse> export(
             @ParameterObject @Valid Form31EntryFilterRequest filter
     ) {

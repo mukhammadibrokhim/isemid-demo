@@ -68,7 +68,7 @@ public interface RoleRepository extends JpaRepository<Role, Long>, JpaSpecificat
      * The role editor collapses a full grant into the single {@code MANAGE} row
      * (see {@code RoleCommandService}), so a subject granted {@code MANAGE} is also
      * expanded here into one authority per active action. Without this, a guard such as
-     * {@code hasAuthority('PERMISSION_REPORTS_READ')} would reject a role that holds
+     * {@code hasAuthority('PERMISSION_REPORT_READ')} would reject a role that holds
      * {@code REPORTS: MANAGE}. The {@code MANAGE} authority itself is still emitted.
      */
     @Query(value = """
