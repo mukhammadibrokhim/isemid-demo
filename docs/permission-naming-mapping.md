@@ -252,7 +252,7 @@ cards then appear in those employees' `mine` lists and they work them → the he
 | `FORM058_SENDER` / `FORM0581`: `READ` / `CREATE` / `UPDATE` | `READ_SENT` / `CREATE` / `UPDATE` |
 | `FORM058_RECEIVER`: `READ` / `UPDATE` / `FORM_CANCEL` / `ORG_CHANGE` | `READ_RECEIVED` / `ACCEPT` / `REJECT` / `CHANGE_ORG` |
 | `FORM058_RECEIVER`: `CARD_ATTACH` | `CARD` `ASSIGN` |
-| `ATTACHED_CARDS` `READ`/`UPDATE`/`APPROVE`/`VIEW_ALL` | `CARD` same (`CREATE` has no meaning any more and is dropped) |
+| `ATTACHED_CARDS` `READ`/`UPDATE`/`APPROVE`/`VIEW_ALL` | `CARD` same (`CREATE` is copied as-is by the migration but nothing checks it any more; cards are created via form `assign-cards`, gated by `CARD` `ASSIGN`) |
 | `ATTACH_ACT` | `ACT` same actions |
 | `REPORTS` `READ` + `EXPORT` | `REPORT` `READ` + `EXPORT` |
 | `REPORTS` `CREATE`/`UPDATE`/`DELETE` | `REPORT_ENTRY` + `ANALYTIC_REPORT` same actions |
@@ -298,8 +298,10 @@ Taken: sender/receiver separate on all three forms; `CANCEL`/`REJECT` split; `/a
 To confirm:
 1. Frontend: confirm `CARD_FULL_INFO`, `CITIES`/`STREETS`/`RESIDENCES` and `POPULATION_TYPES` mappings
    (§8, §8.1) and that the population reference is the new `POPULATION` subject.
-2. Enforcement gap that renaming does not fix: card, form058/0581/129 and reference writes are
-   `isAuthenticated()` only; gating them needs the role seed to run first (§4, §10).
+2. Enforcement (done 2026-11-18): card and form058/0581/129 endpoints are gated; reference writes accept
+   `isAdmin()` OR `CREATE`/`UPDATE`/`DELETE`; `SYNC` (district, neighborhood, population, organization)
+   accepts `isSuperAdmin()` OR `SYNC`; population all actions `isSuperAdmin()` OR the permission.
+   Reference/organization/user reads stay open (lookups). The runAlways sync also hands `SYNC` to `isemid_admin`.
 3. Before migrating: dump the real `role_permissions` from the live DB and diff it against §8.2.
 
 ## 10. Safe rollout (no big bang)
