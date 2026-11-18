@@ -673,6 +673,33 @@ get `403` on `/v1/acts/**`. Seed: `iam/20260825-1200-seed-act-permission-subject
 `iam/20260902-1300-seed-act-view-all-action.xml`. Configure roles with the
 `ATTACH_ACT` subject, not the card ones (`USER_INCOMINGS`/`ATTACHED_CARDS`).
 
+### 8.7a Permission authorities — rules
+
+How a `PERMISSION_*` authority is produced and checked (applies to every module):
+
+- **Authority = `PERMISSION_<SUBJECT>_<ACTION>`**, built in SQL from the role's grants
+  (`RoleRepository#findPermissionAuthorityNamesByRoleIds`, upper-cased). A subject/action that
+  is inactive or soft-deleted produces no authority.
+- **`MANAGE` expands to every action.** The role editor collapses a full grant into the single
+  `MANAGE` row, so the same SQL emits one authority per *active* action (READ, CREATE, UPDATE,
+  DELETE, VIEW_ALL, ASSIGN, …) for a subject that holds `MANAGE`, plus `…_MANAGE` itself. Guards
+  therefore name only the concrete action and never list `MANAGE`.
+- **Guards use the `Permissions` catalog**
+  (`platform.security.auth.Permissions`): `@PreAuthorize(Permissions.HAS_REPORTS_READ)`. Never
+  write an authority literal in an annotation — add the constant (authority + `HAS_*`
+  expression) to `Permissions` first. `PermissionsTest` keeps constants and expressions
+  consistent.
+- **Startup check:** `PermissionCatalogValidator` logs
+  `Permission catalog mismatch: [...]` when an authority the code checks cannot be granted
+  (subject/action missing, inactive or deleted). Warn-only — the tables are admin-editable.
+  If a role "has the permission but still gets 403", look for this line first.
+- **Only these subjects are enforced by the backend:** `REPORTS` (READ/CREATE/UPDATE/DELETE),
+  `ATTACH_ACT` (READ/UPDATE/DELETE/ASSIGN/VIEW_ALL), `ATTACHED_CARDS` (VIEW_ALL),
+  `SPEECH_TO_TEXT` (CREATE), plus the `Api2LookupAccessGuard` and inbound-integration bridges.
+  Every other subject (`FORM129`, `ACTS`, `CATALOGS`, `STAFF`, legacy menu subjects, …) is
+  front-menu only: granting it in the panel changes nothing on the API.
+- The subject name must match the constant **exactly** (`REPORTS`, not `REPORT`).
+
 ### 8.8 Notifications
 
 `ACT_ASSIGNED` on assignment; `ACT_LIS_RESPONSE` on `SENT → RESULT_RECEIVED`
@@ -1013,7 +1040,7 @@ Liquibase migration (2026-09-04).
 
 `modules.report`, Swagger tags `Report — Form N`. All report endpoints need
 `isAuthenticated() and hasAuthority('PERMISSION_REPORTS_READ')`
-(`403` otherwise). Drill-down hierarchy comes from
+(`Permissions.HAS_REPORTS_READ`; `403` otherwise; see §8.7a). Drill-down hierarchy comes from
 `report.shared.ReportHierarchyService`.
 
 ### 12.1 Shared rules
