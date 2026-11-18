@@ -486,6 +486,11 @@ public class CardCommandService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
 
+        // Super-admin may act on behalf of the attached employee, same as the supervisor steps.
+        if (adminAccessGuard.isSuperAdmin()) {
+            return card;
+        }
+
         Long userId = currentUserProvider.userIdOrNull();
         boolean attached = userId != null && card.getUsers().stream()
                 .anyMatch(user -> userId.equals(user.getId()));

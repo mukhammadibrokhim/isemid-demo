@@ -419,6 +419,11 @@ public class ActCommandService {
         Act act = actRepository.findByIdAndDeletedFalse(actId)
                 .orElseThrow(() -> new ActNotFoundException(actId));
 
+        // Super-admin may act on behalf of the attached employee, same as requireCardAccess.
+        if (adminAccessGuard.isSuperAdmin()) {
+            return act;
+        }
+
         Long userId = currentUserProvider.userIdOrNull();
         boolean attached = userId != null && act.getUsers().stream()
                 .anyMatch(user -> userId.equals(user.getId()));

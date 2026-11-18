@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -104,12 +105,26 @@ class ActCommandServiceStatusTransitionTest {
 
     @Test
     void updateRejectsAnUnattachedUser() {
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
         Act act = actWith(ActStatus.NEW, attachedUserId(ATTACHED_USER_ID));
         givenAct(act);
         when(currentUserProvider.userIdOrNull()).thenReturn(999L);
 
         assertThatThrownBy(() -> service.update(ACT_ID, blankAct153Request()))
                 .isInstanceOf(ActScopeViolationException.class);
+    }
+
+    @Test
+    void updateAllowsSuperAdminEvenWhenNotAttached() {
+        Act act = actWith(ActStatus.NEW, attachedUserId(ATTACHED_USER_ID));
+        givenAct(act);
+        when(currentUserProvider.userIdOrNull()).thenReturn(999L);
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(true);
+
+        Throwable thrown = catchThrowable(() -> service.update(ACT_ID, blankAct153Request()));
+
+        // The super-admin bypass must clear the attached-user check; any later failure is unrelated.
+        assertThat(thrown instanceof ActScopeViolationException).isFalse();
     }
 
     @Test
@@ -381,6 +396,7 @@ class ActCommandServiceStatusTransitionTest {
 
     @Test
     void closeRejectsAnUnattachedUser() {
+        when(adminAccessGuard.isSuperAdmin()).thenReturn(false);
         Act act = actWith(ActStatus.RESULT_RECEIVED, attachedUserId(ATTACHED_USER_ID));
         givenAct(act);
         when(currentUserProvider.userIdOrNull()).thenReturn(999L);
