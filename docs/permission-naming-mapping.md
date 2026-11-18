@@ -86,7 +86,7 @@ Notes:
 | `FORM058_COMPLETE_BY_SUPERVISOR` | `FORM058` `APPROVE` (approval belongs to the **sender**) |
 | `RECEIVED` | `FORM058` `READ_RECEIVED` |
 | `FORM058_CHANGE_ORGANIZATION` | `FORM058` `CHANGE_ORG` |
-| `FORM058_ATTACHED_CARDS` | `FORM058` `ATTACH` (assign cards to a form) |
+| `FORM058_ATTACHED_CARDS` | `CARD` `ASSIGN` (assign cards and employees to a form) |
 
 Existing grants are migrated per role: a role that had `FORM058_SENDER` keeps the sender actions,
 `FORM058_RECEIVER` the receiver ones, so nobody gains or loses a side.
@@ -189,7 +189,7 @@ from entering data, so three subjects, each with an obvious meaning for the user
 | Old | New | Kind |
 |---|---|---|
 | `READ` `CREATE` `UPDATE` `DELETE` `MANAGE` `EXPORT` `APPROVE` `ASSIGN` `VIEW_ALL` | same | keep |
-| `CARD_ATTACH` | `ATTACH` | rename |
+| `CARD_ATTACH` | `ASSIGN` (on `CARD`) | merge — attaching cards/employees to a received form is `CARD` `ASSIGN` |
 | `ORG_CHANGE` | `CHANGE_ORG` | rename |
 | `FORM_CANCEL` | `CANCEL` | rename |
 | `IMPORT` | — | retire (never used) |
@@ -233,20 +233,74 @@ external sync exists (`DISTRICT`, `NEIGHBORHOOD` geosync from cs.egov.uz, `POPUL
 `isSuperAdmin()`; moving them to permissions is the enforcement-gap item in §9, not part of the
 rename.
 
+### 8.2 Default grants per role
+
+Roles in the seed: `isemid_general_practitioner` (UASH), `isemid_epidemiologist`,
+`isemid_assistant_epidemiologist`, `isemid_epidim_head` (department head / zaveduyushiy),
+`isemid_head_doctor`, `isemid_qr_user`; `isemid_admin` / `isemid_super_admin` are covered under
+"Super-admin and admin need no extra seed" above.
+
+**Workflow (confirmed):** the UASH creates and sends a form → the **department head** receives and
+accepts it, attaches the cards and assigns the epidemiologist / assistant epidemiologist → the
+cards then appear in those employees' `mine` lists and they work them → the head supervises
+(approve / return).
+
+**Translation rule applied to existing grants** (so a role keeps exactly the side it had):
+
+| Old | New |
+|---|---|
+| `FORM058_SENDER` / `FORM0581`: `READ` / `CREATE` / `UPDATE` | `READ_SENT` / `CREATE` / `UPDATE` |
+| `FORM058_RECEIVER`: `READ` / `UPDATE` / `FORM_CANCEL` / `ORG_CHANGE` | `READ_RECEIVED` / `ACCEPT` / `REJECT` / `CHANGE_ORG` |
+| `FORM058_RECEIVER`: `CARD_ATTACH` | `CARD` `ASSIGN` |
+| `ATTACHED_CARDS` `READ`/`UPDATE`/`APPROVE`/`VIEW_ALL` | `CARD` same (`CREATE` has no meaning any more and is dropped) |
+| `ATTACH_ACT` | `ACT` same actions |
+| `REPORTS` `READ` + `EXPORT` | `REPORT` `READ` + `EXPORT` |
+| `REPORTS` `CREATE`/`UPDATE`/`DELETE` | `REPORT_ENTRY` + `ANALYTIC_REPORT` same actions |
+| any `MANAGE` | every action of that subject/side |
+
+**Default matrix** (what a fresh DB seeds; the live DB is migrated with the rule above instead).
+`+` = not in today's seed but needed once the currently open endpoints are gated (§4, §10), because
+today the endpoint works for everyone and gating must not remove it.
+
+| Role | Forms 058 / 058-1 | Card | Act | Reports | Other |
+|---|---|---|---|---|---|
+| **General practitioner (UASH)** — creates and sends | `CREATE`, `READ_SENT`, `UPDATE`, `DELETE`, `CANCEL`, `APPROVE` (when each is allowed is decided by the form status in code — see below) | — | — | — | `SPEECH_TO_TEXT` `CREATE` |
+| **Epidemiologist** | `READ_RECEIVED` | `READ`, `UPDATE`, `ACCEPT`+, `REJECT`+, `COMPLETE`+ | `READ`, `UPDATE`, `ASSIGN` | `REPORT` `READ`,`EXPORT`; `REPORT_ENTRY` `READ`,`CREATE`,`UPDATE` | `SPEECH_TO_TEXT` `CREATE` |
+| **Assistant epidemiologist** | `READ_RECEIVED` | `READ`, `UPDATE`, `ACCEPT`+, `REJECT`+, `COMPLETE`+ | `READ`, `UPDATE`, `ASSIGN` | — | `SPEECH_TO_TEXT` `CREATE` |
+| **Department head (epidim_head)** — receives, assigns, supervises | `READ_RECEIVED`, `ACCEPT`+, `REJECT`, `CHANGE_ORG` | `READ`, `UPDATE`, `APPROVE`, `VIEW_ALL`, `ASSIGN`, `RETURN`+ | `READ`, `VIEW_ALL`, `ASSIGN`, `UPDATE` | `REPORT` `READ`,`EXPORT`; `REPORT_ENTRY` `READ`,`UPDATE` | `SPEECH_TO_TEXT` `CREATE` |
+| **Head doctor** — view only | `READ_SENT`, `READ_RECEIVED` | — | — | `REPORT` `READ`,`EXPORT` | — |
+| **QR user** | — | — | — | — | not used for now (no grants) |
+
+Note the change against the old seed: the assistant no longer holds the receiver `UPDATE`
+(= `ACCEPT`); acceptance belongs to the department head.
+
+**UASH and the form status (decided: the status rules in code stay exactly as they are).** The
+permission only says the UASH may act as sender; *when* is the form status, already enforced by the
+validators:
+
+| Sender action | Allowed while | Source |
+|---|---|---|
+| `CANCEL` (withdraw) | `SENT` only | `FormStatus#isCancellable` |
+| `UPDATE` | until `APPROVED` / `CANCELED` (so also `ACCEPTED`, `CARD_LINKED`) | `Form058#ensureEditable` |
+| `DELETE` | `SENT`, `ACCEPTED` (removes a duplicate the receiver already accepted); locked from `CARD_LINKED` | `FormStatus#physicallyDeletable` |
+| `APPROVE` (final decision) | `ACCEPTED` or `CARD_LINKED` — i.e. after the head accepts / a card is linked | `FormStatus#isApprovable` |
+
+So the UASH keeps `APPROVE` as the sender's right; approval does not move to the department head.
+
 ## 9. Decisions taken and what is left
 
 Taken: sender/receiver separate on all three forms; `CANCEL`/`REJECT` split; `/affiliated` under
 `READ_RECEIVED`; card `RETURN`; act by-id unchanged; 3 report groups with `EXPORT` split;
+`UASH` keeps `UPDATE`/`DELETE`/`CANCEL`/`APPROVE` with the existing status rules unchanged;
 `CARD_FULL_INFO` → `CARD` `READ`; `CITIES`/`STREETS`/`RESIDENCES` map to the reference
 `DISTRICT` (§8.1); population gets its own `POPULATION` subject.
 
-To confirm with the frontend before the contract step:
-1. `CARD_FULL_INFO` is merged into `CARD` `READ`, and `CITIES`/`STREETS`/`RESIDENCES` into
-   `DISTRICT`: confirm no screen needs them as separate menu items. Confirm that `POPULATION_TYPES`
-   means the urban/rural *catalog* (→ `CATALOG`) and that the population *reference* is the new
-   `POPULATION` subject.
+To confirm:
+1. Frontend: confirm `CARD_FULL_INFO`, `CITIES`/`STREETS`/`RESIDENCES` and `POPULATION_TYPES` mappings
+   (§8, §8.1) and that the population reference is the new `POPULATION` subject.
 2. Enforcement gap that renaming does not fix: card, form058/0581/129 and reference writes are
    `isAuthenticated()` only; gating them needs the role seed to run first (§4, §10).
+3. Before migrating: dump the real `role_permissions` from the live DB and diff it against §8.2.
 
 ## 10. Safe rollout (no big bang)
 
