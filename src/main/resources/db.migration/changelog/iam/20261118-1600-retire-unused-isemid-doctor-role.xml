@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        isemid_doctor roli ishlatilmaydi: 20260730-1000 da boshlang'ich seed sifatida qo'shilgan,
+        hujjatdagi rol ro'yxatida yo'q (uning vazifasini isemid_general_practitioner bajaradi),
+        grantlari yo'q. Soft-delete qilinadi, lekin FAQAT unga biriktirilgan foydalanuvchi
+        bo'lmasa (aks holda ular rolini yo'qotardi). Rolga grant qolgan bo'lsa ham ular
+        rol bilan birga ko'rinmaydi.
+    -->
+    <changeSet id="20261118-1600-01-retire-unused-isemid-doctor-role" author="uzinfocom">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role"/>
+            <tableExists tableName="user_roles"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE role
+            SET active = false, deleted = true, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE name = 'isemid_doctor'
+              AND deleted_at IS NULL
+              AND NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.role_id = role.id);
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>
