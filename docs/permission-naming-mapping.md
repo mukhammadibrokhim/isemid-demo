@@ -159,9 +159,9 @@ the frontend does not assume "by-id = mine".
 |---|---|---|
 | `ORGANIZATION` | `READ` | get, hierarchy, lookup, users-by-organization |
 | | `SYNC` | `POST …/sync/{uuid}` (today super-admin only) |
-| `USER` | `READ`, `UPDATE`, `SYNC` | user list/detail, edit, sync |
+| `EMPLOYEES` | `READ`, `UPDATE`, `SYNC` | user list/detail, edit, sync |
 
-`STAFF` and `EMPLOYEES` (both "Xodimlar") merge into `USER`; `ORGANIZATIONS` → `ORGANIZATION`.
+`STAFF` merges into `EMPLOYEES` (both "Xodimlar", the subject keeps the legacy name — it was briefly `USER`, renamed by `20261118-1500`); `ORGANIZATIONS` → `ORGANIZATION`.
 `SYNC` is its own action so "may read, may not sync" can be granted.
 
 ## 6. Reports — 3 groups (decided: only because it keeps things simple)
