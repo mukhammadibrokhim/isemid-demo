@@ -12,7 +12,9 @@ import uz.uzinfocom.app.modules.iam.domain.enums.ServiceType;
 import uz.uzinfocom.app.platform.persistence.entity.AuditableEntity;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -78,6 +80,14 @@ public class Organization extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "service_type")
     private List<ServiceType> serviceTypes = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "organization_identifier", joinColumns = @JoinColumn(name = "organization_id"))
+    private Set<OrganizationIdentifier> identifiers = new LinkedHashSet<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "organization_type_coding", joinColumns = @JoinColumn(name = "organization_id"))
+    private Set<OrganizationTypeCoding> typeCodings = new LinkedHashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")

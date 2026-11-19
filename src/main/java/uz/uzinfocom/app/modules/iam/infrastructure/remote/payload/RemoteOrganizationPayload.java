@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.iam.infrastructure.remote.payload;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.JsonNode;
 
@@ -20,6 +21,10 @@ public record RemoteOrganizationPayload(
 
         String name,
 
+        /* FHIR primitive-type extension of "name": per-language translations. */
+        @JsonProperty("_name")
+        JsonNode nameElement,
+
         JsonNode type,
 
         List<RemoteAliasPayload> alias,
@@ -36,6 +41,8 @@ public record RemoteOrganizationPayload(
 
         RemoteReferencePayload partOf,
 
+        JsonNode extension,
+
         String resourceType
 ) {
 
@@ -43,6 +50,26 @@ public record RemoteOrganizationPayload(
         return RemotePayloadSupport.identifierValueByCode(identifier, "TAX")
                 .or(() -> RemotePayloadSupport.identifierValueBySystemContains(identifier, "/soliq"))
                 .orElse(null);
+    }
+
+    /** Every identifier that has both a system and a value (soliq/TAX, argos, dhp, ...), one per system. */
+    public List<RemoteIdentifierPayload> usableIdentifiers() {
+        if (identifier == null) {
+            return List.of();
+        }
+
+        return identifier.stream()
+                .filter(item -> item != null
+                        && StringUtils.hasText(item.system())
+                        && StringUtils.hasText(item.valueAsString()))
+                .collect(java.util.stream.Collectors.toMap(
+                        RemoteIdentifierPayload::system,
+                        item -> item,
+                        (first, ignored) -> first,
+                        java.util.LinkedHashMap::new))
+                .values()
+                .stream()
+                .toList();
     }
 
     public List<RemoteCodingPayload> typeCodings() {
@@ -65,6 +92,55 @@ public record RemoteOrganizationPayload(
         return firstTypeCodingBySystemContains("organization-type-medical")
                 .map(RemoteCodingPayload::code)
                 .orElse(null);
+    }
+
+    /** DHP {@code organizational-subordination-group} code (I_1..I_6), if present. */
+    public String subordinationGroupCode() {
+        return firstTypeCodingBySystemContains("organizational-subordination-group")
+                .map(RemoteCodingPayload::code)
+                .filter(StringUtils::hasText)
+                .orElse(null);
+    }
+
+    /** DHP {@code organizational-structure} code (110..999), if present. */
+    public String organizationalStructureCode() {
+        return firstTypeCodingBySystemContains("organizational-structure")
+                .map(RemoteCodingPayload::code)
+                .filter(StringUtils::hasText)
+                .orElse(null);
+    }
+
+    /** Every {@code type} coding that has both a system and a code, de-duplicated. */
+    public List<RemoteCodingPayload> usableTypeCodings() {
+        return typeCodings().stream()
+                .filter(coding -> StringUtils.hasText(coding.system()) && StringUtils.hasText(coding.code()))
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * Code of the {@code .../coverage-area} extension (a CodeableConcept bound
+     * to the national region list), if present.
+     */
+    public String coverageAreaCode() {
+        if (extension == null || !extension.isArray()) {
+            return null;
+        }
+
+        for (JsonNode item : extension) {
+            String url = RemotePayloadSupport.text(item.get("url"));
+            if (url == null || !url.endsWith("coverage-area")) {
+                continue;
+            }
+
+            for (JsonNode coding : item.path("valueCodeableConcept").path("coding")) {
+                String code = RemotePayloadSupport.text(coding.get("code"));
+                if (StringUtils.hasText(code)) {
+                    return code;
+                }
+            }
+        }
+        return null;
     }
 
     public List<String> serviceTypeCodes() {
@@ -100,6 +176,11 @@ public record RemoteOrganizationPayload(
             if (StringUtils.hasText(state)) {
                 return state;
             }
+        }
+
+        String coverageArea = coverageAreaCode();
+        if (StringUtils.hasText(coverageArea)) {
+            return coverageArea;
         }
 
         return administrativeTerritoryCode();
@@ -150,23 +231,59 @@ public record RemoteOrganizationPayload(
      * default name at read time, so no fallback is needed at sync time.
      */
     public String nameUz() {
-        return aliasByLanguage(item -> "uz".equals(canonicalLanguage(item)))
-                .orElse(null);
+        return nameByLanguage("uz");
     }
 
     public String nameRu() {
-        return aliasByLanguage(item -> "ru".equals(canonicalLanguage(item)))
-                .orElse(null);
+        return nameByLanguage("ru");
     }
 
     public String nameUzCyril() {
-        return aliasByLanguage(item -> "uz-cyrl".equals(canonicalLanguage(item)))
-                .orElse(null);
+        return nameByLanguage("uz-cyrl");
     }
 
     public String nameKaa() {
-        return aliasByLanguage(item -> "kaa".equals(canonicalLanguage(item)))
+        return nameByLanguage("kaa");
+    }
+
+    /** {@code alias[]} first, then the FHIR {@code _name} translation extensions. */
+    private String nameByLanguage(String canonical) {
+        return aliasByLanguage(item -> canonical.equals(canonicalLanguage(item)))
+                .or(() -> translationByLanguage(canonical))
                 .orElse(null);
+    }
+
+    /**
+     * {@code _name.extension[url=.../translation]} holds nested
+     * {@code extension[url=lang].valueCode} + {@code extension[url=content].valueString}.
+     */
+    private Optional<String> translationByLanguage(String canonical) {
+        if (nameElement == null || !nameElement.has("extension")) {
+            return Optional.empty();
+        }
+
+        for (JsonNode translation : nameElement.get("extension")) {
+            String url = RemotePayloadSupport.text(translation.get("url"));
+            if (url == null || !url.endsWith("/translation")) {
+                continue;
+            }
+
+            String lang = null;
+            String content = null;
+            for (JsonNode part : translation.path("extension")) {
+                String partUrl = RemotePayloadSupport.text(part.get("url"));
+                if ("lang".equals(partUrl)) {
+                    lang = RemotePayloadSupport.text(part.get("valueCode"));
+                } else if ("content".equals(partUrl)) {
+                    content = RemotePayloadSupport.text(part.get("valueString"));
+                }
+            }
+
+            if (StringUtils.hasText(content) && canonical.equals(canonicalLanguage(lang))) {
+                return Optional.of(content);
+            }
+        }
+        return Optional.empty();
     }
 
     public String parentOrganizationUuid() {

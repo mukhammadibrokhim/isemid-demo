@@ -72,12 +72,14 @@ class IamSyncServiceTest {
                 null,
                 "Central Clinic",
                 null,
+                null,
                 List.of(),
                 true,
                 List.of(),
                 List.of(),
                 List.of(),
                 List.of(),
+                null,
                 null,
                 "Organization"
         );

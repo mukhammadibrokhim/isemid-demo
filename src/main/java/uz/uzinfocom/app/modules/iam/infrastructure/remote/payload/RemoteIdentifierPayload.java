@@ -15,6 +15,18 @@ public record RemoteIdentifierPayload(
         return RemotePayloadSupport.text(value);
     }
 
+    public String typeCode() {
+        if (type == null || type.coding() == null) {
+            return null;
+        }
+
+        return type.coding().stream()
+                .map(RemoteCodingPayload::code)
+                .filter(code -> code != null && !code.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
+
     public boolean hasTypeCode(String... codes) {
         return type != null && type.hasCode(codes);
     }
