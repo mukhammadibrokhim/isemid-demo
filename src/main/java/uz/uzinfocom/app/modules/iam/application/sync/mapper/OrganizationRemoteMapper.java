@@ -41,7 +41,7 @@ public class OrganizationRemoteMapper {
                 .active(payload.active() == null || payload.active())
                 .levelType(resolveLevel(payload, uuid))
                 .medicalType(resolveMedicalType(payload, uuid))
-                .serviceTypes(parseServiceTypes(payload.serviceTypeCodes(), uuid))
+                .serviceTypes(resolveServiceTypes(payload, uuid))
                 .typeCodings(toTypeCodings(payload))
                 .regionCode(payload.regionCode())
                 .districtCode(payload.districtCode())
@@ -72,7 +72,7 @@ public class OrganizationRemoteMapper {
         entity.setActive(payload.active() == null || payload.active());
         entity.setLevelType(resolveLevel(payload, uuid));
         entity.setMedicalType(resolveMedicalType(payload, uuid));
-        entity.setServiceTypes(parseServiceTypes(payload.serviceTypeCodes(), uuid));
+        entity.setServiceTypes(resolveServiceTypes(payload, uuid));
         if (entity.getTypeCodings() == null) {
             entity.setTypeCodings(toTypeCodings(payload));
         } else {
@@ -166,16 +166,34 @@ public class OrganizationRemoteMapper {
             return parseMedicalType(payload.medicalTypeCode(), organizationUuid);
         }
 
-        String dhpCode = payload.organizationalStructureCode();
-        if (dhpCode != null) {
-            return DhpOrganizationTypeMapping.medicalType(dhpCode).orElseGet(() -> {
-                log.debug("DHP organizational-structure code '{}' of organization {} has no MedicalType mapping; using OTHER",
-                        dhpCode, organizationUuid);
+        String structureCode = payload.organizationalStructureCode();
+        String nomenclatureCode = payload.nomenclatureGroupCode();
+        if (structureCode != null || nomenclatureCode != null) {
+            return DhpOrganizationTypeMapping.medicalType(structureCode, nomenclatureCode).orElseGet(() -> {
+                log.debug("DHP structure '{}' / nomenclature '{}' of organization {} has no MedicalType mapping; using OTHER",
+                        structureCode, nomenclatureCode, organizationUuid);
                 return MedicalType.OTHER;
             });
         }
 
         return parseMedicalType(null, organizationUuid);
+    }
+
+    /**
+     * SSO-style service type codes first; otherwise DHP's service group (plus the
+     * emergency / diagnostic hints from nomenclature group and structure).
+     * Mutable list on purpose, see {@link #parseServiceTypes}.
+     */
+    private List<ServiceType> resolveServiceTypes(RemoteOrganizationPayload payload, UUID organizationUuid) {
+        List<String> legacyCodes = payload.serviceTypeCodes();
+        if (!legacyCodes.isEmpty()) {
+            return parseServiceTypes(legacyCodes, organizationUuid);
+        }
+
+        return new ArrayList<>(DhpOrganizationTypeMapping.serviceTypes(
+                payload.serviceGroupCodes(),
+                payload.nomenclatureGroupCode(),
+                payload.organizationalStructureCode()));
     }
 
     private Set<OrganizationTypeCoding> toTypeCodings(RemoteOrganizationPayload payload) {

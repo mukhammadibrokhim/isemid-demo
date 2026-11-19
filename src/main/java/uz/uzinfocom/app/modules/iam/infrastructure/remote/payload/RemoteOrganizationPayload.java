@@ -110,6 +110,24 @@ public record RemoteOrganizationPayload(
                 .orElse(null);
     }
 
+    /** DHP {@code nomenclature-group} code (II_100..II_900), if present. */
+    public String nomenclatureGroupCode() {
+        return firstTypeCodingBySystemContains("nomenclature-group")
+                .map(RemoteCodingPayload::code)
+                .filter(StringUtils::hasText)
+                .orElse(null);
+    }
+
+    /** DHP {@code organizational-service-group} codes (III_100..III_600); the profile allows several. */
+    public List<String> serviceGroupCodes() {
+        return typeCodings().stream()
+                .filter(coding -> coding.systemContains("organizational-service-group"))
+                .map(RemoteCodingPayload::code)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .toList();
+    }
+
     /** Every {@code type} coding that has both a system and a code, de-duplicated. */
     public List<RemoteCodingPayload> usableTypeCodings() {
         return typeCodings().stream()

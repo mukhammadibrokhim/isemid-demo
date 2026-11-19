@@ -7,6 +7,7 @@ import uz.uzinfocom.app.modules.iam.domain.OrganizationIdentifier;
 import uz.uzinfocom.app.modules.iam.domain.OrganizationTypeCoding;
 import uz.uzinfocom.app.modules.iam.domain.enums.MedicalType;
 import uz.uzinfocom.app.modules.iam.domain.enums.OrganizationLevel;
+import uz.uzinfocom.app.modules.iam.domain.enums.ServiceType;
 import uz.uzinfocom.app.modules.iam.infrastructure.remote.payload.RemoteOrganizationPayload;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,9 +122,54 @@ class OrganizationRemoteMapperDhpPayloadTest {
     void ownershipSubordinationGroupsAndUnknownStructureCodesFallBackSafely() {
         assertThat(DhpOrganizationTypeMapping.level("I_5")).contains(OrganizationLevel.NOT_DEFINED);
         assertThat(DhpOrganizationTypeMapping.level("I_9")).isEmpty();
-        assertThat(DhpOrganizationTypeMapping.medicalType("128")).isEmpty();
-        assertThat(DhpOrganizationTypeMapping.medicalType("415")).contains(MedicalType.REHABILITATION_CENTER);
-        assertThat(DhpOrganizationTypeMapping.medicalType("411")).contains(MedicalType.SANATORIUM);
+        assertThat(DhpOrganizationTypeMapping.medicalType("937", null)).isEmpty();
+        assertThat(DhpOrganizationTypeMapping.medicalType(null, null)).isEmpty();
+        assertThat(DhpOrganizationTypeMapping.medicalType("415", null)).contains(MedicalType.REHABILITATION_CENTER);
+        assertThat(DhpOrganizationTypeMapping.medicalType("411", null)).contains(MedicalType.SANATORIUM);
+        assertThat(DhpOrganizationTypeMapping.medicalType("128", null)).contains(MedicalType.SCIENTIFIC_PRACTICAL_CENTER);
+    }
+
+    @Test
+    void nomenclatureGroupIdentifiesSanepidWhenStructureIsGenericOther() {
+        // structure 999 = "other", nomenclature II_800 = sanitary-epidemiological service
+        assertThat(DhpOrganizationTypeMapping.medicalType("999", "II_800")).contains(MedicalType.SANEPID_SERVICE);
+        assertThat(DhpOrganizationTypeMapping.medicalType(null, "II_700")).contains(MedicalType.BLOOD_TRANSFUSION_CENTER);
+        // a specific structure code is not overridden by the broad nomenclature group
+        assertThat(DhpOrganizationTypeMapping.medicalType("146", "II_800")).contains(MedicalType.HOSPITAL);
+        // broad groups alone do not decide anything
+        assertThat(DhpOrganizationTypeMapping.medicalType(null, "II_100")).isEmpty();
+        assertThat(DhpOrganizationTypeMapping.medicalType("999", "II_900")).contains(MedicalType.OTHER);
+    }
+
+    @Test
+    void serviceGroupMapsToServiceTypes() {
+        assertThat(DhpOrganizationTypeMapping.serviceTypes(java.util.List.of("III_100"), null, null))
+                .containsExactly(ServiceType.COMBINED);
+        assertThat(DhpOrganizationTypeMapping.serviceTypes(java.util.List.of("III_500", "III_300"), null, null))
+                .containsExactly(ServiceType.OUTPATIENT, ServiceType.INPATIENT);
+        assertThat(DhpOrganizationTypeMapping.serviceTypes(java.util.List.of("III_600"), null, null))
+                .containsExactly(ServiceType.OTHER_S);
+        assertThat(DhpOrganizationTypeMapping.serviceTypes(java.util.List.of(), "II_200", "343"))
+                .containsExactlyInAnyOrder(ServiceType.EMERGENCY, ServiceType.DIAGNOSTIC);
+        assertThat(DhpOrganizationTypeMapping.serviceTypes(java.util.List.of("III_999"), null, null)).isEmpty();
+    }
+
+    @Test
+    void toEntityReadsServiceGroupAndNomenclatureFromType() {
+        RemoteOrganizationPayload sanepid = JsonMapper.builder().build().readValue("""
+                {"id": "99999999-2222-3333-4444-555555555555", "name": "SES",
+                 "type": [{"coding": [
+                   {"code": "999", "system": "https://terminology.dhp.uz/fhir/core/CodeSystem/organizational-structure-cs"},
+                   {"code": "II_800", "system": "https://terminology.dhp.uz/fhir/core/CodeSystem/nomenclature-group-cs"},
+                   {"code": "III_500", "system": "https://terminology.dhp.uz/fhir/core/CodeSystem/organizational-service-group-cs"}
+                 ]}]}
+                """, RemoteOrganizationPayload.class);
+
+        Organization entity = mapper.toEntity(sanepid, "dhp");
+
+        assertThat(entity.getMedicalType()).isEqualTo(MedicalType.SANEPID_SERVICE);
+        assertThat(entity.getServiceTypes()).containsExactly(ServiceType.OUTPATIENT);
+        assertThat(entity.getTypeCodings()).hasSize(3);
     }
 
     @Test
