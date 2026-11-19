@@ -154,4 +154,4 @@ SQL yozishда har jadval alohida ko'rib chiqiladi. Element jadvallar (`*_affect
    - `external_sample_test` → `card174_laboratory_test` (2026-10-02 dan: **hamma qatorlar**, `specimen`→`sample_name`, `sample_count`, `test_date`, `test_method`→`testing_method`, `test_result`)
    - `preventive_measure` → `card174_animal_measure` (2026-10-02 dan: **hamma qatorlar**, `measures`→`measure_name`, `measure_date`, `measure_count`, `measure_location`); 1-qatorning `measures` matni avvalgidek `card174.precautionary_measures` ga ham ko'chadi
 5. **card174/175/205/tube baza** — SQL paytida jadval-jadval.
-6. **`user_roles`** → **ko'chirilmaydi** (umuman).
+6. **`user_roles`** → **ko'chadi** (`25-user-roles.sql`, 2026-11-19): `role.name` crosswalk, mos kelmaganlari `_migration_notes`; `user_local_roles` ko'chmaydi.

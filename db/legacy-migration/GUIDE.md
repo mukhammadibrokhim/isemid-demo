@@ -28,7 +28,7 @@ fm0581_*, card (+ 161/174/175/205/tube), act (+ 153/154/156/223/224)`.
 **Ko'chmaydi:**
 - `act155` / `act155_detail` **DETALI** (yangi sxemada bunday jadval yo'q) —
   lekin `act` bazaviy qatori (`act_type='ACT155'` bilan) ko'chadi.
-- `users.password`, `user_roles`, `user_local_roles` (SSO token rol biriktiradi).
+- `users.password`, `user_local_roles`. `user_roles` ko'chadi (`25-user-roles.sql`, nom bo'yicha crosswalk); rol permission'lari ko'chmaydi — public2 Liquibase seed'idan.
 - `analytic_*`, `form_report_*`, `token_revocations`, `cls_*` (yangi sxema seed'idan).
 
 **Sentinel qatorlar** (`00-prep`/`40` yaratadi):
@@ -57,6 +57,7 @@ fm0581_*, card (+ 161/174/175/205/tube), act (+ 153/154/156/223/224)`.
 | 1 | `00-prep.sql` | note-log jadval + `public2` biznes jadvallarini TRUNCATE + sentinel `organization(0)` |
 | 2 | `10-organization.sql` | `organization`, `organization_service_types` |
 | 3 | `20-users.sql` | `users`, `users_organizations` |
+| 3a | `25-user-roles.sql` | `user_roles` — rol **nomi** crosswalk'i bilan (legacy `role.name` → `public2.role.name`); mos kelmaganlari `_migration_notes` ga |
 | 4 | `30-patient.sql` | `patient`, `pt_address`, `pt_affiliation`, `pt_identifier` |
 | 5 | `40-form058.sql` | `fm058_location`, `form058` (+ sentinel `form058(0)`) |
 | 6 | `45-form058-1.sql` | `form058_1`, `fm0581_animal_owner` -> owner_* ustunlar, `fm0581_bitten_person` -> `form058_1_other_injured_person` |

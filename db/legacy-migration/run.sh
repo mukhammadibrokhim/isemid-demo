@@ -31,6 +31,7 @@ FILES=(
   05-legacy-compat.sql
   10-organization.sql
   20-users.sql
+  25-user-roles.sql
   30-patient.sql
   40-form058.sql
   45-form058-1.sql

@@ -1,7 +1,7 @@
 -- =====================================================================
 -- 20-users.sql  —  public.users -> public2.users
 --                  public.users_organizations -> public2 (1:1)
---   user_roles: KO'CHIRILMAYDI (qaror — 02-mapping §5.6)
+--   user_roles: 25-user-roles.sql da (nom bo'yicha crosswalk, 02-mapping §5.6)
 -- Mapping: docs/legacy-migration/02-mapping-5434.md §1
 -- =====================================================================
 \set ON_ERROR_STOP on

@@ -87,7 +87,7 @@ Ziddiyat bo'lsa — shu fayl ustun.
 | **`pt_address` / `pt_affiliation` `patient_id IS NULL`** | Qator **skip** + log (yetim manzil). |
 | **`pt_identifier.type_code IS NULL`** | `'UNKNOWN'`. |
 | **`pt_affiliation.organization_uuid`** | `organization_id` bo'yicha `public.organization.uuid` dan lookup. |
-| **`user_roles`** | **Ixtiyoriy.** SSO token ma'lumotidan rol avtomatik biriktiriladi. Ko'chirilsa — legacy↔yangi `role.name` crosswalk; mos kelmasa qator tashlanadi + log. |
+| **`user_roles`** | **Ko'chadi (2026-11-19, `25-user-roles.sql`).** Legacy↔yangi `role.name` crosswalk (id bo'yicha emas); mos kelmasa (`isemid_user`/`isemid_doctor` retire qilingan, custom rollar) qator tashlanadi + `_migration_notes`. Rolning permission'lari ko'chmaydi — public2 Liquibase role-matrix seed'idan. `user_local_roles` ko'chmaydi. |
 
 ---
 
