@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import uz.uzinfocom.app.integration.dhp.citizen.DhpCitizenTestData;
 import uz.uzinfocom.app.integration.dhp.common.DhpTestProperties;
 import uz.uzinfocom.app.integration.dhp.common.client.DhpHttpClient;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.net.URI;
 import java.util.Optional;
@@ -20,12 +21,15 @@ import static org.mockito.Mockito.when;
 class DhpCitizenClientTest {
 
     private final DhpHttpClient httpClient = mock(DhpHttpClient.class);
-    private final DhpCitizenClient client =
-            new DhpCitizenClient(httpClient, DhpTestProperties.configured(), DhpCitizenTestData.JSON);
+    private final CurrentUserProvider currentUserProvider = mock(CurrentUserProvider.class);
+    private final DhpCitizenClient client = new DhpCitizenClient(
+            httpClient, DhpTestProperties.configured(), DhpCitizenTestData.JSON, currentUserProvider);
 
     @Test
-    void postsAFhirParametersBodyToPatientPopulate() {
-        when(httpClient.postJson(any(), any(), any())).thenReturn(Optional.of(DhpCitizenTestData.patient()));
+    void postsAFhirParametersBodyToPatientPopulateWithTheCallersToken() {
+        when(currentUserProvider.rawTokenOrNull()).thenReturn("caller-token");
+        when(httpClient.postJsonAsCaller(any(), any(), any(), any()))
+                .thenReturn(Optional.of(DhpCitizenTestData.patient()));
 
         Optional<JsonNode> patient = client.populate("NI", DhpCitizenTestData.NI);
 
@@ -33,7 +37,8 @@ class DhpCitizenClientTest {
 
         ArgumentCaptor<URI> uri = ArgumentCaptor.forClass(URI.class);
         ArgumentCaptor<JsonNode> body = ArgumentCaptor.forClass(JsonNode.class);
-        verify(httpClient).postJson(eq("DHP_CITIZEN_POPULATE"), uri.capture(), body.capture());
+        verify(httpClient).postJsonAsCaller(
+                eq("DHP_CITIZEN_POPULATE"), uri.capture(), body.capture(), eq("caller-token"));
 
         assertThat(uri.getValue().toString()).isEqualTo(DhpTestProperties.FHIR_BASE + "/Patient/$populate");
 
@@ -51,7 +56,7 @@ class DhpCitizenClientTest {
 
     @Test
     void anOperationOutcomeBodyMeansNothingFound() {
-        when(httpClient.postJson(any(), any(), any())).thenReturn(Optional.of(
+        when(httpClient.postJsonAsCaller(any(), any(), any(), any())).thenReturn(Optional.of(
                 DhpCitizenTestData.JSON.readTree("{\"resourceType\":\"OperationOutcome\"}")));
 
         assertThat(client.populate("NI", DhpCitizenTestData.NI)).isEmpty();
@@ -59,7 +64,7 @@ class DhpCitizenClientTest {
 
     @Test
     void anEmptyResponseMeansNothingFound() {
-        when(httpClient.postJson(any(), any(), any())).thenReturn(Optional.empty());
+        when(httpClient.postJsonAsCaller(any(), any(), any(), any())).thenReturn(Optional.empty());
 
         assertThat(client.populate("PPN", "AD3131830")).isEmpty();
     }

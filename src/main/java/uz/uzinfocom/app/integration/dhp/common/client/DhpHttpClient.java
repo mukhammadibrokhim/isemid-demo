@@ -57,7 +57,7 @@ public class DhpHttpClient {
     }
 
     public Optional<JsonNode> getJson(String operation, URI uri) {
-        return execute(operation, uri, null);
+        return execute(operation, uri, null, null);
     }
 
     /**
@@ -66,20 +66,33 @@ public class DhpHttpClient {
      * 401-retry and failure classification as {@link #getJson}.
      */
     public Optional<JsonNode> postJson(String operation, URI uri, JsonNode body) {
-        return execute(operation, uri, body);
+        return execute(operation, uri, body, null);
     }
 
-    private Optional<JsonNode> execute(String operation, URI uri, JsonNode requestBody) {
-        RawResponse response = send(operation, uri, requestBody);
+    /**
+     * Like {@link #postJson(String, URI, JsonNode)} but authenticates with the
+     * calling user's own DHP access token instead of the M2M client token (for
+     * operations DHP grants to the logged-in user, not to our service client).
+     * A blank {@code callerToken} falls back to the M2M token. The caller's token
+     * is never refreshed or cached here: a 401 is final.
+     */
+    public Optional<JsonNode> postJsonAsCaller(String operation, URI uri, JsonNode body, String callerToken) {
+        return execute(operation, uri, body, callerToken);
+    }
 
-        if (response.status() == 401) {
+    private Optional<JsonNode> execute(String operation, URI uri, JsonNode requestBody, String callerToken) {
+        boolean asCaller = callerToken != null && !callerToken.isBlank();
+        RawResponse response = send(operation, uri, requestBody, asCaller ? callerToken : null);
+
+        if (response.status() == 401 && !asCaller) {
             // The cached token may have been revoked or expired early - drop it and try once more.
             tokenProvider.invalidate(response.tokenUsed());
-            response = send(operation, uri, requestBody);
+            response = send(operation, uri, requestBody, null);
         }
 
         if (response.status() == 401) {
-            log.warn("DHP rejected a freshly issued M2M token. operation={}", operation);
+            log.warn("DHP rejected the {} token. operation={}",
+                    asCaller ? "caller's" : "freshly issued M2M", operation);
             throw new DhpAccessDeniedException(operation);
         }
 
@@ -90,8 +103,8 @@ public class DhpHttpClient {
         return Optional.ofNullable(response.body());
     }
 
-    private RawResponse send(String operation, URI uri, JsonNode requestBody) {
-        String token = tokenProvider.getAccessToken();
+    private RawResponse send(String operation, URI uri, JsonNode requestBody, String callerToken) {
+        String token = callerToken != null ? callerToken : tokenProvider.getAccessToken();
 
         try {
             return circuitBreakerLookup.forName(CircuitBreakerNames.DHP).executeSupplier(() -> {
@@ -127,7 +140,7 @@ public class DhpHttpClient {
             throw new DhpRequestRejectedException(operation);
         }
         if (status == 403) {
-            log.warn("DHP denied the M2M client access. operation={}", operation);
+            log.warn("DHP denied access to the token used. operation={}", operation);
             throw new DhpAccessDeniedException(operation);
         }
         if (response.getStatusCode().isError()) {

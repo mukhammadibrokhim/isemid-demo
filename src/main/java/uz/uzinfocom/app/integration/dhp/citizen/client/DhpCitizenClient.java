@@ -10,6 +10,7 @@ import tools.jackson.databind.node.ObjectNode;
 import uz.uzinfocom.app.integration.dhp.common.client.DhpHttpClient;
 import uz.uzinfocom.app.integration.dhp.common.properties.DhpProperties;
 import uz.uzinfocom.app.integration.dhp.common.support.DhpJson;
+import uz.uzinfocom.app.platform.security.context.CurrentUserProvider;
 
 import java.net.URI;
 import java.util.Optional;
@@ -33,6 +34,7 @@ public class DhpCitizenClient {
     private final DhpHttpClient httpClient;
     private final DhpProperties properties;
     private final JsonMapper jsonMapper;
+    private final CurrentUserProvider currentUserProvider;
 
     /**
      * @param identifierTypeCode v2-0203 code: {@code NI}, {@code PPN} or {@code BCT}
@@ -45,7 +47,10 @@ public class DhpCitizenClient {
                 .build()
                 .toUri();
 
-        return httpClient.postJson(OPERATION, uri, parameters(identifierTypeCode, value))
+        // Patient/$populate is granted to the logged-in DHP user, not to our M2M client:
+        // forward the caller's own DHP access token from the request.
+        return httpClient.postJsonAsCaller(OPERATION, uri, parameters(identifierTypeCode, value),
+                        currentUserProvider.rawTokenOrNull())
                 .filter(DhpCitizenClient::isPatient);
     }
 
