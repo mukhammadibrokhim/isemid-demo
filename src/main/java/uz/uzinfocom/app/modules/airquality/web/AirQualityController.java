@@ -50,7 +50,7 @@ public class AirQualityController {
     @Operation(summary = "Monitoring stansiyalari ro'yxati",
             description = "Region/district kodi (SOATO bo'yicha aniqlangan) va faolligi bo'yicha filtrlanadi.")
     @GetMapping(ApiPaths.AirQuality.STATIONS)
-    @PreAuthorize(Permissions.HAS_REPORT_READ)
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_AIR_STATION_READ)
     public ApiResponse<List<AirStationResponse>> stations(
             @Parameter(description = "ref_region.code (ixtiyoriy).")
             @RequestParam(required = false) @Size(max = 50) String regionCode,
@@ -66,7 +66,7 @@ public class AirQualityController {
     @Operation(summary = "Stansiyaning oxirgi saqlangan o'lchovi",
             description = "Barcha ifloslantiruvchi parametrlar bilan. Hali o'lchov bo'lmasa readings bo'sh.")
     @GetMapping(ApiPaths.AirQuality.LATEST)
-    @PreAuthorize(Permissions.HAS_REPORT_READ)
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_AIR_STATION_READ)
     public ApiResponse<AirLatestResponse> latest(
             @Parameter(description = "Ichki stansiya id.", required = true, example = "1")
             @PathVariable @Positive Long id
@@ -79,7 +79,7 @@ public class AirQualityController {
                     + "ifloslantiruvchi (PM2.5, PM10, CO, SO2, NO, NO2, NOx, O3, NOx-2, NH3; yozilishi farqi "
                     + "e'tiborga olinmaydi). Eng ko'pi bilan 5000 qator.")
     @GetMapping(ApiPaths.AirQuality.MEASUREMENTS)
-    @PreAuthorize(Permissions.HAS_REPORT_READ)
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_AIR_STATION_READ)
     public ApiResponse<List<AirReadingResponse>> measurements(
             @Parameter(description = "Ichki stansiya id.", required = true, example = "1")
             @PathVariable @Positive Long id,
@@ -100,10 +100,22 @@ public class AirQualityController {
 
     @Operation(summary = "AIR_CONTROL dan qo'lda sinxronlash",
             description = "Stansiyalarni (Metod 1) va har bir faol stansiyaning oxirgi o'lchovini (Metod 2) "
-                    + "yuklab saqlaydi. Faqat super-admin. Bir vaqtda bitta sinxronlash ishlaydi (409).")
+                    + "yuklab saqlaydi. Super-admin yoki AIR_STATION SYNC ruxsati. Bir vaqtda bitta sinxronlash ishlaydi (409).")
     @PostMapping(ApiPaths.AirQuality.SYNC)
-    @PreAuthorize("@adminAccessGuard.isSuperAdmin()")
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_AIR_STATION_SYNC)
     public ApiResponse<AirQualitySyncResult> sync() {
         return ApiResponse.success(messageResolver.resolve("air-quality.sync.success"), syncService.sync());
+    }
+
+    @Operation(summary = "Bitta stansiyani AIR_CONTROL dan qo'lda sinxronlash",
+            description = "Faqat shu stansiyaning oxirgi o'lchovini (Metod 2) yuklab saqlaydi. Super-admin yoki "
+                    + "AIR_STATION SYNC ruxsati. Bir vaqtda bitta sinxronlash ishlaydi (409).")
+    @PostMapping(ApiPaths.AirQuality.STATION_SYNC)
+    @PreAuthorize(Permissions.SUPER_ADMIN_OR_AIR_STATION_SYNC)
+    public ApiResponse<AirQualitySyncResult> syncStation(
+            @Parameter(description = "Ichki stansiya id.", required = true, example = "1")
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(messageResolver.resolve("air-quality.sync.success"), syncService.syncStation(id));
     }
 }

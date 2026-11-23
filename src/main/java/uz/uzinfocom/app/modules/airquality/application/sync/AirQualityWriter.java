@@ -58,6 +58,13 @@ public class AirQualityWriter {
     private final SystemSettingResolver settings;
     private final ApplicationEventPublisher eventPublisher;
 
+    /** A single stored station, for a one-station sync; empty when the id is unknown. */
+    @Transactional(readOnly = true)
+    public Optional<StationRef> findStationRef(Long stationId) {
+        return stationRepository.findById(stationId)
+                .map(station -> new StationRef(station.getId(), station.getExternalId()));
+    }
+
     @Transactional
     public StationUpsertResult upsertStations(List<AirControlStation> received) {
         // The same id twice in one answer: the last one wins, instead of a duplicate-key insert.

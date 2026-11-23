@@ -182,6 +182,7 @@ public final class ApiPaths {
         public static final String LATEST = "/stations/{id}/latest";
         public static final String MEASUREMENTS = "/stations/{id}/measurements";
         public static final String SYNC = "/sync";
+        public static final String STATION_SYNC = "/stations/{id}/sync";
     }
 
     public static final class Reference {

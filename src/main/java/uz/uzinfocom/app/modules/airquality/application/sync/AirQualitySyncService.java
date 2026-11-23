@@ -9,6 +9,7 @@ import uz.uzinfocom.app.integration.aircontrol.common.exception.AirControlCircui
 import uz.uzinfocom.app.integration.aircontrol.common.exception.AirControlIntegrationException;
 import uz.uzinfocom.app.modules.airquality.application.sync.AirQualityWriter.StationRef;
 import uz.uzinfocom.app.modules.airquality.application.sync.AirQualityWriter.StationUpsertResult;
+import uz.uzinfocom.app.shared.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,46 @@ public class AirQualitySyncService {
         }
         try {
             return doSync();
+        } finally {
+            running.set(false);
+        }
+    }
+
+    /**
+     * Refreshes one station's latest measurement only (Method 2); the station list is not
+     * re-fetched. Shares the single-run guard with {@link #sync()}.
+     *
+     * @throws NotFoundException when the station id is unknown
+     */
+    public AirQualitySyncResult syncStation(Long stationId) {
+        StationRef station = writer.findStationRef(stationId)
+                .orElseThrow(() -> new NotFoundException("air-quality.station.not_found"));
+        if (!running.compareAndSet(false, true)) {
+            throw new AirQualitySyncInProgressException();
+        }
+        try {
+            int measurements = 0;
+            int readings = 0;
+            int unchanged = 0;
+            List<String> failed = new ArrayList<>();
+            try {
+                Optional<AirControlMeasurement> latest = airControlClient.fetchLatest(station.externalId());
+                int stored = latest.map(measurement -> writer.storeMeasurement(station.id(), measurement)).orElse(0);
+                if (stored > 0) {
+                    measurements++;
+                    readings += stored;
+                } else {
+                    unchanged++;
+                }
+            } catch (AirControlCircuitOpenException exception) {
+                throw exception;
+            } catch (org.springframework.dao.DataIntegrityViolationException exception) {
+                // Another instance stored the same moment a split second earlier.
+                failed.add(station.externalId());
+            }
+            log.info("event=air_quality_station_sync stationId={} measurements={} readings={} unchanged={} failed={}",
+                    station.externalId(), measurements, readings, unchanged, failed.size());
+            return new AirQualitySyncResult(0, 0, 0, 1, measurements, readings, unchanged, failed);
         } finally {
             running.set(false);
         }

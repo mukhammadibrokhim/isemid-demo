@@ -87,6 +87,8 @@ public final class Permissions {
     public static final String POPULATION_UPDATE = "PERMISSION_POPULATION_UPDATE";
     public static final String POPULATION_DELETE = "PERMISSION_POPULATION_DELETE";
     public static final String POPULATION_SYNC = "PERMISSION_POPULATION_SYNC";
+    public static final String AIR_STATION_READ = "PERMISSION_AIR_STATION_READ";
+    public static final String AIR_STATION_SYNC = "PERMISSION_AIR_STATION_SYNC";
     public static final String FORM058_CREATE = "PERMISSION_FORM058_CREATE";
     public static final String FORM058_UPDATE = "PERMISSION_FORM058_UPDATE";
     public static final String FORM058_DELETE = "PERMISSION_FORM058_DELETE";
@@ -177,6 +179,8 @@ public final class Permissions {
     public static final String HAS_POPULATION_UPDATE = AUTHENTICATED_AND + POPULATION_UPDATE + AUTHORITY_END;
     public static final String HAS_POPULATION_DELETE = AUTHENTICATED_AND + POPULATION_DELETE + AUTHORITY_END;
     public static final String HAS_POPULATION_SYNC = AUTHENTICATED_AND + POPULATION_SYNC + AUTHORITY_END;
+    public static final String HAS_AIR_STATION_READ = AUTHENTICATED_AND + AIR_STATION_READ + AUTHORITY_END;
+    public static final String HAS_AIR_STATION_SYNC = AUTHENTICATED_AND + AIR_STATION_SYNC + AUTHORITY_END;
     public static final String HAS_FORM058_CREATE = AUTHENTICATED_AND + FORM058_CREATE + AUTHORITY_END;
     public static final String HAS_FORM058_UPDATE = AUTHENTICATED_AND + FORM058_UPDATE + AUTHORITY_END;
     public static final String HAS_FORM058_DELETE = AUTHENTICATED_AND + FORM058_DELETE + AUTHORITY_END;
@@ -243,6 +247,8 @@ public final class Permissions {
     public static final String SUPER_ADMIN_OR_POPULATION_UPDATE = "@adminAccessGuard.isSuperAdmin() or " + HAS_POPULATION_UPDATE;
     public static final String SUPER_ADMIN_OR_POPULATION_DELETE = "@adminAccessGuard.isSuperAdmin() or " + HAS_POPULATION_DELETE;
     public static final String SUPER_ADMIN_OR_POPULATION_SYNC = "@adminAccessGuard.isSuperAdmin() or " + HAS_POPULATION_SYNC;
+    public static final String SUPER_ADMIN_OR_AIR_STATION_READ = "@adminAccessGuard.isSuperAdmin() or " + HAS_AIR_STATION_READ;
+    public static final String SUPER_ADMIN_OR_AIR_STATION_SYNC = "@adminAccessGuard.isSuperAdmin() or " + HAS_AIR_STATION_SYNC;
 
     /** List/export of FORM058: READ_SENT for OUTGOING, READ_RECEIVED for INCOMING, both for ALL. */
     public static final String GUARD_FORM058_LIST = "@formPermissionGuard.canList('FORM058', #filter.direction().name())";
