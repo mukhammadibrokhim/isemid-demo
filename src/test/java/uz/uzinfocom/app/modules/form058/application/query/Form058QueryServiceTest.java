@@ -36,7 +36,8 @@ class Form058QueryServiceTest {
             mock(AuditResolver.class),
             mock(CardQueryService.class),
             mock(ExplainRowCountEstimator.class),
-            mock(PatientAffiliationJpaRepository.class)
+            mock(PatientAffiliationJpaRepository.class),
+            mock(uz.uzinfocom.app.modules.patient.application.service.PatientIdentifierRevealService.class)
     );
 
     @Test

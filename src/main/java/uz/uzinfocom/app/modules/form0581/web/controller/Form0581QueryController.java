@@ -26,6 +26,7 @@ import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581Affiliate
 import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.Form0581DetailResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.pdf.Form0581PdfResponse;
+import uz.uzinfocom.app.modules.patient.application.query.dto.detail.RevealedPatientIdentifierResponse;
 import uz.uzinfocom.app.platform.export.application.ExportJobService;
 import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -118,6 +119,28 @@ public class Form0581QueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 form0581QueryService.getById(id)
+        );
+    }
+
+    @Operation(
+            summary = "Показать полное значение документа пациента формы №058-1",
+            description = "В ответах формы номера документов маскируются. Этот эндпоинт возвращает одно "
+                    + "значение полностью — только при наличии права PERMISSION_PATIENT_IDENTIFIER_REVEAL и "
+                    + "только для формы, видимой организации вызывающего. Каждый вызов фиксируется в аудите "
+                    + "(кто, какой документ, когда); значение в аудит не пишется. POST — чтобы ответ не "
+                    + "кэшировался и не предзагружался."
+    )
+    @PostMapping(ApiPaths.Form0581.REVEAL_IDENTIFIER)
+    @PreAuthorize(Permissions.HAS_PATIENT_IDENTIFIER_REVEAL)
+    public ApiResponse<RevealedPatientIdentifierResponse> revealIdentifier(
+            @Parameter(description = "Идентификатор формы №058-1.", required = true)
+            @PathVariable @Positive Long id,
+            @Parameter(description = "Идентификатор записи документа пациента.", required = true)
+            @PathVariable @Positive Long identifierId
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                form0581QueryService.revealIdentifier(id, identifierId)
         );
     }
 

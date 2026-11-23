@@ -85,7 +85,7 @@ public class AuditQueryService {
         return switch (entity.getEventType()) {
             case STATUS_CHANGED -> Map.of("status", Arrays.asList(entity.getOldStatus(), entity.getNewStatus()));
             case ORG_REASSIGNED -> Map.of("orgId", Arrays.asList(entity.getOldOrgId(), entity.getNewOrgId()));
-            case CREATED, FIELD_CHANGED -> entity.getChanges();
+            case CREATED, FIELD_CHANGED, SENSITIVE_DATA_REVEALED -> entity.getChanges();
         };
     }
 }

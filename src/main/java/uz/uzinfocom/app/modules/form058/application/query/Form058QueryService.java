@@ -27,7 +27,10 @@ import uz.uzinfocom.app.modules.form058.application.query.projection.Form058Tabl
 import uz.uzinfocom.app.modules.form058.domain.model.Form058;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.repository.Form058JpaRepository;
 import uz.uzinfocom.app.modules.form058.infrastructure.persistence.specification.Form058Specification;
+import uz.uzinfocom.app.modules.patient.application.query.dto.detail.RevealedPatientIdentifierResponse;
+import uz.uzinfocom.app.modules.patient.application.service.PatientIdentifierRevealService;
 import uz.uzinfocom.app.modules.patient.domain.enums.AffiliationType;
+import uz.uzinfocom.app.platform.audit.domain.AuditEntityType;
 import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationJpaRepository;
 import uz.uzinfocom.app.modules.patient.infrastructure.persistence.repository.PatientAffiliationOrganizationType;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
@@ -65,6 +68,7 @@ public class Form058QueryService {
     private final CardQueryService cardQueryService;
     private final ExplainRowCountEstimator explainRowCountEstimator;
     private final PatientAffiliationJpaRepository patientAffiliationRepository;
+    private final PatientIdentifierRevealService patientIdentifierRevealService;
 
     /**
      * Same direction-based scope switch as {@link #findAll} (including the super-admin
@@ -272,6 +276,19 @@ public class Form058QueryService {
                 auditResolver.resolve(form058),
                 linkedCards(form058.getId())
         );
+    }
+
+    /**
+     * Un-masks one identifier of this form's patient. Same visibility scope as {@link #getById};
+     * the controller additionally requires the reveal permission, and the access is audited.
+     */
+    public RevealedPatientIdentifierResponse revealIdentifier(Long id, Long identifierId) {
+        Form058 form058 = repository
+                .findOne(form058Specification.visibleById(id, currentScope()))
+                .orElseThrow(() -> new Form058NotFoundException(id));
+
+        return patientIdentifierRevealService.reveal(
+                form058.getPatient(), identifierId, AuditEntityType.FORM058, form058.getId());
     }
 
     public Form058DetailResponse getByNnuzb(String nnuzb) {

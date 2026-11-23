@@ -123,6 +123,9 @@ public final class Permissions {
     // --- SPEECH_TO_TEXT --------------------------------------------------------------------
     public static final String SPEECH_TO_TEXT_CREATE = "PERMISSION_SPEECH_TO_TEXT_CREATE";
 
+    // --- PATIENT_IDENTIFIER: un-masking a patient's document number on demand (audited) ----
+    public static final String PATIENT_IDENTIFIER_REVEAL = "PERMISSION_PATIENT_IDENTIFIER_REVEAL";
+
     // --- @PreAuthorize expressions ---------------------------------------------------------
     // Plain literal concatenation (no method call) so these stay compile-time constants.
     private static final String AUTHENTICATED_AND = "isAuthenticated() and hasAuthority('";
@@ -207,6 +210,7 @@ public final class Permissions {
     public static final String HAS_CARD_RETURN = AUTHENTICATED_AND + CARD_RETURN + AUTHORITY_END;
     public static final String HAS_CARD_ASSIGN = AUTHENTICATED_AND + CARD_ASSIGN + AUTHORITY_END;
     public static final String HAS_SPEECH_TO_TEXT_CREATE = AUTHENTICATED_AND + SPEECH_TO_TEXT_CREATE + AUTHORITY_END;
+    public static final String HAS_PATIENT_IDENTIFIER_REVEAL = AUTHENTICATED_AND + PATIENT_IDENTIFIER_REVEAL + AUTHORITY_END;
 
     // Reference/organization writes and syncs: legacy admin guard OR the permission (admin keeps today's access,
     // any other role can be granted it from the panel).

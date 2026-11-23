@@ -551,6 +551,7 @@ public final class ApiPaths {
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
         public static final String PDF = "/{id}/pdf";
+        public static final String REVEAL_IDENTIFIER = "/{id}/identifiers/{identifierId}/reveal";
         public static final String EXPORT = "/export";
 
         // Separate from the root listing (direction-scoped: sender/receiver)
@@ -600,6 +601,7 @@ public final class ApiPaths {
         public static final String CARDS = "/{id}/cards";
         public static final String ASSIGN_CARDS = "/{id}/cards/assign";
         public static final String PDF = "/{id}/pdf";
+        public static final String REVEAL_IDENTIFIER = "/{id}/identifiers/{identifierId}/reveal";
         public static final String EXPORT = "/export";
 
         // Same rationale as Form058.AFFILIATED - a form058-1 visible because
