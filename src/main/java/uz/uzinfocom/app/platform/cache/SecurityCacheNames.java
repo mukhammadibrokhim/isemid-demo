@@ -39,6 +39,13 @@ public final class SecurityCacheNames {
      */
     public static final String DEV_PANEL_PRINCIPAL = "devPanelPrincipal";
 
+    /**
+     * Whole dashboard responses ({@code /v1/dashboard/home[/{module}]}), keyed by
+     * module + current organization id + locale. Very short TTL: the numbers are
+     * aggregates over large tables, recomputed on every landing-page visit.
+     */
+    public static final String DASHBOARD_RESPONSE = "dashboardResponse";
+
     private SecurityCacheNames() {
     }
 }

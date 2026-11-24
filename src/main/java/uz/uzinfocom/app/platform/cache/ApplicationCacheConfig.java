@@ -51,6 +51,8 @@ public class ApplicationCacheConfig {
                 // long a revoked account keeps authenticating from cache.
                 cache(SecurityCacheNames.DEV_PANEL_PRINCIPAL, 200, Duration.ofMinutes(1)),
 
+                cache(SecurityCacheNames.DASHBOARD_RESPONSE, 5_000, Duration.ofSeconds(30)),
+
                 cache(AuditCacheConfig.AUDIT_USER_BY_ID, 50_000, Duration.ofHours(1)),
                 cache(OrganizationCacheConfig.ORGANIZATION_ID_BY_UUID, 20_000, Duration.ofHours(12)),
                 cache(OrganizationCacheConfig.ORGANIZATION_NAME_BY_ID, 20_000, Duration.ofHours(12)),

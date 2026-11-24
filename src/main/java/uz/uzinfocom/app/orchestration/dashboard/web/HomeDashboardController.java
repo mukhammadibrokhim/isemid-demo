@@ -13,6 +13,7 @@ import uz.uzinfocom.app.orchestration.dashboard.application.query.AirQualityDash
 import uz.uzinfocom.app.orchestration.dashboard.application.query.Form0581DashboardQueryService;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.Form058DashboardQueryService;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.Form129DashboardQueryService;
+import uz.uzinfocom.app.orchestration.dashboard.application.query.DashboardResponseCache;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.HomeDashboardQueryService;
 import uz.uzinfocom.app.orchestration.dashboard.application.query.dto.HomeDashboardResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
@@ -44,6 +45,7 @@ public class HomeDashboardController {
     private final Form058DashboardQueryService form058DashboardQueryService;
     private final Form0581DashboardQueryService form0581DashboardQueryService;
     private final Form129DashboardQueryService form129DashboardQueryService;
+    private final DashboardResponseCache dashboardResponseCache;
     private final MessageResolver messageResolver;
 
     @Operation(
@@ -57,7 +59,7 @@ public class HomeDashboardController {
     public ApiResponse<HomeDashboardResponse> home() {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                homeDashboardQueryService.getHome()
+                dashboardResponseCache.get("home", homeDashboardQueryService::getHome)
         );
     }
 
@@ -72,10 +74,10 @@ public class HomeDashboardController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Object> homeModule(@Parameter(description = "form058, form058-1, form129 или air-quality") @PathVariable String module) {
         Object data = switch (module) {
-            case MODULE_FORM058 -> form058DashboardQueryService.getDashboard();
-            case MODULE_FORM0581 -> form0581DashboardQueryService.getDashboard();
-            case MODULE_FORM129 -> form129DashboardQueryService.getDashboard();
-            case MODULE_AIR_QUALITY -> airQualityDashboardQueryService.getDashboard();
+            case MODULE_FORM058 -> dashboardResponseCache.get(module, form058DashboardQueryService::getDashboard);
+            case MODULE_FORM0581 -> dashboardResponseCache.get(module, form0581DashboardQueryService::getDashboard);
+            case MODULE_FORM129 -> dashboardResponseCache.get(module, form129DashboardQueryService::getDashboard);
+            case MODULE_AIR_QUALITY -> dashboardResponseCache.get(module, airQualityDashboardQueryService::getDashboard);
             default -> throw new NotFoundException("dashboard.module.not_found", module);
         };
 
