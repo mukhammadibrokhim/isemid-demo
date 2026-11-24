@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AirQualityDashboardQueryServiceTest {
 
     private static AirStationStatusResponse station(long id, AirStatus status, LocalDateTime measuredAt) {
-        AirStationResponse base = new AirStationResponse(id, "ext" + id, "S" + id, null, null, null, "1726", null, true, measuredAt);
+        AirStationResponse base = new AirStationResponse(id, "ext" + id, "S" + id, null, null, null, "Toshkent shahri", null, true, measuredAt);
         return new AirStationStatusResponse(base, measuredAt, status, null, null, List.of());
     }
 

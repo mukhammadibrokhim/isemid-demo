@@ -17,6 +17,7 @@ import uz.uzinfocom.app.modules.airquality.domain.AirMeasurement;
 import uz.uzinfocom.app.modules.airquality.domain.AirStation;
 import uz.uzinfocom.app.modules.airquality.repository.AirMeasurementRepository;
 import uz.uzinfocom.app.modules.airquality.repository.AirStationRepository;
+import uz.uzinfocom.app.modules.reference.application.lookup.ReferenceLookupService;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 
 import java.math.BigDecimal;
@@ -40,13 +41,14 @@ public class AirQualityQueryService {
     private final AirStationRepository stationRepository;
     private final AirMeasurementRepository measurementRepository;
     private final AirQualityNorms norms;
+    private final ReferenceLookupService referenceLookupService;
 
     public List<AirStationResponse> stations(String regionCode, String districtCode, boolean activeOnly) {
         return stationRepository.findAllByOrderByNameAscIdAsc().stream()
                 .filter(station -> !StringUtils.hasText(regionCode) || regionCode.equals(station.getRegionCode()))
                 .filter(station -> !StringUtils.hasText(districtCode) || districtCode.equals(station.getDistrictCode()))
                 .filter(station -> !activeOnly || Boolean.TRUE.equals(station.getActive()))
-                .map(AirQualityQueryService::toResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -125,11 +127,12 @@ public class AirQualityQueryService {
                 .orElseThrow(() -> new NotFoundException("air-quality.station.not_found"));
     }
 
-    private static AirStationResponse toResponse(AirStation station) {
+    private AirStationResponse toResponse(AirStation station) {
         return new AirStationResponse(
                 station.getId(), station.getExternalId(), station.getName(),
                 station.getLatitude(), station.getLongitude(), station.getSoatoId(),
-                station.getRegionCode(), station.getDistrictCode(),
+                referenceLookupService.getRegionName(station.getRegionCode()),
+                referenceLookupService.getDistrictName(station.getDistrictCode()),
                 Boolean.TRUE.equals(station.getActive()), station.getLastMeasuredAt());
     }
 

@@ -13,8 +13,8 @@ public record AirStationResponse(
         @Schema(description = "Latitude; may be absent.") BigDecimal latitude,
         @Schema(description = "Longitude; may be absent.") BigDecimal longitude,
         @Schema(description = "SOATO code as sent by AIR_CONTROL.", example = "1726266") Integer soatoId,
-        @Schema(description = "Resolved ref_region code; null when the SOATO code matches nothing.") String regionCode,
-        @Schema(description = "Resolved ref_district code; null when unresolved or region-level.") String districtCode,
+        @Schema(description = "Region name in the request locale; null when the SOATO code matches nothing.") String regionName,
+        @Schema(description = "District name in the request locale; null when unresolved or region-level.") String districtName,
         @Schema(description = "Whether the station is in operation.") boolean active,
         @Schema(description = "Time of the newest stored measurement (station local time).") LocalDateTime lastMeasuredAt
 ) {
