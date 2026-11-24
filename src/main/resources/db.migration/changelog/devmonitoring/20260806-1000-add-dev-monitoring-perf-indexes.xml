@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260806-1000-01-add-dev-error-log-trace-id-index" author="codex">
+        <comment>
+            DevErrorLogSpecification.byFilter filters by traceId, but no
+            index backed it - every GET /v1/dev/errors?traceId=... forced a
+            full table scan for both the page query and its COUNT(*).
+        </comment>
+        <createIndex tableName="dev_error_log" indexName="idx_dev_error_log_trace_id">
+            <column name="trace_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260806-1000-02-add-dev-error-log-status-occurred-at-index" author="codex">
+        <comment>
+            The dashboard's dominant query shape is "errors with this status
+            in this time range" (status + occurred_at together). The existing
+            single-column indexes let Postgres bitmap-AND them, but a
+            composite index serves that combination directly as the table
+            grows.
+        </comment>
+        <createIndex tableName="dev_error_log" indexName="idx_dev_error_log_status_occurred_at">
+            <column name="status"/>
+            <column name="occurred_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260806-1000-03-add-dev-login-history-success-index" author="codex">
+        <comment>
+            DevLoginHistorySpecification.byFilter filters by success, which
+            had no index - typically combined with an occurred_at range for
+            "recent failed logins" style queries.
+        </comment>
+        <createIndex tableName="dev_login_history" indexName="idx_dev_login_history_success">
+            <column name="success"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

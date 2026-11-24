@@ -33,12 +33,17 @@ import java.util.List;
 @AllArgsConstructor
 public class Act153 extends Act {
 
-    @Column(name = "act_number")
-    private Long actNumber;
-
     @Column(name = "activity_type_code")
     private String activityTypeCode;
 
+    /**
+     * «Namuna olish uchun asos» — a {@code ref_catalog} code of type
+     * {@link #SAMPLING_BASIS_CATALOG_TYPE}; names are resolved on read.
+     */
+    @Column(name = "sampling_basis_code", length = 50)
+    private String samplingBasisCode;
+
+    /** Free-text basis carried by legacy-migrated acts only; never written for new ones. */
     @Column(name = "sampling_documents", columnDefinition = "TEXT")
     private String samplingDocuments;
 
@@ -59,7 +64,9 @@ public class Act153 extends Act {
             @AttributeOverride(name = "fullName", column = @Column(name = "sampler_full_name")),
             @AttributeOverride(name = "positionId", column = @Column(name = "sampler_position_id")),
             @AttributeOverride(name = "positionUz", column = @Column(name = "sampler_position_uz")),
-            @AttributeOverride(name = "positionRu", column = @Column(name = "sampler_position_ru"))
+            @AttributeOverride(name = "positionRu", column = @Column(name = "sampler_position_ru")),
+            @AttributeOverride(name = "identifierType", column = @Column(name = "sampler_identifier_type")),
+            @AttributeOverride(name = "identifierValue", column = @Column(name = "sampler_identifier_value"))
     })
     private EmployeeInfo sampler;
 
@@ -68,7 +75,9 @@ public class Act153 extends Act {
             @AttributeOverride(name = "fullName", column = @Column(name = "participant_full_name")),
             @AttributeOverride(name = "positionId", column = @Column(name = "participant_position_id")),
             @AttributeOverride(name = "positionUz", column = @Column(name = "participant_position_uz")),
-            @AttributeOverride(name = "positionRu", column = @Column(name = "participant_position_ru"))
+            @AttributeOverride(name = "positionRu", column = @Column(name = "participant_position_ru")),
+            @AttributeOverride(name = "identifierType", column = @Column(name = "participant_identifier_type")),
+            @AttributeOverride(name = "identifierValue", column = @Column(name = "participant_identifier_value"))
     })
     private EmployeeInfo participant;
 

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Xodimlar subject'i USER emas, EMPLOYEES deb nomlanadi.
+
+        20261118-1000 yangi subject'ni USER deb qo'shgan edi (eski STAFF va EMPLOYEES grantlari
+        ham shunga ko'chirilgan edi). Bu yerda USER -> EMPLOYEES:
+          - EMPLOYEES qatori bo'lmasa yaratiladi, bor bo'lsa (20261118-1400 uni soft-delete
+            qilgan bo'lishi mumkin) qayta faollashtiriladi; mavjud tavsiflar saqlanadi,
+            bo'sh qolganlari USER'dan to'ldiriladi;
+          - USER'ning barcha rol grantlari EMPLOYEES'ga ko'chiriladi (action'lar birlashtiriladi);
+          - USER qatori va uning grantlari o'chiriladi.
+        Mavjud changeSet'lar (1000, 1200, 1400) o'zgartirilmaydi - checksum buzilmasin.
+        Idempotent: USER qatori qolmasa hech narsa qilmaydi.
+    -->
+    <changeSet id="20261118-1500-01-rename-user-subject-to-employees" author="uzinfocom">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+            <tableExists tableName="role_permissions"/>
+            <tableExists tableName="role_permission_actions"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril, description_kaa)
+            SELECT 'EMPLOYEES', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                   u.description_uz, u.description_ru, u.description_uz_cyril, u.description_kaa
+            FROM permission u
+            WHERE u.subject = 'USER'
+            ON CONFLICT (subject) DO UPDATE SET
+                active = true,
+                deleted = false,
+                deleted_at = NULL,
+                updated_at = CURRENT_TIMESTAMP,
+                description_uz = COALESCE(permission.description_uz, EXCLUDED.description_uz),
+                description_ru = COALESCE(permission.description_ru, EXCLUDED.description_ru),
+                description_uz_cyril = COALESCE(permission.description_uz_cyril, EXCLUDED.description_uz_cyril),
+                description_kaa = COALESCE(permission.description_kaa, EXCLUDED.description_kaa);
+
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT DISTINCT rp.role_id, e.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role_permissions rp
+            JOIN permission u ON u.id = rp.permission_id AND u.subject = 'USER'
+            JOIN permission e ON e.subject = 'EMPLOYEES'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT DISTINCT nrp.id, rpa.action_id
+            FROM role_permissions rp
+            JOIN permission u ON u.id = rp.permission_id AND u.subject = 'USER'
+            JOIN role_permission_actions rpa ON rpa.role_permission_id = rp.id
+            JOIN permission e ON e.subject = 'EMPLOYEES'
+            JOIN role_permissions nrp ON nrp.role_id = rp.role_id AND nrp.permission_id = e.id
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+
+            DELETE FROM role_permission_actions
+            WHERE role_permission_id IN (
+                SELECT rp.id FROM role_permissions rp
+                JOIN permission u ON u.id = rp.permission_id AND u.subject = 'USER'
+            );
+
+            DELETE FROM role_permissions
+            WHERE permission_id IN (SELECT id FROM permission WHERE subject = 'USER');
+
+            DELETE FROM permission WHERE subject = 'USER';
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        isemid_user roli hech qachon ishlatilmagan: 20260730-1000 da boshlang'ich seed sifatida
+        qo'shilgan, hech bir hujjatdagi rol ro'yxatida yo'q, grantlari yo'q. Soft-delete qilinadi,
+        lekin FAQAT unga biriktirilgan foydalanuvchi bo'lmasa (aks holda ular rolini yo'qotardi).
+    -->
+    <changeSet id="20261118-1500-02-retire-unused-isemid-user-role" author="uzinfocom">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role"/>
+            <tableExists tableName="user_roles"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE role
+            SET active = false, deleted = true, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE name = 'isemid_user'
+              AND deleted_at IS NULL
+              AND NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.role_id = role.id);
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

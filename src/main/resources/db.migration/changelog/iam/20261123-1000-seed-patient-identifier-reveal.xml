@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Bemor hujjat raqamlarini (PINFL, pasport va h.k.) javoblarda maskalangan holda
+        ko'rsatish; to'liq ko'rish faqat ruxsati bor foydalanuvchiga va faqat alohida so'rov bilan:
+        POST /v1/form-058/{id}/identifiers/{identifierId}/reveal (va form-058-1) ->
+        PERMISSION_PATIENT_IDENTIFIER_REVEAL. Har bir ochish audit_event'ga
+        SENSITIVE_DATA_REVEALED sifatida yoziladi.
+
+        Hech bir oddiy rolga default berilmaydi (shaxsiy ma'lumot): admin panelidan
+        Role -> Permission (PATIENT_IDENTIFIER + REVEAL) orqali kerakli rollarga beriladi.
+        isemid_super_admin / isemid_admin uchun zzz-rbac-grants/20260828-1200 runAlways
+        changeset'i o'zi beradi.
+    -->
+    <changeSet id="20261123-1000-01-seed-patient-identifier-reveal" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('PATIENT_IDENTIFIER', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Bemor hujjat raqamlari (PINFL, pasport va h.k.) bilan ishlash.',
+                 'Работа с номерами документов пациента (ПИНФЛ, паспорт и т.д.).',
+                 'Бемор ҳужжат рақамлари (ПИНФЛ, паспорт ва ҳ.к.) билан ишлаш.',
+                 'Nawqas hújjet nomerleri (PINFL, pasport h.t.b.) menen islew.')
+            ON CONFLICT (subject) DO NOTHING;
+
+            INSERT INTO action (code, active, deleted, version, created_at, updated_at,
+                                 description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('REVEAL', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Maskalangan qiymatni to''liq ko''rsatish (har bir ochish auditga yoziladi).',
+                 'Показать маскированное значение полностью (каждое открытие фиксируется в аудите).',
+                 'Маскаланган қийматни тўлиқ кўрсатиш (ҳар бир очиш аудитга ёзилади).',
+                 'Maskalanǵan mánisti tolıq kórsetiw (hár bir ashıw auditke jazıladı).')
+            ON CONFLICT (code) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>

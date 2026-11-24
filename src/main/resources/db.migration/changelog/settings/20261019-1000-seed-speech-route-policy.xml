@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        /v1/speech/** - voice input (speech-to-text via Muxlisa AI). Same policy as the
+        other outbound-lookup routes (/v1/dhp/**, /v1/citizen/**): an authenticated
+        caller with a validated role, no X-Organization header. Without a row the route
+        would fall back to the fail-closed default, which also demands the organization
+        header. The per-role gate itself is PERMISSION_SPEECH_TO_TEXT_CREATE on the controller.
+
+        WHERE NOT EXISTS keeps the changeset a no-op if an operator already added the
+        route through the dev panel (the pattern column is unique).
+    -->
+    <changeSet id="20261019-1000-01-seed-speech-route-policy" author="uzinfocom">
+        <sql>
+            INSERT INTO security_route_policy
+                (created_at, updated_at, version, pattern, display_order, open,
+                 organization_header_required, role_validation_required, enabled, description)
+            SELECT now(), now(), 0, '/v1/speech/**', 22, false,
+                   false, true, true,
+                   'Voice input (speech-to-text via Muxlisa AI) - authenticated, no org header.'
+            WHERE NOT EXISTS (SELECT 1 FROM security_route_policy WHERE pattern = '/v1/speech/**');
+        </sql>
+        <rollback>
+            DELETE FROM security_route_policy WHERE pattern = '/v1/speech/**';
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

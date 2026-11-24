@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        IntegrationPatientAffiliationRequest accepts organizationName up to
+        500 and address up to 1000 characters, but pt_affiliation had both as
+        VARCHAR(255), so a longer value passed validation and then failed on
+        insert. Widen the columns to match the request limits.
+    -->
+    <changeSet id="20261028-1000-01-widen-affiliation-organization-name-address" author="claude">
+        <modifyDataType tableName="pt_affiliation" columnName="organization_name" newDataType="VARCHAR(500)"/>
+        <modifyDataType tableName="pt_affiliation" columnName="address" newDataType="VARCHAR(1000)"/>
+    </changeSet>
+
+</databaseChangeLog>

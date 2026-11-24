@@ -44,12 +44,12 @@ public class CardTube extends Card {
     @Column(name = "dispensary_id", length = 64)
     private String dispensaryId;
 
-    @CatalogCode("mkb10")
-    @Column(name = "mkb10_code", length = 64)
-    private String mkb10Code;
+    @CatalogCode("icd10")
+    @Column(name = "icd10_code", length = 64)
+    private String icd10Code;
 
-    @Column(name = "mkb10_name", length = 500)
-    private String mkb10Name;
+    @Column(name = "icd10_name", length = 500)
+    private String icd10Name;
 
     @Column(name = "first_mb_date")
     private LocalDate firstMBDate;
@@ -95,12 +95,12 @@ public class CardTube extends Card {
     @Column(name = "dispensary_group", length = 255)
     private String dispensaryGroup;
 
-    @CatalogCode("mkb10")
-    @Column(name = "dg_mkb10_code", length = 64)
-    private String dgMkb10Code;
+    @CatalogCode("icd10")
+    @Column(name = "dg_icd10_code", length = 64)
+    private String dgIcd10Code;
 
-    @Column(name = "dg_mkb10_name", length = 500)
-    private String dgMkb10Name;
+    @Column(name = "dg_icd10_name", length = 500)
+    private String dgIcd10Name;
 
     @ElementCollection
     @CollectionTable(name = "card_tube_checkup_dates", joinColumns = @JoinColumn(name = "card_tube_id"))

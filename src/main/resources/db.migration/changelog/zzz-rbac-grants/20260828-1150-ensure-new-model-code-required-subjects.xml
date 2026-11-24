@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Yangi nomlash modelida (docs/permission-naming-mapping.md) kod @PreAuthorize bilan
+        tekshiradigan subject va action'lar (platform.security.auth.Permissions) har startda
+        faol va o'chirilmagan holatda bo'lishi kerak: ularsiz authority hosil bo'lmaydi va
+        hamma foydalanuvchi jim 403 oladi (REPORTS bilan shunday bo'lgan - 01a changeSet).
+
+        Fayl nomi ataylab 20260828-1200-sync-super-admin-full-access.xml'dan OLDIN tartiblanadi
+        (includeAll yo'l bo'yicha alifbo tartibida yuritadi): bu yerda qayta faollashtirilgan
+        qatorlarni o'sha fayldagi runAlways sinxronlash shu yugurishdayoq super_admin/admin'ga
+        beradi. Qatorlarning o'zi iam/20261118-1000-permission-model-expand.xml da yaratiladi;
+        bu changeSet faqat yangilaydi (qator yo'q bo'lsa hech narsa qilmaydi).
+    -->
+    <changeSet id="20261118-1150-01-ensure-new-model-code-required-subjects" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE permission
+            SET active = true, deleted = false, deleted_at = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE subject IN ('REPORT', 'REPORT_ENTRY', 'ANALYTIC_REPORT', 'ACT', 'CARD', 'SPEECH_TO_TEXT')
+              AND (active = false OR deleted = true OR deleted_at IS NOT NULL);
+
+            UPDATE action
+            SET active = true, deleted = false, deleted_at = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE code IN ('READ', 'CREATE', 'UPDATE', 'DELETE', 'EXPORT', 'ASSIGN', 'VIEW_ALL')
+              AND (active = false OR deleted = true OR deleted_at IS NOT NULL);
+        ]]></sql>
+    </changeSet>
+
+    <!--
+        Reference/organization yozish va sync endpoint'lari (admin guard YOKI permission) kodda
+        endi PERMISSION_<SUBJECT>_{CREATE|UPDATE|DELETE|SYNC|READ} ni ham qabul qiladi, shuning
+        uchun bu subject'lar va SYNC action'i faol bo'lishi kerak.
+    -->
+    <changeSet id="20261118-1150-02-ensure-reference-write-subjects" author="uzinfocom" runAlways="true">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril)
+            VALUES ('MANUAL_REPORT', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                    'Qo''lda hisobot katalogi.', 'Каталог ручных отчётов.', 'Қўлда ҳисобот каталоги.')
+            ON CONFLICT (subject) DO NOTHING;
+
+            UPDATE permission
+            SET active = true, deleted = false, deleted_at = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE subject IN ('COUNTRY', 'REGION', 'DISTRICT', 'NEIGHBORHOOD', 'POPULATION', 'CATALOG',
+                              'ICD10', 'MANUAL_REPORT', 'ORGANIZATION')
+              AND (active = false OR deleted = true OR deleted_at IS NOT NULL);
+
+            UPDATE action
+            SET active = true, deleted = false, deleted_at = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE code = 'SYNC'
+              AND (active = false OR deleted = true OR deleted_at IS NOT NULL);
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

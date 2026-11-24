@@ -10,13 +10,20 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uz.uzinfocom.app.modules.form058.application.export.Form058ExcelExportSource;
+import uz.uzinfocom.app.modules.form058.application.query.Form058AffiliatedFilter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058Filter;
 import uz.uzinfocom.app.modules.form058.application.query.Form058QueryService;
+import uz.uzinfocom.app.modules.form058.application.query.dto.Form058AffiliatedTableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.Form058TableResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.detail.Form058DetailResponse;
 import uz.uzinfocom.app.modules.form058.application.query.dto.pdf.Form058PdfResponse;
+import uz.uzinfocom.app.modules.patient.application.query.dto.detail.RevealedPatientIdentifierResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -37,6 +44,8 @@ public class Form058QueryController {
     private final Form058QueryService form058QueryService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
+    private final ExportJobService exportJobService;
+    private final Form058ExcelExportSource form058ExcelExportSource;
 
     @Operation(
             summary = "Список форм №058",
@@ -44,7 +53,7 @@ public class Form058QueryController {
                     + "организациям-отправителю/получателю и другим параметрам."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM058_LIST)
     public PagedResponse<Form058TableResponse> findAll(
             @ParameterObject @Valid Form058Filter filter,
             HttpServletRequest httpRequest
@@ -54,12 +63,33 @@ public class Form058QueryController {
     }
 
     @Operation(
+            summary = "Список форм №058, доступных через affiliation пациента",
+            description = "Возвращает постраничный список форм, видимых текущей организации не как "
+                    + "отправителю/получателю, а потому что место работы или учёбы пациента (affiliation) "
+                    + "совпадает с текущей организацией — например, для санэпидстанции, обслуживающей "
+                    + "предприятие или учебное заведение. Отдельный эндпоинт вместо флага в общем списке: "
+                    + "область видимости здесь принципиально другая (не sender/receiver), поэтому и "
+                    + "набор фильтров отличается — нет direction и organizationId. Каждая строка дополнительно "
+                    + "помечена типом принадлежности (affiliationType: WORKPLACE/EDUCATIONAL), объясняющим, "
+                    + "почему форма видна именно этой организации."
+    )
+    @GetMapping(ApiPaths.Form058.AFFILIATED)
+    @PreAuthorize(Permissions.HAS_FORM058_READ_RECEIVED)
+    public PagedResponse<Form058AffiliatedTableResponse> findAllAffiliated(
+            @ParameterObject @Valid Form058AffiliatedFilter filter,
+            HttpServletRequest httpRequest
+    ) {
+        return pagedResponseAssembler
+                .toResponse(form058QueryService.findAllAffiliated(filter), messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @Operation(
             summary = "Найти форму №058 по ПИНФЛ пациента",
             description = "Возвращает детальные сведения о форме по идентификационному номеру физического "
                     + "лица (ПИНФЛ/nnuzb) пациента."
     )
     @GetMapping("/by-nnuzb")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM058_READ_ANY)
     public ApiResponse<Form058DetailResponse> byNnuzb(
             @Parameter(description = "Идентификационный номер физического лица (ПИНФЛ) пациента.", required = true)
             @RequestParam @NotBlank String nnuzb
@@ -76,7 +106,7 @@ public class Form058QueryController {
                     + "эпидемиологическую информацию и данные пациента."
     )
     @GetMapping(ApiPaths.Form058.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM058_READ_ANY)
     public ApiResponse<Form058DetailResponse> byId(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id
@@ -94,7 +124,7 @@ public class Form058QueryController {
                     + "возникновения заболевания и т.д.) приведены к человекочитаемым наименованиям."
     )
     @GetMapping(ApiPaths.Form058.PDF)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM058_READ_ANY)
     public ApiResponse<Form058PdfResponse> pdf(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id
@@ -102,6 +132,45 @@ public class Form058QueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 form058QueryService.getPdf(id)
+        );
+    }
+
+    @Operation(
+            summary = "Показать полное значение документа пациента формы №058",
+            description = "В ответах формы номера документов маскируются. Этот эндпоинт возвращает одно "
+                    + "значение полностью — только при наличии права PERMISSION_PATIENT_IDENTIFIER_REVEAL и "
+                    + "только для формы, видимой организации вызывающего. Каждый вызов фиксируется в аудите "
+                    + "(кто, какой документ, когда); значение в аудит не пишется. POST — чтобы ответ не "
+                    + "кэшировался и не предзагружался."
+    )
+    @PostMapping(ApiPaths.Form058.REVEAL_IDENTIFIER)
+    @PreAuthorize(Permissions.HAS_PATIENT_IDENTIFIER_REVEAL)
+    public ApiResponse<RevealedPatientIdentifierResponse> revealIdentifier(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
+            @PathVariable @Positive Long id,
+            @Parameter(description = "Идентификатор записи документа пациента.", required = true)
+            @PathVariable @Positive Long identifierId
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                form058QueryService.revealIdentifier(id, identifierId)
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт списка форм №058 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по тем же фильтрам, что и список "
+                    + "форм. Прогресс и скачивание готового файла — через /v1/exports (см. соответствующие "
+                    + "методы)."
+    )
+    @PostMapping(ApiPaths.Form058.EXPORT)
+    @PreAuthorize(Permissions.GUARD_FORM058_LIST)
+    public ApiResponse<ExportJobResponse> export(
+            @ParameterObject @Valid Form058Filter filter
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(form058ExcelExportSource, filter)
         );
     }
 }

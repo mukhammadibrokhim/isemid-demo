@@ -23,6 +23,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * Exclusively {@code /v1/acts/*} — listing acts under a specific card lives
@@ -44,13 +45,29 @@ public class ActQueryController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
+            summary = "Список актов",
+            description = "Возвращает постраничный список актов в пределах области видимости организации "
+                    + "текущего пользователя (см. заголовок X-Organization-Id), независимо от того, на кого "
+                    + "акт назначен."
+    )
+    @GetMapping
+    @PreAuthorize(Permissions.HAS_ACT_VIEW_ALL)
+    public PagedResponse<ActTableResponse> findAll(
+            @ParameterObject @Valid ActFilterRequest filter,
+            HttpServletRequest httpRequest
+    ) {
+        return pagedResponseAssembler
+                .toResponse(actQueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @Operation(
             summary = "Мои акты",
             description = "Возвращает постраничный список актов, прикреплённых к текущему авторизованному "
                     + "сотруднику. Область видимости всегда определяется на сервере по авторизованному "
                     + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно."
     )
     @GetMapping(ApiPaths.Act.MINE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_ACT_READ)
     public PagedResponse<ActTableResponse> findMine(
             @ParameterObject @Valid ActFilterRequest filter,
             HttpServletRequest httpRequest
@@ -64,7 +81,7 @@ public class ActQueryController {
             description = "Возвращает полную детальную информацию по акту."
     )
     @GetMapping(ApiPaths.Act.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_ACT_READ)
     public ApiResponse<ActDetailResponse> byId(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id
@@ -81,7 +98,7 @@ public class ActQueryController {
                     + "для отрисовки печатной формы (далолатномы) в PDF."
     )
     @GetMapping(ApiPaths.Act.PDF)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_ACT_READ)
     public ApiResponse<ActDetailResponse> pdf(
             @Parameter(description = "Идентификатор акта.", required = true)
             @PathVariable @Positive Long id

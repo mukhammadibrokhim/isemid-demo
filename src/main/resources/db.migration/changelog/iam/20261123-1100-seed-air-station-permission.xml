@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Havo monitoring stansiyalari (AIR_CONTROL) jadvali:
+        GET  /v1/air-quality/stations[/{id}/latest|/measurements]  -> PERMISSION_AIR_STATION_READ
+        POST /v1/air-quality/sync, /stations/{id}/sync              -> PERMISSION_AIR_STATION_SYNC
+
+        READ va SYNC action'lari allaqachon mavjud; faqat yangi AIR_STATION subject'i seed qilinadi.
+        Hech bir oddiy rolga default berilmaydi: admin panelidan Role -> Permission
+        (AIR_STATION + READ / SYNC) orqali kerakli rollarga beriladi. isemid_super_admin /
+        isemid_admin uchun zzz-rbac-grants runAlways changeset'i o'zi beradi.
+    -->
+    <changeSet id="20261123-1100-01-seed-air-station-permission" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            INSERT INTO permission (subject, active, deleted, version, created_at, updated_at,
+                                     description_uz, description_ru, description_uz_cyril, description_kaa)
+            VALUES
+                ('AIR_STATION', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+                 'Havo monitoring stansiyalari va ularning o''lchovlari (AIR_CONTROL).',
+                 'Станции мониторинга воздуха и их измерения (AIR_CONTROL).',
+                 'Ҳаво мониторинг станциялари ва уларнинг ўлчовлари (AIR_CONTROL).',
+                 'Hawa monitoring stanciyaları hám olardıń ólshewleri (AIR_CONTROL).')
+            ON CONFLICT (subject) DO NOTHING;
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>

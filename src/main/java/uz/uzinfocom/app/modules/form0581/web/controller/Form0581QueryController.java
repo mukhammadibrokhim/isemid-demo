@@ -9,17 +9,26 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
+import uz.uzinfocom.app.modules.form0581.application.export.Form0581ExcelExportSource;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581AffiliatedFilter;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581Filter;
 import uz.uzinfocom.app.modules.form0581.application.query.Form0581QueryService;
+import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581AffiliatedTableResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.Form0581TableResponse;
 import uz.uzinfocom.app.modules.form0581.application.query.dto.detail.Form0581DetailResponse;
+import uz.uzinfocom.app.modules.form0581.application.query.dto.pdf.Form0581PdfResponse;
+import uz.uzinfocom.app.modules.patient.application.query.dto.detail.RevealedPatientIdentifierResponse;
+import uz.uzinfocom.app.platform.export.application.ExportJobService;
+import uz.uzinfocom.app.platform.export.application.dto.ExportJobResponse;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -40,6 +49,8 @@ public class Form0581QueryController {
     private final Form0581QueryService form0581QueryService;
     private final MessageResolver messageResolver;
     private final PagedResponseAssembler pagedResponseAssembler;
+    private final ExportJobService exportJobService;
+    private final Form0581ExcelExportSource form0581ExcelExportSource;
 
     @Operation(
             summary = "Список форм №058-1",
@@ -47,7 +58,7 @@ public class Form0581QueryController {
                     + "организациям-отправителю/получателю и другим параметрам."
     )
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_LIST)
     public PagedResponse<Form0581TableResponse> findAll(
             @ParameterObject @Valid Form0581Filter filter,
             HttpServletRequest httpRequest
@@ -57,12 +68,33 @@ public class Form0581QueryController {
     }
 
     @Operation(
+            summary = "Список форм №058-1, доступных через affiliation пациента",
+            description = "Возвращает постраничный список форм, видимых текущей организации не как "
+                    + "отправителю/получателю, а потому что место работы или учёбы пациента (affiliation) "
+                    + "совпадает с текущей организацией — например, для санэпидстанции, обслуживающей "
+                    + "предприятие или учебное заведение. Отдельный эндпоинт вместо флага в общем списке: "
+                    + "область видимости здесь принципиально другая (не sender/receiver), поэтому и "
+                    + "набор фильтров отличается — нет direction и organizationId. Каждая строка дополнительно "
+                    + "помечена типом принадлежности (affiliationType: WORKPLACE/EDUCATIONAL), объясняющим, "
+                    + "почему форма видна именно этой организации."
+    )
+    @GetMapping(ApiPaths.Form0581.AFFILIATED)
+    @PreAuthorize(Permissions.HAS_FORM0581_READ_RECEIVED)
+    public PagedResponse<Form0581AffiliatedTableResponse> findAllAffiliated(
+            @ParameterObject @Valid Form0581AffiliatedFilter filter,
+            HttpServletRequest httpRequest
+    ) {
+        return pagedResponseAssembler
+                .toResponse(form0581QueryService.findAllAffiliated(filter), messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @Operation(
             summary = "Найти форму №058-1 по документу пациента",
             description = "Возвращает детальные сведения о форме по значению документа, удостоверяющего "
                     + "личность пациента (ПИНФЛ, паспорт и т. п.)."
     )
     @GetMapping(ApiPaths.Form0581.BY_DOCUMENT_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<Form0581DetailResponse> byDocumentValue(
             @Parameter(description = "Значение документа, удостоверяющего личность пациента.", required = true)
             @RequestParam @NotBlank String documentValue
@@ -79,7 +111,7 @@ public class Form0581QueryController {
                     + "животном и данные пациента."
     )
     @GetMapping(ApiPaths.Form0581.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<Form0581DetailResponse> byId(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id
@@ -87,6 +119,63 @@ public class Form0581QueryController {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
                 form0581QueryService.getById(id)
+        );
+    }
+
+    @Operation(
+            summary = "Показать полное значение документа пациента формы №058-1",
+            description = "В ответах формы номера документов маскируются. Этот эндпоинт возвращает одно "
+                    + "значение полностью — только при наличии права PERMISSION_PATIENT_IDENTIFIER_REVEAL и "
+                    + "только для формы, видимой организации вызывающего. Каждый вызов фиксируется в аудите "
+                    + "(кто, какой документ, когда); значение в аудит не пишется. POST — чтобы ответ не "
+                    + "кэшировался и не предзагружался."
+    )
+    @PostMapping(ApiPaths.Form0581.REVEAL_IDENTIFIER)
+    @PreAuthorize(Permissions.HAS_PATIENT_IDENTIFIER_REVEAL)
+    public ApiResponse<RevealedPatientIdentifierResponse> revealIdentifier(
+            @Parameter(description = "Идентификатор формы №058-1.", required = true)
+            @PathVariable @Positive Long id,
+            @Parameter(description = "Идентификатор записи документа пациента.", required = true)
+            @PathVariable @Positive Long identifierId
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                form0581QueryService.revealIdentifier(id, identifierId)
+        );
+    }
+
+    @Operation(
+            summary = "Сведения формы №058-1 для печатного бланка",
+            description = "Возвращает сведения по форме в виде, готовом для печатного бланка формы №058-1: "
+                    + "все коды справочников (регион, район, пол, семейное положение, профессия, категория "
+                    + "животного и т.д.) приведены к человекочитаемым наименованиям."
+    )
+    @GetMapping(ApiPaths.Form0581.PDF)
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
+    public ApiResponse<Form0581PdfResponse> pdf(
+            @Parameter(description = "Идентификатор формы №058-1.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.success"),
+                form0581QueryService.getPdf(id)
+        );
+    }
+
+    @Operation(
+            summary = "Экспорт списка форм №058-1 в Excel",
+            description = "Ставит в очередь фоновую задачу экспорта в Excel по тем же фильтрам, что и список "
+                    + "форм. Прогресс и скачивание готового файла — через /v1/exports (см. соответствующие "
+                    + "методы)."
+    )
+    @PostMapping(ApiPaths.Form0581.EXPORT)
+    @PreAuthorize(Permissions.GUARD_FORM0581_LIST)
+    public ApiResponse<ExportJobResponse> export(
+            @ParameterObject @Valid Form0581Filter filter
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("export.job.submitted"),
+                exportJobService.submit(form0581ExcelExportSource, filter)
         );
     }
 }

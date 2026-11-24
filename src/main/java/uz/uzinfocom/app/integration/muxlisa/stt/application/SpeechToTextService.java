@@ -1,0 +1,92 @@
+package uz.uzinfocom.app.integration.muxlisa.stt.application;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import uz.uzinfocom.app.integration.muxlisa.common.properties.MuxlisaProperties;
+import uz.uzinfocom.app.integration.muxlisa.common.properties.MuxlisaSettingKeys;
+import uz.uzinfocom.app.integration.muxlisa.stt.client.MuxlisaSttClient;
+import uz.uzinfocom.app.integration.muxlisa.stt.web.dto.SpeechToTextResponse;
+import uz.uzinfocom.app.integration.muxlisa.common.exception.InvalidAudioException;
+import uz.uzinfocom.app.platform.settings.application.SystemSettingResolver;
+
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * Validates a recording before it leaves our server (non-empty, within Muxlisa's
+ * size limit, a format Muxlisa accepts) and hands it to {@link MuxlisaSttClient}.
+ * Muxlisa also caps the audio at 60 seconds; that is enforced by Muxlisa itself
+ * (it answers 400/422, surfaced as a rejected request) since the duration cannot
+ * be read reliably across all the accepted containers without decoding them.
+ */
+@Service
+@RequiredArgsConstructor
+public class SpeechToTextService {
+
+    /** Muxlisa-supported MIME subtypes -> file extension sent along with the upload. */
+    private static final Map<String, String> EXTENSIONS = Map.ofEntries(
+            Map.entry("audio/mpeg", "mp3"),
+            Map.entry("audio/x-wav", "wav"),
+            Map.entry("audio/vnd.wav", "wav"),
+            Map.entry("audio/wav", "wav"),
+            Map.entry("audio/wave", "wav"),
+            Map.entry("audio/ogg", "ogg"),
+            Map.entry("audio/flac", "flac"),
+            Map.entry("audio/x-m4a", "m4a"),
+            Map.entry("audio/aac", "aac"),
+            Map.entry("audio/mp4", "mp4"),
+            Map.entry("video/mp4", "mp4"),
+            Map.entry("audio/webm", "webm"),
+            Map.entry("video/webm", "webm"),
+            Map.entry("audio/3gpp", "3gp"),
+            Map.entry("audio/3gpp2", "3g2"),
+            Map.entry("audio/x-ms-wma", "wma"),
+            Map.entry("audio/amr", "amr")
+    );
+
+    private final MuxlisaSttClient client;
+    private final MuxlisaProperties properties;
+    private final SystemSettingResolver systemSettingResolver;
+
+    /**
+     * @param acceptLanguage raw {@code Accept-Language} header; {@code uz-Cyrl} gets the Latin
+     *                       transcript transliterated to Cyrillic, everything else is returned as is
+     */
+    public SpeechToTextResponse transcribe(byte[] audio, String rawContentType, String acceptLanguage) {
+        if (audio == null || audio.length == 0) {
+            throw new InvalidAudioException("speech.error.empty_audio");
+        }
+        long maxAudioBytes = systemSettingResolver.resolveLong(
+                MuxlisaSettingKeys.MAX_AUDIO_SIZE_BYTES, properties.maxAudioSize().toBytes());
+        if (audio.length > maxAudioBytes) {
+            throw new InvalidAudioException("speech.error.audio_too_large", Math.max(1, maxAudioBytes / (1024 * 1024)));
+        }
+
+        String contentType = normalize(rawContentType);
+        String extension = EXTENSIONS.get(contentType);
+        if (extension == null) {
+            throw new InvalidAudioException("speech.error.unsupported_format");
+        }
+
+        String text = client.transcribe(audio, contentType, "audio." + extension);
+        if (SttScript.fromAcceptLanguage(acceptLanguage) == SttScript.UZBEK_CYRILLIC) {
+            text = UzbekCyrillicTransliterator.transliterate(text);
+        }
+        return new SpeechToTextResponse(text);
+    }
+
+    /** {@code audio/webm;codecs=opus} -> {@code audio/webm}; anything unparsable -> empty (rejected). */
+    private static String normalize(String rawContentType) {
+        if (rawContentType == null || rawContentType.isBlank()) {
+            return "";
+        }
+        try {
+            MediaType type = MediaType.parseMediaType(rawContentType);
+            return (type.getType() + "/" + type.getSubtype()).toLowerCase(Locale.ROOT);
+        } catch (InvalidMediaTypeException exception) {
+            return "";
+        }
+    }
+}

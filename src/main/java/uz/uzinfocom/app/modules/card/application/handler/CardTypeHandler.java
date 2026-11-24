@@ -39,10 +39,23 @@ public interface CardTypeHandler<C extends Card, Q extends CardRequest, R extend
      */
     void validate(C card);
 
+    /**
+     * Fields that may stay empty while the card is being filled in
+     * ({@link #update}) but must be present before it is sent to the
+     * supervisor ("Save and Complete"). No such rule by default.
+     */
+    default void validateForCompletion(C card) {
+    }
+
     R toResponse(C card);
 
     default Card handleCreateBlank() {
         return createBlank();
+    }
+
+    @SuppressWarnings("unchecked")
+    default void handleValidateForCompletion(Card card) {
+        validateForCompletion((C) card);
     }
 
     @SuppressWarnings("unchecked")

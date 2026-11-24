@@ -2,15 +2,17 @@ package uz.uzinfocom.app.modules.act.application.query.dto.detail;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.act154.Act154SampleResponse;
-import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActInstitutionResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActSubjectResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ActLisInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.ConditionInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.EmployeeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.PackageTypeInfoResponse;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.PurposeResponse;
+import uz.uzinfocom.app.modules.act.application.query.dto.detail.embedded.SamplingBasisResponse;
 import uz.uzinfocom.app.modules.act.domain.enums.ActStatus;
 import uz.uzinfocom.app.modules.act.domain.enums.ActType;
 import uz.uzinfocom.app.modules.card.application.query.dto.CardMiniResponse;
-import uz.uzinfocom.app.platform.iam.application.shared.dto.AuditResponse;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,7 +26,7 @@ public record Act154DetailResponse(
         CardMiniResponse card,
         Long assignedById,
         String resultComment,
-        ActInstitutionResponse institution,
+        ActSubjectResponse subject,
 
         String title,
         Long actNumber,
@@ -32,7 +34,8 @@ public record Act154DetailResponse(
         LocalDateTime sampleTakenDateTime,
         LocalDateTime deliveredDateTime,
         String documentConfirmSampling,
-        String goal,
+        SamplingBasisResponse samplingBasis,
+        String samplingBasisText,
         PurposeResponse purpose,
         EmployeeInfoResponse sampler,
         EmployeeInfoResponse participant,
@@ -42,11 +45,13 @@ public record Act154DetailResponse(
         ConditionInfoResponse specialCondition,
         ConditionInfoResponse storageAndDeliveryCondition,
         Long lisOrganizationId,
+        String lisOrganizationName,
         String laboratoryAddress,
         PackageTypeInfoResponse packageTypeInfo,
         String additionalInfo,
         List<Act154SampleResponse> samples,
 
+        ActLisInfoResponse lisInfo,
         AuditResponse audit
 ) implements ActDetailResponse {
 }

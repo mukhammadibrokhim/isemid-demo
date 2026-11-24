@@ -1,0 +1,51 @@
+package uz.uzinfocom.app.modules.iam.application.organization.query.dto.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import uz.uzinfocom.app.shared.pagination.PageableRequest;
+
+@Schema(description = "Параметры поиска пользователей внутри организации.")
+public record OrganizationUserLookupRequest(
+
+        @Schema(description = "Номер страницы, начиная с 1.", example = "1")
+        @Min(value = 1, message = "{organization.user_lookup.page.min}")
+        Integer page,
+
+        @Schema(description = "Количество записей на странице.", example = "20")
+        @Min(value = 1, message = "{organization.user_lookup.size.min}")
+        @Max(value = 50, message = "{organization.user_lookup.size.max}")
+        Integer size,
+
+        @Schema(description = "Поле для сортировки.", example = "lastName")
+        String sortBy,
+
+        @Schema(description = "Направление сортировки.", example = "asc", allowableValues = {"asc", "desc"})
+        String sortDir,
+
+        @Schema(description = "Строка поиска по ФИО, логину или ННУЗБ пользователя.")
+        String search
+
+) implements PageableRequest {
+
+    private static final int DEFAULT_PAGE = 1;
+    private static final int DEFAULT_SIZE = 20;
+
+    @Override
+    public Integer page() {
+        return page == null ? DEFAULT_PAGE : page;
+    }
+
+    @Override
+    public Integer size() {
+        return size == null ? DEFAULT_SIZE : size;
+    }
+
+    public String normalizedSearch() {
+        if (search == null || search.isBlank()) {
+            return "";
+        }
+
+        return search.trim().toLowerCase();
+    }
+}

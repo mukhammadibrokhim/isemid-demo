@@ -24,6 +24,7 @@ import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponse;
 import uz.uzinfocom.app.shared.dto.response.PagedResponseAssembler;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 
 /**
  * Exclusively {@code /v1/cards/*} — listing cards under a specific form
@@ -46,16 +47,29 @@ public class CardQueryController {
     private final PagedResponseAssembler pagedResponseAssembler;
 
     @Operation(
+            summary = "Список карт",
+            description = "Возвращает постраничный список карт в пределах области видимости организации "
+                    + "текущего пользователя (см. заголовок X-Organization-Id), независимо от того, на кого "
+                    + "карта назначена."
+    )
+    @GetMapping
+    @PreAuthorize(Permissions.HAS_CARD_VIEW_ALL)
+    public PagedResponse<CardTableResponse> findAll(
+            @ParameterObject @Valid CardFilterRequest filter,
+            HttpServletRequest httpRequest
+    ) {
+        return pagedResponseAssembler
+                .toResponse(cardQueryService.findAll(filter), messageResolver.resolve("common.success"), httpRequest);
+    }
+
+    @Operation(
             summary = "Мои карты",
             description = "Возвращает постраничный список карт, прикреплённых к текущему авторизованному "
                     + "сотруднику. Область видимости всегда определяется на сервере по авторизованному "
-                    + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно. "
-                    + "Для организации более высокого уровня (регионального или республиканского масштаба) "
-                    + "список автоматически расширяется до всех карт в пределах её области видимости, а не "
-                    + "только личных назначений."
+                    + "пользователю — передать чужой идентификатор пользователя через фильтр невозможно."
     )
     @GetMapping(ApiPaths.Card.MINE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_READ)
     public PagedResponse<CardTableResponse> findMine(
             @ParameterObject @Valid CardFilterRequest filter,
             HttpServletRequest httpRequest
@@ -70,7 +84,7 @@ public class CardQueryController {
                     + "(вакцинации, факторы риска, контактные лица и т.д.), в зависимости от типа карты."
     )
     @GetMapping(ApiPaths.Card.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_READ)
     public ApiResponse<CardDetailResponse> byId(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id
@@ -84,11 +98,12 @@ public class CardQueryController {
     @Operation(
             summary = "Данные карты для печатной формы",
             description = "Возвращает те же детальные сведения по карте, что и /{id}, вместе со сведениями "
-                    + "формы №058, к которой карта привязана (данные пациента, адрес, место работы/учёбы), "
+                    + "извещения, к которому карта привязана - формы №058 (поле form058) или №058-1 (поле form0581), "
+                    + "второе поле null (данные пациента, адрес, место работы/учёбы), "
                     + "в формате JSON, который фронтенд использует для отрисовки печатной формы карты в PDF."
     )
     @GetMapping(ApiPaths.Card.PDF)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_READ)
     public ApiResponse<CardPdfResponse> pdf(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id

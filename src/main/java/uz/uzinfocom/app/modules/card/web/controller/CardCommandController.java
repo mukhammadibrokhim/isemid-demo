@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.uzinfocom.app.modules.card.application.command.CardCommandService;
@@ -47,7 +48,7 @@ public class CardCommandController {
                     + "детальную информацию по карте после сохранения."
     )
     @PutMapping(ApiPaths.Card.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_UPDATE)
     public ApiResponse<CardDetailResponse> update(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,
@@ -65,7 +66,7 @@ public class CardCommandController {
                     + "в базе с отметкой об удалении."
     )
     @DeleteMapping(ApiPaths.Card.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,
@@ -82,7 +83,7 @@ public class CardCommandController {
                     + "доступной для сохранения/заполнения."
     )
     @PatchMapping(ApiPaths.Card.ACCEPT)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_ACCEPT)
     public ApiResponse<Void> accept(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id
@@ -98,7 +99,7 @@ public class CardCommandController {
                     + "REJECTED_BY_USER и ожидает повторного назначения супервайзером другому сотруднику."
     )
     @PatchMapping(ApiPaths.Card.REJECT)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_REJECT)
     public ApiResponse<Void> reject(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,
@@ -115,7 +116,7 @@ public class CardCommandController {
                     + "отправка после отклонения супервайзером)."
     )
     @PatchMapping(ApiPaths.Card.COMPLETE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_COMPLETE)
     public ApiResponse<Void> complete(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id
@@ -131,7 +132,7 @@ public class CardCommandController {
                     + "невозможны."
     )
     @PatchMapping(ApiPaths.Card.SUPERVISOR_APPROVE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_APPROVE)
     public ApiResponse<Void> supervisorApprove(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id
@@ -147,7 +148,7 @@ public class CardCommandController {
                     + "снова сохранять и повторно завершать её."
     )
     @PatchMapping(ApiPaths.Card.SUPERVISOR_REJECT)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_RETURN)
     public ApiResponse<Void> supervisorReject(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,
@@ -165,7 +166,7 @@ public class CardCommandController {
                     + "возвращает карту в статус NEW для нового цикла принятия/отклонения."
     )
     @PatchMapping(ApiPaths.Card.SUPERVISOR_REASSIGN)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_ASSIGN)
     public ApiResponse<Void> supervisorReassign(
             @Parameter(description = "Идентификатор карты.", required = true)
             @PathVariable @Positive Long id,

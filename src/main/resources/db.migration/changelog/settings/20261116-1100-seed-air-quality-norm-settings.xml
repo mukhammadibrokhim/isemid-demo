@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Air-quality norms and alerting, runtime-editable so they show up in the dev panel
+        (see AirQualitySettingKeys / AirQualityNorms). The norms are in ug/m3 and equal the
+        code defaults: the WHO 2021 24-hour air quality guideline values. Replace them here with
+        the national limits when those are confirmed - no deploy needed. A pollutant with no
+        row and no code default is simply not judged.
+
+        air-quality.alert.enabled stops threshold events from being raised at all;
+        notification.air-quality-exceeded.enabled keeps the events but stops the in-app
+        notification (same family as the other notification.*.enabled switches).
+    -->
+    <changeSet id="20261116-1100-01-seed-air-quality-norm-settings" author="uzinfocom">
+        <sql>
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'air-quality.norm.pm2.5', '15', 'NUMBER', 'PM2.5 norm, ug/m3 (default: WHO 2021 24-hour guideline). A reading above it is EXCEEDED.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'air-quality.norm.pm2.5');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'air-quality.norm.pm10', '45', 'NUMBER', 'PM10 norm, ug/m3 (default: WHO 2021 24-hour guideline).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'air-quality.norm.pm10');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'air-quality.norm.no2', '25', 'NUMBER', 'NO2 norm, ug/m3 (default: WHO 2021 24-hour guideline).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'air-quality.norm.no2');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'air-quality.norm.so2', '40', 'NUMBER', 'SO2 norm, ug/m3 (default: WHO 2021 24-hour guideline).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'air-quality.norm.so2');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'air-quality.norm.o3', '100', 'NUMBER', 'O3 norm, ug/m3 (default: WHO 2021 peak-season guideline).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'air-quality.norm.o3');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'air-quality.norm.co', '4000', 'NUMBER', 'CO norm, ug/m3 (4000 = 4 mg/m3; default: WHO 2021 24-hour guideline).', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'air-quality.norm.co');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'air-quality.alert.enabled', 'true', 'BOOLEAN', 'Raise an event when a station reading crosses above its norm. false = no threshold events at all.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'air-quality.alert.enabled');
+
+            INSERT INTO system_settings (created_at, updated_at, setting_key, setting_value, value_type, description, active, deleted, version)
+            SELECT now(), now(), 'notification.air-quality-exceeded.enabled', 'true', 'BOOLEAN', 'Notify the sanitary-epidemiological service users of the station territory when a pollutant crosses above its norm.', true, false, 0
+            WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'notification.air-quality-exceeded.enabled');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM system_settings WHERE setting_key LIKE 'air-quality.norm.%'
+                    OR setting_key IN ('air-quality.alert.enabled', 'notification.air-quality-exceeded.enabled');
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

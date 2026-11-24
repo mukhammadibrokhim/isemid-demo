@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        /v1/dhp/** - outbound DHP lookups (employment, immunization). Same policy as
+        the other outbound-lookup routes (/v1/citizen/**, /v1/legal-entity/**): an
+        authenticated caller with a validated role, no X-Organization header. Without
+        a row the route would fall back to the fail-closed default, which also demands
+        the organization header.
+
+        WHERE NOT EXISTS keeps the changeset a no-op if an operator already added the
+        route through the dev panel (the pattern column is unique).
+    -->
+    <changeSet id="20260921-1000-01-seed-dhp-route-policy" author="uzinfocom">
+        <sql>
+            INSERT INTO security_route_policy
+                (created_at, updated_at, version, pattern, display_order, open,
+                 organization_header_required, role_validation_required, enabled, description)
+            SELECT now(), now(), 0, '/v1/dhp/**', 21, false,
+                   false, true, true,
+                   'Outbound DHP lookups (employment, immunization) - authenticated, no org header.'
+            WHERE NOT EXISTS (SELECT 1 FROM security_route_policy WHERE pattern = '/v1/dhp/**');
+        </sql>
+        <rollback>
+            DELETE FROM security_route_policy WHERE pattern = '/v1/dhp/**';
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

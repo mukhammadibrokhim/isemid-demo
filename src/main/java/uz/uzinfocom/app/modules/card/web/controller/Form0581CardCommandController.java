@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +43,7 @@ public class Form0581CardCommandController {
                     + "\"Мои карты\" (GET /cards/mine) и заполняют их через PUT /cards/{id}."
     )
     @PostMapping(ApiPaths.Form0581.ROOT + ApiPaths.Form0581.ASSIGN_CARDS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_ASSIGN)
     public ApiResponse<Void> assignCards(
             @Parameter(description = "Идентификатор формы №058-1.", required = true)
             @PathVariable @Positive Long id,

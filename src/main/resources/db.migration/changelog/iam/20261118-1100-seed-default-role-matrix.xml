@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Standart rollarni kelishilgan matritsaga keltirish
+        (docs/permission-naming-mapping.md §8.2 "Default matrix").
+
+        Faqat YANGI modeldagi subject'lar (FORM058, FORM0581, FORM129, CARD, ACT, REPORT,
+        REPORT_ENTRY) va faqat quyidagi nomli rollar uchun: ularning shu subject'lardagi
+        grantlari to'liq almashtiriladi (eski nomdagi qatorlar va boshqa subject'lar
+        tegilmaydi, super_admin/admin runAlways sinxronlashda to'liq oladi). Rol bazada
+        bo'lmasa o'tkazib yuboriladi. Masalan, yordamchi epidemiolog endi ACCEPT olmaydi:
+        qabul qilish mudirning huquqi.
+
+        Bir martalik changeSet (runAlways emas): keyin panelda qilingan o'zgarishlar saqlanadi.
+    -->
+    <changeSet id="20261118-1100-01-seed-default-role-matrix" author="uzinfocom">
+        <preConditions onFail="HALT" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="role_permissions"/>
+            <tableExists tableName="role_permission_actions"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            DROP TABLE IF EXISTS role_matrix_tmp;
+
+            CREATE TEMP TABLE role_matrix_tmp (
+                role_name VARCHAR(200),
+                subject   VARCHAR(200),
+                action    VARCHAR(50)
+            );
+
+            INSERT INTO role_matrix_tmp (role_name, subject, action) VALUES
+                -- UASH: sender side
+                ('isemid_general_practitioner', 'FORM058',  'CREATE'),
+                ('isemid_general_practitioner', 'FORM058',  'READ_SENT'),
+                ('isemid_general_practitioner', 'FORM058',  'UPDATE'),
+                ('isemid_general_practitioner', 'FORM058',  'DELETE'),
+                ('isemid_general_practitioner', 'FORM058',  'CANCEL'),
+                ('isemid_general_practitioner', 'FORM058',  'APPROVE'),
+                ('isemid_general_practitioner', 'FORM0581', 'CREATE'),
+                ('isemid_general_practitioner', 'FORM0581', 'READ_SENT'),
+                ('isemid_general_practitioner', 'FORM0581', 'UPDATE'),
+                ('isemid_general_practitioner', 'FORM0581', 'DELETE'),
+                ('isemid_general_practitioner', 'FORM0581', 'CANCEL'),
+                ('isemid_general_practitioner', 'FORM0581', 'APPROVE'),
+                ('isemid_general_practitioner', 'FORM129',  'CREATE'),
+                ('isemid_general_practitioner', 'FORM129',  'READ_SENT'),
+
+                -- epidemiologist
+                ('isemid_epidemiologist', 'FORM058',  'READ_RECEIVED'),
+                ('isemid_epidemiologist', 'FORM0581', 'READ_RECEIVED'),
+                ('isemid_epidemiologist', 'FORM129',  'READ_RECEIVED'),
+                ('isemid_epidemiologist', 'CARD', 'READ'),
+                ('isemid_epidemiologist', 'CARD', 'UPDATE'),
+                ('isemid_epidemiologist', 'CARD', 'ACCEPT'),
+                ('isemid_epidemiologist', 'CARD', 'REJECT'),
+                ('isemid_epidemiologist', 'CARD', 'COMPLETE'),
+                ('isemid_epidemiologist', 'ACT', 'READ'),
+                ('isemid_epidemiologist', 'ACT', 'UPDATE'),
+                ('isemid_epidemiologist', 'ACT', 'ASSIGN'),
+                ('isemid_epidemiologist', 'REPORT', 'READ'),
+                ('isemid_epidemiologist', 'REPORT', 'EXPORT'),
+                ('isemid_epidemiologist', 'REPORT_ENTRY', 'READ'),
+                ('isemid_epidemiologist', 'REPORT_ENTRY', 'CREATE'),
+                ('isemid_epidemiologist', 'REPORT_ENTRY', 'UPDATE'),
+
+                -- assistant epidemiologist (no reports, no form accept)
+                ('isemid_assistant_epidemiologist', 'FORM058',  'READ_RECEIVED'),
+                ('isemid_assistant_epidemiologist', 'FORM0581', 'READ_RECEIVED'),
+                ('isemid_assistant_epidemiologist', 'FORM129',  'READ_RECEIVED'),
+                ('isemid_assistant_epidemiologist', 'CARD', 'READ'),
+                ('isemid_assistant_epidemiologist', 'CARD', 'UPDATE'),
+                ('isemid_assistant_epidemiologist', 'CARD', 'ACCEPT'),
+                ('isemid_assistant_epidemiologist', 'CARD', 'REJECT'),
+                ('isemid_assistant_epidemiologist', 'CARD', 'COMPLETE'),
+                ('isemid_assistant_epidemiologist', 'ACT', 'READ'),
+                ('isemid_assistant_epidemiologist', 'ACT', 'UPDATE'),
+                ('isemid_assistant_epidemiologist', 'ACT', 'ASSIGN'),
+
+                -- department head: receives, assigns, supervises
+                ('isemid_epidim_head', 'FORM058',  'READ_RECEIVED'),
+                ('isemid_epidim_head', 'FORM058',  'ACCEPT'),
+                ('isemid_epidim_head', 'FORM058',  'REJECT'),
+                ('isemid_epidim_head', 'FORM058',  'CHANGE_ORG'),
+                ('isemid_epidim_head', 'FORM0581', 'READ_RECEIVED'),
+                ('isemid_epidim_head', 'FORM0581', 'ACCEPT'),
+                ('isemid_epidim_head', 'FORM0581', 'REJECT'),
+                ('isemid_epidim_head', 'FORM129',  'READ_RECEIVED'),
+                ('isemid_epidim_head', 'FORM129',  'ACCEPT'),
+                ('isemid_epidim_head', 'FORM129',  'REJECT'),
+                ('isemid_epidim_head', 'CARD', 'READ'),
+                ('isemid_epidim_head', 'CARD', 'UPDATE'),
+                ('isemid_epidim_head', 'CARD', 'APPROVE'),
+                ('isemid_epidim_head', 'CARD', 'VIEW_ALL'),
+                ('isemid_epidim_head', 'CARD', 'ASSIGN'),
+                ('isemid_epidim_head', 'CARD', 'RETURN'),
+                ('isemid_epidim_head', 'ACT', 'READ'),
+                ('isemid_epidim_head', 'ACT', 'VIEW_ALL'),
+                ('isemid_epidim_head', 'ACT', 'ASSIGN'),
+                ('isemid_epidim_head', 'ACT', 'UPDATE'),
+                ('isemid_epidim_head', 'REPORT', 'READ'),
+                ('isemid_epidim_head', 'REPORT', 'EXPORT'),
+                ('isemid_epidim_head', 'REPORT_ENTRY', 'READ'),
+                ('isemid_epidim_head', 'REPORT_ENTRY', 'UPDATE'),
+
+                -- head doctor: view only
+                ('isemid_head_doctor', 'FORM058',  'READ_SENT'),
+                ('isemid_head_doctor', 'FORM058',  'READ_RECEIVED'),
+                ('isemid_head_doctor', 'FORM0581', 'READ_SENT'),
+                ('isemid_head_doctor', 'FORM0581', 'READ_RECEIVED'),
+                ('isemid_head_doctor', 'FORM129',  'READ_SENT'),
+                ('isemid_head_doctor', 'FORM129',  'READ_RECEIVED'),
+                ('isemid_head_doctor', 'REPORT', 'READ'),
+                ('isemid_head_doctor', 'REPORT', 'EXPORT');
+            -- isemid_qr_user: no grants (not used for now)
+
+            -- 1) wipe the managed subjects' actions for the seeded roles
+            DELETE FROM role_permission_actions rpa
+            USING role_permissions rp, role r, permission p
+            WHERE rpa.role_permission_id = rp.id
+              AND r.id = rp.role_id
+              AND p.id = rp.permission_id
+              AND r.name IN (SELECT DISTINCT role_name FROM role_matrix_tmp)
+              AND upper(p.subject) IN ('FORM058', 'FORM0581', 'FORM129', 'CARD', 'ACT', 'REPORT', 'REPORT_ENTRY');
+
+            -- 2) role_permissions rows (the unique key is role_id + permission_id)
+            INSERT INTO role_permissions (role_id, permission_id, version, created_at, updated_at)
+            SELECT DISTINCT r.id, p.id, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM role_matrix_tmp m
+            JOIN role r ON r.name = m.role_name
+            JOIN permission p ON upper(p.subject) = m.subject
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            -- 3) the matrix actions
+            INSERT INTO role_permission_actions (role_permission_id, action_id)
+            SELECT DISTINCT rp.id, a.id
+            FROM role_matrix_tmp m
+            JOIN role r ON r.name = m.role_name
+            JOIN permission p ON upper(p.subject) = m.subject
+            JOIN role_permissions rp ON rp.role_id = r.id AND rp.permission_id = p.id
+            JOIN action a ON upper(a.code) = m.action
+            ON CONFLICT (role_permission_id, action_id) DO NOTHING;
+
+            DROP TABLE role_matrix_tmp;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

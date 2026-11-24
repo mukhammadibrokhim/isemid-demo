@@ -2,6 +2,7 @@ package uz.uzinfocom.app.modules.act.application.handler.act224;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import uz.uzinfocom.app.modules.act.application.handler.ActActivityTypeResolver;
 import uz.uzinfocom.app.modules.act.application.handler.ActTypeHandler;
 import uz.uzinfocom.app.modules.act.application.query.dto.detail.Act224DetailResponse;
 import uz.uzinfocom.app.modules.act.application.query.mapper.ActDetailMapper;
@@ -10,7 +11,7 @@ import uz.uzinfocom.app.modules.act.domain.model.act224.Act224;
 import uz.uzinfocom.app.modules.act.domain.model.act224.Act224Detail;
 import uz.uzinfocom.app.modules.act.mapper.act224.Act224Mapper;
 import uz.uzinfocom.app.modules.act.web.dto.request.Act224Request;
-import uz.uzinfocom.app.platform.iam.application.shared.service.AuditResolver;
+import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 
 @Component
@@ -18,6 +19,7 @@ import uz.uzinfocom.app.platform.persistence.sync.ChildCollectionSync;
 public class Act224Handler implements ActTypeHandler<Act224, Act224Request, Act224DetailResponse> {
 
     private final Act224Mapper mapper;
+    private final ActActivityTypeResolver activityTypeResolver;
     private final ActDetailMapper actDetailMapper;
     private final AuditResolver auditResolver;
 
@@ -34,9 +36,10 @@ public class Act224Handler implements ActTypeHandler<Act224, Act224Request, Act2
     @Override
     public void update(Act224 act, Act224Request request) {
         mapper.copyOwnFields(act, request);
+        act.setActivityTypeCode(activityTypeResolver.resolve(request.activityTypeCode()));
 
-        if (act.getInstitution() != null) {
-            act.getInstitution().normalize();
+        if (act.getSubject() != null) {
+            act.getSubject().normalize();
         }
 
         ChildCollectionSync.sync(

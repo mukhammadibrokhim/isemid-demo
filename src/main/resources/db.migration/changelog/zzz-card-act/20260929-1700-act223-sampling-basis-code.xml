@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        «Namuna olish uchun asos» (act223) is now a select: new acts store only
+        a ref_catalog code (type = SAMPLING_BASIS, shared with act153/154); names
+        are resolved on read. The free-text supporting_documents_for_sampling
+        column stays for legacy-migrated acts and is no longer written.
+    -->
+    <changeSet id="20260929-1700-01-act223-sampling-basis-code" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <columnExists tableName="act223" columnName="sampling_basis_code"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="act223">
+            <column name="sampling_basis_code" type="VARCHAR(50)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        The original create-form058 migration
+        (20260616-1500-create-form058.xml) added a free-text
+        disease_place VARCHAR(512) NOT NULL column. The 20260622-1200
+        refactor moved the epidemic-place data onto the embedded
+        Form058EpidemicInfo.diseasePlaceCode (disease_place_code) and the
+        Form058 entity stopped mapping disease_place altogether - but no
+        migration ever removed the column. Since Hibernate never writes it,
+        every INSERT into form058 fails the NOT NULL constraint
+        ("null value in column disease_place violates not-null constraint").
+
+        The column carries no value in the current model, so it is dropped
+        outright. There is no index on it.
+    -->
+    <changeSet id="20260904-1400-01-drop-form058-disease-place" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="form058" columnName="disease_place"/>
+        </preConditions>
+        <dropColumn tableName="form058" columnName="disease_place"/>
+    </changeSet>
+
+    <!--
+        Same original-create/refactor mismatch as disease_place above: the
+        20260616-1500 create-form058 migration stored a denormalized patient
+        snapshot directly on form058 (patient_nnuzb, patient_pinfl,
+        patient_full_name, patient_birth_date, patient_gender, patient_phone).
+        The 20260622-1200 refactor linked Form058 to Patient via patient_id
+        instead, and patient identifiers (NNUZB, PINFL, ...) now live in
+        pt_identifier - but the old columns were never dropped, and
+        patient_nnuzb is still NOT NULL. Since Hibernate never writes these
+        columns, every INSERT into form058 fails
+        ("null value in column patient_nnuzb violates not-null constraint").
+
+        Patient data belongs on patient/pt_identifier, not duplicated on
+        form058, so these columns are dropped outright.
+    -->
+    <changeSet id="20260904-1400-02-drop-form058-patient-snapshot-columns" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="form058" columnName="patient_nnuzb"/>
+        </preConditions>
+        <dropColumn tableName="form058">
+            <column name="patient_nnuzb"/>
+            <column name="patient_pinfl"/>
+            <column name="patient_full_name"/>
+            <column name="patient_birth_date"/>
+            <column name="patient_gender"/>
+            <column name="patient_phone"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>

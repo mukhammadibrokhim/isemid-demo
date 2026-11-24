@@ -7,18 +7,20 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uz.uzinfocom.app.modules.form058.application.command.accept.AcceptForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.approve.ApproveForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.cancel.CancelForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.create.CreateForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.delete.DeleteForm058Service;
+import uz.uzinfocom.app.modules.form058.application.command.reopen.ReopenForm058Service;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Service;
 import uz.uzinfocom.app.modules.form058.web.dto.request.ApproveForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CancelForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.CreateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.DeleteForm058Request;
-import uz.uzinfocom.app.modules.form058.web.dto.request.NotApproveForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.request.UpdateForm058Request;
 import uz.uzinfocom.app.modules.form058.web.dto.response.CreateForm058Response;
 import uz.uzinfocom.app.modules.form058.web.dto.response.UpdateForm058Response;
@@ -45,6 +47,8 @@ public class Form058CommandController {
     private final DeleteForm058Service deleteForm058Service;
     private final ApproveForm058Service approveForm058Service;
     private final CancelForm058Service cancelForm058Service;
+    private final AcceptForm058Service acceptForm058Service;
+    private final ReopenForm058Service reopenForm058Service;
     private final Form058WebMapper form058WebMapper;
     private final Form058SourceResolver sourceResolver;
     private final MessageResolver messageResolver;
@@ -52,10 +56,10 @@ public class Form058CommandController {
     @Operation(
             summary = "Создать форму №058",
             description = "Регистрирует новую форму №058 и связанного пациента (если он ещё не зарегистрирован "
-                    + "в системе). Начальный статус формы — NOT_APPROVED."
+                    + "в системе). Начальный статус формы — SENT."
     )
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM058_CREATE)
     public ApiResponse<CreateForm058Response> create(
             @Parameter(description = "Источник поступления формы (заполняется автоматически по заголовку запроса).")
             @RequestHeader(value = SourceHeader.X_SOURCE, required = false) String sourceHeader,
@@ -72,7 +76,7 @@ public class Form058CommandController {
             description = "Редактирует данные ранее созданной формы. Недоступно после утверждения/аннулирования формы."
     )
     @PutMapping(ApiPaths.Form058.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM058_UPDATE)
     public ApiResponse<UpdateForm058Response> update(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
@@ -89,7 +93,7 @@ public class Form058CommandController {
             description = "Удаляет форму с обязательным указанием причины удаления."
     )
     @DeleteMapping(value = ApiPaths.Form058.BY_ID)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM058_DELETE)
     public ApiResponse<Void> delete(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable Long id,
@@ -100,12 +104,31 @@ public class Form058CommandController {
     }
 
     @Operation(
-            summary = "Утвердить форму №058",
-            description = "Переводит форму в статус APPROVED. Доступно, когда форма находится в статусе "
-                    + "ожидания утверждения (APPROVED_PENDING)."
+            summary = "Принять форму №058 (получатель)",
+            description = "Получатель подтверждает приём формы: переводит её из статуса SENT в ACCEPTED. "
+                    + "Назначение карт возможно только после этого. Доступно только организации-получателю. "
+                    + "После приёма аннулировать/отклонить форму уже нельзя — см. эндпоинт cancel."
+    )
+    @PatchMapping(ApiPaths.Form058.ACCEPT)
+    @PreAuthorize(Permissions.HAS_FORM058_ACCEPT)
+    public ApiResponse<UpdateForm058Response> accept(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.accepted"),
+                form058WebMapper.toResponse(acceptForm058Service.accept(id))
+        );
+    }
+
+    @Operation(
+            summary = "Утвердить форму №058 (отправитель)",
+            description = "Переводит форму в статус APPROVED с итоговым диагнозом. Доступно организации-отправителю "
+                    + "после того, как форма принята получателем (статус ACCEPTED), в том числе до привязки карты; "
+                    + "привязанная карта (статус CARD_LINKED) не обязательна."
     )
     @PatchMapping(ApiPaths.Form058.APPROVE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_FORM058_APPROVE)
     public ApiResponse<UpdateForm058Response> approve(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
@@ -118,28 +141,15 @@ public class Form058CommandController {
     }
 
     @Operation(
-            summary = "Отклонить утверждение формы №058",
-            description = "Отказывает в утверждении формы с указанием причины — форма возвращается на доработку."
-    )
-    @PatchMapping(ApiPaths.Form058.NOT_APPROVE)
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UpdateForm058Response> notApprove(
-            @Parameter(description = "Идентификатор формы №058.", required = true)
-            @PathVariable @Positive Long id,
-            @Valid @RequestBody NotApproveForm058Request request
-    ) {
-        return ApiResponse.success(
-                messageResolver.resolve("common.rejected"),
-                form058WebMapper.toResponse(approveForm058Service.notApprove(form058WebMapper.toCommand(id, request)))
-        );
-    }
-
-    @Operation(
-            summary = "Аннулировать форму №058",
-            description = "Переводит форму в статус CANCELED с обязательным указанием причины аннулирования."
+            summary = "Аннулировать/отклонить форму №058",
+            description = "Переводит форму в статус CANCELED с обязательным указанием причины. Доступно и "
+                    + "организации-отправителю (отзыв), и организации-получателю (отклонение) — но только пока "
+                    + "форма ещё не принята получателем (статус SENT); после accept отменить форму уже нельзя. "
+                    + "Это финальное, заблокированное состояние — восстановить его может только "
+                    + "супер-администратор через отдельный эндпоинт reopen."
     )
     @PatchMapping(ApiPaths.Form058.CANCEL)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM058_CANCEL_OR_REJECT)
     public ApiResponse<UpdateForm058Response> cancel(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,
@@ -148,6 +158,24 @@ public class Form058CommandController {
         return ApiResponse.success(
                 messageResolver.resolve("common.canceled"),
                 form058WebMapper.toResponse(cancelForm058Service.cancel(form058WebMapper.toCommand(id, request)))
+        );
+    }
+
+    @Operation(
+            summary = "Восстановить аннулированную/отклонённую форму №058 (только супер-админ)",
+            description = "Переводит форму из статуса CANCELED обратно в SENT — независимо от того, какая "
+                    + "организация её отменила. Единственный способ снять блокировку с закрытой формы — "
+                    + "доступен только супер-администратору."
+    )
+    @PatchMapping(ApiPaths.Form058.REOPEN)
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<UpdateForm058Response> reopen(
+            @Parameter(description = "Идентификатор формы №058.", required = true)
+            @PathVariable @Positive Long id
+    ) {
+        return ApiResponse.success(
+                messageResolver.resolve("common.reopened"),
+                form058WebMapper.toResponse(reopenForm058Service.reopen(id))
         );
     }
 }

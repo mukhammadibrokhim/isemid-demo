@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Card 174 laboratory tests become a multi-row child table (the paper
+        form's table), replacing the single animal_type/test_* column set on
+        `card174`. `animal_type` was that table's "animal type and tested
+        sample name" column, so it moves to `sample_name`.
+    -->
+    <changeSet id="20261002-1100-01-create-card174-laboratory-test" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <not>
+                <tableExists tableName="card174_laboratory_test"/>
+            </not>
+        </preConditions>
+        <createTable tableName="card174_laboratory_test">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="card174_laboratory_test_pkey"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_id" type="BIGINT"/>
+            <column name="uuid" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sample_name" type="VARCHAR(255)"/>
+            <column name="test_date" type="date"/>
+            <column name="sample_count" type="INTEGER"/>
+            <column name="testing_method" type="VARCHAR(255)"/>
+            <column name="test_result" type="VARCHAR(500)"/>
+            <column name="card174_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="idx_card174_laboratory_test_card174_id" tableName="card174_laboratory_test">
+            <column name="card174_id"/>
+        </createIndex>
+        <addUniqueConstraint columnNames="uuid" constraintName="uk_card174_laboratory_test_uuid"
+                             tableName="card174_laboratory_test"/>
+        <addForeignKeyConstraint baseColumnNames="card174_id" baseTableName="card174_laboratory_test"
+                                 constraintName="fk_card174_laboratory_test_card174"
+                                 referencedColumnNames="id" referencedTableName="card174"/>
+    </changeSet>
+
+    <changeSet id="20261002-1100-02-move-card174-test-columns-to-laboratory-test" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card174" columnName="test_sample_count"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            INSERT INTO card174_laboratory_test (
+                version, created_at, updated_at, uuid,
+                sample_name, test_date, sample_count, testing_method, test_result, card174_id
+            )
+            SELECT 0, now(), now(), gen_random_uuid(),
+                   c.animal_type, c.test_date, c.test_sample_count, c.testing_method, c.test_result, c.id
+            FROM card174 c
+            WHERE c.animal_type IS NOT NULL OR c.test_date IS NOT NULL OR c.test_sample_count IS NOT NULL
+               OR c.testing_method IS NOT NULL OR c.test_result IS NOT NULL;
+        </sql>
+        <dropColumn tableName="card174">
+            <column name="animal_type"/>
+            <column name="test_date"/>
+            <column name="test_sample_count"/>
+            <column name="testing_method"/>
+            <column name="test_result"/>
+        </dropColumn>
+    </changeSet>
+
+    <!-- `last_disease_year` holds a calendar year, not a date. -->
+    <changeSet id="20261002-1100-03-card174-last-disease-year-to-integer" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <sqlCheck expectedResult="date">
+                SELECT data_type FROM information_schema.columns
+                WHERE table_schema = current_schema() AND table_name = 'card174' AND column_name = 'last_disease_year'
+            </sqlCheck>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE card174
+                ALTER COLUMN last_disease_year TYPE INTEGER
+                USING EXTRACT(YEAR FROM last_disease_year)::INTEGER;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

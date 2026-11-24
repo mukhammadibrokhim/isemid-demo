@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Raw classifier codes from the IAM provider's Organization.type (DHP subordination group,
+         structure, ...), kept verbatim next to the derived level_type / medical_type. -->
+    <changeSet id="20261119-1100-01-create-organization-type-coding" author="uzinfocom">
+        <createTable tableName="organization_type_coding">
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="system" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="organization_type_coding"
+                                 baseColumnNames="organization_id"
+                                 constraintName="fk_organization_type_coding_organization"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="organization_type_coding"
+                             columnNames="organization_id, system, code"
+                             constraintName="uq_organization_type_coding"/>
+    </changeSet>
+</databaseChangeLog>

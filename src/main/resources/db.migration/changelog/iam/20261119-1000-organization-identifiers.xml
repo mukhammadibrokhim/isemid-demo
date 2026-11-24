@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Identifiers the IAM provider (DHP/SSO) sends for an organization besides its uuid:
+         soliq/TAX, argos, dhp, ... One row per (organization, system). -->
+    <changeSet id="20261119-1000-01-create-organization-identifier" author="uzinfocom">
+        <createTable tableName="organization_identifier">
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="system" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type_code" type="VARCHAR(50)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="organization_identifier"
+                                 baseColumnNames="organization_id"
+                                 constraintName="fk_organization_identifier_organization"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="organization_identifier"
+                             columnNames="organization_id, system"
+                             constraintName="uq_organization_identifier_org_system"/>
+        <createIndex indexName="idx_organization_identifier_system_value" tableName="organization_identifier">
+            <column name="system"/>
+            <column name="value"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20261119-1000-02-index-organization-tin" author="uzinfocom">
+        <createIndex indexName="idx_organization_tin" tableName="organization">
+            <column name="tin"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

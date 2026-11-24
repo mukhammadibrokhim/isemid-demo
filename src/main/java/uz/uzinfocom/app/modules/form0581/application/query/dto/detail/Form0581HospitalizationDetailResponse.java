@@ -10,6 +10,9 @@ public record Form0581HospitalizationDetailResponse(
         LocalDateTime hospitalizedAt,
 
         @Schema(description = "Идентификатор организации госпитализации пациента.")
-        Long hospitalOrganizationId
+        Long hospitalOrganizationId,
+
+        @Schema(description = "Наименование организации госпитализации на языке запроса.")
+        String hospitalOrganizationName
 ) {
 }

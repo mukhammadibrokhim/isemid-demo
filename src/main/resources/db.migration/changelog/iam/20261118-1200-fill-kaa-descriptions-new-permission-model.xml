@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Yangi permission modelidagi subject/action'larning qoraqalpoqcha (description_kaa)
+        tavsifi. Qoralama tarjima: ona tilida so'zlashuvchi tekshirib chiqishi kerak.
+        Faqat bo'sh (NULL) qatorlarga yoziladi - panelda qo'lda kiritilgan matn bosilmaydi.
+    -->
+    <changeSet id="20261118-1200-01-fill-kaa-descriptions" author="uzinfocom">
+        <preConditions onFail="CONTINUE" onError="CONTINUE">
+            <dbms type="postgresql"/>
+            <tableExists tableName="permission"/>
+            <tableExists tableName="action"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+            UPDATE action a
+            SET description_kaa = v.d
+            FROM (VALUES
+                ('ACCEPT',        'Qabıllaw huqıqı.'),
+                ('REJECT',        'Biykarlaw huqıqı.'),
+                ('COMPLETE',      'Juwmaqlaw huqıqı.'),
+                ('RETURN',        'Qayta islewge qaytarıw huqıqı.'),
+                ('SYNC',          'Sinxronlaw huqıqı.'),
+                ('READ_SENT',     'Jiberilgenlerdi kóriw huqıqı.'),
+                ('READ_RECEIVED', 'Alınǵanlardı kóriw huqıqı.'),
+                ('CHANGE_ORG',    'Shólkemdi ózgertiw huqıqı.'),
+                ('CANCEL',        'Bekar etiw huqıqı.'),
+                ('SUBMIT',        'Tapsırıw huqıqı.'),
+                ('CONFIRM',       'Tastıyıqlaw huqıqı.')
+            ) AS v(code, d)
+            WHERE a.code = v.code AND a.description_kaa IS NULL;
+
+            UPDATE permission p
+            SET description_kaa = v.d
+            FROM (VALUES
+                ('REPORT',          'Esabatlardı kóriw hám eksport qılıw.'),
+                ('REPORT_ENTRY',    'Qolda kiritiletuǵın esabatlar.'),
+                ('ANALYTIC_REPORT', 'Analitikalıq esabat jaratıw.'),
+                ('ACT',             'Aktler (dalolatnamalar).'),
+                ('CARD',            'Medicinalıq kartalar (epidemiologiyalıq tekseriw).'),
+                ('COUNTRY',         'Mámleketler anıqlamalıǵı.'),
+                ('REGION',          'Wálayatlar anıqlamalıǵı.'),
+                ('DISTRICT',        'Rayon hám qalalar anıqlamalıǵı.'),
+                ('NEIGHBORHOOD',    'Mahallalar anıqlamalıǵı.'),
+                ('POPULATION',      'Turaqlı xalıq sanı anıqlamalıǵı.'),
+                ('CATALOG',         'Katalog túrleri anıqlamalıǵı.'),
+                ('ICD10',           'XKK-10 keselliklar anıqlamalıǵı.'),
+                ('USER',            'Paydalanıwshılar (xızmetkerler).'),
+                ('ORGANIZATION',    'Shólkemler.'),
+                ('ROLE',            'Rollar.'),
+                ('PERMISSION',      'Ruxsatlar (subyektler).'),
+                ('MANUAL_REPORT',   'Qolda esabat katalogı.')
+            ) AS v(subject, d)
+            WHERE p.subject = v.subject AND p.description_kaa IS NULL;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

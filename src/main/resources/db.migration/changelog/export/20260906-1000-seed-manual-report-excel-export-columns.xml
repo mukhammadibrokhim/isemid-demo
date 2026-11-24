@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Default column list for the FORM2_MANUAL/FORM31/FORM32/FORM7 Excel exports (see
+        ExcelExportSettingsResolver, Form2ManualEntryExcelExportSource and its Form31/Form32/Form7
+        twins) - not load-bearing (each source already falls back to its own hardcoded
+        availableColumns() order when this key is missing), seeded only so the keys are
+        discoverable/editable from /v1/admin/settings and /v1/dev/settings. Style keys
+        (header-fill-color/font-name/font-size/header-bold/thin-border/rows-per-sheet) are
+        intentionally not seeded per type here - they already fall back to the same reasonable
+        ExcelStyleSettings.defaults() every export uses, so repeating that block four times would
+        add ~24 near-identical rows for no behavioral difference.
+    -->
+    <changeSet id="20260906-1000-01-seed-manual-report-excel-export-columns" author="codex">
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form2_manual.columns"/>
+            <column name="setting_value" value="id,organizationName,regionName,districtName,fromDate,toDate,registeredCasesLastYear,registeredCasesCurrentYear,mtmSchoolCount,disinfectionFociCount,inspectedObjectsCount,closedObjectsCount,dduCount,schoolCount,finesCount,prosecutorReferralCount,createdAt"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form2 manual-entry Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form31.columns"/>
+            <column name="setting_value" value="id,organizationName,regionName,districtName,fromDate,toDate,iliCasesCount,ariCasesCount,pneumoniaCasesCount,sariTotalCount,sariPregnantCount,deathTotalCount,deathPregnantCount,weeklyVaccinationCount,seasonVaccinationCount,createdAt"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 3-1 manual-entry Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form32.columns"/>
+            <column name="setting_value" value="id,organizationName,regionName,districtName,fromDate,toDate,inspectedTotalCount,inspectedMtmCount,inspectedSchoolCount,inspectedDpmCount,inspectedOtherCount,deficiencyTotalCount,deficiencyMtmCount,deficiencySchoolCount,deficiencyDpmCount,deficiencyOtherCount,officialTotalCount,officialMtmCount,officialSchoolCount,officialDpmCount,officialOtherCount,suspendedTotalCount,suspendedMtmCount,suspendedSchoolCount,suspendedDpmCount,suspendedOtherCount,createdAt"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 3-2 manual-entry Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+        <insert tableName="system_settings">
+            <column name="created_at" valueComputed="now()"/>
+            <column name="updated_at" valueComputed="now()"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="setting_key" value="export.excel.form7.columns"/>
+            <column name="setting_value" value="id,organizationName,regionName,districtName,fromDate,toDate,casesAtPeriodStart,registeredTotal,registeredUnder14,registeredUnder18,registeredAdult,registeredFemale,registeredUrbanCount,registeredRuralCount,examinedCount,toBeExaminedCount,primaryDiagnosisConfirmed,hospitalizedCount,casesAtPeriodEnd,caseChange,createdAt"/>
+            <column name="value_type" value="STRING"/>
+            <column name="description" value="Ordered, comma-separated column keys shown in the Form 7 manual-entry Excel export."/>
+            <column name="active" valueBoolean="true"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

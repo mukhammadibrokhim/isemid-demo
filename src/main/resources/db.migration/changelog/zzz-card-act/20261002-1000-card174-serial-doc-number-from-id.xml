@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        `serial_doc_number` is no longer client-supplied: new card174 rows get
+        their own id on assign, so the column widens to match `card.id`.
+        Existing cards with no number are backfilled the same way; cards that
+        already carry a number (legacy paper-form values) keep it.
+    -->
+    <changeSet id="20261002-1000-01-card174-serial-doc-number-to-bigint" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card174" columnName="serial_doc_number"/>
+        </preConditions>
+        <modifyDataType tableName="card174" columnName="serial_doc_number" newDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="20261002-1000-02-backfill-card174-serial-doc-number-from-id" author="uzinfocom">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="card174" columnName="serial_doc_number"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            UPDATE card174 SET serial_doc_number = id WHERE serial_doc_number IS NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

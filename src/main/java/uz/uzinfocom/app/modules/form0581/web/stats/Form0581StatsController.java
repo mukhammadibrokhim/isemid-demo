@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.Form0581StatsQueryService;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581DailyCountResponse;
-import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Mkb10CountResponse;
+import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581Icd10CountResponse;
 import uz.uzinfocom.app.modules.form0581.application.stats.query.dto.Form0581StatusCountResponse;
-import uz.uzinfocom.app.modules.form0581.web.dto.request.enums.Form0581Direction;
+import uz.uzinfocom.app.modules.form0581.application.query.Form0581Direction;
 import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.shared.constants.api.ApiPaths;
 import uz.uzinfocom.app.shared.dto.response.ApiResponse;
@@ -51,7 +52,7 @@ public class Form0581StatsController {
                     + "текущей организации. Направление ALL доступно только для isemid_super_admin."
     )
     @GetMapping(ApiPaths.Form0581Stats.BY_STATUS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<List<Form0581StatusCountResponse>> byStatus(
             @Parameter(description = "Направление: исходящие, входящие или все (только для super-admin).", required = true)
             @RequestParam Form0581Direction direction
@@ -68,7 +69,7 @@ public class Form0581StatsController {
                     + "текущей организации. Параметры from/to необязательны."
     )
     @GetMapping(ApiPaths.Form0581Stats.BY_DATE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
     public ApiResponse<List<Form0581DailyCountResponse>> byDate(
             @Parameter(description = "Направление: исходящие, входящие или все (только для super-admin).", required = true)
             @RequestParam Form0581Direction direction,
@@ -88,9 +89,9 @@ public class Form0581StatsController {
             description = "Возвращает наиболее часто встречающиеся коды диагноза по МКБ-10 в рамках доступа "
                     + "текущей организации."
     )
-    @GetMapping(ApiPaths.Form0581Stats.TOP_MKB10)
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<Form0581Mkb10CountResponse>> topMkb10(
+    @GetMapping(ApiPaths.Form0581Stats.TOP_ICD10)
+    @PreAuthorize(Permissions.GUARD_FORM0581_READ_ANY)
+    public ApiResponse<List<Form0581Icd10CountResponse>> topIcd10(
             @Parameter(description = "Направление: исходящие, входящие или все (только для super-admin).", required = true)
             @RequestParam Form0581Direction direction,
             @Parameter(description = "Максимальное количество кодов в ответе.")
@@ -98,7 +99,7 @@ public class Form0581StatsController {
     ) {
         return ApiResponse.success(
                 messageResolver.resolve("common.success"),
-                form0581StatsQueryService.topMkb10(direction, limit)
+                form0581StatsQueryService.topIcd10(direction, limit)
         );
     }
 }

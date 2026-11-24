@@ -5,22 +5,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Locale;
 
 @Configuration
 public class I18nConfig {
 
-    private static final Locale UZ_LATIN = Locale.forLanguageTag("uz");
-    // "Cyrl" is the correct BCP-47 script subtag (ISO 15924) for Cyrillic —
-    // "uz-Cyril" is not a valid tag and never matches a real client's
-    // Accept-Language: uz-Cyrl header, so Cyrillic content was unreachable.
-    private static final Locale UZ_CYRILLIC = Locale.forLanguageTag("uz-Cyrl");
-    private static final Locale KARAKALPAK = Locale.forLanguageTag("kaa");
-    private static final Locale RUSSIAN = Locale.forLanguageTag("ru");
 
     @Bean
     public MessageSource messageSource() {
@@ -37,16 +27,6 @@ public class I18nConfig {
 
     @Bean
     public LocaleResolver localeResolver() {
-        AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
-        resolver.setDefaultLocale(UZ_LATIN);
-        resolver.setSupportedLocales(List.of(
-                UZ_LATIN,
-                UZ_CYRILLIC,
-                KARAKALPAK,
-                RUSSIAN,
-                Locale.ENGLISH
-        ));
-
-        return resolver;
+        return new LenientAcceptLanguageResolver();
     }
 }

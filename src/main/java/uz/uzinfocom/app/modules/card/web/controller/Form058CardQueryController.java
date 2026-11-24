@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.access.prepost.PreAuthorize;
+import uz.uzinfocom.app.platform.security.auth.Permissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +44,7 @@ public class Form058CardQueryController {
                     + "супервайзеру."
     )
     @GetMapping(ApiPaths.Form058.ROOT + ApiPaths.Form058.CARDS)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(Permissions.HAS_CARD_READ)
     public PagedResponse<CardTableResponse> findByForm(
             @Parameter(description = "Идентификатор формы №058.", required = true)
             @PathVariable @Positive Long id,

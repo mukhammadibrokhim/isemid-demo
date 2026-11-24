@@ -6,12 +6,13 @@ import uz.uzinfocom.app.modules.report.form1.application.query.dto.Form1CountBlo
 import uz.uzinfocom.app.modules.report.form1.application.query.dto.Form1OrganizationCountProjection;
 import uz.uzinfocom.app.modules.report.form1.application.query.dto.Form1ReportNodeResponse;
 import uz.uzinfocom.app.modules.report.form1.infrastructure.persistence.repository.Form1ReportRepository;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseAttribution;
 import uz.uzinfocom.app.modules.report.shared.ReportCountSource;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRange;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRangeResolver;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyNode;
 import uz.uzinfocom.app.modules.report.shared.ReportHierarchyService;
-import uz.uzinfocom.app.platform.iam.domain.Organization;
+import uz.uzinfocom.app.modules.iam.domain.Organization;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
@@ -38,6 +39,7 @@ public class Form1ReportQueryService implements ReportCountSource<Form1Organizat
     private final Form1ReportRepository form1ReportRepository;
     private final ReportHierarchyService reportHierarchyService;
     private final ReportDateRangeResolver reportDateRangeResolver;
+    private final ReportCaseAttribution reportCaseAttribution;
 
     public List<Form1ReportNodeResponse> getRoot(LocalDate from, LocalDate to, String diagnosisCode) {
         Organization currentOrganization = requireCurrentOrganization();
@@ -71,7 +73,7 @@ public class Form1ReportQueryService implements ReportCountSource<Form1Organizat
             List<Long> organizationIds, ReportDateRange range, String diagnosisCode
     ) {
         return form1ReportRepository.countTotal(
-                organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode
+                organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode, reportCaseAttribution.byReceiver()
         );
     }
 
@@ -80,7 +82,10 @@ public class Form1ReportQueryService implements ReportCountSource<Form1Organizat
             List<Long> organizationIds, ReportDateRange range, String diagnosisCode
     ) {
         return form1ReportRepository
-                .countGroupedByOrganization(organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode)
+                .countGroupedByOrganization(
+                        organizationIds, range.fromInclusive(), range.toExclusive(), diagnosisCode,
+                        reportCaseAttribution.byReceiver()
+                )
                 .stream()
                 .collect(Collectors.toMap(Form1OrganizationCountProjection::organizationId, row -> row));
     }

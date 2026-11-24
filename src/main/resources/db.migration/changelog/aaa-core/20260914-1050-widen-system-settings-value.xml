@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Form9ExcelExportSource's reseeded "export.excel.form9.columns" value
+        (code/name + registered/hospitalized triples x 12 calendar months) is
+        2267 chars, past the original VARCHAR(2000) from
+        20260711-1400-create-system-settings.xml - the
+        export/20260914-1100-reseed-form9-report-excel-export-columns.xml
+        UPDATE failed with "value too long for type character varying(2000)".
+        Widen to 4000 for headroom as more per-node breakdown columns get
+        added to other report exports.
+
+        Kept in `changelog/aaa-core/` next to the CREATE (same reasoning as
+        20260716-1300-add-system-settings-version.xml) so the column is wide
+        enough before any per-module folder seeds a row into it - `aaa-core/`
+        sorts first, `export/` would otherwise run before a fix placed there.
+    -->
+    <changeSet id="20260914-1050-01-widen-system-settings-value" author="codex">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <columnExists tableName="system_settings" columnName="setting_value"/>
+        </preConditions>
+
+        <modifyDataType tableName="system_settings" columnName="setting_value" newDataType="VARCHAR(4000)"/>
+    </changeSet>
+
+</databaseChangeLog>
