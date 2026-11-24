@@ -20,6 +20,15 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @EntityGraph(attributePaths = {"organizations", "roles"})
     Optional<User> findWithOrganizationsById(Long id);
 
+    /** Organizations only (no roles join) - for the plain "user's organizations" listing. */
+    @EntityGraph(attributePaths = {"organizations"})
+    @Query("""
+                SELECT u
+                FROM User u
+                WHERE u.id = :id
+    """)
+    Optional<User> findWithOrganizationsOnlyById(@Param("id") Long id);
+
     @EntityGraph(attributePaths = {"organizations"})
     @Query("""
                 SELECT DISTINCT u

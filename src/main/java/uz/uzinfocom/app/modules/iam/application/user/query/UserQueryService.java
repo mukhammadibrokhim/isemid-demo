@@ -128,9 +128,11 @@ public class UserQueryService {
 
     @Transactional(readOnly = true)
     public List<OrganizationShortResponse> findOrganizations(Long userId) {
-        User user = userRepo.findWithOrganizationsById(userId)
+        // Visibility is checked on the id alone first, so an out-of-scope caller never pays
+        // for loading the user; the load itself skips the roles join (not needed here).
+        requireVisible(userId);
+        User user = userRepo.findWithOrganizationsOnlyById(userId)
                 .orElseThrow(() -> new NotFoundException("user.not_found"));
-        requireVisible(user.getId());
 
         if (user.getOrganizations() == null) {
             return List.of();
