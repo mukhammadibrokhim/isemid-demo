@@ -38,7 +38,7 @@ public class SecurityAuthorityService {
             condition = "#userId != null"
     )
     public Collection<? extends GrantedAuthority> loadAuthoritiesByUserId(Long userId) {
-        return userRepository.findForAuthorizationById(userId)
+        return userRepository.findWithRolesOnlyById(userId)
                 .map(User::getRoles)
                 .map(this::loadAuthoritiesByRoles)
                 .orElseGet(Set::of);

@@ -45,7 +45,7 @@ class SecurityAuthorityServiceTest {
                 .build();
         user.setId(1L);
 
-        when(userRepository.findForAuthorizationById(1L))
+        when(userRepository.findWithRolesOnlyById(1L))
                 .thenReturn(Optional.of(user));
 
         when(roleRepository.findPermissionAuthorityNamesByRoleIds(Set.of(10L)))

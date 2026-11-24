@@ -18,7 +18,7 @@ public class CurrentUserQueryService {
 
     @Transactional(readOnly = true)
     public UserMeResponse getCurrentUser(Long userId) {
-        User user = userRepository.findForAuthorizationById(userId)
+        User user = userRepository.findWithRolesOnlyById(userId)
                 .orElseThrow(() ->
                         new NotFoundException("user.not_found")
                 );

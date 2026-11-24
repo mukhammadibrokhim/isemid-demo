@@ -28,18 +28,20 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     """)
     Optional<User> findSecurityUserWithOrganizationsById(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {
-            "roles",
-            "roles.rolePermissions",
-            "roles.rolePermissions.permission",
-            "roles.rolePermissions.actions"
-    })
+    /**
+     * Roles only. The permission/action collections hang off the roles lazily and are
+     * pulled in small batches (hibernate.default_batch_fetch_size) instead of one
+     * roles x permissions x actions cartesian join - that join returned hundreds of
+     * duplicated rows per user and was the dominant cost of GET /v1/users/me.
+     */
+    @EntityGraph(attributePaths = {"roles"})
     @Query("""
                 SELECT DISTINCT u
                 FROM User u
                 WHERE u.id = :id
             """)
-    Optional<User> findForAuthorizationById(@Param("id") Long id);
+    Optional<User> findWithRolesOnlyById(@Param("id") Long id);
+
 
     @Query("""
             SELECT NEW uz.uzinfocom.app.modules.iam.application.organization.query.dto.response.OrganizationUserLookupResponse(
