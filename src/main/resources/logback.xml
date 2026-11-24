@@ -173,6 +173,7 @@
     <logger name="org.springframework.security" level="${SECURITY_LOG_LEVEL}"/>
     <logger name="org.hibernate.SQL" level="WARN"/>
     <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
+    <logger name="org.hibernate.SQL_SLOW" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
