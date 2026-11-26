@@ -6,6 +6,7 @@ import lombok.experimental.SuperBuilder;
 import uz.uzinfocom.app.platform.persistence.entity.AbsEntity;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -119,6 +120,20 @@ public class Patient extends AbsEntity {
 
         affiliations.add(affiliation);
         affiliation.setPatient(this);
+    }
+
+    /**
+     * Age as of registration (the same {@code age(created_at, birth_date)} convention
+     * the reports use), computed on read so it follows birth date corrections.
+     * The stored {@code age_years}/{@code age_months} columns are only a fallback for
+     * rows without a usable birth date; new registrations never fill them.
+     */
+    public PatientAge ageAtRegistration() {
+        LocalDate registeredOn = getCreatedAt() == null
+                ? null
+                : LocalDate.ofInstant(getCreatedAt(), ZoneId.systemDefault());
+        PatientAge age = PatientAge.between(birthDate, registeredOn);
+        return age != null ? age : new PatientAge(ageYears, ageMonths);
     }
 
     @PrePersist

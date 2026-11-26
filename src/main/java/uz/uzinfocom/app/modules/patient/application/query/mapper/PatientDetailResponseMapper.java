@@ -18,6 +18,8 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {PatientAffiliationMappingHelper.class, PatientIdentifierMaskingHelper.class})
 public interface PatientDetailResponseMapper {
 
+    @Mapping(target = "ageYears", expression = "java(patient.ageAtRegistration().years())")
+    @Mapping(target = "ageMonths", expression = "java(patient.ageAtRegistration().months())")
     PatientDetailResponse toDetailedResponse(Patient patient);
 
     List<PatientIdentifierDetailResponse> toIdentifierResponses(List<PatientIdentifier> identifiers);
