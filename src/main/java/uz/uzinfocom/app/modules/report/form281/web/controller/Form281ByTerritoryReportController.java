@@ -56,11 +56,11 @@ public class Form281ByTerritoryReportController {
     private final Form281ByTerritoryExcelExportSource form281ByTerritoryExcelExportSource;
 
     @Operation(
-            summary = "Первый уровень иерархии + итого",
+            summary = "Первый уровень иерархии",
             description = "Возвращает первый уровень иерархии в рамках области доступа текущей организации "
                     + "(регионы — для республиканского доступа, районы — для областного, организации — для "
-                    + "районного), каждый со столбцами-болезнями за выбранный период, плюс последней строкой "
-                    + "суммарный итог (\"Jami\") по всей области доступа. Период по умолчанию — вся история."
+                    + "районного), каждый со столбцами-болезнями за выбранный период. "
+                    + "Итоговой строки нет. Период по умолчанию — вся история."
     )
     @GetMapping(ApiPaths.Form281Report.BY_TERRITORY_ROOT_NODE)
     @PreAuthorize(Permissions.HAS_REPORT_READ)

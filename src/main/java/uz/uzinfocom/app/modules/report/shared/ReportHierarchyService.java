@@ -121,6 +121,24 @@ public class ReportHierarchyService {
         return result;
     }
 
+    /**
+     * Same rows as {@link #loadRootBreakdown}, but without the trailing total row —
+     * for the manual-report based reports (Form 12/13/28.1/28.2), which show no "Jami".
+     */
+    public <C> List<ReportHierarchyNode<C>> loadRootBreakdownWithoutTotal(
+            Organization currentOrganization,
+            ReportCountSource<C> countSource,
+            ReportDateRange range,
+            String diagnosisCode
+    ) {
+        List<ReportHierarchyNode<C>> breakdown =
+                loadChildren(currentOrganization, null, null, countSource, range, diagnosisCode);
+
+        return breakdown.isEmpty()
+                ? List.of(loadRoot(currentOrganization, countSource, range, diagnosisCode))
+                : breakdown;
+    }
+
     public <C> List<ReportHierarchyNode<C>> loadChildren(
             Organization currentOrganization,
             String regionCode,

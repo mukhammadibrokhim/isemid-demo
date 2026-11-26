@@ -42,8 +42,7 @@ import java.util.stream.Collectors;
  * <p>
  * Every response row carries its {@code diseases[]} cells in the same order —
  * the {@code FORM_12} entries sorted by {@code code} — so the frontend
- * renders one stable set of columns across the whole table (and the trailing
- * "Jami" row, folded in by {@link ReportHierarchyService#loadRootBreakdown}).
+ * renders one stable set of columns across the whole table. There is no total row.
  */
 @Service
 @RequiredArgsConstructor
@@ -60,10 +59,10 @@ public class Form12ByTerritoryReportQueryService {
         List<ManualReportResponse> entries = orderedEntries();
         Form12ByTerritoryGeographyCountSource countSource = countSource(entries);
 
-        List<ReportHierarchyNode<Form12NodeCounts>> currentNodes = reportHierarchyService.loadRootBreakdown(
+        List<ReportHierarchyNode<Form12NodeCounts>> currentNodes = reportHierarchyService.loadRootBreakdownWithoutTotal(
                 currentOrganization, countSource, reportDateRangeResolver.resolve(from, to), null
         );
-        List<ReportHierarchyNode<Form12NodeCounts>> previousNodes = reportHierarchyService.loadRootBreakdown(
+        List<ReportHierarchyNode<Form12NodeCounts>> previousNodes = reportHierarchyService.loadRootBreakdownWithoutTotal(
                 currentOrganization, countSource, reportDateRangeResolver.resolve(from, to, 1), null
         );
 

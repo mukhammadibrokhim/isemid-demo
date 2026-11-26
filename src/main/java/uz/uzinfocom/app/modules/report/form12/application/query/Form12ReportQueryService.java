@@ -12,7 +12,6 @@ import uz.uzinfocom.app.modules.report.shared.*;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.i18n.LocalizedTextResolver;
-import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
@@ -45,15 +44,12 @@ public class Form12ReportQueryService {
      */
     public static final String MANUAL_REPORT_TYPE = "FORM_12";
 
-    private static final String TOTAL_CODE = "TOTAL";
-
     private final Form12ReportRepository form12ReportRepository;
     private final ManualReportQueryService manualReportQueryService;
     private final ReportHierarchyService reportHierarchyService;
     private final ReportDateRangeResolver reportDateRangeResolver;
     private final OrganizationScopeResolver organizationScopeResolver;
     private final LocalizedTextResolver localizedTextResolver;
-    private final MessageResolver messageResolver;
 
     public List<Form12ReportNodeResponse> getRoot(LocalDate from, LocalDate to) {
         Organization currentOrganization = requireCurrentOrganization();
@@ -72,9 +68,8 @@ public class Form12ReportQueryService {
 
         List<Form12ReportNodeResponse> rows = entries.stream()
                 .map(entry -> nosologyRow(entry, currentByCode, previousByCode, hasChildren))
-                .collect(Collectors.toCollection(ArrayList::new));
+                .toList();
 
-        rows.add(totalRow(entries, currentByCode, previousByCode));
         return rows;
     }
 
@@ -130,23 +125,6 @@ public class Form12ReportQueryService {
                 String.valueOf(entry.id()), localizedName(entry), entry.code(), entry.shortName(), hasChildren,
                 rollUp(entry, previousByCode), rollUp(entry, currentByCode)
         );
-    }
-
-    private Form12ReportNodeResponse totalRow(
-            List<ManualReportResponse> entries,
-            Map<String, Form12Counts> currentByCode,
-            Map<String, Form12Counts> previousByCode
-    ) {
-        List<ManualReportResponse> included = entries.stream()
-                .filter(e -> Boolean.TRUE.equals(e.includeInTotal()))
-                .toList();
-
-        Form12Counts current = included.stream()
-                .map(e -> rollUp(e, currentByCode)).reduce(Form12Counts.EMPTY, Form12Counts::plus);
-        Form12Counts previous = included.stream()
-                .map(e -> rollUp(e, previousByCode)).reduce(Form12Counts.EMPTY, Form12Counts::plus);
-
-        return row(TOTAL_CODE, messageResolver.resolve("report.scope.total"), null, null, false, previous, current);
     }
 
     /**

@@ -17,12 +17,10 @@ import uz.uzinfocom.app.modules.report.shared.ResolvedReportNode;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.platform.i18n.LocalizedTextResolver;
-import uz.uzinfocom.app.platform.i18n.MessageResolver;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,8 +44,7 @@ import java.util.stream.Collectors;
  * period {@code [from, to]} only — and the metrics are the reference form's
  * varaqa columns (see {@link Form281Counts}): total / female / under-18 /
  * under-15 / under-1 / 1–2 / 3–5, and the same age cuts again for the rural
- * population. Last row is «Jami», the sum of only the rows whose catalog entry
- * has {@code includeInTotal} set.
+ * population. There is no total row.
  */
 @Service
 @RequiredArgsConstructor
@@ -56,15 +53,12 @@ public class Form281ReportQueryService {
     /** The {@code ManualReport.reportTypes} tag a catalog entry must carry to appear in Form 28.1. */
     public static final String MANUAL_REPORT_TYPE = "FORM_28_1";
 
-    private static final String TOTAL_CODE = "TOTAL";
-
     private final Form281ReportRepository form281ReportRepository;
     private final ManualReportQueryService manualReportQueryService;
     private final ReportHierarchyService reportHierarchyService;
     private final ReportDateRangeResolver reportDateRangeResolver;
     private final OrganizationScopeResolver organizationScopeResolver;
     private final LocalizedTextResolver localizedTextResolver;
-    private final MessageResolver messageResolver;
 
     public List<Form281ReportNodeResponse> getRoot(LocalDate from, LocalDate to) {
         Organization currentOrganization = requireCurrentOrganization();
@@ -91,9 +85,8 @@ public class Form281ReportQueryService {
                         String.valueOf(entry.id()), localizedName(entry), entry.code(), entry.shortName(),
                         hasChildren, rollUp(entry, countsByCode)
                 ))
-                .collect(Collectors.toCollection(ArrayList::new));
+                .toList();
 
-        rows.add(totalRow(entries, countsByCode));
         return rows;
     }
 
@@ -122,17 +115,6 @@ public class Form281ReportQueryService {
         return manualReportQueryService.findByReportType(MANUAL_REPORT_TYPE).stream()
                 .sorted((a, b) -> nullSafe(a.code()).compareToIgnoreCase(nullSafe(b.code())))
                 .toList();
-    }
-
-    private Form281ReportNodeResponse totalRow(
-            List<ManualReportResponse> entries, Map<String, Form281Counts> countsByCode
-    ) {
-        Form281Counts total = entries.stream()
-                .filter(e -> Boolean.TRUE.equals(e.includeInTotal()))
-                .map(e -> rollUp(e, countsByCode))
-                .reduce(Form281Counts.EMPTY, Form281Counts::plus);
-
-        return row(TOTAL_CODE, messageResolver.resolve("report.scope.total"), null, null, false, total);
     }
 
     /** Sum the per-code counts for every ICD-10 code in one catalog entry's set. */

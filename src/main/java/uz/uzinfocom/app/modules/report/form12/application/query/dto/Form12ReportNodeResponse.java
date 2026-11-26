@@ -17,12 +17,12 @@ public record Form12ReportNodeResponse(
                 + "либо наименование узла географии).")
         String name,
 
-        @Schema(description = "«Qator kodi» — код записи справочника ручных отчётов. null для строк географии "
-                + "и итоговой строки.")
+        @Schema(description = "«Qator kodi» — код записи справочника ручных отчётов. null для строк "
+                + "географии.")
         String rowCode,
 
         @Schema(description = "«Xalqaro kasalliklar tasnifi kodi» — краткое отображаемое наименование "
-                + "(shortName) записи справочника. null для строк географии и итоговой строки.")
+                + "(shortName) записи справочника. null для строк географии.")
         String icd10Display,
 
         @Schema(description = "Есть ли у строки более глубокий уровень (для отображения раскрывающей стрелки).")

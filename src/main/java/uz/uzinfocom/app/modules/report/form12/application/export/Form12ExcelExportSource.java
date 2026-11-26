@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 /**
  * Excel export for "Form 12" (disease-first: rows = {@code FORM_12}-tagged
- * manual-report catalog entries, plus a trailing "Jami" row). Unlike a
+ * manual-report catalog entries, no total row). Unlike a
  * flat-table export, the whole result is already a small, bounded list
  * produced by one {@link Form12ReportQueryService#getRoot} call — no JPA
  * stream/specification involved, so {@code count()} and {@code forEachRow()}
