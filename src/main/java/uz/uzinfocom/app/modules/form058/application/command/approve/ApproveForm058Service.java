@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService;
 import uz.uzinfocom.app.modules.form058.application.command.update.Form058UpdateMapper;
 import uz.uzinfocom.app.modules.form058.application.command.update.UpdateForm058Result;
 import uz.uzinfocom.app.modules.form058.application.exception.Form058NotFoundException;
@@ -31,6 +32,7 @@ public class ApproveForm058Service {
     private final Form058UpdateMapper form058UpdateMapper;
     private final CurrentUserProvider currentUserProvider;
     private final Form058ApprovalValidator form058ApprovalValidator;
+    private final Icd10LookupService icd10LookupService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -69,6 +71,7 @@ public class ApproveForm058Service {
         }
 
         form058ApprovalValidator.validateApprove(form058);
+        requireCatalogCode(finalIcd10Code.trim());
         String oldStatus = form058.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
         form058.approve(
@@ -96,6 +99,14 @@ public class ApproveForm058Service {
         validateReceiverScope(form058);
         form058.updateFinalDiagnosis(command.finalIcd10Code(), command.finalIcd10Name());
         return form058UpdateMapper.toResult(form058JpaRepository.save(form058));
+    }
+
+    // Reports count confirmed cases by an exact match on final_icd10_code, so a code
+    // missing from the catalog would drop the case from every one of them without a trace.
+    private void requireCatalogCode(String code) {
+        if (!icd10LookupService.resolveNames(List.of(code)).containsKey(code)) {
+            throw new Form058ValidationException("error.form058.icd10-not-found", code);
+        }
     }
 
     private Form058 findRequired(Long id) {

@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import uz.uzinfocom.app.modules.reference.application.lookup.Icd10LookupService;
 import uz.uzinfocom.app.modules.form0581.application.command.update.Form0581UpdateMapper;
 import uz.uzinfocom.app.modules.form0581.application.command.update.UpdateForm0581Result;
 import uz.uzinfocom.app.modules.form0581.application.exception.Form0581NotFoundException;
@@ -28,6 +29,7 @@ public class ApproveForm0581Service {
     private final Form0581UpdateMapper form0581UpdateMapper;
     private final CurrentUserProvider currentUserProvider;
     private final Form0581ApprovalValidator form0581ApprovalValidator;
+    private final Icd10LookupService icd10LookupService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -62,6 +64,7 @@ public class ApproveForm0581Service {
         }
 
         form0581ApprovalValidator.validateApprove(form0581);
+        requireCatalogCode(finalIcd10Code.trim());
         String oldStatus = form0581.getStatus().name();
         Long actorUserId = currentUserProvider.userIdOrNull();
         form0581.approve(
@@ -81,6 +84,14 @@ public class ApproveForm0581Service {
         ));
 
         return result;
+    }
+
+    // Reports count confirmed cases by an exact match on final_icd10_code, so a code
+    // missing from the catalog would drop the case from every one of them without a trace.
+    private void requireCatalogCode(String code) {
+        if (!icd10LookupService.resolveNames(List.of(code)).containsKey(code)) {
+            throw new Form0581ValidationException("error.form0581.icd10-not-found", code);
+        }
     }
 
     private Form0581 findRequired(Long id) {

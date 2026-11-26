@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Katalog hisobotlari (Form 12/13/28.1/28.2) final_icd10_code'ni qator kodlari
+        bilan AYNAN solishtiradi. Seed qilingan to'plamlarda faqat kichik kodlar
+        (A82.0, A82.1, ...) bor edi, shuning uchun uch belgili kod (A82) bilan
+        tasdiqlangan holat hech bir qatorga tushmas edi.
+
+        Uch belgili kod faqat qator butun kategoriyani anglatsa qo'shiladi va
+        kategoriyaning barcha kichik kodlari qatorda allaqachon bo'lsa.
+        Atayin qo'shilmagan:
+          * kichik kodlari sanab yozilgan qatorlar (masalan 106, 136, 163);
+          * 178/179 (B35 ikki qator orasida bo'lingan);
+          * kategoriyasi to'liq bo'lmagan qatorlar: 141 (B18), 157 (J20, J21).
+
+        Alohida bir martalik changeSet: 20260904-1000 seed'ini tahrirlasak
+        (runOnChange) admin o'chirgan qatorlar qayta paydo bo'lib qolardi.
+        Yozuvda shu kategoriyaning birorta kichik kodi qolmagan bo'lsa
+        (admin qatorni o'zgartirgan), kod qo'shilmaydi.
+    -->
+    <changeSet id="20261126-1000-01-manual-report-category-codes" author="Tursunboyev Muhammadibrohim"
+               runInTransaction="true">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_manual_report"/>
+            <tableExists tableName="ref_manual_report_icd10_codes"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+INSERT INTO ref_manual_report_icd10_codes (manual_report_id, icd10_code)
+SELECT m.id, v.icd10_code
+FROM (VALUES
+  ('119', 'A22'),
+  ('120', 'A23'),
+  ('121', 'A36'),
+  ('123', 'A37'),
+  ('124', 'A39'),
+  ('128', 'B01'),
+  ('129', 'B05'),
+  ('132', 'A98'),
+  ('135', 'B15'),
+  ('135', 'B16'),
+  ('135', 'B17'),
+  ('135', 'B19'),
+  ('144', 'B18'),
+  ('145', 'A82'),
+  ('147', 'B27'),
+  ('148', 'B26'),
+  ('149', 'A75'),
+  ('149', 'A77'),
+  ('149', 'A79'),
+  ('154', 'B50'),
+  ('154', 'B51'),
+  ('154', 'B52'),
+  ('154', 'B53'),
+  ('156', 'A27'),
+  ('157', 'J06'),
+  ('159', 'J10'),
+  ('159', 'J11'),
+  ('160', 'J12'),
+  ('160', 'J15'),
+  ('160', 'J16'),
+  ('160', 'J17*'),
+  ('160', 'J18'),
+  ('161', 'J06'),
+  ('161', 'J10'),
+  ('161', 'J11'),
+  ('161', 'J12'),
+  ('161', 'J15'),
+  ('161', 'J16'),
+  ('161', 'J17*'),
+  ('161', 'J18'),
+  ('161', 'J20'),
+  ('161', 'J21'),
+  ('162', 'A15'),
+  ('162', 'A16'),
+  ('162', 'A17+'),
+  ('162', 'A18'),
+  ('162', 'A19'),
+  ('164', 'A15'),
+  ('164', 'A16'),
+  ('164', 'A19'),
+  ('165', 'A15'),
+  ('166', 'A50'),
+  ('166', 'A51'),
+  ('166', 'A52'),
+  ('166', 'A53'),
+  ('167', 'A54'),
+  ('169', 'B85'),
+  ('171', 'B77'),
+  ('175', 'B66'),
+  ('176', 'B67'),
+  ('177', 'B68'),
+  ('180', 'B55'),
+  ('201', 'A39'),
+  ('201', 'O86'),
+  ('201', 'O91'),
+  ('201', 'P36'),
+  ('201', 'P39'),
+  ('201', 'S00'),
+  ('201', 'S02'),
+  ('201', 'T80'),
+  ('201', 'T81'),
+  ('202', 'P36'),
+  ('202', 'P39'),
+  ('203', 'O86'),
+  ('204', 'T80'),
+  ('204', 'T81'),
+  ('205', 'J06'),
+  ('205', 'J10'),
+  ('205', 'J11'),
+  ('206', 'N34'),
+  ('207', 'A01'),
+  ('207', 'A03'),
+  ('207', 'A04'),
+  ('207', 'A05'),
+  ('207', 'A08'),
+  ('208', 'A02'),
+  ('209', 'B16')
+) AS v(report_code, icd10_code)
+JOIN ref_manual_report m ON m.code = v.report_code AND m.deleted = FALSE
+WHERE EXISTS (
+        SELECT 1 FROM ref_manual_report_icd10_codes c
+        WHERE c.manual_report_id = m.id
+          AND c.icd10_code LIKE rtrim(v.icd10_code, '+*') || '.%'
+    )
+  AND NOT EXISTS (
+        SELECT 1 FROM ref_manual_report_icd10_codes c
+        WHERE c.manual_report_id = m.id AND c.icd10_code = v.icd10_code
+    );
+]]></sql>
+
+        <rollback/>
+    </changeSet>
+</databaseChangeLog>

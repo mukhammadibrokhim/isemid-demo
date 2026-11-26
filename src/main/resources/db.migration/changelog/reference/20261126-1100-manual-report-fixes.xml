@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        1) Qator kodlarini tasdiqlangan hisobot shakli matniga moslash:
+             141 (B18)         - B18.8, B18.9 va B18 yetishmas edi;
+             157 (J06, J20-22) - J20.9, J21.9, J20, J21 yetishmas edi;
+             108               - A03.9 shaklda yo'q;
+             202               - J80 (kattalardagi distress-sindrom) shaklda yo'q.
+        2) Legacy'dan kelgan matnlardagi imlo xatolari, aralash lotin/kirill
+           harflari va short_name'dagi ICD-10 kodlari yozuvi tuzatiladi. Har bir
+           UPDATE seed qiymati bilan himoyalangan: admin o'zgartirgan matnga tegilmaydi.
+    -->
+    <changeSet id="20261126-1100-01-manual-report-row-codes" author="Tursunboyev Muhammadibrohim"
+               runInTransaction="true">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_manual_report_icd10_codes"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+INSERT INTO ref_manual_report_icd10_codes (manual_report_id, icd10_code)
+SELECT m.id, v.icd10_code
+FROM (VALUES
+  ('141', 'B18'), ('141', 'B18.8'), ('141', 'B18.9'),
+  ('157', 'J20'), ('157', 'J20.9'), ('157', 'J21'), ('157', 'J21.9')
+) AS v(report_code, icd10_code)
+JOIN ref_manual_report m ON m.code = v.report_code AND m.deleted = FALSE
+WHERE NOT EXISTS (
+        SELECT 1 FROM ref_manual_report_icd10_codes c
+        WHERE c.manual_report_id = m.id AND c.icd10_code = v.icd10_code
+    );
+
+DELETE FROM ref_manual_report_icd10_codes c
+ USING ref_manual_report m
+ WHERE m.id = c.manual_report_id
+   AND ((m.code = '108' AND c.icd10_code = 'A03.9') OR (m.code = '202' AND c.icd10_code = 'J80'));
+]]></sql>
+
+        <rollback/>
+    </changeSet>
+
+    <changeSet id="20261126-1100-02-manual-report-texts" author="Tursunboyev Muhammadibrohim"
+               runInTransaction="true">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <dbms type="postgresql"/>
+            <tableExists tableName="ref_manual_report"/>
+        </preConditions>
+
+        <sql dbms="postgresql" splitStatements="true" stripComments="true"><![CDATA[
+UPDATE ref_manual_report SET name_kaa = 'Qotır (qıshıma)', updated_at = now(), version = version + 1
+ WHERE code = '168' AND name_kaa = 'Qatir (qishim)';
+UPDATE ref_manual_report SET short_name = 'B15.0, B15.9', updated_at = now(), version = version + 1
+ WHERE code = '136' AND short_name = 'В15.0-B15.9';
+UPDATE ref_manual_report SET name_uz = 'O‘tkir gepatit A', updated_at = now(), version = version + 1
+ WHERE code = '136' AND name_uz = 'O''tkir gepatit A';
+UPDATE ref_manual_report SET name_kaa = 'Ótkir gepatit A', updated_at = now(), version = version + 1
+ WHERE code = '136' AND name_kaa = 'Өtkir gеpatit A.';
+UPDATE ref_manual_report SET name_kaa = 'Qızamıq', updated_at = now(), version = version + 1
+ WHERE code = '129' AND name_kaa = 'Qizamiq';
+UPDATE ref_manual_report SET short_name = 'A15.0-A15.9', updated_at = now(), version = version + 1
+ WHERE code = '163' AND short_name = 'А15.0-А15.9';
+UPDATE ref_manual_report SET name_kaa = 'Bakteriologiyalıq hám gistologiyalıq jaqtan tastıyıqlanǵan dem alıw aǵzaları tuberkulyozı', updated_at = now(), version = version + 1
+ WHERE code = '163' AND name_kaa = 'Dem alıw aǵzalarınıń bakteriologiyalıq hám gistologiyalıq jaqtan tastıyıqlanǵan tuberkulyozı';
+UPDATE ref_manual_report SET short_name = 'J06, J20-J22', updated_at = now(), version = version + 1
+ WHERE code = '157' AND short_name = 'J06, J20-22';
+UPDATE ref_manual_report SET name_uz = 'Yuqori va quyi nafas olish yo‘llarining o‘tkir infeksiyalari (O‘RI)', updated_at = now(), version = version + 1
+ WHERE code = '157' AND name_uz = 'Yuqori va quyi nafas olish yo‘llarining o‘tkir infektsiyalari (O‘RI)';
+UPDATE ref_manual_report SET name_kaa = 'Joqarı hám tómengi dem alıw jollarınıń ótkir infekciyaları (ÓRI)', updated_at = now(), version = version + 1
+ WHERE code = '157' AND name_kaa = 'Joqari hәm tөmеngi dеm alioʻ jollariniң өtkir infеksiyalari (ӨRI)';
+UPDATE ref_manual_report SET name_kaa = 'Ish terlemesi', updated_at = now(), version = version + 1
+ WHERE code = '101' AND name_kaa = 'Ish tеrlеmе';
+UPDATE ref_manual_report SET name_uz = 'Paratiflar A, B, C (jami)', updated_at = now(), version = version + 1
+ WHERE code = '102' AND name_uz = 'Paratiflar A, B, S (jami)';
+UPDATE ref_manual_report SET name_ru = 'Паратифы А, В, С (всего)', updated_at = now(), version = version + 1
+ WHERE code = '102' AND name_ru = 'Паратиф А, Б, С (всего)';
+UPDATE ref_manual_report SET name_kaa = 'Paratifler A, B, C (ulıwma)', updated_at = now(), version = version + 1
+ WHERE code = '102' AND name_kaa = 'Paratiflеr A, B, C (ulioʻma)';
+UPDATE ref_manual_report SET name_kaa = 'Paratif A', updated_at = now(), version = version + 1
+ WHERE code = '103' AND name_kaa = 'Paratiflеr A';
+UPDATE ref_manual_report SET short_name = 'B16.0-B16.2, B16.9', updated_at = now(), version = version + 1
+ WHERE code = '137' AND short_name = 'В16.0, В16.1, В16.2, В16.9';
+UPDATE ref_manual_report SET name_uz = 'O‘tkir gepatit B', updated_at = now(), version = version + 1
+ WHERE code = '137' AND name_uz = 'Oʻtkir gеpatit В';
+UPDATE ref_manual_report SET name_kaa = 'Ótkir gepatit B', updated_at = now(), version = version + 1
+ WHERE code = '137' AND name_kaa = 'Өtkir gеpatit В.';
+UPDATE ref_manual_report SET name_uz = 'Paratif B', updated_at = now(), version = version + 1
+ WHERE code = '104' AND name_uz = 'Paratif В';
+UPDATE ref_manual_report SET name_kaa = 'Paratif B', updated_at = now(), version = version + 1
+ WHERE code = '104' AND name_kaa = 'Paratif В';
+UPDATE ref_manual_report SET short_name = 'Z22.0', updated_at = now(), version = version + 1
+ WHERE code = '105' AND short_name = 'Z22,0';
+UPDATE ref_manual_report SET name_kaa = 'Ish terlemesi hám paratif bakteriyaların tasıwshılar', updated_at = now(), version = version + 1
+ WHERE code = '105' AND name_kaa = 'Ishtеrlеmе hәm paratif baktеriyalarin tasioʻshilari.';
+UPDATE ref_manual_report SET short_name = 'A02.0-A02.2, A02.8, A02.9', updated_at = now(), version = version + 1
+ WHERE code = '106' AND short_name = 'А02.0, А02.1, А02.2, А02.8, А02.9';
+UPDATE ref_manual_report SET name_uz = 'Boshqa salmonellez infeksiyalari', updated_at = now(), version = version + 1
+ WHERE code = '106' AND name_uz = 'Boshqa salmonellez infektsiyalari';
+UPDATE ref_manual_report SET name_kaa = 'Basqa salmonellyoz infekciyaları', updated_at = now(), version = version + 1
+ WHERE code = '106' AND name_kaa = 'Basqa salmonеllеz infеksiyalari';
+UPDATE ref_manual_report SET short_name = 'A02.0-A02.2, A02.8', updated_at = now(), version = version + 1
+ WHERE code = '107' AND short_name = 'А02.0, A02.1, А02.2, А02.8';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde bakteriologiyalıq tastıyıqlanǵanlar', updated_at = now(), version = version + 1
+ WHERE code = '107' AND name_kaa = 'Soniң ishindе baktеriologiyaliq tastiyiqlangʻanlar';
+UPDATE ref_manual_report SET short_name = 'A03.0-A03.3, A03.8', updated_at = now(), version = version + 1
+ WHERE code = '108' AND short_name = 'А03.0, А03.1, А03.2, А03.3, А03.8';
+UPDATE ref_manual_report SET name_uz = 'Bakterial dizenteriya (shigellyoz)', updated_at = now(), version = version + 1
+ WHERE code = '108' AND name_uz = 'Вakterial dizenteriya (shigillez)';
+UPDATE ref_manual_report SET name_kaa = 'Bakteriyalıq dizenteriya (shigellyoz)', updated_at = now(), version = version + 1
+ WHERE code = '108' AND name_kaa = 'Baktеriyaliq ishеk aoʻirioʻi (shigеllеz)';
+UPDATE ref_manual_report SET short_name = 'A03.0-A03.3, A03.8', updated_at = now(), version = version + 1
+ WHERE code = '109' AND short_name = 'A03.0, A03.1, A03.2, A03.3, A03.8';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde bakteriologiyalıq tastıyıqlanǵanlar', updated_at = now(), version = version + 1
+ WHERE code = '109' AND name_kaa = 'Soniң ishindе baktеriologiyaliq tastiyiqlangʻanlar';
+UPDATE ref_manual_report SET name_kaa = 'Fleksner, Nyukasl shigellaları keltirip shıǵarǵan', updated_at = now(), version = version + 1
+ WHERE code = '110' AND name_kaa = 'Flеksnеr, Nyukasl shigеllasi kеltirip shigʻargʻan';
+UPDATE ref_manual_report SET name_kaa = 'Zonne shigellası keltirip shıǵarǵan', updated_at = now(), version = version + 1
+ WHERE code = '111' AND name_kaa = 'Zonnе shigеllasi kеltirip shigʻargʻan';
+UPDATE ref_manual_report SET name_uz = 'Grigoryev–Shiga shigellasi keltirib chiqargan', updated_at = now(), version = version + 1
+ WHERE code = '112' AND name_uz = 'Grigorev-shiga shigellasi keltirib chiqargan';
+UPDATE ref_manual_report SET name_uz_cyril = 'Григорьев–Шига шигелласи келтириб чиқарган', updated_at = now(), version = version + 1
+ WHERE code = '112' AND name_uz_cyril = 'Григорев-шига шигелласи келтириб чиқарган';
+UPDATE ref_manual_report SET name_ru = 'Вызванная шигеллой Григорьева–Шиги', updated_at = now(), version = version + 1
+ WHERE code = '112' AND name_ru = 'grigorev-shiga shigellВызванная шигеллой Григорьева-Шига';
+UPDATE ref_manual_report SET name_kaa = 'Grigorev–Shiga shigellası keltirip shıǵarǵan', updated_at = now(), version = version + 1
+ WHERE code = '112' AND name_kaa = 'Grigorеv-shiga shigеllasi shaqirgʻan.';
+UPDATE ref_manual_report SET name_kaa = 'Ish ótiw bakteriyasın tasıwshılar', updated_at = now(), version = version + 1
+ WHERE code = '113' AND name_kaa = 'Ish өtioʻ baktеriya tasioʻshilari';
+UPDATE ref_manual_report SET name_uz = 'Yersinia enterocolitica keltirib chiqargan enteritlar', updated_at = now(), version = version + 1
+ WHERE code = '114' AND name_uz = 'Ierseniya enterokolica keltirib chiqargan enteritlar';
+UPDATE ref_manual_report SET name_uz_cyril = 'Yersinia enterocolitica келтириб чиқарган энтеритлар', updated_at = now(), version = version + 1
+ WHERE code = '114' AND name_uz_cyril = 'Ierseniya enterokolica келтириб чиқарган энтеритлар';
+UPDATE ref_manual_report SET name_ru = 'Энтериты, вызванные Yersinia enterocolitica', updated_at = now(), version = version + 1
+ WHERE code = '114' AND name_ru = 'Энтериты, вызванные иерсения энтероколит';
+UPDATE ref_manual_report SET name_kaa = 'Yersinia enterocolitica keltirip shıǵarǵan enteritler', updated_at = now(), version = version + 1
+ WHERE code = '114' AND name_kaa = 'Yеrsiniya entеrokolitica kеltirip shigʻargʻan entеritlеr';
+UPDATE ref_manual_report SET short_name = 'A04.0, A04.2-A04.8, A05.0, A05.2-A05.4, A05.8, A08.0-A08.3, A08.5', updated_at = now(), version = version + 1
+ WHERE code = '115' AND short_name = 'A04..0,2,3,4,5, 6,7,8, A05.0,2,3,4,8 A08.0 1,2,3,5';
+UPDATE ref_manual_report SET name_uz = 'Aniqlangan qo‘zg‘atuvchilar sabab bo‘lgan enterit, kolit, gastroenteritlar, ovqat toksikoinfeksiyalari', updated_at = now(), version = version + 1
+ WHERE code = '115' AND name_uz = 'Aniqlangan qo‘zg‘atuvchilar sabab bo‘lgan enterit, kolit, gastroenteritlar, ovqat toksikoinfektsiyalari';
+UPDATE ref_manual_report SET name_ru = 'Энтериты, колиты, гастроэнтериты, пищевые токсикоинфекции, вызванные установленными возбудителями', updated_at = now(), version = version + 1
+ WHERE code = '115' AND name_ru = 'Энтериты, колиты, гастроэнтериты, пищевые токсиноинфекции,вызванные установленными возбудителями';
+UPDATE ref_manual_report SET name_kaa = 'Anıqlanǵan qozdırıwshılar sebepli bolǵan enterit, kolit, gastroenteritler, awqat toksikoinfekciyaları', updated_at = now(), version = version + 1
+ WHERE code = '115' AND name_kaa = 'Aniqlangʻan qozgʻatioʻshilar sеbеpli bolgʻan yentеrit, kolit, gastroеntеritlеr, aoʻqat toksikoinfеksiyalari.';
+UPDATE ref_manual_report SET short_name = 'A08.0', updated_at = now(), version = version + 1
+ WHERE code = '116' AND short_name = 'А08.0';
+UPDATE ref_manual_report SET name_uz = 'Shu jumladan rotavirus infeksiyalar', updated_at = now(), version = version + 1
+ WHERE code = '116' AND name_uz = 'Shu jumladan rotavirus infektsiyalar';
+UPDATE ref_manual_report SET name_ru = 'В том числе ротавирусные инфекции', updated_at = now(), version = version + 1
+ WHERE code = '116' AND name_ru = 'shu juВ том числе ротавирусные инфекции';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde rotavirus infekciyaları', updated_at = now(), version = version + 1
+ WHERE code = '116' AND name_kaa = 'Soniң ishindе rotavirus infеksiyalari.';
+UPDATE ref_manual_report SET short_name = 'A04.9, A05.9, A08.4, A09', updated_at = now(), version = version + 1
+ WHERE code = '117' AND short_name = 'A04.9 A05.9 A08.4, A09';
+UPDATE ref_manual_report SET name_uz = 'Qo‘zg‘atuvchilari aniqlanmagan va aniq belgilanmagan o‘tkir ichak infeksiyalari va ovqat toksikoinfeksiyalari', updated_at = now(), version = version + 1
+ WHERE code = '117' AND name_uz = 'Qo‘zg‘atuvchilari aniqlanmagan va aniq belgilanmagan o‘tkir ichak infektsiyalari va ovqat toksikoinfektsiyalari';
+UPDATE ref_manual_report SET name_kaa = 'Qozdırıwshıları anıqlanbaǵan hám anıq belgilenbegen ótkir ishek infekciyaları hám awqat toksikoinfekciyaları', updated_at = now(), version = version + 1
+ WHERE code = '117' AND name_kaa = 'Qozgʻatioʻshilari aniqlanbagʻan hәm aniq bеlgilеnbеgеn өtkir ishеk infеksiyalari hәm aoʻqat toksikoinfеksiyalari.';
+UPDATE ref_manual_report SET name_kaa = 'Kúydirgi', updated_at = now(), version = version + 1
+ WHERE code = '119' AND name_kaa = 'Kuydirgʻi';
+UPDATE ref_manual_report SET short_name = 'A23', updated_at = now(), version = version + 1
+ WHERE code = '120' AND short_name = 'А24';
+UPDATE ref_manual_report SET name_kaa = 'Birinshi márte anıqlanǵan brucellyoz', updated_at = now(), version = version + 1
+ WHERE code = '120' AND name_kaa = 'Birinshi mәrtе aniqlangʻan brusеllyoz.';
+UPDATE ref_manual_report SET short_name = 'A36', updated_at = now(), version = version + 1
+ WHERE code = '121' AND short_name = 'А36';
+UPDATE ref_manual_report SET name_kaa = 'Buwma', updated_at = now(), version = version + 1
+ WHERE code = '121' AND name_kaa = 'Buoʻma';
+UPDATE ref_manual_report SET name_ru = 'Бактерионосители токсигенных штаммов возбудителей дифтерии', updated_at = now(), version = version + 1
+ WHERE code = '122' AND name_ru = 'Бактерионосители токсигенных штаммов возбудителей Дифтерии';
+UPDATE ref_manual_report SET name_kaa = 'Buwma qozdırıwshı toksigen shtammlarınıń bakteriya tasıwshıları', updated_at = now(), version = version + 1
+ WHERE code = '122' AND name_kaa = 'Diftеriya qozgʻatioʻshi toksigеn shtammlariniң baktеriya tasioʻshilari';
+UPDATE ref_manual_report SET short_name = 'A37', updated_at = now(), version = version + 1
+ WHERE code = '123' AND short_name = 'А37';
+UPDATE ref_manual_report SET name_kaa = 'Kók jótel', updated_at = now(), version = version + 1
+ WHERE code = '123' AND name_kaa = 'Kөk jөtеl';
+UPDATE ref_manual_report SET short_name = 'A39', updated_at = now(), version = version + 1
+ WHERE code = '124' AND short_name = 'А39';
+UPDATE ref_manual_report SET name_uz = 'Meningokokkli infeksiya', updated_at = now(), version = version + 1
+ WHERE code = '124' AND name_uz = 'Meningokokkli infektsiya';
+UPDATE ref_manual_report SET name_kaa = 'Meningokokk infekciyası', updated_at = now(), version = version + 1
+ WHERE code = '124' AND name_kaa = 'Mеningookokk infеksiyasi';
+UPDATE ref_manual_report SET short_name = 'A39.1, A39.2, A39.8', updated_at = now(), version = version + 1
+ WHERE code = '125' AND short_name = 'A39.1, 2, 8';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde tarqalǵan túri', updated_at = now(), version = version + 1
+ WHERE code = '125' AND name_kaa = 'Soniң ishindе tarqalgʻan tүri';
+UPDATE ref_manual_report SET short_name = 'A80.0-A80.3', updated_at = now(), version = version + 1
+ WHERE code = '127' AND short_name = 'A80.0, 1, 2, 3';
+UPDATE ref_manual_report SET name_kaa = 'Ótkir poliomielit', updated_at = now(), version = version + 1
+ WHERE code = '127' AND name_kaa = 'Өtkir poliomiеlit.';
+UPDATE ref_manual_report SET name_kaa = 'Suw sheshek', updated_at = now(), version = version + 1
+ WHERE code = '128' AND name_kaa = 'Suoʻshеshеk';
+UPDATE ref_manual_report SET name_kaa = 'Báhárgi-jazǵı kene encefaliti', updated_at = now(), version = version + 1
+ WHERE code = '130' AND name_kaa = 'Bәhәr-jaz kеnе ensеfaliti.';
+UPDATE ref_manual_report SET short_name = 'A38', updated_at = now(), version = version + 1
+ WHERE code = '131' AND short_name = 'А38';
+UPDATE ref_manual_report SET name_kaa = 'Gemorragiyalıq ısıtpa', updated_at = now(), version = version + 1
+ WHERE code = '132' AND name_kaa = 'Gеmorragiyaliq isitpa';
+UPDATE ref_manual_report SET name_kaa = 'Qızılsha', updated_at = now(), version = version + 1
+ WHERE code = '133' AND name_kaa = 'Qizilsha';
+UPDATE ref_manual_report SET name_kaa = 'Tuwma qızılsha', updated_at = now(), version = version + 1
+ WHERE code = '134' AND name_kaa = 'Tuoʻma qizilsha';
+UPDATE ref_manual_report SET short_name = 'B15-B17, B19', updated_at = now(), version = version + 1
+ WHERE code = '135' AND short_name = 'B15, B16, B17, B19';
+UPDATE ref_manual_report SET name_kaa = 'Ótkir viruslı gepatit (jámi)', updated_at = now(), version = version + 1
+ WHERE code = '135' AND name_kaa = 'Өtkir virusli gеpatit (jami).';
+UPDATE ref_manual_report SET name_uz = 'Gepatit C', updated_at = now(), version = version + 1
+ WHERE code = '138' AND name_uz = 'Gepatit С';
+UPDATE ref_manual_report SET name_kaa = 'Gepatit C', updated_at = now(), version = version + 1
+ WHERE code = '138' AND name_kaa = 'Gepatit С';
+UPDATE ref_manual_report SET name_uz = 'Gepatit E', updated_at = now(), version = version + 1
+ WHERE code = '139' AND name_uz = 'Gepatit Е';
+UPDATE ref_manual_report SET name_kaa = 'Gepatit E', updated_at = now(), version = version + 1
+ WHERE code = '139' AND name_kaa = 'Gepatit Е';
+UPDATE ref_manual_report SET name_ru = 'Носители вирусного гепатита – впервые выявленные – всего', updated_at = now(), version = version + 1
+ WHERE code = '141' AND name_ru = 'Gepatit virusini tashuvchilar – birinchi marta aniqlanganlar – jami';
+UPDATE ref_manual_report SET name_kaa = 'Gepatit virusın tasıwshılar – birinshi márte anıqlanǵanlar – jámi', updated_at = now(), version = version + 1
+ WHERE code = '141' AND name_kaa = 'Gеpatit virusin tasioʻshilar - birinshi mәrtе aniqlangʻanlar - jәmi';
+UPDATE ref_manual_report SET name_uz = 'Ulardan: gepatit B (HBAg)', updated_at = now(), version = version + 1
+ WHERE code = '142' AND name_uz = 'Ulardan: gepatit В (HBAg)';
+UPDATE ref_manual_report SET name_kaa = 'Olardan: gepatit B (HBAg)', updated_at = now(), version = version + 1
+ WHERE code = '142' AND name_kaa = 'Olardan: gеpatit В (HBAg)';
+UPDATE ref_manual_report SET name_uz = 'Ulardan: gepatit C', updated_at = now(), version = version + 1
+ WHERE code = '143' AND name_uz = 'ulardan: Gepatit С';
+UPDATE ref_manual_report SET name_uz_cyril = 'Улардан: гепатит С', updated_at = now(), version = version + 1
+ WHERE code = '143' AND name_uz_cyril = 'улардан: Гепатит С';
+UPDATE ref_manual_report SET name_ru = 'Из них: гепатит С', updated_at = now(), version = version + 1
+ WHERE code = '143' AND name_ru = 'из них: Гепатит С';
+UPDATE ref_manual_report SET name_kaa = 'Olardan: gepatit C', updated_at = now(), version = version + 1
+ WHERE code = '143' AND name_kaa = 'оlardеn: Gepatit С';
+UPDATE ref_manual_report SET short_name = 'B18', updated_at = now(), version = version + 1
+ WHERE code = '144' AND short_name = 'В18';
+UPDATE ref_manual_report SET name_kaa = 'Sozılmalı gepatitler (birinshi márte anıqlanǵan)', updated_at = now(), version = version + 1
+ WHERE code = '144' AND name_kaa = 'Sozilmali gеpatitlеr (birinshi mәrtе aniqlangʻanlar)';
+UPDATE ref_manual_report SET short_name = 'A82', updated_at = now(), version = version + 1
+ WHERE code = '145' AND short_name = 'А82';
+UPDATE ref_manual_report SET name_kaa = 'Qutırıw', updated_at = now(), version = version + 1
+ WHERE code = '145' AND name_kaa = 'Qutirioʻ';
+UPDATE ref_manual_report SET short_name = 'A70', updated_at = now(), version = version + 1
+ WHERE code = '146' AND short_name = 'А70';
+UPDATE ref_manual_report SET name_uz = 'Chlamydia psittaci qo‘zg‘atadigan infeksiyalar (ornitoz)', updated_at = now(), version = version + 1
+ WHERE code = '146' AND name_uz = 'Chlamydia psittaci qo''zg''atadigan infeksiyalar (ornitoz)';
+UPDATE ref_manual_report SET name_uz_cyril = 'Chlamydia psittaci қўзғатадиган инфекциялар (орнитоз)', updated_at = now(), version = version + 1
+ WHERE code = '146' AND name_uz_cyril = 'Chlamydia psittaci қўзғатадиган инфексиялар (орнитоз)';
+UPDATE ref_manual_report SET name_kaa = 'Chlamydia psittaci qozdıratuǵın infekciyalar (ornitoz)', updated_at = now(), version = version + 1
+ WHERE code = '146' AND name_kaa = 'Chlamydia psittaci qozgʻatatugʻin infеksiyalar (ornitoz)';
+UPDATE ref_manual_report SET name_uz = 'Infeksion mononukleoz', updated_at = now(), version = version + 1
+ WHERE code = '147' AND name_uz = 'Infektsion mononukleoz';
+UPDATE ref_manual_report SET name_uz_cyril = 'Инфекцион мононуклеоз', updated_at = now(), version = version + 1
+ WHERE code = '147' AND name_uz_cyril = 'Инфекцияли мононуклеоз';
+UPDATE ref_manual_report SET name_kaa = 'Infekciyalıq mononukleoz', updated_at = now(), version = version + 1
+ WHERE code = '147' AND name_kaa = 'Инфекционный мононуклеоз';
+UPDATE ref_manual_report SET short_name = 'B26', updated_at = now(), version = version + 1
+ WHERE code = '148' AND short_name = 'В26';
+UPDATE ref_manual_report SET name_kaa = 'Epidemiyalıq parotit', updated_at = now(), version = version + 1
+ WHERE code = '148' AND name_kaa = 'Epidemik parotit';
+UPDATE ref_manual_report SET name_uz = 'Shu jumladan: epidemik bit tifi', updated_at = now(), version = version + 1
+ WHERE code = '150' AND name_uz = 'shu jumladan, epidеmik bit tifi';
+UPDATE ref_manual_report SET name_uz_cyril = 'Шу жумладан: эпидемик бит тифи', updated_at = now(), version = version + 1
+ WHERE code = '150' AND name_uz_cyril = 'шу жумладан: эпидемик бит тифи';
+UPDATE ref_manual_report SET name_ru = 'В том числе эпидемический вшивый тиф', updated_at = now(), version = version + 1
+ WHERE code = '150' AND name_ru = 'в том числе эпидемический вшивый тиф';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde: epidemiyalıq biyt tifi', updated_at = now(), version = version + 1
+ WHERE code = '150' AND name_kaa = 'sonıń ishinde: epidemik biyt tifi';
+UPDATE ref_manual_report SET name_kaa = 'Kene torsıqlı terlemesi', updated_at = now(), version = version + 1
+ WHERE code = '152' AND name_kaa = 'Kanalı torsıqlı terlem';
+UPDATE ref_manual_report SET short_name = 'A78', updated_at = now(), version = version + 1
+ WHERE code = '153' AND short_name = 'А78';
+UPDATE ref_manual_report SET name_kaa = 'Ku ısıtpası', updated_at = now(), version = version + 1
+ WHERE code = '153' AND name_kaa = 'Ku ıssılıǵı';
+UPDATE ref_manual_report SET short_name = 'A27', updated_at = now(), version = version + 1
+ WHERE code = '156' AND short_name = 'А27';
+UPDATE ref_manual_report SET name_kaa = 'Legionellyoz', updated_at = now(), version = version + 1
+ WHERE code = '158' AND name_kaa = 'Legionellez';
+UPDATE ref_manual_report SET short_name = 'J10-J11', updated_at = now(), version = version + 1
+ WHERE code = '159' AND short_name = 'J 10 - J 11';
+UPDATE ref_manual_report SET short_name = 'J12-J18', updated_at = now(), version = version + 1
+ WHERE code = '160' AND short_name = 'J 12 - 18';
+UPDATE ref_manual_report SET name_kaa = 'Ótkir ókpe qabınıwı (pnevmoniya)', updated_at = now(), version = version + 1
+ WHERE code = '160' AND name_kaa = 'Ótkir ókpe isiwi (pnevmoniya)';
+UPDATE ref_manual_report SET short_name = 'J06, J10-J18, J20-J22', updated_at = now(), version = version + 1
+ WHERE code = '161' AND short_name = 'J10-06, J10-18, J20-22';
+UPDATE ref_manual_report SET name_uz = 'Og‘ir o‘tkir respirator infeksiyalar', updated_at = now(), version = version + 1
+ WHERE code = '161' AND name_uz = 'Og‘ir o‘tkir respirator infektsiyalar';
+UPDATE ref_manual_report SET name_kaa = 'Awır ótkir respirator infekciyalar', updated_at = now(), version = version + 1
+ WHERE code = '161' AND name_kaa = 'Awır ótkir respirator infekciyalar.';
+UPDATE ref_manual_report SET name_kaa = 'Tuberkulyoz (birinshi márte anıqlanǵan, barlıq túri)', updated_at = now(), version = version + 1
+ WHERE code = '162' AND name_kaa = 'Sil (birinshi márte anıqlanǵan, barlıq túri)';
+UPDATE ref_manual_report SET short_name = 'A15, A16, A19', updated_at = now(), version = version + 1
+ WHERE code = '164' AND short_name = 'A15,16,19';
+UPDATE ref_manual_report SET name_uz = '162-satrdan nafas olish a’zolari sili', updated_at = now(), version = version + 1
+ WHERE code = '164' AND name_uz = '162-satrdan nafas olish a''zolari sili';
+UPDATE ref_manual_report SET name_ru = 'Из строки 162: туберкулез органов дыхания', updated_at = now(), version = version + 1
+ WHERE code = '164' AND name_ru = 'из строки 162 туберкулез органов дыхания';
+UPDATE ref_manual_report SET name_kaa = '162-qatardan: dem alıw aǵzaları tuberkulyozı', updated_at = now(), version = version + 1
+ WHERE code = '164' AND name_kaa = '162-qatardan dem aliw organları tuberkulyozi.';
+UPDATE ref_manual_report SET name_uz = 'Shu jumladan: bakteriya ajratish bilan (BK+)', updated_at = now(), version = version + 1
+ WHERE code = '165' AND name_uz = 'shu jumladan bakteriya ajratish bilan (BK+)';
+UPDATE ref_manual_report SET name_uz_cyril = 'Шу жумладан: бактерия ажратиш билан (БК+)', updated_at = now(), version = version + 1
+ WHERE code = '165' AND name_uz_cyril = 'шу жумладан бактерия ажратиш билан (БК+)';
+UPDATE ref_manual_report SET name_ru = 'В том числе с бактериовыделением (БК+)', updated_at = now(), version = version + 1
+ WHERE code = '165' AND name_ru = 'в том числе с бактериовыделением (БК+)';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde bakteriya ajıratıw menen (BK+)', updated_at = now(), version = version + 1
+ WHERE code = '165' AND name_kaa = 'sonıń ishinde bakteriya ajıratıw menen (BK+)';
+UPDATE ref_manual_report SET name_kaa = 'Sifilis (birinshi márte anıqlanǵan, barlıq túri)', updated_at = now(), version = version + 1
+ WHERE code = '166' AND name_kaa = 'Sifilis (birinshi márte anıqlanǵan, barlıq forması)';
+UPDATE ref_manual_report SET name_kaa = 'Bitlew', updated_at = now(), version = version + 1
+ WHERE code = '169' AND name_kaa = 'Bitli';
+UPDATE ref_manual_report SET name_kaa = 'Kene qaytalama terlemesi', updated_at = now(), version = version + 1
+ WHERE code = '170' AND name_kaa = 'Kanalı qaytalanıwshı terleme';
+UPDATE ref_manual_report SET name_kaa = 'Trixocefalyoz (trixuroz)', updated_at = now(), version = version + 1
+ WHERE code = '172' AND name_kaa = 'Trixotsefallez (Trixuroz)';
+UPDATE ref_manual_report SET name_uz = 'Gimenolepidoz', updated_at = now(), version = version + 1
+ WHERE code = '174' AND name_uz = 'Geminolipedoz';
+UPDATE ref_manual_report SET name_uz_cyril = 'Гименолепидоз', updated_at = now(), version = version + 1
+ WHERE code = '174' AND name_uz_cyril = 'Геминолипедоз';
+UPDATE ref_manual_report SET name_ru = 'Гименолепидоз', updated_at = now(), version = version + 1
+ WHERE code = '174' AND name_ru = 'Геминолипедоз';
+UPDATE ref_manual_report SET name_kaa = 'Gimenolepidoz', updated_at = now(), version = version + 1
+ WHERE code = '174' AND name_kaa = 'Geminolipedoz';
+UPDATE ref_manual_report SET name_uz = 'Trematodozlar', updated_at = now(), version = version + 1
+ WHERE code = '175' AND name_uz = 'Tremadozlar';
+UPDATE ref_manual_report SET name_uz_cyril = 'Трематодозлар', updated_at = now(), version = version + 1
+ WHERE code = '175' AND name_uz_cyril = 'Тремадозлар';
+UPDATE ref_manual_report SET name_ru = 'Трематодозы', updated_at = now(), version = version + 1
+ WHERE code = '175' AND name_ru = 'Тремадозы';
+UPDATE ref_manual_report SET name_kaa = 'Trematodozlar', updated_at = now(), version = version + 1
+ WHERE code = '175' AND name_kaa = 'Tremadozlar';
+UPDATE ref_manual_report SET name_uz = 'Exinokokkoz', updated_at = now(), version = version + 1
+ WHERE code = '176' AND name_uz = 'Ehinokokkoz';
+UPDATE ref_manual_report SET name_kaa = 'Exinokokkoz', updated_at = now(), version = version + 1
+ WHERE code = '176' AND name_kaa = 'Ehinokokkoz';
+UPDATE ref_manual_report SET name_uz = 'Shu jumladan: teri leyshmaniozi', updated_at = now(), version = version + 1
+ WHERE code = '181' AND name_uz = 'shu jumladan teri leyshmaniozi';
+UPDATE ref_manual_report SET name_uz_cyril = 'Шу жумладан: тери лейшманиози', updated_at = now(), version = version + 1
+ WHERE code = '181' AND name_uz_cyril = 'шу жумладан тери лейшманиози';
+UPDATE ref_manual_report SET name_ru = 'В том числе кожный лейшманиоз', updated_at = now(), version = version + 1
+ WHERE code = '181' AND name_ru = 'в том числе кожный лейшманиоз';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde teri leyshmaniozı', updated_at = now(), version = version + 1
+ WHERE code = '181' AND name_kaa = 'sonıń ishinde teri leyshmaniozi';
+UPDATE ref_manual_report SET name_uz = 'Aniqlangan koronavirus infeksiyasi', updated_at = now(), version = version + 1
+ WHERE code = '182' AND name_uz = 'Aniqlangan koronavirus infektsiyasi';
+UPDATE ref_manual_report SET name_kaa = 'Anıqlanǵan koronavirus infekciyası', updated_at = now(), version = version + 1
+ WHERE code = '182' AND name_kaa = '33 / 1000  Anıqlanǵan koronavirus infekciyası';
+UPDATE ref_manual_report SET name_uz = 'Shu jumladan: chaqaloqlardagi yiringli-septik infeksiyalar: omfalit, mastit, konyunktivit, sepsis, piodermiya, impetigo, po‘rsildoq yara, osteomiyelit', updated_at = now(), version = version + 1
+ WHERE code = '202' AND name_uz = 'shu jumladan: Chaqaloqlardagi yiringli septik infektsiyalar: omfalit, mastit, kon’yuktivit, sepsis, piodermiya, impetigo, po‘rsildoq yara, osteomiyelit';
+UPDATE ref_manual_report SET name_uz_cyril = 'Шу жумладан: чақалоқлардаги йирингли-септик инфекциялар: омфалит, мастит, конъюнктивит, сепсис, пиодермия, импетиго, пўрсилдоқ яра, остеомиелит', updated_at = now(), version = version + 1
+ WHERE code = '202' AND name_uz_cyril = 'шу жумладан: Чақалоқлардаги йирингли септик инфекциялар: омфалит, мастит, конъюктивит, сепсис, пиодермия, импетиго, пўрсилдоқ яра, остеомиелит';
+UPDATE ref_manual_report SET name_ru = 'В том числе: гнойно-септические инфекции у новорожденных: омфалит, мастит, конъюнктивит, сепсис, пиодермия, импетиго, пузырчатка, остеомиелит', updated_at = now(), version = version + 1
+ WHERE code = '202' AND name_ru = 'в том числе: Гнойно-септические инфекции у новорожденных: омфалит, мастит, конъюктивит, сепсис, пиодермия, импетиго, пузырчатка, остеомиелит';
+UPDATE ref_manual_report SET name_kaa = 'Sonıń ishinde: jańa tuwılǵan náresteler arasındaǵı irińli-septik infekciyalar: omfalit, mastit, konyunktivit, sepsis, piodermiya, impetigo, kóbikshe, osteomielit', updated_at = now(), version = version + 1
+ WHERE code = '202' AND name_kaa = 'shu jumladan / в том числе: Chaqaloqlardagi yiringli septik infektsiyalar: omfalit, mastit, kon’yuktivit, sepsis, piodermiya, impetigo, po‘rsildoq yara, osteomiyelit';
+UPDATE ref_manual_report SET short_name = 'O85, O86, O91.0-O91.2', updated_at = now(), version = version + 1
+ WHERE code = '203' AND short_name = 'О85, О86, О91.0, О91.1, О91.2';
+UPDATE ref_manual_report SET name_uz = 'Tuqqan ayollardagi yiringli septik kasalliklar: sepsis, mastit, akusherlik yarasining jarrohlik amaliyotidan keyingi infeksiyasi, tug‘ruqdan keyingi yoyilgan infeksiya va boshqalar', updated_at = now(), version = version + 1
+ WHERE code = '203' AND name_uz = 'Tuqqan ayollardagi yiringli septik kasalliklar: sepsis, mastit, akusherlik yarasining jarrohlik amaliyotidan keyingi infektsiyasi, tug‘ruqdan keyingi yoyilgan infektsiya va boshqalar';
+UPDATE ref_manual_report SET name_kaa = 'Tuwǵan hayallardaǵı irińli-septik kesellikler: sepsis, mastit, akusherlik jaranıń operaciyadan keyingi infekciyası, tuwıwdan keyingi jayılǵan infekciya hám basqalar', updated_at = now(), version = version + 1
+ WHERE code = '203' AND name_kaa = 'Tuqqan ayollardagi yiringli septik kasalliklar: sepsis, mastit, akusherlik yarasining jarrohlik amaliyotidan keyingi infektsiyasi, tug‘ruqdan keyingi yoyilgan infektsiya va boshqalar';
+UPDATE ref_manual_report SET short_name = 'T80, T81, T82.6, T82.7, T83.5, T83.6, T84.5-T84.7, T85.7, T87.4', updated_at = now(), version = version + 1
+ WHERE code = '204' AND short_name = 'T80, T81, T82.6, Т82.7, T83.5, Т83.6, T84.5,6,7, T85.7, T87.4';
+UPDATE ref_manual_report SET name_uz = 'Operatsiyadan keyingi infeksiyalar: sepsis, abssess, flegmona, in’eksiyadan keyingi sepsis, infuziya, perfuziya va transfuziya oqibatida yuz beradigan sepsis', updated_at = now(), version = version + 1
+ WHERE code = '204' AND name_uz = 'Operatsiyadan keyingi infektsiyalar: sepsis, abtsess, flegmona, in’ektsiyadan keyingi sepsis, infuziyalar, perfuziyalar, transfuziyalar oqibatida yuz beradigan sepsis';
+UPDATE ref_manual_report SET name_uz_cyril = 'Операциядан кейинги инфекциялар: сепсис, абсцесс, флегмона, инъекциядан кейинги сепсис, инфузия, перфузия ва трансфузия оқибатида юз берадиган сепсис', updated_at = now(), version = version + 1
+ WHERE code = '204' AND name_uz_cyril = 'Операциядан кейинги инфекциялар: сепсис, абцесс, флегмона, инъекциядан кейинги сепсис, инфузиялар, перфузиялар, трансфузиялар оқибатида юз берадиган сепсис';
+UPDATE ref_manual_report SET name_ru = 'Послеоперационные инфекции: сепсис, абсцесс, флегмона, постинъекционный сепсис, сепсис в результате инфузий, перфузий, трансфузий', updated_at = now(), version = version + 1
+ WHERE code = '204' AND name_ru = 'Послеоперационные инфекции: сепсис, абцесс, флегмона, сепсис послеинъекционный сепсис в результате инфузий, перфузий, трансфузий.';
+UPDATE ref_manual_report SET name_kaa = 'Operaciyadan keyingi infekciyalar: sepsis, abscess, flegmona, inyekciyadan keyingi sepsis, infuziya, perfuziya hám transfuziya aqıbetinde júz beretuǵın sepsis', updated_at = now(), version = version + 1
+ WHERE code = '204' AND name_kaa = 'Operatsiyadan keyingi infektsiyalar: sepsis, abtsess, flegmona, in’ektsiyadan keyingi sepsis, infuziyalar, perfuziyalar, transfuziyalar oqibatida yuz beradigan sepsis';
+UPDATE ref_manual_report SET short_name = 'J06, J10-J11', updated_at = now(), version = version + 1
+ WHERE code = '205' AND short_name = 'J06, J10-11';
+UPDATE ref_manual_report SET name_uz = 'Yuqori nafas olish yo‘llarining o‘tkir infeksiyalari', updated_at = now(), version = version + 1
+ WHERE code = '205' AND name_uz = 'Yuqori nafas olish yo‘llarining o‘tkir infektsiyalari';
+UPDATE ref_manual_report SET name_kaa = 'Joqarı dem alıw jollarınıń ótkir infekciyaları', updated_at = now(), version = version + 1
+ WHERE code = '205' AND name_kaa = 'Yuqori nafas olish yo‘llarining o‘tkir infektsiyalari';
+UPDATE ref_manual_report SET name_uz = 'Siydik chiqarish yo‘llari infeksiyalari', updated_at = now(), version = version + 1
+ WHERE code = '206' AND name_uz = 'Siydik chiqarish yo‘llari infektsiyalari';
+UPDATE ref_manual_report SET name_kaa = 'Sidik shıǵarıw jolları infekciyaları', updated_at = now(), version = version + 1
+ WHERE code = '206' AND name_kaa = 'Siydik chiqarish yo‘llari infektsiyalari';
+UPDATE ref_manual_report SET short_name = 'A01, A03-A05, A08, A09', updated_at = now(), version = version + 1
+ WHERE code = '207' AND short_name = 'A01, 03, 04, 05, 08, 09';
+UPDATE ref_manual_report SET name_uz = 'Aniqlangan va aniqlanmagan qo‘zg‘atuvchilar sabab bo‘lgan o‘tkir ichak infeksiyalari: enteritlar, kolitlar, gastroenteritlar, enterokolitlar', updated_at = now(), version = version + 1
+ WHERE code = '207' AND name_uz = 'Aniqlangan va aniqlanmagan qo‘zg‘atuvchilar sabab bo‘lgan o‘tkir ichak infek-tsiyalari: enteritlar, kolitlar, goastroenteritlar, enterokolitlar';
+UPDATE ref_manual_report SET name_uz_cyril = 'Аниқланган ва аниқланмаган қўзғатувчилар сабаб бўлган ўткир ичак инфекциялари: энтеритлар, колитлар, гастроэнтеритлар, энтероколитлар', updated_at = now(), version = version + 1
+ WHERE code = '207' AND name_uz_cyril = 'Aниқланган ва аниқланмаган қўзғатувчилар сабаб бўлган ўткир ичак инфек-циялари: энтеритлар, колитлар, гоастроэнтеритлар, энтероколитлар';
+UPDATE ref_manual_report SET name_kaa = 'Anıqlanǵan hám anıqlanbaǵan qozdırıwshılar sebepli bolǵan ótkir ishek infekciyaları: enteritler, kolitler, gastroenteritler, enterokolitler', updated_at = now(), version = version + 1
+ WHERE code = '207' AND name_kaa = 'Aniqlangan va aniqlanmagan qo‘zg‘atuvchilar sabab bo‘lgan o‘tkir ichak infek-tsiyalari: enteritlar, kolitlar, goastroenteritlar, enterokolitlar';
+UPDATE ref_manual_report SET name_uz = '106-satrdan boshqa salmonellyoz infeksiyalari', updated_at = now(), version = version + 1
+ WHERE code = '208' AND name_uz = '106-satrdan boshqa sal’monellez infektsiyalari';
+UPDATE ref_manual_report SET name_uz_cyril = '106-сатрдан бошқа сальмонеллёз инфекциялари', updated_at = now(), version = version + 1
+ WHERE code = '208' AND name_uz_cyril = '106-сатрдан бошқа салъмонеллез инфекциялари';
+UPDATE ref_manual_report SET name_kaa = '106-qatardan basqa salmonellyoz infekciyaları', updated_at = now(), version = version + 1
+ WHERE code = '208' AND name_kaa = '106-satrdan boshqa sal’monellez infektsiyalari';
+UPDATE ref_manual_report SET name_ru = 'Из строки 137: вирусный гепатит В', updated_at = now(), version = version + 1
+ WHERE code = '209' AND name_ru = 'из строки 137 вирусный гепатит В';
+UPDATE ref_manual_report SET name_kaa = '137-qatardan viruslı gepatit B', updated_at = now(), version = version + 1
+ WHERE code = '209' AND name_kaa = '137-satrdan virusli gepatit В';
+UPDATE ref_manual_report SET name_uz = 'Aniqlangan koronavirus infeksiyasi', updated_at = now(), version = version + 1
+ WHERE code = '210' AND name_uz = 'Aniqlangan koronavirus infektsiyasi';
+UPDATE ref_manual_report SET name_uz_cyril = 'Аниқланган коронавирус инфекцияси', updated_at = now(), version = version + 1
+ WHERE code = '210' AND name_uz_cyril = 'Aниқланган коронавирус инфекцияси';
+UPDATE ref_manual_report SET name_kaa = 'Anıqlanǵan koronavirus infekciyası', updated_at = now(), version = version + 1
+ WHERE code = '210' AND name_kaa = 'Aniqlangan koronavirus infektsiyasi';
+UPDATE ref_manual_report SET short_name = 'A39,H65.0,H66.0,J80,O85-86,O91,P36,P38-39,S00,S02,S03.0,T80-81,T82.6-7,T83.5-6,T84.5-7,T85.7,T87.4', updated_at = now(), version = version + 1
+ WHERE code = '201' AND short_name = 'P36, P38, P39, A39, S00, S02, S03.0, H65.0, H66.0, J80.8, О85, О86, О91, О91.1,  T80, T81, T82. 6,7,';
+UPDATE ref_manual_report SET name_uz = 'Kasalxona ichi infeksiyalari – jami', updated_at = now(), version = version + 1
+ WHERE code = '201' AND name_uz = 'Kasalxona ichi infеksiyalari - jami';
+UPDATE ref_manual_report SET name_uz_cyril = 'Касалхона ичи инфекциялари – жами', updated_at = now(), version = version + 1
+ WHERE code = '201' AND name_uz_cyril = 'Касалхона ичи инфекциялари - жами';
+UPDATE ref_manual_report SET name_ru = 'Внутрибольничные инфекции – всего', updated_at = now(), version = version + 1
+ WHERE code = '201' AND name_ru = 'Внутрибольничные инфекции -всего';
+UPDATE ref_manual_report SET name_kaa = 'Emlewxana ishindegi infekciyalar – jámi', updated_at = now(), version = version + 1
+ WHERE code = '201' AND name_kaa = 'Emlewxana ishindegi infekciyalar - jámi.';
+UPDATE ref_manual_report SET short_name = 'A09', updated_at = now(), version = version + 1
+ WHERE code = 'B15.9' AND short_name = '110';
+UPDATE ref_manual_report SET name_uz = 'Infeksiya bilan bog‘liq deb taxmin qilingan diareya va gastroenterit', updated_at = now(), version = version + 1
+ WHERE code = 'B15.9' AND name_uz = 'Infeksiya bilan bog''liq, deb taxmin qilingan diareya va gastroenterit';
+UPDATE ref_manual_report SET name_uz_cyril = 'Инфекция билан боғлиқ деб тахмин қилинган диарея ва гастроэнтерит', updated_at = now(), version = version + 1
+ WHERE code = 'B15.9' AND name_uz_cyril = 'Infeksiya bilan bog''liq, deb taxmin qilingan diareya va gastroenterit';
+UPDATE ref_manual_report SET name_ru = 'Диарея и гастроэнтерит предположительно инфекционного происхождения', updated_at = now(), version = version + 1
+ WHERE code = 'B15.9' AND name_ru = 'Infeksiya bilan bog''liq, deb taxmin qilingan diareya va gastroenterit';
+UPDATE ref_manual_report SET name_kaa = 'Infekciya menen baylanıslı dep shamalanǵan diareya hám gastroenterit', updated_at = now(), version = version + 1
+ WHERE code = 'B15.9' AND name_kaa = 'Infeksiya bilan bog''liq, deb taxmin qilingan diareya va gastroenterit';
+]]></sql>
+
+        <rollback/>
+    </changeSet>
+</databaseChangeLog>
