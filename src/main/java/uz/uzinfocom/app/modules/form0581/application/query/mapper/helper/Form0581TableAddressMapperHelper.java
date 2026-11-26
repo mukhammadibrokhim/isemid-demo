@@ -77,6 +77,8 @@ public class Form0581TableAddressMapperHelper {
                 row.status(),
                 row.icd10Code(),
                 row.icd10Name(),
+                row.finalIcd10Code(),
+                row.finalIcd10Name(),
                 row.source(),
                 row.senderOrganizationId(),
                 row.senderOrganizationName(),

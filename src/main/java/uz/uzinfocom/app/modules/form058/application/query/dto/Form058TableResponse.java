@@ -25,6 +25,14 @@ public record Form058TableResponse(
         @Schema(description = "Наименование диагноза по МКБ-10.")
         String icd10Name,
 
+        @Schema(description = "Код подтверждённого (окончательного) диагноза по МКБ-10. "
+                + "Заполняется только для подтверждённой формы, иначе null.")
+        String finalIcd10Code,
+
+        @Schema(description = "Наименование подтверждённого (окончательного) диагноза по МКБ-10. "
+                + "Заполняется только для подтверждённой формы, иначе null.")
+        String finalIcd10Name,
+
         @Schema(description = "Источник поступления формы.")
         String source,
 
