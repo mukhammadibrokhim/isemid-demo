@@ -13,7 +13,6 @@ import uz.uzinfocom.app.modules.reference.application.manualreport.query.dto.Man
 import uz.uzinfocom.app.modules.reference.application.manualreport.query.dto.ManualReportResponse;
 import uz.uzinfocom.app.modules.reference.application.manualreport.query.dto.ManualReportTableResponse;
 import uz.uzinfocom.app.modules.reference.application.manualreport.query.mapper.ManualReportMapper;
-import uz.uzinfocom.app.modules.reference.application.manualreport.query.projection.ManualReportTableProjection;
 import uz.uzinfocom.app.modules.reference.application.manualreport.query.specification.ManualReportSpecification;
 import uz.uzinfocom.app.modules.reference.config.ReferenceCacheConfig;
 import uz.uzinfocom.app.modules.reference.repository.ManualReportRepository;
@@ -22,7 +21,6 @@ import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 @Service
 @CacheConfig(cacheManager = "securityCacheManager")
@@ -35,19 +33,14 @@ public class ManualReportQueryService {
     @Transactional(readOnly = true)
     public Page<ManualReportTableResponse> findTable(ManualReportFilterRequest request) {
         ManualReportFilterRequest filter = request == null
-                ? new ManualReportFilterRequest(null, null, null, null, null, null)
+                ? new ManualReportFilterRequest(null, null, null, null, null, null, null, null)
                 : request;
         Pageable pageable = PageableUtils.of(filter, ManualReportSortFields.ALLOWED_SORT_FIELDS);
 
-        Page<ManualReportTableProjection> page = Objects.requireNonNull(manualReportRepository.findBy(
-                ManualReportSpecification.byFilter(filter),
-                query -> query
-                        .as(ManualReportTableProjection.class)
-                        .page(pageable)
-                ), "Manual Report Table page is returned null"
-        );
-
-        return page.map(manualReportMapper::toTableResponse);
+        // Entities rather than an interface projection: each row carries the reportTypes
+        // element collection, batch-loaded for the whole page (see ManualReport#reportTypes).
+        return manualReportRepository.findAll(ManualReportSpecification.byFilter(filter), pageable)
+                .map(manualReportMapper::toTableResponse);
     }
 
     @Transactional(readOnly = true)

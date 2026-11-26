@@ -2,6 +2,8 @@ package uz.uzinfocom.app.modules.reference.application.manualreport.query.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.Set;
+
 @Schema(description = "Строка ручного отчёта для постраничного табличного ответа.")
 public record ManualReportTableResponse(
         @Schema(description = "Внутренний идентификатор ручного отчёта.", example = "1")
@@ -20,6 +22,8 @@ public record ManualReportTableResponse(
         String nameKaa,
         @Schema(description = "Учитываются ли соответствующие диагнозы в общих итогах.", example = "true")
         Boolean includeInTotal,
+        @Schema(description = "Теги типа отчёта.", example = "[\"FORM_12\", \"FORM_13\"]")
+        Set<String> reportTypes,
         @Schema(description = "Признак мягкого удаления.", example = "false")
         Boolean deleted
 ) {

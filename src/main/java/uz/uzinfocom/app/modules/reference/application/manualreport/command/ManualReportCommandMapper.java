@@ -60,7 +60,7 @@ public interface ManualReportCommandMapper {
 
         return tags.stream()
                 .filter(StringUtils::hasText)
-                .map(String::trim)
+                .map(tag -> tag.trim().toUpperCase(Locale.ROOT))
                 .collect(Collectors.toCollection(HashSet::new));
     }
 }

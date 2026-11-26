@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
 import uz.uzinfocom.app.modules.reference.domain.base.ReferenceDictionaryEntity;
 
 import java.util.HashSet;
@@ -67,6 +68,7 @@ public class ManualReport extends ReferenceDictionaryEntity {
             joinColumns = @JoinColumn(name = "manual_report_id"),
             indexes = @Index(name = "idx_ref_manual_report_types_report_id", columnList = "manual_report_id")
     )
+    @BatchSize(size = 200)
     @Column(name = "report_type", length = 50)
     private Set<String> reportTypes = new HashSet<>();
 

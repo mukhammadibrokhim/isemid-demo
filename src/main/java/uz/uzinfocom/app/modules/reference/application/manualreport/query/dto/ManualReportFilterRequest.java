@@ -46,6 +46,14 @@ public record ManualReportFilterRequest(
 
         @Schema(description = "Фильтр по точному коду ручного отчёта.", example = "TUBERCULOSIS")
         @Size(max = 50, message = "{reference.code.max_length}")
-        String code
+        String code,
+
+        @Schema(description = "Фильтр по тегу типа отчёта (без учёта регистра).", example = "FORM_12")
+        @Size(max = 50, message = "{reference.code.max_length}")
+        String reportType,
+
+        @Schema(description = "Фильтр по точному коду МКБ-10, входящему в отчёт (без учёта регистра).", example = "A15.0")
+        @Size(max = 20, message = "{reference.code.max_length}")
+        String icd10Code
 ) implements PageableRequest {
 }

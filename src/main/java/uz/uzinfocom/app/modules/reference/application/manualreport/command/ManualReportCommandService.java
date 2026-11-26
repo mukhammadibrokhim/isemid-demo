@@ -17,6 +17,7 @@ import uz.uzinfocom.app.shared.exception.ConflictException;
 import uz.uzinfocom.app.shared.exception.NotFoundException;
 
 import java.util.Objects;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -27,6 +28,7 @@ public class ManualReportCommandService {
     private final ManualReportMapper manualReportMapper;
     private final ManualReportCommandMapper manualReportCommandMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final ManualReportValidator manualReportValidator;
 
     @Transactional
     public ManualReportResponse create(ManualReportCreateRequest request) {
@@ -35,6 +37,13 @@ public class ManualReportCommandService {
         if (manualReportRepository.existsByCode(code)) {
             throw new ConflictException("reference.manual_report.code.already_exists", code);
         }
+
+        manualReportValidator.validate(
+                manualReportCommandMapper.normalizeTags(request.reportTypes()),
+                manualReportCommandMapper.normalizeIcd10Codes(request.icd10Codes()),
+                Set.of(),
+                Set.of()
+        );
 
         ManualReport manualReport = manualReportCommandMapper.toEntity(request);
 
@@ -59,6 +68,14 @@ public class ManualReportCommandService {
         if (!Objects.equals(manualReport.getCode(), code) && manualReportRepository.existsByCode(code)) {
             throw new ConflictException("reference.manual_report.code.already_exists", code);
         }
+
+        // Must run before updateEntity: it compares against what is stored now.
+        manualReportValidator.validate(
+                manualReportCommandMapper.normalizeTags(request.reportTypes()),
+                manualReportCommandMapper.normalizeIcd10Codes(request.icd10Codes()),
+                manualReport.getReportTypes(),
+                manualReport.getIcd10Codes()
+        );
 
         manualReportCommandMapper.updateEntity(manualReport, request);
 

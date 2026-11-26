@@ -41,7 +41,7 @@ public record ManualReportCreateRequest(
         @Schema(description = "Учитываются ли соответствующие диагнозы в общих итогах.", example = "true")
         Boolean includeInTotal,
 
-        @Schema(description = "Произвольные теги типа отчёта, используемые для группировки ручных отчётов.")
+        @Schema(description = "Теги типа отчёта: FORM_12, FORM_13, FORM_28_1, FORM_28_2. Новые неизвестные значения отклоняются.")
         Set<String> reportTypes,
 
         @Schema(

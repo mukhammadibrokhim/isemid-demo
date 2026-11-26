@@ -61,7 +61,7 @@ public class ManualReportController {
             description = """
                     Возвращает активные записи справочника ручных отчётов в виде постраничной таблицы.
 
-                    Поддерживаемые фильтры: code, name.
+                    Поддерживаемые фильтры: code, name, reportType, icd10Code.
                     Нумерация страниц начинается с 1.
                     Поддерживаемые поля сортировки: id, code, shortName, nameUz, nameUzCyril, nameRu, nameKaa, createdAt, updatedAt.
                     """
