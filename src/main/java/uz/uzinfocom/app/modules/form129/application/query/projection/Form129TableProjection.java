@@ -5,30 +5,20 @@ import uz.uzinfocom.app.modules.form129.domain.enums.Form129Status;
 import java.time.Instant;
 import java.util.UUID;
 
-public interface Form129TableProjection {
-    Long getId();
-
-    UUID getUuid();
-
-    Instant getCreatedAt();
-
-    Form129Status getStatus();
-
-    String getSource();
-
-    Long getSenderOrganizationId();
-
-    Long getReceiverOrganizationId();
-
-    PatientProjection getPatient();
-
-    interface PatientProjection {
-        Long getId();
-
-        String getFirstName();
-
-        String getLastName();
-
-        String getMiddleName();
-    }
+/**
+ * One flat row of the form129 table: exactly the columns the list response needs.
+ */
+public record Form129TableProjection(
+        Long id,
+        UUID uuid,
+        Instant createdAt,
+        Form129Status status,
+        String source,
+        Long senderOrganizationId,
+        Long receiverOrganizationId,
+        Long patientId,
+        String patientFirstName,
+        String patientLastName,
+        String patientMiddleName
+) {
 }

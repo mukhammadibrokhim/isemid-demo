@@ -10,7 +10,8 @@ import uz.uzinfocom.app.modules.form129.domain.model.Form129;
 
 import java.util.Optional;
 
-public interface Form129JpaRepository extends JpaRepository<Form129, Long>, JpaSpecificationExecutor<Form129> {
+public interface Form129JpaRepository
+        extends JpaRepository<Form129, Long>, JpaSpecificationExecutor<Form129>, Form129TableRepository {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT f FROM Form129 f WHERE f.id = :id AND f.deleteInfo.deleted = false")
@@ -19,4 +20,11 @@ public interface Form129JpaRepository extends JpaRepository<Form129, Long>, JpaS
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT f FROM Form129 f WHERE f.id = :id AND f.deleteInfo.deleted = false")
     Optional<Form129> findActiveByIdForUpdate(@Param("id") Long id);
+
+    /**
+     * Planner-only row estimate for the unfiltered active-row predicate
+     * (see ExplainRowCountEstimator). Constant SQL, no user input.
+     */
+    @Query(value = "EXPLAIN (FORMAT JSON) SELECT 1 FROM form_129 WHERE deleted = false", nativeQuery = true)
+    String explainActiveRowCountPlan();
 }

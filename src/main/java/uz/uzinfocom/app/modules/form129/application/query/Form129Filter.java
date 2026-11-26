@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StringUtils;
 import uz.uzinfocom.app.modules.form129.domain.enums.Form129Status;
 import uz.uzinfocom.app.shared.pagination.PageableRequest;
 
@@ -83,5 +84,21 @@ public record Form129Filter(
             return true;
         }
         return !dateFrom.isAfter(dateTo);
+    }
+
+    /**
+     * True when {@code direction} is the only predicate this filter contributes, so the
+     * pagination total may come from a planner estimate instead of an exact COUNT(*):
+     * see {@code ExplainRowCountEstimator}.
+     */
+    @Schema(hidden = true)
+    public boolean hasNoAdditionalFilters() {
+        return status == null
+                && dateFrom == null
+                && dateTo == null
+                && id == null
+                && !StringUtils.hasText(documentValue)
+                && organizationId == null
+                && !StringUtils.hasText(source);
     }
 }

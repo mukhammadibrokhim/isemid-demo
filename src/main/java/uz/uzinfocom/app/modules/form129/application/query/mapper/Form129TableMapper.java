@@ -12,11 +12,12 @@ public interface Form129TableMapper {
 
     @Mapping(target = "senderOrganizationName", source = "senderOrganizationId", qualifiedByName = "activeOrganizationNameById")
     @Mapping(target = "receiverOrganizationName", source = "receiverOrganizationId", qualifiedByName = "activeOrganizationNameById")
+    @Mapping(target = "patient", source = "projection")
     Form129TableResponse toTableResponse(Form129TableProjection projection);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "firstName", source = "firstName")
-    @Mapping(target = "lastName", source = "lastName")
-    @Mapping(target = "middleName", source = "middleName")
-    Form129TableResponse.PatientShortResponse toResponse(Form129TableProjection.PatientProjection patient);
+    @Mapping(target = "id", source = "patientId")
+    @Mapping(target = "firstName", source = "patientFirstName")
+    @Mapping(target = "lastName", source = "patientLastName")
+    @Mapping(target = "middleName", source = "patientMiddleName")
+    Form129TableResponse.PatientShortResponse toPatientResponse(Form129TableProjection projection);
 }

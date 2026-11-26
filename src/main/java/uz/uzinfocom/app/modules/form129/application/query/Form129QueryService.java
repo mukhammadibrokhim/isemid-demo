@@ -2,10 +2,10 @@ package uz.uzinfocom.app.modules.form129.application.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzinfocom.app.modules.form129.application.exception.Form129NotFoundException;
@@ -19,15 +19,16 @@ import uz.uzinfocom.app.modules.form129.domain.model.Form129;
 import uz.uzinfocom.app.modules.form129.infrastructure.persistence.repository.Form129JpaRepository;
 import uz.uzinfocom.app.modules.form129.infrastructure.persistence.specification.Form129Specification;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
+import uz.uzinfocom.app.orchestration.scope.OrganizationScopeMode;
 import uz.uzinfocom.app.orchestration.scope.OrganizationScopeResolver;
 import uz.uzinfocom.app.orchestration.scope.ResolvedOrganizationScope;
+import uz.uzinfocom.app.orchestration.scope.jpa.ExplainRowCountEstimator;
 import uz.uzinfocom.app.platform.persistence.audit.AuditResolver;
 import uz.uzinfocom.app.platform.security.auth.AdminAccessGuard;
 import uz.uzinfocom.app.platform.security.context.CurrentOrganizationContext;
 import uz.uzinfocom.app.shared.pagination.PageableUtils;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +42,7 @@ public class Form129QueryService {
     private final Form129TableMapper form129TableMapper;
     private final AdminAccessGuard form129AccessGuard;
     private final AuditResolver auditResolver;
+    private final ExplainRowCountEstimator explainRowCountEstimator;
 
     public Page<Form129TableResponse> findAll(Form129Filter filter) {
         ResolvedOrganizationScope scope = currentScope();
@@ -60,7 +62,10 @@ public class Form129QueryService {
         Pageable pageable = PageableUtils.of(filter, Form129SortFields.ALLOWED);
         Specification<Form129> spec = form129Specification.table(filter, scope, received);
 
-        return assemblePage(spec, pageable);
+        boolean canEstimateTotal = scope.mode() == OrganizationScopeMode.ALL
+                && filter.hasNoAdditionalFilters();
+
+        return assemblePage(spec, pageable, canEstimateTotal);
     }
 
     /**
@@ -74,28 +79,26 @@ public class Form129QueryService {
         Pageable pageable = PageableUtils.of(filter, Form129SortFields.ALLOWED);
         Specification<Form129> spec = form129Specification.tableUnscoped(filter);
 
-        return assemblePage(spec, pageable);
+        return assemblePage(spec, pageable, filter.hasNoAdditionalFilters());
     }
 
-    private Page<Form129TableResponse> assemblePage(Specification<Form129> spec, Pageable pageable) {
-        Slice<Form129TableProjection> slice = Objects.requireNonNull(
-                repository.findBy(
-                        spec,
-                        query -> query
-                                .as(Form129TableProjection.class)
-                                .sortBy(pageable.getSort())
-                                .slice(pageable)
-                ),
-                "Form129 table slice returned null"
-        );
-
-        long total = repository.count(spec);
+    private Page<Form129TableResponse> assemblePage(
+            Specification<Form129> spec,
+            Pageable pageable,
+            boolean canEstimateTotal
+    ) {
+        Slice<Form129TableProjection> slice = repository.findTableSlice(spec, pageable);
 
         List<Form129TableResponse> content = slice.getContent().stream()
                 .map(form129TableMapper::toTableResponse)
                 .toList();
 
-        return new PageImpl<>(content, pageable, total);
+        // The total is resolved only when a short page cannot tell it by itself.
+        return PageableExecutionUtils.getPage(content, pageable, () -> canEstimateTotal
+                ? explainRowCountEstimator.estimate(
+                        repository.explainActiveRowCountPlan(),
+                        () -> repository.count(spec))
+                : repository.count(spec));
     }
 
     public Form129DetailResponse getById(Long id) {
