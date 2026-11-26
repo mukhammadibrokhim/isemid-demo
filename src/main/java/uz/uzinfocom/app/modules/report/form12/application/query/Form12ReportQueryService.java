@@ -59,12 +59,14 @@ public class Form12ReportQueryService {
         boolean hasChildren =
                 organizationScopeResolver.resolve(currentOrganization).mode() != OrganizationScopeMode.ORGANIZATION;
 
-        Map<String, Form12Counts> currentByCode = countsByCode(organizationIds, from, to, 0);
-        Map<String, Form12Counts> previousByCode = countsByCode(organizationIds, from, to, 1);
-
         List<ManualReportResponse> entries = manualReportQueryService.findByReportType(MANUAL_REPORT_TYPE).stream()
                 .sorted((a, b) -> nullSafe(a.code()).compareToIgnoreCase(nullSafe(b.code())))
                 .toList();
+
+        Map<ReportCaseCondition, Map<String, Form12Counts>> currentByCode =
+                countsByCondition(entries, organizationIds, from, to, 0);
+        Map<ReportCaseCondition, Map<String, Form12Counts>> previousByCode =
+                countsByCondition(entries, organizationIds, from, to, 1);
 
         List<Form12ReportNodeResponse> rows = entries.stream()
                 .map(entry -> nosologyRow(entry, currentByCode, previousByCode, hasChildren))
@@ -79,8 +81,8 @@ public class Form12ReportQueryService {
         Organization currentOrganization = requireCurrentOrganization();
 
         ManualReportResponse entry = manualReportQueryService.getById(manualReportId);
-        Set<String> codes = normalizeCodes(entry.icd10Codes());
-        Form12GeographyCountSource countSource = new Form12GeographyCountSource(form12ReportRepository, codes);
+        Form12GeographyCountSource countSource =
+                new Form12GeographyCountSource(form12ReportRepository, ReportRowRule.of(entry));
 
         List<ReportHierarchyNode<Form12Counts>> currentNodes = reportHierarchyService.loadChildren(
                 currentOrganization, regionCode, districtCode, countSource,
@@ -102,11 +104,24 @@ public class Form12ReportQueryService {
                 .toList();
     }
 
+    /** Per-code counts for every distinct row condition among the entries. */
+    private Map<ReportCaseCondition, Map<String, Form12Counts>> countsByCondition(
+            List<ManualReportResponse> entries, List<Long> organizationIds, LocalDate from, LocalDate to, long yearsAgo
+    ) {
+        return entries.stream()
+                .map(ReportCaseCondition::of)
+                .distinct()
+                .collect(Collectors.toMap(
+                        condition -> condition,
+                        condition -> countsByCode(organizationIds, from, to, yearsAgo, condition)
+                ));
+    }
+
     private Map<String, Form12Counts> countsByCode(List<Long> organizationIds, LocalDate from, LocalDate to,
-                                                   long yearsAgo) {
+                                                   long yearsAgo, ReportCaseCondition condition) {
         ReportDateRange range = reportDateRangeResolver.resolve(from, to, yearsAgo);
         return form12ReportRepository
-                .countByDiagnosisCode(organizationIds, range.fromInclusive(), range.toExclusive())
+                .countByDiagnosisCode(organizationIds, range.fromInclusive(), range.toExclusive(), condition)
                 .stream()
                 .collect(Collectors.toMap(
                         p -> p.code().toUpperCase(Locale.ROOT),
@@ -117,8 +132,8 @@ public class Form12ReportQueryService {
 
     private Form12ReportNodeResponse nosologyRow(
             ManualReportResponse entry,
-            Map<String, Form12Counts> currentByCode,
-            Map<String, Form12Counts> previousByCode,
+            Map<ReportCaseCondition, Map<String, Form12Counts>> currentByCode,
+            Map<ReportCaseCondition, Map<String, Form12Counts>> previousByCode,
             boolean hasChildren
     ) {
         return row(
@@ -130,8 +145,12 @@ public class Form12ReportQueryService {
     /**
      * Sum the per-code counts for every ICD-10 code in one catalog entry's set.
      */
-    private Form12Counts rollUp(ManualReportResponse entry, Map<String, Form12Counts> countsByCode) {
-        return normalizeCodes(entry.icd10Codes()).stream()
+    private Form12Counts rollUp(
+            ManualReportResponse entry, Map<ReportCaseCondition, Map<String, Form12Counts>> countsByCondition
+    ) {
+        ReportRowRule rule = ReportRowRule.of(entry);
+        Map<String, Form12Counts> countsByCode = countsByCondition.get(rule.condition());
+        return rule.icd10Codes().stream()
                 .map(code -> countsByCode.getOrDefault(code, Form12Counts.EMPTY))
                 .reduce(Form12Counts.EMPTY, Form12Counts::plus);
     }
@@ -146,16 +165,6 @@ public class Form12ReportQueryService {
                 previous.under14(), current.under14(), current.under14() - previous.under14(),
                 previous.under18(), current.under18(), current.under18() - previous.under18()
         );
-    }
-
-    private Set<String> normalizeCodes(Set<String> codes) {
-        if (codes == null) {
-            return Set.of();
-        }
-        return codes.stream()
-                .filter(c -> c != null && !c.isBlank())
-                .map(c -> c.trim().toUpperCase(Locale.ROOT))
-                .collect(Collectors.toSet());
     }
 
     private String localizedName(ManualReportResponse entry) {

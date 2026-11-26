@@ -1,7 +1,10 @@
 package uz.uzinfocom.app.modules.reference.application.manualreport.command;
 
+import uz.uzinfocom.app.modules.reference.domain.ManualReportAgeUnit;
+import uz.uzinfocom.app.modules.reference.domain.ManualReportCaseSource;
 import org.junit.jupiter.api.Test;
 import uz.uzinfocom.app.modules.reference.domain.Icd10;
+import uz.uzinfocom.app.modules.reference.repository.CatalogRepository;
 import uz.uzinfocom.app.modules.reference.repository.Icd10Repository;
 
 import java.util.List;
@@ -17,7 +20,8 @@ import static org.mockito.Mockito.when;
 class ManualReportValidatorTest {
 
     private final Icd10Repository icd10Repository = mock(Icd10Repository.class);
-    private final ManualReportValidator validator = new ManualReportValidator(icd10Repository);
+    private final CatalogRepository catalogRepository = mock(CatalogRepository.class);
+    private final ManualReportValidator validator = new ManualReportValidator(icd10Repository, catalogRepository);
 
     @Test
     void acceptsKnownReportTypesAndCodes() {
@@ -61,6 +65,53 @@ class ManualReportValidatorTest {
     void rejectsEmptyCodeSetLeftAfterNormalization() {
         assertThatThrownBy(() -> validator.validate(Set.of(), Set.of(), Set.of(), Set.of("A15.0")))
                 .isInstanceOf(ManualReportValidationException.class);
+    }
+
+    @Test
+    void acceptsAgeBoundsInMixedUnits() {
+        assertThatCode(() -> validator.validateAgeBounds(28, ManualReportAgeUnit.DAY, 1, ManualReportAgeUnit.YEAR))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateAgeBounds(null, null, null, null))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void rejectsAgeBoundWithoutUnitAndUnitWithoutBound() {
+        assertThatThrownBy(() -> validator.validateAgeBounds(null, null, 28, null))
+                .isInstanceOf(ManualReportValidationException.class);
+        assertThatThrownBy(() -> validator.validateAgeBounds(null, ManualReportAgeUnit.DAY, null, null))
+                .isInstanceOf(ManualReportValidationException.class);
+    }
+
+    @Test
+    void rejectsEmptyAgeRange() {
+        assertThatThrownBy(() -> validator.validateAgeBounds(12, ManualReportAgeUnit.MONTH, 1, ManualReportAgeUnit.YEAR))
+                .isInstanceOf(ManualReportValidationException.class);
+    }
+
+    @Test
+    void rejectsLabConfirmationOnAForm0581OnlyRow() {
+        assertThatThrownBy(() -> validator.validateCaseFilters(ManualReportCaseSource.FORM_058_1, true))
+                .isInstanceOf(ManualReportValidationException.class);
+        assertThatCode(() -> validator.validateCaseFilters(ManualReportCaseSource.FORM_058, false))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateCaseFilters(ManualReportCaseSource.FORM_058_1, null))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void rejectsNewDiseasePlaceMissingFromCatalogButKeepsStoredOne() {
+        assertThatThrownBy(() -> validator.validateDiseasePlaces(Set.of("NOWHERE"), Set.of(), null))
+                .isInstanceOf(ManualReportValidationException.class);
+        assertThatCode(() -> validator.validateDiseasePlaces(Set.of("NOWHERE"), Set.of("NOWHERE"), null))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void rejectsDiseasePlaceOnAForm0581OnlyRow() {
+        assertThatThrownBy(() -> validator.validateDiseasePlaces(
+                Set.of("HOME"), Set.of("HOME"), ManualReportCaseSource.FORM_058_1
+        )).isInstanceOf(ManualReportValidationException.class);
     }
 
     private void found(String code) {

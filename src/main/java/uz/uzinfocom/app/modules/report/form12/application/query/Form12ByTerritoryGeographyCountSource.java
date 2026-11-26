@@ -1,9 +1,9 @@
 package uz.uzinfocom.app.modules.report.form12.application.query;
 
+import uz.uzinfocom.app.modules.report.shared.ReportCaseCondition;
+import uz.uzinfocom.app.modules.report.shared.ReportRowRule;
 import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12Counts;
-import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12DiagnosisCountProjection;
 import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12NodeCounts;
-import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12OrganizationDiagnosisCountProjection;
 import uz.uzinfocom.app.modules.report.form12.infrastructure.persistence.repository.Form12ReportRepository;
 import uz.uzinfocom.app.modules.report.shared.ReportCountSource;
 import uz.uzinfocom.app.modules.report.shared.ReportDateRange;
@@ -33,46 +33,55 @@ public final class Form12ByTerritoryGeographyCountSource implements ReportCountS
 
     private final Form12ReportRepository form12ReportRepository;
 
-    /** Manual-report entry id → its normalized (trimmed, upper-case) ICD-10 code set. */
-    private final Map<Long, Set<String>> codesByEntryId;
+    /** Row condition → (manual-report entry id → its normalized ICD-10 code set). */
+    private final Map<ReportCaseCondition, Map<Long, Set<String>>> codesByCondition;
 
     public Form12ByTerritoryGeographyCountSource(
-            Form12ReportRepository form12ReportRepository, Map<Long, Set<String>> codesByEntryId
+            Form12ReportRepository form12ReportRepository, Map<Long, ReportRowRule> rules
     ) {
         this.form12ReportRepository = form12ReportRepository;
-        this.codesByEntryId = codesByEntryId;
+        this.codesByCondition = ReportRowRule.codesByCondition(rules);
     }
 
     @Override
     public Form12NodeCounts total(List<Long> organizationIds, ReportDateRange range, String diagnosisCode) {
-        Map<String, Form12Counts> byCode = new HashMap<>();
-        for (Form12DiagnosisCountProjection p : form12ReportRepository
-                .countByDiagnosisCode(organizationIds, range.fromInclusive(), range.toExclusive())) {
-            byCode.merge(
-                    p.code().toUpperCase(Locale.ROOT),
-                    new Form12Counts(p.total(), p.under14(), p.under18()),
-                    Form12Counts::plus
-            );
-        }
-        return rollUp(byCode);
+        Map<Long, Form12Counts> byEntryId = new HashMap<>();
+        codesByCondition.forEach((condition, codesByEntryId) -> {
+            Map<String, Form12Counts> byCode = new HashMap<>();
+            form12ReportRepository
+                    .countByDiagnosisCode(organizationIds, range.fromInclusive(), range.toExclusive(), condition)
+                    .forEach(p -> byCode.merge(
+                            p.code().toUpperCase(Locale.ROOT),
+                            new Form12Counts(p.total(), p.under14(), p.under18()),
+                            Form12Counts::plus
+                    ));
+            byEntryId.putAll(ReportRowRule.sumByEntry(codesByEntryId, byCode, Form12Counts.EMPTY, Form12Counts::plus));
+        });
+        return new Form12NodeCounts(byEntryId);
     }
 
     @Override
     public Map<Long, Form12NodeCounts> groupedByOrganization(
             List<Long> organizationIds, ReportDateRange range, String diagnosisCode
     ) {
-        Map<Long, Map<String, Form12Counts>> byOrgThenCode = new HashMap<>();
-        for (Form12OrganizationDiagnosisCountProjection p : form12ReportRepository
-                .countGroupedByOrganizationAndDiagnosisCode(
-                        organizationIds, range.fromInclusive(), range.toExclusive()
-                )) {
-            byOrgThenCode
-                    .computeIfAbsent(p.organizationId(), _ -> new HashMap<>())
-                    .merge(p.code().toUpperCase(Locale.ROOT), p.counts(), Form12Counts::plus);
-        }
+        Map<Long, Map<Long, Form12Counts>> byOrgThenEntry = new HashMap<>();
+        codesByCondition.forEach((condition, codesByEntryId) -> {
+            Map<Long, Map<String, Form12Counts>> byOrgThenCode = new HashMap<>();
+            form12ReportRepository
+                    .countGroupedByOrganizationAndDiagnosisCode(
+                            organizationIds, range.fromInclusive(), range.toExclusive(), condition
+                    )
+                    .forEach(p -> byOrgThenCode
+                            .computeIfAbsent(p.organizationId(), _ -> new HashMap<>())
+                            .merge(p.code().toUpperCase(Locale.ROOT), p.counts(), Form12Counts::plus));
+
+            byOrgThenCode.forEach((organizationId, byCode) -> byOrgThenEntry
+                    .computeIfAbsent(organizationId, _ -> new HashMap<>())
+                    .putAll(ReportRowRule.sumByEntry(codesByEntryId, byCode, Form12Counts.EMPTY, Form12Counts::plus)));
+        });
 
         Map<Long, Form12NodeCounts> result = new HashMap<>();
-        byOrgThenCode.forEach((organizationId, byCode) -> result.put(organizationId, rollUp(byCode)));
+        byOrgThenEntry.forEach((organizationId, byEntryId) -> result.put(organizationId, new Form12NodeCounts(byEntryId)));
         return result;
     }
 
@@ -84,26 +93,5 @@ public final class Form12ByTerritoryGeographyCountSource implements ReportCountS
     @Override
     public Form12NodeCounts merge(Form12NodeCounts a, Form12NodeCounts b) {
         return a.plus(b);
-    }
-
-    /**
-     * Fold a per-ICD-10-code count map into a per-entry map by summing, for
-     * every {@code FORM_12} catalog entry, the counts of the codes in its set.
-     * A case whose code sits in two entries' sets counts once in each column —
-     * same independent-per-entry roll-up as {@code Form12ReportQueryService}.
-     */
-    private Form12NodeCounts rollUp(Map<String, Form12Counts> byCode) {
-        Map<Long, Form12Counts> byEntryId = new HashMap<>();
-        codesByEntryId.forEach((entryId, codes) -> {
-            Form12Counts sum = Form12Counts.EMPTY;
-            for (String code : codes) {
-                Form12Counts counts = byCode.get(code);
-                if (counts != null) {
-                    sum = sum.plus(counts);
-                }
-            }
-            byEntryId.put(entryId, sum);
-        });
-        return new Form12NodeCounts(byEntryId);
     }
 }

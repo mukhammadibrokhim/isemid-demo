@@ -1,5 +1,6 @@
 package uz.uzinfocom.app.modules.report.form13.application.query;
 
+import uz.uzinfocom.app.modules.report.shared.ReportRowRule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
@@ -19,9 +20,7 @@ import uz.uzinfocom.app.shared.exception.ScopeViolationException;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -96,9 +95,9 @@ public class Form13ReportQueryService {
     }
 
     private Form13GeographyCountSource countSource(List<ManualReportResponse> entries) {
-        Map<Long, Set<String>> codesByEntryId = entries.stream()
-                .collect(Collectors.toMap(ManualReportResponse::id, e -> normalizeCodes(e.icd10Codes())));
-        return new Form13GeographyCountSource(form13ReportRepository, codesByEntryId);
+        Map<Long, ReportRowRule> rules = entries.stream()
+                .collect(Collectors.toMap(ManualReportResponse::id, ReportRowRule::of));
+        return new Form13GeographyCountSource(form13ReportRepository, rules);
     }
 
     private List<Form13ReportNodeResponse> zip(
@@ -137,16 +136,6 @@ public class Form13ReportQueryService {
                     );
                 })
                 .toList();
-    }
-
-    private Set<String> normalizeCodes(Set<String> codes) {
-        if (codes == null) {
-            return Set.of();
-        }
-        return codes.stream()
-                .filter(c -> c != null && !c.isBlank())
-                .map(c -> c.trim().toUpperCase(Locale.ROOT))
-                .collect(Collectors.toSet());
     }
 
     private String localizedName(ManualReportResponse entry) {

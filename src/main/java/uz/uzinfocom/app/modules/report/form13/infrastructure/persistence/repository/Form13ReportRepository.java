@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.report.form13.infrastructure.persistence.repository;
 
+import uz.uzinfocom.app.modules.reference.domain.ManualReportCaseSource;
+import uz.uzinfocom.app.modules.report.shared.ReportCaseCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,11 @@ import java.util.stream.Collectors;
  * in Java, not in the query. Every {@code ::type} cast wraps its named
  * parameter in parentheses — {@code (:param)::type} — see {@code
  * Form1ReportRepository} for why.
+ * <p>
+ * Age is left {@code null} when the birth date is after the case's {@code
+ * created_at}: {@code age()} would report year 0 for such a record and file it
+ * under the children / infant columns. It still counts in every column that
+ * does not depend on age (an age-restricted row condition excludes it entirely).
  */
 @Repository
 @RequiredArgsConstructor
@@ -44,7 +51,7 @@ public class Form13ReportRepository {
 
     private static final String UNION_SOURCE_TEMPLATE = """
             select upper(f.final_icd10_code) as diagnosis_code,
-                   extract(year from age(f.created_at::date, p.birth_date))::int as age_years
+                   case when p.birth_date <= f.created_at::date then extract(year from age(f.created_at::date, p.birth_date))::int end as age_years
             from form058 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
@@ -52,9 +59,10 @@ public class Form13ReportRepository {
               and f.status = 'APPROVED'
               and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+            %2$s
             union all
             select upper(f.final_icd10_code),
-                   extract(year from age(f.created_at::date, p.birth_date))::int
+                   case when p.birth_date <= f.created_at::date then extract(year from age(f.created_at::date, p.birth_date))::int end
             from form058_1 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
@@ -62,12 +70,13 @@ public class Form13ReportRepository {
               and f.status = 'APPROVED'
               and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+            %3$s
             """;
 
     private static final String UNION_SOURCE_WITH_ORG_TEMPLATE = """
             select f.sender_organization_id,
                    upper(f.final_icd10_code) as diagnosis_code,
-                   extract(year from age(f.created_at::date, p.birth_date))::int as age_years
+                   case when p.birth_date <= f.created_at::date then extract(year from age(f.created_at::date, p.birth_date))::int end as age_years
             from form058 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
@@ -75,10 +84,11 @@ public class Form13ReportRepository {
               and f.status = 'APPROVED'
               and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+            %2$s
             union all
             select f.sender_organization_id,
                    upper(f.final_icd10_code),
-                   extract(year from age(f.created_at::date, p.birth_date))::int
+                   case when p.birth_date <= f.created_at::date then extract(year from age(f.created_at::date, p.birth_date))::int end
             from form058_1 f
             join patient p on p.id = f.patient_id
             join (values %1$s) as scope_org(id) on scope_org.id = f.sender_organization_id
@@ -86,6 +96,7 @@ public class Form13ReportRepository {
               and f.status = 'APPROVED'
               and f.final_icd10_code is not null
               and f.created_at >= (:fromInclusive)::timestamptz and f.created_at < (:toExclusive)::timestamptz
+            %3$s
             """;
 
     private static final String METRIC_COLUMNS = """
@@ -103,17 +114,18 @@ public class Form13ReportRepository {
      * root ("Jami") node.
      */
     public List<Form13DiagnosisCountProjection> countByDiagnosisCode(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive,
+            ReportCaseCondition condition
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
         }
 
         String sql = "select t.diagnosis_code as diagnosis_code, " + METRIC_COLUMNS
-                + " from (" + unionSource(organizationIds) + ") t"
+                + " from (" + unionSource(organizationIds, condition) + ") t"
                 + " where t.diagnosis_code is not null group by t.diagnosis_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, condition).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -130,7 +142,8 @@ public class Form13ReportRepository {
      * the raw material for every geography breakdown level.
      */
     public List<Form13OrganizationDiagnosisCountProjection> countGroupedByOrganizationAndDiagnosisCode(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive,
+            ReportCaseCondition condition
     ) {
         if (organizationIds == null || organizationIds.isEmpty()) {
             return List.of();
@@ -138,10 +151,10 @@ public class Form13ReportRepository {
 
         String sql = "select t.sender_organization_id as organization_id, t.diagnosis_code as diagnosis_code, "
                 + METRIC_COLUMNS
-                + " from (" + unionSourceWithOrg(organizationIds) + ") t"
+                + " from (" + unionSourceWithOrg(organizationIds, condition) + ") t"
                 + " where t.diagnosis_code is not null group by t.sender_organization_id, t.diagnosis_code";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive).getResultList();
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, condition).getResultList();
 
         return rows.stream()
                 .map(row -> {
@@ -160,17 +173,18 @@ public class Form13ReportRepository {
      * Form12ReportRepository#countGroupedByOrganizationForCodes}.
      */
     public List<Form13OrganizationCountProjection> countGroupedByOrganizationForCodes(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes,
+            ReportCaseCondition condition
     ) {
         if (organizationIds == null || organizationIds.isEmpty() || codes == null || codes.isEmpty()) {
             return List.of();
         }
 
         String sql = "select t.sender_organization_id as organization_id, " + METRIC_COLUMNS
-                + " from (" + unionSourceWithOrg(organizationIds) + ") t"
+                + " from (" + unionSourceWithOrg(organizationIds, condition) + ") t"
                 + " where t.diagnosis_code in (:codes) group by t.sender_organization_id";
 
-        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive)
+        List<?> rows = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, condition)
                 .setParameter("codes", codes)
                 .getResultList();
 
@@ -189,16 +203,17 @@ public class Form13ReportRepository {
      * ICD-10 set — a "Form 13 by disease" drill-down root node.
      */
     public Form13Metric countTotalForCodes(
-            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes
+            List<Long> organizationIds, Instant fromInclusive, Instant toExclusive, Collection<String> codes,
+            ReportCaseCondition condition
     ) {
         if (organizationIds == null || organizationIds.isEmpty() || codes == null || codes.isEmpty()) {
             return Form13Metric.EMPTY;
         }
 
         String sql = "select " + METRIC_COLUMNS
-                + " from (" + unionSource(organizationIds) + ") t where t.diagnosis_code in (:codes)";
+                + " from (" + unionSource(organizationIds, condition) + ") t where t.diagnosis_code in (:codes)";
 
-        Object row = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive)
+        Object row = bindRange(entityManager.createNativeQuery(reportCaseAttribution.apply(sql)), fromInclusive, toExclusive, condition)
                 .setParameter("codes", codes)
                 .getSingleResult();
 
@@ -206,20 +221,28 @@ public class Form13ReportRepository {
         return new Form13Metric(count(r, 0), count(r, 1), count(r, 2));
     }
 
-    private String unionSource(List<Long> organizationIds) {
-        return UNION_SOURCE_TEMPLATE.formatted(valuesList(organizationIds));
+    private String unionSource(List<Long> organizationIds, ReportCaseCondition condition) {
+        return UNION_SOURCE_TEMPLATE.formatted(
+                valuesList(organizationIds),
+                condition.sqlClause(ManualReportCaseSource.FORM_058),
+                condition.sqlClause(ManualReportCaseSource.FORM_058_1)
+        );
     }
 
-    private String unionSourceWithOrg(List<Long> organizationIds) {
-        return UNION_SOURCE_WITH_ORG_TEMPLATE.formatted(valuesList(organizationIds));
+    private String unionSourceWithOrg(List<Long> organizationIds, ReportCaseCondition condition) {
+        return UNION_SOURCE_WITH_ORG_TEMPLATE.formatted(
+                valuesList(organizationIds),
+                condition.sqlClause(ManualReportCaseSource.FORM_058),
+                condition.sqlClause(ManualReportCaseSource.FORM_058_1)
+        );
     }
 
     private String valuesList(List<Long> organizationIds) {
         return organizationIds.stream().map(id -> "(" + id + ")").collect(Collectors.joining(","));
     }
 
-    private Query bindRange(Query query, Instant fromInclusive, Instant toExclusive) {
-        return query
+    private Query bindRange(Query query, Instant fromInclusive, Instant toExclusive, ReportCaseCondition condition) {
+        return condition.bind(query)
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive);
     }

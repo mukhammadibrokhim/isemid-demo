@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.report.form282.application.query;
 
+import uz.uzinfocom.app.modules.report.shared.ReportCaseCondition;
+import uz.uzinfocom.app.modules.report.shared.ReportRowRule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.uzinfocom.app.modules.iam.domain.Organization;
@@ -24,7 +26,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -66,21 +67,21 @@ public class Form282ReportQueryService {
                 organizationScopeResolver.resolve(currentOrganization).mode() != OrganizationScopeMode.ORGANIZATION;
 
         ReportDateRange range = reportDateRangeResolver.resolve(from, to);
-        Map<String, Form282Counts> countsByCode = form282ReportRepository
-                .countByDiagnosisCode(organizationIds, range.fromInclusive(), range.toExclusive())
-                .stream()
-                .collect(Collectors.toMap(
-                        p -> p.code().toUpperCase(Locale.ROOT),
-                        Form282DiagnosisCountProjection::counts,
-                        Form282Counts::plus
-                ));
-
         List<ManualReportResponse> entries = orderedEntries();
+
+        // One query per distinct row condition; unrestricted rows all share a single one.
+        Map<ReportCaseCondition, Map<String, Form282Counts>> countsByCondition = entries.stream()
+                .map(ReportCaseCondition::of)
+                .distinct()
+                .collect(Collectors.toMap(
+                        condition -> condition,
+                        condition -> countsByCode(organizationIds, range, condition)
+                ));
 
         List<Form282ReportNodeResponse> rows = entries.stream()
                 .map(entry -> row(
                         String.valueOf(entry.id()), localizedName(entry), entry.code(), entry.shortName(),
-                        hasChildren, rollUp(entry, countsByCode)
+                        hasChildren, rollUp(entry, countsByCondition)
                 ))
                 .toList();
 
@@ -93,8 +94,8 @@ public class Form282ReportQueryService {
         Organization currentOrganization = requireCurrentOrganization();
 
         ManualReportResponse entry = manualReportQueryService.getById(manualReportId);
-        Set<String> codes = normalizeCodes(entry.icd10Codes());
-        Form282GeographyCountSource countSource = new Form282GeographyCountSource(form282ReportRepository, codes);
+        Form282GeographyCountSource countSource =
+                new Form282GeographyCountSource(form282ReportRepository, ReportRowRule.of(entry));
 
         List<ReportHierarchyNode<Form282Counts>> nodes = reportHierarchyService.loadChildren(
                 currentOrganization, regionCode, districtCode, countSource,
@@ -113,8 +114,25 @@ public class Form282ReportQueryService {
     }
 
     /** Sum the per-code counts for every ICD-10 code in one catalog entry's set. */
-    private Form282Counts rollUp(ManualReportResponse entry, Map<String, Form282Counts> countsByCode) {
-        return normalizeCodes(entry.icd10Codes()).stream()
+    private Map<String, Form282Counts> countsByCode(
+            List<Long> organizationIds, ReportDateRange range, ReportCaseCondition condition
+    ) {
+        return form282ReportRepository
+                .countByDiagnosisCode(organizationIds, range.fromInclusive(), range.toExclusive(), condition)
+                .stream()
+                .collect(Collectors.toMap(
+                        p -> p.code().toUpperCase(Locale.ROOT),
+                        Form282DiagnosisCountProjection::counts,
+                        Form282Counts::plus
+                ));
+    }
+
+    private Form282Counts rollUp(
+            ManualReportResponse entry, Map<ReportCaseCondition, Map<String, Form282Counts>> countsByCondition
+    ) {
+        ReportRowRule rule = ReportRowRule.of(entry);
+        Map<String, Form282Counts> countsByCode = countsByCondition.get(rule.condition());
+        return rule.icd10Codes().stream()
                 .map(code -> countsByCode.getOrDefault(code, Form282Counts.EMPTY))
                 .reduce(Form282Counts.EMPTY, Form282Counts::plus);
     }
@@ -126,16 +144,6 @@ public class Form282ReportQueryService {
                 code, name, rowCode, icd10Display, hasChildren,
                 c.total(), c.under18(), c.underOneMonth(), c.oneMonthToUnderOneYear()
         );
-    }
-
-    private Set<String> normalizeCodes(Set<String> codes) {
-        if (codes == null) {
-            return Set.of();
-        }
-        return codes.stream()
-                .filter(c -> c != null && !c.isBlank())
-                .map(c -> c.trim().toUpperCase(Locale.ROOT))
-                .collect(Collectors.toSet());
     }
 
     private String localizedName(ManualReportResponse entry) {

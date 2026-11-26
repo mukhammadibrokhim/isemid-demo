@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Katalog qatoriga ixtiyoriy shartlar: jins va yosh oralig'i
+        [age_from, age_to). Bo'sh bo'lsa qator avvalgidek hamma holatni sanaydi,
+        shuning uchun mavjud qatorlarga qiymat yozilmaydi - admin o'zi kiritadi.
+    -->
+    <changeSet id="20261126-1200-01-manual-report-conditions" author="Tursunboyev Muhammadibrohim">
+        <addColumn tableName="ref_manual_report">
+            <column name="gender" type="varchar(10)"/>
+            <column name="age_from" type="integer"/>
+            <column name="age_from_unit" type="varchar(10)"/>
+            <column name="age_to" type="integer"/>
+            <column name="age_to_unit" type="varchar(10)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

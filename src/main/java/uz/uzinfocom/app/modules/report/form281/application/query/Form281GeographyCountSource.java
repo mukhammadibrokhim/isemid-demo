@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.report.form281.application.query;
 
+import uz.uzinfocom.app.modules.report.shared.ReportCaseCondition;
+import uz.uzinfocom.app.modules.report.shared.ReportRowRule;
 import uz.uzinfocom.app.modules.report.form281.application.query.dto.Form281Counts;
 import uz.uzinfocom.app.modules.report.form281.application.query.dto.Form281OrganizationCountProjection;
 import uz.uzinfocom.app.modules.report.form281.infrastructure.persistence.repository.Form281ReportRepository;
@@ -28,16 +30,18 @@ public final class Form281GeographyCountSource implements ReportCountSource<Form
 
     private final Form281ReportRepository form281ReportRepository;
     private final Set<String> icd10Codes;
+    private final ReportCaseCondition condition;
 
-    public Form281GeographyCountSource(Form281ReportRepository form281ReportRepository, Set<String> icd10Codes) {
+    public Form281GeographyCountSource(Form281ReportRepository form281ReportRepository, ReportRowRule rule) {
         this.form281ReportRepository = form281ReportRepository;
-        this.icd10Codes = icd10Codes;
+        this.icd10Codes = rule.icd10Codes();
+        this.condition = rule.condition();
     }
 
     @Override
     public Form281Counts total(List<Long> organizationIds, ReportDateRange range, String diagnosisCode) {
         return form281ReportRepository.countTotalForCodes(
-                organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes
+                organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes, condition
         );
     }
 
@@ -47,7 +51,7 @@ public final class Form281GeographyCountSource implements ReportCountSource<Form
     ) {
         return form281ReportRepository
                 .countGroupedByOrganizationForCodes(
-                        organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes
+                        organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes, condition
                 )
                 .stream()
                 .collect(Collectors.toMap(

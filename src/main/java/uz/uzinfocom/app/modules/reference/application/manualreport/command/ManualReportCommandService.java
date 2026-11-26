@@ -45,6 +45,16 @@ public class ManualReportCommandService {
                 Set.of()
         );
 
+        manualReportValidator.validateAgeBounds(
+                request.ageFrom(), request.ageFromUnit(), request.ageTo(), request.ageToUnit()
+        );
+        manualReportValidator.validateCaseFilters(request.caseSource(), request.labConfirmation());
+        manualReportValidator.validateDiseasePlaces(
+                manualReportCommandMapper.normalizeTags(request.diseasePlaceCodes()),
+                Set.of(),
+                request.caseSource()
+        );
+
         ManualReport manualReport = manualReportCommandMapper.toEntity(request);
 
         ManualReport saved = manualReportRepository.save(manualReport);
@@ -75,6 +85,16 @@ public class ManualReportCommandService {
                 manualReportCommandMapper.normalizeIcd10Codes(request.icd10Codes()),
                 manualReport.getReportTypes(),
                 manualReport.getIcd10Codes()
+        );
+
+        manualReportValidator.validateAgeBounds(
+                request.ageFrom(), request.ageFromUnit(), request.ageTo(), request.ageToUnit()
+        );
+        manualReportValidator.validateCaseFilters(request.caseSource(), request.labConfirmation());
+        manualReportValidator.validateDiseasePlaces(
+                manualReportCommandMapper.normalizeTags(request.diseasePlaceCodes()),
+                manualReport.getDiseasePlaceCodes(),
+                request.caseSource()
         );
 
         manualReportCommandMapper.updateEntity(manualReport, request);

@@ -1011,13 +1011,36 @@ any authenticated user; create/update/delete: `isemid_admin`/`isemid_super_admin
 | `shortName` | ≤100, report header (usually an ICD range, e.g. `A15-A19`) |
 | `nameUz/nameUzCyril/nameRu/nameKaa` | ≤255, all optional; fill at least uz + ru |
 | `includeInTotal` | default `true` ("Umumiy yakunga qo'shilsin"); sums into the `Jami` line |
-| `icd10Codes` | set, **≥1 required**, stored trimmed + UPPER-CASED; `+`/`*` suffixes (`A39.0+`, `J17.0*`) match `ref_icd10` — keep them |
-| `reportTypes` | set, optional; codes from the `REPORT_TYPE` catalog: `FORM_12`, `FORM_13`, `FORM_28_1`, `FORM_28_2`; stored case-preserved, matched case-insensitively; **not validated against the catalog server-side** — keep the UI a closed select |
+| `icd10Codes` | set, **≥1 required**, stored trimmed + UPPER-CASED; `+`/`*` suffixes (`A39.0+`, `J17.0*`) match `ref_icd10` — keep them. A newly added code must exist in `ref_icd10`; matching in reports is exact, so `A82` and `A82.0` are separate codes |
+| `reportTypes` | set, optional: `FORM_12`, `FORM_13`, `FORM_28_1`, `FORM_28_2` (the same codes as the `REPORT_TYPE` catalog, which feeds the UI select); stored UPPER-CASED, matched case-insensitively. The server accepts only these four (`ManualReportType`) — a new catalog entry is rejected until the enum has it |
+| `gender` | optional row condition: `MALE` / `FEMALE`; `null` = both |
+| `ageFrom` + `ageFromUnit` | optional lower age bound, **inclusive**; unit `DAY` / `MONTH` / `YEAR`; set both or neither |
+| `ageTo` + `ageToUnit` | optional upper age bound, **exclusive** (`28` + `DAY` = younger than 28 days; `1` + `YEAR` = under one year); set both or neither |
+| `caseSource` | optional: `FORM_058` / `FORM_058_1`; `null` = both forms |
+| `labConfirmation` | optional boolean on `form058.lab_confirmation`: `true` = confirmed only, `false` = explicitly not confirmed (unknown is skipped); a set value excludes all 058-1 cases and cannot be combined with `caseSource = FORM_058_1` (400) |
+| `populationType` | optional patient residence: `CITY_RESIDENT` / `VILLAGE_RESIDENT` |
+| `hospitalized` | optional boolean; hospitalized = `form058.hospital_place_id` / `form058_1.hospitalized_at` is set (the Form 9 definition) |
+| `diseasePlaceCodes` | optional set of `DISEASE_PLACE` catalog codes matched against `form058.disease_place_code` (any of them); a newly added code must be in the catalog; a non-empty set excludes all 058-1 cases and cannot be combined with `caseSource = FORM_058_1` (400) |
 | `deleted` | soft delete; never returned by reads |
 
 Errors: `400` (code blank/>50, name>255, `shortName`>100, `icd10Codes`
-empty), `403`, `404`, `409` (duplicate `code` on create; update of a
-soft-deleted row).
+empty, newly added unknown report type or ICD-10 code (values already stored are not re-checked), age bound without unit or vice versa, lower bound not below the upper
+one, bound outside 0–50000), `403`, `404`, `409` (duplicate `code` on create;
+update of a soft-deleted row).
+
+**Row conditions** (`gender`, age, `caseSource`, `labConfirmation`,
+`populationType`, `hospitalized`, `diseasePlaceCodes`; combined with AND) narrow what Form 12/13/28.1/28.2 (all
+views and exports) count in that row; nothing set = every case, as before.
+Age is measured on the case's `created_at`; a restricted row skips patients
+whose gender / birth date it needs is unknown, and also past periods are
+recounted with the current condition. The name text («shu jumladan:
+chaqaloqlar…») has no effect on counting. A condition covers the whole row,
+not single codes. Implementation: `report.shared.ReportCaseCondition` adds the
+predicate inside the report SQL; rows with an equal condition share one query.
+A birth date later than the case's `created_at` gives no age: such a case
+stays in the age-independent columns but in none of the age columns.
+**`PUT` is a full replace: a client that omits these ten fields clears the
+row's conditions** — the edit form must send them back.
 
 **«Hisobot turi» field (the form's multi-select).** Load options with
 `GET /v1/references/catalogs/types/REPORT_TYPE` (optional `limit` ≤200, `name`
@@ -1031,9 +1054,9 @@ duplicates removed). `PUT` is a **full replace** — send the complete
 `GET /{id}`; a code no longer in the catalog still comes back — show the raw
 code as a fallback.
 
-Table: `GET ?page&size(1–200)&sortBy(id|code|shortName|nameUz|nameUzCyril|nameRu|nameKaa|createdAt|updatedAt)&sortDir&name&code`.
-Row: `id, code, shortName, names, includeInTotal, deleted` — it does **not**
-include `reportTypes`/`icd10Codes` (use `GET /{id}`; ask backend to add a
+Table: `GET ?page&size(1–200)&sortBy(id|code|shortName|nameUz|nameUzCyril|nameRu|nameKaa|createdAt|updatedAt)&sortDir&name&code&reportType&icd10Code` (the last two: exact match, case-insensitive).
+Row: `id, code, shortName, names, includeInTotal, gender, ageFrom(+Unit), ageTo(+Unit), reportTypes, deleted` — it does **not**
+include `icd10Codes` (use `GET /{id}`; ask backend to add a
 column rather than N+1). Other reads: `GET …/code/{code}` (lookup shape),
 `GET …/icd10/{code}` (rows whose set contains that diagnosis).
 

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Katalog qatori uchun "Kasallik yuzaga kelgan joy" sharti: DISEASE_PLACE
+        katalogidagi bir nechta kod. Yozuv yo'q bo'lsa - cheklov yo'q.
+    -->
+    <changeSet id="20261126-1400-01-manual-report-disease-places" author="Tursunboyev Muhammadibrohim">
+        <createTable tableName="ref_manual_report_disease_places">
+            <column name="manual_report_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_ref_manual_report_disease_places_report"
+                             references="ref_manual_report(id)"/>
+            </column>
+            <column name="disease_place_code" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="ref_manual_report_disease_places"
+                     indexName="idx_ref_manual_report_disease_places_report_id">
+            <column name="manual_report_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.report.form13.application.query;
 
+import uz.uzinfocom.app.modules.report.shared.ReportCaseCondition;
+import uz.uzinfocom.app.modules.report.shared.ReportRowRule;
 import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13Metric;
 import uz.uzinfocom.app.modules.report.form13.application.query.dto.Form13OrganizationCountProjection;
 import uz.uzinfocom.app.modules.report.form13.infrastructure.persistence.repository.Form13ReportRepository;
@@ -30,16 +32,18 @@ public final class Form13ByDiseaseGeographyCountSource implements ReportCountSou
 
     private final Form13ReportRepository form13ReportRepository;
     private final Set<String> icd10Codes;
+    private final ReportCaseCondition condition;
 
-    public Form13ByDiseaseGeographyCountSource(Form13ReportRepository form13ReportRepository, Set<String> icd10Codes) {
+    public Form13ByDiseaseGeographyCountSource(Form13ReportRepository form13ReportRepository, ReportRowRule rule) {
         this.form13ReportRepository = form13ReportRepository;
-        this.icd10Codes = icd10Codes;
+        this.icd10Codes = rule.icd10Codes();
+        this.condition = rule.condition();
     }
 
     @Override
     public Form13Metric total(List<Long> organizationIds, ReportDateRange range, String diagnosisCode) {
         return form13ReportRepository.countTotalForCodes(
-                organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes
+                organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes, condition
         );
     }
 
@@ -49,7 +53,7 @@ public final class Form13ByDiseaseGeographyCountSource implements ReportCountSou
     ) {
         return form13ReportRepository
                 .countGroupedByOrganizationForCodes(
-                        organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes
+                        organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes, condition
                 )
                 .stream()
                 .collect(Collectors.toMap(

@@ -1,5 +1,7 @@
 package uz.uzinfocom.app.modules.report.form12.application.query;
 
+import uz.uzinfocom.app.modules.report.shared.ReportCaseCondition;
+import uz.uzinfocom.app.modules.report.shared.ReportRowRule;
 import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12Counts;
 import uz.uzinfocom.app.modules.report.form12.application.query.dto.Form12OrganizationCountProjection;
 import uz.uzinfocom.app.modules.report.form12.infrastructure.persistence.repository.Form12ReportRepository;
@@ -29,16 +31,18 @@ public final class Form12GeographyCountSource implements ReportCountSource<Form1
 
     private final Form12ReportRepository form12ReportRepository;
     private final Set<String> icd10Codes;
+    private final ReportCaseCondition condition;
 
-    public Form12GeographyCountSource(Form12ReportRepository form12ReportRepository, Set<String> icd10Codes) {
+    public Form12GeographyCountSource(Form12ReportRepository form12ReportRepository, ReportRowRule rule) {
         this.form12ReportRepository = form12ReportRepository;
-        this.icd10Codes = icd10Codes;
+        this.icd10Codes = rule.icd10Codes();
+        this.condition = rule.condition();
     }
 
     @Override
     public Form12Counts total(List<Long> organizationIds, ReportDateRange range, String diagnosisCode) {
         return form12ReportRepository.countTotalForCodes(
-                organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes
+                organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes, condition
         );
     }
 
@@ -48,7 +52,7 @@ public final class Form12GeographyCountSource implements ReportCountSource<Form1
     ) {
         return form12ReportRepository
                 .countGroupedByOrganizationForCodes(
-                        organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes
+                        organizationIds, range.fromInclusive(), range.toExclusive(), icd10Codes, condition
                 )
                 .stream()
                 .collect(Collectors.toMap(

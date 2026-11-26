@@ -26,6 +26,7 @@ public interface ManualReportCommandMapper {
     @Mapping(target = "includeInTotal", expression = "java(request.includeInTotal() == null ? Boolean.TRUE : request.includeInTotal())")
     @Mapping(target = "reportTypes", source = "reportTypes", qualifiedByName = "normalizeTags")
     @Mapping(target = "icd10Codes", source = "icd10Codes", qualifiedByName = "normalizeIcd10Codes")
+    @Mapping(target = "diseasePlaceCodes", source = "diseasePlaceCodes", qualifiedByName = "normalizeTags")
     @Mapping(target = "deleted", constant = "false")
     ManualReport toEntity(ManualReportCreateRequest request);
 
@@ -37,6 +38,7 @@ public interface ManualReportCommandMapper {
     @Mapping(target = "includeInTotal", expression = "java(request.includeInTotal() == null ? Boolean.TRUE : request.includeInTotal())")
     @Mapping(target = "reportTypes", source = "reportTypes", qualifiedByName = "normalizeTags")
     @Mapping(target = "icd10Codes", source = "icd10Codes", qualifiedByName = "normalizeIcd10Codes")
+    @Mapping(target = "diseasePlaceCodes", source = "diseasePlaceCodes", qualifiedByName = "normalizeTags")
     @Mapping(target = "deleted", ignore = true)
     void updateEntity(@MappingTarget ManualReport entity, ManualReportUpdateRequest request);
 

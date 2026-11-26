@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Katalog qatoriga yana to'rtta ixtiyoriy shart: manba forma, laboratoriya
+        tasdig'i, shahar/qishloq va kasalxonaga yotqizish. Bo'sh qiymat -
+        cheklov yo'q, shuning uchun mavjud qatorlarga hech narsa yozilmaydi.
+    -->
+    <changeSet id="20261126-1300-01-manual-report-case-filters" author="Tursunboyev Muhammadibrohim">
+        <addColumn tableName="ref_manual_report">
+            <column name="case_source" type="varchar(20)"/>
+            <column name="lab_confirmation" type="boolean"/>
+            <column name="population_type" type="varchar(30)"/>
+            <column name="hospitalized" type="boolean"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

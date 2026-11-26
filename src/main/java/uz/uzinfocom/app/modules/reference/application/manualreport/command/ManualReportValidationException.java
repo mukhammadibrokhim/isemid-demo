@@ -18,6 +18,26 @@ public class ManualReportValidationException extends AppException {
         return new ManualReportValidationException("reference.manual_report.icd10_codes.unknown", unknown);
     }
 
+    public static ManualReportValidationException ageUnitMismatch() {
+        return new ManualReportValidationException("reference.manual_report.age.unit_mismatch");
+    }
+
+    public static ManualReportValidationException ageBoundsOrder() {
+        return new ManualReportValidationException("reference.manual_report.age.bounds_order");
+    }
+
+    public static ManualReportValidationException labConfirmationUnavailable() {
+        return new ManualReportValidationException("reference.manual_report.lab_confirmation.unavailable");
+    }
+
+    public static ManualReportValidationException diseasePlaceUnavailable() {
+        return new ManualReportValidationException("reference.manual_report.disease_places.unavailable");
+    }
+
+    public static ManualReportValidationException unknownDiseasePlaces(String unknown) {
+        return new ManualReportValidationException("reference.manual_report.disease_places.unknown", unknown);
+    }
+
     public static ManualReportValidationException icd10CodesRequired() {
         return new ManualReportValidationException("reference.manual_report.icd10_codes.required");
     }
